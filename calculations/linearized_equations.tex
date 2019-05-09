@@ -1,0 +1,94 @@
+\documentclass[11pt, fleqn]{article}
+\usepackage{amsmath, amssymb, mathrsfs}
+\usepackage[a4paper, top=18mm, bottom=18mm, left=10mm, right=10mm]{geometry}
+\usepackage{graphics}
+\usepackage{color, enumerate}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, allcolors=black}
+
+\newcommand{\HL}{\mathscr{L}}
+\newcommand{\bv}{\boldsymbol{v}}
+\newcommand{\br}{\boldsymbol{r}}
+\newcommand{\bk}{\boldsymbol{k}}
+\newcommand{\bb}{\boldsymbol{B}}
+\newcommand{\bg}{\boldsymbol{g}}
+\newcommand{\bA}{\boldsymbol{A}}
+\newcommand{\bkappa}{\boldsymbol{\kappa}}
+\newcommand{\ex}{\hat{\boldsymbol{e}}_1}
+\newcommand{\ey}{\hat{\boldsymbol{e}}_2}
+\newcommand{\ez}{\hat{\boldsymbol{e}}_3}
+\newcommand{\bext}{\widetilde{\boldsymbol{e}}_x}
+\newcommand{\beyt}{\widetilde{\boldsymbol{e}}_y}
+\newcommand{\bezt}{\widetilde{\boldsymbol{e}}_z}
+
+
+\begin{document}
+
+\section{Basic equations}
+Basic equations to start from: MHD with non-adiabatic effects added:
+\begin{equation}
+	\begin{aligned}
+		\frac{\partial \rho}{\partial t}      &= -\nabla \cdot (\rho \bv)		\\
+		\rho\frac{\partial \bv}{\partial t}   &= -\nabla p - \rho\bv \cdot \nabla\bv + (\nabla \times \bb) \times \bb + \rho\bg	\\
+		\rho\frac{\partial T}{\partial t}			&= -\rho\bv \cdot \nabla T - (\gamma - 1)p\nabla \cdot \bv - (\gamma - 1)\rho\HL + (\gamma - 1)\nabla \cdot (\bkappa \cdot \nabla T)	\\
+		\frac{\partial B}{\partial t}					&= \nabla \times (\bv \times \bb)	\\
+	\end{aligned}
+\end{equation}
+Linearize them with flow, so $\bv_0 \neq 0$. Also use a vector potential $\bb_1 = \nabla \times \bA_1$ for the perturbed magnetic field and replace $p_1$ by $T_0\rho_1 + \rho_0 T_1$ (from the linearized ideal gas law):
+\begin{equation}
+	\begin{aligned}
+		\frac{\partial \rho_1}{\partial t}			&= -\nabla \cdot (\rho_0\bv_1) - \nabla \cdot (\rho_1\bv_0)	\\
+		\rho_0\frac{\partial \bv_1}{\partial t}	&= - \rho_0\bv_0 \cdot \nabla \bv_1 - \rho_0\bv_1 \cdot \nabla \bv_0 - \rho_1\bv_0 \cdot \nabla \bv_0 - \nabla(T_0\rho_1 + \rho_0 T_1) + (\nabla \times \bb_0) \times (\nabla \times \bA_1)	\\
+																					  &~~~~ + \left[\nabla \times (\nabla \times \bA_1) \right] \times \bb_0 + \rho_1 \bg	\\
+		\rho_0\frac{\partial T_1}{\partial t}		&= -\rho_0\bv_1 \cdot \nabla T_0 - \rho_0\bv_0 \cdot \nabla T_1 - (\gamma - 1)\rho_0 T_0 \nabla \cdot \bv_1 - (\gamma - 1)\rho_1 \HL_0 - (\gamma - 1)\rho_0(\HL_T T_1 + \HL_\rho \rho_1)		\\
+																						&~~~~ +(\gamma - 1)\nabla \cdot (\bkappa_0 \cdot \nabla T_1) + (\gamma - 1)\nabla \cdot (\bkappa_1 \cdot \nabla T_0)	\\
+		\frac{\partial \bA_1}{\partial t}				&= \bv_1 \times \bb_0 + \bv_0 \times (\nabla \times \bA_1)	\\
+		\frac{p_1}{p_0}													&= \frac{T_1}{T_0} + \frac{\rho_1}{\rho_0}
+	\end{aligned}
+\end{equation}
+
+\noindent
+Denote coordinate system by $(u_1, u_2, u_3)$, which is $(x, y, z)$ in Cartesian and $(r, \theta, z)$ in cylindrical coordinates. Equilibrium profiles are only dependent on $u_1$, taken to be
+\begin{equation}
+	\begin{aligned}
+		\rho_0	&= \rho_0(u_1)													\\
+		p_0 		&= p_0(u_1)															\\
+		T_0			&= T_0(u_1)															\\
+		\bv_0 	&= v_{02}(u_1)\ey + v_{03}(u_1)\ez			\\
+		\bb_0 	&= B_{02}(u_1)\ey + B_{03}(u_1)\ez			\\
+	\end{aligned}
+\end{equation}
+so $\nabla \cdot \bv_0 = 0$ and obviously $\nabla \cdot \bb_0 = 0$ and $\nabla \cdot \bb_1 = 0$, take gravity as $\bg = -g\ex$. Vectors $\ex$, $\ey$ and $\ez$ are orthonormal basis vectors representing directions along $(u_1, u_2, u_3)$. Apply Fourier transformation using
+\begin{equation}
+	f_1(u_1, u_2, u_3, t) = \widetilde{f_1}(u_1)\text{e}^{-i\omega t + ik_2u_2 + ik_3u_3}
+\end{equation}
+
+\newpage
+\subsection{Slab geometry}
+Below all tildes are dropped for convenience.
+\begin{equation}
+	\begin{aligned}
+		\omega \rho_1 		&= -iv_1\rho_0' - i\rho_0(v_1' + ik_2v_2 + ik_3v_3) + (v_{02}k_2 + v_{03}k_3)\rho_1																																									\\[8pt]
+		\omega \rho_0 v_1	&= \rho_0(k_2 v_{02} + k_3 v_{03})v_1 - i(\rho_0 T_1 + \rho_1 T_0)' + iB_{02}'(a_3' - ik_3a_1) - iB_{03}'(a_2' - ik_2a_1)																						\\
+											&~~~~ + iB_{03}\left[k_3^2a_2 - k_2k_3a_3 - (a_2' - ik_2a_1)'\right] - iB_{02}\left[k_2^2a_3 - k_2k_3a_2 + (ik_3a_1 - a_3')'\right]																	\\[8pt]
+		\omega \rho_0 v_2	&= k_2(T_0\rho_1 + \rho_0 T_1) + \rho_0(k_2 v_{02} + k_3v_{03})v_2 - i\rho_0v_{02}'v_1 - B_{02}'(k_2a_3 - k_3a_2) 																									\\
+											&~~~~ - iB_{03}\left[(k_2^2 + k_3^3)a_1 + i(k_2a_2 + k_3a_3)'\right]																																																\\[8pt]
+		\omega \rho_0 v_3	&= k_3(T_0\rho_1 + \rho_0 T_1) + \rho_0(k_2 v_{02} + k_3v_{03})v_3 - i\rho_0v_{03}'v_1 - B_{03}'(k_2a_3 - k_3a_2)																										\\
+											&~~~~ + iB_{02}\left[(k_2^2 + k_3^2)a_1 + i(k_2a_2 + k_3a_3)'\right]																																																\\[8pt]
+		\omega \rho_0 T		&= -i\rho_0v_1T_0' + \rho_0(k_2v_{02} - k_3v_{03})T_1 - i(\gamma - 1)\rho_0T_0(v_1' + ik_2v_2 + ik_3v_3) - i(\gamma - 1)\HL_0\rho_1																	\\
+											&~~~~ - i(\gamma - 1)\rho_0\HL_T T_1 - i(\gamma - 1)\rho_0\HL_\rho \rho_1 - i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}(k_2B_{02} + k_3B_{03})^2T_1	\\
+											&~~~~ + i(\gamma - 1)(\kappa_\bot T_1')' - i\kappa_\bot(\gamma - 1)(k_2^2 + k_3^2)T_1 + i(\gamma - 1)(\kappa_{1, \bot}T_0')'																				\\
+											&~~~~ + i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}\left[(k_2k_3B_{02} + k_3^2B_{03})a_2 - (k_2k_3B_{03} + k_2^2B_{02})a_3\right]T_0'								\\[8pt]
+		\omega a_1				&=  iB_{03}v_2 - iB_{02}v_3 + iv_{02}a_2' + iv_{03}a_3' + (k_2v_{02} + k_3v_{03})a_1																																								\\[8pt]
+		\omega a_2				&= -iB_{03}v_1 - v_{03}(k_2a_3 - k_3a_2)																																																														\\[8pt]
+		\omega a_3				&=  iB_{02}v_1 - v_{02}(k_3a_2 - k_2a_3)																																																														\\
+	\end{aligned}
+\end{equation}
+where the prime denotes $\partial_{u_1}$.
+
+\subsection{Cylindrical geometry}
+
+
+
+
+\end{document}
