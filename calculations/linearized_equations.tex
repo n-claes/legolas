@@ -70,23 +70,44 @@ Below all tildes are dropped for convenience.
 	\begin{aligned}
 		\omega \rho_1 		&= -iv_1\rho_0' - i\rho_0(v_1' + ik_2v_2 + ik_3v_3) + (v_{02}k_2 + v_{03}k_3)\rho_1																																									\\[8pt]
 		\omega \rho_0 v_1	&= \rho_0(k_2 v_{02} + k_3 v_{03})v_1 - i(\rho_0 T_1 + \rho_1 T_0)' + iB_{02}'(a_3' - ik_3a_1) - iB_{03}'(a_2' - ik_2a_1)																						\\
-											&~~~~ + iB_{03}\left[k_3^2a_2 - k_2k_3a_3 - (a_2' - ik_2a_1)'\right] - iB_{02}\left[k_2^2a_3 - k_2k_3a_2 + (ik_3a_1 - a_3')'\right]																	\\[8pt]
+											&~~~~ + iB_{03}\left[k_3^2a_2 - k_2k_3a_3 - (a_2' - ik_2a_1)'\right] - iB_{02}\left[k_2^2a_3 - k_2k_3a_2 + (ik_3a_1 - a_3')'\right]	 - ig\rho_1											\\[8pt]
 		\omega \rho_0 v_2	&= k_2(T_0\rho_1 + \rho_0 T_1) + \rho_0(k_2 v_{02} + k_3v_{03})v_2 - i\rho_0v_{02}'v_1 - B_{02}'(k_2a_3 - k_3a_2) 																									\\
 											&~~~~ - iB_{03}\left[(k_2^2 + k_3^3)a_1 + i(k_2a_2 + k_3a_3)'\right]																																																\\[8pt]
 		\omega \rho_0 v_3	&= k_3(T_0\rho_1 + \rho_0 T_1) + \rho_0(k_2 v_{02} + k_3v_{03})v_3 - i\rho_0v_{03}'v_1 - B_{03}'(k_2a_3 - k_3a_2)																										\\
 											&~~~~ + iB_{02}\left[(k_2^2 + k_3^2)a_1 + i(k_2a_2 + k_3a_3)'\right]																																																\\[8pt]
-		\omega \rho_0 T		&= -i\rho_0v_1T_0' + \rho_0(k_2v_{02} - k_3v_{03})T_1 - i(\gamma - 1)\rho_0T_0(v_1' + ik_2v_2 + ik_3v_3) - i(\gamma - 1)\HL_0\rho_1																	\\
+		\omega \rho_0 T_1	&= -i\rho_0v_1T_0' + \rho_0(k_2v_{02} - k_3v_{03})T_1 - i(\gamma - 1)\rho_0T_0(v_1' + ik_2v_2 + ik_3v_3) - i(\gamma - 1)\HL_0\rho_1																	\\
 											&~~~~ - i(\gamma - 1)\rho_0\HL_T T_1 - i(\gamma - 1)\rho_0\HL_\rho \rho_1 - i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}(k_2B_{02} + k_3B_{03})^2T_1	\\
 											&~~~~ + i(\gamma - 1)(\kappa_\bot T_1')' - i\kappa_\bot(\gamma - 1)(k_2^2 + k_3^2)T_1 + i(\gamma - 1)(\kappa_{1, \bot}T_0')'																				\\
 											&~~~~ + i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}\left[(k_2k_3B_{02} + k_3^2B_{03})a_2 - (k_2k_3B_{03} + k_2^2B_{02})a_3\right]T_0'								\\[8pt]
 		\omega a_1				&=  iB_{03}v_2 - iB_{02}v_3 + iv_{02}a_2' + iv_{03}a_3' + (k_2v_{02} + k_3v_{03})a_1																																								\\[8pt]
 		\omega a_2				&= -iB_{03}v_1 - v_{03}(k_2a_3 - k_3a_2)																																																														\\[8pt]
-		\omega a_3				&=  iB_{02}v_1 - v_{02}(k_3a_2 - k_2a_3)																																																														\\
+		\omega a_3				&=  iB_{02}v_1 - v_{02}(k_3a_2 - k_2a_3)																																																					\\
 	\end{aligned}
 \end{equation}
 where the prime denotes $\partial_{u_1}$.
 
 \subsection{Cylindrical geometry}
+Derivations in cylindrical coordinates, explicitly done to see how the scale factor enters into the equations. For consistency with the slab case the same Fourier transformation is used (usually $k_2 = m$ and $k_3 = k$).
+\begin{equation}
+	\begin{aligned}
+		\omega \rho_1			&= -iv_1\rho_0' - i\rho_0\left(v_1' + \frac{v_1}{r} + \frac{1}{r}ik_2v_2 + ik_3v_3\right) + \left(\frac{1}{r}v_{02}k_2 + v_{03}k_3\right)\rho_1																									\\[8pt]
+		\omega \rho_0 v_1 &= -i\left(T_0\rho_1 + T_1\rho_0\right)' - i\frac{B_{03}'}{r}\left[(ra_2)' - ik_2a_1\right] + i\frac{(rB_{02})'}{r}\left(a_3' - ik_3a_1\right)																									\\
+											&~~~~ + iB_{03}\left\{k_3^2a_2 - \frac{1}{r}k_2k_3a_3 - \left[\frac{1}{r}\left((ra_2)' - ik_2a_1\right)\right]'\right\} + \left(\frac{v_{02}k_2}{r} + v_{03}k_3\right)\rho_0v_1									\\
+											&~~~~ - iB_{02}\left\{\frac{1}{r^2}k_2^2a_3 - k_2k_3a_2 + \frac{1}{r}\left[r\left(ik_3a_1 - a_3'\right)\right]'\right\} + i\frac{2}{r}\rho_0v_{02}v_2 + i\frac{1}{r}v_{02}^2\rho_1 - ig\rho_1		\\[8pt]
+		\omega \rho_0 v_2 &= \frac{1}{r}(T_0\rho_1 + \rho_0T_1)k_2 +\rho_0\left(\frac{1}{r}v_{02}k_2 + v_{03}k_3\right)v_2 + \frac{1}{r^2}(rB_{02})'(rk_3a_2 - k_2a_3)																										\\
+											&~~~~ + B_{03}\left[-ik_3^2a_1 + k_3a_3' + \frac{1}{r^2}k_2(ra_2)' - \frac{i}{r^2}k_2^2a_1\right] - i\rho_0\frac{1}{r}v_{02}v_1 - i\rho_0v_{02}'v_1																							\\[8pt]
+		\omega \rho_0 v_3 &= (T_0\rho_1 + \rho_0T_1)k_3 - B_{03}'\left(\frac{1}{r}k_2a_3 - k_3a_3\right) + iB_{02}\left[\frac{1}{r^2}ik_2(ra_2)' - \frac{1}{r^2}ik_2a_1 + k_3^2a_1 + ik_3a_3'\right]											\\
+											&~~~~ + \rho_0\left(\frac{1}{r}k_2v_{02} + k_3v_{03}\right) - i\rho_0v_{03}'v_1																																																									\\[8pt]
+		\omega \rho_0 T_1 &= -i\rho_0v_1T_0' +\rho_0\left(\frac{1}{r}k_2v_{02} + k_3v_{03}\right)T_1 - i(\gamma - 1)\rho_0T_0\left[\frac{1}{r}(rv_1)' + \frac{1}{r}ik_2v_2 + ik_3v_3\right]																\\
+											&~~~~ - i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}\left(\frac{1}{r}k_2B_{02} + k_3B_{03}\right)^2T_1 + i(\gamma - 1)\frac{1}{r}(\kappa_\bot T_1')'															\\
+											&~~~~ - i(\gamma - 1)\kappa_\bot\left(\frac{1}{r^2}k_2^2 + k_3^2\right)T_1 + i(\gamma - 1)\frac{1}{r}(r\kappa_{\bot, 1}T_0')'																																		\\
+											&~~~~ + i(\gamma - 1)(\kappa_\bot - \kappa_\parallel)\frac{1}{B^2}\left[(B_{03}k_3^2 + B_{02}k_2k_3)a_2 - \frac{1}{r}(B_{02}k_2^2 + B_{03}k_2k_3)a_3\right]																			\\
+											&~~~~ - i(\gamma - 1)\rho_1\HL_0 - i(\gamma - 1)\rho_0(\HL_T T_1 + \HL_\rho \rho_1)																																																							\\[8pt]
+		\omega a_1				&= iB_{03}v_2 - iB_{02}v_3 + iv_{02}a_2' + iv_{03}a_3' + \left(\frac{1}{r}k_2v_{02} + k_3v_{03}\right)a_1 + \frac{1}{r}v_{02}a_2																																\\[8pt]
+		\omega a_2				&= -iB_{03}v_1 - \left(\frac{1}{r}k_2a_3 - k_3a_2\right)v_{03}																																																																	\\[8pt]
+		\omega a_3				&=  iB_{02}v_1 - \left(k_3a_2 - \frac{1}{r}k_2a_3\right)v_{02}
+	\end{aligned}
+\end{equation}
 
 
 
