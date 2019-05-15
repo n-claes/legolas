@@ -1,5 +1,5 @@
 \documentclass[11pt, fleqn]{article}
-\usepackage{amsmath, amssymb, mathrsfs}
+\usepackage{amsmath, amssymb, mathrsfs, mathtools}
 \usepackage[a4paper, top=18mm, bottom=18mm, left=10mm, right=10mm]{geometry}
 \usepackage{graphics}
 \usepackage{color, enumerate}
@@ -29,22 +29,22 @@
 Basic equations to start from: MHD with non-adiabatic effects added:
 \begin{equation}
 	\begin{aligned}
-		\frac{\partial \rho}{\partial t}      &= -\nabla \cdot (\rho \bv)		\\
-		\rho\frac{\partial \bv}{\partial t}   &= -\nabla p - \rho\bv \cdot \nabla\bv + (\nabla \times \bb) \times \bb + \rho\bg	\\
-		\rho\frac{\partial T}{\partial t}			&= -\rho\bv \cdot \nabla T - (\gamma - 1)p\nabla \cdot \bv - (\gamma - 1)\rho\HL + (\gamma - 1)\nabla \cdot (\bkappa \cdot \nabla T)	\\
-		\frac{\partial B}{\partial t}					&= \nabla \times (\bv \times \bb)	\\
+		\frac{\partial \rho}{\partial t}      &= -\nabla \cdot (\rho \bv)																													\\
+		\rho\frac{\partial \bv}{\partial t}   &= -\nabla p - \rho\bv \cdot \nabla\bv + (\nabla \times \bb) \times \bb + \rho\bg																\\
+		\rho\frac{\partial T}{\partial t}	  &= -\rho\bv \cdot \nabla T - (\gamma - 1)p\nabla \cdot \bv - (\gamma - 1)\rho\HL + (\gamma - 1)\nabla \cdot (\bkappa \cdot \nabla T)			\\
+		\frac{\partial B}{\partial t}		  &= \nabla \times (\bv \times \bb)																												\\
 	\end{aligned}
 \end{equation}
 Linearize them with flow, so $\bv_0 \neq 0$. Also use a vector potential $\bb_1 = \nabla \times \bA_1$ for the perturbed magnetic field and replace $p_1$ by $T_0\rho_1 + \rho_0 T_1$ (from the linearized ideal gas law):
 \begin{equation}
 	\begin{aligned}
-		\frac{\partial \rho_1}{\partial t}			&= -\nabla \cdot (\rho_0\bv_1) - \nabla \cdot (\rho_1\bv_0)	\\
-		\rho_0\frac{\partial \bv_1}{\partial t}	&= - \rho_0\bv_0 \cdot \nabla \bv_1 - \rho_0\bv_1 \cdot \nabla \bv_0 - \rho_1\bv_0 \cdot \nabla \bv_0 - \nabla(T_0\rho_1 + \rho_0 T_1) + (\nabla \times \bb_0) \times (\nabla \times \bA_1)	\\
-																					  &~~~~ + \left[\nabla \times (\nabla \times \bA_1) \right] \times \bb_0 + \rho_1 \bg	\\
-		\rho_0\frac{\partial T_1}{\partial t}		&= -\rho_0\bv_1 \cdot \nabla T_0 - \rho_0\bv_0 \cdot \nabla T_1 - (\gamma - 1)\rho_0 T_0 \nabla \cdot \bv_1 - (\gamma - 1)\rho_1 \HL_0 - (\gamma - 1)\rho_0(\HL_T T_1 + \HL_\rho \rho_1)		\\
-																						&~~~~ +(\gamma - 1)\nabla \cdot (\bkappa_0 \cdot \nabla T_1) + (\gamma - 1)\nabla \cdot (\bkappa_1 \cdot \nabla T_0)	\\
-		\frac{\partial \bA_1}{\partial t}				&= \bv_1 \times \bb_0 + \bv_0 \times (\nabla \times \bA_1)	\\
-		\frac{p_1}{p_0}													&= \frac{T_1}{T_0} + \frac{\rho_1}{\rho_0}
+		\frac{\partial \rho_1}{\partial t}		&= -\nabla \cdot (\rho_0\bv_1) - \nabla \cdot (\rho_1\bv_0)	\\
+		\rho_0\frac{\partial \bv_1}{\partial t}	&= - \rho_0\bv_0 \cdot \nabla \bv_1 - \rho_0\bv_1 \cdot \nabla \bv_0 - \rho_1\bv_0 \cdot \nabla \bv_0 - \nabla(T_0\rho_1 + \rho_0 T_1) + (\nabla \times \bb_0) \times (\nabla \times \bA_1)		\\
+												&~~~~ + \left[\nabla \times (\nabla \times \bA_1) \right] \times \bb_0 + \rho_1 \bg																												\\
+		\rho_0\frac{\partial T_1}{\partial t}	&= -\rho_0\bv_1 \cdot \nabla T_0 - \rho_0\bv_0 \cdot \nabla T_1 - (\gamma - 1)\rho_0 T_0 \nabla \cdot \bv_1 - (\gamma - 1)\rho_1 \HL_0 - (\gamma - 1)\rho_0(\HL_T T_1 + \HL_\rho \rho_1)		\\
+												&~~~~ +(\gamma - 1)\nabla \cdot (\bkappa_0 \cdot \nabla T_1) + (\gamma - 1)\nabla \cdot (\bkappa_1 \cdot \nabla T_0)																			\\
+		\frac{\partial \bA_1}{\partial t}		&= \bv_1 \times \bb_0 + \bv_0 \times (\nabla \times \bA_1)																																		\\
+		\frac{p_1}{p_0}							&= \frac{T_1}{T_0} + \frac{\rho_1}{\rho_0}
 	\end{aligned}
 \end{equation}
 
@@ -52,9 +52,9 @@ Linearize them with flow, so $\bv_0 \neq 0$. Also use a vector potential $\bb_1 
 Denote coordinate system by $(u_1, u_2, u_3)$, which is $(x, y, z)$ in Cartesian and $(r, \theta, z)$ in cylindrical coordinates. Equilibrium profiles are only dependent on $u_1$, taken to be
 \begin{equation}
 	\begin{aligned}
-		\rho_0	&= \rho_0(u_1)													\\
-		p_0 		&= p_0(u_1)															\\
-		T_0			&= T_0(u_1)															\\
+		\rho_0	&= \rho_0(u_1)								\\
+		p_0 	&= p_0(u_1)									\\
+		T_0		&= T_0(u_1)									\\
 		\bv_0 	&= v_{02}(u_1)\ey + v_{03}(u_1)\ez			\\
 		\bb_0 	&= B_{02}(u_1)\ey + B_{03}(u_1)\ez			\\
 	\end{aligned}
@@ -68,20 +68,20 @@ so $\nabla \cdot \bv_0 = 0$ and obviously $\nabla \cdot \bb_0 = 0$ and $\nabla \
 Below all tildes are dropped for convenience.
 \begin{equation}
 	\begin{aligned}
-		\omega \rho_1 		&= -iv_1\rho_0' - i\rho_0(v_1' + ik_2v_2 + ik_3v_3) + (v_{02}k_2 + v_{03}k_3)\rho_1																																									\\[8pt]
-		\omega \rho_0 v_1	&= \rho_0(k_2 v_{02} + k_3 v_{03})v_1 - i(\rho_0 T_1 + \rho_1 T_0)' + iB_{02}'(a_3' - ik_3a_1) - iB_{03}'(a_2' - ik_2a_1)																						\\
-											&~~~~ + iB_{03}\left[k_3^2a_2 - k_2k_3a_3 - (a_2' - ik_2a_1)'\right] - iB_{02}\left[k_2^2a_3 - k_2k_3a_2 + (ik_3a_1 - a_3')'\right]	 - ig\rho_1											\\[8pt]
-		\omega \rho_0 v_2	&= k_2(T_0\rho_1 + \rho_0 T_1) + \rho_0(k_2 v_{02} + k_3v_{03})v_2 - i\rho_0v_{02}'v_1 - B_{02}'(k_2a_3 - k_3a_2) 																									\\
-											&~~~~ - iB_{03}\left[(k_2^2 + k_3^3)a_1 + i(k_2a_2 + k_3a_3)'\right]																																																\\[8pt]
-		\omega \rho_0 v_3	&= k_3(T_0\rho_1 + \rho_0 T_1) + \rho_0(k_2 v_{02} + k_3v_{03})v_3 - i\rho_0v_{03}'v_1 - B_{03}'(k_2a_3 - k_3a_2)																										\\
-											&~~~~ + iB_{02}\left[(k_2^2 + k_3^2)a_1 + i(k_2a_2 + k_3a_3)'\right]																																																\\[8pt]
-		\omega \rho_0 T_1	&= -i\rho_0v_1T_0' + \rho_0(k_2v_{02} - k_3v_{03})T_1 - i(\gamma - 1)\rho_0T_0(v_1' + ik_2v_2 + ik_3v_3) - i(\gamma - 1)\HL_0\rho_1																	\\
-											&~~~~ - i(\gamma - 1)\rho_0\HL_T T_1 - i(\gamma - 1)\rho_0\HL_\rho \rho_1 - i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}(k_2B_{02} + k_3B_{03})^2T_1	\\
-											&~~~~ + i(\gamma - 1)(\kappa_\bot T_1')' - i\kappa_\bot(\gamma - 1)(k_2^2 + k_3^2)T_1 + i(\gamma - 1)(\kappa_{1, \bot}T_0')'																				\\
-											&~~~~ + i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}\left[(k_2k_3B_{02} + k_3^2B_{03})a_2 - (k_2k_3B_{03} + k_2^2B_{02})a_3\right]T_0'								\\[8pt]
-		\omega a_1				&=  iB_{03}v_2 - iB_{02}v_3 + iv_{02}a_2' + iv_{03}a_3' + (k_2v_{02} + k_3v_{03})a_1																																								\\[8pt]
-		\omega a_2				&= -iB_{03}v_1 - v_{03}(k_2a_3 - k_3a_2)																																																														\\[8pt]
-		\omega a_3				&=  iB_{02}v_1 - v_{02}(k_3a_2 - k_2a_3)																																																					\\
+		\omega \rho_1 		&= -iv_1\rho_0' - i\rho_0(v_1' + ik_2v_2 + ik_3v_3) + (v_{02}k_2 + v_{03}k_3)\rho_1																									\\[8pt]
+		\omega \rho_0 v_1	&= \rho_0(k_2 v_{02} + k_3 v_{03})v_1 - i(\rho_0 T_1 + \rho_1 T_0)' + iB_{02}'(a_3' - ik_3a_1) - iB_{03}'(a_2' - ik_2a_1)															\\
+							&~~~~ + iB_{03}\left[k_3^2a_2 - k_2k_3a_3 - (a_2' - ik_2a_1)'\right] - iB_{02}\left[k_2^2a_3 - k_2k_3a_2 + (ik_3a_1 - a_3')'\right]	 - ig\rho_1										\\[8pt]
+		\omega \rho_0 v_2	&= k_2(T_0\rho_1 + \rho_0 T_1) + \rho_0(k_2 v_{02} + k_3v_{03})v_2 - i\rho_0v_{02}'v_1 - B_{02}'(k_2a_3 - k_3a_2) 																	\\
+							&~~~~ - iB_{03}\left[(k_2^2 + k_3^3)a_1 + i(k_2a_2 + k_3a_3)'\right]																												\\[8pt]
+		\omega \rho_0 v_3	&= k_3(T_0\rho_1 + \rho_0 T_1) + \rho_0(k_2 v_{02} + k_3v_{03})v_3 - i\rho_0v_{03}'v_1 - B_{03}'(k_2a_3 - k_3a_2)																	\\
+							&~~~~ + iB_{02}\left[(k_2^2 + k_3^2)a_1 + i(k_2a_2 + k_3a_3)'\right]																												\\[8pt]
+		\omega \rho_0 T_1	&= -i\rho_0v_1T_0' + \rho_0(k_2v_{02} - k_3v_{03})T_1 - i(\gamma - 1)\rho_0T_0(v_1' + ik_2v_2 + ik_3v_3) - i(\gamma - 1)\HL_0\rho_1													\\
+							&~~~~ - i(\gamma - 1)\rho_0\HL_T T_1 - i(\gamma - 1)\rho_0\HL_\rho \rho_1 - i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}(k_2B_{02} + k_3B_{03})^2T_1					\\
+							&~~~~ + i(\gamma - 1)(\kappa_\bot T_1')' - i\kappa_\bot(\gamma - 1)(k_2^2 + k_3^2)T_1 + i(\gamma - 1)(\kappa_{1, \bot}T_0')'														\\
+							&~~~~ + i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}\left[(k_2k_3B_{02} + k_3^2B_{03})a_2 - (k_2k_3B_{03} + k_2^2B_{02})a_3\right]T_0'								\\[8pt]
+		\omega a_1			&=  iB_{03}v_2 - iB_{02}v_3 + iv_{02}a_2' + iv_{03}a_3' + (k_2v_{02} + k_3v_{03})a_1																								\\[8pt]
+		\omega a_2			&= -iB_{03}v_1 - v_{03}(k_2a_3 - k_3a_2)																																			\\[8pt]
+		\omega a_3			&=  iB_{02}v_1 - v_{02}(k_3a_2 - k_2a_3)																																			\\
 	\end{aligned}
 \end{equation}
 where the prime denotes $\partial_{u_1}$.
@@ -90,22 +90,22 @@ where the prime denotes $\partial_{u_1}$.
 Derivations in cylindrical coordinates, explicitly done to see how the scale factor enters into the equations. For consistency with the slab case the same Fourier transformation is used (usually $k_2 = m$ and $k_3 = k$).
 \begin{equation}
 	\begin{aligned}
-		\omega \rho_1			&= -iv_1\rho_0' - i\rho_0\left(v_1' + \frac{v_1}{r} + \frac{1}{r}ik_2v_2 + ik_3v_3\right) + \left(\frac{1}{r}v_{02}k_2 + v_{03}k_3\right)\rho_1																									\\[8pt]
-		\omega \rho_0 v_1 &= -i\left(T_0\rho_1 + T_1\rho_0\right)' - i\frac{B_{03}'}{r}\left[(ra_2)' - ik_2a_1\right] + i\frac{(rB_{02})'}{r}\left(a_3' - ik_3a_1\right)																									\\
-											&~~~~ + iB_{03}\left\{k_3^2a_2 - \frac{1}{r}k_2k_3a_3 - \left[\frac{1}{r}\left((ra_2)' - ik_2a_1\right)\right]'\right\} + \left(\frac{v_{02}k_2}{r} + v_{03}k_3\right)\rho_0v_1									\\
-											&~~~~ - iB_{02}\left\{\frac{1}{r^2}k_2^2a_3 - \frac{1}{r}k_2k_3a_2 + \frac{1}{r}\left[r\left(ik_3a_1 - a_3'\right)\right]'\right\} + i\frac{2}{r}\rho_0v_{02}v_2 + i\frac{1}{r}v_{02}^2\rho_1 - ig\rho_1		\\[8pt]
-		\omega \rho_0 v_2 &= \frac{1}{r}(T_0\rho_1 + \rho_0T_1)k_2 +\rho_0\left(\frac{1}{r}v_{02}k_2 + v_{03}k_3\right)v_2 + \frac{1}{r^2}(rB_{02})'(rk_3a_2 - k_2a_3)																										\\
-											&~~~~ + B_{03}\left[-ik_3^2a_1 + k_3a_3' + \frac{1}{r^2}k_2(ra_2)' - \frac{i}{r^2}k_2^2a_1\right] - i\rho_0\frac{1}{r}v_{02}v_1 - i\rho_0v_{02}'v_1																							\\[8pt]
-		\omega \rho_0 v_3 &= (T_0\rho_1 + \rho_0T_1)k_3 - B_{03}'\left(\frac{1}{r}k_2a_3 - k_3a_2\right) + iB_{02}\left[\frac{1}{r^2}ik_2(ra_2)' + \frac{1}{r^2}k_2^2a_1 + k_3^2a_1 + ik_3a_3'\right]											\\
-											&~~~~ + \rho_0\left(\frac{1}{r}k_2v_{02} + k_3v_{03}\right)v_3 - i\rho_0v_{03}'v_1																																																							\\[8pt]
-		\omega \rho_0 T_1 &= -i\rho_0v_1T_0' +\rho_0\left(\frac{1}{r}k_2v_{02} + k_3v_{03}\right)T_1 - i(\gamma - 1)\rho_0T_0\left[\frac{1}{r}(rv_1)' + \frac{1}{r}ik_2v_2 + ik_3v_3\right]																\\
-											&~~~~ - i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}\left(\frac{1}{r}k_2B_{02} + k_3B_{03}\right)^2T_1 + i(\gamma - 1)\frac{1}{r}(r\kappa_\bot T_1')'															\\
-											&~~~~ - i(\gamma - 1)\kappa_\bot\left(\frac{1}{r^2}k_2^2 + k_3^2\right)T_1 + i(\gamma - 1)\frac{1}{r}(r\kappa_{\bot, 1}T_0')'																																		\\
-											&~~~~ + i(\gamma - 1)(\kappa_\bot - \kappa_\parallel)\frac{1}{B^2}\left[(B_{03}k_3^2 + B_{02}k_2k_3)a_2 - \frac{1}{r}(B_{02}k_2^2 + B_{03}k_2k_3)a_3\right]																			\\
-											&~~~~ - i(\gamma - 1)\rho_1\HL_0 - i(\gamma - 1)\rho_0(\HL_T T_1 + \HL_\rho \rho_1)																																																							\\[8pt]
-		\omega a_1				&= iB_{03}v_2 - iB_{02}v_3 + iv_{02}a_2' + iv_{03}a_3' + \left(\frac{1}{r}k_2v_{02} + k_3v_{03}\right)a_1 + i\frac{1}{r}v_{02}a_2																																\\[8pt]
-		\omega a_2				&= -iB_{03}v_1 - \left(\frac{1}{r}k_2a_3 - k_3a_2\right)v_{03}																																																																	\\[8pt]
-		\omega a_3				&=  iB_{02}v_1 - \left(k_3a_2 - \frac{1}{r}k_2a_3\right)v_{02}
+		\omega \rho_1	  &= -iv_1\rho_0' - i\rho_0\left(v_1' + \frac{v_1}{r} + \frac{1}{r}ik_2v_2 + ik_3v_3\right) + \left(\frac{1}{r}v_{02}k_2 + v_{03}k_3\right)\rho_1																\\[8pt]
+		\omega \rho_0 v_1 &= -i\left(T_0\rho_1 + T_1\rho_0\right)' - i\frac{B_{03}'}{r}\left[(ra_2)' - ik_2a_1\right] + i\frac{(rB_{02})'}{r}\left(a_3' - ik_3a_1\right)																\\
+						  &~~~~ + iB_{03}\left\{k_3^2a_2 - \frac{1}{r}k_2k_3a_3 - \left[\frac{1}{r}\left((ra_2)' - ik_2a_1\right)\right]'\right\} + \left(\frac{v_{02}k_2}{r} + v_{03}k_3\right)\rho_0v_1								\\
+						  &~~~~ - iB_{02}\left\{\frac{1}{r^2}k_2^2a_3 - \frac{1}{r}k_2k_3a_2 + \frac{1}{r}\left[r\left(ik_3a_1 - a_3'\right)\right]'\right\} + i\frac{2}{r}\rho_0v_{02}v_2 + i\frac{1}{r}v_{02}^2\rho_1 - ig\rho_1		\\[8pt]
+		\omega \rho_0 v_2 &= \frac{1}{r}(T_0\rho_1 + \rho_0T_1)k_2 +\rho_0\left(\frac{1}{r}v_{02}k_2 + v_{03}k_3\right)v_2 + \frac{1}{r^2}(rB_{02})'(rk_3a_2 - k_2a_3)																	\\
+						  &~~~~ + B_{03}\left[-ik_3^2a_1 + k_3a_3' + \frac{1}{r^2}k_2(ra_2)' - \frac{i}{r^2}k_2^2a_1\right] - i\rho_0\frac{1}{r}v_{02}v_1 - i\rho_0v_{02}'v_1															\\[8pt]
+		\omega \rho_0 v_3 &= (T_0\rho_1 + \rho_0T_1)k_3 - B_{03}'\left(\frac{1}{r}k_2a_3 - k_3a_2\right) + iB_{02}\left[\frac{1}{r^2}ik_2(ra_2)' + \frac{1}{r^2}k_2^2a_1 + k_3^2a_1 + ik_3a_3'\right]									\\
+					      &~~~~ + \rho_0\left(\frac{1}{r}k_2v_{02} + k_3v_{03}\right)v_3 - i\rho_0v_{03}'v_1																															\\[8pt]
+		\omega \rho_0 T_1 &= -i\rho_0v_1T_0' +\rho_0\left(\frac{1}{r}k_2v_{02} + k_3v_{03}\right)T_1 - i(\gamma - 1)\rho_0T_0\left[\frac{1}{r}(rv_1)' + \frac{1}{r}ik_2v_2 + ik_3v_3\right]												\\
+						  &~~~~ - i(\gamma - 1)(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}\left(\frac{1}{r}k_2B_{02} + k_3B_{03}\right)^2T_1 + i(\gamma - 1)\frac{1}{r}(r\kappa_\bot T_1')'											\\
+					      &~~~~ - i(\gamma - 1)\kappa_\bot\left(\frac{1}{r^2}k_2^2 + k_3^2\right)T_1 + i(\gamma - 1)\frac{1}{r}(r\kappa_{\bot, 1}T_0')'																					\\
+						  &~~~~ + i(\gamma - 1)(\kappa_\bot - \kappa_\parallel)\frac{1}{B^2}\left[(B_{03}k_3^2 + B_{02}k_2k_3)a_2 - \frac{1}{r}(B_{02}k_2^2 + B_{03}k_2k_3)a_3\right]													\\
+						  &~~~~ - i(\gamma - 1)\rho_1\HL_0 - i(\gamma - 1)\rho_0(\HL_T T_1 + \HL_\rho \rho_1)																															\\[8pt]
+		\omega a_1		  &= iB_{03}v_2 - iB_{02}v_3 + iv_{02}a_2' + iv_{03}a_3' + \left(\frac{1}{r}k_2v_{02} + k_3v_{03}\right)a_1 + i\frac{1}{r}v_{02}a_2																				\\[8pt]
+		\omega a_2		  &= -iB_{03}v_1 - \left(\frac{1}{r}k_2a_3 - k_3a_2\right)v_{03}																																				\\[8pt]
+		\omega a_3		  &=  iB_{02}v_1 - \left(k_3a_2 - \frac{1}{r}k_2a_3\right)v_{02}
 	\end{aligned}
 \end{equation}
 
@@ -113,31 +113,31 @@ Derivations in cylindrical coordinates, explicitly done to see how the scale fac
 \subsection{Introducing the scale factor}
 Now define the scale factor $\eps$, where $\eps = 1$ and $\eps' = 0$ in Cartesian coordinates. In cylindrical coordinates, $\eps = r$ and $\eps' = 1$. Apply the following transformation to the perturbed quantities:
 \begin{alignat*}{4}
-	\eps \rho_1 &= \widetilde{\rho_1}		\qquad&		i\eps v_1 &= \widetilde{v_1}		\qquad&		v_2 		  &= \widetilde{v_2}		\qquad&			\eps v_3 &= \widetilde{v_3}			\\
-	\eps T_1		&= \widetilde{T_1}						&					a_1 &= \widetilde{a_1}					&		i\eps a_2	&= \widetilde{a_2}					&			ia_3 		 &= \widetilde{a_3}
+	\eps \rho_1 &= \widetilde{\rho_1}		\qquad	&	i\eps v_1 &= \widetilde{v_1}		\qquad&		v_2 		  &= \widetilde{v_2}		\qquad&			\eps v_3 &= \widetilde{v_3}			\\
+	\eps T_1	&= \widetilde{T_1}					&		  a_1 &= \widetilde{a_1}			  &		i\eps a_2	  &= \widetilde{a_2}			  &			ia_3 	 &= \widetilde{a_3}
 \end{alignat*}
 Tildes are dropped below for convenience.
 \begin{equation}
 	\begin{aligned}
-		\omega \frac{\rho_1}{\eps}			&= -\frac{1}{\eps}\rho_0'v_1 - \frac{1}{\eps}\rho_0\left(v_1' - k_2v_2 - k_3v_3\right) + \frac{1}{\eps}\left(\frac{1}{\eps}v_{02}k_2 + v_{03}k_3\right)\rho_1													\\[8pt]
-		\omega \rho_0 \frac{v_1}{\eps}	&= \left(\frac{T_0\rho_1 + \rho_0 T_1}{\eps}\right)' + \frac{1}{\eps}B_{03}'\left(a_2' - k_2a_1\right) - \frac{(\eps B_{02})'}{\eps}\left(a_3' - k_3a_1\right)												\\
-																		&~~~~ - B_{03}\left\{\frac{k_3^2}{\eps}a_2 - \frac{k_2k_3}{\eps}a_3 - \left[\frac{1}{\eps}\left(a_2' - k_2a_1\right)\right]'\right\} 
-																					+ \frac{1}{\eps}\left(\frac{v_{02}k_2}{\eps} + v_{03}k_3\right)\rho_0v_1																																																				\\
-																		&~~~~ + B_{02}\left\{\frac{k_2^2}{\eps^2}a_3 - \frac{k_2k_3}{\eps^2}a_2 - \frac{1}{\eps}\left[\eps\left(a_3' - k_3a_1\right)\right]'\right\} 
-																					- 2\frac{\eps'}{\eps}\rho_0v_{02}v_2 - \frac{\eps'}{\eps^2}v_{02}^2\rho_1 + \frac{1}{\eps}g\rho_1																																								\\[8pt]
-		\omega \rho_0 v_2								&= \frac{1}{\eps^2}(T_0\rho_1 + \rho_0T_1)k_2 + \rho_0\left(\frac{1}{\eps}k_2v_{02} + k_3v_{03}\right)v_2 + \frac{1}{\eps^2}(\eps B_{02})'\left(k_3a_2 - k_2a_3\right)								\\
-																		&~~~~ + B_{03}\left[-\left(k_3^2 + \frac{k_2^2}{\eps^2}\right)a_1 + \frac{k_2}{\eps^2}a_2' + k_3a_3'\right] - \frac{1}{\eps^2}\rho_0(\eps v_{02})'v_1																	\\[8pt]
-		\omega \rho_0 \frac{v_3}{\eps} 	&= \frac{1}{\eps}(T_0 \rho_1 + \rho_0 T_1)k_3 + \frac{1}{\eps}\rho_0\left(\frac{1}{\eps}k_2v_{02} + k_3v_{03}\right)v_3 + \frac{1}{\eps}B_{03}'\left(k_3a_2 - k_2a_3\right)						\\
-																		&~~~~ - B_{02}\left[-\left(k_3^2 + \frac{k_2^2}{\eps^2}\right)a_1 + \frac{k_2}{\eps^2}a_2' + k_3a_3'\right] - \frac{1}{\eps}\rho_0v_{03}'v_1																					\\[8pt]
-		\omega \rho_0 \frac{T_1}{\eps}	&= -\frac{1}{\eps}\rho_0T_0'v_1 + \frac{1}{\eps}\rho_0\left(\frac{k_2}{\eps}v_{02} + k_3v_{03}\right)T_1 - (\gamma - 1)\frac{1}{\eps}\rho_0T_0\left(v_1' - k_2v_2 - k_3v_3\right) 		\\
-																		&~~~~ - i(\gamma - 1)\frac{(\kappa_\parallel - \kappa_\bot)}{\eps}\frac{1}{B^2}\left(\frac{k_2}{\eps}B_{02} + k_3B_{03}\right)T_1 
-																					+ i(\gamma - 1)\frac{1}{\eps}\left[\eps\kappa_\bot\left(\frac{T_1}{\eps}\right)'\right]'																																												\\
-																		&~~~~ - i(\gamma - 1)\frac{\kappa_\bot}{\eps}\left(\frac{k_2^2}{\eps^2} + k_3^2\right)T_1 + i(\gamma - 1)\frac{1}{\eps}\left(\eps\kappa_{\bot, 1}T_0'\right)'													\\
-																		&~~~~ + i(\gamma - 1)\frac{(\kappa_\bot - \kappa_\parallel)}{\eps}\frac{1}{B^2}\left[\left(k_2k_3B_{02} + k_3^2B_{03}\right)a_2 - \left(k_2^2B_{02} + k_2k_3B_{03}\right)a_3\right]		\\
-																		&~~~~ - i(\gamma - 1)\HL_0\frac{1}{\eps}\rho_1 - i(\gamma - 1)\frac{1}{\eps}\rho_0\left(\HL_T T_1 + \HL_\rho \rho_1\right)																														\\[8pt]
-		\omega a_1											&= -B_{03}v_2 + \frac{1}{\eps}B_{02}v_3 - \frac{1}{\eps}v_{02}a_2' - v_{03}a_3' + \left(\frac{k_2}{\eps}v_{02} + k_3v_{03}\right)a_1																									\\[8pt]
-		\omega \frac{a_2}{\eps}					&= -\frac{1}{\eps}B_{03}v_1 - \frac{1}{\eps}\left(k_2a_3 - k_3a_2\right)v_{03}																																																				\\[8pt]
-		\omega a_3											&= \frac{1}{\eps}B_{02}v_1 + \frac{1}{\eps}\left(k_2a_3 - k_3a_2\right)v_{02}																				
+		\omega \frac{\rho_1}{\eps}		&= -\frac{1}{\eps}\rho_0'v_1 - \frac{1}{\eps}\rho_0\left(v_1' - k_2v_2 - k_3v_3\right) + \frac{1}{\eps}\left(\frac{1}{\eps}v_{02}k_2 + v_{03}k_3\right)\rho_1						\\[8pt]
+		\omega \rho_0 \frac{v_1}{\eps}	&= \left(\frac{T_0\rho_1 + \rho_0 T_1}{\eps}\right)' + \frac{1}{\eps}B_{03}'\left(a_2' - k_2a_1\right) - \frac{(\eps B_{02})'}{\eps}\left(a_3' - k_3a_1\right)						\\
+										&~~~~ 	- B_{03}\left\{\frac{k_3^2}{\eps}a_2 - \frac{k_2k_3}{\eps}a_3 - \left[\frac{1}{\eps}\left(a_2' - k_2a_1\right)\right]'\right\} 
+												+ \frac{1}{\eps}\left(\frac{v_{02}k_2}{\eps}+v_{03}k_3\right)\rho_0v_1																										\\
+										&~~~~ 	+ B_{02}\left\{\frac{k_2^2}{\eps^2}a_3 - \frac{k_2k_3}{\eps^2}a_2 - \frac{1}{\eps}\left[\eps\left(a_3' - k_3a_1\right)\right]'\right\} 
+												- 2\frac{\eps'}{\eps}\rho_0v_{02}v_2 - \frac{\eps'}{\eps^2}v_{02}^2\rho_1  + \frac{1}{\eps}g\rho_1																		 	\\[8pt]
+		\omega \rho_0 v_2				&= \frac{1}{\eps^2}(T_0\rho_1 + \rho_0T_1)k_2 + \rho_0\left(\frac{1}{\eps}k_2v_{02} + k_3v_{03}\right)v_2 + \frac{1}{\eps^2}(\eps B_{02})'\left(k_3a_2 - k_2a_3\right)				\\
+										&~~~~ 	+ B_{03}\left[-\left(k_3^2 + \frac{k_2^2}{\eps^2}\right)a_1 + \frac{k_2}{\eps^2}a_2' + k_3a_3'\right] - \frac{1}{\eps^2}\rho_0(\eps v_{02})'v_1								\\[8pt]
+		\omega \rho_0 \frac{v_3}{\eps} 	&= \frac{1}{\eps}(T_0 \rho_1 + \rho_0 T_1)k_3 + \frac{1}{\eps}\rho_0\left(\frac{1}{\eps}k_2v_{02} + k_3v_{03}\right)v_3 + \frac{1}{\eps}B_{03}'\left(k_3a_2 - k_2a_3\right)			\\
+										&~~~~ 	- B_{02}\left[-\left(k_3^2 + \frac{k_2^2}{\eps^2}\right)a_1 + \frac{k_2}{\eps^2}a_2' + k_3a_3'\right] - \frac{1}{\eps}\rho_0v_{03}'v_1										\\[8pt]
+		\omega \rho_0 \frac{T_1}{\eps}	&= -\frac{1}{\eps}\rho_0T_0'v_1 + \frac{1}{\eps}\rho_0\left(\frac{k_2}{\eps}v_{02} + k_3v_{03}\right)T_1 - (\gamma - 1)\frac{1}{\eps}\rho_0T_0\left(v_1' - k_2v_2 - k_3v_3\right) 	\\
+										&~~~~ 	- i(\gamma - 1)\frac{(\kappa_\parallel - \kappa_\bot)}{\eps}\frac{1}{B^2}\left(\frac{k_2}{\eps}B_{02} + k_3B_{03}\right)T_1 
+												+ i(\gamma -1)\frac{1}{\eps}\left[\eps\kappa_\bot\left(\frac{T_1}{\eps}\right)'\right]'																						\\
+										&~~~~ - i(\gamma - 1)\frac{\kappa_\bot}{\eps}\left(\frac{k_2^2}{\eps^2} + k_3^2\right)T_1 + i(\gamma - 1)\frac{1}{\eps}\left(\eps\kappa_{\bot, 1}T_0'\right)'						\\
+										&~~~~ + i(\gamma - 1)\frac{(\kappa_\bot - \kappa_\parallel)}{\eps}\frac{1}{B^2}\left[\left(k_2k_3B_{02} + k_3^2B_{03}\right)a_2 - \left(k_2^2B_{02} + k_2k_3B_{03}\right)a_3\right]	\\
+										&~~~~ - i(\gamma - 1)\HL_0\frac{1}{\eps}\rho_1 - i(\gamma - 1)\frac{1}{\eps}\rho_0\left(\HL_T T_1 + \HL_\rho\rho_1\right)															\\[8pt]
+		\omega a_1						&= -B_{03}v_2 + \frac{1}{\eps}B_{02}v_3 - \frac{1}{\eps}v_{02}a_2' - v_{03}a_3' + \left(\frac{k_2}{\eps}v_{02} + k_3v_{03}\right)a_1												\\[8pt]
+		\omega \frac{a_2}{\eps}			&= -\frac{1}{\eps}B_{03}v_1 - \frac{1}{\eps}\left(k_2a_3 -k_3a_2\right)v_{03}																										\\[8pt]
+		\omega a_3						&= \frac{1}{\eps}B_{02}v_1 + \frac{1}{\eps}\left(k_2a_3 - k_3a_2\right)v_{02}																				
 	\end{aligned}
 \end{equation}
 
@@ -157,7 +157,92 @@ which can be substituted in the above equations.
 
 
 \section{Finite Elements}
-Define the state vector of the system as $\boldsymbol{w} = (\rho_1, v_1, v_2, v_3, T, a_1, a_2, a_3)$.
+Define the state vector of the system as $\boldsymbol{w} = (\rho_1, v_1, v_2, v_3, T, a_1, a_2, a_3)$. Take quadratic elements for components $\rho_1, v_2, v_3, T_1, a_1$ and cubic elements for $v_1, a_2, a_3$.
+The eigenvalue problem can be written as $\omega B \boldsymbol{x} = A \boldsymbol{x}$, and for every function we have
+\begin{equation}
+	\int f(r) h_j^a(r) h_k^b(r)dr
+\end{equation}
+where $a, b \in [1, 8]$ denote the perturbed variables. In what follows $dr$ should actually be $du_1$ to be consistent with both the Cartesian and cylindrical cases, but for clarity these are used interchangeably.
+
+\subsection{Matrix B}
+\begin{alignat*}{2}
+	B_{jk}(1, 1) &= \int \frac{1}{\eps} h_j^1 h_k^1 dr							&\qquad\qquad		B_{jk}(5, 5) &= \int \frac{\rho_0}{\eps} h_j^5 h_k^5 dr			\\
+	B_{jk}(2, 2) &= \int \frac{\rho_0}{\eps} h_j^2 h_k^2 dr						&\qquad\qquad		B_{jk}(6, 6) &= \int h_j^6 h_k^6 dr								\\
+	B_{jk}(3, 3) &= \int \rho_0 h_j^3 h_k^3 dr								    &\qquad\qquad		B_{jk}(7, 7) &= \int \frac{1}{\eps} h_j^7 h_k^7 dr				\\
+	B_{jk}(4, 4) &= \int \frac{\rho_0}{\eps} h_j^4 h_k^4 dr						&\qquad\qquad		B_{jk}(8, 8) &= \int h_j^8 h_k^8 dr
+\end{alignat*}
+
+
+\subsection{Matrix A}
+\begingroup
+\allowdisplaybreaks
+\addtolength{\jot}{10pt}
+
+\begin{align*}
+	A_{jk}(1, 1) &=  \int \left[\frac{1}{\eps}\left(\frac{1}{\eps}v_{02}k_2 + v_{03}k_3\right)\right] h_j^1 h_k^1 dr									\\
+	A_{jk}(1, 2) &= -\int \left[\frac{1}{\eps}\rho_0'\right] h_j^1 h_k^2 dr - \int  \left[\frac{1}{\eps}\rho_0\right] h_j^1 \frac{dh_k^2}{dr} dr		\\
+	A_{jk}(1, 3) &=  \int \left[\frac{1}{\eps}\rho_0 k_2\right] h_j^1 h_k^3 dr																			\\
+	A_{jk}(1, 4) &=  \int \left[\frac{1}{\eps}\rho_3 k_3\right] h_j^1 h_k^4 dr																			\\
+	A_{jk}(2, 1) &=  \left[\frac{T_0}{\eps}\right] h_j^2 h_k^1 - \int \left[\frac{T_0}{\eps}\right] \frac{dh_j^2}{dr} h_k^1 dr - \int \left[\frac{\eps'}{\eps^2}v_{02}^2\right]h_j^2h_k^1 dr + \int \left[\frac{1}{\eps}g\right]h_j^2h_k^1 dr			\\
+	A_{jk}(2, 2) &=  \int \left[\frac{1}{\eps}\left(\frac{v_{02}k_2}{\eps} + v_{03}k_3\right)\rho_0\right]h_j^2h_k^2 dr									\\
+	A_{jk}(2, 3) &= -\int \left[2\frac{\eps'}{\eps}\rho_0v_{02}\right]h_j^2 h_k^3 dr																	\\
+	A_{jk}(2, 5) &=  \left[\frac{\rho_0}{\eps}\right]h_j^2 h_k^5 dr - \int \left[\frac{\rho_0}{\eps}\right]\frac{dh_j^2}{dr}h_k^5 dr					\\
+	A_{jk}(2, 6) &=  \int \left[\frac{(\eps B_{02})'}{\eps}k_3 + \frac{\eps'}{\eps}B_{02}k_3 -\left(\frac{B_{03}}{\eps}\right)'k_2\right] h_j^2 h_k^6 dr  + \int \left[B_{02}k_3 - \frac{1}{\eps}B_{03}k_2\right] h_j^2 \frac{dh_k^6}{dr} 				\\
+	A_{jk}(2, 7) &=  \left[\frac{B_{03}}{\eps}\right] h_j^2 \frac{dh_k^7}{dr} - \int \left[B_{03}\frac{k_3^2}{\eps} + B_{02}\frac{k_2k_3}{\eps^2}\right] h_j^2 h_k^7 dr - \int \left[\frac{B_{03}}{\eps}\right]\frac{dh_j^2}{dr}\frac{dh_k^7}{dr}dr		\\
+	A_{jk}(2, 8) &=  -\left[B_{02}\right]h_j^2\frac{dh_k^8}{dr} + \int \left[B_{03}\frac{k_2k_3}{\eps} + B_{02}\frac{k_2^2}{\eps^2}\right] h_j^2 h_k^8 dr - \int \left[2B_{02}\frac{\eps'}{\eps}\right]h_j^2 \frac{dh_k^8}{dr} dr	
+					+\int \left[B_{02}\right]\frac{dh_j^2}{dr}\frac{dh_k^8}{dr}dr																		\\
+	A_{jk}(3, 1) &=  \int \left[\frac{1}{\eps^2}T_0k_2\right]h_j^3 h_k^1 dr																				\\
+	A_{jk}(3, 2) &= -\int \left[\frac{1}{\eps^2}\rho_0(\eps v_{02})'\right]h_j^3 h_k^2 dr																\\
+	A_{jk}(3, 3) &=  \int \left[\rho_0\left(\frac{1}{\eps}k_2v_{02} + k_3v_{03}\right)\right] h_j^3 h_k^3 dr											\\
+	A_{jk}(3, 5) &=  \int \left[\frac{1}{\eps^2}\rho_0k_2\right] h_j^3 h_k^5 dr																			\\
+	A_{jk}(3, 6) &= -\int \left[B_{03}\left(k_3^2 + \frac{k_2^2}{\eps^2}\right)\right]h_j^3 h_k^6 dr													\\
+	A_{jk}(3, 7) &=  \int \left[\frac{1}{\eps^2}(\eps B_{02})'k_3\right] h_j^3 h_k^7 dr  +  \int \left[ B_{03}\frac{k_2}{\eps^2}\right] h_j^3 \frac{dh_k^7}{dr} dr	\\
+	A_{jk}(3, 8) &= -\int \left[\frac{1}{\eps^2}(\eps B_{02})'k_2\right] h_j^3 h_k^8 dr  +  \int \left[ B_{03}k_3\right]h_j^2 \frac{dh_k^8}{dr} dr		\\
+	A_{jk}(4, 1) &=  \int \left[\frac{1}{\eps}T_0k_3\right] h_j^4 h_k^1 dr																				\\
+	A_{jk}(4, 2) &= -\int \left[\frac{1}{\eps}\rho_0v_{03}'\right] h_j^4 h_k^2 dr																		\\
+	A_{jk}(4, 4) &=  \int \left[\frac{1}{\eps}\rho_0\left(\frac{1}{\eps}k_2v_{02} + k_3v_{03}\right)\right] h_j^4 h_k^4 dr								\\
+	A_{jk}(4, 5) &=  \int \left[\frac{1}{\eps}\rho_0k_3\right] h_j^4 h_k^5 dr																			\\
+	A_{jk}(4, 6) &=  \int \left[B_{02}\left(k_3^2 + \frac{k_2^2}{\eps^2}\right)\right] h_j^4 h_k^4 dr													\\
+	A_{jk}(4, 7) &=  \int \left[\frac{1}{\eps}B_{03}'k_3\right] h_j^4 h_k^7 dr - \int \left[B_{02}\frac{k_2}{\eps^2}\right] h_j^4 \frac{dh_k^7}{dr}dr   \\
+	A_{jk}(4, 8) &= -\int \left[\frac{1}{\eps}B_{03}'k_2\right] h_j^4 h_k^8 dr - \int \left[B_{02}k_3\right] h_j^4 \frac{dh_k^8}{dr} dr					\\
+	A_{jk}(5, 1) &=  \left[i(\gamma - 1)\frac{1}{\eps}T_0'\frac{\partial \kappa_\bot}{\partial \rho}\right] h_j^5 h_k^1 - \int \left[i(\gamma - 1)\frac{1}{\eps}T_0'\frac{\partial \kappa_\bot}{\partial \rho}\right] \frac{dh_j^5}{dr} h_k^1 dr		\\
+				 &~~~~ +\int \left[i(\gamma - 1)\frac{1}{\eps}\left(\frac{\eps'}{\eps}T_0'\frac{\partial \kappa_\bot}{\partial \rho} - \HL_0 - \rho_0\HL_\rho\right)\right] h_j^5h_k^1 dr																\\
+	A_{jk}(5, 2) &= -\int \left[\frac{1}{\eps}\rho_0T_0'\right] h_j^5h_k^2 dr - \int \left[(\gamma - 1)\frac{1}{\eps}\rho_0T_0\right] h_j^5\frac{dh_k^2}{dr} dr	\\
+	A_{jk}(5, 3) &=  \int \left[(\gamma - 1)\frac{1}{\eps}\rho_0T_0k_2\right] h_j^5 h_k^3 dr															\\
+	A_{jk}(5, 4) &=  \int \left[(\gamma - 1)\frac{1}{\eps}\rho_0T_0k_3\right] h_j^5 h_k^4 dr															\\
+	A_{jk}(5, 5) &=  \left[\frac{1}{\eps}i(\gamma - 1)\left(T_0'\frac{\partial \kappa_\bot}{\partial T} - \frac{\eps'}{\eps}\kappa_\bot\right)\right] h_j^5 h_k^5 + \left[\frac{1}{\eps}i(\gamma - 1)\kappa_\bot\right]h_j^5 \frac{dh_k^5}{dr} 			\\
+				 &~~~~ -\int \left[\frac{1}{\eps}i(\gamma - 1)\left\{(\kappa_\parallel - \kappa_\bot)\frac{1}{B^2}\left(\frac{k_2}{\eps}B_{02} + k_3B_{03}\right) + \left(\frac{\eps'}{\eps}\right)^2\kappa_\bot
+				 																																								   + \kappa_\bot\left(\frac{k_2^2}{\eps^2} + k_3^2\right)\right.\right. \\
+				 &\qquad\qquad\qquad\qquad~~~~ 									  \left.\left.+ \rho_0\HL_T - \frac{1}{\eps}T_0'\frac{\partial \kappa_\bot}{\partial T}\right\} \right] h_j^5h_k^5 dr													\\
+				 &~~~~ +\int \left[\frac{1}{\eps}\rho_0\left(\frac{k_2}{\eps}v_{02} + k_3v_{03}\right)\right] h_j^5 h_k^5 dr 
+				 	   +\int\left[\frac{1}{\eps}i(\gamma - 1)\left(\frac{\eps'}{\eps}\kappa_\bot - T_0'\frac{\partial \kappa_\bot}{\partial T}\right)\right] \frac{dh_j^5}{dr} h_k^5 dr																	\\
+				 &~~~~ +\int\left[\frac{\eps'}{\eps^2}i(\gamma - 1)\kappa_\bot\right] h_j^5 \frac{dh_k^5}{dr} dr - \int \left[\frac{1}{\eps}i(\gamma - 1)\kappa_\bot\right] \frac{dh_j^5}{dr}\frac{dh_k^5}{dr} dr										\\
+	A_{jk}(5, 6) &=  \left[i(\gamma - 1)\frac{1}{\eps}2T_0'(\eps B_{02}k_3 - B_{03}k_2)\frac{\partial \kappa_\bot}{\partial(B^2)}\right] h_j^5 h_k^6	\\
+				 &~~~~ + \int \left[i(\gamma - 1)\frac{\eps'}{\eps}2T_0'(\eps B_{02}k_3 - B_{03}k_2)\frac{\partial \kappa_\bot}{\partial(B^2)}\right] h_j^5 h_k^6 dr																					\\
+				 &~~~~ - \int \left[i(\gamma - 1)\frac{1}{\eps}2T_0'(\eps B_{02}k_3 - B_{03}k_2)\frac{\partial \kappa_\bot}{\partial(B^2)}\right] \frac{dh_j^5}{dr} h_k^6 dr																			\\
+	A_{jk}(5, 7) &=  \left[i(\gamma - 1)\frac{2}{\eps}T_0'B_{03}\frac{\partial \kappa_\bot}{\partial(B^2)}\right] h_j^5 \frac{dh_k^7}{dr} 
+												 + \int \left[i(\gamma - 1)\frac{(\kappa_\bot - \kappa_\parallel)}{\eps} \frac{1}{B^2}(k_2k_3B_{02} + k_3^2B_{02})T_0'\right] h_j^5 h_k^7 dr 															\\
+				 &~~~~ + \int \left[i(\gamma - 1)\frac{\eps'}{\eps^2}2T_0'B_{03}\frac{\partial \kappa_\bot}{\partial(B^2)}\right] h_j^5 \frac{dh_k^7}{dr}dr
+				 								 - \int \left[i(\gamma - 1)\frac{2}{\eps}T_0'B_{03}\frac{\partial \kappa_\bot}{\partial(B^2)}\right] \frac{dh_j^5}{dr}\frac{dh_k^7}{dr} dr																\\
+	A_{jk}(5, 8) &= -\left[i(\gamma - 1)2T_0'B_{02}\frac{\partial \kappa_\bot}{\partial(B^2)}\right] h_j^5 \frac{dh_k^8}{dr} 
+												 - \int \left[i(\gamma - 1)\frac{(\kappa_\parallel - \kappa_\bot)}{\eps}\frac{T_0'}{B^2}(k_2^2B_{02} + k_2k_3B_{03})\right] h_j^5 h_k^8 dr	 															\\
+				 &~~~~ - \int \left[i(\gamma - 1)\frac{\eps'}{\eps}2T_0'B_{02}\frac{\partial \kappa_\bot}{\partial(B^2)}\right] h_j^5 \frac{dh_k^8}{dr} dr																								
+				 								 + \int \left[i(\gamma - 1)2T_0'B_{02}\frac{\partial \kappa_\bot}{\partial(B^2)}\right] \frac{dh_j^5}{dr} \frac{dh_k^8}{dr} dr																			\\
+	A_{jk}(6, 3) &= -\int \left[B_{03}\right] h_j^6 h_k^3 dr								\\
+	A_{jk}(6, 4) &= -\int \left[\frac{1}{\eps}B_{02}\right] h_j^6 h_k^4 dr					\\
+	A_{jk}(6, 6) &=  \int \left[\frac{k_2}{\eps}v_{02} + k_2v_{03}\right] h_j^6 h_k^6 dr	\\
+	A_{jk}(6, 7) &= -\int \left[\frac{1}{\eps}v_{02}\right] h_j^6 \frac{dh_k^7}{dr} dr		\\
+	A_{jk}(6, 8) &= -\int \left[v_{03}\right] h_j^6 \frac{dh_k^8}{dr} dr					\\
+	A_{jk}(7, 2) &= -\int \left[\frac{1}{\eps}B_{03}\right] h_j^7 h_k^2 dr					\\
+	A_{jk}(7, 7) &=  \int \left[\frac{1}{\eps}k_3v_{03}\right] h_j^7 h_k^7 dr				\\
+	A_{jk}(7, 8) &= -\int \left[\frac{1}{\eps}k_2v_{03}\right] h_j^7 h_k^8 dr				\\
+	A_{jk}(8, 2) &=  \int \left[\frac{1}{\eps}B_{02}\right] h_j^8 h_k^2 dr					\\
+	A_{jk}(8, 7) &= -\int \left[\frac{1}{\eps}k_3v_{02}\right] h_j^8 h_k^7 dr				\\
+	A_{jk}(8, 8) &=  \int \left[\frac{1}{\eps}k_2v_{02}\right] h_j^8 h_k^8 dr				
+\end{align*}
+All other matrix elements are equal to zero.
+\endgroup
+
 
 
 
