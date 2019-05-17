@@ -8,7 +8,7 @@ module mod_spline_functions
 contains
 
   subroutine quadratic_factors(r, rj_lo, rj, rj_hi, h_quadratic)
-    integer, intent(in)           ::  r, rj_lo, rj, rj_hi
+    double precision, intent(in)  ::  r, rj_lo, rj, rj_hi
     real, intent(out)             ::  h_quadratic(4)
 
     h_quadratic(1) = 4.0d0 * (r - rj_lo) * (rj - r) / (rj - rj_lo)**2
@@ -20,7 +20,7 @@ contains
 
 
   subroutine quadratic_factors_deriv(r, rj_lo, rj, rj_hi, dh_quadratic_dr)
-    integer, intent(in)           ::  r, rj_lo, rj, rj_hi
+    double precision, intent(in)  ::  r, rj_lo, rj, rj_hi
     real, intent(out)             ::  dh_quadratic_dr(4)
 
     dh_quadratic_dr(1) = 4.0d0 * (-2.0d0*r + rj + rj_lo) / (rj - rj_lo)**2
@@ -32,7 +32,7 @@ contains
 
 
   subroutine cubic_factors(r, rj_lo, rj, rj_hi, h_cubic)
-    integer, intent(in)           :: r, rj_lo, rj, rj_hi
+    double precision, intent(in)  :: r, rj_lo, rj, rj_hi
     real, intent(out)             :: h_cubic(4)
 
     h_cubic(1) =  3.0d0 * ( (r - rj_lo) / (rj - rj_lo) )**2 &
@@ -46,7 +46,7 @@ contains
 
 
   subroutine cubic_factors_deriv(r, rj_lo, rj, rj_hi, dh_cubic_dr)
-    integer, intent(in)           :: r, rj_lo, rj, rj_hi
+    double precision, intent(in)  :: r, rj_lo, rj, rj_hi
     real, intent(out)             :: dh_cubic_dr(4)
 
     dh_cubic_dr(1) =  6.0d0 * (r - rj_lo) / (rj - rj_lo)**2 &

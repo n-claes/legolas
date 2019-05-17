@@ -3,16 +3,19 @@ module mod_setup_grid
 
 contains
 
-  subroutine initialise_grid(grid))
+  subroutine initialise_grid(grid)
     use mod_global_variables
-    
-    real, intent(out)            :: grid(integral_gridpts)
 
-    dx = (x_end - x_start) / integral_gridpts
+    real, intent(out)            :: grid(integral_gridpts)
+    integer                      :: i
+    double precision             :: dx
+
+    dx = (x_end - x_start) / (integral_gridpts-1)
     do i = 1, integral_gridpts
       grid(i) = x_start + (i - 1)*dx
+    end do
 
-  end subroutine
+  end subroutine initialise_grid
 
 
 
