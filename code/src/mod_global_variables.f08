@@ -5,6 +5,7 @@ module mod_global_variables
   character(:), allocatable         ::  geometry
   double precision                  ::  x_start, x_end
   integer                           ::  gridpts, matrix_gridpts
+  integer                           ::  integral_gridpts
 
 
 contains
@@ -15,6 +16,7 @@ contains
     x_end    = 1.0d0
     gridpts  = 10
     matrix_gridpts = 16 * gridpts
+    integral_gridpts = 100
   end subroutine init_variables
 
 end module mod_global_variables
