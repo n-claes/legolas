@@ -9,3 +9,5 @@
 *.run
 *.toc
 *.gz
+*.exe
+*.mod
