@@ -6,10 +6,9 @@ module mod_setup_matrix_b
 
 contains
 
-  subroutine construct_B(matrix_gridpts, matrix_B)
-    integer, intent(in)     ::  matrix_gridpts
+  subroutine construct_B(matrix_B)
+    use mod_global_variables
     real, intent(inout)     ::  matrix_B(matrix_gridpts, matrix_gridpts)
-
     integer                 :: i, j
 
     ! Initialize matrix to zero
@@ -19,7 +18,7 @@ contains
       end do
     end do
 
-    print*,matrix_B
+
 
 
   end subroutine construct_B
