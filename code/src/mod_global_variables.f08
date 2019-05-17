@@ -16,7 +16,7 @@ contains
     x_end    = 1.0d0
     gridpts  = 10
     matrix_gridpts = 16 * gridpts
-    integral_gridpts = 100
+    integral_gridpts = 101
   end subroutine init_variables
 
 end module mod_global_variables
