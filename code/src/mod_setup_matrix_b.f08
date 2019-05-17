@@ -1,4 +1,4 @@
-module setup_matrix_B
+module mod_setup_matrix_b
   implicit none
 
   ! Sets up the B-matrix for the eigenvalue problem wBX = AX
@@ -26,4 +26,4 @@ contains
 
 
 
-end module setup_matrix_B
+end module mod_setup_matrix_b

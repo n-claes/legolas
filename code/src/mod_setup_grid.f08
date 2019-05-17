@@ -1,4 +1,4 @@
-module setup_grid
+module mod_setup_grid
   implicit none
 
 
@@ -10,4 +10,4 @@ contains
 
 
 
-end module setup_grid
+end module mod_setup_grid

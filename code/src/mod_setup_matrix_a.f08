@@ -1,4 +1,4 @@
-module setup_matrix_A
+module mod_setup_matrix_a
   implicit none
 
 
@@ -7,4 +7,4 @@ contains
 
 
 
-end module setup_matrix_A
+end module mod_setup_matrix_a
