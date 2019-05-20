@@ -10,6 +10,7 @@ contains
     integer                      :: i
     double precision             :: dx
 
+    ! minus one here to include x_end
     dx = (x_end - x_start) / (integral_gridpts-1)
     do i = 1, integral_gridpts
       grid(i) = x_start + (i - 1)*dx
