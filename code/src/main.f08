@@ -9,8 +9,6 @@ program esonas
   call initialisation
   call create_matrices
 
-  ! First find a way to set global parameters?
-  ! similar to use mod_global_parameters in amrvac
 
   call cleanup
 
@@ -21,6 +19,7 @@ contains
   subroutine initialisation()
     use mod_global_variables
     use mod_setup_grid
+    use mod_setup_equilibrium
 
     ! Initialises global variables
     call init_variables
@@ -31,6 +30,9 @@ contains
 
     ! Initialise grid
     call initialise_grid(grid)
+
+    ! Initialise equilibrium
+    call initialise_equilibrium
 
   end subroutine initialisation
 
@@ -48,10 +50,16 @@ contains
 
   subroutine cleanup()
     use mod_global_variables
+    use mod_setup_equilibrium
     deallocate(matrix_A)
     deallocate(matrix_B)
     deallocate(grid)
     deallocate(geometry)
+
+    deallocate(rho_0)
+    deallocate(v_0)
+    deallocate(T_0)
+    deallocate(B_0)
 
   end subroutine cleanup
 
