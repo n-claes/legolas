@@ -16,6 +16,7 @@ program esonas
 
 contains
 
+  !> Initialises the grid and equilibrium configuration
   subroutine initialisation()
     use mod_global_variables
     use mod_setup_grid
@@ -26,7 +27,7 @@ contains
 
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
-    allocate(grid(integral_gridpts))
+    allocate(grid(gridpts))
 
     ! Initialise grid
     call initialise_grid(grid)
@@ -36,6 +37,7 @@ contains
 
   end subroutine initialisation
 
+  !> Creates A and B matrices for the wBX = AX eigenvalue problem
   subroutine create_matrices()
     use mod_global_variables
     use mod_setup_matrix_b
@@ -47,19 +49,18 @@ contains
 
   end subroutine create_matrices
 
-
+  !> Performs cleanup, deallocates variables
   subroutine cleanup()
     use mod_global_variables
+    use mod_setup_grid
     use mod_setup_equilibrium
     deallocate(matrix_A)
     deallocate(matrix_B)
     deallocate(grid)
-    deallocate(geometry)
 
-    deallocate(rho_0)
-    deallocate(v_0)
-    deallocate(T_0)
-    deallocate(B_0)
+    call variables_clean
+    call grid_clean
+    call equilibrium_clean
 
   end subroutine cleanup
 

@@ -19,4 +19,8 @@ contains
     integral_gridpts = 101
   end subroutine init_variables
 
+  subroutine variables_clean()
+    deallocate(geometry)
+  end subroutine variables_clean
+
 end module mod_global_variables

@@ -29,5 +29,12 @@ contains
 
   end subroutine initialise_equilibrium
 
+  subroutine equilibrium_clean()
+    deallocate(rho_0)
+    deallocate(v_0)
+    deallocate(T_0)
+    deallocate(B_0)
+  end subroutine equilibrium_clean
+
 
 end module mod_setup_equilibrium
