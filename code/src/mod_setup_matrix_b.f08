@@ -9,7 +9,7 @@ contains
   subroutine construct_B(grid, matrix_B)
     use mod_global_variables
 
-    real, intent(in)        :: grid(integral_gridpts)
+    double precision, intent(in)   :: grid(gridpts)
     real, intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
     integer                 :: i, j
     double precision        :: r_lo, r, r_hi, eps, d_eps_dr
@@ -21,7 +21,7 @@ contains
       end do
     end do
 
-    do i = 2, integral_gridpts-1
+    do i = 2, gridpts-1
       r_lo = grid(i - 1)
       r    = grid(i)
       r_hi = grid(i + 1)

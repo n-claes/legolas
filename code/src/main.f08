@@ -1,9 +1,9 @@
 program esonas
   implicit none
 
-  complex, allocatable          :: matrix_A(:, :)
-  real, allocatable             :: matrix_B(:, :)
-  real, allocatable             :: grid(:)
+  complex, allocatable            :: matrix_A(:, :)
+  real, allocatable               :: matrix_B(:, :)
+  double precision, allocatable   :: grid(:)
 
 
   call initialisation
