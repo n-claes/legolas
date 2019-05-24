@@ -33,7 +33,7 @@ contains
     call initialise_grid(grid)
 
     ! Initialise equilibrium
-    call initialise_equilibrium
+    call initialise_equilibrium(grid)
 
   end subroutine initialisation
 
