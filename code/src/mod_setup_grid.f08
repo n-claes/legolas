@@ -12,12 +12,14 @@ contains
 
 
     ! minus one here to include x_end
-    dx = (x_end - x_start) / (integral_gridpts-1)
+    dx = (x_end - x_start) / (gridpts-1)
     do i = 1, gridpts
       grid(i) = x_start + (i - 1)*dx
     end do
 
-    call accumulate_mesh(grid)
+    if (mesh_accumulation) then
+      call accumulate_mesh(grid)
+    end if
 
   end subroutine initialise_grid
 
@@ -30,38 +32,69 @@ contains
     use mod_global_variables
 
     double precision, intent(inout)  :: grid(gridpts)
-    integer                      :: i, integral_gridpts_x5
-    double precision             :: dx, xi, gauss_x, bgf, fact
-    double precision             :: x_sum, int_eval_1, int_eval_1_inv
+    integer               :: i, integral_gridpts_1, integral_gridpts_2
+    double precision      :: dx, dx_0, xi, bgf, fact, dx_eq
+    double precision      :: gauss_xi, gauss_xi_eq
+    double precision      :: x_sum, x_sum_prev, x_norm
+    double precision      :: xi_weighted
+
+    print*,"Redefining grid with mesh accumulation"
+
+    if (integral_gridpts /= gridpts - 1) then
+      stop "WARNING: integral gridpoints must be gridpoints - 1."
+    end if
 
     bgf  = 0.3d0 !background
-    fact = 0.1d0
+    fact = 1.0d0
 
-    ! first evaluation of integral
-    integral_gridpts_x5 = 5*integral_gridpts
-    dx = (grid(gridpts) - grid(1)) / float(integral_gridpts_x5)
+    ! first evaluation of integral to get weighted values
+    integral_gridpts_1 = 2*integral_gridpts + 1
+    dx = (grid(gridpts) - grid(1)) / float(integral_gridpts_1 - 1)
     xi = grid(1)
     x_sum = 0.0d0
 
-    do i = 1, integral_gridpts_x5
-      gauss_x = gaussian(xi, bgf, fact)
-      x_sum   = x_sum + gauss_x * dx
+    do i = 1, integral_gridpts_1
+      gauss_xi = gaussian(xi, bgf, fact)
+      x_sum   = x_sum + (gauss_xi * dx)
       xi      = xi + dx
     end do
+    x_norm = (grid(gridpts) - grid(1)) / x_sum
 
-    int_eval_1 = x_sum
-    int_eval_1_inv = 1.0d0 / x_sum
+    ! second evaluation of integral using weighted points
+    integral_gridpts_2 = 50*integral_gridpts
+    dx_eq    = (grid(gridpts) - grid(1)) / float(integral_gridpts)
+    xi       = grid(1)
+    x_sum    = 0.0d0           ! x0 here
+    gauss_xi = gaussian(xi, bgf, fact) * x_norm   ! This is at x0 for now
+    dx_0     = (grid(gridpts) - grid(1)) * gauss_xi / float(integral_gridpts_2)
 
 
+    do i = 2, integral_gridpts
+      gauss_xi_eq = float(i - 1) * dx_eq + grid(1)
+      do while (gauss_xi_eq > x_sum)  !x_sum is 0 at first pass
+       dx         = dx_0 / gauss_xi
+       xi         = xi + dx
+       x_sum_prev = x_sum
+       gauss_xi   = gaussian(xi, bgf, fact)
+       gauss_xi   = gauss_xi * x_norm
+       x_sum      = x_sum + (gauss_xi * dx)
+      end do
 
-    ! second evaluation
+      xi_weighted = (gauss_xi_eq - x_sum_prev) / (x_sum - x_sum_prev)
 
+      ! Re-define grid
+      grid(i) = xi - dx*(1.0d0 - xi_weighted)
+    end do
 
-
-
-    return
+    ! Ensure correct end points and final spacing
+    grid(1) = x_start
+    grid(integral_gridpts+1) = x_end
+    grid(integral_gridpts) = 0.5 * (grid(integral_gridpts - 1) &
+                                    + grid(integral_gridpts + 1))
 
   end subroutine accumulate_mesh
+
+
 
   !> Function to calculate a Gaussian curve based on known widths and
   !! expected values (from mod_global_variables). The Gaussian is evaluated
