@@ -2,6 +2,7 @@ module mod_global_variables
   implicit none
   public
 
+  !> Grid-related parameters
   character(:), allocatable         :: geometry
   double precision                  :: x_start, x_end
   integer                           :: gridpts, matrix_gridpts
@@ -12,6 +13,18 @@ module mod_global_variables
 
   logical, save                     :: mesh_accumulation
 
+  !> Equilibrium-related parameters
+  integer, parameter                   :: n_gauss = 4
+  double precision, dimension(n_gauss) :: gaussian_weights = &
+                                              (/ 0.32607257743127307, &
+                                                 0.32607257743127307, &
+                                                 0.17392742256872693, &
+                                                 0.17392742256872693  /)
+  double precision, dimension(n_gauss) :: gaussian_nodes = &
+                                              (/ 0.16999052179242813, &
+                                                 0.16999052179242813, &
+                                                 0.43056815579702629, &
+                                                 0.43056815579702629  /)
 
 contains
 
@@ -23,7 +36,7 @@ contains
     matrix_gridpts = 16 * gridpts
     integral_gridpts = gridpts - 1
 
-    mesh_accumulation = .true.
+    mesh_accumulation = .false.
 
     !> expected values Gaussian
     ev_1 = 7.25d0
