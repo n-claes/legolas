@@ -3,7 +3,7 @@ program esonas
 
   complex, allocatable            :: matrix_A(:, :)
   real, allocatable               :: matrix_B(:, :)
-  double precision, allocatable   :: grid(:)
+  double precision, allocatable   :: grid(:), grid_gauss(:)
 
 
   call initialisation
@@ -28,12 +28,13 @@ contains
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
     allocate(grid(gridpts))
+    allocate(grid_gauss(4*gridpts))
 
     ! Initialise grid
     call initialise_grid(grid)
 
     ! Initialise equilibrium
-    call initialise_equilibrium(grid)
+    call initialise_equilibrium(grid, grid_gauss)
 
   end subroutine initialisation
 
