@@ -13,23 +13,26 @@ module mod_global_variables
 
   logical, save                     :: mesh_accumulation
 
-  !> Equilibrium-related parameters
+  !! Equilibrium-related parameters
+  !> Number of Gaussian points
   integer, parameter                   :: n_gauss = 4
-  double precision, dimension(n_gauss) :: gaussian_weights = &
-                                              (/ 0.32607257743127307, &
-                                                 0.32607257743127307, &
-                                                 0.17392742256872693, &
-                                                 0.17392742256872693  /)
+  !> Gaussian nodes in the interval [-1, 1]
   double precision, dimension(n_gauss) :: gaussian_nodes = &
-                                              (/ 0.16999052179242813, &
-                                                 0.16999052179242813, &
-                                                 0.43056815579702629, &
-                                                 0.43056815579702629  /)
+                                              (/ -0.861136311594053, &
+                                                 -0.339981043584856, &
+                                                  0.339981043584856, &
+                                                  0.861136311594053  /)
+  !> Gaussian weights in the interval [-1, 1]
+  double precision, dimension(n_gauss) :: gaussian_weights = &
+                                              (/ 0.347854845137454, &
+                                                 0.652145154862546, &
+                                                 0.652145154862546, &
+                                                 0.347854845137454  /)
 
 contains
 
   subroutine init_variables()
-    geometry = "cylindrical"
+    geometry = "Cartesian"
     x_start  = 0.0d0
     x_end    = 1.0d0
     gridpts  = 11

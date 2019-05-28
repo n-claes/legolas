@@ -9,63 +9,51 @@ module mod_setup_equilibrium
 
 contains
 
-  subroutine initialise_equilibrium(grid)
+  subroutine initialise_equilibrium(grid, grid_gauss)
     use mod_global_variables
 
-    double precision, intent(in)  ::  grid(gridpts)
+    double precision, intent(in)  :: grid(gridpts)
+    double precision, intent(out) :: grid_gauss(4*gridpts)
 
     allocate(rho_0(gridpts))
     allocate(v_0(gridpts, gridpts, gridpts))
     allocate(T_0(gridpts))
     allocate(B_0(gridpts, gridpts, gridpts))
 
-    call set_equilibrium(grid)
+    call set_equilibrium(grid, grid_gauss)
 
   end subroutine initialise_equilibrium
 
   !> Sets the equilibrium on the nodes of the Gaussian quadrature
-  subroutine set_equilibrium(grid)
+  subroutine set_equilibrium(grid, grid_gauss)
     use mod_global_variables
 
     double precision, intent(in)  :: grid(gridpts)
-    double precision              :: grid_gauss(4*gridpts), xi(n_gauss)
-    double precision              :: x_lo, x_hi, dx
+    double precision, intent(out) :: grid_gauss(4*gridpts)
+    double precision              :: x_lo, x_hi, dx, xi(n_gauss)
     integer                       :: i, j, idx
 
-    ! Fill odd indices of grid_gauss with the grid
-    do i = 1, gridpts
-      idx = (i - 1)*2 + 1
-      grid_gauss(idx) = grid(i)
-    end do
     ! Check for origin in cylindrical coordinates
     if (geometry == "cylindrical") then
       grid_gauss(1) = 1.0d-5
     end if
 
-    ! Fill even indices of grid_gauss with midpoints between grid points
-    do i = 1, gridpts-1
-      idx = i*2
-      grid_gauss(idx) = 0.5 * (grid(i) + grid(i+1))
-    end do
-
-    ! Evaluate grid in nodes of Gaussian quadrature
+    ! Evaluate grid_gauss in nodes of Gaussian quadrature.
+    ! An integral of f(x) in [a, b] can be approximated by
+    ! 0.5*(b-a) * SUM[i from 1 -> n] ( wi * f( 0.5*(b-a)*xi + 0.5*(b-a)) )
+    ! where wi and xi are the weights and nodes at i (so 1 to 4 here).
+    ! Hence we need the gridpoints equal to the evaluation points of f(x).
     do i = 1, gridpts - 1
       x_lo = grid(i)
       x_hi = grid(i + 1)
       dx   = x_hi - x_lo
 
       do j = 1, n_gauss
-        xi(j) = x_lo + gaussian_nodes(j)*dx
+        xi(j) = 0.5 * dx * gaussian_nodes(j) + 0.5*(x_lo + x_hi)
         idx   = (i - 1)*n_gauss + j
         grid_gauss(idx) = xi(j)
       end do
     end do
-    print*,grid
-    print*,grid_gauss
-
-    ! TODO: Why does ledaflowJD (line 850) use other node points?
-    !       Maybe interval-related? [0, 1] instead of [-1, 1]?
-    ! TODO: This method does not fill the last 4 points of grid_gauss?
 
     ! Temporary initialisations
     do i = 1, gridpts
@@ -76,6 +64,39 @@ contains
     end do
 
   end subroutine set_equilibrium
+
+  subroutine grid_LEDA(SGRID)
+    use mod_global_variables
+    double precision, intent(in) :: SGRID(gridpts)
+    double precision             :: SGI(4*gridpts)
+    double precision :: SL, SU, ZDIF, ZA, ZB, ZC, ZS(4)
+    integer :: I, J, NGINT, NI
+
+    NGINT = gridpts - 1
+
+    DO 90 NI=1,NGINT
+       SL    = SGRID(NI)
+       SU    = SGRID(NI+1)
+
+! ... BERECHNUNG DER STUETZSTELLEN ...
+
+       ZDIF  = SU - SL
+       ZA    = .5 * ( SU + SL )
+       ZB    = .43056815579702629 * ZDIF
+       ZC    = .16999052179242813 * ZDIF
+       ZS(1) = ZA - ZB
+       ZS(2) = ZA - ZC
+       ZS(3) = ZA + ZC
+       ZS(4) = ZA + ZB
+
+       DO 80 I=1,4
+          J = (NI-1)*4+I
+          SGI(J) = ZS(I)
+ 80    CONTINUE
+    90 CONTINUE
+    print*,SGI
+
+  end subroutine grid_LEDA
 
   subroutine equilibrium_clean()
     deallocate(rho_0)
