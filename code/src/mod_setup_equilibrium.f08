@@ -15,10 +15,10 @@ contains
     double precision, intent(in)  :: grid(gridpts)
     double precision, intent(out) :: grid_gauss(4*gridpts)
 
-    allocate(rho_0(gridpts))
-    allocate(v_0(gridpts, gridpts, gridpts))
-    allocate(T_0(gridpts))
-    allocate(B_0(gridpts, gridpts, gridpts))
+    allocate(rho_0(4*gridpts))
+    allocate(v_0(4*gridpts, 4*gridpts, 4*gridpts))
+    allocate(T_0(4*gridpts))
+    allocate(B_0(4*gridpts, 4*gridpts, 4*gridpts))
 
     call set_equilibrium(grid, grid_gauss)
 
@@ -56,7 +56,7 @@ contains
     end do
 
     ! Temporary initialisations
-    do i = 1, gridpts
+    do i = 1, 4*gridpts
       rho_0(i)     = 1.0d0
       v_0(i, i, i) = 1.0d0
       T_0(i)       = 1.0d0
@@ -64,39 +64,6 @@ contains
     end do
 
   end subroutine set_equilibrium
-
-  subroutine grid_LEDA(SGRID)
-    use mod_global_variables
-    double precision, intent(in) :: SGRID(gridpts)
-    double precision             :: SGI(4*gridpts)
-    double precision :: SL, SU, ZDIF, ZA, ZB, ZC, ZS(4)
-    integer :: I, J, NGINT, NI
-
-    NGINT = gridpts - 1
-
-    DO 90 NI=1,NGINT
-       SL    = SGRID(NI)
-       SU    = SGRID(NI+1)
-
-! ... BERECHNUNG DER STUETZSTELLEN ...
-
-       ZDIF  = SU - SL
-       ZA    = .5 * ( SU + SL )
-       ZB    = .43056815579702629 * ZDIF
-       ZC    = .16999052179242813 * ZDIF
-       ZS(1) = ZA - ZB
-       ZS(2) = ZA - ZC
-       ZS(3) = ZA + ZC
-       ZS(4) = ZA + ZB
-
-       DO 80 I=1,4
-          J = (NI-1)*4+I
-          SGI(J) = ZS(I)
- 80    CONTINUE
-    90 CONTINUE
-    print*,SGI
-
-  end subroutine grid_LEDA
 
   subroutine equilibrium_clean()
     deallocate(rho_0)

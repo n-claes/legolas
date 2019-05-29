@@ -2,7 +2,7 @@ program esonas
   implicit none
 
   complex, allocatable            :: matrix_A(:, :)
-  real, allocatable               :: matrix_B(:, :)
+  double precision, allocatable   :: matrix_B(:, :)
   double precision, allocatable   :: grid(:), grid_gauss(:)
 
 
@@ -43,7 +43,7 @@ contains
     use mod_global_variables
     use mod_setup_matrix_b
 
-    call construct_B(grid, matrix_B)
+    call construct_B(grid, grid_gauss, matrix_B)
 
 
     return
