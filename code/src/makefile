@@ -21,7 +21,7 @@ MODULES			:=	mod_spline_functions.f08		\
 								mod_global_variables.f08 		\
 								mod_setup_grid.f08 					\
 								mod_setup_equilibrium.f08		\
-								mod_setup_matrix_b.f08			
+								mod_setup_matrix_b.f08
 
 
 MAIN	 			:= main.f08
@@ -30,7 +30,7 @@ OUTPUT			:= program.exe
 
 
 all:	compile_modules	\
-			compile_main	\
+			compile_main   	\
 			clean
 
 compile_modules:
@@ -38,6 +38,9 @@ compile_modules:
 compile_main:
 	$(COMPILER) $(MAIN_FLAGS) $(MODULES) $(MAIN) -o $(OUTPUT)
 clean:
+	if [ mod_spline_functions.o ]; then  \
+		rm mod_spline_functions.o;				 \
+	fi
 	if [ mod_global_variables.o ]; then  \
 		rm mod_global_variables.o;				 \
 	fi
@@ -49,7 +52,4 @@ clean:
 	fi
 	if [ mod_setup_matrix_b.o ]; then	 	 \
 		rm mod_setup_matrix_b.o;		 			 \
-	fi
-	if [ mod_setup_matrix_b.o ]; then  	 \
-		rm mod_setup_matrix_b.o;					 \
 	fi
