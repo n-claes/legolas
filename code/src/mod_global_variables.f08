@@ -2,6 +2,10 @@ module mod_global_variables
   implicit none
   public
 
+  !> physical parameters
+  double precision, parameter       :: gamma = 5.0d0/3.0d0
+  double precision, parameter       :: gamma_1 = 1.0d0 - gamma
+
   !> Grid-related parameters
   character(:), allocatable         :: geometry
   double precision                  :: x_start, x_end
@@ -28,6 +32,19 @@ module mod_global_variables
                                                  0.652145154862546, &
                                                  0.652145154862546, &
                                                  0.347854845137454  /)
+
+  !! Block-related parameters
+  !> Number of equations
+  integer                   :: nb_eqs = 8
+  !> Dimension of one finite element integral block, e.g. A(1,1)
+  integer                   :: dim_integralblock = 2
+  !> Dimension of one quadblock subblock, 16x16
+  !  One subblock has elements A(1,1) -> A(8,8), where every element A(i,i)
+  !  is in itself a block of dimension 2x2 (dim_integralblock above)
+  integer                   :: dim_subblock = nb_eqs * dim_integralblock
+  !> Dimension of the quadblock, containing 4 subblocks
+  !  The quadblock is the matrix that is shifted on the main diagonal
+  integer                   :: dim_quadblock = 2*dim_subblock
 
 contains
 
