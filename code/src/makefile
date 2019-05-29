@@ -17,11 +17,12 @@ MODULE_FLAGS	:= -c -fcheck=all -fbounds-check
 # -pedantic: checks backwards compatibility with F95
 # -fbacktrace: produce backtrace when crashing
 MAIN_FLAGS	:= -fcheck=all -fbounds-check -Wall -Wextra -Wconversion -pedantic -fbacktrace
-MODULES			:=	mod_global_variables.f08 		\
+MODULES			:=	mod_spline_functions.f08		\
+								mod_global_variables.f08 		\
 								mod_setup_grid.f08 					\
 								mod_setup_equilibrium.f08		\
-								mod_setup_matrix_b.f08			\
-								mod_spline_functions.f08
+								mod_setup_matrix_b.f08			
+
 
 MAIN	 			:= main.f08
 
