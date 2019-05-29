@@ -69,16 +69,33 @@ contains
     rho = rho_0(idx)
 
     ! Quadratic elements
-    !> B(1,1)
+    ! B(1,1)
     factors_B(1) = 1.0d0 / eps
-    !> B(3,3)
-    factors_B(2) = rho_0
-    !> B(4,4)
-    factors_B(3) = rho_0 / eps
-    !> B(5,5)
-    factors_B(4) = rho_0 / eps
-    !> B(6,6)
+    ! B(3,3)
+    factors_B(2) = rho
+    ! B(4,4)
+    factors_B(3) = rho / eps
+    ! B(5,5)
+    factors_B(4) = rho / eps
+    ! B(6,6)
     factors_B(5) = 1.0d0
+
+    call subblock()
+
+    ! reset factors to zero
+    factors_B = 0.0d0
+
+    ! Cubic elements
+    ! B(2,2)
+    factors_B(1) = rho / eps
+    ! B(7,7)
+    factors_B(2) = 1.0d0 / eps
+    ! B(8,8)
+    factors_B(3) = 1.0d0
+
+    call subblock()
+
+  end subroutine get_B_elements
 
 
 
