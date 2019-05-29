@@ -16,20 +16,21 @@ MODULE_FLAGS	:= -c -fcheck=all -fbounds-check
 # -Wconversion: checks for possible conversion errors
 # -pedantic: checks backwards compatibility with F95
 # -fbacktrace: produce backtrace when crashing
-MAIN_FLAGS		:= -fcheck=all -fbounds-check -Wall -Wextra -Wconversion -pedantic -fbacktrace
+MAIN_FLAGS	:= -fcheck=all -fbounds-check -Wall -Wextra -Wconversion -pedantic -fbacktrace
 MODULES			:=	mod_global_variables.f08 		\
-					mod_setup_grid.f08 				\
-					mod_setup_equilibrium.f08		\
-					mod_setup_matrix_b.f08
-	
-MAIN	 		:= main.f08
+								mod_setup_grid.f08 					\
+								mod_setup_equilibrium.f08		\
+								mod_setup_matrix_b.f08			\
+								mod_spline_functions.f08
+
+MAIN	 			:= main.f08
 
 OUTPUT			:= program.exe
 
 
 all:	compile_modules	\
-		compile_main	\
-		clean		
+			compile_main	\
+			clean
 
 compile_modules:
 	$(COMPILER) $(MODULE_FLAGS) $(MODULES)
@@ -37,15 +38,17 @@ compile_main:
 	$(COMPILER) $(MAIN_FLAGS) $(MODULES) $(MAIN) -o $(OUTPUT)
 clean:
 	if [ mod_global_variables.o ]; then  \
-		rm mod_global_variables.o;		 \
+		rm mod_global_variables.o;				 \
 	fi
-	if [ mod_setup_grid.o ]; then		 \
-		rm mod_setup_grid.o;			 \
+	if [ mod_setup_grid.o ]; then		 		 \
+		rm mod_setup_grid.o;							 \
 	fi
 	if [ mod_setup_equilibrium.o ]; then \
-		rm mod_setup_equilibrium.o;		 \
+		rm mod_setup_equilibrium.o;		 		 \
 	fi
-	if [ mod_setup_matrix_b.o ]; then	 \
-		rm mod_setup_matrix_b.o;		 \
+	if [ mod_setup_matrix_b.o ]; then	 	 \
+		rm mod_setup_matrix_b.o;		 			 \
 	fi
-
+	if [ mod_setup_matrix_b.o ]; then  	 \
+		rm mod_setup_matrix_b.o;					 \
+	fi
