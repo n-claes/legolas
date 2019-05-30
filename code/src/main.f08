@@ -1,14 +1,15 @@
 program esonas
+  use mod_global_variables
   implicit none
 
-  complex, allocatable            :: matrix_A(:, :)
-  double precision, allocatable   :: matrix_B(:, :)
-  double precision, allocatable   :: grid(:), grid_gauss(:)
+  complex(dp), allocatable  :: matrix_A(:, :)
+  real(dp), allocatable     :: matrix_B(:, :)
+  real(dp), allocatable     :: grid(:), grid_gauss(:)
 
 
   call initialisation
+  
   call create_matrices
-
 
   call cleanup
 
@@ -18,7 +19,6 @@ contains
 
   !> Initialises the grid and equilibrium configuration
   subroutine initialisation()
-    use mod_global_variables
     use mod_setup_grid
     use mod_setup_equilibrium
 
@@ -40,7 +40,6 @@ contains
 
   !> Creates A and B matrices for the wBX = AX eigenvalue problem
   subroutine create_matrices()
-    use mod_global_variables
     use mod_setup_matrix_b
 
     call construct_B(grid, grid_gauss, matrix_B)
@@ -52,7 +51,6 @@ contains
 
   !> Performs cleanup, deallocates variables
   subroutine cleanup()
-    use mod_global_variables
     use mod_setup_grid
     use mod_setup_equilibrium
     deallocate(matrix_A)

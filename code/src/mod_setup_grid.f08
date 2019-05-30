@@ -1,14 +1,14 @@
 module mod_setup_grid
+  use mod_global_variables
   implicit none
 
 contains
 
   subroutine initialise_grid(grid)
-    use mod_global_variables
 
-    double precision, intent(inout)  :: grid(gridpts)
-    integer                          :: i
-    double precision                 :: dx
+    real(dp), intent(inout)  :: grid(gridpts)
+    integer                  :: i
+    real(dp)                 :: dx
 
 
     ! minus one here to include x_end
@@ -29,14 +29,13 @@ contains
   !! using equidistribution based on the integral under the curve defined
   !! by the function gaussian().
   subroutine accumulate_mesh(grid)
-    use mod_global_variables
 
-    double precision, intent(inout)  :: grid(gridpts)
-    integer               :: i, integral_gridpts_1, integral_gridpts_2
-    double precision      :: dx, dx_0, xi, bgf, fact, dx_eq
-    double precision      :: gauss_xi, gauss_xi_eq
-    double precision      :: x_sum, x_sum_prev, x_norm
-    double precision      :: xi_weighted
+    real(dp), intent(inout)  :: grid(gridpts)
+    integer                  :: i, integral_gridpts_1, integral_gridpts_2
+    real(dp)                 :: dx, dx_0, xi, bgf, fact, dx_eq
+    real(dp)                 :: gauss_xi, gauss_xi_eq
+    real(dp)                 :: x_sum, x_sum_prev, x_norm
+    real(dp)                 :: xi_weighted
 
     print*,"Redefining grid with mesh accumulation"
 
@@ -100,11 +99,10 @@ contains
   !! expected values (from mod_global_variables). The Gaussian is evaluated
   !! in x.
   function gaussian(x, bgf, fact) result(f_gauss)
-    use mod_global_variables
 
-    double precision, intent(in)    :: x, bgf, fact
-    double precision                :: f_gauss
-    double precision                :: gauss_1, gauss_2, norm_1, norm_2
+    real(dp), intent(in)    :: x, bgf, fact
+    real(dp)                :: f_gauss
+    real(dp)                :: gauss_1, gauss_2, norm_1, norm_2
 
     norm_1 = 1.0d0 / (sigma_1 * sqrt(2*dpi))
     norm_2 = 1.0d0 / (sigma_2 * sqrt(2*dpi))
