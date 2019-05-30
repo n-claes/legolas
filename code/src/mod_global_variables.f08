@@ -43,7 +43,8 @@ module mod_global_variables
   !! Block-related parameters
   !> Number of equations
   integer, parameter        :: nb_eqs = 8
-  !> Dimension of one finite element integral block, e.g. A(1,1)
+  !> Dimension of one finite element integral block, e.g. A(1,1).
+  !  See page 190 of advanced MHD
   integer, parameter        :: dim_integralblock = 2
   !> Dimension of one quadblock subblock, 16x16
   !  One subblock has elements A(1,1) -> A(8,8), where every element A(i,i)

@@ -8,7 +8,7 @@ program esonas
 
 
   call initialisation
-  
+
   call create_matrices
 
   call cleanup
@@ -53,6 +53,7 @@ contains
   subroutine cleanup()
     use mod_setup_grid
     use mod_setup_equilibrium
+    use mod_setup_matrix_b
     deallocate(matrix_A)
     deallocate(matrix_B)
     deallocate(grid)
@@ -60,6 +61,7 @@ contains
     call variables_clean
     call grid_clean
     call equilibrium_clean
+    call matrix_B_clean
 
   end subroutine cleanup
 
