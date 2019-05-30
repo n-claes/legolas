@@ -1,19 +1,19 @@
 module mod_setup_equilibrium
+  use mod_global_variables
   implicit none
 
-  real, allocatable         ::  rho_0(:)
-  real, allocatable         ::  v_0(:, :, :)
-  real, allocatable         ::  T_0(:)
-  real, allocatable         ::  B_0(:, :, :)
+  real(dp), allocatable         ::  rho_0(:)
+  real(dp), allocatable         ::  v_0(:, :, :)
+  real(dp), allocatable         ::  T_0(:)
+  real(dp), allocatable         ::  B_0(:, :, :)
 
 
 contains
 
   subroutine initialise_equilibrium(grid, grid_gauss)
-    use mod_global_variables
 
-    double precision, intent(in)  :: grid(gridpts)
-    double precision, intent(out) :: grid_gauss(4*gridpts)
+    real(dp), intent(in)  :: grid(gridpts)
+    real(dp), intent(out) :: grid_gauss(4*gridpts)
 
     allocate(rho_0(4*gridpts))
     allocate(v_0(4*gridpts, 4*gridpts, 4*gridpts))
@@ -26,12 +26,11 @@ contains
 
   !> Sets the equilibrium on the nodes of the Gaussian quadrature
   subroutine set_equilibrium(grid, grid_gauss)
-    use mod_global_variables
 
-    double precision, intent(in)  :: grid(gridpts)
-    double precision, intent(out) :: grid_gauss(4*gridpts)
-    double precision              :: x_lo, x_hi, dx, xi(n_gauss)
-    integer                       :: i, j, idx
+    real(dp), intent(in)  :: grid(gridpts)
+    real(dp), intent(out) :: grid_gauss(4*gridpts)
+    real(dp)              :: x_lo, x_hi, dx, xi(n_gauss)
+    integer               :: i, j, idx
 
     ! Check for origin in cylindrical coordinates
     if (geometry == "cylindrical") then
