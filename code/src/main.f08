@@ -21,9 +21,15 @@ contains
   subroutine initialisation()
     use mod_setup_grid
     use mod_setup_equilibrium
+    use mod_radiative_cooling
 
     ! Initialises global variables
-    call init_variables
+    call initialise_variables
+
+    if (radiative_cooling) then
+      call initialise_radiative_cooling
+    end if
+
 
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
@@ -41,9 +47,10 @@ contains
   !> Creates A and B matrices for the wBX = AX eigenvalue problem
   subroutine create_matrices()
     use mod_setup_matrix_b
+    use mod_setup_matrix_a
 
     call construct_B(grid, grid_gauss, matrix_B)
-
+    call construct_A(grid, grid_gauss, matrix_A)
 
     return
 
@@ -54,6 +61,7 @@ contains
     use mod_setup_grid
     use mod_setup_equilibrium
     use mod_setup_matrix_b
+    use mod_radiative_cooling
     deallocate(matrix_A)
     deallocate(matrix_B)
     deallocate(grid)
@@ -62,6 +70,12 @@ contains
     call grid_clean
     call equilibrium_clean
     call matrix_B_clean
+
+    if (radiative_cooling) then
+      call radiative_cooling_clean
+    end if
+
+
 
   end subroutine cleanup
 
