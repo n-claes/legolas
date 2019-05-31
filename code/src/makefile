@@ -17,13 +17,15 @@ MODULE_FLAGS	:= -c -fcheck=all -fbounds-check
 # -pedantic: checks backwards compatibility with F95
 # -fbacktrace: produce backtrace when crashing
 MAIN_FLAGS	:= -fcheck=all -fbounds-check -Wall -Wextra -Wconversion -pedantic -fbacktrace
-MODULES			:=	mod_spline_functions.f08		\
-								mod_global_variables.f08 		\
-								mod_setup_grid.f08 					\
-								mod_setup_equilibrium.f08		\
-								mod_make_subblock.f08				\
-								mod_setup_matrix_b.f08			\
-								mod_setup_matrix_a.f08
+MODULES			:=	mod_global_variables.f08 					\
+								physics/mod_cooling_curves.f08	  \
+								physics/mod_radiative_cooling.f08	\
+								mod_spline_functions.f08					\
+								mod_setup_grid.f08 								\
+								mod_setup_equilibrium.f08					\
+								mod_make_subblock.f08							\
+								mod_setup_matrix_b.f08						\
+								mod_setup_matrix_a.f08						\
 
 
 MAIN	 			:= main.f08
@@ -40,11 +42,11 @@ compile_modules:
 compile_main:
 	$(COMPILER) $(MAIN_FLAGS) $(MODULES) $(MAIN) -o $(OUTPUT)
 clean:
-	if [ mod_spline_functions.o ]; then  \
-		rm mod_spline_functions.o;				 \
-	fi
 	if [ mod_global_variables.o ]; then  \
 		rm mod_global_variables.o;				 \
+	fi
+	if [ mod_spline_functions.o ]; then  \
+		rm mod_spline_functions.o;				 \
 	fi
 	if [ mod_setup_grid.o ]; then		 		 \
 		rm mod_setup_grid.o;							 \
@@ -60,4 +62,10 @@ clean:
 	fi
 	if [ mod_setup_matrix_a.o ]; then 	 \
 		rm mod_setup_matrix_a.o;				   \
+	fi
+	if [ mod_cooling_curves.o ]; then 	 \
+		rm mod_cooling_curves.o;					 \
+	fi
+	if [ mod_radiative_cooling.o ]; then \
+		rm mod_radiative_cooling.o;				 \
 	fi
