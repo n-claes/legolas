@@ -59,5 +59,5 @@ clean:
 		rm mod_setup_matrix_b.o;		 			 \
 	fi
 	if [ mod_setup_matrix_a.o ]; then 	 \
-		rm mod_setup_matrix_a.o;
+		rm mod_setup_matrix_a.o;				   \
 	fi
