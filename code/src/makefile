@@ -22,7 +22,8 @@ MODULES			:=	mod_spline_functions.f08		\
 								mod_setup_grid.f08 					\
 								mod_setup_equilibrium.f08		\
 								mod_make_subblock.f08				\
-								mod_setup_matrix_b.f08
+								mod_setup_matrix_b.f08			\
+								mod_setup_matrix_a.f08
 
 
 MAIN	 			:= main.f08
@@ -56,4 +57,7 @@ clean:
 	fi
 	if [ mod_setup_matrix_b.o ]; then	 	 \
 		rm mod_setup_matrix_b.o;		 			 \
+	fi
+	if [ mod_setup_matrix_a.o ]; then 	 \
+		rm mod_setup_matrix_a.o;
 	fi
