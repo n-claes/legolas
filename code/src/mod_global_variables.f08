@@ -3,17 +3,28 @@ module mod_global_variables
   implicit none
   public
 
-  !> Fortran-2008 type standards
+  !! Fortran-2008 type standards
   integer, parameter :: sp = real32
   integer, parameter :: dp = real64
   integer, parameter :: qp = real128
 
+  !> Default length for strings
+  integer, parameter :: str_len = 125
 
-  !> physical parameters
+  !! Physical parameters
   real(dp), parameter       :: gamma = 5.0d0/3.0d0
   real(dp), parameter       :: gamma_1 = 1.0d0 - gamma
-  logical, save             :: external_gravity
+  !> Wavenumber in y-direction (Cartesian) or theta-direction (cylindrical)
+  real(dp)                  :: k2
+  !> Wavenumber in z-direction (Cartesian) or z-direction (cylindrical)
+  real(dp)                  :: k3
+  ! Radiative cooling
   logical, save             :: radiative_cooling
+  integer, parameter        :: ncool = 4000
+  character(len=str_len)    :: cooling_curve
+  ! External gravity
+  logical, save             :: external_gravity
+  ! Thermal conduction
   logical, save             :: thermal_conduction
 
   !> Grid-related parameters
@@ -29,7 +40,7 @@ module mod_global_variables
 
   !! Equilibrium-related parameters
   !> Number of Gaussian points
-  integer, parameter                   :: n_gauss = 4
+  integer, parameter                :: n_gauss = 4
   !> Gaussian nodes in the interval [-1, 1]
   real(dp), dimension(n_gauss) :: gaussian_nodes = &
                                       (/ -0.861136311594053, &
@@ -59,7 +70,7 @@ module mod_global_variables
 
 contains
 
-  subroutine init_variables()
+  subroutine initialise_variables()
     geometry = "Cartesian"
     x_start  = 0.0d0
     x_end    = 1.0d0
@@ -69,7 +80,8 @@ contains
 
     mesh_accumulation  = .false.
     external_gravity   = .true.
-    radiative_cooling  = .true.
+    radiative_cooling  = .false.
+    cooling_curve = "SPEX_DM"
     thermal_conduction = .true.
 
     !> expected values Gaussian
@@ -80,7 +92,7 @@ contains
     sigma_2 = 2.0d0
 
 
-  end subroutine init_variables
+  end subroutine initialise_variables
 
   subroutine variables_clean()
     deallocate(geometry)
