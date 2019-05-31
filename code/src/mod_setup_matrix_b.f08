@@ -21,7 +21,7 @@ contains
     complex(dp)            :: quadblock(dim_quadblock, dim_quadblock)
     real(dp)               :: r_lo, r_hi, eps, curr_weight
     real(dp)               :: r
-    integer                :: i, j, gauss_idx
+    integer                :: i, j, gauss_idx, k, l
 
     ! Initialize matrix to zero
     matrix_B = 0.0d0
@@ -56,8 +56,18 @@ contains
 
         call get_B_elements(gauss_idx, eps, curr_weight, quadblock)
 
-      end do
-    end do
+      end do    ! end do iteration gaussian points
+
+      ! Gridpoint i = 1, place quadblock in upper left corner of B
+      if (i == 1) then
+        do k = 1, dim_quadblock
+          do l = 1, dim_quadblock
+            matrix_B(k, l) = quadblock(k, l)
+          end do
+        end do
+      end if
+
+    end do      ! end do iteration grid points
 
   end subroutine construct_B
 

@@ -62,7 +62,8 @@ module mod_global_variables
   integer, parameter        :: dim_integralblock = 2
   !> Dimension of one quadblock subblock, 16x16
   !  One subblock has elements A(1,1) -> A(8,8), where every element A(i,i)
-  !  is in itself a block of dimension 2x2 (dim_integralblock above)
+  !  is in itself a block of dimension 2x2 (dim_integralblock above) due to
+  !  quadratic and cubic finite elements.
   integer, parameter        :: dim_subblock = nb_eqs * dim_integralblock
   !> Dimension of the quadblock, containing 4 subblocks
   !  The quadblock is the matrix that is shifted on the main diagonal
