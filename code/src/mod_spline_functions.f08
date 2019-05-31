@@ -2,7 +2,20 @@ module mod_spline_functions
   use mod_global_variables
   implicit none
 
-  ! spline functions and derivatives for quadratic and cubic elements
+  ! spline functions and derivatives for quadratic and cubic elements.
+
+  ! @remark
+  ! We don't use rj_low (= r_{j-1}), rj_center (= r_j) or rj_high (= r_{j+1}),
+  ! because in every grid block [i, i+1] there is a contribution from both
+  ! the current functions in this interval as from the functions in the grid
+  ! block [i-1, i]. See page 193 of advanded MHD by Keppens and Poedts, this
+  ! holds both for cubic and quadratic functions.
+  !
+  ! Hence we use rj_lo for r_j and rj_hi for r_{j+1}, which in the interval
+  ! [i, i+1] (2 and 4) corresponds to the current quadratic/cubic functions,
+  ! while in the interval [i-1, i] (1 and 3) this corresponds to the previous
+  ! quadratic/cubic functions.
+
 
 
 contains
