@@ -114,8 +114,8 @@ contains
 
 
   !> Interpolates the luminosity based on the given temperature T0.
-  !! @param T0          (IN)  Equilibrium temperature, in K
-  !! @param luminosity  (OUT) Interpolated luminosity
+  !! @param T0          Equilibrium temperature, in K
+  !! @param luminosity  Interpolated luminosity
   subroutine get_L(T0, luminosity)
     real(dp), intent(in)  :: T0
     real(dp), intent(out) :: luminosity
