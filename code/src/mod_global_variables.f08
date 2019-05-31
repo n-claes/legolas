@@ -12,6 +12,9 @@ module mod_global_variables
   !> physical parameters
   real(dp), parameter       :: gamma = 5.0d0/3.0d0
   real(dp), parameter       :: gamma_1 = 1.0d0 - gamma
+  logical, save             :: external_gravity
+  logical, save             :: radiative_cooling
+  logical, save             :: thermal_conduction
 
   !> Grid-related parameters
   character(:), allocatable         :: geometry
@@ -64,7 +67,10 @@ contains
     matrix_gridpts = 16 * gridpts
     integral_gridpts = gridpts - 1
 
-    mesh_accumulation = .false.
+    mesh_accumulation  = .false.
+    external_gravity   = .true.
+    radiative_cooling  = .true.
+    thermal_conduction = .true.
 
     !> expected values Gaussian
     ev_1 = 7.25d0
