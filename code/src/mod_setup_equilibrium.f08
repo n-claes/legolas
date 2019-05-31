@@ -3,9 +3,9 @@ module mod_setup_equilibrium
   implicit none
 
   real(dp), allocatable         ::  rho_0(:)
-  real(dp), allocatable         ::  v_0(:, :, :)
+  real(dp), allocatable         ::  v_01(:), v_02(:), v_03(:)
   real(dp), allocatable         ::  T_0(:)
-  real(dp), allocatable         ::  B_0(:, :, :)
+  real(dp), allocatable         ::  B_01(:), B_02(:), B_03(:)
 
 
 contains
@@ -16,9 +16,13 @@ contains
     real(dp), intent(out) :: grid_gauss(4*gridpts)
 
     allocate(rho_0(4*gridpts))
-    allocate(v_0(4*gridpts, 4*gridpts, 4*gridpts))
+    allocate(v_01(4*gridpts))
+    allocate(v_02(4*gridpts))
+    allocate(v_03(4*gridpts))
     allocate(T_0(4*gridpts))
-    allocate(B_0(4*gridpts, 4*gridpts, 4*gridpts))
+    allocate(B_01(4*gridpts))
+    allocate(B_02(4*gridpts))
+    allocate(B_03(4*gridpts))
 
     call set_equilibrium(grid, grid_gauss)
 
@@ -55,20 +59,26 @@ contains
     end do
 
     ! Temporary initialisations
-    do i = 1, 4*gridpts
-      rho_0(i)     = 1.0d0
-      v_0(i, i, i) = 1.0d0
-      T_0(i)       = 1.0d0
-      B_0(i, i, i) = 1.0d0
-    end do
+    rho_0 = 1.0d0
+    v_01  = 1.0d0
+    v_02  = 1.0d0
+    v_03  = 1.0d0
+    T_0   = 1.0d0
+    B_01  = 1.0d0
+    B_02  = 1.0d0
+    B_03  = 1.0d0
 
   end subroutine set_equilibrium
 
   subroutine equilibrium_clean()
     deallocate(rho_0)
-    deallocate(v_0)
+    deallocate(v_01)
+    deallocate(v_02)
+    deallocate(v_03)
     deallocate(T_0)
-    deallocate(B_0)
+    deallocate(B_01)
+    deallocate(B_02)
+    deallocate(B_03)
   end subroutine equilibrium_clean
 
 
