@@ -4,6 +4,7 @@ module mod_setup_matrix_b
 
   ! Sets up the B-matrix for the eigenvalue problem wBX = AX
   real(dp)                 :: h_cubic(4), h_quadratic(4)
+  real(dp) :: Ht(4)
   ! Factors and positions are allocatable so they are dynamic, in case we add
   ! additional equations (self-gravity)
   complex(dp), allocatable :: factors_B(:)
@@ -18,7 +19,7 @@ contains
     real(dp), intent(in)   :: grid(gridpts), grid_gauss(4*gridpts)
     real(dp), intent(inout):: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp)            :: quadblock(dim_quadblock, dim_quadblock)
-    real(dp)               :: r_lo, r_ce, r_hi, eps, curr_weight
+    real(dp)               :: r_lo, r_hi, eps, curr_weight
     real(dp)               :: r
     integer                :: i, j, gauss_idx
 
@@ -26,13 +27,12 @@ contains
     matrix_B = 0.0d0
 
     ! Iterate over gridpoints to calculate blocks
-    do i = 2, gridpts-1
-      ! Set block to zero (quadblock is complex, so tuple)
+    do i = 1, gridpts-1
+      ! Set quadblock to zero (quadblock is complex, so tuple)
       quadblock = (0.0d0, 0.0d0)
 
       ! This integrates in the interval grid_gauss(i) to grid_gauss(i + 1)
-      r_lo = grid(i - 1)
-      r_ce = grid(i)
+      r_lo = grid(i)
       r_hi = grid(i + 1)
 
       do j = 1, n_gauss
@@ -51,9 +51,8 @@ contains
 
         curr_weight = gaussian_weights(j)
 
-        ! TODO: FACTORS ARE PROBABLY WRONG
-        call quadratic_factors(r, r_lo, r_ce, r_hi, h_quadratic)
-        call cubic_factors(r, r_lo, r_ce, r_hi, h_cubic)
+        call quadratic_factors(r, r_lo, r_hi, h_quadratic)
+        call cubic_factors(r, r_lo, r_hi, h_cubic)
 
         call get_B_elements(gauss_idx, eps, curr_weight, quadblock)
 
@@ -152,6 +151,5 @@ contains
       deallocate(factors_B)
     end if
   end subroutine matrix_B_clean
-
 
 end module mod_setup_matrix_b
