@@ -61,6 +61,7 @@ contains
     use mod_setup_grid
     use mod_setup_equilibrium
     use mod_setup_matrix_b
+    use mod_setup_matrix_a
     use mod_radiative_cooling
     deallocate(matrix_A)
     deallocate(matrix_B)
@@ -70,6 +71,7 @@ contains
     call grid_clean
     call equilibrium_clean
     call matrix_B_clean
+    call matrix_A_clean
 
     if (radiative_cooling) then
       call radiative_cooling_clean
