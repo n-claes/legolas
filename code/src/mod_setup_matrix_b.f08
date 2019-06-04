@@ -4,7 +4,6 @@ module mod_setup_matrix_b
 
   ! Sets up the B-matrix for the eigenvalue problem wBX = AX
   real(dp)                 :: h_cubic(4), h_quadratic(4)
-  real(dp) :: Ht(4)
   ! Factors and positions are allocatable so they are dynamic, in case we add
   ! additional equations (self-gravity)
   complex(dp), allocatable :: factors_B(:)
@@ -62,10 +61,12 @@ contains
       if (i == 1) then
         do k = 1, dim_quadblock
           do l = 1, dim_quadblock
-            matrix_B(k, l) = quadblock(k, l)
+            matrix_B(k, l) = real(quadblock(k, l))
           end do
         end do
       end if
+
+      ! TODO: Fill B-matrix with quadblocks
 
     end do      ! end do iteration grid points
 
@@ -77,13 +78,13 @@ contains
 
     integer, intent(in)          :: gauss_idx
     real(dp), intent(in)         :: eps, curr_weight
-    complex(dp), intent(out)     :: quadblock(dim_quadblock, dim_quadblock)
+    complex(dp), intent(inout)   :: quadblock(dim_quadblock, dim_quadblock)
 
     real(dp)                     :: rho
 
-    rho = rho_0(gauss_idx)
+    rho = rho0_eq(gauss_idx)
 
-    ! Quadratic elements
+    ! Quadratic * Quadratic
     call reset_factors_B(5)
     call reset_positions(5)
 
@@ -103,9 +104,10 @@ contains
     factors_B(5) = 1.0d0
     positions(5, :) = [6, 6]
 
-    call subblock(quadblock, factors_B, positions, curr_weight, h_quadratic, h_quadratic)
+    call subblock(quadblock, factors_B, positions, curr_weight, &
+                  h_quadratic, h_quadratic)
 
-    ! Cubic elements
+    ! Cubic * Cubic
     call reset_factors_B(3)
     call reset_positions(3)
 
