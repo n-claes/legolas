@@ -73,11 +73,15 @@ contains
 
     end do    ! end do iteration gridpoints
 
+    deallocate(factors_A)
+    deallocate(positions)
+
   end subroutine construct_A
 
   subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock)
     use mod_grid
     use mod_equilibrium
+    use mod_equilibrium_derivatives
     use mod_make_subblock
 
     integer, intent(in)       :: gauss_idx
@@ -85,17 +89,26 @@ contains
     complex(dp), intent(out)  :: quadblock(dim_quadblock, dim_quadblock)
 
     real(dp)                  :: eps_inv
-    real(dp)                  :: rho, v01, v02, v03, T, B01, B02, B03
+    real(dp)                  :: rho0, v01, v02, v03, T0, B01, B02, B03
+    real(dp)                  :: drho0, drB02, dB03_r, drv02, dv03, dB03, dT0
 
     eps_inv = 1.0d0 / eps
-    rho = rho0_eq(gauss_idx)
-    v01 = v01_eq(gauss_idx)
-    v02 = v02_eq(gauss_idx)
-    v03 = v03_eq(gauss_idx)
-    T   = T0_eq(gauss_idx)
-    B01 = B01_eq(gauss_idx)
-    B02 = B02_eq(gauss_idx)
-    B03 = B03_eq(gauss_idx)
+    rho0    = rho0_eq(gauss_idx)
+    v01     = v01_eq(gauss_idx)
+    v02     = v02_eq(gauss_idx)
+    v03     = v03_eq(gauss_idx)
+    T0      = T0_eq(gauss_idx)
+    B01     = B01_eq(gauss_idx)
+    B02     = B02_eq(gauss_idx)
+    B03     = B03_eq(gauss_idx)
+
+    drho0   = d_rho0_dr(gauss_idx)
+    drB02   = d_rB02_dr(gauss_idx)
+    dB03_r  = d_B03_r_dr(gauss_idx)
+    drv02   = d_rv02_dr(gauss_idx)
+    dv03    = d_v03_dr(gauss_idx)
+    dB03    = d_B03_dr(gauss_idx)
+    dT0     = d_T0_dr(gauss_idx)
 
     ! Quadratic * Quadratic
     call reset_factors_A(19)
@@ -105,15 +118,67 @@ contains
     factors_A(1) = eps_inv * (eps_inv * v02 * k2 + v03 * k3) * d_eps_dr
     positions(1, :) = [1, 1]
     ! A(1, 3)
-    factors_A(2) = eps_inv * rho * k2
+    factors_A(2) = eps_inv * rho0 * k2
     positions(2, :) = [1, 3]
     ! A(1, 4)
-    factors_A(3) = eps_inv * rho * k3
-
-    ! TODO: others
+    factors_A(3) = eps_inv * rho0 * k3
+    positions(3, :) = [1, 4]
+    ! A(3, 1)
+    factors_A(4) = eps_inv**2 * T0 * k2
+    positions(4, :) = [3, 1]
+    ! A(3, 3)
+    factors_A(5) = rho0 * (eps_inv * k2 * v02 + k3 * v03)
+    positions(5, :) = [3, 3]
+    ! A(3, 5)
+    factors_A(6) = eps_inv**2 * rho0 * k2
+    positions(6, :) = [3, 5]
+    ! A(3, 6)
+    factors_A(7) = -B03 * (k3**2 + k2**2 * eps_inv**2)
+    positions(7, :) = [3, 6]
+    ! A(4, 1)
+    factors_A(8) = eps_inv * T0 * k3
+    positions(8, :) = [4, 1]
+    ! A(4, 4)
+    factors_A(9) = eps_inv * rho0 * (eps_inv * k2 * v02 + k3 * v03)
+    positions(9, :) = [4, 4]
+    ! A(4, 5)
+    factors_A(10) = eps_inv * rho0 * k3
+    positions(10, :) = [4, 5]
+    ! A(4, 6)
+    factors_A(11) = B02 * (k3**2 + k2**2 * eps_inv**2)
+    positions(11, :) = [4, 6]
+    ! A(5, 1)
+    factors_A(12) = 0.0d0 !TODO: thermal conduction
+    positions(12, :) = [5, 1]
+    ! A(5, 3)
+    factors_A(13) = gamma_1 * eps_inv * rho0 * T0 * k2
+    positions(13, :) = [5, 3]
+    ! A(5, 4)
+    factors_A(14) = gamma_1 * eps_inv * rho0 * T0 * k3
+    positions(14, :) = [5, 4]
+    ! A(5, 5)
+    factors_A(15) = 0.0d0 !TODO: thermal conduction
+    positions(15, :) = [5, 5]
+    ! A(5, 6)
+    factors_A(16) = 0.0d0 !TODO: thermal conduction
+    positions(16, :) = [5, 6]
+    ! A(6, 3)
+    factors_A(17) = -B03
+    positions(17, :) = [6, 3]
+    ! A(6, 4)
+    factors_A(18) = -eps_inv * B02
+    positions(18, :) = [6, 4]
+    ! A(6, 6)
+    factors_A(19) = k2 * eps_inv * v02 + k2 * v03
+    positions(19, :) = [6, 6]
 
     call subblock(quadblock, factors_A, positions, curr_weight, &
                   h_quadratic, h_quadratic)
+
+
+    ! Quadratic * Cubic
+    call reset_factors_A(10)
+    call reset_positions(10)
 
 
 
