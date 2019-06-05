@@ -17,9 +17,11 @@ contains
 
   !> Initialises the grid and equilibrium configuration
   subroutine initialisation()
+    use mod_radiative_cooling
     use mod_grid
     use mod_equilibrium
-    use mod_radiative_cooling
+    use mod_equilibrium_derivatives
+
 
     ! Initialises global variables
     call initialise_variables()
@@ -37,6 +39,9 @@ contains
 
     ! Initialise equilibrium
     call initialise_equilibrium()
+
+    ! Initialise equilibrium derivatives
+    call initialise_equilibrium_derivatives()
 
   end subroutine initialisation
 
@@ -56,6 +61,7 @@ contains
   subroutine cleanup()
     use mod_grid
     use mod_equilibrium
+    use mod_equilibrium_derivatives
     use mod_setup_matrix_b
     use mod_setup_matrix_a
     use mod_radiative_cooling
@@ -65,6 +71,7 @@ contains
     call variables_clean
     call grid_clean
     call equilibrium_clean
+    call equilibrium_derivatives_clean
     call matrix_B_clean
     call matrix_A_clean
 
