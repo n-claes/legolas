@@ -21,6 +21,15 @@ contains
     allocate(B02_eq(4*gridpts))
     allocate(B03_eq(4*gridpts))
 
+    rho0_eq = 0.0d0
+    v01_eq  = 0.0d0
+    v02_eq  = 0.0d0
+    v03_eq  = 0.0d0
+    T0_eq   = 0.0d0
+    B01_eq  = 0.0d0
+    B02_eq  = 0.0d0
+    B03_eq  = 0.0d0
+
     call set_equilibrium()
 
   end subroutine initialise_equilibrium

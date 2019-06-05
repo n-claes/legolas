@@ -70,6 +70,9 @@ contains
 
     end do      ! end do iteration grid points
 
+    deallocate(factors_B)
+    deallocate(positions)
+
   end subroutine construct_B
 
   subroutine get_B_elements(gauss_idx, eps, curr_weight, quadblock)
