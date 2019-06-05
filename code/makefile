@@ -25,6 +25,7 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_spline_functions.o						\
 								mod_grid.o												\
 								mod_equilibrium.o									\
+								mod_equilibrium_derivatives.o			\
 								mod_make_subblock.o								\
 								mod_setup_matrix_b.o							\
 								mod_setup_matrix_a.o							\
