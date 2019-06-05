@@ -119,6 +119,35 @@ contains
   end function gaussian
 
 
+  !> Subroutine to calculate the derivative of a given array (y_array) with
+  !! respect to x_array using central difference discretization.
+  !! @param x_array       Used to calculate dx for dy/dx.
+  !! @param y_array       Used to calculate dy for dy/dx.
+  !! @param d_y_array_dx  y_array derived with respect to x_array,
+  !!                      of same size as y_array.
+  subroutine get_array_derivative(x_array, y_array, d_y_array_dx)
+    real(dp), intent(in)       :: x_array(:), y_array(:)
+    real(dp), intent(out)      :: d_y_array_dx(size(y_array))
+
+    integer                    :: len_array, i
+
+    len_array = size(y_array)
+
+    do i = 2, len_array-1
+      d_y_array_dx(i) = (y_array(i + 1) - y_array(i-1)) &
+                      / 2.0d0*(x_array(i + 1) - x_array(i-1))
+    end do
+
+    ! TODO Figure out a way to set boundary conditions on the arrays,
+    !      right now the values are copied into the boundary cells.
+    ! left boundary condition
+    d_y_array_dx(1) = d_y_array_dx(2)
+    ! right boundary condition
+    d_y_array_dx(len_array) = d_y_array_dx(len_array - 1)
+
+  end subroutine get_array_derivative
+
+
   subroutine grid_clean()
     deallocate(grid)
     deallocate(grid_gauss)
