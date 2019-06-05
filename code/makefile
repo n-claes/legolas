@@ -15,7 +15,6 @@ SRCDIR   := src
 BINDIR   := bin
 MODDIR   := mod
 
-MAIN     := $(SRCDIR)/main.f08
 OUTPUT   := program.exe
 
 objects  := $(addprefix $(BINDIR)/, 			  		  \
@@ -33,8 +32,7 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 							)
 
 all: compile_modules		\
-		 compile_main       \
-
+		 compile_main       
 
 compile_modules: $(objects)
 
