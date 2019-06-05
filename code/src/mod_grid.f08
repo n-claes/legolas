@@ -1,4 +1,4 @@
-module mod_setup_grid
+module mod_grid
   use mod_global_variables
   implicit none
 
@@ -127,4 +127,4 @@ contains
 
 
 
-end module mod_setup_grid
+end module mod_grid

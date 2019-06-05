@@ -17,8 +17,8 @@ contains
 
   !> Initialises the grid and equilibrium configuration
   subroutine initialisation()
-    use mod_setup_grid
-    use mod_setup_equilibrium
+    use mod_grid
+    use mod_equilibrium
     use mod_radiative_cooling
 
     ! Initialises global variables
@@ -54,8 +54,8 @@ contains
 
   !> Performs cleanup, deallocates variables
   subroutine cleanup()
-    use mod_setup_grid
-    use mod_setup_equilibrium
+    use mod_grid
+    use mod_equilibrium
     use mod_setup_matrix_b
     use mod_setup_matrix_a
     use mod_radiative_cooling

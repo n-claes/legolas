@@ -1,4 +1,4 @@
-module mod_setup_equilibrium
+module mod_equilibrium
   use mod_global_variables
   implicit none
 
@@ -27,7 +27,7 @@ contains
 
   !> Sets the equilibrium on the nodes of the Gaussian quadrature
   subroutine set_equilibrium()
-    use mod_setup_grid
+    use mod_grid
 
     real(dp)              :: x_lo, x_hi, dx, xi(n_gauss)
     integer               :: i, j, idx
@@ -78,4 +78,4 @@ contains
   end subroutine equilibrium_clean
 
 
-end module mod_setup_equilibrium
+end module mod_equilibrium

@@ -12,8 +12,8 @@ module mod_setup_matrix_b
 contains
 
   subroutine construct_B(matrix_B)
-    use mod_setup_grid
-    use mod_setup_equilibrium
+    use mod_grid
+    use mod_equilibrium
     use mod_spline_functions
 
     real(dp), intent(inout):: matrix_B(matrix_gridpts, matrix_gridpts)
@@ -73,7 +73,7 @@ contains
   end subroutine construct_B
 
   subroutine get_B_elements(gauss_idx, eps, curr_weight, quadblock)
-    use mod_setup_equilibrium
+    use mod_equilibrium
     use mod_make_subblock
 
     integer, intent(in)          :: gauss_idx
