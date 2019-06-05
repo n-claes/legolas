@@ -12,11 +12,11 @@ module mod_setup_matrix_a
 
 contains
 
-  subroutine construct_A(grid, grid_gauss, matrix_A)
+  subroutine construct_A(matrix_A)
+    use mod_setup_grid
     use mod_setup_equilibrium
     use mod_spline_functions
 
-    real(dp), intent(in)      :: grid(gridpts), grid_gauss(4*gridpts)
     complex(dp), intent(out)  :: matrix_A(matrix_gridpts, matrix_gridpts)
     complex(dp)               :: quadblock(dim_quadblock, dim_quadblock)
     real(dp)                  :: r_lo, r_hi, eps, d_eps_dr, curr_weight
@@ -76,6 +76,7 @@ contains
   end subroutine construct_A
 
   subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock)
+    use mod_setup_grid
     use mod_setup_equilibrium
     use mod_make_subblock
 
