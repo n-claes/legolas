@@ -13,8 +13,8 @@ module mod_setup_matrix_a
 contains
 
   subroutine construct_A(matrix_A)
-    use mod_setup_grid
-    use mod_setup_equilibrium
+    use mod_grid
+    use mod_equilibrium
     use mod_spline_functions
 
     complex(dp), intent(out)  :: matrix_A(matrix_gridpts, matrix_gridpts)
@@ -76,8 +76,8 @@ contains
   end subroutine construct_A
 
   subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock)
-    use mod_setup_grid
-    use mod_setup_equilibrium
+    use mod_grid
+    use mod_equilibrium
     use mod_make_subblock
 
     integer, intent(in)       :: gauss_idx

@@ -23,8 +23,8 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_cooling_curves.o							\
 								mod_radiative_cooling.o						\
 								mod_spline_functions.o						\
-								mod_setup_grid.o									\
-								mod_setup_equilibrium.o						\
+								mod_grid.o												\
+								mod_equilibrium.o									\
 								mod_make_subblock.o								\
 								mod_setup_matrix_b.o							\
 								mod_setup_matrix_a.o							\
