@@ -11,11 +11,11 @@ module mod_setup_matrix_b
 
 contains
 
-  subroutine construct_B(grid, grid_gauss, matrix_B)
+  subroutine construct_B(matrix_B)
+    use mod_setup_grid
     use mod_setup_equilibrium
     use mod_spline_functions
 
-    real(dp), intent(in)   :: grid(gridpts), grid_gauss(4*gridpts)
     real(dp), intent(inout):: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp)            :: quadblock(dim_quadblock, dim_quadblock)
     real(dp)               :: r_lo, r_hi, eps, curr_weight

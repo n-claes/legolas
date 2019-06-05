@@ -2,14 +2,20 @@ module mod_setup_grid
   use mod_global_variables
   implicit none
 
+  real(dp), allocatable      :: grid(:), grid_gauss(:)
+
 contains
 
-  subroutine initialise_grid(grid)
-
-    real(dp), intent(inout)  :: grid(gridpts)
+  subroutine initialise_grid()
     integer                  :: i
     real(dp)                 :: dx
 
+    allocate(grid(gridpts))
+    allocate(grid_gauss(4*gridpts))
+
+    ! Initialise grids
+    grid       = 0.0d0
+    grid_gauss = 0.0d0
 
     ! minus one here to include x_end
     dx = (x_end - x_start) / (gridpts-1)
@@ -18,7 +24,7 @@ contains
     end do
 
     if (mesh_accumulation) then
-      call accumulate_mesh(grid)
+      call accumulate_mesh()
     end if
 
   end subroutine initialise_grid
@@ -28,9 +34,7 @@ contains
   !! mod_global_variables); the grid is accumulated near each Gaussian maximum,
   !! using equidistribution based on the integral under the curve defined
   !! by the function gaussian().
-  subroutine accumulate_mesh(grid)
-
-    real(dp), intent(inout)  :: grid(gridpts)
+  subroutine accumulate_mesh()
     integer                  :: i, integral_gridpts_1, integral_gridpts_2
     real(dp)                 :: dx, dx_0, xi, bgf, fact, dx_eq
     real(dp)                 :: gauss_xi, gauss_xi_eq
@@ -116,7 +120,8 @@ contains
 
 
   subroutine grid_clean()
-    return
+    deallocate(grid)
+    deallocate(grid_gauss)
   end subroutine grid_clean
 
 

@@ -4,8 +4,6 @@ program esonas
 
   complex(dp), allocatable  :: matrix_A(:, :)
   real(dp), allocatable     :: matrix_B(:, :)
-  real(dp), allocatable     :: grid(:), grid_gauss(:)
-
 
   call initialisation
 
@@ -24,23 +22,21 @@ contains
     use mod_radiative_cooling
 
     ! Initialises global variables
-    call initialise_variables
+    call initialise_variables()
 
     if (radiative_cooling) then
-      call initialise_radiative_cooling
+      call initialise_radiative_cooling()
     end if
 
 
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
-    allocate(grid(gridpts))
-    allocate(grid_gauss(4*gridpts))
 
     ! Initialise grid
-    call initialise_grid(grid)
+    call initialise_grid()
 
     ! Initialise equilibrium
-    call initialise_equilibrium(grid, grid_gauss)
+    call initialise_equilibrium()
 
   end subroutine initialisation
 
@@ -49,8 +45,8 @@ contains
     use mod_setup_matrix_b
     use mod_setup_matrix_a
 
-    call construct_B(grid, grid_gauss, matrix_B)
-    call construct_A(grid, grid_gauss, matrix_A)
+    call construct_B(matrix_B)
+    call construct_A(matrix_A)
 
     return
 
@@ -65,7 +61,6 @@ contains
     use mod_radiative_cooling
     deallocate(matrix_A)
     deallocate(matrix_B)
-    deallocate(grid)
 
     call variables_clean
     call grid_clean

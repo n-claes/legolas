@@ -10,10 +10,7 @@ module mod_setup_equilibrium
 
 contains
 
-  subroutine initialise_equilibrium(grid, grid_gauss)
-
-    real(dp), intent(in)  :: grid(gridpts)
-    real(dp), intent(out) :: grid_gauss(4*gridpts)
+  subroutine initialise_equilibrium()
 
     allocate(rho0_eq(4*gridpts))
     allocate(v01_eq(4*gridpts))
@@ -24,15 +21,14 @@ contains
     allocate(B02_eq(4*gridpts))
     allocate(B03_eq(4*gridpts))
 
-    call set_equilibrium(grid, grid_gauss)
+    call set_equilibrium()
 
   end subroutine initialise_equilibrium
 
   !> Sets the equilibrium on the nodes of the Gaussian quadrature
-  subroutine set_equilibrium(grid, grid_gauss)
+  subroutine set_equilibrium()
+    use mod_setup_grid
 
-    real(dp), intent(in)  :: grid(gridpts)
-    real(dp), intent(out) :: grid_gauss(4*gridpts)
     real(dp)              :: x_lo, x_hi, dx, xi(n_gauss)
     integer               :: i, j, idx
 
