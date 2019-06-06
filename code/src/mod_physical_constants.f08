@@ -2,52 +2,55 @@ module mod_physical_constants
   use, intrinsic :: iso_fortran_env
   implicit none
 
-  integer, parameter        :: dp = real64
+  ! note: because dp is defined in mod_global_variables, use real64 from
+  ! iso_fortran_env directly in this module. It's best to keep this module
+  ! without any dependencies and to keep sp, dp and qp in mod_global_variables
+  ! (to prevent having to import both modules almost everywhere).
 
   !! Normalisation-related parameters
   !> Scaling factor for length
-  real(dp), protected       :: unit_length = 1.0d0
+  real(real64), protected       :: unit_length = 1.0d0
   !> Scaling factor for time
-  real(dp), protected       :: unit_time = 1.0d0
+  real(real64), protected       :: unit_time = 1.0d0
   !> Scaling factor for density
-  real(dp), protected       :: unit_density = 1.0d0
+  real(real64), protected       :: unit_density = 1.0d0
   !> Scaling factor for velocity
-  real(dp), protected       :: unit_velocity = 0.0d0
+  real(real64), protected       :: unit_velocity = 0.0d0
   !> Scaling factor for temperature
-  real(dp), protected       :: unit_temperature = 1.0d0
+  real(real64), protected       :: unit_temperature = 1.0d0
   !> Scaling factor for pressure
-  real(dp), protected       :: unit_pressure = 1.0d0
+  real(real64), protected       :: unit_pressure = 1.0d0
   !> Scaling factor for magnetic fields
-  real(dp), protected       :: unit_magneticfield = 1.0d0
+  real(real64), protected       :: unit_magneticfield = 1.0d0
   !> Scaling factor for number density
-  real(dp), protected       :: unit_numberdensity = 1.0d0
+  real(real64), protected       :: unit_numberdensity = 1.0d0
   !> Scaling factor for luminosity (radiative cooling module)
-  real(dp), protected       :: unit_luminosity = 1.0d0
+  real(real64), protected       :: unit_luminosity = 1.0d0
 
   !! Physical constants
   !> Value for pi
-  real(dp), parameter       :: dpi = 3.141592653589793238462643383279
+  real(real64), parameter       :: dpi = 3.141592653589793238462643383279
   !> Helium abundance [He]/[H]
-  real(dp), parameter       :: He_abundance = 0.1d0
+  real(real64), parameter       :: He_abundance = 0.1d0
   !> Proton mass in g (cgs)
-  real(dp), parameter       :: mp_cgs = 1.672621777d-24
+  real(real64), parameter       :: mp_cgs = 1.672621777d-24
   !> Proton mass in kg (SI)
-  real(dp), parameter       :: mp_si  = 1.672621777d-27
+  real(real64), parameter       :: mp_si  = 1.672621777d-27
   !> Hydrogen mass in g (cgs)
-  real(dp), parameter       :: mH_cgs = 1.6733d-24
+  real(real64), parameter       :: mH_cgs = 1.6733d-24
   !> Hydrogen mass in kg (SI)
-  real(dp), parameter       :: mH_si  = 1.6733d-27
+  real(real64), parameter       :: mH_si  = 1.6733d-27
   !> Boltzmann constant in erg/K (cgs)
-  real(dp), parameter       :: kB_cgs = 1.3806488d-16
+  real(real64), parameter       :: kB_cgs = 1.3806488d-16
   !> Boltzmann constant in J/K (SI)
-  real(dp), parameter       :: kB_si  = 1.3806488d-23
+  real(real64), parameter       :: kB_si  = 1.3806488d-23
   !> Magnetic constant in H/m (SI)
-  real(dp), parameter       :: mu0_si = 1.2566370614d-6
+  real(real64), parameter       :: mu0_si = 1.2566370614d-6
 
 contains
 
   subroutine set_unit_length(new_unit_length)
-    real(dp), intent(in) :: new_unit_length
+    real(real64), intent(in) :: new_unit_length
 
     unit_length = new_unit_length
 
@@ -55,7 +58,7 @@ contains
 
 
   subroutine set_unit_numberdensity(new_unit_numberdensity)
-    real(dp), intent(in) :: new_unit_numberdensity
+    real(real64), intent(in) :: new_unit_numberdensity
 
     unit_numberdensity = new_unit_numberdensity
 
@@ -63,7 +66,7 @@ contains
 
 
   subroutine set_unit_temperature(new_unit_temperature)
-    real(dp), intent(in) :: new_unit_temperature
+    real(real64), intent(in) :: new_unit_temperature
 
     unit_temperature = new_unit_temperature
 
@@ -71,7 +74,7 @@ contains
 
 
   subroutine set_unit_velocity(new_unit_velocity)
-    real(dp), intent(in) :: new_unit_velocity
+    real(real64), intent(in) :: new_unit_velocity
 
     unit_velocity = new_unit_velocity
 
@@ -80,7 +83,7 @@ contains
 
   subroutine set_normalisations(cgs_units)
     logical, intent(in)       :: cgs_units
-    real(dp)              :: mp, kB, mu0
+    real(real64)              :: mp, kB, mu0
 
     if (cgs_units) then
       mp  = mp_cgs
