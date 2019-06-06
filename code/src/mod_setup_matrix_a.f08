@@ -90,9 +90,19 @@ contains
 
     real(dp)                  :: eps_inv
     real(dp)                  :: rho0, v01, v02, v03, T0, B01, B02, B03
+    real(dp)                  :: B2_inv
     real(dp)                  :: drho0, drB02, dB03_r, drv02, dv03, dB03, dT0
 
+    real(dp)                  :: L0, L_T, L_rho
+    real(dp)                  :: tc_para, tc_perp, d_tc_perp_dT, &
+                                 d_tc_perp_drho, d_tc_perp_dB2
+
+    complex(dp)               :: ic
+
+    ic      = (0.0d0, 1.0d0)
     eps_inv = 1.0d0 / eps
+
+    ! Equilibrium quantities
     rho0    = rho0_eq(gauss_idx)
     v01     = v01_eq(gauss_idx)
     v02     = v02_eq(gauss_idx)
@@ -101,7 +111,9 @@ contains
     B01     = B01_eq(gauss_idx)
     B02     = B02_eq(gauss_idx)
     B03     = B03_eq(gauss_idx)
+    B2_inv  = 1.0d0 / (B01**2 + B02**2 + B03**2)
 
+    ! Derivatives of equilibrium quantities
     drho0   = d_rho0_dr(gauss_idx)
     drB02   = d_rB02_dr(gauss_idx)
     dB03_r  = d_B03_r_dr(gauss_idx)
@@ -109,6 +121,18 @@ contains
     dv03    = d_v03_dr(gauss_idx)
     dB03    = d_B03_dr(gauss_idx)
     dT0     = d_T0_dr(gauss_idx)
+
+    ! Radiative cooling quantities (all 0.0d0 if set to false)
+    L0      = heat_loss_eq(gauss_idx)
+    L_T     = d_L_dT(gauss_idx)
+    L_rho   = d_L_drho(gauss_idx)
+
+    ! Thermal conduction quantities (all 0.0d0 if set to false)
+    tc_para = tc_para_eq(gauss_idx)
+    tc_perp = tc_perp_eq(gauss_idx)
+    d_tc_perp_dT   = d_tc_perp_eq_dT(gauss_idx)
+    d_tc_perp_drho = d_tc_perp_eq_drho(gauss_idx)
+    d_tc_perp_dB2  = d_tc_perp_eq_dB2(gauss_idx)
 
     ! Quadratic * Quadratic
     call reset_factors_A(19)
@@ -148,7 +172,8 @@ contains
     factors_A(11) = B02 * (k3**2 + k2**2 * eps_inv**2)
     positions(11, :) = [4, 6]
     ! A(5, 1)
-    factors_A(12) = 0.0d0 !TODO: thermal conduction
+    factors_A(12) = ic * gamma_1 * eps_inv * &
+                    (d_eps_dr * eps_inv * dT0 * d_tc_perp_dT - L0 - rho0*L_rho)
     positions(12, :) = [5, 1]
     ! A(5, 3)
     factors_A(13) = gamma_1 * eps_inv * rho0 * T0 * k2
@@ -157,10 +182,16 @@ contains
     factors_A(14) = gamma_1 * eps_inv * rho0 * T0 * k3
     positions(14, :) = [5, 4]
     ! A(5, 5)
-    factors_A(15) = 0.0d0 !TODO: thermal conduction
+    factors_A(15) = -eps_inv * ic * gamma_1 * ( &
+                    (tc_para - tc_perp) * B2_inv * (k2 * eps_inv * B02 + k3*B03) &
+                     + tc_perp * (d_eps_dr * eps_inv)**2 &
+                     + tc_perp * (k2**2 * eps_inv**2 + k3**2) &
+                     + rho0 * L_T - eps_inv * dT0 * d_tc_perp_dT &
+                                              )
     positions(15, :) = [5, 5]
     ! A(5, 6)
-    factors_A(16) = 0.0d0 !TODO: thermal conduction
+    factors_A(16) = ic * gamma_1 * d_eps_dr * eps_inv * 2 * dT0 * &
+                    (eps * B02 * k3 - B03 * k2) * d_tc_perp_dB2
     positions(16, :) = [5, 6]
     ! A(6, 3)
     factors_A(17) = -B03
