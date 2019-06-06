@@ -2,10 +2,14 @@ module mod_equilibrium
   use mod_global_variables
   implicit none
 
-  real(dp), allocatable         ::  rho0_eq(:)
-  real(dp), allocatable         ::  v01_eq(:), v02_eq(:), v03_eq(:)
-  real(dp), allocatable         ::  T0_eq(:)
-  real(dp), allocatable         ::  B01_eq(:), B02_eq(:), B03_eq(:)
+  !> Wavenumber in y-direction (Cartesian) or theta-direction (cylindrical)
+  real(dp)                  :: k2
+  !> Wavenumber in z-direction (Cartesian) or z-direction (cylindrical)
+  real(dp)                  :: k3
+  real(dp), allocatable         :: rho0_eq(:)
+  real(dp), allocatable         :: v01_eq(:), v02_eq(:), v03_eq(:)
+  real(dp), allocatable         :: T0_eq(:)
+  real(dp), allocatable         :: B01_eq(:), B02_eq(:), B03_eq(:)
 
 
 contains
@@ -29,6 +33,9 @@ contains
     B01_eq  = 0.0d0
     B02_eq  = 0.0d0
     B03_eq  = 0.0d0
+
+    k2 = 1.0d0
+    k3 = 1.0d0
 
     call set_equilibrium()
 
