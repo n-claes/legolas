@@ -63,6 +63,7 @@ contains
     use mod_radiative_cooling
     use mod_thermal_conduction
 
+    real(dp)              :: B0_eq(4*gridpts)
     real(dp)              :: x_lo, x_hi, dx, xi(n_gauss)
     integer               :: i, j, idx
 
@@ -104,8 +105,9 @@ contains
     end if
 
     if (thermal_conduction) then
-      call calculate_para_conduction(tc_para_eq)
-      call calculate_perp_conduction(tc_perp_eq)
+      B0_eq = sqrt(B01_eq**2 + B02_eq**2 + B03_eq**2)
+      call calculate_para_conduction(T0_eq, tc_para_eq)
+      call calculate_perp_conduction(T0_eq, rho0_eq, B0_eq, tc_perp_eq)
     end if
 
   end subroutine set_equilibrium

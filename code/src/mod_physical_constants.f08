@@ -26,6 +26,8 @@ module mod_physical_constants
   real(real64), protected       :: unit_numberdensity = 1.0d0
   !> Scaling factor for luminosity (radiative cooling module)
   real(real64), protected       :: unit_luminosity = 1.0d0
+  !> Scaling factor for themal conduction
+  real(real64), protected       :: unit_conduction = 1.0d0
 
   !! Physical constants
   !> Value for pi
@@ -114,6 +116,9 @@ contains
 
     unit_luminosity    = unit_pressure / ((1.0d0 + 2.0d0*He_abundance) * &
                                           (unit_numberdensity**2 * unit_time))
+
+    unit_conduction    = unit_density * unit_length * unit_velocity**3 / &
+                         unit_temperature
 
   end subroutine set_normalisations
 
