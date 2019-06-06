@@ -150,6 +150,7 @@ contains
       dLambdadT(i) = interp_table_dLdT(idx) + (T0(i) - interp_table_T(idx)) &
                      * (interp_table_dLdT(idx+1) - interp_table_dLdT(idx))  &
                      / (interp_table_T(idx+1)    - interp_table_T(idx))
+    end do
 
   end subroutine get_dLambdadT
 
