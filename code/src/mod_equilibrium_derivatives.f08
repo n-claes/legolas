@@ -32,6 +32,13 @@ contains
     allocate(d_B03_dr(4*gridpts))
     allocate(d_T0_dr(4*gridpts))
 
+    allocate(d_L_dT(4*gridpts))
+    allocate(d_L_drho(4*gridpts))
+
+    allocate(d_tcperp_dT(4*gridpts))
+    allocate(d_tcperp_drho(4*gridpts))
+    allocate(d_tcperp_dB2(4*gridpts))
+
     d_rho0_dr  = 0.0d0
     d_rB02_dr  = 0.0d0
     d_B03_r_dr = 0.0d0
@@ -57,7 +64,7 @@ contains
     use mod_radiative_cooling
     use mod_thermal_conduction
 
-    real(dp)            :: d_lambda_dT
+    real(dp)            :: d_lambda_dT(4*gridpts)
 
     call get_array_derivative(grid_gauss, rho0_eq, d_rho0_dr)
     call get_array_derivative(grid_gauss, (grid_gauss * B02_eq), d_rB02_dr)

@@ -22,6 +22,7 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_global_variables.o 						\
 								mod_cooling_curves.o							\
 								mod_radiative_cooling.o						\
+								mod_thermal_conduction.o					\
 								mod_spline_functions.o						\
 								mod_grid.o												\
 								mod_equilibrium.o									\
