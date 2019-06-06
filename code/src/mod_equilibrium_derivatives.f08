@@ -17,9 +17,9 @@ module mod_equilibrium_derivatives
   real(dp), allocatable       :: d_L_dT(:)
   real(dp), allocatable       :: d_L_drho(:)
 
-  real(dp), allocatable       :: d_tcperp_dT(:)
-  real(dp), allocatable       :: d_tcperp_drho(:)
-  real(dp), allocatable       :: d_tcperp_dB2(:)
+  real(dp), allocatable       :: d_tc_perp_eq_dT(:)
+  real(dp), allocatable       :: d_tc_perp_eq_drho(:)
+  real(dp), allocatable       :: d_tc_perp_eq_dB2(:)
 
 contains
 
@@ -35,9 +35,9 @@ contains
     allocate(d_L_dT(4*gridpts))
     allocate(d_L_drho(4*gridpts))
 
-    allocate(d_tcperp_dT(4*gridpts))
-    allocate(d_tcperp_drho(4*gridpts))
-    allocate(d_tcperp_dB2(4*gridpts))
+    allocate(d_tc_perp_eq_dT(4*gridpts))
+    allocate(d_tc_perp_eq_drho(4*gridpts))
+    allocate(d_tc_perp_eq_dB2(4*gridpts))
 
     d_rho0_dr  = 0.0d0
     d_rB02_dr  = 0.0d0
@@ -50,9 +50,9 @@ contains
     d_L_dT     = 0.0d0
     d_L_drho   = 0.0d0
 
-    d_tcperp_dT   = 0.0d0
-    d_tcperp_drho = 0.0d0
-    d_tcperp_dB2  = 0.0d0
+    d_tc_perp_eq_dT   = 0.0d0
+    d_tc_perp_eq_drho = 0.0d0
+    d_tc_perp_eq_dB2  = 0.0d0
 
     call calculate_equilibrium_derivatives()
 
@@ -85,9 +85,9 @@ contains
 
     ! TODO
     if (thermal_conduction) then
-      d_tcperp_dT = 1.0d0
-      d_tcperp_drho = 1.0d0
-      d_tcperp_dB2 = 1.0d0
+      d_tc_perp_eq_dT = 1.0d0
+      d_tc_perp_eq_drho = 1.0d0
+      d_tc_perp_eq_dB2 = 1.0d0
     end if
 
   end subroutine calculate_equilibrium_derivatives
@@ -122,14 +122,14 @@ contains
       deallocate(d_L_drho)
     end if
 
-    if (allocated(d_tcperp_dT)) then
-      deallocate(d_tcperp_dT)
+    if (allocated(d_tc_perp_eq_dT)) then
+      deallocate(d_tc_perp_eq_dT)
     end if
-    if (allocated(d_tcperp_drho)) then
-      deallocate(d_tcperp_drho)
+    if (allocated(d_tc_perp_eq_drho)) then
+      deallocate(d_tc_perp_eq_drho)
     end if
-    if (allocated(d_tcperp_dB2)) then
-      deallocate(d_tcperp_dB2)
+    if (allocated(d_tc_perp_eq_dB2)) then
+      deallocate(d_tc_perp_eq_dB2)
     end if
   end subroutine equilibrium_derivatives_clean
 
