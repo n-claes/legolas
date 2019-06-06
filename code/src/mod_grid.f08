@@ -103,6 +103,7 @@ contains
   !! expected values (from mod_global_variables). The Gaussian is evaluated
   !! in x.
   function gaussian(x, bgf, fact) result(f_gauss)
+    use mod_physical_constants
 
     real(dp), intent(in)    :: x, bgf, fact
     real(dp)                :: f_gauss

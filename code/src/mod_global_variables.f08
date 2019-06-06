@@ -14,10 +14,7 @@ module mod_global_variables
   !! Physical parameters
   real(dp), parameter       :: gamma = 5.0d0/3.0d0
   real(dp), parameter       :: gamma_1 = 1.0d0 - gamma
-  !> Wavenumber in y-direction (Cartesian) or theta-direction (cylindrical)
-  real(dp)                  :: k2
-  !> Wavenumber in z-direction (Cartesian) or z-direction (cylindrical)
-  real(dp)                  :: k3
+
   ! Radiative cooling
   logical, save             :: radiative_cooling
   integer, parameter        :: ncool = 4000
@@ -27,14 +24,15 @@ module mod_global_variables
   ! Thermal conduction
   logical, save             :: thermal_conduction
 
+  ! Switch for units
+  logical, save             :: cgs_units = .true.
+
   !> Grid-related parameters
   character(:), allocatable         :: geometry
   real(dp)                          :: x_start, x_end
   integer                           :: gridpts, matrix_gridpts
   integer                           :: integral_gridpts
   real(dp)                          :: ev_1, ev_2, sigma_1, sigma_2
-
-  real(dp), parameter               :: dpi = 3.141592653589793238462643383279
 
   logical, save                     :: mesh_accumulation
 
@@ -72,6 +70,15 @@ module mod_global_variables
 contains
 
   subroutine initialise_variables()
+    use mod_physical_constants
+
+    ! Normalisations
+    call set_unit_length(1.0d9)         ! cm
+    call set_unit_numberdensity(1.0d9)  ! cm*3
+    call set_unit_temperature(1.0d6)    ! K
+    call set_normalisations(cgs_units)
+
+    ! Grid related parameters
     geometry = "Cartesian"
     x_start  = 0.0d0
     x_end    = 1.0d0
@@ -79,18 +86,24 @@ contains
     matrix_gridpts = 16 * gridpts
     integral_gridpts = gridpts - 1
 
-    mesh_accumulation  = .false.
-    external_gravity   = .true.
-    radiative_cooling  = .false.
-    cooling_curve = "SPEX_DM"
-    thermal_conduction = .true.
 
+    ! Mesh accumulation parameters
+    mesh_accumulation  = .false.
     !> expected values Gaussian
     ev_1 = 7.25d0
     ev_2 = 0.75d0
     !> standard deviations Gaussian
     sigma_1 = 1.0d0
     sigma_2 = 2.0d0
+
+
+    ! Physics related parameters
+    external_gravity   = .true.
+    radiative_cooling  = .false.
+    cooling_curve = "SPEX_DM"
+    thermal_conduction = .true.
+
+
 
 
   end subroutine initialise_variables

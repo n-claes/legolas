@@ -152,6 +152,8 @@ contains
   !! @param table_T   Temperature entries of cooling table.
   !! @param table_L   Luminosity entries of cooling table.
   subroutine interpolate_cooling_curve(ntable, table_T, table_L)
+    use mod_physical_constants
+
     real(dp), intent(in)  :: table_T(:), table_L(:)
     integer, intent(in)   :: ntable
     real(dp)              :: fact1, fact2, fact3, dL1, dL2, ratt
@@ -223,10 +225,12 @@ contains
     enddo    ! end loop to create one table
 
     ! Go from logarithmic to actual values.
-    interp_table_T(1:ncool) = 10.0D0**interp_table_T(1:ncool)
-    interp_table_L(1:ncool) = 10.0D0**interp_table_L(1:ncool)
+    interp_table_T(1:ncool) = 10.0d0**interp_table_T(1:ncool)
+    interp_table_L(1:ncool) = 10.0d0**interp_table_L(1:ncool)
 
-    ! TODO: normalise values
+    ! Normalise values
+    interp_table_T(1:ncool) = interp_table_T(1:ncool) / unit_temperature
+    interp_table_L(1:ncool) = interp_table_L(1:ncool) / unit_luminosity
 
     lgmin_T = dlog10(min_T)
     lgmax_T = dlog10(max_T)

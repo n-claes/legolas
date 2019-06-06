@@ -18,6 +18,7 @@ MODDIR   := mod
 OUTPUT   := program.exe
 
 objects  := $(addprefix $(BINDIR)/, 			  		  \
+								mod_physical_constants.o					\
 								mod_global_variables.o 						\
 								mod_cooling_curves.o							\
 								mod_radiative_cooling.o						\
@@ -32,7 +33,7 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 							)
 
 all: compile_modules		\
-		 compile_main       
+		 compile_main
 
 compile_modules: $(objects)
 
