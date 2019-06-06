@@ -211,6 +211,43 @@ contains
     call reset_factors_A(10)
     call reset_positions(10)
 
+    ! A(1, 2)
+    factors_A(1) = -eps_inv * drho0
+    positions(1, :) = [1, 2]
+    ! A(3, 2)
+    factors_A(2) = -eps_inv**2 * rho0 * drv02
+    positions(2, :) = [3, 2]
+    ! A(3, 7)
+    factors_A(3) = eps_inv**2 * drB02 * k3
+    positions(3, :) = [3, 7]
+    ! A(3, 8)
+    factors_A(4) = -eps_inv**2 drB02 * k2
+    positions(4, :) = [3, 8]
+    ! A(4, 2)
+    factors_A(5) = -eps_inv * rho0 * dv03
+    positions(5, :) = [4, 2]
+    ! A(4, 7)
+    factors_A(6) = eps_inv * dB03 * k3
+    positions(6, :) = [4, 7]
+    ! A(4, 8)
+    factors_A(7) = -eps_inv * dB03 * k2
+    positions(7, :) = [4, 8]
+    ! A(5, 2)
+    factors_A(8) = -eps_inv * rho0 * dT0
+    positions(8, :) = [5, 2]
+    ! A(5, 7)
+    factors_A(9) = ic * gamma_1 * eps_inv * (tc_para - tc_perp) * B2_inv &
+                   * dT0 * (k2 * k3 * B02 + k3**2 * B02)
+    positions(9, :) = [5, 7]
+    ! A(5, 8)
+    factors_A(10) = ic * gamma_1 * eps_inv * (tc_para - tc_perp) * B2_inv &
+                    * dT0 * (k2**2 * B02 + k2 * k3 * B03)
+    positions(10, :) = [5, 8]
+
+    call subblock(quadblock, factors_A, positions, curr_weight, &
+                  h_quadratic, h_cubic)
+
+
 
 
     return
