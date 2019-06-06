@@ -113,37 +113,45 @@ contains
   end subroutine initialise_radiative_cooling
 
 
-  !> Interpolates the luminosity based on the given temperature T0.
-  !! @param T0          Equilibrium temperature, in K
-  !! @param luminosity  Interpolated luminosity
-  subroutine get_L(T0, luminosity)
-    real(dp), intent(in)  :: T0
-    real(dp), intent(out) :: luminosity
-    integer               :: idx
+  !> Interpolates the luminosity based on the given temperatures T0.
+  !! @param T0      Equilibrium temperatures, in K.
+  !!                (array, length = 4*gridpts)
+  !! @param lambda  Interpolated lambda for every T0
+  !!                (array, length = 4*gridpts)
+  subroutine get_Lambda(T0, lambda)
+    real(dp), intent(in)  :: T0(4*gridpts)
+    real(dp), intent(out) :: lambda(4*gridpts)
 
-    idx = int( (log10(T0) - lgmin_T) / lgstep ) + 1
-    luminosity = interp_table_L(idx) + (T0 - interp_table_T(idx)) &
-              * (interp_table_L(idx + 1) - interp_table_L(idx))   &
-              / (interp_table_T(idx + 1) - interp_table_T(idx))
+    integer               :: idx, i
 
-  end subroutine get_L
+    do i = 1, 4*gridpts
+      idx = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
+      lambda(i) = interp_table_L(idx) + (T0(i) - interp_table_T(idx)) &
+                  * (interp_table_L(idx + 1) - interp_table_L(idx))   &
+                  / (interp_table_T(idx + 1) - interp_table_T(idx))
+    end do
+
+  end subroutine get_Lambda
 
 
   !> Interpolates the derivative of the cooling curve in T0.
-  !! @param T0    Equilibrium temperature, in K
-  !! @param dLdT  Derivative of cooling curve with respect to temperature,
-  !!                    evaluated in T0.
-  subroutine get_dLdT(T0, dLdT)
-    real(dp), intent(in)  :: T0
-    real(dp), intent(out) :: dLdT
-    integer               :: idx
+  !! @param T0    Equilibrium temperatures, in K.
+  !!              (array, length=4*gridpts)
+  !! @param dLambdadT  Derivative of cooling curve with respect to temperature,
+  !!                   evaluated for every T0.
+  !!                   (array, length=4*gridpts)
+  subroutine get_dLambdadT(T0, dLambdadT)
+    real(dp), intent(in)  :: T0(4*gridpts)
+    real(dp), intent(out) :: dLambdadT(4*gridpts)
+    integer               :: idx, i
 
-    idx  = int( (log10(T0) - lgmin_T) / lgstep ) + 1
-    dLdT = interp_table_dLdT(idx) + (T0 - interp_table_T(idx)) &
-        * (interp_table_dLdT(idx+1) - interp_table_dLdT(idx))  &
-        / (interp_table_T(idx+1)    - interp_table_T(idx))
+    do i = 1, 4*gridpts
+      idx     = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
+      dLambdadT(i) = interp_table_dLdT(idx) + (T0(i) - interp_table_T(idx)) &
+                     * (interp_table_dLdT(idx+1) - interp_table_dLdT(idx))  &
+                     / (interp_table_T(idx+1)    - interp_table_T(idx))
 
-  end subroutine get_dLdT
+  end subroutine get_dLambdadT
 
 
   !> Interpolates the rudimentary cooling curves using ncool points.
