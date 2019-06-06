@@ -11,6 +11,11 @@ module mod_equilibrium
   real(dp), allocatable         :: T0_eq(:)
   real(dp), allocatable         :: B01_eq(:), B02_eq(:), B03_eq(:)
 
+  real(dp), allocatable         :: heat_loss_eq(:)
+
+  real(dp), allocatable         :: tc_para_eq(:)
+  real(dp), allocatable         :: tc_perp_eq(:)
+
 
 contains
 
@@ -25,6 +30,11 @@ contains
     allocate(B02_eq(4*gridpts))
     allocate(B03_eq(4*gridpts))
 
+    allocate(heat_loss_eq(4*gridpts))
+
+    allocate(tc_para_eq(4*gridpts))
+    allocate(tc_perp_eq(4*gridpts))
+
     rho0_eq = 0.0d0
     v01_eq  = 0.0d0
     v02_eq  = 0.0d0
@@ -33,6 +43,11 @@ contains
     B01_eq  = 0.0d0
     B02_eq  = 0.0d0
     B03_eq  = 0.0d0
+
+    heat_loss_eq = 0.0d0
+
+    tc_para_eq = 0.0d0
+    tc_perp_eq = 0.0d0
 
     k2 = 1.0d0
     k3 = 1.0d0
@@ -44,6 +59,9 @@ contains
   !> Sets the equilibrium on the nodes of the Gaussian quadrature
   subroutine set_equilibrium()
     use mod_grid
+    use mod_physical_constants
+    use mod_radiative_cooling
+    use mod_thermal_conduction
 
     real(dp)              :: x_lo, x_hi, dx, xi(n_gauss)
     integer               :: i, j, idx
@@ -80,6 +98,16 @@ contains
     B02_eq  = 1.0d0
     B03_eq  = 1.0d0
 
+    if (radiative_cooling) then
+      ! this is L_0, should balance out in thermal equilibrium.
+      heat_loss_eq = 0.0d0
+    end if
+
+    if (thermal_conduction) then
+      call calculate_para_conduction(tc_para_eq)
+      call calculate_perp_conduction(tc_perp_eq)
+    end if
+
   end subroutine set_equilibrium
 
   subroutine equilibrium_clean()
@@ -91,6 +119,11 @@ contains
     deallocate(B01_eq)
     deallocate(B02_eq)
     deallocate(B03_eq)
+
+    deallocate(heat_loss_eq)
+
+    deallocate(tc_para_eq)
+    deallocate(tc_perp_eq)
   end subroutine equilibrium_clean
 
 
