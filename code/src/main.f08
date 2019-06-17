@@ -2,7 +2,9 @@ program esonas
   use mod_global_variables
   implicit none
 
+  !> A matrix in eigenvalue problem wBX = AX
   complex(dp), allocatable  :: matrix_A(:, :)
+  !> B matrix in eigenvalue problem wBX = AX
   real(dp), allocatable     :: matrix_B(:, :)
 
   call initialisation
