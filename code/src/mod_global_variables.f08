@@ -15,6 +15,9 @@ module mod_global_variables
   real(dp), parameter       :: gamma = 5.0d0/3.0d0
   real(dp), parameter       :: gamma_1 = 1.0d0 - gamma
 
+  ! Flow
+  logical, save             :: flow
+
   ! Radiative cooling
   logical, save             :: radiative_cooling
   integer, parameter        :: ncool = 4000
@@ -23,6 +26,8 @@ module mod_global_variables
   logical, save             :: external_gravity
   ! Thermal conduction
   logical, save             :: thermal_conduction
+  ! Resistivity
+  logical, save             :: resistivity
 
   ! Switch for units
   logical, save             :: cgs_units = .true.
@@ -98,10 +103,12 @@ contains
 
 
     ! Physics related parameters
+    flow               = .true.
     external_gravity   = .true.
     radiative_cooling  = .false.
-    cooling_curve = "SPEX_DM"
+    cooling_curve      = "SPEX_DM"
     thermal_conduction = .true.
+    resistivity        = .true.
 
 
 
