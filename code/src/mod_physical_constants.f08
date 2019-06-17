@@ -26,8 +26,16 @@ module mod_physical_constants
   real(real64), protected       :: unit_numberdensity = 1.0d0
   !> Scaling factor for luminosity (radiative cooling module)
   real(real64), protected       :: unit_luminosity = 1.0d0
+  !> Scaling factor for derivative cooling function to temperature
+  real(real64), protected       :: unit_dldt = 1.0d0
   !> Scaling factor for themal conduction
   real(real64), protected       :: unit_conduction = 1.0d0
+  !> Scaling factor for d(kappa_perp)/d(rho)
+  real(real64), protected       :: unit_dtc_drho = 1.0d0
+  !> Scaling factor for d(kappa_perp)/d(T)
+  real(real64), protected       :: unit_dtc_dT = 1.0d0
+  !> Scaling factor for d(kappa_perp)/d(B^2)
+  real(real64), protected       :: unit_dtc_dB2 = 1.0d0
 
   !! Physical constants
   !> Value for pi
@@ -117,8 +125,14 @@ contains
     unit_luminosity    = unit_pressure / ((1.0d0 + 2.0d0*He_abundance) * &
                                           (unit_numberdensity**2 * unit_time))
 
+    unit_dldt          = unit_luminosity / unit_temperature
+
     unit_conduction    = unit_density * unit_length * unit_velocity**3 / &
                          unit_temperature
+
+    unit_dtc_drho      = unit_conduction / unit_density
+    unit_dtc_dT        = unit_conduction / unit_temperature
+    unit_dtc_dB2       = unit_conduction / (unit_magneticfield**2)
 
   end subroutine set_normalisations
 
