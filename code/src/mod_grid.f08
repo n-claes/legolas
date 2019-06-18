@@ -27,7 +27,38 @@ contains
       call accumulate_mesh()
     end if
 
+    call set_grid_gauss()
+
   end subroutine initialise_grid
+
+  !> Sets up grid_gauss, that is, the grid evaluated in the four
+  !! Gaussian points.
+  subroutine set_grid_gauss()
+    real(dp)              :: x_lo, x_hi, dx, xi(n_gauss)
+    integer               :: i, j, idx
+
+    ! Check for origin in cylindrical coordinates
+    if (geometry == "cylindrical") then
+      grid_gauss(1) = 1.0d-5
+    end if
+
+    ! Evaluate grid_gauss in nodes of Gaussian quadrature.
+    ! An integral of f(x) in [a, b] can be approximated by
+    ! 0.5*(b-a) * SUM[i from 1 -> n] ( wi * f( 0.5*(b-a)*xi + 0.5*(b-a)) )
+    ! where wi and xi are the weights and nodes at i (so 1 to 4 here).
+    ! Hence we need the gridpoints equal to the evaluation points of f(x).
+    do i = 1, gridpts - 1
+      x_lo = grid(i)
+      x_hi = grid(i + 1)
+      dx   = x_hi - x_lo
+
+      do j = 1, n_gauss
+        xi(j) = 0.5 * dx * gaussian_nodes(j) + 0.5*(x_lo + x_hi)
+        idx   = (i - 1)*n_gauss + j
+        grid_gauss(idx) = xi(j)
+      end do
+    end do
+  end subroutine set_grid_gauss
 
   !> Subroutine to re-grid the mesh to a non-uniform spacing.
   !! This is based on two Gaussian curves with known widths (from
