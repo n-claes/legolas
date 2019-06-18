@@ -2,6 +2,8 @@ module mod_radiative_cooling
   use mod_global_variables
   implicit none
 
+  private
+
   !> Radiative cooling table containing temperatures
   real(dp), allocatable         :: interp_table_T(:)
   !> Radiative cooling table containing luminosities
@@ -19,6 +21,10 @@ module mod_radiative_cooling
   !> Minimum temperature of interpolated cooling curve.
   real(dp)                      :: min_T
 
+  public  :: initialise_radiative_cooling
+  public  :: get_Lambda
+  public  :: get_dLambdadT
+  public  :: radiative_cooling_clean
 
 contains
 

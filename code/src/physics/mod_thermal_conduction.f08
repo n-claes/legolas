@@ -3,7 +3,9 @@ module mod_thermal_conduction
   use mod_global_variables
   implicit none
 
-  real(dp), parameter       :: coulomb_log = 22
+  public
+
+  real(dp), parameter, private       :: coulomb_log = 22
 
 contains
 

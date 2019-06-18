@@ -2,13 +2,13 @@ module mod_cooling_curves
   use mod_global_variables
   implicit none
 
-  integer          :: n_JCcorona      , n_DM      , n_MLsolar      , &
-                      n_SPEX          , n_DM_2
-  real(dp)         :: t_JCcorona(1:45), t_DM(1:71), t_MLsolar(1:71), &
-                      t_SPEX(1:110)   , t_DM_2(1:76)
-  real(dp)         :: l_JCcorona(1:45), l_DM(1:71), l_MLsolar(1:71), &
-                      l_SPEX(1:110)   , l_DM_2(1:76)
-  real(dp)         :: nenh_SPEX(1:110)
+  integer, protected     :: n_JCcorona      , n_DM      , n_MLsolar      , &
+                            n_SPEX          , n_DM_2
+  real(dp), protected    :: t_JCcorona(1:45), t_DM(1:71), t_MLsolar(1:71), &
+                            t_SPEX(1:110)   , t_DM_2(1:76)
+  real(dp), protected    :: l_JCcorona(1:45), l_DM(1:71), l_MLsolar(1:71), &
+                            l_SPEX(1:110)   , l_DM_2(1:76)
+  real(dp), protected    :: nenh_SPEX(1:110)
 
   data    n_JCcorona / 45 /
 

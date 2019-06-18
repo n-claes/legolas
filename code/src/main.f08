@@ -19,9 +19,9 @@ contains
 
   !> Initialises the grid and equilibrium configuration
   subroutine initialisation()
-    use mod_grid
-    use mod_equilibrium
-    use mod_equilibrium_derivatives
+    use mod_grid, only: initialise_grid
+    use mod_equilibrium, only: initialise_equilibrium
+    use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
 
 
     ! Initialises global variables
@@ -43,8 +43,8 @@ contains
 
   !> Creates A and B matrices for the wBX = AX eigenvalue problem
   subroutine create_matrices()
-    use mod_setup_matrix_b
-    use mod_setup_matrix_a
+    use mod_setup_matrix_b, only: construct_B
+    use mod_setup_matrix_a, only: construct_A
 
     call construct_B(matrix_B)
     call construct_A(matrix_A)
@@ -55,12 +55,13 @@ contains
 
   !> Performs cleanup, deallocates variables
   subroutine cleanup()
-    use mod_grid
-    use mod_equilibrium
-    use mod_equilibrium_derivatives
-    use mod_setup_matrix_b
-    use mod_setup_matrix_a
-    use mod_radiative_cooling
+    use mod_grid, only: grid_clean
+    use mod_equilibrium, only: equilibrium_clean
+    use mod_equilibrium_derivatives, only: equilibrium_derivatives_clean
+    use mod_setup_matrix_b, only: matrix_B_clean
+    use mod_setup_matrix_a, only: matrix_A_clean
+    use mod_radiative_cooling, only: radiative_cooling_clean
+
     deallocate(matrix_A)
     deallocate(matrix_B)
 

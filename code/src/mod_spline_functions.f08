@@ -2,6 +2,8 @@ module mod_spline_functions
   use mod_global_variables
   implicit none
 
+  public
+
   ! spline functions and derivatives for quadratic and cubic elements.
 
   ! @remark

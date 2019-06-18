@@ -2,6 +2,8 @@ module mod_equilibrium
   use mod_global_variables
   implicit none
 
+  public
+
   !> Wavenumber in y-direction (Cartesian) or theta-direction (cylindrical)
   real(dp)                      :: k2
   !> Wavenumber in z-direction (Cartesian) or z-direction (cylindrical)
@@ -37,9 +39,9 @@ module mod_equilibrium
 contains
 
   subroutine initialise_equilibrium()
-    use mod_gravity
-    use mod_radiative_cooling
-    
+    use mod_gravity, only: initialise_gravity
+    use mod_radiative_cooling, only: initialise_radiative_cooling
+
     allocate(rho0_eq(4*gridpts))
     allocate(T0_eq(4*gridpts))
     allocate(B01_eq(4*gridpts))

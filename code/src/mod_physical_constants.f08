@@ -2,6 +2,8 @@ module mod_physical_constants
   use, intrinsic :: iso_fortran_env
   implicit none
 
+  public
+
   ! note: because dp is defined in mod_global_variables, use real64 from
   ! iso_fortran_env directly in this module. It's best to keep this module
   ! without any dependencies and to keep sp, dp and qp in mod_global_variables
