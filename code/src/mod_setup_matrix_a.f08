@@ -136,10 +136,10 @@ contains
     !! Default derivatives
     drho0   = d_rho0_dr(gauss_idx)
     drB02   = d_rB02_dr(gauss_idx)
-    drv02   = d_rv02_dr(gauss_idx)
-    dv03    = d_v03_dr(gauss_idx)
+    dB02_r  = d_B02_r_dr(gauss_idx)
     dB03    = d_B03_dr(gauss_idx)
     dT0     = d_T0_dr(gauss_idx)
+    dB02    = d_B02_dr(gauss_idx)
     !! Flow
     drv02   = d_rv02_dr(gauss_idx)
     dv03    = d_v03_dr(gauss_idx)
@@ -414,6 +414,27 @@ contains
 
     call subblock(quadblock, factors_A, positions, curr_weight, &
                   h_cubic, dh_cubic_dr)
+
+
+    ! d(Cubic)/dr * d(Cubic)/dr
+    call reset_factors_A(4)
+    call reset_positions(4)
+
+    ! A(2, 7)
+    factors_A(1) = -B03 * eps_inv
+    positions(1, :) = [2, 7]
+    ! A(2, 8)
+    factors_A(2) = B02
+    positions(2, :) = [2, 8]
+    ! A(7, 7)
+    factors_A(3) = -ic * eta * eps_inv
+    positions(3, :) = [7, 7]
+    ! A(8, 8)
+    factors_A(4) = -ic * eta
+    positions(4, :) = [8, 8]
+
+    call subblock(quadblock, factors_A, positions, curr_weight, &
+                  dh_cubic_dr, dh_cubic_dr)
 
 
 
