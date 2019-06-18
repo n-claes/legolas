@@ -363,7 +363,43 @@ contains
 
     call subblock(quadblock, factors_A, positions, curr_weight, &
                   dh_cubic_dr, h_quadratic)
-                  
+
+
+    ! Cubic * Cubic
+    call reset_factors_A(9)
+    call reset_positions(9)
+
+    ! A(2, 2)
+    factors_A(1) = eps_inv * (eps_inv * v02 * k2 + v03 * k3) * rho0
+    positions(1, :) = [2, 2]
+    ! A(2, 7)
+    factors_A(2) = -B03 * eps_inv * k3**2 - B02 * eps_inv**2 * k2 * k3
+    positions(2, :) = [2, 7]
+    ! A(2, 8)
+    factors_A(3) = B03 * eps_inv * k2 * k3 + B02 * eps_inv**2 * k2**2
+    positions(3, :) = [2, 8]
+    ! A(7, 2)
+    factors_A(4) = -eps_inv * B03
+    positions(4, :) = [7, 2]
+    ! A(7, 7)
+    factors_A(5) = eps_inv * k3 * (v03 - ic * eta * k3)
+    positions(5, :) = [7, 7]
+    ! A(7, 8)
+    factors_A(6) = -eps_inv * k2 * (v03 - ic * eta * k3)
+    positions(6, :) = [7, 8]
+    ! A(8, 2)
+    factors_A(7) = eps_inv * B02
+    positions(7, :) = [8, 2]
+    ! A(8, 7)
+    factors_A(8) = -eps_inv * k3 * (v02 - ic * eta * eps_inv * k2)
+    positions(8, :) = [8, 7]
+    ! A(8, 8)
+    factors_A(9) = eps_inv * k2 * (v02 - ic * eta * eps_inv * k2)
+    positions(9, :) = [8, 8]
+
+    call subblock(quadblock, factors_A, positions, curr_weight, &
+                  h_cubic, h_cubic)
+
 
 
     return
