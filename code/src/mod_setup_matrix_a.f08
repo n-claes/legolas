@@ -89,50 +89,69 @@ contains
     complex(dp), intent(out)  :: quadblock(dim_quadblock, dim_quadblock)
 
     real(dp)                  :: eps_inv
-    real(dp)                  :: rho0, v01, v02, v03, T0, B01, B02, B03
-    real(dp)                  :: B2_inv
-    real(dp)                  :: drho0, drB02, dB03_r, drv02, dv03, dB03, dT0
+    real(dp)                  :: rho0, T0, B01, B02, B03, B2_inv
+    real(dp)                  :: v01, v02, v03
+    real(dp)                  :: tc_para, tc_perp, L0, eta
 
-    real(dp)                  :: L0, L_T, L_rho
-    real(dp)                  :: tc_para, tc_perp, d_tc_perp_dT, &
-                                 d_tc_perp_drho, d_tc_perp_dB2
+    real(dp)                  :: drho0, drB02, dB02_r, dB03, dT0, dB02
+    real(dp)                  :: drv02, dv03
+    real(dp)                  :: d_tc_perp_dT, d_tc_perp_drho, d_tc_perp_dB2
+    real(dp)                  :: L_T, L_rho
+    real(dp)                  :: deta, ddB03, ddB02
+
 
     complex(dp)               :: ic
 
     ic      = (0.0d0, 1.0d0)
     eps_inv = 1.0d0 / eps
 
-    ! Equilibrium quantities
+
+    !! Equilibrium quantities
+    !! Default variables
     rho0    = rho0_eq(gauss_idx)
-    v01     = v01_eq(gauss_idx)
-    v02     = v02_eq(gauss_idx)
-    v03     = v03_eq(gauss_idx)
     T0      = T0_eq(gauss_idx)
     B01     = B01_eq(gauss_idx)
     B02     = B02_eq(gauss_idx)
     B03     = B03_eq(gauss_idx)
-    B2_inv  = 1.0d0 / (B01**2 + B02**2 + B03**2)
+    B2_inv  = 1.0d0 / (B0_eq(gauss_idx)**2)
+    !! Flow
+    v01     = v01_eq(gauss_idx)
+    v02     = v02_eq(gauss_idx)
+    v03     = v03_eq(gauss_idx)
+    !! Thermal conduction
+    tc_para = tc_para_eq(gauss_idx)
+    tc_perp = tc_perp_eq(gauss_idx)
+    !! Radiative cooling
+    L0      = heat_loss_eq(gauss_idx)
+    !! Resistivity
+    eta     = eta_eq(gauss_idx)
 
-    ! Derivatives of equilibrium quantities
+    !! Derivatives of equilibrium quantities
+    !! Default derivatives
     drho0   = d_rho0_dr(gauss_idx)
     drB02   = d_rB02_dr(gauss_idx)
-    dB03_r  = d_B03_r_dr(gauss_idx)
     drv02   = d_rv02_dr(gauss_idx)
     dv03    = d_v03_dr(gauss_idx)
     dB03    = d_B03_dr(gauss_idx)
     dT0     = d_T0_dr(gauss_idx)
-
-    ! Radiative cooling quantities (all 0.0d0 if set to false)
-    L0      = heat_loss_eq(gauss_idx)
-    L_T     = d_L_dT(gauss_idx)
-    L_rho   = d_L_drho(gauss_idx)
-
-    ! Thermal conduction quantities (all 0.0d0 if set to false)
-    tc_para = tc_para_eq(gauss_idx)
-    tc_perp = tc_perp_eq(gauss_idx)
+    !! Flow
+    drv02   = d_rv02_dr(gauss_ids)
+    dv03    = d_v03_dr(gauss_idx)
+    !! Thermal conduction
     d_tc_perp_dT   = d_tc_perp_eq_dT(gauss_idx)
     d_tc_perp_drho = d_tc_perp_eq_drho(gauss_idx)
     d_tc_perp_dB2  = d_tc_perp_eq_dB2(gauss_idx)
+    !! Radiative cooling
+    L_T     = d_L_dT(gauss_idx)
+    L_rho   = d_L_drho(gauss_idx)
+    !! Resistivity
+    deta    = d_eta_dT(gauss_idx)
+    ddB02   = dd_B02_dr(gauss_idx)
+    ddB03   = dd_B03_dr(gauss_idx)
+
+
+    !! Setup of matrix elements
+
 
     ! Quadratic * Quadratic
     call reset_factors_A(19)
@@ -221,7 +240,7 @@ contains
     factors_A(3) = eps_inv**2 * drB02 * k3
     positions(3, :) = [3, 7]
     ! A(3, 8)
-    factors_A(4) = -eps_inv**2 drB02 * k2
+    factors_A(4) = -eps_inv**2 * drB02 * k2
     positions(4, :) = [3, 8]
     ! A(4, 2)
     factors_A(5) = -eps_inv * rho0 * dv03
@@ -247,6 +266,21 @@ contains
     call subblock(quadblock, factors_A, positions, curr_weight, &
                   h_quadratic, h_cubic)
 
+
+    ! Quadratic * d(Cubic)/dr
+    call reset_factors_A(10)
+    call reset_positions(10)
+
+    ! A(1, 2)
+    ! A(3, 7)
+    ! A(3, 8)
+    ! A(4, 7)
+    ! A(4, 8)
+    ! A(5, 2)
+    ! A(5, 7)
+    ! A(5, 8)
+    ! A(6, 7)
+    ! A(6, 8)
 
 
 
