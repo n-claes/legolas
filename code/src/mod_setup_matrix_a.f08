@@ -468,7 +468,22 @@ contains
 
     call subblock(quadblock, factors_A, positions, curr_weight, &
                   h_quadratic, dh_quadratic_dr)
-                  
+
+
+    ! d(Quadratic)/dr * d(Quadratic)/dr
+    call reset_factors_A(1)
+    call reset_positions(1)
+
+    ! A(5, 5)
+    factors_A(1) = -ic * gamma_1 * eps_inv * tc_perp
+    positions(1, :) = [5, 5]
+
+    call subblock(quadblock, factors_A, positions, curr_weight, &
+                  dh_quadratic_dr, dh_quadratic_dr)
+
+
+    
+
 
 
 
