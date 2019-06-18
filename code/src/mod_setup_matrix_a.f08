@@ -482,12 +482,21 @@ contains
                   dh_quadratic_dr, dh_quadratic_dr)
 
 
-    
+    ! d(Quadratic)/dr * d(Cubic)/dr
+    call reset_factors(2)
+    call reset_positions(2)
 
+    ! A(5, 7)
+    factors_A(1) = -2 * ic * gamma_1 * eps_inv * &
+                   (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
+    positions(1, :) = [5, 7]
+    ! A(5, 8)
+    factors_A(2) = 2 * ic * gamma_1 * &
+                   (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
+    positions(2, :) = [5, 8]
 
-
-
-    return
+    call subblock(quadblock, factors_A, positions, curr_weight, &
+                  dh_quadratic_dr, dh_quadratic_dr)
 
   end subroutine get_A_elements
 
