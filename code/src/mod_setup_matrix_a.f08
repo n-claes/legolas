@@ -2,6 +2,8 @@ module mod_setup_matrix_a
   use mod_global_variables
   implicit none
 
+  private
+
   ! Sets up the A-matrix for the eigenvalue problem wBX = AX
   real(dp)                 :: h_cubic(4), h_quadratic(4)
   real(dp)                 :: dh_cubic_dr(4), dh_quadratic_dr(4)
@@ -9,6 +11,9 @@ module mod_setup_matrix_a
   ! additional equations (self-gravity)
   complex(dp), allocatable :: factors_A(:)
   integer, allocatable     :: positions(:, :)
+
+  public  :: construct_A
+  public  :: matrix_A_clean
 
 contains
 
@@ -308,7 +313,31 @@ contains
                   h_quadratic, dh_cubic_dr)
 
 
-    
+    ! Cubic * Quadratic
+    call reset_factors_A(6)
+    call reset_positions(6)
+
+    ! A(2, 1)
+    factors_A(1) = -d_eps_dr * eps_inv**2 * v02**2 + eps_inv * grav
+    positions(1, :) = [2, 1]
+    ! A(2, 3)
+    factors_A(2) = -2 * d_eps_dr * eps_inv * rho0 * v02
+    positions(2, :) = [2, 3]
+    ! A(2, 6)
+    factors_A(3) = eps_inv * drB02 * k3 - eps * k3 * db02_r
+    positions(3, :) = [2, 6]
+    ! A(7, 5)
+    factors_A(4) = -ic * eps_inv * deta * dB03
+    positions(4, :) = [7, 5]
+    ! A(8, 5)
+    factors_A(5) = -ic * eps_inv**2 * deta * drB02
+    positions(5, :) = [8, 5]
+    ! A(8, 6)
+    factors_A(6) = -ic * eta * d_eps_dr * eps_inv * k3
+    positions(6, :) = [8, 6]
+
+    call subblock(quadblock, factors_A, positions, curr_weight, &
+                  h_cubic, h_quadratic)
 
 
 

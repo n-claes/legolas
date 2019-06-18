@@ -5,7 +5,7 @@ module mod_gravity
   private
 
   !> Gravitational acceleration
-  real(dp)            :: g
+  real(dp)            :: grav
 
   !> Surface gravity of Earth in m/s^2 (SI)
   real(dp), parameter :: g_earth_si = 9.81d0
@@ -25,7 +25,7 @@ contains
     if (external_gravity) then
       call set_gravity()
     else
-      g = 0.0d0
+      grav = 0.0d0
     end if
   end subroutine initialise_gravity
 
@@ -36,17 +36,17 @@ contains
     case('earth')
       write(*, *) "Using Earth-like external gravity."
       if (cgs_units) then
-        g = g_earth_cgs
+        grav = g_earth_cgs
       else
-        g = g_earth_si
+        grav = g_earth_si
       end if
 
     case('solar')
       write(*, *) "Using solar-like external gravity."
       if (cgs_units) then
-        g = g_solar_cgs
+        grav = g_solar_cgs
       else
-        g = g_solar_si
+        grav = g_solar_si
       end if
 
     case default
