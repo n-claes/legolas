@@ -88,6 +88,7 @@ contains
     use mod_equilibrium
     use mod_equilibrium_derivatives
     use mod_make_subblock
+    use mod_gravity, only: grav
 
     integer, intent(in)       :: gauss_idx
     real(dp), intent(in)      :: eps, d_eps_dr, curr_weight
@@ -339,6 +340,30 @@ contains
     call subblock(quadblock, factors_A, positions, curr_weight, &
                   h_cubic, h_quadratic)
 
+
+    ! d(Cubic)/dr * Quadratic
+    call reset_factors_A(5)
+    call reset_positions(5)
+
+    ! A(2, 1)
+    factors_A(1) = -T0 * eps_inv
+    positions(1, :) = [2, 1]
+    ! A(2, 5)
+    factors_A(2) = -rho0 * eps_inv
+    positions(2, :) = [2, 5]
+    ! A(2, 6)
+    factors_A(3) = eps_inv * k2 * B03 - k3 * B02
+    positions(3, :) = [2, 6]
+    ! A(7, 6)
+    factors_A(4) = -ic * eta * eps_inv * k2
+    positions(4, :) = [7, 6]
+    ! A(8, 6)
+    factors_A(5) = ic * eta * k3
+    positions(5, :) = [8, 6]
+
+    call subblock(quadblock, factors_A, positions, curr_weight, &
+                  dh_cubic_dr, h_quadratic)
+                  
 
 
     return
