@@ -197,7 +197,7 @@ contains
     positions(11, :) = [4, 6]
     ! A(5, 1)
     factors_A(12) = ic * gamma_1 * eps_inv * &
-                    (d_eps_dr * eps_inv * dT0 * dtc_perp_dT - L0 - rho0*L_rho)
+                    (d_eps_dr * eps_inv * dT0 * dtc_perp_drho - L0 - rho0*L_rho)
     positions(12, :) = [5, 1]
     ! A(5, 3)
     factors_A(13) = gamma_1 * eps_inv * rho0 * T0 * k2
@@ -210,12 +210,21 @@ contains
                     (tc_para - tc_perp) * B2_inv * (k2 * eps_inv * B02 + k3*B03) &
                      + tc_perp * (d_eps_dr * eps_inv)**2 &
                      + tc_perp * (k2**2 * eps_inv**2 + k3**2) &
-                     + rho0 * L_T - eps_inv * dT0 * dtc_perp_dT &
-                                              )
+                     + rho0 * L_T - d_eps_dr * eps_inv * dT0 * dtc_perp_dT &
+                                              ) &
+                    + eps_inv * rho0 * (eps_inv * k2 * v02 + k3 * v03) &
+                    + ic * gamma_1 * eps_inv * deta * ( &
+                      dB02**2 + dB03**2 + 2*d_eps_dr * eps_inv * B02 * dB02 &
+                      + (d_eps_dr * eps_inv * dB02)**2 &
+                                                      )
     positions(15, :) = [5, 5]
-    ! A(5, 6)
-    factors_A(16) = ic * gamma_1 * d_eps_dr * eps_inv * 2 * dT0 * &
-                    (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2
+    ! A(5, 6)   (term with eta-derivative has been rewritten)
+    factors_A(16) = 2 * ic * gamma_1 * ( &
+                    (dT0 * d_eps_dr * eps_inv**2 &
+                         * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2) &
+                    + eps_inv * k2 * eta * ddB03 &
+                    - k3 * eta * ddB02 + 2*(d_eps_dr*eps_inv)**2 * eta * B02 &
+                                       )
     positions(16, :) = [5, 6]
     ! A(6, 3)
     factors_A(17) = -B03
@@ -224,7 +233,8 @@ contains
     factors_A(18) = -eps_inv * B02
     positions(18, :) = [6, 4]
     ! A(6, 6)
-    factors_A(19) = k2 * eps_inv * v02 + k2 * v03
+    factors_A(19) = eps_inv * k2 * v02 + k2 * v03 &
+                    -ic * eta * (eps_inv**2 * k2**2 + k3**2)
     positions(19, :) = [6, 6]
 
     call subblock(quadblock, factors_A, positions, curr_weight, &
@@ -260,12 +270,20 @@ contains
     factors_A(8) = -eps_inv * rho0 * dT0
     positions(8, :) = [5, 2]
     ! A(5, 7)
-    factors_A(9) = ic * gamma_1 * eps_inv * (tc_para - tc_perp) * B2_inv &
-                   * dT0 * (k2 * k3 * B02 + k3**2 * B02)
+    factors_A(9) = ic * gamma_1 * eps_inv * ( &
+                   ((tc_para - tc_perp) * B2_inv * dT0 * &
+                      (k2 * k3 * B02 + k3**2 * B02)) &
+                   -2 * eta * k3**2 * dB03 &
+                   -2 * eta * k2 * k3 * eps_inv**2 * drB02 &
+                                            )
     positions(9, :) = [5, 7]
     ! A(5, 8)
-    factors_A(10) = ic * gamma_1 * eps_inv * (tc_para - tc_perp) * B2_inv &
-                    * dT0 * (k2**2 * B02 + k2 * k3 * B03)
+    factors_A(10) = -ic * gamma_1 * eps_inv * ( &
+                   ((tc_para - tc_perp) * B2_inv * dT0 * &
+                      (k2**2 * B02 + k2 * k3 * B03)) &
+                   -2 * eta * k2 * k3 * dB03 &
+                   -2 * eta * k2**2 * eps_inv**2 * drB02 &
+                                              )
     positions(10, :) = [5, 8]
 
     call subblock(quadblock, factors_A, positions, curr_weight, &
@@ -483,7 +501,7 @@ contains
 
 
     ! d(Quadratic)/dr * d(Cubic)/dr
-    call reset_factors(2)
+    call reset_factors_A(2)
     call reset_positions(2)
 
     ! A(5, 7)
