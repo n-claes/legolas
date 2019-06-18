@@ -16,7 +16,7 @@ module mod_gravity
   !> Surface gravity of the Sun in cm/s^2 (cgs)
   real(dp), parameter :: g_solar_cgs = 274d3
 
-  public  :: g
+  public  :: grav
   public  :: initialise_gravity
 
 contains
