@@ -437,6 +437,27 @@ contains
                   dh_cubic_dr, dh_cubic_dr)
 
 
+    ! d(Quadratic)/dr * Quadratic
+    call reset_factors_A(3)
+    call reset_positions(3)
+
+    ! A(5, 1)
+    factors_A(1) = -ic * gamma_1 * eps_inv * dT0 * dtc_perp_drho
+    positions(1, :) = [5, 1]
+    ! A(5, 5)
+    factors_A(2) = ic * gamma_1 * eps_inv * (d_eps_dr * eps_inv * tc_perp &
+                                             - dT0 * dtc_perp_dT)
+    positions(2, :) = [5, 5]
+    ! A(5, 6)
+    factors_A(3) = -2 * ic * gamma_1 * eps_inv * &
+                   (dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2  &
+                    - eta * k2 * dB03 + eta * k3 * drB02 )
+    positions(3, :) = [5, 6]
+
+    call subblock(quadblock, factors_A, positions, curr_weight, &
+                  dh_quadratic_dr, h_quadratic)
+
+
 
     return
 
