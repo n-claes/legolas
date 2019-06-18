@@ -2,7 +2,12 @@ module mod_grid
   use mod_global_variables
   implicit none
 
+  public
+
   real(dp), allocatable      :: grid(:), grid_gauss(:)
+
+  private :: accumulate_mesh
+  private :: gaussian
 
 contains
 

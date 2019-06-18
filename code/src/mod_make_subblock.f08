@@ -2,6 +2,8 @@ module mod_make_subblock
   use mod_global_variables
   implicit none
 
+  public
+
 
 contains
 

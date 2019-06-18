@@ -1,6 +1,7 @@
 module mod_global_variables
   use, intrinsic :: iso_fortran_env
   implicit none
+  
   public
 
   !! Fortran-2008 type standards

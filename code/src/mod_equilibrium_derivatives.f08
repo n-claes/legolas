@@ -2,6 +2,8 @@ module mod_equilibrium_derivatives
   use mod_global_variables
   implicit none
 
+  public
+
   !! Derivatives of the equilibrium variable arrays.
   !! d_xxx_dr     means d(xxx)/dr
   !! d_xxx_yyy_dr means d(xxx/yyy)/dr
@@ -47,6 +49,12 @@ module mod_equilibrium_derivatives
   real(dp), allocatable       :: dd_B03_dr(:)
   !> double derivative B02
   real(dp), allocatable       :: dd_B02_dr(:)
+
+  private :: get_default_derivatives
+  private :: get_flow_derivatives
+  private :: get_conduction_derivatives
+  private :: get_cooling_derivatives
+  private :: get_resistivity_derivatives
 
 
 contains

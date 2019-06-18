@@ -2,12 +2,17 @@ module mod_setup_matrix_b
   use mod_global_variables
   implicit none
 
+  private
+
   ! Sets up the B-matrix for the eigenvalue problem wBX = AX
   real(dp)                 :: h_cubic(4), h_quadratic(4)
   ! Factors and positions are allocatable so they are dynamic, in case we add
   ! additional equations (self-gravity)
   complex(dp), allocatable :: factors_B(:)
   integer, allocatable     :: positions(:, :)
+
+  public construct_B
+  public matrix_B_clean
 
 contains
 
