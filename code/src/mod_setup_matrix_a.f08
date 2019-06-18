@@ -27,9 +27,13 @@ contains
     real(dp)                  :: r_lo, r_hi, eps, d_eps_dr, curr_weight
     real(dp)                  :: r
     integer                   :: i, j, gauss_idx, k, l
+    integer                   :: quadblock_idx, idx1, idx2
 
     ! Initialise matrix to zero (A is complex)
     matrix_A = (0.0d0, 0.0d0)
+
+    ! Initialise quadblock index to zero (used to shift the block)
+    quadblock_idx = 0
 
     do i = 2, gridpts-1
       ! Set quadblock to zero
@@ -65,18 +69,17 @@ contains
 
       end do  ! end do iteration Gaussian points
 
-      ! Gridpoint i = 1, place quadblock in upper left corner of A
-      if (i == 1) then
-        do k = 1, dim_quadblock
-          do l = 1, dim_quadblock
-            matrix_A(k, l) = quadblock(k, l)
-          end do
+      ! Fill A-matrix with quadblock entries
+      do k = 1, dim_quadblock
+        do l = 1, dim_quadblock
+          idx1 = k + quadblock_idx
+          idx2 = l + quadblock_idx
+          matrix_A(idx1, idx2) = matrix_A(idx1, idx2) + quadblock(k, l)
         end do
-      end if
+      end do
+      quadblock_idx = quadblock_idx + dim_subblock
 
-      ! TODO: fill matrix A with quadblocks
-
-    end do    ! end do iteration gridpoints
+    end do      ! end do iteration grid points
 
     deallocate(factors_A)
     deallocate(positions)

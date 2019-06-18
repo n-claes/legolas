@@ -26,9 +26,13 @@ contains
     real(dp)               :: r_lo, r_hi, eps, curr_weight
     real(dp)               :: r
     integer                :: i, j, gauss_idx, k, l
+    integer                :: quadblock_idx, idx1, idx2
 
-    ! Initialize matrix to zero
+    ! Initialize matrix to zero (B is real)
     matrix_B = 0.0d0
+
+    ! Initialise quadblock index to zero (used to shift the block)
+    quadblock_idx = 0
 
     ! Iterate over gridpoints to calculate blocks
     do i = 1, gridpts-1
@@ -62,17 +66,20 @@ contains
 
       end do    ! end do iteration gaussian points
 
-      ! Gridpoint i = 1, place quadblock in upper left corner of B
-      if (i == 1) then
-        do k = 1, dim_quadblock
-          do l = 1, dim_quadblock
-            matrix_B(k, l) = real(quadblock(k, l))
-          end do
+      ! Fill B-matrix with quadblock entries
+      do k = 1, dim_quadblock
+        do l = 1, dim_quadblock
+          idx1 = k + quadblock_idx
+          idx2 = l + quadblock_idx
+          matrix_B(idx1, idx2) = matrix_B(idx1, idx2) + real(quadblock(k, l))
         end do
-      end if
-
-      ! TODO: Fill B-matrix with quadblocks
-
+      end do
+      !! This ensures that the quadblock is shifted on the main diagonal using
+      !! idx1 and idx2. Dimension dim_subblock (= 16) is added instead of
+      !! dim_quadblock (= 32), as the bottom-right part of the quadblock
+      !! overlaps with the top-left part when shifting along the main diagonal.
+      quadblock_idx = quadblock_idx + dim_subblock
+      
     end do      ! end do iteration grid points
 
     deallocate(factors_B)
