@@ -401,6 +401,21 @@ contains
                   h_cubic, h_cubic)
 
 
+    ! Cubic * d(Cubic)/dr
+    call reset_factors_A(2)
+    call reset_positions(2)
+
+    ! A(2, 8)
+    factors_A(1) = -2 * B02 * d_eps_dr * eps_inv
+    positions(1, :) = [2, 8]
+    ! A(8, 8)
+    factors_A(2) = ic * eta * d_eps_dr * eps_inv
+    positions(2, :) = [8, 8]
+
+    call subblock(quadblock, factors_A, positions, curr_weight, &
+                  h_cubic, dh_cubic_dr)
+
+
 
     return
 
