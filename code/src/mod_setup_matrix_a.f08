@@ -95,7 +95,7 @@ contains
 
     real(dp)                  :: drho0, drB02, dB02_r, dB03, dT0, dB02
     real(dp)                  :: drv02, dv03
-    real(dp)                  :: d_tc_perp_dT, d_tc_perp_drho, d_tc_perp_dB2
+    real(dp)                  :: dtc_perp_dT, dtc_perp_drho, dtc_perp_dB2
     real(dp)                  :: L_T, L_rho
     real(dp)                  :: deta, ddB03, ddB02
 
@@ -135,12 +135,12 @@ contains
     dB03    = d_B03_dr(gauss_idx)
     dT0     = d_T0_dr(gauss_idx)
     !! Flow
-    drv02   = d_rv02_dr(gauss_ids)
+    drv02   = d_rv02_dr(gauss_idx)
     dv03    = d_v03_dr(gauss_idx)
     !! Thermal conduction
-    d_tc_perp_dT   = d_tc_perp_eq_dT(gauss_idx)
-    d_tc_perp_drho = d_tc_perp_eq_drho(gauss_idx)
-    d_tc_perp_dB2  = d_tc_perp_eq_dB2(gauss_idx)
+    dtc_perp_dT   = d_tc_perp_eq_dT(gauss_idx)
+    dtc_perp_drho = d_tc_perp_eq_drho(gauss_idx)
+    dtc_perp_dB2  = d_tc_perp_eq_dB2(gauss_idx)
     !! Radiative cooling
     L_T     = d_L_dT(gauss_idx)
     L_rho   = d_L_drho(gauss_idx)
@@ -151,7 +151,6 @@ contains
 
 
     !! Setup of matrix elements
-
 
     ! Quadratic * Quadratic
     call reset_factors_A(19)
@@ -192,7 +191,7 @@ contains
     positions(11, :) = [4, 6]
     ! A(5, 1)
     factors_A(12) = ic * gamma_1 * eps_inv * &
-                    (d_eps_dr * eps_inv * dT0 * d_tc_perp_dT - L0 - rho0*L_rho)
+                    (d_eps_dr * eps_inv * dT0 * dtc_perp_dT - L0 - rho0*L_rho)
     positions(12, :) = [5, 1]
     ! A(5, 3)
     factors_A(13) = gamma_1 * eps_inv * rho0 * T0 * k2
@@ -205,12 +204,12 @@ contains
                     (tc_para - tc_perp) * B2_inv * (k2 * eps_inv * B02 + k3*B03) &
                      + tc_perp * (d_eps_dr * eps_inv)**2 &
                      + tc_perp * (k2**2 * eps_inv**2 + k3**2) &
-                     + rho0 * L_T - eps_inv * dT0 * d_tc_perp_dT &
+                     + rho0 * L_T - eps_inv * dT0 * dtc_perp_dT &
                                               )
     positions(15, :) = [5, 5]
     ! A(5, 6)
     factors_A(16) = ic * gamma_1 * d_eps_dr * eps_inv * 2 * dT0 * &
-                    (eps * B02 * k3 - B03 * k2) * d_tc_perp_dB2
+                    (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2
     positions(16, :) = [5, 6]
     ! A(6, 3)
     factors_A(17) = -B03
@@ -272,15 +271,44 @@ contains
     call reset_positions(10)
 
     ! A(1, 2)
+    factors_A(1) = -eps_inv * rho0
+    positions(1, :) = [1, 2]
     ! A(3, 7)
+    factors_A(2) = eps_inv**2 * B03 * k2
+    positions(2, :) = [3, 7]
     ! A(3, 8)
+    factors_A(3) = B03 * k3
+    positions(3, :) = [3, 8]
     ! A(4, 7)
+    factors_A(4) = -eps_inv**2 * B02 * k2
+    positions(4, :) = [4, 7]
     ! A(4, 8)
+    factors_A(5) = -B02 * k3
+    positions(5, :) = [4, 8]
     ! A(5, 2)
+    factors_A(6) = -gamma_1 * eps_inv * rho0 * T0
+    positions(6, :) = [5, 2]
     ! A(5, 7)
-    ! A(5, 8)
+    factors_A(7) = 2*ic*gamma_1*eps_inv * &
+                  (dT0 * B03 * d_eps_dr * eps_inv * dtc_perp_dB2 - eta * ddB03)
+    positions(7, :) = [5, 7]
+    ! A(5, 8)    (derivative of eta-term has been rewritten)
+    factors_A(8) = -2*ic*gamma_1 * &
+                    (dT0 * d_eps_dr * eps_inv * B02 * dtc_perp_dB2 &
+                     - eta*ddB02 + 2*(d_eps_dr * eps_inv)**2 * eta * B02)
+    positions(8, :) = [5, 8]
     ! A(6, 7)
+    factors_A(9) = -eps_inv * v02 + ic * eta * eps_inv**2 * k2
+    positions(9, :) = [6, 7]
     ! A(6, 8)
+    factors_A(10) = -v03 + ic * eta * k3
+    positions(10, :) = [6, 8]
+
+    call subblock(quadblock, factors_A, positions, curr_weight, &
+                  h_quadratic, dh_cubic_dr)
+
+
+    
 
 
 
