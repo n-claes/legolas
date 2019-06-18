@@ -37,6 +37,9 @@ module mod_equilibrium
 contains
 
   subroutine initialise_equilibrium()
+    use mod_gravity
+    use mod_radiative_cooling
+    
     allocate(rho0_eq(4*gridpts))
     allocate(T0_eq(4*gridpts))
     allocate(B01_eq(4*gridpts))
@@ -76,6 +79,13 @@ contains
 
     k2 = 1.0d0
     k3 = 1.0d0
+
+    if (external_gravity) then
+      call initialise_gravity()
+    end if
+    if (radiative_cooling) then
+      call initialise_radiative_cooling()
+    end if
 
     call set_equilibrium()
 

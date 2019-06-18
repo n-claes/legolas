@@ -19,7 +19,6 @@ contains
 
   !> Initialises the grid and equilibrium configuration
   subroutine initialisation()
-    use mod_radiative_cooling
     use mod_grid
     use mod_equilibrium
     use mod_equilibrium_derivatives
@@ -27,11 +26,6 @@ contains
 
     ! Initialises global variables
     call initialise_variables()
-
-    if (radiative_cooling) then
-      call initialise_radiative_cooling()
-    end if
-
 
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
