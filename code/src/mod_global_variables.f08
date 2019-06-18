@@ -24,6 +24,8 @@ module mod_global_variables
   character(len=str_len)    :: cooling_curve
   ! External gravity
   logical, save             :: external_gravity
+  ! Gravity type
+  character(len=str_len)    :: gravity_type
   ! Thermal conduction
   logical, save             :: thermal_conduction
   ! Resistivity
@@ -105,7 +107,8 @@ contains
     ! Physics related parameters
     flow               = .true.
     external_gravity   = .true.
-    radiative_cooling  = .false.
+    gravity_type       = "solar"
+    radiative_cooling  = .true.
     cooling_curve      = "SPEX_DM"
     thermal_conduction = .true.
     resistivity        = .true.
