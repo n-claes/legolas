@@ -39,6 +39,9 @@ contains
     ! Initialise equilibrium derivatives
     call initialise_equilibrium_derivatives()
 
+    !! TODO: checks for interpolating cooling curves beyond table values!
+    !! TODO: normalise values AFTER getting derivatives
+
   end subroutine initialisation
 
   !> Creates A and B matrices for the wBX = AX eigenvalue problem

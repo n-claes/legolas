@@ -161,7 +161,11 @@ contains
 
 
   subroutine get_resistivity_derivatives()
-    return
+    use mod_equilibrium, only: T0_eq
+    use mod_resistivity
+
+    call get_deta_dT(T0_eq, d_eta_dT)
+
   end subroutine get_resistivity_derivatives
 
 
