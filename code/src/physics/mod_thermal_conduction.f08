@@ -5,8 +5,6 @@ module mod_thermal_conduction
 
   public
 
-  real(dp), parameter, private       :: coulomb_log = 22
-
 contains
 
   subroutine get_kappa_para(T0_eq, tc_para)

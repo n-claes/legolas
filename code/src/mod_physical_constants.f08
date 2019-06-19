@@ -38,12 +38,17 @@ module mod_physical_constants
   real(real64), protected       :: unit_dtc_dT = 1.0d0
   !> Scaling factor for d(kappa_perp)/d(B^2)
   real(real64), protected       :: unit_dtc_dB2 = 1.0d0
+  !> Scaling factor for the resistivity eta. This is defined such that the
+  !! normalised resistivity at 1 MK equals approximately 0.1.
+  real(real64), protected       :: unit_resistivity = 1.0d0
 
   !! Physical constants
   !> Value for pi
   real(real64), parameter       :: dpi = 3.141592653589793238462643383279
   !> Helium abundance [He]/[H]
   real(real64), parameter       :: He_abundance = 0.1d0
+  !> Coulomb logarithm
+  real(real64), parameter       :: coulomb_log = 22
   !> Proton mass in g (cgs)
   real(real64), parameter       :: mp_cgs = 1.672621777d-24
   !> Proton mass in kg (SI)
@@ -52,12 +57,24 @@ module mod_physical_constants
   real(real64), parameter       :: mH_cgs = 1.6733d-24
   !> Hydrogen mass in kg (SI)
   real(real64), parameter       :: mH_si  = 1.6733d-27
+  !> Electron mass in g (cgs)
+  real(real64), parameter       :: me_cgs = 9.1094d-28
+  !> Electron mass in kg (SI)
+  real(real64), parameter       :: me_si  = 9.1094d-31
+  !> Elementary charge in statcoul (cgs)
+  real(real64), parameter       :: ec_cgs = 4.8032d-10
+  !> Elementary charge in C (SI)
+  real(real64), parameter       :: ec_si  = 1.6022d-19
   !> Boltzmann constant in erg/K (cgs)
   real(real64), parameter       :: kB_cgs = 1.3806488d-16
   !> Boltzmann constant in J/K (SI)
   real(real64), parameter       :: kB_si  = 1.3806488d-23
   !> Magnetic constant in H/m (SI)
   real(real64), parameter       :: mu0_si = 1.2566370614d-6
+  !> Permittivity of free space in F/m (SI)
+  real(real64), parameter       :: e0_si  = 8.8542d-12
+  !> Degree of ionization (assumed fully ionized)
+  real(real64), parameter       :: Z_ion = 1.0d0
 
 contains
 
@@ -91,6 +108,13 @@ contains
     unit_velocity = new_unit_velocity
 
   end subroutine set_unit_velocity
+
+  subroutine set_unit_resistivity(new_unit_resistivity)
+    real(real64), intent(in) :: new_unit_resistivity
+
+    unit_resistivity = new_unit_resistivity
+  end subroutine set_unit_resistivity
+
 
 
   subroutine set_normalisations(cgs_units)

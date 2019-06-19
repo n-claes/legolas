@@ -99,6 +99,7 @@ contains
     use mod_physical_constants
     use mod_radiative_cooling
     use mod_thermal_conduction
+    use mod_resistivity
 
     ! Initialisations
     rho0_eq = 1.0d0
@@ -125,7 +126,7 @@ contains
     end if
 
     if (resistivity) then
-      eta_eq = 1.0d0
+      call get_eta(T0_eq, eta_eq)
     end if
 
   end subroutine set_equilibrium

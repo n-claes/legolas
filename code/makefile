@@ -22,6 +22,7 @@ OUTPUT   := program.exe
 objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_physical_constants.o					\
 								mod_global_variables.o 						\
+								mod_resistivity.o									\
 								mod_gravity.o											\
 								mod_cooling_curves.o							\
 								mod_radiative_cooling.o						\
