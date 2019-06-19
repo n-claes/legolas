@@ -79,7 +79,7 @@ contains
       !! dim_quadblock (= 32), as the bottom-right part of the quadblock
       !! overlaps with the top-left part when shifting along the main diagonal.
       quadblock_idx = quadblock_idx + dim_subblock
-      
+
     end do      ! end do iteration grid points
 
     deallocate(factors_B)
