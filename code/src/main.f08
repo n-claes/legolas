@@ -45,9 +45,12 @@ contains
   subroutine create_matrices()
     use mod_setup_matrix_b, only: construct_B
     use mod_setup_matrix_a, only: construct_A
+    use mod_solvers
 
     call construct_B(matrix_B)
     call construct_A(matrix_A)
+
+    call solve_QR(matrix_A, matrix_B)
 
     return
 

@@ -8,8 +8,10 @@
 # -pedantic: checks backwards compatibility with F95
 # -fbacktrace: produce backtrace when crashing
 FFLAGS   := -fcheck=all -fbounds-check -Wall -Wextra -Wconversion \
-					 -pedantic -fbacktrace
+					  -pedantic -fbacktrace
 FC  		 := gfortran
+
+LIBS 		 := -lblas -llapack
 
 SRCDIR   := src
 BINDIR   := bin
@@ -31,6 +33,7 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_make_subblock.o								\
 								mod_setup_matrix_b.o							\
 								mod_setup_matrix_a.o							\
+								mod_solvers.o											\
 								main.o														\
 							)
 
@@ -40,7 +43,7 @@ all: compile_modules		\
 compile_modules: $(objects)
 
 compile_main:
-	$(FC) $(FFLAGS) $(objects) -o $(OUTPUT)
+	$(FC) $(FFLAGS) $(objects) $(LIBS) -o $(OUTPUT)
 
 # check directories
 $(BINDIR):
@@ -49,7 +52,7 @@ $(BINDIR):
 
 # root modules
 $(BINDIR)/%.o: $(SRCDIR)/%.f08 | $(BINDIR)
-	$(FC) $(FFLAGS) -c $^ -o $@ -J $(MODDIR)
+	$(FC) $(FFLAGS) -c $^ -o $@  -J $(MODDIR)
 
 # physics modules
 $(BINDIR)/%.o: $(SRCDIR)/physics/%.f08 | $(BINDIR)
