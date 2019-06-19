@@ -131,18 +131,12 @@ contains
 
     integer                  :: idx, i
 
-    !! Normalise T0 to look up values
-    T0 = T0 / unit_temperature
-
     do i = 1, 4*gridpts
       idx = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
       lambda(i) = interp_table_L(idx) + (T0(i) - interp_table_T(idx)) &
                   * (interp_table_L(idx + 1) - interp_table_L(idx))   &
                   / (interp_table_T(idx + 1) - interp_table_T(idx))
     end do
-
-    !! Denormalise for consistency
-    T0 = T0 * unit_temperature
 
   end subroutine get_Lambda
 
@@ -158,18 +152,12 @@ contains
     real(dp), intent(out)    :: dLambdadT(4*gridpts)
     integer                  :: idx, i
 
-    !! Normalise T0 to look up values
-    T0 = T0 / unit_temperature
-
     do i = 1, 4*gridpts
       idx     = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
       dLambdadT(i) = interp_table_dLdT(idx) + (T0(i) - interp_table_T(idx)) &
                      * (interp_table_dLdT(idx+1) - interp_table_dLdT(idx))  &
                      / (interp_table_T(idx+1)    - interp_table_T(idx))
     end do
-
-    !! Denormalise for consistency
-    T0 = T0 * unit_temperature
 
   end subroutine get_dLambdadT
 
