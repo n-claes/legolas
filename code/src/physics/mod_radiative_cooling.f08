@@ -1,5 +1,6 @@
 module mod_radiative_cooling
   use mod_global_variables
+  use mod_physical_constants, only: unit_temperature
   implicit none
 
   private
@@ -125,10 +126,13 @@ contains
   !! @param lambda  Interpolated lambda for every T0
   !!                (array, length = 4*gridpts)
   subroutine get_Lambda(T0, lambda)
-    real(dp), intent(in)  :: T0(4*gridpts)
-    real(dp), intent(out) :: lambda(4*gridpts)
+    real(dp), intent(inout)  :: T0(4*gridpts)
+    real(dp), intent(out)    :: lambda(4*gridpts)
 
-    integer               :: idx, i
+    integer                  :: idx, i
+
+    !! Normalise T0 to look up values
+    T0 = T0 / unit_temperature
 
     do i = 1, 4*gridpts
       idx = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
@@ -136,6 +140,9 @@ contains
                   * (interp_table_L(idx + 1) - interp_table_L(idx))   &
                   / (interp_table_T(idx + 1) - interp_table_T(idx))
     end do
+
+    !! Denormalise for consistency
+    T0 = T0 * unit_temperature
 
   end subroutine get_Lambda
 
@@ -147,9 +154,12 @@ contains
   !!                   evaluated for every T0.
   !!                   (array, length=4*gridpts)
   subroutine get_dLambdadT(T0, dLambdadT)
-    real(dp), intent(in)  :: T0(4*gridpts)
-    real(dp), intent(out) :: dLambdadT(4*gridpts)
-    integer               :: idx, i
+    real(dp), intent(inout)  :: T0(4*gridpts)
+    real(dp), intent(out)    :: dLambdadT(4*gridpts)
+    integer                  :: idx, i
+
+    !! Normalise T0 to look up values
+    T0 = T0 / unit_temperature
 
     do i = 1, 4*gridpts
       idx     = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
@@ -157,6 +167,9 @@ contains
                      * (interp_table_dLdT(idx+1) - interp_table_dLdT(idx))  &
                      / (interp_table_T(idx+1)    - interp_table_T(idx))
     end do
+
+    !! Denormalise for consistency
+    T0 = T0 * unit_temperature
 
   end subroutine get_dLambdadT
 
