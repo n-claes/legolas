@@ -70,6 +70,9 @@ contains
 
       end do  ! end do iteration Gaussian points
 
+      !! Solving in [0, 1], so scale with difference
+      quadblock = quadblock * (r_hi - r_lo)
+
       !! Apply boundary conditions on edges
       if (i == 1) then
         call boundaries_A_left_edge(quadblock)
