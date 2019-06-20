@@ -13,6 +13,8 @@ program esonas
 
   call cleanup
 
+  write(*, *) "Program finished."
+
 
 
 contains

@@ -20,6 +20,7 @@ contains
     use mod_grid
     use mod_equilibrium
     use mod_spline_functions
+    use mod_boundary_conditions
 
     real(dp), intent(inout):: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp)            :: quadblock(dim_quadblock, dim_quadblock)
@@ -65,6 +66,14 @@ contains
         call get_B_elements(gauss_idx, eps, curr_weight, quadblock)
 
       end do    ! end do iteration gaussian points
+
+      !! Apply boundary conditions on edges
+      if (i == 1) then
+        call boundaries_B_left_edge(quadblock)
+      end if
+      if (i == gridpts - 1) then
+        call boundaries_B_right_edge(quadblock)
+      end if
 
       ! Fill B-matrix with quadblock entries
       do k = 1, dim_quadblock

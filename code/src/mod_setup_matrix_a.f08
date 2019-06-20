@@ -21,6 +21,7 @@ contains
     use mod_grid
     use mod_equilibrium
     use mod_spline_functions
+    use mod_boundary_conditions
 
     complex(dp), intent(out)  :: matrix_A(matrix_gridpts, matrix_gridpts)
     complex(dp)               :: quadblock(dim_quadblock, dim_quadblock)
@@ -35,7 +36,7 @@ contains
     ! Initialise quadblock index to zero (used to shift the block)
     quadblock_idx = 0
 
-    do i = 2, gridpts-1
+    do i = 1, gridpts-1
       ! Set quadblock to zero
       quadblock = (0.0d0, 0.0d0)
 
@@ -68,6 +69,14 @@ contains
         call get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock)
 
       end do  ! end do iteration Gaussian points
+
+      !! Apply boundary conditions on edges
+      if (i == 1) then
+        call boundaries_A_left_edge(quadblock)
+      end if
+      if (i == gridpts - 1) then
+        call boundaries_A_right_edge(quadblock)
+      end if
 
       ! Fill A-matrix with quadblock entries
       do k = 1, dim_quadblock
