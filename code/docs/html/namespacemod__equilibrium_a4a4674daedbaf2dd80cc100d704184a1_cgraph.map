@@ -1,0 +1,5 @@
+<map id="mod_equilibrium::initialise_equilibrium" name="mod_equilibrium::initialise_equilibrium">
+<area shape="rect" id="node2" href="$namespacemod__gravity.html#a6da073a4f7a9933a52cb471e72228277" title="Initialises the gravitational acceleration parameter grav, set to zero if gravity is not included..." alt="" coords="225,5,373,47"/>
+<area shape="rect" id="node3" href="$namespacemod__radiative__cooling.html#a10adea92141311372c3aa2343f47c00a" title="Initialises the radiative cooling module, depending on the cooling curve specified. Interpolates the data from mod_cooling_curves using ncool gridpoints. " alt="" coords="224,71,375,127"/>
+<area shape="rect" id="node4" href="$namespacemod__equilibrium.html#a45c66e25b53ecd20dff0692413ccd96c" title="Sets the equilibrium on the nodes of the Gaussian quadrature. The ones for cooling, conduction, flow and resistivity are kept at zero unless the respective physics switch is enabled. " alt="" coords="228,152,371,193"/>
+</map>

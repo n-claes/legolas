@@ -1,0 +1,4 @@
+<map id="mod_equilibrium_derivatives::get_cooling_derivatives" name="mod_equilibrium_derivatives::get_cooling_derivatives">
+<area shape="rect" id="node2" href="$namespacemod__radiative__cooling.html#aa0270dbda786f2a955cc2a67ab4eac6a" title="Interpolates the derivative of the cooling curve based on the given temperatures T0. " alt="" coords="240,5,391,47"/>
+<area shape="rect" id="node3" href="$namespacemod__radiative__cooling.html#a0f784f240de50d5cd997caf6ff82371f" title="Interpolates the luminosity based on the given temperatures T0. " alt="" coords="240,71,391,112"/>
+</map>

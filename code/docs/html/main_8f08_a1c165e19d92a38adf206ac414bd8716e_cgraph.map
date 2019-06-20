@@ -1,0 +1,3 @@
+<map id="solve_eigenvalue_problem" name="solve_eigenvalue_problem">
+<area shape="rect" id="node2" href="$namespacemod__solvers.html#a15e290ea345ea2d2f09a4d509738cb17" title="Solves the general eigenvalue problem AX = wBX with eigenvalues w using the QR&#45;algorithm. A and B are already in tri&#45;diagonal form. Calls zzgev from the LAPACK library. " alt="" coords="228,5,381,32"/>
+</map>

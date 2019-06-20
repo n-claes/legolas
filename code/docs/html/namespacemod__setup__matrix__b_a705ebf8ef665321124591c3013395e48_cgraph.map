@@ -1,0 +1,5 @@
+<map id="mod_setup_matrix_b::get_b_elements" name="mod_setup_matrix_b::get_b_elements">
+<area shape="rect" id="node2" href="$namespacemod__setup__matrix__b.html#aaa316fa5a9d3b03e77c954d25dab5306" title="Resets the factors array: deallocates the array, reallocates it with a new size and initialises it to..." alt="" coords="201,5,344,47"/>
+<area shape="rect" id="node3" href="$namespacemod__setup__matrix__b.html#a75d34594f9ec1f2b9097c240162faf6e" title="Resets the positions array: deallocates the array, reallocates it with a new size and initialises it ..." alt="" coords="201,71,344,112"/>
+<area shape="rect" id="node4" href="$namespacemod__make__subblock.html#a851ac56e4c803cb97937bec121973c91" title="Calculates the quadblock at the current iteration over grid_gauss. " alt="" coords="196,136,349,177"/>
+</map>

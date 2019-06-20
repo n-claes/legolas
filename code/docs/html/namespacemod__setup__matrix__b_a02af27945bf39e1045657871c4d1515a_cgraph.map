@@ -1,0 +1,7 @@
+<map id="mod_setup_matrix_b::construct_b" name="mod_setup_matrix_b::construct_b">
+<area shape="rect" id="node2" href="$namespacemod__spline__functions.html#a40557f374fb5ac93d591542f33506b82" title="Calculates the quadratic basis functions. " alt="" coords="209,5,357,47"/>
+<area shape="rect" id="node3" href="$namespacemod__spline__functions.html#a57381d8331bf7e141213188704386ca0" title="Calculates the cubic basis functions. " alt="" coords="209,71,357,112"/>
+<area shape="rect" id="node4" href="$namespacemod__setup__matrix__b.html#a705ebf8ef665321124591c3013395e48" title="Calculates the different integral elements for the B&#45;matrix. " alt="" coords="212,136,355,177"/>
+<area shape="rect" id="node5" href="$namespacemod__boundary__conditions.html#aea339ae77e7a6335ea723866e7888698" title="mod_boundary_conditions\l::boundaries_b_left_edge" alt="" coords="197,201,370,243"/>
+<area shape="rect" id="node6" href="$namespacemod__boundary__conditions.html#a0f71116b0382c42c07812ae9fa489e54" title="mod_boundary_conditions\l::boundaries_b_right_edge" alt="" coords="196,267,371,308"/>
+</map>
