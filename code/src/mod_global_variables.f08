@@ -1,48 +1,76 @@
+!
+! MODULE: mod_global_variables
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module containing all global variables.
+!
 module mod_global_variables
   use, intrinsic :: iso_fortran_env
   implicit none
-  
+
   public
 
   !! Fortran-2008 type standards
+  !> Single-precision value
   integer, parameter :: sp = real32
+  !> Double-precision value
   integer, parameter :: dp = real64
+  !> Quadruple-precision value
   integer, parameter :: qp = real128
-
   !> Default length for strings
   integer, parameter :: str_len = 125
 
-  !! Physical parameters
+  !! Physics parameters
+  !> Ratio of specific heats gamma
   real(dp), parameter       :: gamma = 5.0d0/3.0d0
+  !> Variable for (gamma - 1)
   real(dp), parameter       :: gamma_1 = 1.0d0 - gamma
-
-  ! Flow
+  !> Boolean to enable flow
   logical, save             :: flow
-
-  ! Radiative cooling
+  !> Boolean to enable radiative cooling
   logical, save             :: radiative_cooling
+  !> Number of points to interpolate the radiative cooling curve
   integer, parameter        :: ncool = 4000
+  !> Name of the cooling curve to use
   character(len=str_len)    :: cooling_curve
-  ! External gravity
+  !> Boolean to enable external gravity
   logical, save             :: external_gravity
-  ! Gravity type
+  !> Strength of the gravitational acceleration, can be 'earth' or 'solar'
   character(len=str_len)    :: gravity_type
-  ! Thermal conduction
+  !> Boolean to enable thermal conduction
   logical, save             :: thermal_conduction
-  ! Resistivity
+  !> Boolean to enable resistivity
   logical, save             :: resistivity
-
-  ! Switch for units
+  !> Boolean for cgs units
   logical, save             :: cgs_units = .true.
 
-  !> Grid-related parameters
-  character(:), allocatable         :: geometry
-  real(dp)                          :: x_start, x_end
-  integer                           :: gridpts, matrix_gridpts
-  integer                           :: integral_gridpts
-  real(dp)                          :: ev_1, ev_2, sigma_1, sigma_2
+  !! Grid-related parameters
+  !> Geometry of the problem: 'Cartesian' or 'cylindrical'
+  character(:), allocatable :: geometry
+  !> Starting value for the x-array
+  real(dp)                  :: x_start
+  !> Final value of the x-array
+  real(dp)                  :: x_end
+  !> Amount of gridpoints of the initial array
+  integer                   :: gridpts
+  !> Gridpoints of matrices A and B, equal to 16 * gridpts
+  integer                   :: matrix_gridpts
 
-  logical, save                     :: mesh_accumulation
+  !! Mesh-accumulation parameters
+  !> Boolean to enable mesh accumulation
+  logical, save             :: mesh_accumulation
+  !> Expected value 1 for the Gaussian function
+  real(dp)                  :: ev_1
+  !> Expected value 2 for the Gaussian function
+  real(dp)                  :: ev_2
+  !> Standard deviation 1 for the Gaussian function
+  real(dp)                  :: sigma_1
+  !> Standard deviation 2 for the Gaussian function
+  real(dp)                  :: sigma_2
 
   !! Equilibrium-related parameters
   !> Number of Gaussian points
@@ -64,19 +92,20 @@ module mod_global_variables
   !> Number of equations
   integer, parameter        :: nb_eqs = 8
   !> Dimension of one finite element integral block, e.g. A(1,1).
-  !  See page 190 of advanced MHD
+  !! See page 190 of advanced MHD.
   integer, parameter        :: dim_integralblock = 2
   !> Dimension of one quadblock subblock, 16x16
-  !  One subblock has elements A(1,1) -> A(8,8), where every element A(i,i)
-  !  is in itself a block of dimension 2x2 (dim_integralblock above) due to
-  !  quadratic and cubic finite elements.
+  !! One subblock has elements A(1,1) -> A(8,8), where every element A(i,i)
+  !! is in itself a block of dimension 2x2 (dim_integralblock above) due to
+  !! quadratic and cubic finite elements.
   integer, parameter        :: dim_subblock = nb_eqs * dim_integralblock
   !> Dimension of the quadblock, containing 4 subblocks
-  !  The quadblock is the matrix that is shifted on the main diagonal
+  !! The quadblock is the matrix that is shifted on the main diagonal
   integer, parameter        :: dim_quadblock = 2*dim_subblock
 
 contains
 
+  !> Initialises all global variables.
   subroutine initialise_variables()
     use mod_physical_constants
 
@@ -92,8 +121,6 @@ contains
     x_end    = 1.0d0
     gridpts  = 11
     matrix_gridpts = 16 * gridpts
-    integral_gridpts = gridpts - 1
-
 
     ! Mesh accumulation parameters
     mesh_accumulation  = .false.
@@ -104,7 +131,6 @@ contains
     sigma_1 = 1.0d0
     sigma_2 = 2.0d0
 
-
     ! Physics related parameters
     flow               = .true.
     external_gravity   = .true.
@@ -114,11 +140,9 @@ contains
     thermal_conduction = .true.
     resistivity        = .true.
 
-
-
-
   end subroutine initialise_variables
 
+  !> Deallocates the variables in this module.
   subroutine variables_clean()
     deallocate(geometry)
   end subroutine variables_clean

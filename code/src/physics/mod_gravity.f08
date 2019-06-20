@@ -1,3 +1,13 @@
+!
+! MODULE: mod_gravity
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module to calculate the gravity contributions.
+!
 module mod_gravity
   use mod_global_variables
   implicit none
@@ -21,6 +31,8 @@ module mod_gravity
 
 contains
 
+  !> Initialises the gravitational acceleration parameter grav, set to
+  !! zero if gravity is not included.
   subroutine initialise_gravity()
     if (external_gravity) then
       call set_gravity()
@@ -29,6 +41,8 @@ contains
     end if
   end subroutine initialise_gravity
 
+  !> Sets the gravitational acceleration based on gravity_type
+  !! in the module mod_global_variables.
   subroutine set_gravity()
     ! Obtain gravity type
     select case(gravity_type)

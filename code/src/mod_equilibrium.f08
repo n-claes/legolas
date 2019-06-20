@@ -1,3 +1,13 @@
+!
+! MODULE: mod_equilibrium
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module containing all equilibrium arrays.
+!
 module mod_equilibrium
   use mod_global_variables
   implicit none
@@ -10,34 +20,47 @@ module mod_equilibrium
   real(dp)                      :: k3
 
   !! Default equilibrium variables
-  !> equilibrium density
+  !> Equilibrium density
   real(dp), allocatable         :: rho0_eq(:)
-  !> equilibrium temperature
+  !> Equilibrium temperature
   real(dp), allocatable         :: T0_eq(:)
-  !> equilibrium magnetic fields
-  real(dp), allocatable         :: B01_eq(:), B02_eq(:), B03_eq(:), B0_eq(:)
+  !> Equilibrium magnetic field in x or r-direction
+  real(dp), allocatable         :: B01_eq(:)
+  !> Equilibriu magnetic field in the y or theta-direction
+  real(dp), allocatable         :: B02_eq(:)
+  !> Equilibrium magnetic field in the z direction
+  real(dp), allocatable         :: B03_eq(:)
+  !> Equilibrium magnetic field
+  real(dp), allocatable         :: B0_eq(:)
 
   !! Flow equilibrium variables
-  !> equilibrium velocities
-  real(dp), allocatable         :: v01_eq(:), v02_eq(:), v03_eq(:)
+  !> Equilibrium velocity in the x or r-direction
+  real(dp), allocatable         :: v01_eq(:)
+  !> Equilibrium velocity in the y or theta-direction
+  real(dp), allocatable         :: v02_eq(:)
+  !> Equilibrium velocity in the z direction
+  real(dp), allocatable         :: v03_eq(:)
 
   !! Thermal conduction equilibrium variables
-  !> equilibrium parallel conduction
+  !> Equilibrium parallel conduction
   real(dp), allocatable         :: tc_para_eq(:)
-  !> equilibrium perpendicular conduction
+  !> Equilibrium perpendicular conduction
   real(dp), allocatable         :: tc_perp_eq(:)
 
   !! Radiative cooling equilibrium variables
-  !> equilibrium heat-loss function
+  !> Equilibrium heat-loss function
   real(dp), allocatable         :: heat_loss_eq(:)
 
   !! Resistivity equilibrium variables
+  !> Equilibrium resistivity
   real(dp), allocatable         :: eta_eq(:)
 
 
 
 contains
 
+  !> Initialises the equilibrium by allocating all equilibrium arrays and
+  !! setting them to zero.
   subroutine initialise_equilibrium()
     use mod_gravity, only: initialise_gravity
     use mod_radiative_cooling, only: initialise_radiative_cooling
@@ -93,7 +116,9 @@ contains
 
   end subroutine initialise_equilibrium
 
-  !> Sets the equilibrium on the nodes of the Gaussian quadrature
+  !> Sets the equilibrium on the nodes of the Gaussian quadrature.
+  !! The ones for cooling, conduction, flow and resistivity are kept at zero
+  !! unless the respective physics switch is enabled.
   subroutine set_equilibrium()
     use mod_grid
     use mod_physical_constants
@@ -131,6 +156,7 @@ contains
 
   end subroutine set_equilibrium
 
+  !> Cleaning routine, deallocates all arrays in this module.
   subroutine equilibrium_clean()
     deallocate(rho0_eq)
     deallocate(T0_eq)

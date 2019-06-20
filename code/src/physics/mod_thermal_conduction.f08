@@ -1,3 +1,13 @@
+!
+! MODULE: mod_thermal_conduction
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module to calculate the thermal conduction contributions.
+!
 module mod_thermal_conduction
   use mod_physical_constants
   use mod_global_variables
@@ -7,6 +17,10 @@ module mod_thermal_conduction
 
 contains
 
+  !> Calculates the parallel conduction coefficient as a function of the
+  !! equilibrium temperature.
+  !! @param[in]  T0_eq    Array containing the equilibrium temperatures, in K
+  !! @param[out] tc_para  Array containing the parallel conduction coefficients
   subroutine get_kappa_para(T0_eq, tc_para)
     real(dp), intent(in)  :: T0_eq(4*gridpts)
     real(dp), intent(out) :: tc_para(4*gridpts)
@@ -23,6 +37,12 @@ contains
 
   end subroutine get_kappa_para
 
+  !> Calculates the perpendicular conduction coefficient as a function of the
+  !! equilibrium temperature, density and magnetic field.
+  !! @param[in]  T0_eq    Array containing the equilibrium temperatures, in K
+  !! @param[in]  rho0_eq  Array containing the equilibrium density
+  !! @param[in]  B0_eq    Array containing the equilibrium magnetic field
+  !! @param[out] tc_perp  Array containing the perpendicular conduction coefficients
   subroutine get_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp)
     real(dp), intent(in)  :: T0_eq(4*gridpts), rho0_eq(4*gridpts), &
                              B0_eq(4*gridpts)
@@ -47,6 +67,14 @@ contains
 
   end subroutine get_kappa_perp
 
+  !> Calculates the derivative of the perpendicular conduction coefficient
+  !! with respect to density.
+  !! @param[in]  T0_eq    Array containing the equilibrium temperatures, in K
+  !! @param[in]  rho0_eq  Array containing the equilibrium density
+  !! @param[in]  B0_eq    Array containing the equilibrium magnetic field
+  !! @param[out] d_tc_drho  Array containing the derivative of the
+  !!                        perpendicular conduction coefficient
+  !!                        with respect to density
   subroutine get_dkappa_perp_drho(T0_eq, rho0_eq, B0_eq, d_tc_drho)
     real(dp), intent(in)  :: T0_eq(4*gridpts), rho0_eq(4*gridpts), &
                              B0_eq(4*gridpts)
@@ -70,6 +98,14 @@ contains
 
   end subroutine get_dkappa_perp_drho
 
+  !> Calculates the derivative of the perpendicular conduction coefficient
+  !! with respect to temperature.
+  !! @param[in]  T0_eq    Array containing the equilibrium temperatures, in K
+  !! @param[in]  rho0_eq  Array containing the equilibrium density
+  !! @param[in]  B0_eq    Array containing the equilibrium magnetic field
+  !! @param[out] d_tc_dT  Array containing the derivative of the
+  !!                      perpendicular conduction coefficient
+  !!                      with respect to temperature
   subroutine get_dkappa_perp_dT(T0_eq, rho0_eq, B0_eq, d_tc_dT)
     real(dp), intent(in)  :: T0_eq(4*gridpts), rho0_eq(4*gridpts), &
                              B0_eq(4*gridpts)
@@ -92,6 +128,14 @@ contains
 
   end subroutine get_dkappa_perp_dT
 
+  !> Calculates the derivative of the perpendicular conduction coefficient
+  !! with respect to B^2.
+  !! @param[in]  T0_eq    Array containing the equilibrium temperatures, in K
+  !! @param[in]  rho0_eq  Array containing the equilibrium density
+  !! @param[in]  B0_eq    Array containing the equilibrium magnetic field
+  !! @param[out] d_tc_dB2  Array containing the derivative of the
+  !!                       perpendicular conduction coefficient
+  !!                       with respect to B^2
   subroutine get_dkappa_perp_dB2(T0_eq, rho0_eq, B0_eq, d_tc_dB2)
     real(dp), intent(in)  :: T0_eq(4*gridpts), rho0_eq(4*gridpts), &
                              B0_eq(4*gridpts)
@@ -114,7 +158,10 @@ contains
 
   end subroutine get_dkappa_perp_dB2
 
-
+  !> Calculates the hydrogen number density based on the equilibrium density.
+  !! @param[in]  rho0_eq   Array containing the equilibrium density
+  !! @param[in]  mp        The proton mass, in cgs or SI units
+  !! @param[out] nH        Array containing the equilibrium number density
   subroutine get_nH(rho0_eq, mp, nH)
     real(dp), intent(in)  :: rho0_eq(4*gridpts), mp
     real(dp), intent(out) :: nH(4*gridpts)

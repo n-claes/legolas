@@ -1,3 +1,13 @@
+!
+! MODULE: mod_boundary_conditions
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module to calculate the boundary conditions for the eigenvalue problem.
+!
 module mod_boundary_conditions
   use mod_global_variables
   implicit none

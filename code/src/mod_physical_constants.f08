@@ -1,3 +1,13 @@
+!
+! MODULE: mod_physical_constants
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module containing all physical constants and unit normalisations.
+!
 module mod_physical_constants
   use, intrinsic :: iso_fortran_env
   implicit none
@@ -78,6 +88,8 @@ module mod_physical_constants
 
 contains
 
+  !> Sets a new unit length based on the given value.
+  !! @param[in] new_unit_length   New value for the unit length
   subroutine set_unit_length(new_unit_length)
     real(real64), intent(in) :: new_unit_length
 
@@ -85,7 +97,8 @@ contains
 
   end subroutine set_unit_length
 
-
+  !> Sets a new unit numberdensity based on the given value.
+  !! @param[in] new_unit_numberdensity  New value for the unit numberdensity
   subroutine set_unit_numberdensity(new_unit_numberdensity)
     real(real64), intent(in) :: new_unit_numberdensity
 
@@ -93,7 +106,8 @@ contains
 
   end subroutine set_unit_numberdensity
 
-
+  !> Sets a new unit temperature based on the given value
+  !! @param[in] new_unit_temperature  New value for the unit temperature
   subroutine set_unit_temperature(new_unit_temperature)
     real(real64), intent(in) :: new_unit_temperature
 
@@ -101,7 +115,8 @@ contains
 
   end subroutine set_unit_temperature
 
-
+  !> Sets a new unit velocity based on the given value
+  !! @param[in] new_unit_velocity   New value for the unit velocity
   subroutine set_unit_velocity(new_unit_velocity)
     real(real64), intent(in) :: new_unit_velocity
 
@@ -109,6 +124,9 @@ contains
 
   end subroutine set_unit_velocity
 
+  !> Sets a new unit resistivity based on the given value. This is done in the
+  !! resistivity module.
+  !! @param[in] new_unit_resistivity    New value for the unit resistivity
   subroutine set_unit_resistivity(new_unit_resistivity)
     real(real64), intent(in) :: new_unit_resistivity
 
@@ -116,7 +134,9 @@ contains
   end subroutine set_unit_resistivity
 
 
-
+  !> Calculates the other unit normalisations based on the pre-defined
+  !! unit_length, unit_numberdensity and unit_temperature OR unit_velocity.
+  !! @param[in] cgs_units   Whether to use cgs units or not.
   subroutine set_normalisations(cgs_units)
     logical, intent(in)       :: cgs_units
     real(real64)              :: mp, kB, mu0

@@ -1,16 +1,32 @@
+!
+! MODULE: mod_grid
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module to create the grid and to do mesh accumulation if needed.
+!
 module mod_grid
   use mod_global_variables
   implicit none
 
   public
 
-  real(dp), allocatable      :: grid(:), grid_gauss(:)
+  !> Array containing the regular (coarse) grid
+  real(dp), allocatable      :: grid(:)
+  !> New array with 4x the length of grid, due to the 4 nodes of the
+  !! Gaussian quadrature
+  real(dp), allocatable      :: grid_gauss(:)
 
   private :: accumulate_mesh
   private :: gaussian
 
 contains
 
+  !> Initialises both the coarse grid and grid_gauss. Does mesh accumulation
+  !! if desired.
   subroutine initialise_grid()
     integer                  :: i
     real(dp)                 :: dx
@@ -71,7 +87,8 @@ contains
   !! using equidistribution based on the integral under the curve defined
   !! by the function gaussian().
   subroutine accumulate_mesh()
-    integer                  :: i, integral_gridpts_1, integral_gridpts_2
+    integer                  :: i, integral_gridpts
+    integer                  :: integral_gridpts_1, integral_gridpts_2
     real(dp)                 :: dx, dx_0, xi, bgf, fact, dx_eq
     real(dp)                 :: gauss_xi, gauss_xi_eq
     real(dp)                 :: x_sum, x_sum_prev, x_norm
@@ -79,9 +96,7 @@ contains
 
     print*,"Redefining grid with mesh accumulation"
 
-    if (integral_gridpts /= gridpts - 1) then
-      stop "WARNING: integral gridpoints must be gridpoints - 1."
-    end if
+    integral_gridpts = gridpts - 1
 
     bgf  = 0.3d0 !background
     fact = 1.0d0
@@ -138,6 +153,10 @@ contains
   !> Function to calculate a Gaussian curve based on known widths and
   !! expected values (from mod_global_variables). The Gaussian is evaluated
   !! in x.
+  !! @param[in] x   Value for x in the Gaussian function
+  !! @param[in] bgf Value for the background field, hardcoded to 0.3
+  !! @param[in] fact Division factor in the Gaussian function, hardcoded to 1.0
+  !! @return f_gauss  Value of the Gaussian function, evaluated in x
   function gaussian(x, bgf, fact) result(f_gauss)
     use mod_physical_constants
 
@@ -155,7 +174,7 @@ contains
 
   end function gaussian
 
-
+  !> Deallocates arrays defined in this module.
   subroutine grid_clean()
     deallocate(grid)
     deallocate(grid_gauss)

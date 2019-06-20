@@ -1,3 +1,13 @@
+!
+! MODULE: mod_radiative_cooling
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module to calculate the radiative cooling contributions.
+!
 module mod_radiative_cooling
   use mod_global_variables
   use mod_physical_constants, only: unit_temperature
@@ -30,7 +40,8 @@ module mod_radiative_cooling
 contains
 
   !> Initialises the radiative cooling module, depending on the cooling
-  !  curve specified.
+  !! curve specified. Interpolates the data from mod_cooling_curves using
+  !! ncool gridpoints.
   subroutine initialise_radiative_cooling()
     use mod_cooling_curves
 
@@ -121,15 +132,14 @@ contains
 
 
   !> Interpolates the luminosity based on the given temperatures T0.
-  !! @param T0      Equilibrium temperatures, in K.
-  !!                (array, length = 4*gridpts)
-  !! @param lambda  Interpolated lambda for every T0
-  !!                (array, length = 4*gridpts)
+  !! @param[in]  T0       Array with the equilibrium temperatures, in K
+  !! @param[out] lambda   Interpolated lambda (value of the cooling curve)
+  !!                      for every temperature in the T0 array
   subroutine get_Lambda(T0, lambda)
-    real(dp), intent(inout)  :: T0(4*gridpts)
-    real(dp), intent(out)    :: lambda(4*gridpts)
+    real(dp), intent(in)  :: T0(4*gridpts)
+    real(dp), intent(out) :: lambda(4*gridpts)
 
-    integer                  :: idx, i
+    integer               :: idx, i
 
     do i = 1, 4*gridpts
       idx = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
@@ -141,12 +151,11 @@ contains
   end subroutine get_Lambda
 
 
-  !> Interpolates the derivative of the cooling curve in T0.
-  !! @param T0    Equilibrium temperatures, in K.
-  !!              (array, length=4*gridpts)
-  !! @param dLambdadT  Derivative of cooling curve with respect to temperature,
-  !!                   evaluated for every T0.
-  !!                   (array, length=4*gridpts)
+  !> Interpolates the derivative of the cooling curve based on
+  !! the given temperatures T0.
+  !! @param[in]  T0         Array with the equilibrium temperatures, in K
+  !! @param[out] dLambdadT  Interpolated derivative of lambda
+  !!                        for every temperature in the T0 array
   subroutine get_dLambdadT(T0, dLambdadT)
     real(dp), intent(inout)  :: T0(4*gridpts)
     real(dp), intent(out)    :: dLambdadT(4*gridpts)
@@ -164,14 +173,14 @@ contains
 
   !> Interpolates the rudimentary cooling curves using ncool points.
   !! A second-order polynomial interpolation is used except near sharp jumps.
-  !! @param ntable    number of entries in the cooling table.
-  !! @param table_T   Temperature entries of cooling table.
-  !! @param table_L   Luminosity entries of cooling table.
+  !! @param[in] ntable    number of entries in the cooling table.
+  !! @param[in] table_T   Temperature entries of cooling table.
+  !! @param[in] table_L   Luminosity entries of cooling table.
   subroutine interpolate_cooling_curve(ntable, table_T, table_L)
     use mod_physical_constants
 
-    real(dp), intent(in)  :: table_T(:), table_L(:)
     integer, intent(in)   :: ntable
+    real(dp), intent(in)  :: table_T(:), table_L(:)
     real(dp)              :: fact1, fact2, fact3, dL1, dL2, ratt
     integer               :: i, j
     logical               :: jump

@@ -1,3 +1,13 @@
+!
+! MODULE: mod_resistivity
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module to calculate the resistivity contributions.
+!
 module mod_resistivity
   use mod_global_variables
   use mod_physical_constants
@@ -10,6 +20,9 @@ module mod_resistivity
 
 contains
 
+  !> Calculates the Spitzer resistivity based on the equilibrium temperatures.
+  !! @param[in]  T0   Array with the equilibrium temperatures, in K
+  !! @param[out] eta  Array containing the Spitzer resistivity as a function of T
   subroutine get_eta(T0, eta)
     real(dp), intent(in)    :: T0(4*gridpts)
     real(dp), intent(out)   :: eta(4*gridpts)
@@ -30,7 +43,11 @@ contains
 
   end subroutine get_eta
 
-
+  !> Calculates the derivative of the Spitzer resistivity with respect to
+  !! temperature.
+  !! @param[in]  T0      Array with the equilibrium temperatures, in K
+  !! @param[out] deta_dT Array containing the derivative of the Spitzer
+  !!                     resistivity with respect to temperature
   subroutine get_deta_dT(T0, deta_dT)
     real(dp), intent(in)    :: T0(4*gridpts)
     real(dp), intent(out)   :: deta_dT(4*gridpts)
@@ -44,6 +61,12 @@ contains
 
   end subroutine get_deta_dT
 
+  !> Gets the physical constants relevant for the Spitzer resistivity.
+  !! Retrieves the values in SI or cgs units.
+  !! @param[out] ec   The electric charge in SI or cgs units
+  !! @param[out] me   The electron mass in SI or cgs units
+  !! @param[out] e0   The permittivity of free space in SI or cgs units
+  !! @param[out] kB   The Boltzmann constant in SI or cgs units
   subroutine get_constants(ec, me, e0, kB)
     real(dp), intent(out) :: ec, me, e0, kB
 

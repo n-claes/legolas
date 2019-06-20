@@ -1,3 +1,15 @@
+!
+! PROGRAM: esonas
+!
+!> @author: Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Main program. Finite element code to calculate eigenvalues
+!! and eigenvectors of the complete non-adiabatic MHD spectrum.
+!! Included physics: flow, radiative cooling, thermal conduction, resistivity
+!
+
 program esonas
   use mod_global_variables
   implicit none
@@ -7,11 +19,13 @@ program esonas
   !> B matrix in eigenvalue problem wBX = AX
   real(dp), allocatable     :: matrix_B(:, :)
 
-  call initialisation
+  call initialisation()
 
-  call create_matrices
+  call create_matrices()
 
-  call cleanup
+  call solve_eigenvalue_problem()
+
+  call cleanup()
 
   write(*, *) "Program finished."
 
@@ -19,7 +33,7 @@ program esonas
 
 contains
 
-  !> Initialises the grid and equilibrium configuration
+  !> Initialises the grid and equilibrium configuration.
   subroutine initialisation()
     use mod_grid, only: initialise_grid
     use mod_equilibrium, only: initialise_equilibrium
@@ -41,27 +55,30 @@ contains
     ! Initialise equilibrium derivatives
     call initialise_equilibrium_derivatives()
 
-    !! TODO: checks for interpolating cooling curves beyond table values!
-    !! TODO: normalise values AFTER getting derivatives
+    !! \TODO: checks for interpolating cooling curves beyond table values
+    !! \TODO: normalise values AFTER getting derivatives
 
   end subroutine initialisation
 
-  !> Creates A and B matrices for the wBX = AX eigenvalue problem
+  !> Creates A and B matrices for the wBX = AX eigenvalue problem.
   subroutine create_matrices()
     use mod_setup_matrix_b, only: construct_B
     use mod_setup_matrix_a, only: construct_A
-    use mod_solvers
 
     call construct_B(matrix_B)
     call construct_A(matrix_A)
 
-    call solve_QR(matrix_A, matrix_B)
-
-    return
-
   end subroutine create_matrices
 
-  !> Performs cleanup, deallocates variables
+  !> Calls the solver.
+  subroutine solve_eigenvalue_problem()
+    use mod_solvers
+
+    call solve_QR(matrix_A, matrix_B)
+
+  end subroutine solve_eigenvalue_problem
+
+  !> Performs cleanup, deallocates variables.
   subroutine cleanup()
     use mod_grid, only: grid_clean
     use mod_equilibrium, only: equilibrium_clean
