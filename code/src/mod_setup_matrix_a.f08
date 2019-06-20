@@ -1,15 +1,30 @@
+!
+! MODULE: mod_setup_matrix_a
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module to create the A-matrix in the eigenvalue problem AX = wBX.
+!
 module mod_setup_matrix_a
   use mod_global_variables
   implicit none
 
   private
 
-  ! Sets up the A-matrix for the eigenvalue problem wBX = AX
-  real(dp)                 :: h_cubic(4), h_quadratic(4)
-  real(dp)                 :: dh_cubic_dr(4), dh_quadratic_dr(4)
-  ! Factors and positions are allocatable so they are dynamic, in case we add
-  ! additional equations (self-gravity)
+  !> Array containing the 4 quadratic basis functions
+  real(dp)                 :: h_quadratic(4)
+  !> Array containing the 4 cubic basis functions
+  real(dp)                 :: h_cubic(4)
+  !> Array containing the derivatives of the 4 quadratic basis functions
+  real(dp)                 :: dh_quadratic_dr(4)
+  !> Array containing the derivatives of the 4 cubic basis functions
+  real(dp)                 :: dh_cubic_dr(4)
+  !> Array containing the integral expressions for the B-matrix
   complex(dp), allocatable :: factors_A(:)
+  !> Array containing the position of each integral, eg. [5, 2] for A(5, 2)
   integer, allocatable     :: positions(:, :)
 
   public  :: construct_A
@@ -17,6 +32,8 @@ module mod_setup_matrix_a
 
 contains
 
+  !> Constructs the A-matrix.
+  !! @param[in, out]  matrix_A  The A-matrix in AX = wBX
   subroutine construct_A(matrix_A)
     use mod_grid
     use mod_equilibrium
@@ -98,6 +115,12 @@ contains
 
   end subroutine construct_A
 
+  !> Calculates the different integral elements for the A-matrix.
+  !! @param[in] gauss_idx   The current index in the Gaussian grid (r-position)
+  !! @param[in] eps         The value for the scale factor epsilon
+  !! @param[in] curr_weight The current weight for the Gaussian quadrature
+  !! @param[in, out] quadblock  The quadblock, used to calculate the A-matrix.
+  !!                            This block is shifted on the main diagonal
   subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock)
     use mod_grid
     use mod_equilibrium
@@ -534,7 +557,9 @@ contains
   end subroutine get_A_elements
 
 
-
+  !> Resets the factors array: deallocates the array, reallocates it
+  !! with a new size and initialises it to zero.
+  !! @param[in] size_factors_A  The new size of the factors_A array
   subroutine reset_factors_A(size_factors_A)
     integer, intent(in)       :: size_factors_A
 
@@ -548,7 +573,9 @@ contains
   end subroutine reset_factors_A
 
 
-
+  !> Resets the positions array: deallocates the array, reallocates it
+  !! with a new size and initialises it to zero.
+  !! @param[in] size_positions  The new size of the positions array.
   subroutine reset_positions(size_positions)
     integer, intent(in)       :: size_positions
 
@@ -561,7 +588,7 @@ contains
 
   end subroutine reset_positions
 
-
+  !> Cleaning routine, deallocates all previously allocated arrays
   subroutine matrix_A_clean()
     if (allocated(positions)) then
       deallocate(positions)

@@ -1,10 +1,20 @@
+!
+! MODULE: mod_solvers
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module containing methods to solve the eigenvalue problem AX = wBX.
+!! Does calls to the BLAS and LAPACK libraries, in particular the 'zzgev'
+!! routine.
+!
 module mod_solvers
   use mod_global_variables
   implicit none
 
   public
-
-
 
 contains
 

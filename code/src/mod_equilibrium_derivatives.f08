@@ -1,3 +1,13 @@
+!
+! MODULE: mod_equilibrium_derivatives
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module containing the derivatives of the equilibrium arrays.
+!
 module mod_equilibrium_derivatives
   use mod_global_variables
   implicit none
@@ -9,45 +19,45 @@ module mod_equilibrium_derivatives
   !! d_xxx_yyy_dr means d(xxx/yyy)/dr
 
   !! Default derivatives
-  !> derivative rho0
+  !> Derivative rho0
   real(dp), allocatable       :: d_rho0_dr(:)
-  !> derivative r*B02
+  !> Derivative r*B02
   real(dp), allocatable       :: d_rB02_dr(:)
-  !> derivative B02/r
+  !> Derivative B02/r
   real(dp), allocatable       :: d_B02_r_dr(:)
-  !> derivative B03
+  !> Derivative B03
   real(dp), allocatable       :: d_B03_dr(:)
-  !> derivative T0
+  !> Derivative T0
   real(dp), allocatable       :: d_T0_dr(:)
-  !> derivative B02
+  !> Derivative B02
   real(dp), allocatable       :: d_B02_dr(:)
 
   !! Flow derivatives
-  !> derivative r*v02
+  !> Derivative r*v02
   real(dp), allocatable       :: d_rv02_dr(:)
-  !> derivative v03
+  !> Derivative v03
   real(dp), allocatable       :: d_v03_dr(:)
 
   !! Thermal conduction derivatives
-  !> derivative d(kappa_perp)/d(rho)
+  !> Derivative d(kappa_perp)/d(rho)
   real(dp), allocatable       :: d_tc_perp_eq_drho(:)
-  !> derivative d(kappa_perp)/d(T)
+  !> Derivative d(kappa_perp)/d(T)
   real(dp), allocatable       :: d_tc_perp_eq_dT(:)
-  !> derivative d(kappa_perp)/(dB^2)
+  !> Derivative d(kappa_perp)/(dB^2)
   real(dp), allocatable       :: d_tc_perp_eq_dB2(:)
 
   !! Radiative cooling derivatives
-  !> derivative dL/d(T)
+  !> Derivative dL/d(T)
   real(dp), allocatable       :: d_L_dT(:)
-  !> derivative dL/d(rho)
+  !> Derivative dL/d(rho)
   real(dp), allocatable       :: d_L_drho(:)
 
   !! Resistivity derivatives
   !> derivative d(eta)/d(T)
   real(dp), allocatable       :: d_eta_dT(:)
-  !> double derivative B03
+  !> Double derivative B03
   real(dp), allocatable       :: dd_B03_dr(:)
-  !> double derivative B02
+  !> Double derivative B02
   real(dp), allocatable       :: dd_B02_dr(:)
 
   private :: get_default_derivatives
@@ -59,6 +69,7 @@ module mod_equilibrium_derivatives
 
 contains
 
+  !> Allocates and initialises all equilibrium derivatives arrays.
   subroutine initialise_equilibrium_derivatives()
     allocate(d_rho0_dr(4*gridpts))
     allocate(d_rB02_dr(4*gridpts))
@@ -119,7 +130,7 @@ contains
 
   end subroutine initialise_equilibrium_derivatives
 
-
+  !> Sets the default arrays, that is, the ones that are always included.
   subroutine get_default_derivatives()
     d_rho0_dr  = 0.0d0
     d_rB02_dr  = 0.0d0
@@ -129,12 +140,13 @@ contains
     d_B02_dr   = 0.0d0
   end subroutine get_default_derivatives
 
-
+  !> Sets the flow arrays, if flow is enabled
   subroutine get_flow_derivatives()
     return
   end subroutine get_flow_derivatives
 
-
+  !> Calculates the derivative thermal conduction arrays,
+  !! if conduction is enabled.
   subroutine get_conduction_derivatives()
     use mod_equilibrium
     use mod_thermal_conduction
@@ -143,7 +155,7 @@ contains
     call get_dkappa_perp_dB2(T0_eq, rho0_eq, B0_eq, d_tc_perp_eq_dB2)
   end subroutine get_conduction_derivatives
 
-
+  !> Calculates the derivative radiative cooling arrays, if cooling is enabled.
   subroutine get_cooling_derivatives()
     use mod_equilibrium
     use mod_radiative_cooling
@@ -159,7 +171,7 @@ contains
 
   end subroutine get_cooling_derivatives
 
-
+  !> Calculates the derivative resistivity arrays, if resistivity is enabled.
   subroutine get_resistivity_derivatives()
     use mod_equilibrium, only: T0_eq
     use mod_resistivity
@@ -169,7 +181,7 @@ contains
   end subroutine get_resistivity_derivatives
 
 
-
+  !> Cleaning routine, deallocates all arrays in this module.
   subroutine equilibrium_derivatives_clean()
     if (allocated(d_rho0_dr)) then
       deallocate(d_rho0_dr)

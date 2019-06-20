@@ -1,3 +1,13 @@
+!
+! MODULE: mod_cooling_curves
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module containing the data of different cooling curves.
+!
 module mod_cooling_curves
   use mod_global_variables
   implicit none

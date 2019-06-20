@@ -1,14 +1,29 @@
+!
+! MODULE: mod_setup_matrix_b
+!
+!> @author
+!> Niels Claes
+!> niels.claes@kuleuven.be
+!
+! DESCRIPTION:
+!> Module to create the B-matrix in the eigenvalue problem AX = wBX.
+!
 module mod_setup_matrix_b
   use mod_global_variables
   implicit none
 
   private
 
-  ! Sets up the B-matrix for the eigenvalue problem wBX = AX
-  real(dp)                 :: h_cubic(4), h_quadratic(4)
-  ! Factors and positions are allocatable so they are dynamic, in case we add
-  ! additional equations (self-gravity)
+  !> @Note: Factors and positions are allocatable so they are dynamic,
+  !!        in case we add additional equations (eg. self-gravity)
+
+  !> Array containing the 4 quadratic basic functions
+  real(dp)                 :: h_quadratic(4)
+  !> Array containing the 4 cubic basic functions
+  real(dp)                 :: h_cubic(4)
+  !> Array containing the integral expressions for the B-matrix
   complex(dp), allocatable :: factors_B(:)
+  !> Array containing the position of each integral, eg. [1, 3] for B(1, 3)
   integer, allocatable     :: positions(:, :)
 
   public construct_B
@@ -16,6 +31,8 @@ module mod_setup_matrix_b
 
 contains
 
+  !> Constructs the B-matrix.
+  !! @param[in, out] matrix_B   The B-matrix in AX = wBX
   subroutine construct_B(matrix_B)
     use mod_grid
     use mod_equilibrium
@@ -99,6 +116,12 @@ contains
 
   end subroutine construct_B
 
+  !> Calculates the different integral elements for the B-matrix.
+  !! @param[in] gauss_idx   The current index in the Gaussian grid (r-position)
+  !! @param[in] eps         The value for the scale factor epsilon
+  !! @param[in] curr_weight The current weight for the Gaussian quadrature
+  !! @param[in, out] quadblock  The quadblock, used to calculate the B-matrix.
+  !!                            This block is shifted on the main diagonal
   subroutine get_B_elements(gauss_idx, eps, curr_weight, quadblock)
     use mod_equilibrium
     use mod_make_subblock
@@ -154,7 +177,9 @@ contains
   end subroutine get_B_elements
 
 
-
+  !> Resets the factors array: deallocates the array, reallocates it
+  !! with a new size and initialises it to zero.
+  !! @param[in] size_factors_B  The new size of the factors_B array
   subroutine reset_factors_B(size_factors_B)
     integer, intent(in)   :: size_factors_B
 
@@ -168,7 +193,9 @@ contains
   end subroutine reset_factors_B
 
 
-
+  !> Resets the positions array: deallocates the array, reallocates it
+  !! with a new size and initialises it to zero.
+  !! @param[in] size_positions  The new size of the positions array.
   subroutine reset_positions(size_positions)
     integer, intent(in)   :: size_positions
 
@@ -181,7 +208,7 @@ contains
 
   end subroutine reset_positions
 
-
+  !> Cleaning routine, deallocates all previously allocated arrays
   subroutine matrix_B_clean()
     if (allocated(positions)) then
       deallocate(positions)
