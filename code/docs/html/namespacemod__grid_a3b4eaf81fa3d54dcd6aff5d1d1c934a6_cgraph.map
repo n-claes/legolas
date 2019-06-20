@@ -1,0 +1,4 @@
+<map id="mod_grid::initialise_grid" name="mod_grid::initialise_grid">
+<area shape="rect" id="node2" href="$namespacemod__grid.html#ab04a2e4c75d3932a056d1c88906c9787" title="Subroutine to re&#45;grid the mesh to a non&#45;uniform spacing. This is based on two Gaussian curves with kn..." alt="" coords="212,5,401,32"/>
+<area shape="rect" id="node3" href="$namespacemod__grid.html#a8970c5c9ac90b38db5229c5473d71672" title="Sets up grid_gauss, that is, the grid evaluated in the four Gaussian points. " alt="" coords="242,57,371,98"/>
+</map>

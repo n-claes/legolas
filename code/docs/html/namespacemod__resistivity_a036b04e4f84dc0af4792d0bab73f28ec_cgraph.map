@@ -1,0 +1,4 @@
+<map id="mod_resistivity::get_eta" name="mod_resistivity::get_eta">
+<area shape="rect" id="node2" href="$namespacemod__resistivity.html#a613b02eb13d53dfb3602c543df58e9cd" title="Gets the physical constants relevant for the Spitzer resistivity. Retrieves the values in SI or cgs u..." alt="" coords="230,5,366,47"/>
+<area shape="rect" id="node3" href="$namespacemod__physical__constants.html#a9e5c82f74fbc2dc17eac6d5e14dbe417" title="Sets a new unit resistivity based on the given value. This is done in the resistivity module..." alt="" coords="215,71,381,112"/>
+</map>

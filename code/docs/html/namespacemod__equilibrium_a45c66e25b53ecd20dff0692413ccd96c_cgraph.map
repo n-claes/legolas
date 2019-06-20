@@ -1,0 +1,5 @@
+<map id="mod_equilibrium::set_equilibrium" name="mod_equilibrium::set_equilibrium">
+<area shape="rect" id="node2" href="$namespacemod__thermal__conduction.html#a2474403fd755dc02552cc558c12f75f6" title="Calculates the parallel conduction coefficient as a function of the equilibrium temperature. " alt="" coords="411,5,577,47"/>
+<area shape="rect" id="node3" href="$namespacemod__thermal__conduction.html#a1a5cd80ddb98bbbda6712b1e26cfe4c1" title="Calculates the perpendicular conduction coefficient as a function of the equilibrium temperature..." alt="" coords="196,35,363,76"/>
+<area shape="rect" id="node4" href="$namespacemod__resistivity.html#a036b04e4f84dc0af4792d0bab73f28ec" title="Calculates the Spitzer resistivity based on the equilibrium temperatures. " alt="" coords="199,101,360,127"/>
+</map>

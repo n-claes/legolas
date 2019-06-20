@@ -1,0 +1,4 @@
+<map id="mod_thermal_conduction::get_kappa_perp" name="mod_thermal_conduction::get_kappa_perp">
+<area shape="rect" id="node2" href="$namespacemod__thermal__conduction.html#a2474403fd755dc02552cc558c12f75f6" title="Calculates the parallel conduction coefficient as a function of the equilibrium temperature. " alt="" coords="220,5,387,47"/>
+<area shape="rect" id="node3" href="$namespacemod__thermal__conduction.html#a9ebec1caff89a00c1c71a2c9b1a5dbc0" title="Calculates the hydrogen number density based on the equilibrium density. " alt="" coords="220,71,387,112"/>
+</map>

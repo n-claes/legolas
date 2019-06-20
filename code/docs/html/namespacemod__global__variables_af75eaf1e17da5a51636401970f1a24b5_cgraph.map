@@ -1,0 +1,6 @@
+<map id="mod_global_variables::initialise_variables" name="mod_global_variables::initialise_variables">
+<area shape="rect" id="node2" href="$namespacemod__physical__constants.html#a3cdaed51ef76b2766ee804f50ea530d6" title="Sets a new unit length based on the given value. " alt="" coords="201,5,367,47"/>
+<area shape="rect" id="node3" href="$namespacemod__physical__constants.html#a52f49ad76f8c1dbe8595d8eafef83688" title="Sets a new unit numberdensity based on the given value. " alt="" coords="200,71,368,112"/>
+<area shape="rect" id="node4" href="$namespacemod__physical__constants.html#a85ee86a6dca199c4525e03adf9247672" title="Sets a new unit temperature based on the given value. " alt="" coords="201,136,367,177"/>
+<area shape="rect" id="node5" href="$namespacemod__physical__constants.html#a5eb8258525079c9ff55f7c7238e1aafd" title="Calculates the other unit normalisations based on the pre&#45;defined unit_length, unit_numberdensity and..." alt="" coords="201,201,367,243"/>
+</map>
