@@ -1,6 +1,0 @@
-<map id="esonas" name="esonas">
-<area shape="rect" id="node2" href="$main_8f08.html#a87fdf47098d9955fd0b48a5b50951a11" title="Initialises the grid and equilibrium configuration. " alt="" coords="159,5,250,32"/>
-<area shape="rect" id="node3" href="$main_8f08.html#a8d591badb3900b1c6dd64913def923b9" title="Creates A and B matrices for the wBX = AX eigenvalue problem. " alt="" coords="147,56,262,83"/>
-<area shape="rect" id="node4" href="$main_8f08.html#a1c165e19d92a38adf206ac414bd8716e" title="Calls the solver. " alt="" coords="117,107,292,133"/>
-<area shape="rect" id="node5" href="$main_8f08.html#a93f663fa0118ae3d2a0b0b242e046f13" title="Performs cleanup, deallocates variables. " alt="" coords="171,157,238,184"/>
-</map>

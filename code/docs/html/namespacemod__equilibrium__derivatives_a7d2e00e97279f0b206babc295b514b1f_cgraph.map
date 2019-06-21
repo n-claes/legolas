@@ -1,7 +1,0 @@
-<map id="mod_equilibrium_derivatives::initialise_equilibrium_derivatives" name="mod_equilibrium_derivatives::initialise_equilibrium_derivatives">
-<area shape="rect" id="node2" href="$namespacemod__equilibrium__derivatives.html#a3035106b4f6c2b32beeaf35564fc4dd5" title="Sets the default arrays, that is, the ones that are always included. " alt="" coords="241,5,427,47"/>
-<area shape="rect" id="node3" href="$namespacemod__equilibrium__derivatives.html#a569564d78c51a14b365eb8fb0d5b5a84" title="Sets the flow arrays, if flow is enabled. " alt="" coords="241,71,427,112"/>
-<area shape="rect" id="node4" href="$namespacemod__equilibrium__derivatives.html#a32e2e49524fc8a876a3dd84256702a5c" title="Calculates the derivative thermal conduction arrays, if conduction is enabled. " alt="" coords="240,136,428,177"/>
-<area shape="rect" id="node5" href="$namespacemod__equilibrium__derivatives.html#a925bddc86b646055c00f91302fb3d3ce" title="Calculates the derivative radiative cooling arrays, if cooling is enabled. " alt="" coords="241,201,427,243"/>
-<area shape="rect" id="node6" href="$namespacemod__equilibrium__derivatives.html#aec61a95677a8ef4c68aa0e93c28e1c92" title="Calculates the derivative resistivity arrays, if resistivity is enabled. " alt="" coords="241,267,427,308"/>
-</map>

@@ -1,6 +1,0 @@
-<map id="initialisation" name="initialisation">
-<area shape="rect" id="node2" href="$namespacemod__grid.html#a3b4eaf81fa3d54dcd6aff5d1d1c934a6" title="Initialises both the coarse grid and grid_gauss. Does mesh accumulation if desired. " alt="" coords="158,5,317,32"/>
-<area shape="rect" id="node3" href="$namespacemod__equilibrium.html#a4a4674daedbaf2dd80cc100d704184a1" title="Initialises the equilibrium by allocating all equilibrium arrays and setting them to zero..." alt="" coords="152,57,323,98"/>
-<area shape="rect" id="node4" href="$namespacemod__equilibrium__derivatives.html#a7d2e00e97279f0b206babc295b514b1f" title="Allocates and initialises all equilibrium derivatives arrays. " alt="" coords="144,123,331,179"/>
-<area shape="rect" id="node5" href="$namespacemod__global__variables.html#af75eaf1e17da5a51636401970f1a24b5" title="Initialises all global variables. " alt="" coords="164,203,311,245"/>
-</map>
