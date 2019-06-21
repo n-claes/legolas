@@ -1,9 +1,0 @@
-<map id="mod_setup_matrix_a::construct_a" name="mod_setup_matrix_a::construct_a">
-<area shape="rect" id="node2" href="$namespacemod__spline__functions.html#a40557f374fb5ac93d591542f33506b82" title="Calculates the quadratic basis functions. " alt="" coords="209,5,357,47"/>
-<area shape="rect" id="node3" href="$namespacemod__spline__functions.html#aad708f2572d8e1d55fe51513c207e4c7" title="Calculates the derivatives of the quadratic basis functions. " alt="" coords="201,71,366,112"/>
-<area shape="rect" id="node4" href="$namespacemod__spline__functions.html#a57381d8331bf7e141213188704386ca0" title="Calculates the cubic basis functions. " alt="" coords="209,136,357,177"/>
-<area shape="rect" id="node5" href="$namespacemod__spline__functions.html#a58ef7dd52e62d18bc3f4e31f2acc2227" title="Calculates the derivatives of the cubic basis functions. " alt="" coords="209,201,357,243"/>
-<area shape="rect" id="node6" href="$namespacemod__setup__matrix__a.html#a1de9ce6330002f2f0110a1574dab2ba8" title="Calculates the different integral elements for the A&#45;matrix. " alt="" coords="212,267,355,308"/>
-<area shape="rect" id="node7" href="$namespacemod__boundary__conditions.html#ae9d165d99f8aff4b1179b8d178714845" title="mod_boundary_conditions\l::boundaries_a_left_edge" alt="" coords="197,332,370,373"/>
-<area shape="rect" id="node8" href="$namespacemod__boundary__conditions.html#aacbc4b557ad8723f8d6dfdbc2e269e02" title="mod_boundary_conditions\l::boundaries_a_right_edge" alt="" coords="196,397,371,439"/>
-</map>

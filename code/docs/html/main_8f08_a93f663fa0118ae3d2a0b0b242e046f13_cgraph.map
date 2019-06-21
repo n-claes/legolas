@@ -1,9 +1,0 @@
-<map id="cleanup" name="cleanup">
-<area shape="rect" id="node2" href="$namespacemod__grid.html#a7461c156b9333fc748768b637e6133ec" title="Deallocates arrays defined in this module. " alt="" coords="149,5,291,32"/>
-<area shape="rect" id="node3" href="$namespacemod__equilibrium.html#a11b1c8e9cdaa94a34bcb0893e5e5c1c1" title="Cleaning routine, deallocates all arrays in this module. " alt="" coords="127,57,313,98"/>
-<area shape="rect" id="node4" href="$namespacemod__equilibrium__derivatives.html#a3ee7318bb9f817c82b1512139173a95f" title="Cleaning routine, deallocates all arrays in this module. " alt="" coords="120,122,320,163"/>
-<area shape="rect" id="node5" href="$namespacemod__setup__matrix__b.html#abc64b56011d10efd8c8212faa147d1ff" title="Cleaning routine, deallocates all previously allocated arrays. " alt="" coords="149,187,291,229"/>
-<area shape="rect" id="node6" href="$namespacemod__setup__matrix__a.html#a8d7c6d2b18873c3fc742e84f3476495f" title="Cleaning routine, deallocates all previously allocated arrays. " alt="" coords="149,253,291,294"/>
-<area shape="rect" id="node7" href="$namespacemod__radiative__cooling.html#aefe882495a930709d59ba876ae13d9f0" title="Deallocates arrays defined in the radiative cooling module. " alt="" coords="137,318,303,359"/>
-<area shape="rect" id="node8" href="$namespacemod__global__variables.html#a69ee3f8de1b1376af76a4841834ee83d" title="Deallocates the variables in this module. " alt="" coords="147,383,293,425"/>
-</map>

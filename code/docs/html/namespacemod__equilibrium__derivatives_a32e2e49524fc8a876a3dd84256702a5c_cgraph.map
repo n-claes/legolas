@@ -1,5 +1,0 @@
-<map id="mod_equilibrium_derivatives::get_conduction_derivatives" name="mod_equilibrium_derivatives::get_conduction_derivatives">
-<area shape="rect" id="node2" href="$namespacemod__thermal__conduction.html#a1e9eb2b9c29163339b2903fe46047a1a" title="Calculates the derivative of the perpendicular conduction coefficient with respect to density..." alt="" coords="241,5,408,47"/>
-<area shape="rect" id="node3" href="$namespacemod__thermal__conduction.html#ae56491bae8b33558cb6d024f6d0a2ed2" title="Calculates the derivative of the perpendicular conduction coefficient with respect to temperature..." alt="" coords="241,71,408,112"/>
-<area shape="rect" id="node4" href="$namespacemod__thermal__conduction.html#a87f81e0db0fd4aba56945052aa5ad133" title="Calculates the derivative of the perpendicular conduction coefficient with respect to B^2..." alt="" coords="241,136,408,177"/>
-</map>
