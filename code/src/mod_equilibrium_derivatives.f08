@@ -114,18 +114,26 @@ contains
     dd_B03_dr  = 0.0d0
     dd_B02_dr  = 0.0d0
 
-    call get_default_derivatives()
-    if (flow) then
-      call get_flow_derivatives()
-    end if
-    if (thermal_conduction) then
-      call get_conduction_derivatives()
-    end if
-    if (radiative_cooling) then
-      call get_cooling_derivatives
-    end if
-    if (resistivity) then
-      call get_resistivity_derivatives()
+    if (equilibrium_type == "Suydam cluster modes") then
+      ! TODO
+      return
+    else if (equilibrium_type == "Kelvin-Helmholtz") then
+      ! TODO
+      return
+    else
+      call get_default_derivatives()
+      if (flow) then
+        call get_flow_derivatives()
+      end if
+      if (thermal_conduction) then
+        call get_conduction_derivatives()
+      end if
+      if (radiative_cooling) then
+        call get_cooling_derivatives
+      end if
+      if (resistivity) then
+        call get_resistivity_derivatives()
+      end if
     end if
 
   end subroutine initialise_equilibrium_derivatives

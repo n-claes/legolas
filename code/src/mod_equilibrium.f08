@@ -24,9 +24,7 @@ module mod_equilibrium
   real(dp), allocatable         :: rho0_eq(:)
   !> Equilibrium temperature
   real(dp), allocatable         :: T0_eq(:)
-  !> Equilibrium magnetic field in x or r-direction
-  real(dp), allocatable         :: B01_eq(:)
-  !> Equilibriu magnetic field in the y or theta-direction
+  !> Equilibrium magnetic field in the y or theta-direction
   real(dp), allocatable         :: B02_eq(:)
   !> Equilibrium magnetic field in the z direction
   real(dp), allocatable         :: B03_eq(:)
@@ -34,8 +32,6 @@ module mod_equilibrium
   real(dp), allocatable         :: B0_eq(:)
 
   !! Flow equilibrium variables
-  !> Equilibrium velocity in the x or r-direction
-  real(dp), allocatable         :: v01_eq(:)
   !> Equilibrium velocity in the y or theta-direction
   real(dp), allocatable         :: v02_eq(:)
   !> Equilibrium velocity in the z direction
@@ -55,6 +51,8 @@ module mod_equilibrium
   !> Equilibrium resistivity
   real(dp), allocatable         :: eta_eq(:)
 
+  private :: suydam_cluster_eq
+
 
 
 contains
@@ -67,12 +65,10 @@ contains
 
     allocate(rho0_eq(4*gridpts))
     allocate(T0_eq(4*gridpts))
-    allocate(B01_eq(4*gridpts))
     allocate(B02_eq(4*gridpts))
     allocate(B03_eq(4*gridpts))
     allocate(B0_eq(4*gridpts))
 
-    allocate(v01_eq(4*gridpts))
     allocate(v02_eq(4*gridpts))
     allocate(v03_eq(4*gridpts))
 
@@ -86,12 +82,10 @@ contains
 
     rho0_eq = 0.0d0
     T0_eq   = 0.0d0
-    B01_eq  = 0.0d0
     B02_eq  = 0.0d0
     B03_eq  = 0.0d0
     B0_eq   = 0.0d0
 
-    v01_eq  = 0.0d0
     v02_eq  = 0.0d0
     v03_eq  = 0.0d0
 
@@ -126,46 +120,137 @@ contains
     use mod_thermal_conduction
     use mod_resistivity
 
-    ! Initialisations
-    rho0_eq = 1.0d0
-    T0_eq   = 1.0d0
-    B01_eq  = 1.0d0
-    B02_eq  = 1.0d0
-    B03_eq  = 1.0d0
-    B0_eq   = sqrt(B01_eq**2 + B02_eq**2 + B03_eq**2)
+    if (equilibrium_type == "Suydam cluster modes") then
+      write(*, *) "Using Suydam cluster modes in cylindrical geometry."
+      call suydam_cluster_eq()
+    else if (equilibrium_type == "Kelvin-Helmholtz") then
+      write(*, *) "Using Kelvin-Helmholtz instability in Cartesian geometry."
+      call KH_instability_eq()
+    else
+      ! Initialisations
+      rho0_eq = 1.0d0
+      T0_eq   = 1.0d0
+      B02_eq  = 1.0d0
+      B03_eq  = 1.0d0
 
-    if (flow) then
-      v01_eq  = 1.0d0
-      v02_eq  = 1.0d0
-      v03_eq  = 1.0d0
+      if (flow) then
+        v02_eq  = 1.0d0
+        v03_eq  = 1.0d0
+      end if
+
+      if (thermal_conduction) then
+        call get_kappa_para(T0_eq, tc_para_eq)
+        call get_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp_eq)
+      end if
+
+      if (radiative_cooling) then
+        ! this is L_0, should balance out in thermal equilibrium.
+        heat_loss_eq = 0.0d0
+      end if
+
+      if (resistivity) then
+        call get_eta(T0_eq, eta_eq)
+      end if
     end if
 
-    if (thermal_conduction) then
-      call get_kappa_para(T0_eq, tc_para_eq)
-      call get_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp_eq)
-    end if
-
-    if (radiative_cooling) then
-      ! this is L_0, should balance out in thermal equilibrium.
-      heat_loss_eq = 0.0d0
-    end if
-
-    if (resistivity) then
-      call get_eta(T0_eq, eta_eq)
-    end if
+    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
 
   end subroutine set_equilibrium
+
+  !> Initialises equilibrium for Suydam cluster modes in cylindrical geometry.
+  !! Obtained from Bondeson et al., Phys. Fluids 30 (1987)
+  subroutine suydam_cluster_eq()
+    use mod_grid
+
+    real(dp)      :: v_z0, p0, p1, alpha, r
+    real(dp)      :: P0_eq(4*gridpts)
+    integer       :: i
+
+    if (.not. geometry == "cylindrical") then
+      write(*, *) "Suydam cluster equilibrium requires cylindrical geometry."
+      stop
+    end if
+
+    !! Hardcode physics in this case for certainty
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+
+    !! Parameters
+    v_z0  = 0.14d0
+    p0    = 0.05d0
+    p1    = 0.1d0
+    alpha = 2
+
+    !! Filling equilibria
+    rho0_eq = 1.0d0
+    v02_eq  = 0.0d0
+
+    k2 = 1.0d0
+    k3 = -1.2d0
+
+    do i = 1, 4*gridpts
+      r = grid_gauss(i)
+
+      v03_eq(i) = v_z0 * (1.0d0 - r**2)
+      B02_eq(i) = bessel_jn(1, alpha * r)
+      B03_eq(i) = sqrt(1.0d0 - p1) * bessel_jn(0, alpha * r)
+
+      P0_eq(i)  = p0 + 0.5 * p1 * bessel_jn(0, alpha * r)**2
+
+      T0_eq(i)  = P0_eq(i) / rho0_eq(i)
+    end do
+
+  end subroutine suydam_cluster_eq
+
+  !> Initialises equilibrium for the Kelvin-Helmholtz instability in
+  !! Cartesian geometry.
+  !! From Miura et al., J. Geophys. Res. 87 (1982)
+  subroutine KH_instability_eq()
+    use mod_grid
+
+    real(dp)    :: a, x, p0, v0y, v0z
+    integer     :: i
+
+    if (.not. (geometry == "cartesian" .or. geometry == "Cartesian")) then
+      write(*, *) "Kelvin-Helmholtz instability equilibrium only defined for &
+                  &Cartesian geometry."
+      stop
+    end if
+
+    !! Parameters
+    a   = 0.05d0
+    P0  = 3.6d0
+    v0y = 1.67d0
+    v0z = 0.0d0   ! so B is perpendicular to v
+
+    !! Filling equilibria
+    rho0_eq = 1.0d0
+    B02_eq  = 0.0d0
+    B03_eq  = 1.0d0
+
+    k2 = 10
+    k3 = 0
+
+    do i = 1, 4*gridpts
+      x = grid_gauss(i)
+      v02_eq(i) = -v0y * tanh((x - 0.5d0) / a)
+      v03_eq(i) = -v0z * tanh((x - 0.5d0) / a)
+
+      T0_eq(i)  = P0 / rho0_eq(i)
+    end do
+
+  end subroutine KH_instability_eq
 
   !> Cleaning routine, deallocates all arrays in this module.
   subroutine equilibrium_clean()
     deallocate(rho0_eq)
     deallocate(T0_eq)
-    deallocate(B01_eq)
     deallocate(B02_eq)
     deallocate(B03_eq)
     deallocate(B0_eq)
 
-    deallocate(v01_eq)
     deallocate(v02_eq)
     deallocate(v03_eq)
 
