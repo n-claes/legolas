@@ -87,6 +87,8 @@ module mod_global_variables
                                          0.652145154862546, &
                                          0.652145154862546, &
                                          0.347854845137454  /)
+  !> Type of equilibrium to set up
+  character(:), allocatable :: equilibrium_type
 
   !! Block-related parameters
   !> Number of equations
@@ -116,7 +118,7 @@ contains
     call set_normalisations(cgs_units)
 
     ! Grid related parameters
-    geometry = "Cartesian"
+    geometry = "cylindrical"
     x_start  = 0.0d0
     x_end    = 1.0d0
     gridpts  = 11
@@ -140,11 +142,15 @@ contains
     thermal_conduction = .true.
     resistivity        = .true.
 
+    ! Equilibrium related parameters
+    equilibrium_type = "Suydam cluster modes"
+
   end subroutine initialise_variables
 
   !> Deallocates the variables in this module.
   subroutine variables_clean()
     deallocate(geometry)
+    deallocate(equilibrium_type)
   end subroutine variables_clean
 
 end module mod_global_variables
