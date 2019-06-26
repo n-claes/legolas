@@ -44,56 +44,66 @@ contains
 
     len_factors = size(factors)
 
-    do i = 1, len_factors
-      factors(i) = factors(i) * curr_weight
-    end do
+    factors = factors * curr_weight
 
+    !! Remark: positions takes the position of each matrix element in an 8x8
+    !! Configuration. This means we have to map the 8x8 positions to the
+    !! four 16x16 subblocks in the 32x32 quadblock matrix.
+    !! For a main index in the 8x8 matrix given by (i, i), we have:
+    !! 1) TOP LEFT SUBBLOCK
+    !!    | (2i-1, 2i-1) | (2i-1, 2i) |
+    !!    | (2i, 2i-1)   | (2i, 2i)   |
+    !! 2) TOP RIGHT SUBBLOCK: use (2i, 2i + dim_subblock) as main indices
+    !! 3) BOT LEFT SUBBLOCK : use (2i + dim_subblock, 2i) as main indices
+    !! 4) BOT RIGHT SUBBLOCK: use (2i + dim_subblock, 2i + dim_subblock)
+    !!                        as main indices
     do i = 1, len_factors
       curr_position = positions(i, :)
 
       ! Subblock top-left corner
-      idx(:) = curr_position(:)
-      quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
+      idx(:) = 2*curr_position(:)
+      quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
                                       spline1(2) * factors(i) * spline2(2)
-      quadblock(idx(1)  , idx(2)+1) = quadblock(idx(1)  , idx(2)+1) + &
+      quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
                                       spline1(2) * factors(i) * spline2(4)
-      quadblock(idx(1)+1, idx(2)  ) = quadblock(idx(1)+1, idx(2)  ) + &
+      quadblock(idx(1),   idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
                                       spline1(4) * factors(i) * spline2(2)
-      quadblock(idx(1)+1, idx(2)+1) = quadblock(idx(1)+1, idx(2)+1) + &
+      quadblock(idx(1),   idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
                                       spline1(4) * factors(i) * spline2(4)
 
       ! Subblock top-right corner
-      idx(:) = [curr_position(1), curr_position(2) + dim_subblock]
-      quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
+      idx(:) = [2*curr_position(1), 2*curr_position(2) + dim_subblock]
+      quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
                                       spline1(2) * factors(i) * spline2(1)
-      quadblock(idx(1)  , idx(2)+1) = quadblock(idx(1)  , idx(2)+1) + &
+      quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
                                       spline1(2) * factors(i) * spline2(3)
-      quadblock(idx(1)+1, idx(2)  ) = quadblock(idx(1)+1, idx(2)  ) + &
+      quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
                                       spline1(4) * factors(i) * spline2(1)
-      quadblock(idx(1)+1, idx(2)+1) = quadblock(idx(1)+1, idx(2)+1) + &
+      quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
                                       spline1(4) * factors(i) * spline2(3)
 
       ! Subblock bottom-left corner
-      idx(:) = [curr_position(1) + dim_subblock, curr_position(2)]
-      quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
+      idx(:) = [2*curr_position(1) + dim_subblock, 2*curr_position(2)]
+      quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
                                       spline1(1) * factors(i) * spline2(2)
-      quadblock(idx(1)  , idx(2)+1) = quadblock(idx(1)  , idx(2)+1) + &
+      quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
                                       spline1(1) * factors(i) * spline2(4)
-      quadblock(idx(1)+1, idx(2)  ) = quadblock(idx(1)+1, idx(2)  ) + &
+      quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
                                       spline1(3) * factors(i) * spline2(2)
-      quadblock(idx(1)+1, idx(2)+1) = quadblock(idx(1)+1, idx(2)+1) + &
+      quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
                                       spline1(3) * factors(i) * spline2(4)
 
       ! Subblock bottom-right corner
-      idx(:) = curr_position(:) + dim_subblock
-      quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
+      idx(:) = 2*curr_position(:) + dim_subblock
+      quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
                                       spline1(1) * factors(i) * spline2(1)
-      quadblock(idx(1)  , idx(2)+1) = quadblock(idx(1)  , idx(2)+1) + &
+      quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
                                       spline1(1) * factors(i) * spline2(3)
-      quadblock(idx(1)+1, idx(2)  ) = quadblock(idx(1)+1, idx(2)  ) + &
+      quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
                                       spline1(3) * factors(i) * spline2(1)
-      quadblock(idx(1)+1, idx(2)+1) = quadblock(idx(1)+1, idx(2)+1) + &
+      quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
                                       spline1(3) * factors(i) * spline2(3)
+
     end do
 
   end subroutine subblock
