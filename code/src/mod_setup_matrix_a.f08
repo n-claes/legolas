@@ -92,10 +92,10 @@ contains
 
       !! Apply boundary conditions on edges
       if (i == 1) then
-        call boundaries_A_left_edge(quadblock)
+        call boundaries_A_left_edge(eps, quadblock)
       end if
       if (i == gridpts - 1) then
-        call boundaries_A_right_edge(quadblock)
+        call boundaries_A_right_edge(eps, quadblock)
       end if
 
       ! Fill A-matrix with quadblock entries
@@ -133,8 +133,8 @@ contains
     complex(dp), intent(out)  :: quadblock(dim_quadblock, dim_quadblock)
 
     real(dp)                  :: eps_inv
-    real(dp)                  :: rho0, T0, B01, B02, B03, B2_inv
-    real(dp)                  :: v01, v02, v03
+    real(dp)                  :: rho0, T0, B02, B03, B2_inv
+    real(dp)                  :: v02, v03
     real(dp)                  :: tc_para, tc_perp, L0, eta
 
     real(dp)                  :: drho0, drB02, dB02_r, dB03, dT0, dB02
@@ -154,12 +154,10 @@ contains
     !! Default variables
     rho0    = rho0_eq(gauss_idx)
     T0      = T0_eq(gauss_idx)
-    B01     = B01_eq(gauss_idx)
     B02     = B02_eq(gauss_idx)
     B03     = B03_eq(gauss_idx)
     B2_inv  = 1.0d0 / (B0_eq(gauss_idx)**2)
     !! Flow
-    v01     = v01_eq(gauss_idx)
     v02     = v02_eq(gauss_idx)
     v03     = v03_eq(gauss_idx)
     !! Thermal conduction
