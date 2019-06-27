@@ -25,6 +25,8 @@ module mod_global_variables
   integer, parameter :: str_len = 125
 
   !! Physics parameters
+  !> Complex number
+  complex(dp), parameter    :: ic = (0.0d0, 1.0d0)
   !> Ratio of specific heats gamma
   real(dp), parameter       :: gamma = 5.0d0/3.0d0
   !> Variable for (gamma - 1)

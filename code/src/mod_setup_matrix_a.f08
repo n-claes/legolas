@@ -143,12 +143,7 @@ contains
     real(dp)                  :: L_T, L_rho
     real(dp)                  :: deta, ddB03, ddB02
 
-
-    complex(dp)               :: ic
-
-    ic      = (0.0d0, 1.0d0)
     eps_inv = 1.0d0 / eps
-
 
     !! Equilibrium quantities
     !! Default variables
