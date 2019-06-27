@@ -50,6 +50,7 @@ contains
   !> Boundary conditions matrix A, left edge. A-matrix has both natural
   !! (from partial integration) and essential (fixed) boundary conditions.
   !! @param[in] eps   The value for epsilon: 1 for Cartesian, r for cylindrical
+  !! @param[in] d_eps_dr  Epsilon derivative: 0 for Cartesian, 1 for cylindrical
   !! @param[in, out] quadblock    The 32x32 quadblock, containing 4 subblocks.
   !!                              Out: boundary conditions applied.
   subroutine boundaries_A_left_edge(eps, d_eps_dr, quadblock)
@@ -66,6 +67,7 @@ contains
   !> Boundary conditions matrix A, right edge. A-matrix has both natural
   !! (from partial integration) and essential (fixed) boundary conditions.
   !! @param[in] eps   The value for epsilon: 1 for Cartesian, r for cylindrical
+  !! @param[in] d_eps_dr  Epsilon derivative: 0 for Cartesian, 1 for cylindrical
   !! @param[in, out] quadblock    The 32x32 quadblock, containing 4 subblocks.
   !!                              Out: boundary conditions applied.
   subroutine boundaries_A_right_edge(eps, d_eps_dr, quadblock)
@@ -168,6 +170,11 @@ contains
 
   !> Boundary conditions originating from the partially integrated terms of the
   !! A-matrix.
+  !! @param[in] eps   The value for epsilon: 1 for Cartesian, r for cylindrical
+  !! @param[in] d_eps_dr  Epsilon derivative: 0 for Cartesian, 1 for cylindrical
+  !! @param[in, out] quadblock    The 32x32 quadblock, containing 4 subblocks.
+  !!                              Out: natural boundary conditions applied.
+  !! @param[in] edge  'r_edge' for right boundary, 'l_edge' for left boundary
   subroutine natural_boundaries(eps, d_eps_dr, quadblock, edge)
     use mod_spline_functions
     use mod_grid
@@ -325,7 +332,17 @@ contains
 
   end subroutine natural_boundaries
 
-
+  !> Adds the factors to the quadblock depending on their positions and the
+  !! value of 'edge'.
+  !! @param[in, out]  quadblock   The 32x32 quadblock. Out: factors added to
+  !!                              their respective blocks
+  !! @param[in] factors   The boundary conditions for each element
+  !! @param[in] positions The positions of each boundary condition
+  !! @param[in] spline1   The left spline to apply, evaluated at the edge
+  !! @param[in] spline2   The right spline to apply, evaluated at the edge
+  !! @param[in] edge  'l_edge' for left boundary, 'r_edge' for right boundary
+  !!                  - left edge : do not fill the bottom-right subblock
+  !!                  - right edge: do not fill the top-left subblock
   subroutine add_factors_quadblock(quadblock, factors, positions, &
                                    spline1, spline2, edge)
     complex(dp), intent(inout)  :: quadblock(matrix_gridpts, matrix_gridpts)
