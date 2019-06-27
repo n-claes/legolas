@@ -14,15 +14,6 @@ module mod_boundary_conditions
 
   private
 
-  !> Array containing the 4 quadratic basis functions
-  real(dp)    :: h_quadratic(4)
-  !> Array containing the derivatives of the 4 quadratic basis functions
-  real(dp)    :: dh_quadratic_dr(4)
-  !> Array containing the 4 cubic basis functions
-  real(dp)    :: h_cubic(4)
-  !> Array containing the derivatives of the 4 cubic basis functions
-  real(dp)    :: dh_cubic_dr(4)
-
   public :: boundaries_B_left_edge
   public :: boundaries_B_right_edge
   public :: boundaries_A_left_edge
@@ -61,11 +52,13 @@ contains
   !! @param[in] eps   The value for epsilon: 1 for Cartesian, r for cylindrical
   !! @param[in, out] quadblock    The 32x32 quadblock, containing 4 subblocks.
   !!                              Out: boundary conditions applied.
-  subroutine boundaries_A_left_edge(eps, quadblock)
-    real(dp), intent(in)       :: eps
+  subroutine boundaries_A_left_edge(eps, d_eps_dr, quadblock)
+    real(dp), intent(in)       :: eps, d_eps_dr
     complex(dp), intent(inout) :: quadblock(dim_quadblock, dim_quadblock)
 
     call fixed_boundaries(quadblock, "l_edge", "A")
+
+    call natural_boundaries(eps, d_eps_dr, quadblock, "l_edge")
 
   end subroutine boundaries_A_left_edge
 
@@ -75,8 +68,8 @@ contains
   !! @param[in] eps   The value for epsilon: 1 for Cartesian, r for cylindrical
   !! @param[in, out] quadblock    The 32x32 quadblock, containing 4 subblocks.
   !!                              Out: boundary conditions applied.
-  subroutine boundaries_A_right_edge(eps, quadblock)
-    real(dp), intent(in)       :: eps
+  subroutine boundaries_A_right_edge(eps, d_eps_dr, quadblock)
+    real(dp), intent(in)       :: eps, d_eps_dr
     complex(dp), intent(inout) :: quadblock(dim_quadblock, dim_quadblock)
 
     call fixed_boundaries(quadblock, "r_edge", "A")
@@ -175,12 +168,175 @@ contains
 
   !> Boundary conditions originating from the partially integrated terms of the
   !! A-matrix.
-  subroutine natural_boundaries(eps, quadblock, edge)
-    real(dp), intent(in)     :: eps
-    real(dp), intent(inout)  :: quadblock(dim_quadblock, dim_quadblock)
-    character(6), intent(in) :: edge
+  subroutine natural_boundaries(eps, d_eps_dr, quadblock, edge)
+    use mod_spline_functions
+    use mod_grid
+    use mod_equilibrium
+    use mod_equilibrium_derivatives
+    use mod_make_subblock
 
+    real(dp), intent(in)        :: eps, d_eps_dr
+    complex(dp), intent(inout)  :: quadblock(dim_quadblock, dim_quadblock)
+    character(6), intent(in)    :: edge
+
+    complex(dp), allocatable    :: factors(:)
+    integer, allocatable        :: positions(:, :)
+    real(dp)                    :: h_quadratic(4), h_cubic(4)
+    real(dp)                    :: dh_quadratic_dr(4), dh_cubic_dr(4)
+    real(dp)                    :: r, r_lo, r_hi, eps_inv
+    integer                     :: idx
+
+    real(dp)                    :: rho0, T0, B02, B03
+    real(dp)                    :: tc_perp, eta
+    real(dp)                    :: drB02, dT0, dB03
+    real(dp)                    :: dtc_perp_dT, dtc_perp_drho, dtc_perp_dB2
+
+    !! \TODO: should we use 'grid' here for bounaries or 'grid_gauss'??
+    !!        Due to the gaussian weights, grid(1) and grid_gauss(1) are
+    !!        slightly off (approx 0.006). For now we use grid as edges.
+
+    if (edge == 'l_edge') then
+      r_lo = grid(1)
+      r_hi = grid(2)
+      r    = grid_gauss(1)              ! \TODO: or equal to r_lo?
+      idx  = 1
+    else if (edge == "r_edge") then
+      r_lo = grid(gridpts-1)
+      r_hi = grid(gridpts)
+      r    = grid_gauss(gauss_gridpts)  ! \TODO: or equal to r_hi?
+      idx  = gauss_gridpts
+    end if
+
+    eps_inv = 1.0d0 / eps
+
+    !! Equilibrium quantities at the boundary
+    rho0    = rho0_eq(idx)
+    T0      = T0_eq(idx)
+    B02     = B02_eq(idx)
+    B03     = B03_eq(idx)
+    tc_perp = tc_perp_eq(idx)
+    eta     = eta_eq(idx)
+    drB02   = d_rB02_dr(idx)
+    dT0     = d_T0_dr(idx)
+    dB03    = d_B03_dr(idx)
+    dtc_perp_dT   = d_tc_perp_eq_dT(idx)
+    dtc_perp_drho = d_tc_perp_eq_drho(idx)
+    dtc_perp_dB2  = d_tc_perp_eq_dB2(idx)
+
+    !! Spline functions for the boundaries. Interval is [grid(1), grid(2)]
+    !! for the left edge, [grid(N-1), grid(N)] for the right edge.
+    !! r is equal to grid_gauss(1) for left, grid_gauss(N) for right
+    call quadratic_factors(r, r_lo, r_hi, h_quadratic)
+    call quadratic_factors_deriv(r, r_lo, r_hi, dh_quadratic_dr)
+    call cubic_factors(r, r_lo, r_hi, h_cubic)
+    call cubic_factors_deriv(r, r_lo, r_hi, dh_cubic_dr)
+
+    !! Calculating boundary terms
+
+    ! Quadratic * Quadratic
+    call reset_factors(factors, 3)
+    call reset_positions(positions, 10)
+    ! A(5, 1)
+    factors(1) = ic * gamma_1 * eps_inv * dT0 * dtc_perp_drho
+    positions(1, :) = [5, 1]
+    ! A(5, 5)
+    factors(2) = ic * gamma_1 * eps_inv * (dT0 * dtc_perp_dT &
+                                           - d_eps_dr * eps_inv * tc_perp)
+    positions(2, :) = [5, 5]
+    ! A(5, 6)
+    factors(3) = 2 * ic * gamma_1 * eps_inv * ( &
+                    dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2 &
+                  - eta * dB03 * k2 + eta * k3 * drB02)
+    positions(3, :) = [5, 6]
+
+    call add_factors_quadblock(quadblock, factors, positions, &
+                               h_quadratic, h_quadratic, edge)
+
+
+    ! Quadratic *  d(Quadratic)/dr
+    call reset_factors(factors, 1)
+    call reset_positions(positions, 1)
+    ! A(5, 5)
+    factors(1) = ic * gamma_1 * eps_inv * tc_perp
+    positions(1, :) = [5, 5]
+
+    call add_factors_quadblock(quadblock, factors, positions, &
+                               h_quadratic, dh_quadratic_dr, edge)
+
+
+    ! Quadratic * d(Cubic)/dr
+    call reset_factors(factors, 2)
+    call reset_positions(positions, 2)
+    ! A(5, 7)
+    factors(1) = 2*ic*gamma_1*eps_inv * (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
+    positions(1, :) = [5, 7]
+    ! A(5, 8)
+    factors(2) = -2*ic*gamma_1 * (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
+    positions(2, :) = [5, 8]
+
+    call add_factors_quadblock(quadblock, factors, positions, &
+                               h_quadratic, dh_cubic_dr, edge)
+
+
+    ! Cubic * Quadratic
+    call reset_factors(factors, 5)
+    call reset_positions(positions, 5)
+    ! A(2, 1)
+    factors(1) = eps_inv * T0
+    positions(1, :) = [2, 1]
+    ! A(2, 5)
+    factors(2) = eps_inv * rho0
+    positions(2, :) = [2, 5]
+    ! A(2, 6)
+    factors(3) = B02 * k3 - eps_inv * B03 * k2
+    positions(3, :) = [2, 6]
+    ! A(7, 6)
+    factors(4) = ic * eta * eps_inv * k2
+    positions(4, :) = [7, 6]
+    ! A(8, 6)
+    factors(5) = -ic * eta * k3
+    positions(5, :) = [8, 6]
+
+    call add_factors_quadblock(quadblock, factors, positions, &
+                               h_cubic, h_quadratic, edge)
+
+
+    ! Cubic * d(Cubic)/dr
+    call reset_factors(factors, 4)
+    call reset_positions(positions, 4)
+    ! A(2, 7)
+    factors(1) = eps_inv * B03
+    positions(1, :) = [2, 7]
+    ! A(2, 8)
+    factors(2) = -B02
+    positions(2, :) = [2, 8]
+    ! A(7, 7)
+    factors(3) = ic * eta * eps_inv
+    positions(3, :) = [7, 7]
+    ! A(8, 8)
+    factors(4) = ic * eta
+    positions(4, :) = [8, 8]
+
+    call add_factors_quadblock(quadblock, factors, positions, &
+                               h_cubic, dh_cubic_dr, edge)
+
+    deallocate(factors)
+    deallocate(positions)
 
   end subroutine natural_boundaries
+
+
+  subroutine add_factors_quadblock(quadblock, factors, positions, &
+                                   spline1, spline2, edge)
+    complex(dp), intent(inout)  :: quadblock(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(in)     :: factors(:)
+    integer, intent(in)         :: positions(:, :)
+    real(dp), intent(in)        :: spline1(4), spline2(4)
+    character(6), intent(in)    :: edge
+
+    !! \TODO
+
+  end subroutine add_factors_quadblock
+
 
 end module mod_boundary_conditions
