@@ -21,13 +21,8 @@ module mod_setup_matrix_b
   real(dp)                 :: h_quadratic(4)
   !> Array containing the 4 cubic basic functions
   real(dp)                 :: h_cubic(4)
-  !> Array containing the integral expressions for the B-matrix
-  complex(dp), allocatable :: factors_B(:)
-  !> Array containing the position of each integral, eg. [1, 3] for B(1, 3)
-  integer, allocatable     :: positions(:, :)
 
   public construct_B
-  public matrix_B_clean
 
 contains
 
@@ -111,9 +106,6 @@ contains
 
     end do      ! end do iteration grid points
 
-    deallocate(factors_B)
-    deallocate(positions)
-
   end subroutine construct_B
 
   !> Calculates the different integral elements for the B-matrix.
@@ -130,92 +122,60 @@ contains
     real(dp), intent(in)         :: eps, curr_weight
     complex(dp), intent(inout)   :: quadblock(dim_quadblock, dim_quadblock)
 
+    !> Array containing the integral expressions for the B-matrix
+    complex(dp), allocatable     :: factors(:)
+    !> Array containing the position of each integral, eg. [1, 3] for B(1, 3)
+    integer, allocatable         :: positions(:, :)
     real(dp)                     :: rho
 
     rho = rho0_eq(gauss_idx)
 
     ! Quadratic * Quadratic
-    call reset_factors_B(5)
-    call reset_positions(5)
+    call reset_factors(factors, 5)
+    call reset_positions(positions, 5)
 
     ! B(1,1)
-    factors_B(1) = 1.0d0 / eps
+    factors(1) = 1.0d0 / eps
     positions(1, :) = [1, 1]
     ! B(3,3)
-    factors_B(2) = rho
+    factors(2) = rho
     positions(2, :) = [3, 3]
     ! B(4,4)
-    factors_B(3) = rho / eps
+    factors(3) = rho / eps
     positions(3, :) = [4, 4]
     ! B(5,5)
-    factors_B(4) = rho / eps
+    factors(4) = rho / eps
     positions(4, :) = [5, 5]
     ! B(6,6)
-    factors_B(5) = 1.0d0
+    factors(5) = 1.0d0
     positions(5, :) = [6, 6]
 
-    call subblock(quadblock, factors_B, positions, curr_weight, &
+    call subblock(quadblock, factors, positions, curr_weight, &
                   h_quadratic, h_quadratic)
 
     ! Cubic * Cubic
-    call reset_factors_B(3)
-    call reset_positions(3)
+    call reset_factors(factors, 3)
+    call reset_positions(positions, 3)
 
     ! B(2,2)
-    factors_B(1) = rho / eps
+    factors(1) = rho / eps
     positions(1, :) = [2, 2]
     ! B(7,7)
-    factors_B(2) = 1.0d0 / eps
+    factors(2) = 1.0d0 / eps
     positions(2, :) = [7, 7]
     ! B(8,8)
-    factors_B(3) = 1.0d0
+    factors(3) = 1.0d0
     positions(3, :) = [8, 8]
 
-    call subblock(quadblock, factors_B, positions, curr_weight, h_cubic, h_cubic)
+    call subblock(quadblock, factors, positions, curr_weight, h_cubic, h_cubic)
 
+    if (allocated(factors)) then
+      deallocate(factors)
+    end if
+    if (allocated(positions)) then
+      deallocate(positions)
+    end if
 
   end subroutine get_B_elements
-
-
-  !> Resets the factors array: deallocates the array, reallocates it
-  !! with a new size and initialises it to zero.
-  !! @param[in] size_factors_B  The new size of the factors_B array
-  subroutine reset_factors_B(size_factors_B)
-    integer, intent(in)   :: size_factors_B
-
-    if (allocated(factors_B)) then
-      deallocate(factors_B)
-    end if
-
-    allocate(factors_B(size_factors_B))
-    factors_B = (0.0d0, 0.0d0)
-
-  end subroutine reset_factors_B
-
-
-  !> Resets the positions array: deallocates the array, reallocates it
-  !! with a new size and initialises it to zero.
-  !! @param[in] size_positions  The new size of the positions array.
-  subroutine reset_positions(size_positions)
-    integer, intent(in)   :: size_positions
-
-    if (allocated(positions)) then
-      deallocate(positions)
-    end if
-
-    allocate(positions(size_positions, 2))
-    positions = 0
-
-  end subroutine reset_positions
-
-  !> Cleaning routine, deallocates all previously allocated arrays
-  subroutine matrix_B_clean()
-    if (allocated(positions)) then
-      deallocate(positions)
-    end if
-    if (allocated(factors_B)) then
-      deallocate(factors_B)
-    end if
-  end subroutine matrix_B_clean
 
 end module mod_setup_matrix_b

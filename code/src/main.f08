@@ -83,8 +83,6 @@ contains
     use mod_grid, only: grid_clean
     use mod_equilibrium, only: equilibrium_clean
     use mod_equilibrium_derivatives, only: equilibrium_derivatives_clean
-    use mod_setup_matrix_b, only: matrix_B_clean
-    use mod_setup_matrix_a, only: matrix_A_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
 
     deallocate(matrix_A)
@@ -94,8 +92,6 @@ contains
     call grid_clean
     call equilibrium_clean
     call equilibrium_derivatives_clean
-    call matrix_B_clean
-    call matrix_A_clean
 
     if (radiative_cooling) then
       call radiative_cooling_clean
