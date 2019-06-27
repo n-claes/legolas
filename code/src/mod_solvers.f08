@@ -39,62 +39,57 @@ contains
     complex(dp), allocatable :: vr(:, :)
     integer                  :: ldvr
     !! Matrix variables
-    integer                  :: N, lda, ldb
-    complex(dp)              :: A_sol(matrix_gridpts, matrix_gridpts)
-    complex(dp)              :: B_sol(matrix_gridpts, matrix_gridpts)
+    integer                  :: N, ldB_invA
+    complex(dp)              :: B_invA(matrix_gridpts, matrix_gridpts)
     !! Eigenvalue variables
-    complex(dp)              :: alpha(matrix_gridpts), beta(matrix_gridpts)
+    complex(dp)              :: omega(matrix_gridpts)
     !! Work variables
     integer                  :: lwork, info
     complex(dp), allocatable :: work(:)
-    real(dp)                 :: rwork(8 * matrix_gridpts)
+    real(dp), allocatable    :: rwork(:)
 
     call invert_B(B, B_inv)
 
-    ! \TODO: code below must be reworked, call 'zgeev'
+    call get_B_invA(B_inv, A, B_invA)
 
+    !! Calculate eigenvectors or not ('N' is no, 'V' is yes)
+    jobvl = 'V'
+    jobvr = 'V'
 
+    !! Array dimensions
+    N       = matrix_gridpts
+    ldB_invA = N
+    if (jobvl == 'V') then
+      ldvl = N
+    else
+      ldvl = 1
+    end if
+    if (jobvr == 'V') then
+      ldvr = N
+    else
+      ldvr = 1
+    end if
 
-    ! !! Copy contents of A and B in new arrays, as these get overwritten
-    ! !! when calling LAPACK routines.
-    ! A_sol = A
-    ! B_sol = B
-    !
-    ! !! Calculate eigenvectors or not ('N' is no, 'V' is yes)
-    ! jobvl = 'V'
-    ! jobvr = 'V'
-    !
-    ! !! Get different array dimensions
-    ! N   = matrix_gridpts
-    ! lda = N
-    ! ldb = N
-    ! if (jobvl == 'V') then
-    !   ldvl = N
-    ! else
-    !   ldvl = 1
-    ! end if
-    ! if (jobvr == 'V') then
-    !   ldvr = N
-    ! else
-    !   ldvr = 1
-    ! end if
-    ! allocate(vl(ldvl, N))
-    ! allocate(vr(ldvr, N))
-    !
-    ! lwork = 4 * N
-    ! allocate(work(lwork))
-    !
-    ! call zggev(jobvl, jobvr, N, A_sol, lda, B_sol, ldb, alpha, beta, &
-    !            vl, ldvl, vr, ldvr, work, lwork, rwork, info)
-    !
-    ! if (info .ne. 0) then
-    !   write(*, *) 'LAPACK routine zggev failed'
-    !   write(*, *) 'Value for info parameter: ', info
-    ! end if
-    !
-    ! deallocate(vl)
-    ! deallocate(vr)
-    ! deallocate(work)
+    allocate(vl(ldvl, N))
+    allocate(vr(ldvr, N))
+
+    !! Size or work array
+    lwork = 4*N
+    allocate(work(lwork))
+    allocate(rwork(2*N))
+
+    call zgeev(jobvl, jobvr, N, B_invA, ldB_invA, omega, vl, ldvl, &
+               vr, ldvr, work, lwork, rwork, info)
+
+    if (info .ne. 0) then
+      write(*, *) 'LAPACK routine zggev failed'
+      write(*, *) 'Value for info parameter: ', info
+    end if
+
+    deallocate(vl)
+    deallocate(vr)
+    deallocate(work)
+    deallocate(rwork)
 
   end subroutine solve_QR
 
@@ -140,5 +135,36 @@ contains
     deallocate(work)
 
   end subroutine invert_B
+
+
+  !> Does the matrix multiplication B^{-1}A. The LAPACK routine 'zgemm' is
+  !! used instead of the build-in 'matmul' function for speedup and efficiency.
+  !! @param[in]   B_inv   The inverse of the matrix B
+  !! @param[in]   A       The matrix A
+  !! @param[out]  B_invA  The result of the matrix multiplication B_inv * A
+  subroutine get_B_invA(B_inv, A, B_invA)
+    real(dp), intent(in)      :: B_inv(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(in)   :: A(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(out)  :: B_invA(matrix_gridpts, matrix_gridpts)
+
+    integer                   :: K, ldB_inv, ldA, ldB_invA
+    complex(dp)               :: alpha, beta
+
+
+    K   = matrix_gridpts
+    ldB_inv  = K
+    ldA      = K
+    ldB_invA = K
+
+    alpha = (1.0d0, 0.0d0)
+    beta  = (0.0d0, 0.0d0)
+
+    !! 'zgemm' performs one of the matrix-matrix operations
+    !! C := alpha*op(A)*op(B) + beta*C
+    !! In this case, alpha = 1, beta = 0, op = 'N' (so no transp. or conj.)
+    call zgemm('N', 'N', K, K, K, alpha, B_inv, ldB_inv, A, ldA, &
+               beta, B_invA, ldB_invA)
+
+  end subroutine get_B_invA
 
 end module mod_solvers
