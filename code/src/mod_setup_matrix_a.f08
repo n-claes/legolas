@@ -544,13 +544,9 @@ contains
     call subblock(quadblock, factors, positions, curr_weight, &
                   dh_quadratic_dr, dh_quadratic_dr)
 
-    if (allocated(factors)) then
-      deallocate(factors)
-    end if
-    if (allocated(positions)) then
-      deallocate(positions)
-    end if
-
+    deallocate(factors)
+    deallocate(positions)
+    
   end subroutine get_A_elements
 
 
