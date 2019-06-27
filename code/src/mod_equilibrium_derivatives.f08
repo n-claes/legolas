@@ -71,26 +71,26 @@ contains
 
   !> Allocates and initialises all equilibrium derivatives arrays.
   subroutine initialise_equilibrium_derivatives()
-    allocate(d_rho0_dr(4*gridpts))
-    allocate(d_rB02_dr(4*gridpts))
-    allocate(d_B02_r_dr(4*gridpts))
-    allocate(d_B03_dr(4*gridpts))
-    allocate(d_T0_dr(4*gridpts))
-    allocate(d_B02_dr(4*gridpts))
+    allocate(d_rho0_dr(gauss_gridpts))
+    allocate(d_rB02_dr(gauss_gridpts))
+    allocate(d_B02_r_dr(gauss_gridpts))
+    allocate(d_B03_dr(gauss_gridpts))
+    allocate(d_T0_dr(gauss_gridpts))
+    allocate(d_B02_dr(gauss_gridpts))
 
-    allocate(d_rv02_dr(4*gridpts))
-    allocate(d_v03_dr(4*gridpts))
+    allocate(d_rv02_dr(gauss_gridpts))
+    allocate(d_v03_dr(gauss_gridpts))
 
-    allocate(d_tc_perp_eq_drho(4*gridpts))
-    allocate(d_tc_perp_eq_dT(4*gridpts))
-    allocate(d_tc_perp_eq_dB2(4*gridpts))
+    allocate(d_tc_perp_eq_drho(gauss_gridpts))
+    allocate(d_tc_perp_eq_dT(gauss_gridpts))
+    allocate(d_tc_perp_eq_dB2(gauss_gridpts))
 
-    allocate(d_L_dT(4*gridpts))
-    allocate(d_L_drho(4*gridpts))
+    allocate(d_L_dT(gauss_gridpts))
+    allocate(d_L_drho(gauss_gridpts))
 
-    allocate(d_eta_dT(4*gridpts))
-    allocate(dd_B03_dr(4*gridpts))
-    allocate(dd_B02_dr(4*gridpts))
+    allocate(d_eta_dT(gauss_gridpts))
+    allocate(dd_B03_dr(gauss_gridpts))
+    allocate(dd_B02_dr(gauss_gridpts))
 
 
     d_rho0_dr  = 0.0d0
@@ -168,7 +168,7 @@ contains
     use mod_equilibrium
     use mod_radiative_cooling
 
-    real(dp)            :: d_lambda_dT(4*gridpts)
+    real(dp)            :: d_lambda_dT(gauss_gridpts)
 
     !! dL/dT = rho0 * d_lambda_dT (where lambda(T) = cooling curve)
     call get_dLambdadT(T0_eq, d_lambda_dT)

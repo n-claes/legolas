@@ -24,7 +24,7 @@ contains
   !!                            current integral parts. Multiplied with current_weight
   !!                            when returning.
   !! @param[in] positions   Array of dimension (2, :) containing the positions
-  !!                        of the different integral elements in the quadblock
+  !!                        of the different integral elements
   !! @param[in] curr_weight Current weight of the Gaussian quadrature
   !! @param[in] spline1   Left basis function of the current integral elements
   !! @param[in] spline1   Right basis function of the current integral elements
