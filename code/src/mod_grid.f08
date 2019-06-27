@@ -32,7 +32,7 @@ contains
     real(dp)                 :: dx
 
     allocate(grid(gridpts))
-    allocate(grid_gauss(4*gridpts))
+    allocate(grid_gauss(gauss_gridpts))
 
     ! Initialise grids
     grid       = 0.0d0

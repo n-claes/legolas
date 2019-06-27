@@ -57,6 +57,8 @@ module mod_global_variables
   real(dp)                  :: x_end
   !> Amount of gridpoints of the initial array
   integer                   :: gridpts
+  !> Amount of gridpoint of the gaussian array
+  integer                   :: gauss_gridpts
   !> Gridpoints of matrices A and B, equal to 16 * gridpts
   integer                   :: matrix_gridpts
 
@@ -122,6 +124,7 @@ contains
     x_start  = 0.0d0
     x_end    = 1.0d0
     gridpts  = 11
+    gauss_gridpts  = 4*(gridpts - 1)
     matrix_gridpts = 16 * gridpts
 
     ! Mesh accumulation parameters

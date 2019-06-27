@@ -63,21 +63,21 @@ contains
     use mod_gravity, only: initialise_gravity
     use mod_radiative_cooling, only: initialise_radiative_cooling
 
-    allocate(rho0_eq(4*gridpts))
-    allocate(T0_eq(4*gridpts))
-    allocate(B02_eq(4*gridpts))
-    allocate(B03_eq(4*gridpts))
-    allocate(B0_eq(4*gridpts))
+    allocate(rho0_eq(gauss_gridpts))
+    allocate(T0_eq(gauss_gridpts))
+    allocate(B02_eq(gauss_gridpts))
+    allocate(B03_eq(gauss_gridpts))
+    allocate(B0_eq(gauss_gridpts))
 
-    allocate(v02_eq(4*gridpts))
-    allocate(v03_eq(4*gridpts))
+    allocate(v02_eq(gauss_gridpts))
+    allocate(v03_eq(gauss_gridpts))
 
-    allocate(tc_para_eq(4*gridpts))
-    allocate(tc_perp_eq(4*gridpts))
+    allocate(tc_para_eq(gauss_gridpts))
+    allocate(tc_perp_eq(gauss_gridpts))
 
-    allocate(heat_loss_eq(4*gridpts))
+    allocate(heat_loss_eq(gauss_gridpts))
 
-    allocate(eta_eq(4*gridpts))
+    allocate(eta_eq(gauss_gridpts))
 
 
     rho0_eq = 0.0d0
@@ -163,7 +163,7 @@ contains
     use mod_grid
 
     real(dp)      :: v_z0, p0, p1, alpha, r
-    real(dp)      :: P0_eq(4*gridpts)
+    real(dp)      :: P0_eq(gauss_gridpts)
     integer       :: i
 
     if (.not. geometry == "cylindrical") then
@@ -190,7 +190,7 @@ contains
     k2 = 1.0d0
     k3 = -1.2d0
 
-    do i = 1, 4*gridpts
+    do i = 1, gauss_gridpts
       r = grid_gauss(i)
 
       v03_eq(i) = v_z0 * (1.0d0 - r**2)
@@ -233,7 +233,7 @@ contains
     k2 = 10
     k3 = 0
 
-    do i = 1, 4*gridpts
+    do i = 1, gauss_gridpts
       x = grid_gauss(i)
       v02_eq(i) = -v0y * tanh((x - 0.5d0) / a)
       v03_eq(i) = -v0z * tanh((x - 0.5d0) / a)

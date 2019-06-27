@@ -22,8 +22,8 @@ contains
   !! @param[in]  T0_eq    Array containing the equilibrium temperatures, in K
   !! @param[out] tc_para  Array containing the parallel conduction coefficients
   subroutine get_kappa_para(T0_eq, tc_para)
-    real(dp), intent(in)  :: T0_eq(4*gridpts)
-    real(dp), intent(out) :: tc_para(4*gridpts)
+    real(dp), intent(in)  :: T0_eq(gauss_gridpts)
+    real(dp), intent(out) :: tc_para(gauss_gridpts)
 
     real(dp)              :: prefactor_para
 
@@ -44,11 +44,11 @@ contains
   !! @param[in]  B0_eq    Array containing the equilibrium magnetic field
   !! @param[out] tc_perp  Array containing the perpendicular conduction coefficients
   subroutine get_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp)
-    real(dp), intent(in)  :: T0_eq(4*gridpts), rho0_eq(4*gridpts), &
-                             B0_eq(4*gridpts)
-    real(dp), intent(out) :: tc_perp(4*gridpts)
+    real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
+                             B0_eq(gauss_gridpts)
+    real(dp), intent(out) :: tc_perp(gauss_gridpts)
 
-    real(dp)              :: tc_para(4*gridpts), nH(4*gridpts)
+    real(dp)              :: tc_para(gauss_gridpts), nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
 
     if (cgs_units) then
@@ -76,11 +76,11 @@ contains
   !!                        perpendicular conduction coefficient
   !!                        with respect to density
   subroutine get_dkappa_perp_drho(T0_eq, rho0_eq, B0_eq, d_tc_drho)
-    real(dp), intent(in)  :: T0_eq(4*gridpts), rho0_eq(4*gridpts), &
-                             B0_eq(4*gridpts)
-    real(dp), intent(out) :: d_tc_drho(4*gridpts)
+    real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
+                             B0_eq(gauss_gridpts)
+    real(dp), intent(out) :: d_tc_drho(gauss_gridpts)
 
-    real(dp)              :: nH(4*gridpts)
+    real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
 
     if (cgs_units) then
@@ -107,11 +107,11 @@ contains
   !!                      perpendicular conduction coefficient
   !!                      with respect to temperature
   subroutine get_dkappa_perp_dT(T0_eq, rho0_eq, B0_eq, d_tc_dT)
-    real(dp), intent(in)  :: T0_eq(4*gridpts), rho0_eq(4*gridpts), &
-                             B0_eq(4*gridpts)
-    real(dp), intent(out) :: d_tc_dT(4*gridpts)
+    real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
+                             B0_eq(gauss_gridpts)
+    real(dp), intent(out) :: d_tc_dT(gauss_gridpts)
 
-    real(dp)              :: nH(4*gridpts)
+    real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
 
     if (cgs_units) then
@@ -137,11 +137,11 @@ contains
   !!                       perpendicular conduction coefficient
   !!                       with respect to B^2
   subroutine get_dkappa_perp_dB2(T0_eq, rho0_eq, B0_eq, d_tc_dB2)
-    real(dp), intent(in)  :: T0_eq(4*gridpts), rho0_eq(4*gridpts), &
-                             B0_eq(4*gridpts)
-    real(dp), intent(out) :: d_tc_dB2(4*gridpts)
+    real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
+                             B0_eq(gauss_gridpts)
+    real(dp), intent(out) :: d_tc_dB2(gauss_gridpts)
 
-    real(dp)              :: nH(4*gridpts)
+    real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
 
     if (cgs_units) then
@@ -163,8 +163,8 @@ contains
   !! @param[in]  mp        The proton mass, in cgs or SI units
   !! @param[out] nH        Array containing the equilibrium number density
   subroutine get_nH(rho0_eq, mp, nH)
-    real(dp), intent(in)  :: rho0_eq(4*gridpts), mp
-    real(dp), intent(out) :: nH(4*gridpts)
+    real(dp), intent(in)  :: rho0_eq(gauss_gridpts), mp
+    real(dp), intent(out) :: nH(gauss_gridpts)
 
     nH = rho0_eq / ((1.0d0 + 4.0d0 * He_abundance) * mp)
   end subroutine get_nH

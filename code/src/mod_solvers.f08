@@ -20,8 +20,7 @@ module mod_solvers
 contains
 
   !> Solves the general eigenvalue problem AX = wBX with eigenvalues w
-  !! using the QR-algorithm, the matrix B is always block-tridiagonal,
-  !! symmetric and real. The problem is hence rewritten as wX = B^{-1}AX,
+  !! using the QR-algorithm. The problem is rewritten as wX = B^{-1}AX,
   !! and 'zgeev' is called from the LAPACK library.
   !! @param[in] A   Matrix A in AX = wBX
   !! @param[in] B   Matrix B in AX = wBX
@@ -48,8 +47,10 @@ contains
     complex(dp), allocatable :: work(:)
     real(dp), allocatable    :: rwork(:)
 
+    !! Invert matrix B
     call invert_B(B, B_inv)
 
+    !! Matrix multiplication B^{-1} * A
     call get_B_invA(B_inv, A, B_invA)
 
     !! Calculate eigenvectors or not ('N' is no, 'V' is yes)

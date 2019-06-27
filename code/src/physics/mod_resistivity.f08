@@ -24,8 +24,8 @@ contains
   !! @param[in]  T0   Array with the equilibrium temperatures, in K
   !! @param[out] eta  Array containing the Spitzer resistivity as a function of T
   subroutine get_eta(T0, eta)
-    real(dp), intent(in)    :: T0(4*gridpts)
-    real(dp), intent(out)   :: eta(4*gridpts)
+    real(dp), intent(in)    :: T0(gauss_gridpts)
+    real(dp), intent(out)   :: eta(gauss_gridpts)
 
     real(dp)                :: ec, me, e0, kB, eta_1MK
 
@@ -49,8 +49,8 @@ contains
   !! @param[out] deta_dT Array containing the derivative of the Spitzer
   !!                     resistivity with respect to temperature
   subroutine get_deta_dT(T0, deta_dT)
-    real(dp), intent(in)    :: T0(4*gridpts)
-    real(dp), intent(out)   :: deta_dT(4*gridpts)
+    real(dp), intent(in)    :: T0(gauss_gridpts)
+    real(dp), intent(out)   :: deta_dT(gauss_gridpts)
 
     real(dp)                :: ec, me, e0, kB
 
