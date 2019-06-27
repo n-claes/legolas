@@ -172,4 +172,15 @@ contains
 
   end subroutine fixed_boundaries
 
+
+  !> Boundary conditions originating from the partially integrated terms of the
+  !! A-matrix.
+  subroutine natural_boundaries(eps, quadblock, edge)
+    real(dp), intent(in)     :: eps
+    real(dp), intent(inout)  :: quadblock(dim_quadblock, dim_quadblock)
+    character(6), intent(in) :: edge
+
+
+  end subroutine natural_boundaries
+
 end module mod_boundary_conditions
