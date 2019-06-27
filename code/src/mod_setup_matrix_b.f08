@@ -169,12 +169,8 @@ contains
 
     call subblock(quadblock, factors, positions, curr_weight, h_cubic, h_cubic)
 
-    if (allocated(factors)) then
-      deallocate(factors)
-    end if
-    if (allocated(positions)) then
-      deallocate(positions)
-    end if
+    deallocate(factors)
+    deallocate(positions)
 
   end subroutine get_B_elements
 
