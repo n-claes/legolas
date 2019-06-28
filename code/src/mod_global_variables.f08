@@ -143,7 +143,7 @@ contains
     external_gravity   = .true.
     gravity_type       = "solar"
     radiative_cooling  = .true.
-    cooling_curve      = "SPEX_DM"
+    cooling_curve      = "JCcorona"
     thermal_conduction = .true.
     resistivity        = .true.
 

@@ -132,17 +132,21 @@ contains
 
 
   !> Interpolates the luminosity based on the given temperatures T0.
-  !! @param[in]  T0       Array with the equilibrium temperatures, in K
+  !! @param[in]  T0       Array with the equilibrium temperatures (normalised)
   !! @param[out] lambda   Interpolated lambda (value of the cooling curve)
   !!                      for every temperature in the T0 array
   subroutine get_Lambda(T0, lambda)
     real(dp), intent(in)  :: T0(gauss_gridpts)
     real(dp), intent(out) :: lambda(gauss_gridpts)
-
     integer               :: idx, i
+
+    !! This interpolates on already normalised tables, so no need to
+    !! denormalise input temperatures
 
     do i = 1, gauss_gridpts
       idx = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
+      write(*, *) idx
+      stop
       lambda(i) = interp_table_L(idx) + (T0(i) - interp_table_T(idx)) &
                   * (interp_table_L(idx + 1) - interp_table_L(idx))   &
                   / (interp_table_T(idx + 1) - interp_table_T(idx))
@@ -153,13 +157,16 @@ contains
 
   !> Interpolates the derivative of the cooling curve based on
   !! the given temperatures T0.
-  !! @param[in]  T0         Array with the equilibrium temperatures, in K
+  !! @param[in]  T0         Array with the equilibrium temperatures (normalised)
   !! @param[out] dLambdadT  Interpolated derivative of lambda
   !!                        for every temperature in the T0 array
   subroutine get_dLambdadT(T0, dLambdadT)
     real(dp), intent(inout)  :: T0(gauss_gridpts)
     real(dp), intent(out)    :: dLambdadT(gauss_gridpts)
     integer                  :: idx, i
+
+    !! This interpolates on already normalised tables, so no need to
+    !! denormalise input temperatures
 
     do i = 1, gauss_gridpts
       idx     = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
@@ -256,6 +263,9 @@ contains
     ! Normalise values
     interp_table_T(1:ncool) = interp_table_T(1:ncool) / unit_temperature
     interp_table_L(1:ncool) = interp_table_L(1:ncool) / unit_luminosity
+
+    min_T = interp_table_T(1)
+    max_T = interp_table_T(ncool)
 
     lgmin_T = dlog10(min_T)
     lgmax_T = dlog10(max_T)

@@ -44,6 +44,8 @@ contains
   !> Sets the gravitational acceleration based on gravity_type
   !! in the module mod_global_variables.
   subroutine set_gravity()
+    use mod_physical_constants
+
     ! Obtain gravity type
     select case(gravity_type)
 
@@ -68,6 +70,10 @@ contains
       write(*, *) "Currently set on:   ", gravity_type
       stop
     end select
+
+    !! Normalise gravity
+    grav = grav / unit_acceleration
+
   end subroutine set_gravity
 
 end module mod_gravity

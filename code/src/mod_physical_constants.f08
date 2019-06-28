@@ -51,6 +51,10 @@ module mod_physical_constants
   !> Scaling factor for the resistivity eta. This is defined such that the
   !! normalised resistivity at 1 MK equals approximately 0.1.
   real(real64), protected       :: unit_resistivity = 1.0d0
+  !> Scaling factor for d(eta)/d(T)
+  real(real64), protected       :: unit_deta_dT = 1.0d0
+  !> Scaling factor for gravitational acceleration
+  real(real64), protected       :: unit_acceleration = 1.0d0
 
   !! Physical constants
   !> Value for pi
@@ -125,12 +129,13 @@ contains
   end subroutine set_unit_velocity
 
   !> Sets a new unit resistivity based on the given value. This is done in the
-  !! resistivity module.
+  !! resistivity module. Other normalisations are already set at this point.
   !! @param[in] new_unit_resistivity    New value for the unit resistivity
   subroutine set_unit_resistivity(new_unit_resistivity)
     real(real64), intent(in) :: new_unit_resistivity
 
     unit_resistivity = new_unit_resistivity
+    unit_deta_dT = unit_resistivity / unit_temperature
   end subroutine set_unit_resistivity
 
 
@@ -179,6 +184,8 @@ contains
     unit_dtc_drho      = unit_conduction / unit_density
     unit_dtc_dT        = unit_conduction / unit_temperature
     unit_dtc_dB2       = unit_conduction / (unit_magneticfield**2)
+
+    unit_acceleration  = unit_length / unit_time**2
 
   end subroutine set_normalisations
 
