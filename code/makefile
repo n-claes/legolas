@@ -24,6 +24,7 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_global_variables.o 						\
 								mod_resistivity.o									\
 								mod_gravity.o											\
+								mod_io.o													\
 								mod_cooling_curves.o							\
 								mod_radiative_cooling.o						\
 								mod_thermal_conduction.o					\
@@ -58,6 +59,10 @@ $(BINDIR)/%.o: $(SRCDIR)/%.f08 | $(BINDIR)
 
 # physics modules
 $(BINDIR)/%.o: $(SRCDIR)/physics/%.f08 | $(BINDIR)
+	$(FC) $(FFLAGS) -c $^ -o $@ -J $(MODDIR)
+
+# dataIO modules
+$(BINDIR)/%.o: $(SRCDIR)/dataIO/%.f08 | $(BINDIR)
 	$(FC) $(FFLAGS) -c $^ -o $@ -J $(MODDIR)
 
 clean:
