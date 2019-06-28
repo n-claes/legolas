@@ -26,6 +26,10 @@ contains
     real(dp), intent(out) :: tc_para(gauss_gridpts)
 
     real(dp)              :: prefactor_para
+    real(dp)              :: T0_eq_denorm(gauss_gridpts)
+
+    !! Denormalise variables for calculation
+    T0_eq_denorm = T0_eq * unit_temperature
 
     if (cgs_units) then
       prefactor_para = 1.8d-5
@@ -33,7 +37,9 @@ contains
       prefactor_para = 1.8d-10
     end if
 
-    tc_para = prefactor_para * T0_eq**2.5 / coulomb_log
+    tc_para = prefactor_para * T0_eq_denorm**2.5 / coulomb_log
+    !! Renormalise
+    tc_para = tc_para / unit_conduction
 
   end subroutine get_kappa_para
 
@@ -48,8 +54,14 @@ contains
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: tc_perp(gauss_gridpts)
 
+    real(dp)              :: T0_eq_denorm(gauss_gridpts), &
+                             B0_eq_denorm(gauss_gridpts)
     real(dp)              :: tc_para(gauss_gridpts), nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
+
+    !! Denormalise variables for calculation
+    T0_eq_denorm   = T0_eq * unit_temperature
+    B0_eq_denorm   = B0_eq * unit_magneticfield
 
     if (cgs_units) then
       mp = mp_cgs
@@ -61,9 +73,15 @@ contains
     prefactor_perp = 8.2d-33
 
     call get_kappa_para(T0_eq, tc_para)
+    tc_para = tc_para * unit_conduction
+
     call get_nH(rho0_eq, mp, nH)
+    nH = nH * unit_numberdensity
+
     tc_perp = prefactor_perp * coulomb_log**2 * nH**2 * tc_para &
-              / (B0_eq**2 * T0_eq**3)
+              / (B0_eq_denorm**2 * T0_eq_denorm**3)
+    !! Renormalise
+    tc_perp = tc_perp / unit_conduction
 
   end subroutine get_kappa_perp
 
@@ -80,8 +98,14 @@ contains
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: d_tc_drho(gauss_gridpts)
 
+    real(dp)              :: T0_eq_denorm(gauss_gridpts), &
+                             B0_eq_denorm(gauss_gridpts)
     real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
+
+    !! Denormalise variables for calculation
+    T0_eq_denorm = T0_eq * unit_temperature
+    B0_eq_denorm = B0_eq * unit_magneticfield
 
     if (cgs_units) then
       !! 1.8d-10 * 8.2d-33 * 1.0d5
@@ -94,7 +118,12 @@ contains
     end if
 
     call get_nH(rho0_eq, mp, nH)
-    d_tc_drho = 2*prefactor_perp * coulomb_log * nH / (B0_eq**2 * T0_eq**0.5)
+    nH = nH * unit_numberdensity
+
+    d_tc_drho = 2*prefactor_perp * coulomb_log * nH / &
+                      (B0_eq_denorm**2 * T0_eq_denorm**0.5)
+    !! Renormalise
+    d_tc_drho = d_tc_drho / unit_dtc_drho
 
   end subroutine get_dkappa_perp_drho
 
@@ -111,8 +140,14 @@ contains
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: d_tc_dT(gauss_gridpts)
 
+    real(dp)              :: T0_eq_denorm(gauss_gridpts), &
+                             B0_eq_denorm(gauss_gridpts)
     real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
+
+    !! Denormalise variables for calculation
+    T0_eq_denorm = T0_eq * unit_temperature
+    B0_eq_denorm = B0_eq * unit_magneticfield
 
     if (cgs_units) then
       prefactor_perp = 1.476d-37
@@ -123,8 +158,12 @@ contains
     end if
 
     call get_nH(rho0_eq, mp, nH)
+    nH = nH * unit_numberdensity
+
     d_tc_dT = -0.5d0*prefactor_perp * coulomb_log * nH**2 &
-              / (B0_eq**2 * T0_eq**1.5)
+              / (B0_eq_denorm**2 * T0_eq_denorm**1.5)
+    !! Renormalise
+    d_tc_dT = d_tc_dT / unit_dtc_dT
 
   end subroutine get_dkappa_perp_dT
 
@@ -141,8 +180,14 @@ contains
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: d_tc_dB2(gauss_gridpts)
 
+    real(dp)              :: T0_eq_denorm(gauss_gridpts), &
+                             B0_eq_denorm(gauss_gridpts)
     real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
+
+    !! Denormalise variables for calculation
+    T0_eq_denorm = T0_eq * unit_temperature
+    B0_eq_denorm = B0_eq * unit_magneticfield
 
     if (cgs_units) then
       prefactor_perp = 1.476d-37
@@ -153,8 +198,12 @@ contains
     end if
 
     call get_nH(rho0_eq, mp, nH)
+    nH = nH * unit_numberdensity
+
     d_tc_dB2 = -1*prefactor_perp * coulomb_log * nH**2 &
-              / (B0_eq**4 * T0_eq**0.5)
+              / (B0_eq_denorm**4 * T0_eq_denorm**0.5)
+    !! Renormalise
+    d_tc_dB2 = d_tc_dB2 / unit_dtc_dB2
 
   end subroutine get_dkappa_perp_dB2
 
@@ -165,8 +214,14 @@ contains
   subroutine get_nH(rho0_eq, mp, nH)
     real(dp), intent(in)  :: rho0_eq(gauss_gridpts), mp
     real(dp), intent(out) :: nH(gauss_gridpts)
+    real(dp)              :: rho0_eq_denorm(gauss_gridpts)
 
-    nH = rho0_eq / ((1.0d0 + 4.0d0 * He_abundance) * mp)
+    !! Denormalise variables for calculation
+    rho0_eq_denorm = rho0_eq * unit_density
+
+    nH = rho0_eq_denorm / ((1.0d0 + 4.0d0 * He_abundance) * mp)
+    !! Renormalise
+    nH = nH / unit_numberdensity
   end subroutine get_nH
 
 

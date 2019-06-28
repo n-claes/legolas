@@ -28,11 +28,15 @@ contains
     real(dp), intent(out)   :: eta(gauss_gridpts)
 
     real(dp)                :: ec, me, e0, kB, eta_1MK
+    real(dp)                :: T0_denorm(gauss_gridpts)
+
+    !! Denormalise variables for calculation
+    T0_denorm = T0 * unit_temperature
 
     call get_constants(ec, me, e0, kB)
 
     eta = dpi * Z_ion * ec**2 * sqrt(me) * log(coulomb_log) / &
-          ((4 * dpi * e0)**2 * (kB * T0)**1.5d0)
+          ((4 * dpi * e0)**2 * (kB * T0_denorm)**1.5d0)
 
     !! Set the unit resistivity, such that the normalised resistivity
     !! at 1 MK equals approximately 0.1. This can be done, as a unit current
@@ -40,6 +44,9 @@ contains
     eta_1MK = dpi * Z_ion * ec**2 * sqrt(me) * log(coulomb_log) / &
               ((4 * dpi * e0)**2 * (kB * 1.0d6)**1.5d0)
     call set_unit_resistivity(eta_1MK / 0.1d0)
+
+    !! Renormalise
+    eta = eta / unit_resistivity
 
   end subroutine get_eta
 
@@ -53,11 +60,17 @@ contains
     real(dp), intent(out)   :: deta_dT(gauss_gridpts)
 
     real(dp)                :: ec, me, e0, kB
+    real(dp)                :: T0_denorm(gauss_gridpts)
+
+    !! Denormalise variables for calculation
+    T0_denorm = T0 * unit_temperature
 
     call get_constants(ec, me, e0, kB)
 
     deta_dT = -1.5d0 * dpi * Z_ion * ec**2 * sqrt(me) * log(coulomb_log) / &
-              ((4 * dpi * e0)**2 * kB**1.5d0 * T0**2.5d0)
+              ((4 * dpi * e0)**2 * kB**1.5d0 * T0_denorm**2.5d0)
+    !! Renormalise
+    deta_dT = deta_dT / unit_deta_dT
 
   end subroutine get_deta_dT
 
