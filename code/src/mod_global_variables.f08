@@ -148,7 +148,7 @@ contains
     resistivity        = .true.
 
     ! Equilibrium related parameters
-    equilibrium_type = "Suydam cluster modes"
+    equilibrium_type = "adiabatic homogeneous"
 
   end subroutine initialise_variables
 
