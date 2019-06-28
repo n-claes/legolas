@@ -60,8 +60,6 @@ contains
   !> Initialises the equilibrium by allocating all equilibrium arrays and
   !! setting them to zero.
   subroutine initialise_equilibrium()
-    use mod_gravity, only: initialise_gravity
-    use mod_radiative_cooling, only: initialise_radiative_cooling
 
     allocate(rho0_eq(gauss_gridpts))
     allocate(T0_eq(gauss_gridpts))
@@ -110,10 +108,10 @@ contains
   !> Determines which pre-coded equilibrium configuration has to be loaded.
   !! These set the physics, overriding the ones defined in mod_global_variables.
   subroutine set_equilibrium()
-    use mod_gravity
-    use mod_radiative_cooling
-    use mod_thermal_conduction
-    use mod_resistivity
+    use mod_gravity, only: initialise_gravity
+    use mod_radiative_cooling, only: initialise_radiative_cooling
+    use mod_thermal_conduction, only: get_kappa_para, get_kappa_perp
+    use mod_resistivity, only: get_eta
 
     if (equilibrium_type == "adiabatic homogeneous") then
       write(*, *) "Using homogeneous adiabatic conditions in Cartesian geometry."

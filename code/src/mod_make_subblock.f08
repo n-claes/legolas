@@ -27,7 +27,7 @@ contains
   !!                        of the different integral elements
   !! @param[in] curr_weight Current weight of the Gaussian quadrature
   !! @param[in] spline1   Left basis function of the current integral elements
-  !! @param[in] spline1   Right basis function of the current integral elements
+  !! @param[in] spline2   Right basis function of the current integral elements
   subroutine subblock(quadblock, factors, positions, &
                       curr_weight, spline1, spline2)
 
@@ -111,6 +111,8 @@ contains
 
   !> Resets the factors array: deallocates the array, reallocates it
   !! with a new size and initialises it to zero.
+  !! @param[in, out] factors  The factors array. Out: deallocated and
+  !!                          reallocated with size_factors
   !! @param[in] size_factors  The new size of the factors array
   subroutine reset_factors(factors, size_factors)
     complex(dp), intent(inout), allocatable :: factors(:)
@@ -128,6 +130,9 @@ contains
 
   !> Resets the positions array: deallocates the array, reallocates it
   !! with a new size and initialises it to zero.
+  !! @param[in, out] positions  The positions array, containing the positions
+  !!                            of the factors. Out: deallocated and
+  !!                            reallocated with size_positions
   !! @param[in] size_positions  The new size of the positions array.
   subroutine reset_positions(positions, size_positions)
     integer, intent(inout), allocatable :: positions(:, :)

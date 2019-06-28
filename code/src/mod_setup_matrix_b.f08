@@ -14,9 +14,6 @@ module mod_setup_matrix_b
 
   private
 
-  !> @Note: Factors and positions are allocatable so they are dynamic,
-  !!        in case we add additional equations (eg. self-gravity)
-
   !> Array containing the 4 quadratic basic functions
   real(dp)                 :: h_quadratic(4)
   !> Array containing the 4 cubic basic functions
