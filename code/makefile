@@ -47,7 +47,7 @@ main_objects := $(addprefix $(BINDIR)/,						\
 								)
 
 test_objects := $(addprefix $(BINDIR)/,		     		\
-								test.o														\
+								core_tests.o											\
 								)
 
 all: compile_modules		  \
