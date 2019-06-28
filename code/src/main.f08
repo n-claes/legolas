@@ -18,12 +18,16 @@ program esonas
   complex(dp), allocatable  :: matrix_A(:, :)
   !> B matrix in eigenvalue problem wBX = AX
   real(dp), allocatable     :: matrix_B(:, :)
+  !> Solutions to the eigenvalue problem
+  complex(dp), allocatable  :: omega(:)
 
   call initialisation()
 
   call create_matrices()
 
   call solve_eigenvalue_problem()
+
+  call save_solutions()
 
   call cleanup()
 
@@ -45,6 +49,7 @@ contains
 
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
+    allocate(omega(matrix_gridpts))
 
     ! Initialise grid
     call initialise_grid()
@@ -74,9 +79,16 @@ contains
   subroutine solve_eigenvalue_problem()
     use mod_solvers
 
-    call solve_QR(matrix_A, matrix_B)
+    call solve_QR(matrix_A, matrix_B, omega)
 
   end subroutine solve_eigenvalue_problem
+
+  !> Saves the solutions
+  subroutine save_solutions()
+    use mod_io
+
+    call save_eigenvalues(omega)
+  end subroutine save_solutions
 
   !> Performs cleanup, deallocates variables.
   subroutine cleanup()

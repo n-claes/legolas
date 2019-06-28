@@ -24,7 +24,7 @@ contains
   !! and 'zgeev' is called from the LAPACK library.
   !! @param[in] A   Matrix A in AX = wBX
   !! @param[in] B   Matrix B in AX = wBX
-  subroutine solve_QR(A, B)
+  subroutine solve_QR(A, B, omega)
     complex(dp), intent(in)  :: A(matrix_gridpts, matrix_gridpts)
     real(dp), intent(in)     :: B(matrix_gridpts, matrix_gridpts)
     real(dp)                 :: B_inv(matrix_gridpts, matrix_gridpts)
@@ -41,7 +41,7 @@ contains
     integer                  :: N, ldB_invA
     complex(dp)              :: B_invA(matrix_gridpts, matrix_gridpts)
     !! Eigenvalue variables
-    complex(dp)              :: omega(matrix_gridpts)
+    complex(dp), intent(out) :: omega(matrix_gridpts)
     !! Work variables
     integer                  :: lwork, info
     complex(dp), allocatable :: work(:)
