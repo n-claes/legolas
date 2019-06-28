@@ -110,6 +110,7 @@ contains
   !> Calculates the different integral elements for the A-matrix.
   !! @param[in] gauss_idx   The current index in the Gaussian grid (r-position)
   !! @param[in] eps         The value for the scale factor epsilon
+  !! @param[in] d_eps_dr    Derivative of the scale factor epsilon
   !! @param[in] curr_weight The current weight for the Gaussian quadrature
   !! @param[in, out] quadblock  The quadblock, used to calculate the A-matrix.
   !!                            This block is shifted on the main diagonal
@@ -546,7 +547,7 @@ contains
 
     deallocate(factors)
     deallocate(positions)
-    
+
   end subroutine get_A_elements
 
 
