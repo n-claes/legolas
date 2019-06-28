@@ -17,7 +17,10 @@ SRCDIR   := src
 BINDIR   := bin
 MODDIR   := mod
 
+TSTDIR   := tests
+
 OUTPUT   := program.exe
+TEST_OUT := run_tests.exe
 
 objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_physical_constants.o					\
@@ -37,16 +40,36 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_setup_matrix_b.o							\
 								mod_setup_matrix_a.o							\
 								mod_solvers.o											\
-								main.o														\
 							)
 
-all: compile_modules		\
-		 compile_main
+main_objects := $(addprefix $(BINDIR)/,						\
+								main.o														\
+								)
+
+test_objects := $(addprefix $(BINDIR)/,		     		\
+								test.o														\
+								)
+
+all: compile_modules		  \
+		 compile_main_program \
+		 main_exec
+
+test: compile_modules			 \
+		 	compile_main_program \
+		 	compile_test_program \
+			test_exec
 
 compile_modules: $(objects)
 
-compile_main:
-	$(FC) $(FFLAGS) $(objects) $(LIBS) -o $(OUTPUT)
+compile_main_program: $(main_objects)
+
+compile_test_program: $(test_objects)
+
+main_exec:
+	$(FC) $(FFLAGS) $(objects) $(main_objects) $(LIBS) -o $(OUTPUT)
+
+test_exec:
+	$(FC) $(FFLAGS) $(objects) $(test_objects) $(LIBS) -o $(TEST_OUT)
 
 # check directories
 $(BINDIR):
@@ -65,13 +88,19 @@ $(BINDIR)/%.o: $(SRCDIR)/physics/%.f08 | $(BINDIR)
 $(BINDIR)/%.o: $(SRCDIR)/dataIO/%.f08 | $(BINDIR)
 	$(FC) $(FFLAGS) -c $^ -o $@ -J $(MODDIR)
 
+# test modules
+$(BINDIR)/%.o: $(TSTDIR)/%.f08 | $(BINDIR)
+	$(FC) $(FFLAGS) -c $^ -o $@ -J $(MODDIR)
+
 clean:
 	rm -rf $(BINDIR)
 	rm -rf $(MODDIR)
 	rm -f $(OUTPUT)
+	rm -f $(TEST_OUT)
 	make
 
 purge:
 	rm -rf $(BINDIR)
 	rm -rf $(MODDIR)
 	rm -f $(OUTPUT)
+	rm -f $(TEST_OUT)
