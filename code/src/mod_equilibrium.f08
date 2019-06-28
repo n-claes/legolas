@@ -99,23 +99,18 @@ contains
     k2 = 1.0d0
     k3 = 1.0d0
 
-    if (external_gravity) then
-      call initialise_gravity()
-    end if
-    if (radiative_cooling) then
-      call initialise_radiative_cooling()
-    end if
-
+    !! Obtain pre-coded equililbria
     call set_equilibrium()
+
+    !! Calculate total magnetic field
+    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
 
   end subroutine initialise_equilibrium
 
-  !> Sets the equilibrium on the nodes of the Gaussian quadrature.
-  !! The ones for cooling, conduction, flow and resistivity are kept at zero
-  !! unless the respective physics switch is enabled.
+  !> Determines which pre-coded equilibrium configuration has to be loaded.
+  !! These set the physics, overriding the ones defined in mod_global_variables.
   subroutine set_equilibrium()
-    use mod_grid
-    use mod_physical_constants
+    use mod_gravity
     use mod_radiative_cooling
     use mod_thermal_conduction
     use mod_resistivity
@@ -130,33 +125,26 @@ contains
       write(*, *) "Using Kelvin-Helmholtz instability in Cartesian geometry."
       call KH_instability_eq()
     else
-      ! Initialisations
-      rho0_eq = 1.0d0
-      T0_eq   = 1.0d0
-      B02_eq  = 1.0d0
-      B03_eq  = 1.0d0
-
-      if (flow) then
-        v02_eq  = 1.0d0
-        v03_eq  = 1.0d0
-      end if
-
-      if (thermal_conduction) then
-        call get_kappa_para(T0_eq, tc_para_eq)
-        call get_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp_eq)
-      end if
-
-      if (radiative_cooling) then
-        ! this is L_0, should balance out in thermal equilibrium.
-        heat_loss_eq = 0.0d0
-      end if
-
-      if (resistivity) then
-        call get_eta(T0_eq, eta_eq)
-      end if
+      write(*, *) "Equilibrium not known."
+      stop
     end if
 
-    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
+    !! Enable additional physics if defined in the above configuration
+    if (external_gravity) then
+      call initialise_gravity()
+    end if
+    if (radiative_cooling) then
+      call initialise_radiative_cooling()
+      ! this is L_0, should balance out in thermal equilibrium.
+      heat_loss_eq = 0.0d0
+    end if
+    if (thermal_conduction) then
+      call get_kappa_para(T0_eq, tc_para_eq)
+      call get_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp_eq)
+    end if
+    if (resistivity) then
+      call get_eta(T0_eq, eta_eq)
+    end if
 
   end subroutine set_equilibrium
 
@@ -174,6 +162,7 @@ contains
     radiative_cooling = .false.
     thermal_conduction = .false.
     resistivity = .false.
+    external_gravity = .false.
 
     !! Parameters
     rho0_eq = 1.0d0

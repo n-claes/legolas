@@ -71,6 +71,7 @@ contains
 
   !> Allocates and initialises all equilibrium derivatives arrays.
   subroutine initialise_equilibrium_derivatives()
+    use mod_radiative_cooling
     allocate(d_rho0_dr(gauss_gridpts))
     allocate(d_rB02_dr(gauss_gridpts))
     allocate(d_B02_r_dr(gauss_gridpts))
