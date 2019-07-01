@@ -123,8 +123,8 @@ contains
       write(*, *) "Using Kelvin-Helmholtz instability in Cartesian geometry."
       call KH_instability_eq()
     else
-      write(*, *) "Equilibrium not known."
-      stop
+      !! \TODO: implement additional equilibria
+      continue
     end if
 
     !! Enable additional physics if defined in the above configuration
