@@ -6,6 +6,7 @@ program core_tests
   use mod_equilibrium_derivatives
   use mod_setup_matrix_b
   use mod_setup_matrix_a
+  use mod_solvers
   implicit none
 
   integer             :: successes
@@ -19,6 +20,7 @@ program core_tests
   call test_grid_cyl()
   call test_matrix_B()
   call test_matrix_A()
+  call test_matrix_inversion()
 
 
 
@@ -197,6 +199,45 @@ contains
     call equilibrium_clean()
     call equilibrium_derivatives_clean()
   end subroutine test_matrix_A
+
+
+  subroutine test_matrix_inversion()
+    real(dp)      :: mat_B(matrix_gridpts, matrix_gridpts)
+    real(dp)      :: inv_B(matrix_gridpts, matrix_gridpts)
+    integer       :: i, j, k
+
+    write(*, *) "Testing matrix inversion..."
+
+    mat_B = 0.0d0
+
+    k = 1.0d0
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        if (i == j) then
+          mat_B(i, j) = k
+          k = k + 1
+        end if
+      end do
+    end do
+    call invert_B(mat_B, inv_B)
+
+    k = 1.0d0
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        if (i == j) then
+          call assert_real_equal(inv_B(i, j), 1.0d0 / k, bool)
+          k = k + 1
+        else
+          call assert_real_equal(inv_B(i, j), 0.0d0, bool)
+        end if
+        if (.not. bool) then
+          call check_test()
+          return
+        end if
+      end do
+    end do
+    call check_test()
+  end subroutine test_matrix_inversion
 
 
 

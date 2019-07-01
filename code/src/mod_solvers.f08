@@ -13,9 +13,7 @@ module mod_solvers
   use mod_global_variables
   implicit none
 
-  private
-
-  public  :: solve_QR
+  public
 
 contains
 
