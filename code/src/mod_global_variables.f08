@@ -58,11 +58,11 @@ module mod_global_variables
   !> Final value of the x-array
   real(dp)                  :: x_end
   !> Amount of gridpoints of the initial array
-  integer                   :: gridpts
+  integer, protected        :: gridpts
   !> Amount of gridpoint of the gaussian array
-  integer                   :: gauss_gridpts
+  integer, protected        :: gauss_gridpts
   !> Gridpoints of matrices A and B, equal to 16 * gridpts
-  integer                   :: matrix_gridpts
+  integer, protected        :: matrix_gridpts
 
   !! Mesh-accumulation parameters
   !> Boolean to enable mesh accumulation
@@ -125,9 +125,8 @@ contains
     geometry = "cylindrical"
     x_start  = 0.0d0
     x_end    = 1.0d0
-    gridpts  = 11
-    gauss_gridpts  = 4*(gridpts - 1)
-    matrix_gridpts = 16 * gridpts
+
+    call set_gridpts(11)
 
     ! Mesh accumulation parameters
     mesh_accumulation  = .false.
@@ -151,6 +150,17 @@ contains
     equilibrium_type = "adiabatic homogeneous"
 
   end subroutine initialise_variables
+
+  !> Subroutine to set the gridpoints and dependent gridpoints for
+  !! more control at initialisation.
+  !! @param[in] gridpts_in  Gridpoints for the initial array
+  subroutine set_gridpts(gridpts_in)
+    integer, intent(in) :: gridpts_in
+
+    gridpts        = gridpts_in
+    gauss_gridpts  = 4*(gridpts - 1)
+    matrix_gridpts = 16 * gridpts
+  end subroutine set_gridpts
 
   !> Deallocates the variables in this module.
   subroutine variables_clean()
