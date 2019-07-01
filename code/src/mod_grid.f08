@@ -59,7 +59,8 @@ contains
     integer               :: i, j, idx
 
     ! Check for origin in cylindrical coordinates
-    if (geometry == "cylindrical") then
+    ! \TODO: is this needed? This is automatically handled in the loop below??
+    if (geometry == "cylindrical" .and. grid_gauss(1) .le. 1.0d-5) then
       grid_gauss(1) = 1.0d-5
     end if
 
