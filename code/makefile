@@ -9,6 +9,7 @@
 # -fbacktrace: produce backtrace when crashing
 FFLAGS   := -fcheck=all -fbounds-check -Wall -Wextra -Wconversion \
 					  -pedantic -fbacktrace
+TSTFLAGS := -Wno-integer-division
 FC  		 := gfortran
 
 LIBS 		 := -lblas -llapack
@@ -47,6 +48,7 @@ main_objects := $(addprefix $(BINDIR)/,						\
 								)
 
 test_objects := $(addprefix $(BINDIR)/,		     		\
+								testmod_assert.o									\
 								core_tests.o											\
 								)
 
@@ -69,7 +71,7 @@ main_exec:
 	$(FC) $(FFLAGS) $(objects) $(main_objects) $(LIBS) -o $(OUTPUT)
 
 test_exec:
-	$(FC) $(FFLAGS) $(objects) $(test_objects) $(LIBS) -o $(TEST_OUT)
+	$(FC) $(FFLAGS) $(TSTFLAGS) $(objects) $(test_objects) $(LIBS) -o $(TEST_OUT)
 
 # check directories
 $(BINDIR):
