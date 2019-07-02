@@ -162,6 +162,15 @@ contains
     matrix_gridpts = 16 * gridpts
   end subroutine set_gridpts
 
+  !> Subroutine to override the matrix gridpoints. This is solely used for
+  !! testing purposes, as the matrix gridpoints are controlled by 'gridpts'.
+  !! @param[in] gridpts_in  Dimension of the matrix
+  subroutine set_matrix_gridpts(gridpts_in)
+    integer, intent(in) :: gridpts_in
+
+    matrix_gridpts = gridpts_in
+  end subroutine set_matrix_gridpts
+
   !> Deallocates the variables in this module.
   subroutine variables_clean()
     deallocate(geometry)
