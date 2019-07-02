@@ -122,6 +122,8 @@ contains
   end subroutine test_grid_cyl
 
 
+  !> Tests the matrix inversion subroutine, inverts the trivial case
+  !! of a diagonal matrix.
   subroutine test_invert_diagonal_matrix()
     real(dp)      :: mat_B(matrix_gridpts, matrix_gridpts)
     real(dp)      :: inv_B(matrix_gridpts, matrix_gridpts), sol_ij
@@ -165,6 +167,8 @@ contains
   end subroutine test_invert_diagonal_matrix
 
 
+  !> More in-depth test of the matrix inversion routine, inverts a
+  !! double precision 4x4 matrix.
   subroutine test_invert_matrix()
     real(dp)    :: mat_B(4, 4)
     real(dp)    :: inv_B(4, 4), inv_B_sol(4, 4)
@@ -205,6 +209,9 @@ contains
   end subroutine test_invert_matrix
 
 
+  !> Tests the matrix multiplication subroutine 'matmul', which is built-in
+  !! Fortran. Used to compare results to the ones obtained from BLAS.
+  !! Essentially tests BA where B is real and A is complex.
   subroutine test_matrix_multiplication()
     real(dp)        :: mat_B(4, 4)
     complex(dp)     :: mat_A(4, 4)
@@ -254,6 +261,8 @@ contains
   end subroutine test_matrix_multiplication
 
 
+  !> Tests the BLAS routine to perform matrix multiplication. Essentially
+  !! tests BA where B is real and A is complex.
   subroutine test_matrix_multiplication_blas()
     real(dp)        :: mat_B(4, 4)
     complex(dp)     :: mat_A(4, 4)
@@ -303,6 +312,8 @@ contains
   end subroutine test_matrix_multiplication_blas
 
 
+  !> Tests the QR algorithm from LAPACK. Calculates the eigenvalues of a
+  !! 4x4 complex matrix.
   subroutine test_QR()
     real(dp)        :: mat_B(4, 4)
     complex(dp)     :: mat_A(4, 4)
@@ -360,6 +371,10 @@ contains
   end subroutine test_QR
 
 
+  !> Tests the different pre-implemented equilibria. Every equilibrium
+  !! configuration is checked for :
+  !! - Matrices A and B must be block-tri-diagonal
+  !! - Matrices A and B can not contain 'inf' or 'NaN' elements
   subroutine test_equilibria()
     real(dp)        :: mat_B(matrix_gridpts, matrix_gridpts)
     complex(dp)     :: mat_A(matrix_gridpts, matrix_gridpts)
@@ -542,6 +557,7 @@ contains
   end subroutine test_A_tridiag
 
 
+  !> Tests if an element in the B matrix is infinite.
   subroutine test_B_inf(mat_B)
     real(dp), intent(in)    :: mat_B(matrix_gridpts, matrix_gridpts)
     integer                 :: i, j
@@ -561,6 +577,7 @@ contains
   end subroutine test_B_inf
 
 
+  !> Tests if an element in the B matrix is NaN.
   subroutine test_B_nan(mat_B)
     real(dp), intent(in)    :: mat_B(matrix_gridpts, matrix_gridpts)
     integer                 :: i, j
@@ -581,6 +598,8 @@ contains
   end subroutine test_B_nan
 
 
+  !> Tests if an element in the A matrix is infinite. A is complex, so both
+  !! the real and complex parts are tested.
   subroutine test_A_inf(mat_A)
     complex(dp), intent(in)    :: mat_A(matrix_gridpts, matrix_gridpts)
     integer                    :: i, j
@@ -601,6 +620,8 @@ contains
   end subroutine test_A_inf
 
 
+  !> Tests if an element in the A matrix is NaN. A is complex, so both the
+  !! real and complex parts are tested.
   subroutine test_A_nan(mat_A)
     complex(dp), intent(in)    :: mat_A(matrix_gridpts, matrix_gridpts)
     integer                    :: i, j
