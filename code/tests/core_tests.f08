@@ -9,10 +9,14 @@ program core_tests
   use mod_solvers
   implicit none
 
+  integer             :: test_gridpts
+
   integer             :: successes
   integer             :: fails
   integer             :: total
   logical             :: bool
+
+  test_gridpts = 4
 
   call init()
 
@@ -20,7 +24,9 @@ program core_tests
   call test_grid_cyl()
   call test_matrix_B()
   call test_matrix_A()
-  call test_matrix_inversion()
+  call test_invert_diagonal_matrix()
+  call test_invert_matrix()
+  call test_matrix_multiplication()
 
 
 
@@ -44,7 +50,7 @@ contains
     !! Set grid points
     x_start = 0.0d0
     x_end   = 1.0d0
-    call set_gridpts(4)
+    call set_gridpts(test_gridpts)
 
     successes = 0
     fails     = 0
@@ -140,6 +146,9 @@ contains
         if (j <= lb .or. j > rb) then
           call assert_real_equal(mat_B(i, j), 0.0d0, bool)
           if (.not. bool) then
+            write(*, *) "    index i, j         : ", i, j
+            write(*, *) "    Value of B at index: ", mat_B(i, j)
+            write(*, *) "    Value should be    : ", (0.0d0, 0.0d0)
             call check_test()
             call equilibrium_clean()
             call equilibrium_derivatives_clean()
@@ -187,6 +196,9 @@ contains
         if (j <= lb .or. j > rb) then
           call assert_complex_equal(mat_A(i, j), (0.0d0, 0.0d0), bool)
           if (.not. bool) then
+            write(*, *) "    index i, j         : ", i, j
+            write(*, *) "    value of A at index: ", mat_A(i, j)
+            write(*, *) "    value should be    : ", (0.0d0, 0.0d0)
             call check_test()
             call equilibrium_clean()
             call equilibrium_derivatives_clean()
@@ -201,12 +213,12 @@ contains
   end subroutine test_matrix_A
 
 
-  subroutine test_matrix_inversion()
+  subroutine test_invert_diagonal_matrix()
     real(dp)      :: mat_B(matrix_gridpts, matrix_gridpts)
-    real(dp)      :: inv_B(matrix_gridpts, matrix_gridpts)
+    real(dp)      :: inv_B(matrix_gridpts, matrix_gridpts), sol_ij
     integer       :: i, j, k
 
-    write(*, *) "Testing matrix inversion..."
+    write(*, *) "Testing inversion of diagonal matrix.."
 
     mat_B = 0.0d0
 
@@ -225,25 +237,110 @@ contains
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
         if (i == j) then
-          call assert_real_equal(inv_B(i, j), 1.0d0 / k, bool)
+          sol_ij = 1.0d0 / k
           k = k + 1
         else
-          call assert_real_equal(inv_B(i, j), 0.0d0, bool)
+          sol_ij = 0.0d0
         end if
+        call assert_real_equal(inv_B(i, j), sol_ij, bool)
         if (.not. bool) then
+          write(*, *) "    index i, j          : ", i, j
+          write(*, *) "    inverse B calculated: ", inv_B(i, j)
+          write(*, *) "    inverse B solution  : ", sol_ij
           call check_test()
           return
         end if
       end do
     end do
     call check_test()
-  end subroutine test_matrix_inversion
+  end subroutine test_invert_diagonal_matrix
 
 
+  subroutine test_invert_matrix()
+    real(dp)    :: mat_B(4, 4)
+    real(dp)    :: inv_B(4, 4), inv_B_sol(4, 4)
+    integer     :: i, j
+
+    !! Override this just for this purpose, this results in 4x4 matrix
+    call set_matrix_gridpts(4)
+    write(*, *) "Testing inversion of regular matrix..."
+    inv_B = 0.0d0
+    mat_B     = reshape((/ 7,  0, -3,  2,   &! column 1
+                           2,  3,  4,  2,   &! column 2
+                           1, -1, -2, -1,   &
+                          -2,  2,  1,  4 /), shape(mat_B))
+    inv_B_sol = reshape((/  &
+               1.0d0/7.0d0,   0.0d0,        -2.0d0/7.0d0,   -1.0d0/7.0d0,    &
+              -4.0d0/7.0d0,   1.0d0,        22.0d0/7.0d0,    4.0d0/7.0d0,    &
+              10.0d0/49.0d0, -2.0d0/7.0d0, -76.0d0/49.0d0, -17.0d0/49.0d0,   &
+              15.0d0/49.0d0, -3.0d0/7.0d0, -65.0d0/49.0d0, -1.0d0/49.0d0 /), &
+                          shape(inv_B_sol))
+
+    call invert_B(mat_B, inv_B)
+    do i = 1, 3
+      do j = 1, 3
+        call assert_real_equal(inv_B(i, j), inv_B_sol(i, j), bool)
+        if (.not. bool) then
+          write(*, *) "    index i, j          : ", i, j
+          write(*, *) "    inverse B calculated: ", inv_B(i, j)
+          write(*, *) "    inverse B solution  : ", inv_B_sol(i, j)
+          call check_test()
+          return
+        end if
+      end do
+    end do
+    call check_test()
+    !! Reset grid points
+    call set_gridpts(test_gridpts)
+  end subroutine test_invert_matrix
 
 
+  subroutine test_matrix_multiplication()
+    real(dp)        :: mat_B(4, 4)
+    complex(dp)     :: mat_A(4, 4)
+    complex(dp)     :: BA(4, 4), BA_sol(4, 4), ir
+    integer         :: i, j
 
+    ir = (1.0d0, 0.0d0)
 
+    call set_matrix_gridpts(4)
+
+    write(*, *) "Testing matrix multiplication routine..."
+    mat_B = reshape((/ 7.0d0,  0.0d0, -3.0d0,  2.0d0,   &  ! column 1
+                       2.0d0,  3.0d0,  4.0d0,  2.0d0,   &  ! column 2
+                       1.0d0, -1.0d0, -2.0d0, -1.0d0,   &
+                      -2.0d0,  2.0d0,  1.0d0,  4.0d0 /), shape(mat_B))
+    mat_A = reshape((/ 2.0d0*ir,  0.0d0*ir,  1.0d0*ic, -3.0d0*ir, &
+                       3.0d0*ir,  0.0d0*ir,  2.0d0*ic,  1.0d0*ir, &
+                       4.0d0*ic,  3.0d0*ir, -7.0d0*ir,  5.0d0*ic, &
+                      -1.0d0*ir, -2.0d0*ir,  3.0d0*ir,  2.0d0*ir /), &
+                        shape(mat_A))
+
+    BA_sol = reshape((/ &
+      ( 20.0d0, 1.0d0), (-6.0d0,-1.0d0), (-9.0d0,-2.0d0), (-8.0d0,-1.0d0),   &
+      ( 19.0d0, 2.0d0), ( 2.0d0,-2.0d0), (-8.0d0,-4.0d0), (10.0d0,-2.0d0),   &
+      ( -1.0d0,18.0d0), (16.0d0,10.0d0), (26.0d0,-7.0d0), (13.0d0,28.0d0),   &
+      (-12.0d0, 0.0d0), (-5.0d0, 0.0d0), (-9.0d0, 0.0d0), (-1.0d0, 0.0d0)/), &
+                      shape(BA_sol))
+
+    call get_B_invA(mat_B, mat_A, BA)
+
+    do i = 1, 4
+      do j = 1, 4
+        call assert_complex_equal(BA(i, j), BA_sol(i, j), bool)
+        if (.not. bool) then
+          write(*, *) "    index i, j     : ", i, j
+          write(*, *) "    value at index : ", BA(i, j)
+          write(*, *) "    value should be: ", BA_sol(i, j)
+          call check_test()
+          return
+        end if
+      end do
+    end do
+    stop
+    call check_test()
+    call set_gridpts(test_gridpts)
+  end subroutine test_matrix_multiplication
 
 
 
