@@ -138,7 +138,7 @@ contains
     complex(real64), intent(in) :: z1, z2
     logical, intent(out)        :: bool
 
-    if (real(z1) - tol < real(z2) .and. &
+    if (real(z1) - tol > real(z2) .and. &
         aimag(z1) - tol > aimag(z2)) then
       bool = .true.
       return
@@ -180,7 +180,7 @@ contains
     logical, intent(out)        :: bool
 
     logical     :: bool1, bool2
-    
+
     bool1 = ieee_is_finite(real(z1))
     bool2 = ieee_is_finite(aimag(z1))
     if (bool1 .and. bool2) then
