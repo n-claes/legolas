@@ -179,16 +179,12 @@ contains
     real(dp)      :: P0_eq(gauss_gridpts)
     integer       :: i
 
-    if (.not. geometry == "cylindrical") then
-      write(*, *) "Suydam cluster equilibrium requires cylindrical geometry."
-      stop
-    end if
-
-    !! Hardcode physics in this case for certainty
+    geometry = "cylindrical"
     flow = .true.
     radiative_cooling = .false.
     thermal_conduction = .false.
     resistivity = .false.
+    external_gravity = .false.
 
     !! Parameters
     v_z0  = 0.14d0
@@ -226,11 +222,12 @@ contains
     real(dp)    :: a, x, p0, v0y, v0z
     integer     :: i
 
-    if (.not. (geometry == "cartesian" .or. geometry == "Cartesian")) then
-      write(*, *) "Kelvin-Helmholtz instability equilibrium only defined for &
-                  &Cartesian geometry."
-      stop
-    end if
+    geometry = "Cartesian"
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
 
     !! Parameters
     a   = 0.05d0
