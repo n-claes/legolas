@@ -50,7 +50,8 @@ contains
     call invert_B(B, B_inv)
 
     !! Matrix multiplication B^{-1} * A
-    call get_B_invA(B_inv, A, B_invA)
+    !! \TODO: use matmul for now until BLAS routine checked
+    call get_B_invA_matmul(B_inv, A, B_invA)
 
     !! Calculate eigenvectors or not ('N' is no, 'V' is yes)
     jobvl = 'V'
@@ -150,6 +151,9 @@ contains
     integer                   :: K, ldB_inv, ldA, ldB_invA
     complex(dp)               :: alpha, beta
 
+    !! \TODO: THIS ROUTINE IS WRONG! matmul and manual implementation give the
+    !!        same result, and differs from this one!!
+
 
     K   = matrix_gridpts
     ldB_inv  = K
@@ -166,5 +170,45 @@ contains
                beta, B_invA, ldB_invA)
 
   end subroutine get_B_invA
+
+
+  !> Also does the matrix multiplication B^{-1}A, but using Fortran's
+  !! build-in 'matmul' function. Used for comparison with the case above.
+  !! @param[in]   B_inv   The inverse of the matrix B
+  !! @param[in]   A       The matrix A
+  !! @param[out]  B_invA  The result of the matrix multiplication B_inv * A
+  subroutine get_B_invA_matmul(B_inv, A, B_invA)
+    real(dp), intent(in)      :: B_inv(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(in)   :: A(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(out)  :: B_invA(matrix_gridpts, matrix_gridpts)
+
+    B_invA = matmul(B_inv, A)
+
+  end subroutine get_B_invA_matmul
+
+
+  !> Also does the matrix multiplication B^{-1}A, but is manually implemented
+  !! using three do-loops. Used for comparison with the other methods.
+  !! @param[in]   B_inv   The inverse of the matrix B
+  !! @param[in]   A       The matrix A
+  !! @param[out]  B_invA  The result of the matrix multiplication B_inv * A
+  subroutine get_B_invA_manual(B_inv, A, B_invA)
+    real(dp), intent(in)      :: B_inv(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(in)   :: A(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(out)  :: B_invA(matrix_gridpts, matrix_gridpts)
+
+    integer                   :: i, j, k
+
+    B_invA = (0.0d0, 0.0d0)
+
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        do k = 1, matrix_gridpts
+          B_invA(i, j) = B_invA(i, j) + B_inv(i, k) * A(k, j)
+        end do
+      end do
+    end do
+
+  end subroutine get_B_invA_manual
 
 end module mod_solvers
