@@ -1,4 +1,5 @@
 program core_tests
+  use, intrinsic  ::  ieee_arithmetic
   use mod_global_variables
   use testmod_assert
   use mod_grid
@@ -20,13 +21,19 @@ program core_tests
 
   call init()
 
+  !! Basic tests, grid etc.
   call test_grid_carth()
   call test_grid_cyl()
-  call test_matrix_B()
-  call test_matrix_A()
+
+  !! Tests for matrix routines
   call test_invert_diagonal_matrix()
   call test_invert_matrix()
   call test_matrix_multiplication()
+  call test_matrix_multiplication_blas()
+  call test_QR()
+
+  !! Tests the different pre-implemented equilibrium configurations
+  call test_equilibria()
 
 
 
@@ -61,6 +68,7 @@ contains
     write(*, *) "Matrix gridpts  : ", matrix_gridpts
     write(*, *) "x start         : ", int(x_start)
     write(*, *) "x end           : ", int(x_end)
+    write(*, *) "------------------------------------------------"
     write(*, *) ""
 
   end subroutine init
@@ -112,105 +120,6 @@ contains
     call assert_real_larger(grid_gauss(1), 0.0d0, bool)
     call check_test()
   end subroutine test_grid_cyl
-
-  !> Test the B-matrix, should be block tri-diagonal
-  subroutine test_matrix_B()
-    integer     :: i, j, idx_l, idx_r, lb, rb
-    real(dp)    :: mat_B(matrix_gridpts, matrix_gridpts)
-
-    write(*, *) "Testing tri-block diagonal matrix B..."
-
-    equilibrium_type = "None"
-    call initialise_equilibrium()
-    call initialise_equilibrium_derivatives()
-    call construct_B(mat_B)
-
-    do i = 1, matrix_gridpts
-      do j = 1, matrix_gridpts
-        !! This block checks for tri-diagonality:
-        !!              lb       rb
-        !!  1 <= i <= 16:  1 < j <= 32 not zero
-        !! 17 <= i <= 32:  1 < j <= 48 not zero
-        !! 33 <= i <= 48: 16 < j <= 64 not zero etc.
-        idx_l = (i - 1) / dim_subblock  !! integer division, rounds down
-        idx_r = idx_l + 2
-        lb = (idx_l - 1) * dim_subblock
-        rb = idx_r * dim_subblock
-        if (idx_l < 2) then
-          lb = 0
-        end if
-        if (rb > matrix_gridpts) then
-          rb = matrix_gridpts
-        end if
-
-        if (j <= lb .or. j > rb) then
-          call assert_real_equal(mat_B(i, j), 0.0d0, bool)
-          if (.not. bool) then
-            write(*, *) "    index i, j         : ", i, j
-            write(*, *) "    Value of B at index: ", mat_B(i, j)
-            write(*, *) "    Value should be    : ", (0.0d0, 0.0d0)
-            call check_test()
-            call equilibrium_clean()
-            call equilibrium_derivatives_clean()
-            return
-          end if
-        end if
-      end do
-    end do
-    call check_test()
-    call equilibrium_clean()
-    call equilibrium_derivatives_clean()
-  end subroutine test_matrix_B
-
-
-  !> Test the A-matrix, should be block tri-diagonal
-  subroutine test_matrix_A()
-    integer     :: i, j, idx_l, idx_r, lb, rb
-    complex(dp) :: mat_A(matrix_gridpts, matrix_gridpts)
-
-    write(*, *) "Testing tri-block diagonal matrix A..."
-
-    equilibrium_type = "None"
-    call initialise_equilibrium()
-    call initialise_equilibrium_derivatives()
-    call construct_A(mat_A)
-
-    do i = 1, matrix_gridpts
-      do j = 1, matrix_gridpts
-        !! This block checks for tri-diagonality:
-        !!              lb       rb
-        !!  1 <= i <= 16:  1 < j <= 32 not zero
-        !! 17 <= i <= 32:  1 < j <= 48 not zero
-        !! 33 <= i <= 48: 16 < j <= 64 not zero etc.
-        idx_l = (i - 1) / dim_subblock  !! integer division, rounds down
-        idx_r = idx_l + 2
-        lb = (idx_l - 1) * dim_subblock
-        rb = idx_r * dim_subblock
-        if (idx_l < 2) then
-          lb = 1
-        end if
-        if (rb > matrix_gridpts) then
-          rb = matrix_gridpts
-        end if
-
-        if (j <= lb .or. j > rb) then
-          call assert_complex_equal(mat_A(i, j), (0.0d0, 0.0d0), bool)
-          if (.not. bool) then
-            write(*, *) "    index i, j         : ", i, j
-            write(*, *) "    value of A at index: ", mat_A(i, j)
-            write(*, *) "    value should be    : ", (0.0d0, 0.0d0)
-            call check_test()
-            call equilibrium_clean()
-            call equilibrium_derivatives_clean()
-            return
-          end if
-        end if
-      end do
-    end do
-    call check_test()
-    call equilibrium_clean()
-    call equilibrium_derivatives_clean()
-  end subroutine test_matrix_A
 
 
   subroutine test_invert_diagonal_matrix()
@@ -285,6 +194,7 @@ contains
           write(*, *) "    inverse B calculated: ", inv_B(i, j)
           write(*, *) "    inverse B solution  : ", inv_B_sol(i, j)
           call check_test()
+          call set_gridpts(test_gridpts)
           return
         end if
       end do
@@ -323,6 +233,55 @@ contains
       (-12.0d0, 0.0d0), (-5.0d0, 0.0d0), (-9.0d0, 0.0d0), (-1.0d0, 0.0d0)/), &
                       shape(BA_sol))
 
+    call get_B_invA_manual(mat_B, mat_A, BA)
+
+    do i = 1, 4
+      do j = 1, 4
+        call assert_complex_equal(BA(i, j), BA_sol(i, j), bool)
+        if (.not. bool) then
+          write(*, *) "    index i, j     : ", i, j
+          write(*, *) "    value at index : ", BA(i, j)
+          write(*, *) "    value should be: ", BA_sol(i, j)
+          call check_test()
+          call set_gridpts(test_gridpts)
+          return
+        end if
+      end do
+    end do
+    call check_test()
+    !! Reset grid points
+    call set_gridpts(test_gridpts)
+  end subroutine test_matrix_multiplication
+
+
+  subroutine test_matrix_multiplication_blas()
+    real(dp)        :: mat_B(4, 4)
+    complex(dp)     :: mat_A(4, 4)
+    complex(dp)     :: BA(4, 4), BA_sol(4, 4), ir
+    integer         :: i, j
+
+    ir = (1.0d0, 0.0d0)
+
+    call set_matrix_gridpts(4)
+
+    write(*, *) "Testing matrix multiplication routine, using BLAS..."
+    mat_B = reshape((/ 7.0d0,  0.0d0, -3.0d0,  2.0d0,   &  ! column 1
+                       2.0d0,  3.0d0,  4.0d0,  2.0d0,   &  ! column 2
+                       1.0d0, -1.0d0, -2.0d0, -1.0d0,   &
+                      -2.0d0,  2.0d0,  1.0d0,  4.0d0 /), shape(mat_B))
+    mat_A = reshape((/ 2.0d0*ir,  0.0d0*ir,  1.0d0*ic, -3.0d0*ir, &
+                       3.0d0*ir,  0.0d0*ir,  2.0d0*ic,  1.0d0*ir, &
+                       4.0d0*ic,  3.0d0*ir, -7.0d0*ir,  5.0d0*ic, &
+                      -1.0d0*ir, -2.0d0*ir,  3.0d0*ir,  2.0d0*ir /), &
+                        shape(mat_A))
+
+    BA_sol = reshape((/ &
+      ( 20.0d0, 1.0d0), (-6.0d0,-1.0d0), (-9.0d0,-2.0d0), (-8.0d0,-1.0d0),   &
+      ( 19.0d0, 2.0d0), ( 2.0d0,-2.0d0), (-8.0d0,-4.0d0), (10.0d0,-2.0d0),   &
+      ( -1.0d0,18.0d0), (16.0d0,10.0d0), (26.0d0,-7.0d0), (13.0d0,28.0d0),   &
+      (-12.0d0, 0.0d0), (-5.0d0, 0.0d0), (-9.0d0, 0.0d0), (-1.0d0, 0.0d0)/), &
+                      shape(BA_sol))
+
     call get_B_invA(mat_B, mat_A, BA)
 
     do i = 1, 4
@@ -333,14 +292,161 @@ contains
           write(*, *) "    value at index : ", BA(i, j)
           write(*, *) "    value should be: ", BA_sol(i, j)
           call check_test()
+          call set_gridpts(test_gridpts)
           return
         end if
       end do
     end do
-    stop
+    call check_test()
+    !! Reset grid points
+    call set_gridpts(test_gridpts)
+  end subroutine test_matrix_multiplication_blas
+
+
+  subroutine test_QR()
+    real(dp)        :: mat_B(4, 4)
+    complex(dp)     :: mat_A(4, 4)
+    complex(dp)     :: omega(4), omega_sol(4), temp
+    integer         :: i, j, minidx
+    complex(dp)     :: ir
+
+    write(*, *) "Testing QR algorithm..."
+
+    call set_matrix_gridpts(4)
+    ir = (1.0d0, 0.0d0)
+
+    !! Problem is wBX = AX, so use unit matrix for B as inversion
+    !! routines are already tested.
+    do i = 1, 4
+      do j = 1, 4
+        if (i == j) then
+          mat_B(i, j) = 1.0d0
+        else
+          mat_B(i, j) = 0.0d0
+        end if
+      end do
+    end do
+
+    mat_A = reshape((/ 2.0d0*ir, -1.0d0*ir, 0.0d0*ir,  0.0d0*ir, &
+                       9.0d0*ir,  2.0d0*ir, 0.0d0*ir,  0.0d0*ir, &
+                       0.0d0*ir,  1.0d0*ir, 3.0d0*ir,  1.0d0*ir, &
+                       2.0d0*ir,  0.0d0*ir, 0.0d0*ir, -1.0d0*ir/), &
+                          shape(mat_A))
+
+    call solve_QR(mat_A, mat_B, omega)
+    omega_sol = (/ (-1.0d0, 0.0d0), (2.0d0, -3.0d0), &
+                   ( 2.0d0, 3.0d0), (3.0d0,  0.0d0) /)
+
+    !! sort eigenvalues (selection sort, based on real part)
+    do i = 1, size(omega)-1
+      minidx = minloc(real(omega(i:)), 1) + i - 1
+      if (real(omega(i)) > real(omega(minidx))) then
+        temp = omega(i)
+        omega(i) = omega(minidx)
+        omega(minidx) = temp
+      end if
+    end do
+
+    do i = 1, 4
+      call assert_complex_equal(omega(i), omega_sol(i), bool)
+      if (.not. bool) then
+        call check_test()
+        return
+      end if
+    end do
+
     call check_test()
     call set_gridpts(test_gridpts)
-  end subroutine test_matrix_multiplication
+  end subroutine test_QR
+
+
+  subroutine test_equilibria()
+    real(dp)        :: mat_B(matrix_gridpts, matrix_gridpts)
+    complex(dp)     :: mat_A(matrix_gridpts, matrix_gridpts)
+
+    write(*, *) ""
+    write(*, *) "------------------------------------------------"
+    write(*, *) "Testing the different equilibrium configurations"
+    write(*, *) "------------------------------------------------"
+    write(*, *) ""
+
+    ! initialise
+    write(*, *) "Testing adiabatic homogeneous medium"
+    equilibrium_type = "adiabatic homogeneous"
+    call initialise_equilibrium()
+    call initialise_equilibrium_derivatives()
+    call construct_B(mat_B)
+    call construct_A(mat_A)
+    write(*, *) "Testing if matrix B is block-tridiagonal..."
+    call test_B_tridiag(mat_B)
+    write(*, *) "Testing if matrix B has 'inf' elements..."
+    call test_B_inf(mat_B)
+    write(*, *) "Testing if matrix B has 'NaN' elements..."
+    call test_B_nan(mat_B)
+    write(*, *) "Testing if matrix A is block-tridiagonal..."
+    call test_A_tridiag(mat_A)
+    write(*, *) "Testing if matrix A has 'inf' elements..."
+    call test_A_inf(mat_A)
+    write(*, *) "Testing if matrix A has 'NaN' elements..."
+    call test_A_nan(mat_A)
+    ! cleanup
+    call equilibrium_clean()
+    call equilibrium_derivatives_clean()
+    write(*, *) "------------------------------------------------"
+    write(*, *) ""
+
+    ! initialise
+    write(*, *) "Testing Suydan cluster modes"
+    equilibrium_type = "Suydam cluster modes"
+    call initialise_equilibrium()
+    call initialise_equilibrium_derivatives()
+    call construct_B(mat_B)
+    call construct_A(mat_A)
+    write(*, *) "Testing if matrix B is block-tridiagonal..."
+    call test_B_tridiag(mat_B)
+    write(*, *) "Testing if matrix B has 'inf' elements..."
+    call test_B_inf(mat_B)
+    write(*, *) "Testing if matrix B has 'NaN' elements..."
+    call test_B_nan(mat_B)
+    write(*, *) "Testing if matrix A is block-tridiagonal..."
+    call test_A_tridiag(mat_A)
+    write(*, *) "Testing if matrix A has 'inf' elements..."
+    call test_A_inf(mat_A)
+    write(*, *) "Testing if matrix A has 'NaN' elements..."
+    call test_A_nan(mat_A)
+    ! cleanup
+    call equilibrium_clean()
+    call equilibrium_derivatives_clean()
+    write(*, *) "------------------------------------------------"
+    write(*, *) ""
+
+    ! initialise
+    write(*, *) "Testing Kelvin-Helmholtz"
+    equilibrium_type = "Kelvin-Helmholtz"
+    call initialise_equilibrium()
+    call initialise_equilibrium_derivatives()
+    call construct_B(mat_B)
+    call construct_A(mat_A)
+    write(*, *) "Testing if matrix B is block-tridiagonal..."
+    call test_B_tridiag(mat_B)
+    write(*, *) "Testing if matrix B has 'inf' elements..."
+    call test_B_inf(mat_B)
+    write(*, *) "Testing if matrix B has 'NaN' elements..."
+    call test_B_nan(mat_B)
+    write(*, *) "Testing if matrix A is block-tridiagonal..."
+    call test_A_tridiag(mat_A)
+    write(*, *) "Testing if matrix A has 'inf' elements..."
+    call test_A_inf(mat_A)
+    write(*, *) "Testing if matrix A has 'NaN' elements..."
+    call test_A_nan(mat_A)
+    ! cleanup
+    call equilibrium_clean()
+    call equilibrium_derivatives_clean()
+    write(*, *) "------------------------------------------------"
+    write(*, *) ""
+
+
+  end subroutine test_equilibria
 
 
 
@@ -355,5 +461,164 @@ contains
 
 
 
+
+
+
+  !> Test the B-matrix, should be block tri-diagonal
+  subroutine test_B_tridiag(mat_B)
+    real(dp), intent(in)    :: mat_B(matrix_gridpts, matrix_gridpts)
+    integer                 :: i, j, idx_l, idx_r, lb, rb
+
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        !! This block checks for tri-diagonality:
+        !!              lb       rb
+        !!  1 <= i <= 16:  1 < j <= 32 not zero
+        !! 17 <= i <= 32:  1 < j <= 48 not zero
+        !! 33 <= i <= 48: 16 < j <= 64 not zero etc.
+        idx_l = (i - 1) / dim_subblock  !! integer division, rounds down
+        idx_r = idx_l + 2
+        lb = (idx_l - 1) * dim_subblock
+        rb = idx_r * dim_subblock
+        if (idx_l < 2) then
+          lb = 0
+        end if
+        if (rb > matrix_gridpts) then
+          rb = matrix_gridpts
+        end if
+
+        if (j <= lb .or. j > rb) then
+          call assert_real_equal(mat_B(i, j), 0.0d0, bool)
+          if (.not. bool) then
+            write(*, *) "    index i, j         : ", i, j
+            write(*, *) "    Value of B at index: ", mat_B(i, j)
+            write(*, *) "    Value should be    : ", (0.0d0, 0.0d0)
+            call check_test()
+            return
+          end if
+        end if
+      end do
+    end do
+    call check_test()
+  end subroutine test_B_tridiag
+
+
+  !> Test the A-matrix, should be block tri-diagonal
+  subroutine test_A_tridiag(mat_A)
+    complex(dp), intent(in) :: mat_A(matrix_gridpts, matrix_gridpts)
+    integer                 :: i, j, idx_l, idx_r, lb, rb
+
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        !! This block checks for tri-diagonality:
+        !!              lb       rb
+        !!  1 <= i <= 16:  1 < j <= 32 not zero
+        !! 17 <= i <= 32:  1 < j <= 48 not zero
+        !! 33 <= i <= 48: 16 < j <= 64 not zero etc.
+        idx_l = (i - 1) / dim_subblock  !! integer division, rounds down
+        idx_r = idx_l + 2
+        lb = (idx_l - 1) * dim_subblock
+        rb = idx_r * dim_subblock
+        if (idx_l < 2) then
+          lb = 1
+        end if
+        if (rb > matrix_gridpts) then
+          rb = matrix_gridpts
+        end if
+
+        if (j <= lb .or. j > rb) then
+          call assert_complex_equal(mat_A(i, j), (0.0d0, 0.0d0), bool)
+          if (.not. bool) then
+            write(*, *) "    index i, j         : ", i, j
+            write(*, *) "    value of A at index: ", mat_A(i, j)
+            write(*, *) "    value should be    : ", (0.0d0, 0.0d0)
+            call check_test()
+            return
+          end if
+        end if
+      end do
+    end do
+    call check_test()
+  end subroutine test_A_tridiag
+
+
+  subroutine test_B_inf(mat_B)
+    real(dp), intent(in)    :: mat_B(matrix_gridpts, matrix_gridpts)
+    integer                 :: i, j
+
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        call assert_real_is_finite(mat_B(i, j), bool)
+        if (.not. bool) then
+          write(*, *) "    index i, j     : ", i, j
+          write(*, *) "    B-value at index is infinite"
+          call check_test()
+          return
+        end if
+      end do
+    end do
+    call check_test()
+  end subroutine test_B_inf
+
+
+  subroutine test_B_nan(mat_B)
+    real(dp), intent(in)    :: mat_B(matrix_gridpts, matrix_gridpts)
+    integer                 :: i, j
+
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        call assert_real_is_nan(mat_B(i, j), bool)  !! .true. if NaN
+        bool = .not. bool   !! so .false. if NaN
+        if (.not. bool) then
+          write(*, *) "    index i, j     : ", i, j
+          write(*, *) "    B-value at index is NaN"
+          call check_test()
+          return
+        end if
+      end do
+    end do
+    call check_test()
+  end subroutine test_B_nan
+
+
+  subroutine test_A_inf(mat_A)
+    complex(dp), intent(in)    :: mat_A(matrix_gridpts, matrix_gridpts)
+    integer                    :: i, j
+
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        call assert_complex_is_finite(mat_A(i, j), bool)
+        if (.not. bool) then
+          write(*, *) "    index i, j     : ", i, j
+          write(*, *) "    value obtained : ", mat_A(i, j)
+          write(*, *) "    A-value at index is infinite"
+          call check_test()
+          return
+        end if
+      end do
+    end do
+    call check_test()
+  end subroutine test_A_inf
+
+
+  subroutine test_A_nan(mat_A)
+    complex(dp), intent(in)    :: mat_A(matrix_gridpts, matrix_gridpts)
+    integer                    :: i, j
+
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        call assert_complex_is_nan(mat_A(i, j), bool)   !! .true. if NaN
+        bool = .not. bool       !! so .false. if NaN
+        if (.not. bool) then
+          write(*, *) "    index i, j     : ", i, j
+          write(*, *) "    value obtained : ", mat_A(i, j)
+          write(*, *) "    A-value at index is NaN"
+          call check_test()
+          return
+        end if
+      end do
+    end do
+    call check_test()
+  end subroutine test_A_nan
 
 end program core_tests
