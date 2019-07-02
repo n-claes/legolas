@@ -144,12 +144,18 @@ contains
     !! denormalise input temperatures
 
     do i = 1, gauss_gridpts
-      idx = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
-      write(*, *) idx
-      stop
-      lambda(i) = interp_table_L(idx) + (T0(i) - interp_table_T(idx)) &
-                  * (interp_table_L(idx + 1) - interp_table_L(idx))   &
-                  / (interp_table_T(idx + 1) - interp_table_T(idx))
+      if (T0(i) <= min_T) then
+        ! No cooling if T0 below lower limit of cooling curve
+        lambda(i) = 0.0d0
+      else if (T0(i) >= max_T) then
+        ! Bremmstrahlung if T0 above upper limit of cooling curve
+        lambda(i) = interp_table_L(ncool) * sqrt(T0(i) / max_T)
+      else
+        idx = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
+        lambda(i) = interp_table_L(idx) + (T0(i) - interp_table_T(idx)) &
+                    * (interp_table_L(idx + 1) - interp_table_L(idx))   &
+                    / (interp_table_T(idx + 1) - interp_table_T(idx))
+      end if
     end do
 
   end subroutine get_Lambda
@@ -169,10 +175,18 @@ contains
     !! denormalise input temperatures
 
     do i = 1, gauss_gridpts
-      idx     = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
-      dLambdadT(i) = interp_table_dLdT(idx) + (T0(i) - interp_table_T(idx)) &
-                     * (interp_table_dLdT(idx+1) - interp_table_dLdT(idx))  &
-                     / (interp_table_T(idx+1)    - interp_table_T(idx))
+      if (T0(i) <= min_T) then
+        ! No cooling if T0 below lower limit of cooling curve
+        dLambdadT(i) = 0.0d0
+      else if (T0(i) >= max_T) then
+        ! Derivative of Bremmstrahlung sqrt(T0/Tmax)
+        dLambdadT(i) = 0.5d0 * interp_table_L(ncool) / sqrt(T0(i) * max_T)
+      else
+        idx     = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
+        dLambdadT(i) = interp_table_dLdT(idx) + (T0(i) - interp_table_T(idx)) &
+                       * (interp_table_dLdT(idx+1) - interp_table_dLdT(idx))  &
+                       / (interp_table_T(idx+1)    - interp_table_T(idx))
+      end if
     end do
 
   end subroutine get_dLambdadT
