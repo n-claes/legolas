@@ -1,5 +1,6 @@
 module testmod_assert
   use, intrinsic :: iso_fortran_env
+  use, intrinsic  ::  ieee_arithmetic
   implicit none
 
   real(real64), parameter   :: tol = 1.0d-8
@@ -162,6 +163,61 @@ contains
       return
     end if
   end subroutine assert_complex_smaller
+
+
+  !> Checks if dble is finite
+  subroutine assert_real_is_finite(dble1, bool)
+    real(real64), intent(in)  :: dble1
+    logical, intent(out)      :: bool
+
+    bool = ieee_is_finite(dble1)
+  end subroutine assert_real_is_finite
+
+
+  !> Checks if z1 if finite
+  subroutine assert_complex_is_finite(z1, bool)
+    complex(real64), intent(in) :: z1
+    logical, intent(out)        :: bool
+
+    logical     :: bool1, bool2
+    
+    bool1 = ieee_is_finite(real(z1))
+    bool2 = ieee_is_finite(aimag(z1))
+    if (bool1 .and. bool2) then
+      bool = .true.
+    else
+      bool = .false.
+    end if
+  end subroutine assert_complex_is_finite
+
+
+  !> Checks if dble is finite
+  subroutine assert_real_is_nan(dble1, bool)
+    real(real64), intent(in)  :: dble1
+    logical, intent(out)      :: bool
+
+    bool = ieee_is_nan(dble1)
+  end subroutine assert_real_is_nan
+
+
+  !> Checks if z1 if finite
+  subroutine assert_complex_is_nan(z1, bool)
+    complex(real64), intent(in) :: z1
+    logical, intent(out)        :: bool
+
+    logical     :: bool1, bool2
+
+    bool1 = ieee_is_nan(real(z1))
+    bool2 = ieee_is_nan(aimag(z1))
+    if (bool1 .and. bool2) then
+      bool = .true.
+    else
+      bool = .false.
+    end if
+  end subroutine assert_complex_is_nan
+
+
+
 
 
 
