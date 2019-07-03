@@ -7,6 +7,7 @@ program core_tests
   use mod_equilibrium_derivatives
   use mod_setup_matrix_b
   use mod_setup_matrix_a
+  use mod_make_subblock
   use mod_solvers
   implicit none
 
@@ -31,6 +32,9 @@ program core_tests
   call test_matrix_multiplication()
   call test_matrix_multiplication_blas()
   call test_QR()
+
+  !! Tests for the subblock routines
+  call test_subblock()
 
   !! Tests the different pre-implemented equilibrium configurations
   call test_equilibria()
@@ -361,6 +365,8 @@ contains
     do i = 1, 4
       call assert_complex_equal(omega(i), omega_sol(i), bool)
       if (.not. bool) then
+        write(*, *) "    eigenvalue from QR  : ", omega(i)
+        write(*, *) "    eigenvalue should be: ", omega_sol(i)
         call check_test()
         return
       end if
@@ -369,6 +375,62 @@ contains
     call check_test()
     call set_gridpts(test_gridpts)
   end subroutine test_QR
+
+
+  subroutine test_subblock()
+    complex(dp)   :: quadblock(dim_quadblock, dim_quadblock)
+    complex(dp)   :: factors(2), a, b
+    real(dp)      :: spline1(4), spline2(4), weight
+    integer       :: positions(2, 2), i, idx1(16), idx2(16)
+
+    write(*, *) "Testing subblock creation..."
+    a = ( 3.0d0, 1.0d0)
+    b = (-1.0d0, 5.0d0)
+
+    quadblock = (0.0d0, 0.0d0)
+
+    !! Choose two factors and positions at random
+    factors(1) = a
+    positions(1, :) = [4, 3]
+    factors(2) = b
+    positions(2, :) = [7, 5]
+
+    !! Set weight and splines to unity for testing
+    weight = 1.0d0
+    spline1 = 1.0d0
+    spline2 = 1.0d0
+    call subblock(quadblock, factors, positions, weight, spline1, spline2)
+
+    !! First factor
+    idx1 = (/ 7, 7, 8, 8,  7,  7,  8,  8, 23, 23, 24, 24, 23, 23, 24, 24 /)
+    idx2 = (/ 5, 6, 5, 6, 21, 22, 21, 22,  5,  6,  5,  6, 21, 22, 21, 22 /)
+    do i = 1, size(idx1)
+      call assert_complex_equal(quadblock(idx1(i), idx2(i)), a, bool)
+      if (.not. bool) then
+        write(*, *) "    quadblock position: ", idx1(i), idx2(i)
+        write(*, *) "    value at position : ", quadblock(idx1(i), idx2(i))
+        write(*, *) "    value should be   : ", a
+        call check_test()
+        return
+      end if
+    end do
+
+    !! Second factor
+    idx1 = (/ 13, 13, 14, 14, 13, 13, 14, 14, 29, 29, 30, 30, 29, 29, 30, 30 /)
+    idx2 = (/  9, 10,  9, 10, 25, 26, 25, 26,  9, 10,  9, 10, 25, 26, 25, 26 /)
+    do i = 1, size(idx1)
+      call assert_complex_equal(quadblock(idx1(i), idx2(i)), b, bool)
+      if (.not. bool) then
+        write(*, *) "    quadblock position: ", idx1(i), idx2(i)
+        write(*, *) "    value at position : ", quadblock(idx1(i), idx2(i))
+        write(*, *) "    value should be   : ", b
+        call check_test()
+        return
+      end if
+    end do
+    call check_test()
+  end subroutine test_subblock
+
 
 
   !> Tests the different pre-implemented equilibria. Every equilibrium
