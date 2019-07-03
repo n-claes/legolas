@@ -85,6 +85,7 @@ contains
     use mod_io
 
     call save_eigenvalues(omega)
+    call save_config()
   end subroutine save_solutions
 
   !> Performs cleanup, deallocates variables.
