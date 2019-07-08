@@ -109,6 +109,10 @@ module mod_global_variables
   !! The quadblock is the matrix that is shifted on the main diagonal
   integer, parameter        :: dim_quadblock = 2*dim_subblock
 
+  !! Data IO-related parameters
+  !> Call python script when finishing to plot results
+  logical, save             :: plot_when_finished
+
 contains
 
   !> Initialises all global variables.
@@ -147,7 +151,12 @@ contains
     resistivity        = .true.
 
     ! Equilibrium related parameters
-    equilibrium_type = "adiabatic homogeneous"
+    !equilibrium_type = "adiabatic homogeneous"
+    !equilibrium_type = "Suydam cluster modes"
+    equilibrium_type = "Kelvin-Helmholtz"
+
+    ! Data IO related parameters
+    plot_when_finished = .true.
 
   end subroutine initialise_variables
 
