@@ -86,6 +86,7 @@ contains
 
     call save_eigenvalues(omega)
     call save_config()
+    call plot_results()
   end subroutine save_solutions
 
   !> Performs cleanup, deallocates variables.

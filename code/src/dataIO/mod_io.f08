@@ -32,13 +32,13 @@ contains
       write(w_char_r, form) real(omega(i))
       write(w_char_i, form) aimag(omega(i))
 
-      write(w_output_normalised, *) '(', w_char_r, ',', w_char_i, ')'
+      write(w_output_normalised, *) '(', w_char_r, ' ,', w_char_i, ' )'
 
       ! Write dimensionfull output
       write(w_char_r, form) real(omega(i)) / unit_time
       write(w_char_i, form) aimag(omega(i)) / unit_time
 
-      write(w_output_dimfull, *) '(', w_char_r, ',', w_char_i, ')'
+      write(w_output_dimfull, *) '(', w_char_r, ' ,', w_char_i, ' )'
     end do
 
   end subroutine save_eigenvalues
@@ -84,5 +84,12 @@ contains
     write(config, *) "Unit luminosity    : ", unit_luminosity
     write(config, *) "Unit resistivity   : ", unit_resistivity
   end subroutine save_config
+
+  subroutine plot_results()
+    if (plot_when_finished) then
+      call execute_command_line('python python/plot_eigenvalues.py')
+    end if
+    return
+  end subroutine plot_results
 
 end module mod_io
