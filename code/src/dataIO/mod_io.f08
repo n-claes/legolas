@@ -6,8 +6,9 @@ module mod_io
 
   public
 
-  integer, parameter  :: w_output = 10
-  integer, parameter  :: config   = 20
+  integer, parameter  :: w_output_normalised = 10
+  integer, parameter  :: w_output_dimfull    = 20
+  integer, parameter  :: config   = 30
 
 contains
 
@@ -15,10 +16,29 @@ contains
     complex(dp), intent(in) :: omega(matrix_gridpts)
     integer                 :: i
 
-    open (w_output, file='eigenvalues.txt', status='unknown')
+    character(30)           :: w_char_r, w_char_i
+    character(16)           :: form
+
+    !! Format of length 30 with 20 decimal points
+    !! Change w_norm_char etc. when changing this
+    form = '(E30.20)'
+
+    open (w_output_normalised, file='eigenvalues_normalised.txt', &
+          status='unknown')
+    open (w_output_dimfull, file='eigenvalues.txt', status='unknown')
 
     do i = 1, matrix_gridpts
-      write(w_output, *) omega(i)
+      ! Write normalised output
+      write(w_char_r, form) real(omega(i))
+      write(w_char_i, form) aimag(omega(i))
+
+      write(w_output_normalised, *) '(', w_char_r, ',', w_char_i, ')'
+
+      ! Write dimensionfull output
+      write(w_char_r, form) real(omega(i)) / unit_time
+      write(w_char_i, form) aimag(omega(i)) / unit_time
+
+      write(w_output_dimfull, *) '(', w_char_r, ',', w_char_i, ')'
     end do
 
   end subroutine save_eigenvalues
