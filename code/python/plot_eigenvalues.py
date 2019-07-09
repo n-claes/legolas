@@ -9,11 +9,13 @@ if __name__ == '__main__':
     w_real = []
     w_imag = []
     for line in file:
-        line = line.strip()
-        line = line.split()
+        # split line at delimiter
+        line = line.split(",")
+        # strip line
+        line = [l.strip() for l in line]
 
-        w_real.append(float(line[1]))
-        w_imag.append(float(line[3]))
+        w_real.append(float(line[0]))
+        w_imag.append(float(line[1]))
 
     fig, ax = plt.subplots(1, figsize=(16,8))
     ax.plot(w_real, w_imag, '.b')

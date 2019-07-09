@@ -32,13 +32,13 @@ contains
       write(w_char_r, form) real(omega(i))
       write(w_char_i, form) aimag(omega(i))
 
-      write(w_output_normalised, *) '(', w_char_r, ' ,', w_char_i, ' )'
+      write(w_output_normalised, *) w_char_r, ',', w_char_i
 
       ! Write dimensionfull output
       write(w_char_r, form) real(omega(i)) / unit_time
       write(w_char_i, form) aimag(omega(i)) / unit_time
 
-      write(w_output_dimfull, *) '(', w_char_r, ' ,', w_char_i, ' )'
+      write(w_output_dimfull, *) w_char_r, ',', w_char_i
     end do
 
   end subroutine save_eigenvalues
