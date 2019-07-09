@@ -134,11 +134,11 @@ contains
         write(char_A_i, form_eout) aimag(matrix_A(i, j))
         write(char_B,   form_eout) matrix_B(i, j)
 
-        write(mat_A_out, *) "[", trim(adjustl(char_idx1)), ",", &
-                                 trim(adjustl(char_idx2)), "]", " | ", &
+        write(mat_A_out, *) char_idx1, ",", &
+                            char_idx2, ",", &
                             char_A_r, ",", char_A_i
-        write(mat_B_out, *) "[", trim(adjustl(char_idx1)), ",", &
-                                 trim(adjustl(char_idx2)), "]", " | ", &
+        write(mat_B_out, *) char_idx1, ",", &
+                            char_idx2, ",", &
                             char_B
       end do
     end do
