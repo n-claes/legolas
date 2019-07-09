@@ -13,3 +13,8 @@ code/docs/html/
 *.exe
 *.mod
 *.o
+*.xlsm
+*.xlsx
+*.ods
+*.png
+*.txt
