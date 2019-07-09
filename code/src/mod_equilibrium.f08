@@ -113,18 +113,27 @@ contains
     use mod_thermal_conduction, only: get_kappa_para, get_kappa_perp
     use mod_resistivity, only: get_eta
 
-    if (equilibrium_type == "adiabatic homogeneous") then
-      write(*, *) "Using homogeneous adiabatic conditions in Cartesian geometry."
-      call adiabatic_homo_eq()
-    else if (equilibrium_type == "Suydam cluster modes") then
-      write(*, *) "Using Suydam cluster modes in cylindrical geometry."
-      call suydam_cluster_eq()
-    else if (equilibrium_type == "Kelvin-Helmholtz") then
-      write(*, *) "Using Kelvin-Helmholtz instability in Cartesian geometry."
-      call KH_instability_eq()
+    if (use_precoded) then
+      if (equilibrium_type == "adiabatic homogeneous") then
+        write(*, *) "Using homogeneous adiabatic conditions in Cartesian geometry."
+        call adiabatic_homo_eq()
+      else if (equilibrium_type == "Suydam cluster modes") then
+        write(*, *) "Using Suydam cluster modes in cylindrical geometry."
+        call suydam_cluster_eq()
+      else if (equilibrium_type == "Kelvin-Helmholtz") then
+        write(*, *) "Using Kelvin-Helmholtz instability in Cartesian geometry."
+        call KH_instability_eq()
+      else
+        !! \TODO: implement additional equilibria
+
+
+        write(*, *) "Precoded equilibrium not recognised."
+        write(*, *) "Currently set on: ", equilibrium_type
+        stop
+      end if
     else
-      !! \TODO: implement additional equilibria
-      continue
+      write(*, *) "Not using precoded equilibrium."
+
     end if
 
     !! Enable additional physics if defined in the above configuration

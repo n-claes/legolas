@@ -28,15 +28,15 @@ module mod_global_variables
   !> Complex number
   complex(dp), parameter    :: ic = (0.0d0, 1.0d0)
   !> Ratio of specific heats gamma
-  real(dp), parameter       :: gamma = 5.0d0/3.0d0
+  real(dp), protected       :: gamma
   !> Variable for (gamma - 1)
-  real(dp), parameter       :: gamma_1 = 1.0d0 - gamma
+  real(dp), protected       :: gamma_1
   !> Boolean to enable flow
   logical, save             :: flow
   !> Boolean to enable radiative cooling
   logical, save             :: radiative_cooling
   !> Number of points to interpolate the radiative cooling curve
-  integer, parameter        :: ncool = 4000
+  integer                   :: ncool
   !> Name of the cooling curve to use
   character(len=str_len)    :: cooling_curve
   !> Boolean to enable external gravity
@@ -48,11 +48,11 @@ module mod_global_variables
   !> Boolean to enable resistivity
   logical, save             :: resistivity
   !> Boolean for cgs units
-  logical, save             :: cgs_units = .true.
+  logical, save             :: cgs_units
 
   !! Grid-related parameters
   !> Geometry of the problem: 'Cartesian' or 'cylindrical'
-  character(:), allocatable :: geometry
+  character(len=str_len)    :: geometry
   !> Starting value for the x-array
   real(dp)                  :: x_start
   !> Final value of the x-array
@@ -91,8 +91,11 @@ module mod_global_variables
                                          0.652145154862546, &
                                          0.652145154862546, &
                                          0.347854845137454  /)
+
+  !> Use precoded equilibrium or not
+  logical, save                :: use_precoded
   !> Type of equilibrium to set up
-  character(:), allocatable :: equilibrium_type
+  character(len=str_len)       :: equilibrium_type
 
   !! Block-related parameters
   !> Number of equations
@@ -115,50 +118,14 @@ module mod_global_variables
 
 contains
 
-  !> Initialises all global variables.
-  subroutine initialise_variables()
-    use mod_physical_constants
+  !> Subroutine to set gamma and (gamma - 1)
+  !! @param[in] gamma_in  The ratio of specific heats gamma
+  subroutine set_gamma(gamma_in)
+    real(dp), intent(in)    :: gamma_in
 
-    ! Normalisations
-    call set_unit_length(1.0d9)         ! cm
-    call set_unit_numberdensity(1.0d9)  ! cm*3
-    call set_unit_temperature(1.0d6)    ! K
-    call set_normalisations(cgs_units)
-
-    ! Grid related parameters
-    geometry = "cylindrical"
-    x_start  = 0.0d0
-    x_end    = 1.0d0
-
-    call set_gridpts(11)
-
-    ! Mesh accumulation parameters
-    mesh_accumulation  = .false.
-    !> expected values Gaussian
-    ev_1 = 7.25d0
-    ev_2 = 0.75d0
-    !> standard deviations Gaussian
-    sigma_1 = 1.0d0
-    sigma_2 = 2.0d0
-
-    ! Physics related parameters
-    flow               = .true.
-    external_gravity   = .true.
-    gravity_type       = "solar"
-    radiative_cooling  = .true.
-    cooling_curve      = "JCcorona"
-    thermal_conduction = .true.
-    resistivity        = .true.
-
-    ! Equilibrium related parameters
-    !equilibrium_type = "adiabatic homogeneous"
-    !equilibrium_type = "Suydam cluster modes"
-    equilibrium_type = "Kelvin-Helmholtz"
-
-    ! Data IO related parameters
-    plot_when_finished = .true.
-
-  end subroutine initialise_variables
+    gamma   = gamma_in
+    gamma_1 = gamma - 1.0d0
+  end subroutine set_gamma
 
   !> Subroutine to set the gridpoints and dependent gridpoints for
   !! more control at initialisation.
@@ -179,11 +146,5 @@ contains
 
     matrix_gridpts = gridpts_in
   end subroutine set_matrix_gridpts
-
-  !> Deallocates the variables in this module.
-  subroutine variables_clean()
-    deallocate(geometry)
-    deallocate(equilibrium_type)
-  end subroutine variables_clean
 
 end module mod_global_variables
