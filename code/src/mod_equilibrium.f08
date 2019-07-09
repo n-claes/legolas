@@ -107,26 +107,34 @@ contains
     use mod_equilibrium_derivatives
 
     if (use_precoded) then
-      if (equilibrium_type == "adiabatic homogeneous") then
-        write(*, *) "Using homogeneous adiabatic conditions in Cartesian geometry."
+
+      write(*, *) "Using precoded equilibrium: ", equilibrium_type
+
+      select case(equilibrium_type)
+
+      case("Adiabatic homogeneous")
         call adiabatic_homo_eq()
-      else if (equilibrium_type == "Suydam cluster modes") then
-        write(*, *) "Using Suydam cluster modes in cylindrical geometry."
+        ! derivatives remain zero so don't have to be set
+
+      case("Resistive homogeneous")
+        call resistive_homo_eq()
+        ! no explicit derivatives needed
+
+      case("Suydam cluster modes")
         call suydam_cluster_eq()
-      else if (equilibrium_type == "Kelvin-Helmholtz") then
-        write(*, *) "Using Kelvin-Helmholtz instability in Cartesian geometry."
+
+      case("Kelvin-Helmholtz")
         call KH_instability_eq()
-      else
-        !! \TODO: implement additional equilibria
 
-
+      case default
         write(*, *) "Precoded equilibrium not recognised."
         write(*, *) "Currently set on: ", equilibrium_type
         stop
-      end if
+
+      end select
+
     else
       write(*, *) "Not using precoded equilibrium."
-
     end if
 
     !! Calculate total magnetic field
@@ -138,15 +146,19 @@ contains
     end if
     if (radiative_cooling) then
       call initialise_radiative_cooling()
+      call set_cooling_derivatives(T0_eq, rho0_eq)
       ! this is L_0, should balance out in thermal equilibrium.
       heat_loss_eq = 0.0d0
     end if
     if (thermal_conduction) then
       call get_kappa_para(T0_eq, tc_para_eq)
       call get_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp_eq)
+      call set_conduction_derivatives(T0_eq, rho0_eq, B0_eq)
     end if
     if (resistivity) then
+      write(*, *) "true"
       call get_eta(T0_eq, eta_eq)
+      call set_resistivity_derivatives(T0_eq)
     end if
 
   end subroutine set_equilibrium
@@ -174,6 +186,35 @@ contains
     B03_eq  = 1.0d0
 
   end subroutine adiabatic_homo_eq
+
+
+  subroutine resistive_homo_eq()
+    use mod_grid
+    use mod_physical_constants
+
+    real(dp)  :: beta
+
+    geometry = "Cartesian"
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .true.
+    external_gravity = .false.
+
+    k2 = 0.0d0
+    k3 = 1.0d0
+
+    beta = 0.25d0
+
+    !! Parameters
+    rho0_eq = 1.0d0
+    B02_eq  = 0.0d0
+    B03_eq  = 1.0d0
+
+    B0_eq   = 1.0d0
+    T0_eq   = beta * B0_eq**2 / (8*dpi)
+  end subroutine resistive_homo_eq
+
 
   !> Initialises equilibrium for Suydam cluster modes in cylindrical geometry.
   !! Obtained from Bondeson et al., Phys. Fluids 30 (1987)

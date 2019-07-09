@@ -19,14 +19,14 @@ contains
     namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
                          unit_temperature, unit_velocity
     namelist /equilibriumlist/ use_precoded, equilibrium_type
-    namelist /savelist/ plot_when_finished
+    namelist /savelist/ plot_when_finished, write_AB
 
     !! Set defaults
     !> Gridlist defaults
     geometry = "Cartesian"          !< geometry of the problem
     x_start  = 0.0d0                !< start of the grid
     x_end    = 1.0d0                !< end of the grid
-    gridpoints = 21
+    gridpoints = 11
 
     !> Meshlist defaults
     mesh_accumulation = .false.
@@ -55,10 +55,14 @@ contains
 
     !> Equilibriumlist defaults
     use_precoded = .true.                       !< use precoded equilibrium
-    equilibrium_type = "Kelvin-Helmholtz"       !< which equilibrium to use
+    equilibrium_type = "Adiabatic homogeneous"
+    !equilibrium_type = "Resistive homogeneous"
+    !equilibrium_type = "Suydam cluster modes"
+    !equilibrium_type = "Kelvin-Helmholtz"
 
     !> Savelist defaults
-    plot_when_finished = .true.                 !< plot spectrum when finished
+    plot_when_finished = .true.     !< plot spectrum when finished
+    write_AB = .true.               !< write matrices A and B when finished
 
 
     call set_gridpts(gridpoints)

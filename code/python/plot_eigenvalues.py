@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os, sys
 
 if __name__ == '__main__':
-    filename = "eigenvalues.txt"
+    filename = "output/eigenvalues.txt"
     file = open(filename, 'r')
 
     w_real = []
