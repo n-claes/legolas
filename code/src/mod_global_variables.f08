@@ -116,6 +116,9 @@ module mod_global_variables
   !> Call python script when finishing to plot results
   logical, save             :: plot_when_finished
 
+  !> Write matrices A and B to file when finished
+  logical, save             :: write_AB
+
 contains
 
   !> Subroutine to set gamma and (gamma - 1)
