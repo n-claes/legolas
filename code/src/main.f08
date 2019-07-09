@@ -39,13 +39,12 @@ contains
 
   !> Initialises the grid and equilibrium configuration.
   subroutine initialisation()
+    use mod_input, only: read_parfile
     use mod_grid, only: initialise_grid
     use mod_equilibrium, only: initialise_equilibrium
     use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
 
-
-    ! Initialises global variables
-    call initialise_variables()
+    call read_parfile()
 
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
@@ -99,7 +98,6 @@ contains
     deallocate(matrix_A)
     deallocate(matrix_B)
 
-    call variables_clean
     call grid_clean
     call equilibrium_clean
     call equilibrium_derivatives_clean

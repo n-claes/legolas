@@ -59,6 +59,7 @@ contains
     if (external_gravity) then
       write(config, *) "Gravity strength   : ", gravity_type
     end if
+    write(config, *) "Gamma              :", gamma
 
     write(config, *) ""
 
