@@ -152,6 +152,7 @@ contains
     if (plot_when_finished) then
       write(*, *) "Plotting results..."
       call execute_command_line('python python/plot_eigenvalues.py')
+      call execute_command_line('python python/plot_matrices.py')
     end if
     return
   end subroutine plot_results

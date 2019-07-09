@@ -6,6 +6,8 @@ if __name__ == '__main__':
     filename = "output/eigenvalues.txt"
     file = open(filename, 'r')
 
+    print(">> PYTHON: Plotting spectrum...")
+
     w_real = []
     w_imag = []
     for line in file:
@@ -22,4 +24,6 @@ if __name__ == '__main__':
     ax.set_xlabel(r"Re($\omega$)")
     ax.set_ylabel(r"Im($\omega$)")
 
-    plt.show()
+    save = "output/figures/spectrum.png"
+    fig.savefig(save)
+    print(">>         figure saved to {}".format(save))

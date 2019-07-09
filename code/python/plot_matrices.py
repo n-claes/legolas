@@ -48,43 +48,52 @@ def reduce_size(rows, cols, omegas):
     return rows_new, cols_new, moduli_new
 
 
-def plot_matrix(rows, cols, moduli, title=None):
-
-    fig, ax = plt.subplots(1)
+def plot_matrix(fig, ax, rows, cols, moduli, idx=0, title=None):
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
     max_idx = max(rows)
     # Major ticks every 16, minor ticks every 8
     major_ticks = np.arange(0, max_idx + 32, 32)
     minor_ticks = np.arange(0, max_idx + 16, 16)
 
     # Set ticks
-    ax.set_xticks(major_ticks)
-    ax.set_xticks(minor_ticks, minor=True)
-    ax.set_yticks(major_ticks)
-    ax.set_yticks(minor_ticks, minor=True)
+    ax[idx].set_xticks(major_ticks)
+    ax[idx].set_xticks(minor_ticks, minor=True)
+    ax[idx].set_yticks(major_ticks)
+    ax[idx].set_yticks(minor_ticks, minor=True)
     # Set grid
-    ax.grid(which='minor', linestyle="dotted", color="grey", alpha=0.3)
-    ax.grid(which='major', linestyle="dotted", color="grey", alpha=0.5)
+    ax[idx].grid(which='minor', linestyle="dotted", color="grey", alpha=0.3)
+    ax[idx].grid(which='major', linestyle="dotted", color="grey", alpha=0.5)
 
-    im = ax.scatter(rows, cols, s=3, c=moduli, cmap='jet')
-    ax.invert_yaxis()
+    im = ax[idx].scatter(rows, cols, s=16, c=moduli, cmap='jet')
+    ax[idx].invert_yaxis()
 
     if title is not None:
-        ax.set_title(title)
+        ax[idx].set_title(title)
+    ax[idx].set_aspect("equal")
 
-    plt.colorbar(im)
+    divider = make_axes_locatable(ax[idx])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+
+    plt.colorbar(im, cax=cax)
 
 
 if __name__ == '__main__':
     filenameA = "output/matrix_A.txt"
     filenameB = "output/matrix_B.txt"
 
+    print(">> PYTHON: Plotting matrices...")
+
     filenames = [filenameA, filenameB]
     titles = ["Matrix A", "Matrix B"]
+
+    fig, ax = plt.subplots(1, 2, figsize=(16, 8))
 
     for filename in filenames:
         idx = filenames.index(filename)
         rows, cols, omegas = read_file(filename)
         rows, cols, moduli = reduce_size(rows, cols, omegas)
-        plot_matrix(rows, cols, moduli, title=titles[idx])
+        plot_matrix(fig, ax, rows, cols, moduli, idx=idx, title=titles[idx])
 
-    plt.show()
+    save = "output/figures/matrices.png"
+    fig.savefig(save)
+    print(">>         figure saved to {}".format(save))
