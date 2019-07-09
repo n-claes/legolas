@@ -60,7 +60,6 @@ contains
   !> Initialises the equilibrium by allocating all equilibrium arrays and
   !! setting them to zero.
   subroutine initialise_equilibrium()
-
     allocate(rho0_eq(gauss_gridpts))
     allocate(T0_eq(gauss_gridpts))
     allocate(B02_eq(gauss_gridpts))
@@ -76,7 +75,6 @@ contains
     allocate(heat_loss_eq(gauss_gridpts))
 
     allocate(eta_eq(gauss_gridpts))
-
 
     rho0_eq = 0.0d0
     T0_eq   = 0.0d0
@@ -97,12 +95,6 @@ contains
     k2 = 1.0d0
     k3 = 1.0d0
 
-    !! Obtain pre-coded equililbria
-    call set_equilibrium()
-
-    !! Calculate total magnetic field
-    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
-
   end subroutine initialise_equilibrium
 
   !> Determines which pre-coded equilibrium configuration has to be loaded.
@@ -112,6 +104,7 @@ contains
     use mod_radiative_cooling, only: initialise_radiative_cooling
     use mod_thermal_conduction, only: get_kappa_para, get_kappa_perp
     use mod_resistivity, only: get_eta
+    use mod_equilibrium_derivatives
 
     if (use_precoded) then
       if (equilibrium_type == "adiabatic homogeneous") then
@@ -135,6 +128,9 @@ contains
       write(*, *) "Not using precoded equilibrium."
 
     end if
+
+    !! Calculate total magnetic field
+    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
 
     !! Enable additional physics if defined in the above configuration
     if (external_gravity) then

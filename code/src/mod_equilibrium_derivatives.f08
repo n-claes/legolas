@@ -60,18 +60,10 @@ module mod_equilibrium_derivatives
   !> Double derivative B02
   real(dp), allocatable       :: dd_B02_dr(:)
 
-  private :: get_default_derivatives
-  private :: get_flow_derivatives
-  private :: get_conduction_derivatives
-  private :: get_cooling_derivatives
-  private :: get_resistivity_derivatives
-
-
 contains
 
   !> Allocates and initialises all equilibrium derivatives arrays.
   subroutine initialise_equilibrium_derivatives()
-    use mod_radiative_cooling
     allocate(d_rho0_dr(gauss_gridpts))
     allocate(d_rB02_dr(gauss_gridpts))
     allocate(d_B02_r_dr(gauss_gridpts))
@@ -115,61 +107,32 @@ contains
     dd_B03_dr  = 0.0d0
     dd_B02_dr  = 0.0d0
 
-    if (equilibrium_type == "Suydam cluster modes") then
-      ! TODO
-      return
-    else if (equilibrium_type == "Kelvin-Helmholtz") then
-      ! TODO
-      return
-    else
-      call get_default_derivatives()
-      if (flow) then
-        call get_flow_derivatives()
-      end if
-      if (thermal_conduction) then
-        call get_conduction_derivatives()
-      end if
-      if (radiative_cooling) then
-        call get_cooling_derivatives
-      end if
-      if (resistivity) then
-        call get_resistivity_derivatives()
-      end if
-    end if
-
   end subroutine initialise_equilibrium_derivatives
-
-  !> Sets the default arrays, that is, the ones that are always included.
-  subroutine get_default_derivatives()
-    d_rho0_dr  = 0.0d0
-    d_rB02_dr  = 0.0d0
-    d_B02_r_dr = 0.0d0
-    d_B03_dr   = 0.0d0
-    d_T0_dr    = 0.0d0
-    d_B02_dr   = 0.0d0
-  end subroutine get_default_derivatives
-
-  !> Sets the flow arrays, if flow is enabled
-  subroutine get_flow_derivatives()
-    return
-  end subroutine get_flow_derivatives
 
   !> Calculates the derivative thermal conduction arrays,
   !! if conduction is enabled.
-  subroutine get_conduction_derivatives()
-    use mod_equilibrium
+  !! @param[in] T0_eq   Equilibrium temperature
+  !! @param[in] rho0_eq Equilibrium density
+  !! @param[in] B0_eq   Equilibrium magnetic field
+  subroutine set_conduction_derivatives(T0_eq, rho0_eq, B0_eq)
     use mod_thermal_conduction
+
+    real(dp), intent(in)    :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
+                               B0_eq(gauss_gridpts)
+
     call get_dkappa_perp_drho(T0_eq, rho0_eq, B0_eq, d_tc_perp_eq_drho)
     call get_dkappa_perp_dT(T0_eq, rho0_eq, B0_eq, d_tc_perp_eq_dT)
     call get_dkappa_perp_dB2(T0_eq, rho0_eq, B0_eq, d_tc_perp_eq_dB2)
-  end subroutine get_conduction_derivatives
+  end subroutine set_conduction_derivatives
 
   !> Calculates the derivative radiative cooling arrays, if cooling is enabled.
-  subroutine get_cooling_derivatives()
-    use mod_equilibrium
+  !! @param[in] T0_eq   Equilibrium temperature
+  !! @param[in] rho0_eq Equilibrium density
+  subroutine set_cooling_derivatives(T0_eq, rho0_eq)
     use mod_radiative_cooling
 
-    real(dp)            :: d_lambda_dT(gauss_gridpts)
+    real(dp), intent(in) :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts)
+    real(dp)             :: d_lambda_dT(gauss_gridpts)
 
     !! dL/dT = rho0 * d_lambda_dT (where lambda(T) = cooling curve)
     call get_dLambdadT(T0_eq, d_lambda_dT)
@@ -178,16 +141,18 @@ contains
     !! dL/drho = lambda(T)
     call get_Lambda(T0_eq, d_L_drho)
 
-  end subroutine get_cooling_derivatives
+  end subroutine set_cooling_derivatives
 
   !> Calculates the derivative resistivity arrays, if resistivity is enabled.
-  subroutine get_resistivity_derivatives()
-    use mod_equilibrium, only: T0_eq
+  !! @param[in] T0_eq   Equilibrium temperature
+  subroutine set_resistivity_derivatives(T0_eq)
     use mod_resistivity
+
+    real(dp), intent(in)  :: T0_eq(gauss_gridpts)
 
     call get_deta_dT(T0_eq, d_eta_dT)
 
-  end subroutine get_resistivity_derivatives
+  end subroutine set_resistivity_derivatives
 
 
   !> Cleaning routine, deallocates all arrays in this module.

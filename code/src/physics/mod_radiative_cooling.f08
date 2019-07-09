@@ -167,7 +167,7 @@ contains
   !! @param[out] dLambdadT  Interpolated derivative of lambda
   !!                        for every temperature in the T0 array
   subroutine get_dLambdadT(T0, dLambdadT)
-    real(dp), intent(inout)  :: T0(gauss_gridpts)
+    real(dp), intent(in)     :: T0(gauss_gridpts)
     real(dp), intent(out)    :: dLambdadT(gauss_gridpts)
     integer                  :: idx, i
 

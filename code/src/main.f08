@@ -41,23 +41,25 @@ contains
   subroutine initialisation()
     use mod_input, only: read_parfile
     use mod_grid, only: initialise_grid
-    use mod_equilibrium, only: initialise_equilibrium
+    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
 
     call read_parfile()
 
+    ! Allocate matrices
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
     allocate(omega(matrix_gridpts))
 
     ! Initialise grid
     call initialise_grid()
-
     ! Initialise equilibrium
     call initialise_equilibrium()
-
     ! Initialise equilibrium derivatives
     call initialise_equilibrium_derivatives()
+
+    ! Set equilibrium
+    call set_equilibrium()
 
   end subroutine initialisation
 
