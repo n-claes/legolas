@@ -200,19 +200,17 @@ contains
     real(dp)                    :: drB02, dT0, dB03
     real(dp)                    :: dtc_perp_dT, dtc_perp_drho, dtc_perp_dB2
 
-    !! \TODO: should we use 'grid' here for boundaries or 'grid_gauss'??
-    !!        Due to the gaussian weights, grid(1) and grid_gauss(1) are
-    !!        slightly off (approx 0.006). For now we use grid as edges.
 
+    !! \note: for the boundaries we require the GRID, not grid_gauss.
     if (edge == 'l_edge') then
       r_lo = grid(1)
       r_hi = grid(2)
-      r    = grid_gauss(1)              ! \TODO: or equal to r_lo?
+      r    = r_lo
       idx  = 1
     else if (edge == "r_edge") then
       r_lo = grid(gridpts-1)
       r_hi = grid(gridpts)
-      r    = grid_gauss(gauss_gridpts)  ! \TODO: or equal to r_hi?
+      r    = r_hi
       idx  = gauss_gridpts
     else
       write(*, *) "Wrong edge passed to natural boundaries routine"
