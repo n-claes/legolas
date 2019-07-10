@@ -51,7 +51,6 @@ contains
     write(*, *) "===== RUNNING TESTS ======"
     write(*, *) "=========================="
     !! Set global variables
-    call initialise_variables()
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -449,9 +448,11 @@ contains
 
     ! initialise
     write(*, *) "Testing adiabatic homogeneous medium"
-    equilibrium_type = "adiabatic homogeneous"
+    use_precoded = .true.
+    equilibrium_type = "Adiabatic homogeneous"
     call initialise_equilibrium()
     call initialise_equilibrium_derivatives()
+    call set_equilibrium()
     call construct_B(mat_B)
     call construct_A(mat_A)
     write(*, *) "Testing if matrix B is block-tridiagonal..."
@@ -474,9 +475,11 @@ contains
 
     ! initialise
     write(*, *) "Testing Suydan cluster modes"
+    use_precoded = .true.
     equilibrium_type = "Suydam cluster modes"
     call initialise_equilibrium()
     call initialise_equilibrium_derivatives()
+    call set_equilibrium()
     call construct_B(mat_B)
     call construct_A(mat_A)
     write(*, *) "Testing if matrix B is block-tridiagonal..."
@@ -499,9 +502,11 @@ contains
 
     ! initialise
     write(*, *) "Testing Kelvin-Helmholtz"
+    use_precoded = .true.
     equilibrium_type = "Kelvin-Helmholtz"
     call initialise_equilibrium()
     call initialise_equilibrium_derivatives()
+    call set_equilibrium()
     call construct_B(mat_B)
     call construct_A(mat_A)
     write(*, *) "Testing if matrix B is block-tridiagonal..."
