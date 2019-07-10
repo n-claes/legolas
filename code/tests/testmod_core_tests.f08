@@ -1,4 +1,4 @@
-program core_tests
+module testmod_core_tests
   use, intrinsic  ::  ieee_arithmetic
   use mod_global_variables
   use testmod_assert
@@ -11,45 +11,20 @@ program core_tests
   use mod_solvers
   implicit none
 
-  integer             :: test_gridpts
+  integer, parameter  :: test_gridpts = 4
 
   integer             :: successes
   integer             :: fails
   integer             :: total
   logical             :: bool
 
-  test_gridpts = 4
-
-  call init()
-
-  !! Basic tests, grid etc.
-  call test_grid_carth()
-  call test_grid_cyl()
-
-  !! Tests for matrix routines
-  call test_invert_diagonal_matrix()
-  call test_invert_matrix()
-  call test_matrix_multiplication()
-  call test_matrix_multiplication_blas()
-  call test_QR()
-
-  !! Tests for the subblock routines
-  call test_subblock()
-
-  !! Tests the different pre-implemented equilibrium configurations
-  call test_equilibria()
-
-
-
-  call finish()
-
 contains
 
   !> Initialise test variables.
-  subroutine init()
-    write(*, *) "=========================="
-    write(*, *) "===== RUNNING TESTS ======"
-    write(*, *) "=========================="
+  subroutine init_core()
+    write(*, *) "==============================="
+    write(*, *) "===== RUNNING CORE TESTS ======"
+    write(*, *) "==============================="
     !! Set global variables
     flow = .false.
     radiative_cooling = .false.
@@ -61,6 +36,7 @@ contains
     x_start = 0.0d0
     x_end   = 1.0d0
     call set_gridpts(test_gridpts)
+    call set_gamma(5.0d0 / 3.0d0)
 
     successes = 0
     fails     = 0
@@ -74,7 +50,7 @@ contains
     write(*, *) "------------------------------------------------"
     write(*, *) ""
 
-  end subroutine init
+  end subroutine init_core
 
 
   !> Checks a given test, used for overview and console output.
@@ -91,15 +67,44 @@ contains
 
 
   !> Wraps up the test script.
-  subroutine finish()
+  subroutine finish_core()
+    call grid_clean()
+    call equilibrium_clean()
+    call equilibrium_derivatives_clean()
     write(*, *) ""
-    write(*, *) "=========================="
-    write(*, *) "===== FINISHED TESTS ====="
-    write(*, *) "=========================="
-    write(*, *) "Total tests     : ", total
-    write(*, *) "Tests succeeded : ", successes
-    write(*, *) "Tests failed    : ", fails
-  end subroutine finish
+    write(*, *) "==============================="
+    write(*, *) "===== FINISHED CORE TESTS ====="
+    write(*, *) "==============================="
+    write(*, *) "Total core tests     : ", total
+    write(*, *) "Core tests succeeded : ", successes
+    write(*, *) "Core tests failed    : ", fails
+    write(*, *) "------------------------------------------------"
+    write(*, *) ""
+  end subroutine finish_core
+
+
+  subroutine run_core_tests()
+    !! Basic tests, grid etc.
+    call test_grid_carth()
+    call test_grid_cyl()
+
+    !! Tests for matrix routines
+    call test_invert_diagonal_matrix()
+    call test_invert_matrix()
+    call test_matrix_multiplication()
+    call test_matrix_multiplication_blas()
+    call test_QR()
+
+    !! Tests for the subblock routines
+    call test_subblock()
+
+    !! Tests the different pre-implemented equilibrium configurations
+    call test_equilibria()
+  end subroutine run_core_tests
+
+
+
+
 
 
   !> Tests the Cartesian grid begin and end points
@@ -709,4 +714,4 @@ contains
     call check_test()
   end subroutine test_A_nan
 
-end program core_tests
+end module testmod_core_tests

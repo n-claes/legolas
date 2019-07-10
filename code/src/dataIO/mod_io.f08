@@ -21,9 +21,33 @@ module mod_io
 
 contains
 
-  subroutine save_eigenvalues(omega, filenameW)
+  subroutine open_file(file_no, filename, append)
+    integer, intent(in)          :: file_no
+    character(len=*), intent(in) :: filename
+    logical, intent(in)          :: append
+
+    logical                      :: file_present
+
+    if (append) then
+      inquire(file=filename, exist=file_present)
+
+      if (file_present) then
+        open(file_no, file=filename, status='old', position='append', &
+             action='write')
+      else
+        open(file_no, file=filename, status='new', action='write')
+      end if
+    else
+      open(file_no, file=filename, status='unknown')
+    end if
+  end subroutine open_file
+
+
+
+  subroutine save_eigenvalues(omega, filenameW, append)
     complex(dp), intent(in)      :: omega(matrix_gridpts)
     character(len=*), intent(in) :: filenameW
+    logical, intent(in)          :: append
     integer                      :: i
 
     character(30)                :: w_char_r, w_char_i
@@ -31,9 +55,7 @@ contains
 
     filenameW_out = trim("output/" // trim(filenameW) // ".txt")
 
-    write(*, *) "Writing eigenvalues to file..."
-
-    open (w_output, file=filenameW_out, status='unknown')
+    call open_file(w_output, filenameW_out, append)
 
     do i = 1, matrix_gridpts
       ! Write normalised output
@@ -55,9 +77,7 @@ contains
 
     filenameCFG_out = trim("output/" // trim(filenameCFG) // ".txt")
 
-    write(*, *) "Writing configuration to file..."
-
-    open(config, file=filenameCFG_out, status='unknown')
+    call open_file(config, filenameCFG_out, .false.)
 
     write(config, *) "Equilibrium type   : ", equilibrium_type
 
@@ -135,10 +155,8 @@ contains
     filenameA_out = trim("output/" // trim(filenameA) // ".txt")
     filenameB_out = trim("output/" // trim(filenameB) // ".txt")
 
-    write(*, *) "Writing matrices to file..."
-
-    open(mat_A_out, file=filenameA_out, status='unknown')
-    open(mat_B_out, file=filenameB_out, status='unknown')
+    call open_file(mat_A_out, filenameA_out, .false.)
+    call open_file(mat_B_out, filenameB_out, .false.)
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts

@@ -169,8 +169,8 @@ contains
     use mod_grid
     use mod_physical_constants
 
-    k2 = 2*dpi
-    k3 = 2*dpi
+    k2 = 0.0d0
+    k3 = dpi
 
     geometry = "Cartesian"
     flow = .false.
@@ -182,7 +182,7 @@ contains
     !! Parameters
     rho0_eq = 1.0d0
     T0_eq   = 1.0d0
-    B02_eq  = 1.0d0
+    B02_eq  = 0.0d0
     B03_eq  = 1.0d0
 
   end subroutine adiabatic_homo_eq

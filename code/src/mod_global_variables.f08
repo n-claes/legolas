@@ -24,6 +24,9 @@ module mod_global_variables
   !> Default length for strings
   integer, parameter :: str_len = 125
 
+  !> Values smaller than this are forced to zero
+  real(dp), parameter :: dp_LIMIT = 1.0d-12
+
   !! Physics parameters
   !> Complex number
   complex(dp), parameter    :: ic = (0.0d0, 1.0d0)
