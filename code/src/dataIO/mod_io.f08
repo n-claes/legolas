@@ -21,15 +21,19 @@ module mod_io
 
 contains
 
-  subroutine save_eigenvalues(omega)
-    complex(dp), intent(in) :: omega(matrix_gridpts)
-    integer                 :: i
+  subroutine save_eigenvalues(omega, filenameW)
+    complex(dp), intent(in)      :: omega(matrix_gridpts)
+    character(len=*), intent(in) :: filenameW
+    integer                      :: i
 
-    character(30)           :: w_char_r, w_char_i
+    character(30)                :: w_char_r, w_char_i
+    character(str_len)           :: filenameW_out
+
+    filenameW_out = trim("output/" // trim(filenameW) // ".txt")
 
     write(*, *) "Writing eigenvalues to file..."
 
-    open (w_output, file='output/eigenvalues.txt', status='unknown')
+    open (w_output, file=filenameW_out, status='unknown')
 
     do i = 1, matrix_gridpts
       ! Write normalised output
@@ -43,12 +47,17 @@ contains
 
   end subroutine save_eigenvalues
 
-  subroutine save_config()
-    character(20)   :: char
+  subroutine save_config(filenameCFG)
+    character(len=*), intent(in)  :: filenameCFG
+
+    character(20)      :: char
+    character(str_len) :: filenameCFG_out
+
+    filenameCFG_out = trim("output/" // trim(filenameCFG) // ".txt")
 
     write(*, *) "Writing configuration to file..."
 
-    open(config, file='output/config.txt', status='unknown')
+    open(config, file=filenameCFG_out, status='unknown')
 
     write(config, *) "Equilibrium type   : ", equilibrium_type
 
@@ -108,9 +117,12 @@ contains
     close(config)
   end subroutine save_config
 
-  subroutine save_matrices(matrix_A, matrix_B)
+  subroutine save_matrices(matrix_A, matrix_B, filenameA, filenameB)
     complex(dp), intent(in)   :: matrix_A(matrix_gridpts, matrix_gridpts)
     real(dp), intent(in)      :: matrix_B(matrix_gridpts, matrix_gridpts)
+    character(len=*), intent(in)  :: filenameA, filenameB
+
+    character(len=str_len)    :: filenameA_out, filenameB_out
 
     integer                   :: i, j
     character(30)             :: char_A_r, char_A_i, char_B
@@ -120,10 +132,13 @@ contains
       return
     end if
 
+    filenameA_out = trim("output/" // trim(filenameA) // ".txt")
+    filenameB_out = trim("output/" // trim(filenameB) // ".txt")
+
     write(*, *) "Writing matrices to file..."
 
-    open(mat_A_out, file='output/matrix_A.txt', status='unknown')
-    open(mat_B_out, file='output/matrix_B.txt', status='unknown')
+    open(mat_A_out, file=filenameA_out, status='unknown')
+    open(mat_B_out, file=filenameB_out, status='unknown')
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
