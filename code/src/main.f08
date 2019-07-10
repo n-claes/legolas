@@ -100,6 +100,7 @@ contains
 
     deallocate(matrix_A)
     deallocate(matrix_B)
+    deallocate(omega)
 
     call grid_clean
     call equilibrium_clean

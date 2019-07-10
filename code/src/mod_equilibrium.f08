@@ -301,21 +301,39 @@ contains
 
   !> Cleaning routine, deallocates all arrays in this module.
   subroutine equilibrium_clean()
-    deallocate(rho0_eq)
-    deallocate(T0_eq)
-    deallocate(B02_eq)
-    deallocate(B03_eq)
-    deallocate(B0_eq)
-
-    deallocate(v02_eq)
-    deallocate(v03_eq)
-
-    deallocate(tc_para_eq)
-    deallocate(tc_perp_eq)
-
-    deallocate(heat_loss_eq)
-
-    deallocate(eta_eq)
+    if (allocated(rho0_eq)) then
+      deallocate(rho0_eq)
+    end if
+    if (allocated(T0_eq)) then
+      deallocate(T0_eq)
+    end if
+    if (allocated(B02_eq)) then
+      deallocate(B02_eq)
+    end if
+    if (allocated(B03_eq)) then
+      deallocate(B03_eq)
+    end if
+    if (allocated(B0_eq)) then
+      deallocate(B0_eq)
+    end if
+    if (allocated(v02_eq)) then
+      deallocate(v02_eq)
+    end if
+    if (allocated(v03_eq)) then
+      deallocate(v03_eq)
+    end if
+    if (allocated(tc_para_eq)) then
+      deallocate(tc_para_eq)
+    end if
+    if (allocated(tc_perp_eq)) then
+      deallocate(tc_perp_eq)
+    end if
+    if (allocated(heat_loss_eq)) then
+      deallocate(heat_loss_eq)
+    end if
+    if (allocated(eta_eq)) then
+      deallocate(eta_eq)
+    end if
 
   end subroutine equilibrium_clean
 
