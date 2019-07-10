@@ -85,8 +85,11 @@ contains
   subroutine save_solutions()
     use mod_io
 
-    call save_eigenvalues(omega, "eigenvalues")
+    write(*, *) "Writing eigenvalues to file..."
+    call save_eigenvalues(omega, "eigenvalues", .false.)
+    write(*, *) "Writing configuration to file..."
     call save_config("config")
+    write(*, *) "Writing matrices to file..."
     call save_matrices(matrix_A, matrix_B, "matrix_A", "matrix_B")
     call plot_results()
   end subroutine save_solutions
