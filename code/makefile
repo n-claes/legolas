@@ -26,6 +26,7 @@ TEST_OUT := run_tests.exe
 objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_physical_constants.o					\
 								mod_global_variables.o 						\
+								mod_small_values.o								\
 								mod_input.o												\
 								mod_resistivity.o									\
 								mod_gravity.o											\
@@ -50,7 +51,9 @@ main_objects := $(addprefix $(BINDIR)/,						\
 
 test_objects := $(addprefix $(BINDIR)/,		     		\
 								testmod_assert.o									\
-								core_tests.o											\
+								testmod_core_tests.o							\
+								testmod_homogeneous.o							\
+								tests_main.o											\
 								)
 
 all: compile_modules		  \
