@@ -85,9 +85,9 @@ contains
   subroutine save_solutions()
     use mod_io
 
-    call save_eigenvalues(omega)
-    call save_config()
-    call save_matrices(matrix_A, matrix_B)
+    call save_eigenvalues(omega, "eigenvalues")
+    call save_config("config")
+    call save_matrices(matrix_A, matrix_B, "matrix_A", "matrix_B")
     call plot_results()
   end subroutine save_solutions
 
