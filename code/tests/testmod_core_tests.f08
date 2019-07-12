@@ -85,10 +85,12 @@ contains
 
   subroutine run_core_tests()
     !! Basic tests, grid etc.
+    call print_separation("Testing grids")
     call test_grid_carth()
     call test_grid_cyl()
 
     !! Tests for matrix routines
+    call print_separation("Testing matrix routines")
     call test_invert_diagonal_matrix()
     call test_invert_matrix()
     call test_matrix_multiplication()
@@ -99,8 +101,19 @@ contains
     call test_subblock()
 
     !! Tests the different pre-implemented equilibrium configurations
+    call print_separation("Testing different equilibrium configurations")
     call test_equilibria()
   end subroutine run_core_tests
+
+  subroutine print_separation(toPrint)
+    character(len=*), intent(in)  :: toPrint
+
+    write(*, *) ""
+    write(*, *) "------------------------------------------------"
+    write(*, *) toPrint
+    write(*, *) "------------------------------------------------"
+    write(*, *) ""
+  end subroutine print_separation
 
 
 
@@ -444,12 +457,6 @@ contains
   subroutine test_equilibria()
     real(dp)        :: mat_B(matrix_gridpts, matrix_gridpts)
     complex(dp)     :: mat_A(matrix_gridpts, matrix_gridpts)
-
-    write(*, *) ""
-    write(*, *) "------------------------------------------------"
-    write(*, *) "Testing the different equilibrium configurations"
-    write(*, *) "------------------------------------------------"
-    write(*, *) ""
 
     ! initialise
     write(*, *) "Testing adiabatic homogeneous medium"
