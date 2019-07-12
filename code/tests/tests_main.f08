@@ -12,6 +12,7 @@ program tests_main
   call init_homogeneous()
   call run_homogeneous_test()
   call finish_homogeneous()
+  call execute_command_line("python python/test_homogeneous.py")
 
 
 

@@ -13,7 +13,7 @@ module testmod_homogeneous
   complex(dp), allocatable     :: mat_A(:, :)
   complex(dp), allocatable     :: omega(:)
 
-  integer, parameter           :: gridpts_homo = 11
+  integer, parameter           :: gridpts_homo = 31
   real(dp), parameter          :: eps = 1.0d-14
 
 
@@ -69,6 +69,8 @@ contains
     call construct_B(mat_B)
     call construct_A(mat_A)
     call solve_QR(mat_A, mat_B, omega)
+
+    call save_eigenvalues(omega, "test_homogeneous_code", .false.)
 
     !! Rely on analytical solution and quantization of wave number,
     !! kx will be quantized according to kx = n*pi / L
@@ -150,7 +152,7 @@ contains
         append = .true.
       end if
 
-      call save_eigenvalues(omega_theory, "omega_test_homo", append)
+      call save_eigenvalues(omega_theory, "test_homogeneous_test", append)
 
     end do
 
