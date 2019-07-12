@@ -53,7 +53,8 @@ contains
 
     !! Matrix multiplication B^{-1} * A
     !! \TODO: use matmul for now until BLAS routine checked
-    call get_B_invA_matmul(B_inv, A, B_invA)
+    !call get_B_invA_matmul(B_inv, A, B_invA)
+    call get_B_invA(B_inv, A, B_invA)
 
     !! Calculate eigenvectors or not ('N' is no, 'V' is yes)
     jobvl = 'V'
@@ -154,10 +155,11 @@ contains
 
     integer                   :: K, ldB_inv, ldA, ldB_invA
     complex(dp)               :: alpha, beta
+    complex(dp)               :: B_inv_cplx(matrix_gridpts, matrix_gridpts)
 
-    !! \TODO: THIS ROUTINE IS WRONG! matmul and manual implementation give the
-    !!        same result, and differs from this one!!
-
+    !! 'zgemm' performs one of the matrix-matrix operations
+    !! C := alpha*op(A)*op(B) + beta*C
+    !! In this case, alpha = 1, beta = 0, op = 'N' (so no transp. or conj.)
 
     K   = matrix_gridpts
     ldB_inv  = K
@@ -167,10 +169,11 @@ contains
     alpha = (1.0d0, 0.0d0)
     beta  = (0.0d0, 0.0d0)
 
-    !! 'zgemm' performs one of the matrix-matrix operations
-    !! C := alpha*op(A)*op(B) + beta*C
-    !! In this case, alpha = 1, beta = 0, op = 'N' (so no transp. or conj.)
-    call zgemm('N', 'N', K, K, K, alpha, B_inv, ldB_inv, A, ldA, &
+    !! The input matrix B HAS TO BE COMPLEX (in our case it is real).
+    !! Hence convert it to a complex matrix, otherwise results are wrong.
+    B_inv_cplx = B_inv * (1.0d0, 0.0d0)
+
+    call zgemm('N', 'N', K, K, K, alpha, B_inv_cplx, ldB_inv, A, ldA, &
                beta, B_invA, ldB_invA)
 
   end subroutine get_B_invA
