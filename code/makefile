@@ -27,7 +27,7 @@ TEST_OUT := run_tests.exe
 objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_physical_constants.o					\
 								mod_global_variables.o 						\
-								mod_small_values.o								\
+								mod_check_values.o								\
 								mod_input.o												\
 								mod_resistivity.o									\
 								mod_gravity.o											\

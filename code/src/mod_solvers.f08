@@ -24,7 +24,7 @@ contains
   !! @param[in] B   Matrix B in AX = wBX
   !! @param[out] omega  Array of size matrix_gridpts containing the eigenvalues
   subroutine solve_QR(A, B, omega)
-    use mod_small_values
+    use mod_check_values
 
     complex(dp), intent(in)  :: A(matrix_gridpts, matrix_gridpts)
     real(dp), intent(in)     :: B(matrix_gridpts, matrix_gridpts)
