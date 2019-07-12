@@ -455,91 +455,16 @@ contains
   !! - Matrices A and B must be block-tri-diagonal
   !! - Matrices A and B can not contain 'inf' or 'NaN' elements
   subroutine test_equilibria()
-    real(dp)        :: mat_B(matrix_gridpts, matrix_gridpts)
-    complex(dp)     :: mat_A(matrix_gridpts, matrix_gridpts)
-
-    ! initialise
-    write(*, *) "Testing adiabatic homogeneous medium"
     use_precoded = .true.
+
     equilibrium_type = "Adiabatic homogeneous"
-    call initialise_equilibrium()
-    call initialise_equilibrium_derivatives()
-    call set_equilibrium()
-    call construct_B(mat_B)
-    call construct_A(mat_A)
-    write(*, *) "Testing if matrix B is block-tridiagonal..."
-    call test_B_tridiag(mat_B)
-    write(*, *) "Testing if matrix B has 'inf' elements..."
-    call test_B_inf(mat_B)
-    write(*, *) "Testing if matrix B has 'NaN' elements..."
-    call test_B_nan(mat_B)
-    write(*, *) "Testing if matrix A is block-tridiagonal..."
-    call test_A_tridiag(mat_A)
-    write(*, *) "Testing if matrix A has 'inf' elements..."
-    call test_A_inf(mat_A)
-    write(*, *) "Testing if matrix A has 'NaN' elements..."
-    call test_A_nan(mat_A)
-    ! cleanup
-    call equilibrium_clean()
-    call equilibrium_derivatives_clean()
-    write(*, *) "------------------------------------------------"
-    write(*, *) ""
+    call test_one_equilibrium()
 
-    ! initialise
-    write(*, *) "Testing Suydan cluster modes"
-    use_precoded = .true.
     equilibrium_type = "Suydam cluster modes"
-    call initialise_equilibrium()
-    call initialise_equilibrium_derivatives()
-    call set_equilibrium()
-    call construct_B(mat_B)
-    call construct_A(mat_A)
-    write(*, *) "Testing if matrix B is block-tridiagonal..."
-    call test_B_tridiag(mat_B)
-    write(*, *) "Testing if matrix B has 'inf' elements..."
-    call test_B_inf(mat_B)
-    write(*, *) "Testing if matrix B has 'NaN' elements..."
-    call test_B_nan(mat_B)
-    write(*, *) "Testing if matrix A is block-tridiagonal..."
-    call test_A_tridiag(mat_A)
-    write(*, *) "Testing if matrix A has 'inf' elements..."
-    call test_A_inf(mat_A)
-    write(*, *) "Testing if matrix A has 'NaN' elements..."
-    call test_A_nan(mat_A)
-    ! cleanup
-    call equilibrium_clean()
-    call equilibrium_derivatives_clean()
-    write(*, *) "------------------------------------------------"
-    write(*, *) ""
+    call test_one_equilibrium()
 
-    ! initialise
-    write(*, *) "Testing Kelvin-Helmholtz"
-    use_precoded = .true.
     equilibrium_type = "Kelvin-Helmholtz"
-    call initialise_equilibrium()
-    call initialise_equilibrium_derivatives()
-    call set_equilibrium()
-    call construct_B(mat_B)
-    call construct_A(mat_A)
-    write(*, *) "Testing if matrix B is block-tridiagonal..."
-    call test_B_tridiag(mat_B)
-    write(*, *) "Testing if matrix B has 'inf' elements..."
-    call test_B_inf(mat_B)
-    write(*, *) "Testing if matrix B has 'NaN' elements..."
-    call test_B_nan(mat_B)
-    write(*, *) "Testing if matrix A is block-tridiagonal..."
-    call test_A_tridiag(mat_A)
-    write(*, *) "Testing if matrix A has 'inf' elements..."
-    call test_A_inf(mat_A)
-    write(*, *) "Testing if matrix A has 'NaN' elements..."
-    call test_A_nan(mat_A)
-    ! cleanup
-    call equilibrium_clean()
-    call equilibrium_derivatives_clean()
-    write(*, *) "------------------------------------------------"
-    write(*, *) ""
-
-
+    call test_one_equilibrium()
   end subroutine test_equilibria
 
 
@@ -555,6 +480,41 @@ contains
 
 
 
+
+  !> Tests one specific equilibrium, this requires that use_precoded is
+  !! already set to true, and equilibrium_type is set to one of the
+  !! pre-coded cases.
+  subroutine test_one_equilibrium()
+    complex(dp)    :: mat_A(matrix_gridpts, matrix_gridpts)
+    real(dp)       :: mat_B(matrix_gridpts, matrix_gridpts)
+
+    call initialise_equilibrium()
+    call initialise_equilibrium_derivatives()
+    call set_equilibrium()
+    call construct_B(mat_B)
+    call construct_A(mat_A)
+    write(*, *) "Testing if matrix B is block-tridiagonal..."
+    call test_B_tridiag(mat_B)
+    write(*, *) "Testing if matrix B has 'inf' elements..."
+    call test_B_inf(mat_B)
+    write(*, *) "Testing if matrix B has 'NaN' elements..."
+    call test_B_nan(mat_B)
+    write(*, *) "Testing if matrix B is singular..."
+    call test_B_singular(mat_B)
+    write(*, *) "Testing if matrix A is block-tridiagonal..."
+    call test_A_tridiag(mat_A)
+    write(*, *) "Testing if matrix A has 'inf' elements..."
+    call test_A_inf(mat_A)
+    write(*, *) "Testing if matrix A has 'NaN' elements..."
+    call test_A_nan(mat_A)
+    write(*, *) "Testing if matrix A is singular..."
+    call test_A_singular(mat_A)
+    ! cleanup
+    call equilibrium_clean()
+    call equilibrium_derivatives_clean()
+    write(*, *) "------------------------------------------------"
+    write(*, *) ""
+  end subroutine test_one_equilibrium
 
 
 
@@ -720,5 +680,116 @@ contains
     end do
     call check_test()
   end subroutine test_A_nan
+
+  !> Tests if the matrix B is singular (row or column equal to zero)
+  subroutine test_B_singular(mat_B)
+    real(dp), intent(in)    :: mat_B(matrix_gridpts, matrix_gridpts)
+    integer                 :: i, j, counter
+
+    logical                 :: equal
+
+    counter = 0
+    equal   = .false.
+
+    !! Iterate over columns
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        call assert_real_equal(mat_B(i, j), 0.0d0, equal)
+        if (equal) then
+          counter = counter + 1
+        end if
+        if (counter == matrix_gridpts) then
+          bool = .false.  !! fail test
+          write(*, *) "    Matrix B is singular"
+          write(*, *) "    At least one zero row encountered"
+          write(*, *) "    Row: ", i
+          call check_test()
+          return
+        end if
+      end do
+      counter = 0
+    end do
+
+    counter = 0
+    equal   = .false.
+
+    !! Iterate over rows
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        call assert_real_equal(mat_B(j, i), 0.0d0, equal)
+        if (equal) then
+          counter = counter + 1
+        end if
+        if (counter == matrix_gridpts) then
+          bool = .false.  !! fail test
+          write(*, *) "    Matrix B is singular"
+          write(*, *) "    At least one zero column encountered"
+          write(*, *) "    Column: ", i
+          call check_test()
+          return
+        end if
+      end do
+      counter = 0
+    end do
+
+    bool = .true.
+    call check_test()
+  end subroutine test_B_singular
+
+  !> Tests if the matrix A is singular (row or column equal to zero)
+  subroutine test_A_singular(mat_A)
+    complex(dp), intent(in) :: mat_A(matrix_gridpts, matrix_gridpts)
+    integer                 :: i, j, counter
+
+    logical                 :: equal
+
+    counter = 0
+    equal   = .false.
+
+    !! Iterate over columns
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        call assert_complex_equal(mat_A(i, j), (0.0d0, 0.0d0), equal)
+        if (equal) then
+          counter = counter + 1
+        end if
+        if (counter == matrix_gridpts) then
+          bool = .false.  !! fail test
+          write(*, *) "    Matrix A is singular"
+          write(*, *) "    At least one zero row encountered"
+          write(*, *) "    Row: ", i
+          call check_test()
+          return
+        end if
+      end do
+      counter = 0
+    end do
+    stop
+
+    counter = 0
+    equal   = .false.
+
+    !! Iterate over rows
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        call assert_complex_equal(mat_A(j, i), (0.0d0, 0.0d0), equal)
+        if (equal) then
+          counter = counter + 1
+        end if
+        if (counter == matrix_gridpts) then
+          bool = .false.  !! fail test
+          write(*, *) "    Matrix A is singular"
+          write(*, *) "    At least one zero column encountered"
+          write(*, *) "    Column: ", i
+          call check_test()
+          return
+        end if
+      end do
+      counter = 0
+    end do
+
+    bool = .true.
+    call check_test()
+  end subroutine test_A_singular
 
 end module testmod_core_tests
