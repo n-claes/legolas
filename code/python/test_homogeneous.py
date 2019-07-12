@@ -29,7 +29,7 @@ if __name__ == '__main__':
     fig, ax = plt.subplots(1, figsize=(16,8))
 
     plot_spectrum(fig, ax, '.b', 0.5, file_code)
-    plot_spectrum(fig, ax, '.r', 0.3, file_test)
+    plot_spectrum(fig, ax, 'xr', 0.3, file_test)
     ax.set_xlabel(r"Re($\omega$)")
     ax.set_ylabel(r"Im($\omega$)")
 

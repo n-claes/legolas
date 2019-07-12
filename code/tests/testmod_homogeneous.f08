@@ -22,12 +22,6 @@ contains
   subroutine init_homogeneous()
     use_precoded = .true.
     equilibrium_type = "Adiabatic homogeneous"
-    !! Set global variables
-    flow = .false.
-    radiative_cooling = .false.
-    thermal_conduction = .false.
-    resistivity = .false.
-    external_gravity = .false.
 
     !! Set grid points
     x_start = 0.0d0
