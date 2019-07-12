@@ -19,6 +19,7 @@ BINDIR   := bin
 MODDIR   := mod
 
 TSTDIR   := tests
+OUTDIR   := output
 
 OUTPUT   := program.exe
 TEST_OUT := run_tests.exe
@@ -81,6 +82,10 @@ test_exec:
 $(BINDIR):
 	mkdir -p $(BINDIR)
 	mkdir -p $(MODDIR)
+	mkdir -p $(OUTDIR)
+	mkdir -p $(OUTDIR)/figures
+	mkdir -p $(OUTDIR)/tests
+	mkdir -p $(OUTDIR)/tests/figures
 
 # root modules
 $(BINDIR)/%.o: $(SRCDIR)/%.f08 | $(BINDIR)
@@ -103,6 +108,7 @@ clean:
 	rm -rf $(MODDIR)
 	rm -f $(OUTPUT)
 	rm -f $(TEST_OUT)
+	rm -rf $(OUTDIR)
 	make
 
 purge:
@@ -110,3 +116,4 @@ purge:
 	rm -rf $(MODDIR)
 	rm -f $(OUTPUT)
 	rm -f $(TEST_OUT)
+	rm -rf $(OUTDIR)

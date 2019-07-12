@@ -70,7 +70,7 @@ contains
     call construct_A(mat_A)
     call solve_QR(mat_A, mat_B, omega)
 
-    call save_eigenvalues(omega, "test_homogeneous_code", .false.)
+    call save_eigenvalues(omega, "tests/test_homogeneous_code", .false.)
 
     !! Rely on analytical solution and quantization of wave number,
     !! kx will be quantized according to kx = n*pi / L
@@ -152,7 +152,7 @@ contains
         append = .true.
       end if
 
-      call save_eigenvalues(omega_theory, "test_homogeneous_test", append)
+      call save_eigenvalues(omega_theory, "tests/test_homogeneous_test", append)
 
     end do
 

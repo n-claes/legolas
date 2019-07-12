@@ -95,5 +95,6 @@ if __name__ == '__main__':
         plot_matrix(fig, ax, rows, cols, moduli, idx=idx, title=titles[idx])
 
     save = "output/figures/matrices.png"
-    fig.savefig(save)
-    print(">>         figure saved to {}".format(save))
+    plt.show()
+    # fig.savefig(save)
+    # print(">>         figure saved to {}".format(save))
