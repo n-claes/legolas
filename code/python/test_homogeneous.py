@@ -18,8 +18,8 @@ def plot_spectrum(fig, ax, marker, opacity, file):
 
 
 if __name__ == '__main__':
-    filename_code = "output/test_homogeneous_code.txt"
-    filename_test = "output/test_homogeneous_test.txt"
+    filename_code = "output/tests/test_homogeneous_code.txt"
+    filename_test = "output/tests/test_homogeneous_test.txt"
     file_code = open(filename_code, 'r')
     file_test = open(filename_test, 'r')
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     ax.set_xlabel(r"Re($\omega$)")
     ax.set_ylabel(r"Im($\omega$)")
 
-    save = "output/figures/spectrum_TEST.png"
+    save = "output/tests/figures/spectrum_TEST.png"
     plt.show()
-    # fig.savefig(save)
-    # print(">>         figure saved to {}".format(save))
+    #fig.savefig(save)
+    #print(">>         figure saved to {}".format(save))

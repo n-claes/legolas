@@ -25,5 +25,6 @@ if __name__ == '__main__':
     ax.set_ylabel(r"Im($\omega$)")
 
     save = "output/figures/spectrum.png"
-    fig.savefig(save)
-    print(">>         figure saved to {}".format(save))
+    plt.show()
+    # fig.savefig(save)
+    # print(">>         figure saved to {}".format(save))
