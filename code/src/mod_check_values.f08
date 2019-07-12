@@ -1,4 +1,4 @@
-module mod_small_values
+module mod_check_values
   use mod_global_variables
   implicit none
 
@@ -26,4 +26,13 @@ contains
     end do
   end subroutine check_small_omega
 
-end module mod_small_values
+
+  subroutine remove_large_eigenvalues(omega)
+    complex(dp), intent(inout)  :: omega(matrix_gridpts)
+
+    !! \TODO: when changing to ZBIG in matrix A, remove these
+    !!        eigenvalues after?
+    return
+  end subroutine remove_large_eigenvalues
+
+end module mod_check_values
