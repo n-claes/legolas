@@ -95,7 +95,11 @@ contains
     deallocate(work)
     deallocate(rwork)
 
-    call check_small_omega(omega)
+    call check_small_values(omega)
+    if (write_eigenfunctions) then
+      call check_small_values_matrix(vl)
+      call check_small_values_matrix(vr)
+    end if
 
   end subroutine solve_QR
 

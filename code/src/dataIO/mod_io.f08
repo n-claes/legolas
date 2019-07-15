@@ -10,11 +10,14 @@ module mod_io
   integer, parameter  :: config              = 30
   integer, parameter  :: mat_a_out           = 40
   integer, parameter  :: mat_b_out           = 50
+  integer, parameter  :: eigenf_l_out        = 60
+  integer, parameter  :: eigenf_r_out        = 70
 
   character(8), parameter    :: form_e = '(e30.20)'
   character(8), parameter    :: form_f = '(f30.20)'
 
   character(8), parameter    :: form_eout = '(e20.10)'
+  !character(10), parameter   :: form_eout_long = '(e20.10e3)'
   character(8), parameter    :: form_fout = '(f20.10)'
 
   character(4), parameter    :: form_int  = '(i8)'
@@ -148,10 +151,6 @@ contains
     character(30)             :: char_A_r, char_A_i, char_B
     character(8)              :: char_idx1, char_idx2
 
-    if (.not. write_AB) then
-      return
-    end if
-
     filenameA_out = trim("output/" // trim(filenameA) // ".txt")
     filenameB_out = trim("output/" // trim(filenameB) // ".txt")
 
@@ -179,6 +178,48 @@ contains
     close(mat_A_out)
     close(mat_B_out)
   end subroutine save_matrices
+
+
+  subroutine save_eigenfunctions(vl, vr, filenameL, filenameR)
+    complex(dp), intent(in)      :: vl(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(in)      :: vr(matrix_gridpts, matrix_gridpts)
+    character(len=*), intent(in) :: filenameL, filenameR
+
+    character(len=str_len)       :: filenameL_out, filenameR_out
+
+    integer                      :: i, j
+    character(30)                :: char_l_r, char_l_i, char_r_r, char_r_i
+    character(8)                 :: char_idx1, char_idx2
+
+    filenameL_out = trim("output/" // trim(filenameL) // ".txt")
+    filenameR_out = trim("output/" // trim(filenameR) // ".txt")
+
+    call open_file(eigenf_l_out, filenameL_out, .false.)
+    call open_file(eigenf_r_out, filenameR_out, .false.)
+
+    do i = 1, matrix_gridpts
+      do j = 1, matrix_gridpts
+        write(char_idx1, form_int) i
+        write(char_idx2, form_int) j
+
+        write(char_l_r, form_eout) real(vl(i, j))
+        write(char_l_i, form_eout) aimag(vl(i, j))
+        write(char_r_r, form_eout) real(vr(i, j))
+        write(char_r_i, form_eout) aimag(vr(i, j))
+
+        write(eigenf_l_out, *) char_idx1, ",", &
+                               char_idx2, ",", &
+                               char_l_r, ",", char_l_i
+        write(eigenf_r_out, *) char_idx1, ",", &
+                               char_idx2, ",", &
+                               char_r_r, ",", char_r_i
+      end do
+    end do
+
+    close(eigenf_l_out)
+    close(eigenf_r_out)
+  end subroutine save_eigenfunctions
+
 
 
   subroutine plot_results()
