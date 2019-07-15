@@ -95,8 +95,14 @@ contains
     call save_eigenvalues(omega, "eigenvalues", .false.)
     write(*, *) "Writing configuration to file..."
     call save_config("config")
-    write(*, *) "Writing matrices to file..."
-    call save_matrices(matrix_A, matrix_B, "matrix_A", "matrix_B")
+    if (write_AB) then
+      write(*, *) "Writing matrices to file..."
+      call save_matrices(matrix_A, matrix_B, "matrix_A", "matrix_B")
+    end if
+    if (write_eigenfunctions) then
+      write(*, *) "Writing eigenfunctions to file..."
+      call save_eigenfunctions(eigenf_left, eigenf_right, "v_left", "v_right")
+    end if
     call plot_results()
   end subroutine save_solutions
 
