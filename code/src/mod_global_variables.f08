@@ -118,9 +118,10 @@ module mod_global_variables
   !! Data IO-related parameters
   !> Call python script when finishing to plot results
   logical, save             :: plot_when_finished
-
   !> Write matrices A and B to file when finished
   logical, save             :: write_AB
+  !> Write eigenfunctions to file when finished
+  logical, save             :: write_eigenfunctions
 
 contains
 

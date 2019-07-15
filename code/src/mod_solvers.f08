@@ -23,7 +23,11 @@ contains
   !! @param[in] A   Matrix A in AX = wBX
   !! @param[in] B   Matrix B in AX = wBX
   !! @param[out] omega  Array of size matrix_gridpts containing the eigenvalues
-  subroutine solve_QR(A, B, omega)
+  !! @param[out] vl The left eigenvectors, only calculated when
+  !!                write_eigenfunctions is .true., otherwise zero.
+  !! @param[out] vr The right eigenvectors, only calculated when
+  !!                write_eigenfunctions is .true., otherwise zero.
+  subroutine solve_QR(A, B, omega, vl, vr)
     use mod_check_values
 
     complex(dp), intent(in)  :: A(matrix_gridpts, matrix_gridpts)
@@ -32,11 +36,11 @@ contains
 
     !! Left eigenvector variables
     character                :: jobvl
-    complex(dp), allocatable :: vl(:, :)
+    complex(dp), intent(out) :: vl(matrix_gridpts, matrix_gridpts)
     integer                  :: ldvl
     !! Right eigenvector variables
     character                :: jobvr
-    complex(dp), allocatable :: vr(:, :)
+    complex(dp), intent(out) :: vr(matrix_gridpts, matrix_gridpts)
     integer                  :: ldvr
     !! Matrix variables
     integer                  :: N, ldB_invA
@@ -52,30 +56,23 @@ contains
     call invert_B(B, B_inv)
 
     !! Matrix multiplication B^{-1} * A
-    !! \TODO: use matmul for now until BLAS routine checked
     !call get_B_invA_matmul(B_inv, A, B_invA)
     call get_B_invA(B_inv, A, B_invA)
 
     !! Calculate eigenvectors or not ('N' is no, 'V' is yes)
-    jobvl = 'V'
-    jobvr = 'V'
+    if (write_eigenfunctions) then
+      jobvl = 'V'
+      jobvr = 'V'
+    else
+      jobvl = 'N'
+      jobvr = 'N'
+    end if
 
     !! Array dimensions
     N       = matrix_gridpts
     ldB_invA = N
-    if (jobvl == 'V') then
-      ldvl = N
-    else
-      ldvl = 1
-    end if
-    if (jobvr == 'V') then
-      ldvr = N
-    else
-      ldvr = 1
-    end if
-
-    allocate(vl(ldvl, N))
-    allocate(vr(ldvr, N))
+    ldvl    = N
+    ldvr    = N
 
     !! Size or work array
     lwork = 4*N
@@ -90,8 +87,11 @@ contains
       write(*, *) 'Value for info parameter: ', info
     end if
 
-    deallocate(vl)
-    deallocate(vr)
+    if (.not. write_eigenfunctions) then
+      vl = (0.0d0, 0.0d0)
+      vr = (0.0d0, 0.0d0)
+    end if
+
     deallocate(work)
     deallocate(rwork)
 
