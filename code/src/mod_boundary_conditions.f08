@@ -95,8 +95,10 @@ contains
     integer                     :: i
     complex(dp)                 :: unity
 
-    !! \TODO: LEDA sets diagonal elements to ZBIG instead of unity. Are these
-    !!        set to zero because of a vary large number??
+    !! LEDA sets diagonal elements to ZBIG instead of unity. This is
+    !! done to clearly indicate which additional eigenvalues are introduced
+    !! by forcing the boundary conditions. For now, these are set to zero
+    !! (so we introduce eigenvalues at 0).
     if (matrix == "B") then
       unity = (1.0d0, 0.0d0)
     else if (matrix == "A") then

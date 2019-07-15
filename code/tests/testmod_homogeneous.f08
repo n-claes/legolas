@@ -12,6 +12,8 @@ module testmod_homogeneous
   real(dp), allocatable        :: mat_B(:, :)
   complex(dp), allocatable     :: mat_A(:, :)
   complex(dp), allocatable     :: omega(:)
+  complex(dp), allocatable     :: vl(:, :)
+  complex(dp), allocatable     :: vr(:, :)
 
   integer, parameter           :: gridpts_homo = 31
   real(dp), parameter          :: eps = 1.0d-14
@@ -38,6 +40,8 @@ contains
     allocate(mat_B(matrix_gridpts, matrix_gridpts))
     allocate(mat_A(matrix_gridpts, matrix_gridpts))
     allocate(omega(matrix_gridpts))
+    allocate(vl(matrix_gridpts, matrix_gridpts))
+    allocate(vr(matrix_gridpts, matrix_gridpts))
   end subroutine init_homogeneous
 
   subroutine run_homogeneous_test()
@@ -49,6 +53,7 @@ contains
     real(dp)      :: mat_B_theory(8, 8)
 
     complex(dp)   :: omega_theory(8)
+    complex(dp)   :: vl_theory(8, 8), vr_theory(8, 8)
     complex(dp)   :: ic0
     real(dp)      :: k1, k2, k3, va, vs
     real(dp)      :: P0, T0, B03, rho0
@@ -62,7 +67,7 @@ contains
     !! Solve using the code itself
     call construct_B(mat_B)
     call construct_A(mat_A)
-    call solve_QR(mat_A, mat_B, omega)
+    call solve_QR(mat_A, mat_B, omega, vl, vr)
 
     call save_eigenvalues(omega, "tests/test_homogeneous_code", .false.)
 
@@ -126,7 +131,8 @@ contains
 
       ! make it complex
       mat_A_theory = mat_A_theory * (1.0d0, 0.0d0)
-      call solve_QR(mat_A_theory, mat_B_theory, omega_theory)
+      call solve_QR(mat_A_theory, mat_B_theory, omega_theory, vl_theory, &
+                    vr_theory)
 
       ! For spectrum plotting, force very small numbers to 0
       do i = 1, 8
@@ -156,6 +162,8 @@ contains
     deallocate(mat_B)
     deallocate(mat_A)
     deallocate(omega)
+    deallocate(vl)
+    deallocate(vr)
     write(*, *) "TEST COMPLETED"
     call grid_clean()
     call equilibrium_clean()

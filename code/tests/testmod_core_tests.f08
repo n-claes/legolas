@@ -339,6 +339,7 @@ contains
     real(dp)        :: mat_B(4, 4)
     complex(dp)     :: mat_A(4, 4)
     complex(dp)     :: omega(4), omega_sol(4), temp
+    complex(dp)     :: vl(4, 4), vr(4, 4)
     integer         :: i, j, minidx
     complex(dp)     :: ir
 
@@ -365,7 +366,7 @@ contains
                        2.0d0*ir,  0.0d0*ir, 0.0d0*ir, -1.0d0*ir/), &
                           shape(mat_A))
 
-    call solve_QR(mat_A, mat_B, omega)
+    call solve_QR(mat_A, mat_B, omega, vl, vr)
     omega_sol = (/ (-1.0d0, 0.0d0), (2.0d0, -3.0d0), &
                    ( 2.0d0, 3.0d0), (3.0d0,  0.0d0) /)
 

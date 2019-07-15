@@ -20,6 +20,10 @@ program esonas
   real(dp), allocatable     :: matrix_B(:, :)
   !> Solutions to the eigenvalue problem
   complex(dp), allocatable  :: omega(:)
+  !> Right eigenfunctions
+  complex(dp), allocatable  :: eigenf_right(:, :)
+  !> Left eigenfunctions
+  complex(dp), allocatable  :: eigenf_left(:, :)
 
   call initialisation()
 
@@ -50,6 +54,8 @@ contains
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
     allocate(omega(matrix_gridpts))
+    allocate(eigenf_right(matrix_gridpts, matrix_gridpts))
+    allocate(eigenf_left(matrix_gridpts, matrix_gridpts))
 
     ! Initialise grid
     call initialise_grid()
@@ -77,7 +83,7 @@ contains
   subroutine solve_eigenvalue_problem()
     use mod_solvers
 
-    call solve_QR(matrix_A, matrix_B, omega)
+    call solve_QR(matrix_A, matrix_B, omega, eigenf_left, eigenf_right)
 
   end subroutine solve_eigenvalue_problem
 
@@ -104,6 +110,8 @@ contains
     deallocate(matrix_A)
     deallocate(matrix_B)
     deallocate(omega)
+    deallocate(eigenf_left)
+    deallocate(eigenf_right)
 
     call grid_clean
     call equilibrium_clean
