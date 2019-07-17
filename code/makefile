@@ -28,14 +28,13 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_physical_constants.o					\
 								mod_global_variables.o 						\
 								mod_check_values.o								\
+								mod_spline_functions.o						\
 								mod_input.o												\
 								mod_resistivity.o									\
 								mod_gravity.o											\
-								mod_io.o													\
 								mod_cooling_curves.o							\
 								mod_radiative_cooling.o						\
 								mod_thermal_conduction.o					\
-								mod_spline_functions.o						\
 								mod_grid.o												\
 								mod_equilibrium_derivatives.o			\
 								mod_equilibrium.o									\
@@ -44,6 +43,8 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_setup_matrix_b.o							\
 								mod_setup_matrix_a.o							\
 								mod_solvers.o											\
+								mod_io.o													\
+								mod_eigenfunctions.o							\
 							)
 
 main_objects := $(addprefix $(BINDIR)/,						\

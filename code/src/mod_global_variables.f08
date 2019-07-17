@@ -66,6 +66,8 @@ module mod_global_variables
   integer, protected        :: gauss_gridpts
   !> Gridpoints of matrices A and B, equal to 16 * gridpts
   integer, protected        :: matrix_gridpts
+  !> Amount of gridpoints of an eigenfunction array
+  integer, protected        :: eigenf_gridpts
 
   !! Mesh-accumulation parameters
   !> Boolean to enable mesh accumulation
@@ -120,8 +122,8 @@ module mod_global_variables
   logical, save             :: plot_when_finished
   !> Write matrices A and B to file when finished
   logical, save             :: write_AB
-  !> Write eigenfunctions to file when finished
-  logical, save             :: write_eigenfunctions
+  !> Write eigenvectors to file when finished
+  logical, save             :: write_eigenvectors
 
 contains
 
@@ -143,6 +145,7 @@ contains
     gridpts        = gridpts_in
     gauss_gridpts  = 4*(gridpts - 1)
     matrix_gridpts = 16 * gridpts
+    eigenf_gridpts = 2*gridpts - 1
   end subroutine set_gridpts
 
   !> Subroutine to override the matrix gridpoints. This is solely used for
