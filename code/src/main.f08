@@ -20,16 +20,18 @@ program esonas
   real(dp), allocatable     :: matrix_B(:, :)
   !> Solutions to the eigenvalue problem
   complex(dp), allocatable  :: omega(:)
-  !> Right eigenfunctions
-  complex(dp), allocatable  :: eigenf_right(:, :)
-  !> Left eigenfunctions
-  complex(dp), allocatable  :: eigenf_left(:, :)
+  !> Right eigenvectors
+  complex(dp), allocatable  :: eigenvecs_right(:, :)
+  !> Left eigenvectors
+  complex(dp), allocatable  :: eigenvecs_left(:, :)
 
   call initialisation()
 
   call create_matrices()
 
   call solve_eigenvalue_problem()
+
+  call get_eigenfunctions()
 
   call save_solutions()
 
@@ -47,6 +49,7 @@ contains
     use mod_grid, only: initialise_grid
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
+    use mod_eigenfunctions, only: initialise_eigenfunctions
 
     call read_parfile()
 
@@ -54,8 +57,8 @@ contains
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
     allocate(omega(matrix_gridpts))
-    allocate(eigenf_right(matrix_gridpts, matrix_gridpts))
-    allocate(eigenf_left(matrix_gridpts, matrix_gridpts))
+    allocate(eigenvecs_right(matrix_gridpts, matrix_gridpts))
+    allocate(eigenvecs_left(matrix_gridpts, matrix_gridpts))
 
     ! Initialise grid
     call initialise_grid()
@@ -63,6 +66,8 @@ contains
     call initialise_equilibrium()
     ! Initialise equilibrium derivatives
     call initialise_equilibrium_derivatives()
+    ! Initialise eigenfunction arrays
+    call initialise_eigenfunctions()
 
     ! Set equilibrium
     call set_equilibrium()
@@ -83,9 +88,17 @@ contains
   subroutine solve_eigenvalue_problem()
     use mod_solvers
 
-    call solve_QR(matrix_A, matrix_B, omega, eigenf_left, eigenf_right)
+    call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
 
   end subroutine solve_eigenvalue_problem
+
+  !> Calculates the eigenfunctions
+  subroutine get_eigenfunctions()
+    use mod_eigenfunctions
+
+    call get_all_eigenfunctions(omega, eigenvecs_right)
+
+  end subroutine get_eigenfunctions
 
   !> Saves the solutions
   subroutine save_solutions()
@@ -99,9 +112,10 @@ contains
       write(*, *) "Writing matrices to file..."
       call save_matrices(matrix_A, matrix_B, "matrix_A", "matrix_B")
     end if
-    if (write_eigenfunctions) then
-      write(*, *) "Writing eigenfunctions to file..."
-      call save_eigenfunctions(eigenf_left, eigenf_right, "v_left", "v_right")
+    if (write_eigenvectors) then
+      write(*, *) "Writing eigenvectors to file..."
+      call save_eigenvectors(eigenvecs_left, eigenvecs_right, &
+                             "v_left", "v_right")
     end if
     call plot_results()
   end subroutine save_solutions
@@ -112,20 +126,22 @@ contains
     use mod_equilibrium, only: equilibrium_clean
     use mod_equilibrium_derivatives, only: equilibrium_derivatives_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
+    use mod_eigenfunctions, only: eigenfunctions_clean
 
     deallocate(matrix_A)
     deallocate(matrix_B)
     deallocate(omega)
-    deallocate(eigenf_left)
-    deallocate(eigenf_right)
+    deallocate(eigenvecs_left)
+    deallocate(eigenvecs_right)
 
-    call grid_clean
-    call equilibrium_clean
-    call equilibrium_derivatives_clean
+    call grid_clean()
+    call equilibrium_clean()
+    call equilibrium_derivatives_clean()
 
     if (radiative_cooling) then
       call radiative_cooling_clean
     end if
+    call eigenfunctions_clean()
 
 
 

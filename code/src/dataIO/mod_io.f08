@@ -180,7 +180,9 @@ contains
   end subroutine save_matrices
 
 
-  subroutine save_eigenfunctions(vl, vr, filenameL, filenameR)
+  subroutine save_eigenvectors(vl, vr, filenameL, filenameR)
+    use mod_eigenfunctions
+
     complex(dp), intent(in)      :: vl(matrix_gridpts, matrix_gridpts)
     complex(dp), intent(in)      :: vr(matrix_gridpts, matrix_gridpts)
     character(len=*), intent(in) :: filenameL, filenameR
@@ -218,7 +220,7 @@ contains
 
     close(eigenf_l_out)
     close(eigenf_r_out)
-  end subroutine save_eigenfunctions
+  end subroutine save_eigenvectors
 
 
 

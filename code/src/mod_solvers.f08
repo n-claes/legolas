@@ -60,7 +60,7 @@ contains
     call get_B_invA(B_inv, A, B_invA)
 
     !! Calculate eigenvectors or not ('N' is no, 'V' is yes)
-    if (write_eigenfunctions) then
+    if (write_eigenvectors) then
       jobvl = 'V'
       jobvr = 'V'
     else
@@ -87,7 +87,7 @@ contains
       write(*, *) 'Value for info parameter: ', info
     end if
 
-    if (.not. write_eigenfunctions) then
+    if (.not. write_eigenvectors) then
       vl = (0.0d0, 0.0d0)
       vr = (0.0d0, 0.0d0)
     end if
@@ -96,7 +96,7 @@ contains
     deallocate(rwork)
 
     call check_small_values(omega)
-    if (write_eigenfunctions) then
+    if (write_eigenvectors) then
       call check_small_values_matrix(vl)
       call check_small_values_matrix(vr)
     end if

@@ -19,7 +19,7 @@ contains
     namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
                          unit_temperature, unit_velocity
     namelist /equilibriumlist/ use_precoded, equilibrium_type
-    namelist /savelist/ plot_when_finished, write_AB, write_eigenfunctions
+    namelist /savelist/ plot_when_finished, write_AB, write_eigenvectors
 
     !! Set defaults
     !> Gridlist defaults
@@ -63,7 +63,7 @@ contains
     !> Savelist defaults
     plot_when_finished = .true.     !< plot spectrum when finished
     write_AB = .true.               !< write matrices A and B when finished
-    write_eigenfunctions = .true.   !< writes eigenfunctions to file
+    write_eigenvectors = .true.     !< writes eigenvectors to file
 
 
     call set_gridpts(gridpoints)
