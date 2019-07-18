@@ -3,44 +3,64 @@ module mod_eigenfunctions
   implicit none
 
   real(dp), allocatable         :: X_grid(:)
-  complex(dp), allocatable      :: eigenfunctions(:, :)
+
 
 contains
 
+  !> Initialises the eigenfunction module, allocates X_grid.
   subroutine initialise_eigenfunctions()
     allocate(X_grid(eigenf_gridpts))
-    allocate(eigenfunctions(eigenf_gridpts, matrix_gridpts))
 
     X_grid = 0.0d0
-    eigenfunctions = (0.0d0, 0.0d0)
   end subroutine initialise_eigenfunctions
 
-  subroutine get_all_eigenfunctions(omegas, vr)
+  !> Subroutine to calculate all eigenfunctions from the right eigenvectors.
+  !! These are consequently saved to the proper files.
+  !! @param[in] omega The list of eigenvalues
+  !! @param[in] vr    Array of right eigenvectors, where every column
+  !!                  has the eigenvector corresponding to the eigenvalue
+  !!                  in 'omega' at the same column index
+  subroutine get_all_eigenfunctions(omega, vr)
+    use mod_types
     use mod_io
 
-    complex(dp), intent(in)     :: omegas(matrix_gridpts)
+    complex(dp), intent(in)     :: omega(matrix_gridpts)
     complex(dp), intent(in)     :: vr(matrix_gridpts, matrix_gridpts)
 
     complex(dp)                 :: Y(eigenf_gridpts)
-    integer                     :: i, j, var_idx
-
+    integer                     :: i, j
     character(len=3)            :: vars(8)
+
+    type (eigenf_type)          :: var_eigenf
+
+    allocate(var_eigenf % eigenfunctions(eigenf_gridpts, matrix_gridpts))
 
     vars = [character(3) :: 'rho', 'v1', 'v2', 'v3', 'T', 'a1', 'a2', 'a3']
 
-    !! Calculate all eigenfunctions for rho
-    do var_idx = 1, 8
+    !! Calculate all eigenfunctions for every variable
+    do j = 1, 8
+
+      ! Index of the current variable
+      var_eigenf % index = j
+      ! Integer for file writing
+      var_eigenf % write_out = eigenvectors_out + j
+      ! Name of the current variable
+      var_eigenf % var = trim(vars(j))
+      ! Filename of the current variable, used for saving
+      var_eigenf % savename = trim(trim(vars(j)) // '_eigenfunction')
 
       do i = 1, matrix_gridpts
         ! Every eigenfunction is stored in the column of 'eigenfunctions'.
         ! That way columns correspond with the eigenvalues and eigenvectors.
-        ! So first column is first eigenfunction, second column is second, etc.
-        call calculate_eigenfunction(trim(vars(var_idx)), vr(:, i), Y)
-        eigenfunctions(:, i) = Y(:)
+        call calculate_eigenfunction(trim(vars(j)), vr(:, i), Y)
+        var_eigenf % eigenfunctions(:, i) = Y(:)
       end do
-      
+
+      call save_eigenfunctions(omega, var_eigenf)
     end do
-    stop
+
+    call save_eigenf_grid(X_grid)
+    deallocate(var_eigenf % eigenfunctions)
 
   end subroutine get_all_eigenfunctions
 
@@ -62,37 +82,28 @@ contains
     integer                       :: idx1, idx2, grid_idx
     real(dp)                      :: r, r_lo, r_hi
     real(dp)                      :: spline(4)
-    character(len=3)              :: spline_type
+    complex(dp)                   :: fact
 
     integer                       :: i
 
-    !\TODO: re-transform variables
-
+    Y = (0.0d0, 0.0d0)
 
     if (var == 'rho') then
       idx1 = 1
-      spline_type = "qua"
     else if (var == 'v1') then
       idx1 = 3
-      spline_type = "cub"
     else if (var == 'v2') then
       idx1 = 5
-      spline_type = "qua"
     else if (var == 'v3') then
       idx1 = 7
-      spline_type = "qua"
     else if (var == 'T') then
       idx1 = 9
-      spline_type = "qua"
     else if (var == 'a1') then
       idx1 = 11
-      spline_type = "qua"
     else if (var == 'a2') then
       idx1 = 13
-      spline_type = "cub"
     else if (var == 'a3') then
       idx1 = 15
-      spline_type = "cub"
     else
       write(*, *) "Eigenfunction variable not known."
       write(*, *) "Currently set on: ", var
@@ -112,11 +123,12 @@ contains
 
     X_grid(grid_idx) = r
 
+    call get_transform_factor(var, r, fact)
     call get_spline(var, r, r_lo, r_hi, spline)
-    Y(grid_idx) = Y(grid_idx) + eigenvector(idx1)*spline(2) &
-                              + eigenvector(idx2)*spline(4)
-    Y(grid_idx) = Y(grid_idx) + eigenvector(idx1 + dim_subblock)*spline(1) &
-                              + eigenvector(idx2 + dim_subblock)*spline(3)
+    Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1)*spline(2) &
+                              + fact*eigenvector(idx2)*spline(4)
+    Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1+dim_subblock)*spline(1) &
+                              + fact*eigenvector(idx2+dim_subblock)*spline(3)
 
     ! Contribution from other gridpoints
     do i = 1, gridpts-1
@@ -128,22 +140,24 @@ contains
       grid_idx = grid_idx + 1
       X_grid(grid_idx) = r
 
+      call get_transform_factor(var, r, fact)
       call get_spline(var, r, r_lo, r_hi, spline)
-      Y(grid_idx) = Y(grid_idx) + eigenvector(idx1)*spline(2) &
-                                + eigenvector(idx2)*spline(4)
-      Y(grid_idx) = Y(grid_idx) + eigenvector(idx1 + dim_subblock)*spline(1) &
-                                + eigenvector(idx2 + dim_subblock)*spline(3)
+      Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1)*spline(2) &
+                                + fact*eigenvector(idx2)*spline(4)
+      Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1+dim_subblock)*spline(1) &
+                                + fact*eigenvector(idx2+dim_subblock)*spline(3)
 
       ! Contribution from end point
       r = r_hi
       grid_idx = grid_idx + 1
       X_grid(grid_idx) = r
 
+      call get_transform_factor(var, r, fact)
       call get_spline(var, r, r_lo, r_hi, spline)
-      Y(grid_idx) = Y(grid_idx) + eigenvector(idx1)*spline(2) &
-                                + eigenvector(idx2)*spline(4)
-      Y(grid_idx) = Y(grid_idx) + eigenvector(idx1 + dim_subblock)*spline(1) &
-                                + eigenvector(idx2 + dim_subblock)*spline(3)
+      Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1)*spline(2) &
+                                + fact*eigenvector(idx2)*spline(4)
+      Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1 + dim_subblock)*spline(1) &
+                                + fact*eigenvector(idx2 + dim_subblock)*spline(3)
 
       ! Increment indices of eigenvector elements
       idx1 = idx1 + dim_subblock
@@ -152,6 +166,12 @@ contains
 
   end subroutine calculate_eigenfunction
 
+  !> Calls the right finite element spline depending on the variable passed.
+  !! @param[in] var   The variable ('rho', 'v1', etc.)
+  !! @param[in] r     The current position in the grid
+  !! @param[in] r_lo  Left edge of the current grid interval
+  !! @param[in] r_hi  Right edge of the current grid interval
+  !! @param[out] spline The finite element basis function, depending on 'var'
   subroutine get_spline(var, r, r_lo, r_hi, spline)
     use mod_spline_functions
 
@@ -168,9 +188,55 @@ contains
   end subroutine get_spline
 
 
+  !> Subroutine to retrieve the transformation factor. For example, rho was
+  !! rescaled by eps*rho = RHO, such that in this case 'fact' will be 1/eps.
+  !! @param[in] var   The variable ('rho', 'v1', etc.)
+  !! @param[in] r     The current position in the grid
+  !! @param[out] fact Transformation factor depending on the variable
+  subroutine get_transform_factor(var, r, fact)
+    character(len=*), intent(in) :: var
+    real(dp), intent(in)         :: r
+    complex(dp), intent(out)     :: fact
+
+    real(dp)                     :: eps
+
+    if ((geometry == 'Cartesian') .or. (geometry == 'cartesian')) then
+      eps = 1.0d0
+    else if (geometry == 'cylindrical') then
+      eps = r
+    else
+      write(*, *) "Geometry not defined correctly"
+      write(*, *) "Currently set on: ", geometry
+      stop
+    end if
+
+    !! \note: ic = (0.0d0, 1.0d0) and ir = (1.0d0, 0.0d0)
+    if (var == 'rho') then
+      fact = (1.0d0 / eps) * ir
+    else if (var == 'v1') then
+      fact = 1.0d0 / (ic * eps)
+    else if (var == 'v2') then
+      fact = 1.0d0 * ir
+    else if (var == 'v3') then
+      fact = (1.0d0 / eps) * ir
+    else if (var == 'T') then
+      fact = (1.0d0 / eps) * ir
+    else if (var == 'a1') then
+      fact = 1.0d0 / ic
+    else if (var == 'a2') then
+      fact = (1.0d0 / eps) * ir
+    else if (var == 'a3') then
+      fact = 1.0d0 * ir
+    else
+      write(*, *) "Var not defined correctly"
+      stop
+    end if
+
+  end subroutine get_transform_factor
+
+  !> Cleaning routine, deallocates the variables in this module.
   subroutine eigenfunctions_clean()
     deallocate(X_grid)
-    deallocate(eigenfunctions)
   end subroutine eigenfunctions_clean
 
 

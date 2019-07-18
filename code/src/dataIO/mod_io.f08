@@ -10,8 +10,10 @@ module mod_io
   integer, parameter  :: config              = 30
   integer, parameter  :: mat_a_out           = 40
   integer, parameter  :: mat_b_out           = 50
-  integer, parameter  :: eigenf_l_out        = 60
-  integer, parameter  :: eigenf_r_out        = 70
+  integer, parameter  :: eigenvect_l_out     = 60
+  integer, parameter  :: eigenvect_r_out     = 70
+  integer, parameter  :: eigenvectors_out    = 80
+  integer, parameter  :: grid_out            = 90
 
   character(8), parameter    :: form_e = '(e30.20)'
   character(8), parameter    :: form_f = '(f30.20)'
@@ -71,6 +73,39 @@ contains
     close(w_output)
 
   end subroutine save_eigenvalues
+
+
+
+  subroutine save_eigenfunctions(omega, var_eigenf)
+    use mod_types
+
+    complex(dp), intent(in)       :: omega(matrix_gridpts)
+    type(eigenf_type), intent(in) :: var_eigenf
+
+    character(str_len)            :: filenameEF_out
+    integer                       :: file_out, w_idx
+
+    filenameEF_out = trim("output/eigenfunctions/" &
+                          // trim(var_eigenf % savename) // ".dat")
+    file_out = var_eigenf % write_out
+
+    open(file_out, file=filenameEF_out, access="stream", status="unknown")
+    do w_idx = 1, matrix_gridpts
+      write(file_out) omega(w_idx), var_eigenf % eigenfunctions(:, w_idx)
+    end do
+    close(file_out)
+  end subroutine save_eigenfunctions
+
+
+  subroutine save_eigenf_grid(eigenf_grid)
+    real(dp), intent(in)  :: eigenf_grid(eigenf_gridpts)
+
+    open(grid_out, file='output/grid.dat', access="stream", status="unknown")
+    write(grid_out) eigenf_grid
+    close(grid_out)
+  end subroutine save_eigenf_grid
+
+
 
   subroutine save_config(filenameCFG)
     character(len=*), intent(in)  :: filenameCFG
@@ -181,8 +216,6 @@ contains
 
 
   subroutine save_eigenvectors(vl, vr, filenameL, filenameR)
-    use mod_eigenfunctions
-
     complex(dp), intent(in)      :: vl(matrix_gridpts, matrix_gridpts)
     complex(dp), intent(in)      :: vr(matrix_gridpts, matrix_gridpts)
     character(len=*), intent(in) :: filenameL, filenameR
@@ -196,8 +229,8 @@ contains
     filenameL_out = trim("output/" // trim(filenameL) // ".txt")
     filenameR_out = trim("output/" // trim(filenameR) // ".txt")
 
-    call open_file(eigenf_l_out, filenameL_out, .false.)
-    call open_file(eigenf_r_out, filenameR_out, .false.)
+    call open_file(eigenvect_l_out, filenameL_out, .false.)
+    call open_file(eigenvect_r_out, filenameR_out, .false.)
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
@@ -209,17 +242,17 @@ contains
         write(char_r_r, form_eout) real(vr(i, j))
         write(char_r_i, form_eout) aimag(vr(i, j))
 
-        write(eigenf_l_out, *) char_idx1, ",", &
+        write(eigenvect_l_out, *) char_idx1, ",", &
                                char_idx2, ",", &
                                char_l_r, ",", char_l_i
-        write(eigenf_r_out, *) char_idx1, ",", &
+        write(eigenvect_r_out, *) char_idx1, ",", &
                                char_idx2, ",", &
                                char_r_r, ",", char_r_i
       end do
     end do
 
-    close(eigenf_l_out)
-    close(eigenf_r_out)
+    close(eigenvect_l_out)
+    close(eigenvect_r_out)
   end subroutine save_eigenvectors
 
 
