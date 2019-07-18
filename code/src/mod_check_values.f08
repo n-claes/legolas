@@ -2,62 +2,79 @@ module mod_check_values
   use mod_global_variables
   implicit none
 
+  interface check_small_values
+    module procedure small_values_real_array
+    module procedure small_values_complex_array
+    module procedure small_values_real_matrix
+    module procedure small_values_complex_matrix
+  end interface check_small_values
+
 contains
 
-  subroutine check_small_values(array)
-    complex(dp), intent(inout)  :: array(matrix_gridpts)
+  subroutine small_values_real_array(array)
+    real(dp), intent(inout) :: array(:)
+    integer                 :: i
 
-    real(dp)                    :: w_real, w_imag
-    integer                     :: i
-
-    do i = 1, matrix_gridpts
-      w_real = real(array(i))
-      w_imag = aimag(array(i))
-
-      if (abs(w_real) < dp_LIMIT) then
-        w_real = 0.0d0
+    do i = 1, size(array)
+      if (abs(array(i)) < dp_LIMIT) then
+        array(i) = 0.0d0
       end if
-
-      if (abs(w_imag) < dp_LIMIT) then
-        w_imag = 0.0d0
-      end if
-
-      array(i) = cmplx(w_real, w_imag, kind=dp)
     end do
-  end subroutine check_small_values
+  end subroutine small_values_real_array
 
+  subroutine small_values_complex_array(array)
+    complex(dp), intent(inout) :: array(:)
+    integer                    :: i
+    real(dp)                   :: a_real, a_imag
 
-  subroutine check_small_values_matrix(matrix)
-    complex(dp), intent(inout)  :: matrix(matrix_gridpts, matrix_gridpts)
-    real(dp)                    :: v_real, v_imag
+    do i = 1, size(array)
+      a_real = real(array(i))
+      a_imag = aimag(array(i))
 
-    integer                     :: i, j
+      if (abs(a_real) < dp_LIMIT) then
+        a_real = 0.0d0
+      end if
+      if (abs(a_imag) < dp_LIMIT) then
+        a_imag = 0.0d0
+      end if
 
-    do i = 1, matrix_gridpts
-      do j = 1, matrix_gridpts
-        v_real = real(matrix(i, j))
-        v_imag = aimag(matrix(i, j))
+      array(i) = cmplx(a_real, a_imag, kind=dp)
+    end do
+  end subroutine small_values_complex_array
 
-        if (abs(v_real) < dp_LIMIT) then
-          v_real = 0.0d0
+  subroutine small_values_real_matrix(matrix)
+    real(dp), intent(inout)    :: matrix(:, :)
+    integer                    :: i, j
+
+    do j = 1, size(matrix(1, :))
+      do i = 1, size(matrix(:, 1))
+        if (abs(matrix(i, j)) < dp_LIMIT) then
+          matrix(i, j) = 0.0d0
         end if
-
-        if (abs(v_imag) < dp_LIMIT) then
-          v_imag = 0.0d0
-        end if
-
-        matrix(i, j) = cmplx(v_real, v_imag, kind=dp)
       end do
     end do
-  end subroutine check_small_values_matrix
+  end subroutine small_values_real_matrix
 
+  subroutine small_values_complex_matrix(matrix)
+    complex(dp), intent(inout) :: matrix(:, :)
+    integer                    :: i, j
+    real(dp)                   :: a_real, a_imag
 
-  subroutine remove_large_eigenvalues(omega)
-    complex(dp), intent(inout)  :: omega(matrix_gridpts)
+    do j = 1, size(matrix(1, :))
+      do i = 1, size(matrix(:, 1))
+        a_real = real(matrix(i, j))
+        a_imag = aimag(matrix(i, j))
 
-    !! \TODO: when changing to ZBIG in matrix A, remove these
-    !!        eigenvalues after?
-    return
-  end subroutine remove_large_eigenvalues
+        if (abs(a_real) < dp_LIMIT) then
+          a_real = 0.0d0
+        end if
+        if (abs(a_imag) < dp_LIMIT) then
+          a_imag = 0.0d0
+        end if
+
+        matrix(i, j) = cmplx(a_real, a_imag, kind=dp)
+      end do
+    end do
+  end subroutine small_values_complex_matrix
 
 end module mod_check_values

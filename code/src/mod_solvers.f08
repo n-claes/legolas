@@ -96,9 +96,10 @@ contains
     deallocate(rwork)
 
     call check_small_values(omega)
+
     if (write_eigenvectors) then
-      call check_small_values_matrix(vl)
-      call check_small_values_matrix(vr)
+      call check_small_values(vl)
+      call check_small_values(vr)
     end if
 
   end subroutine solve_QR
