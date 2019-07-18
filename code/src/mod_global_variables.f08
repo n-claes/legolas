@@ -25,11 +25,13 @@ module mod_global_variables
   integer, parameter :: str_len = 125
 
   !> Values smaller than this are forced to zero
-  real(dp), parameter :: dp_LIMIT = 1.0d-12
+  real(dp), parameter :: dp_LIMIT = 1.0d-14
 
   !! Physics parameters
   !> Complex number
   complex(dp), parameter    :: ic = (0.0d0, 1.0d0)
+  !> Complex real
+  complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
   !> Ratio of specific heats gamma
   real(dp), protected       :: gamma
   !> Variable for (gamma - 1)

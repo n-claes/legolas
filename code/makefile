@@ -27,9 +27,11 @@ TEST_OUT := run_tests.exe
 objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_physical_constants.o					\
 								mod_global_variables.o 						\
+								mod_types.o												\
 								mod_check_values.o								\
 								mod_spline_functions.o						\
 								mod_input.o												\
+								mod_io.o													\
 								mod_resistivity.o									\
 								mod_gravity.o											\
 								mod_cooling_curves.o							\
@@ -43,7 +45,6 @@ objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_setup_matrix_b.o							\
 								mod_setup_matrix_a.o							\
 								mod_solvers.o											\
-								mod_io.o													\
 								mod_eigenfunctions.o							\
 							)
 
@@ -84,6 +85,7 @@ $(BINDIR):
 	mkdir -p $(BINDIR)
 	mkdir -p $(MODDIR)
 	mkdir -p $(OUTDIR)
+	mkdir -p $(OUTDIR)/eigenfunctions
 	mkdir -p $(OUTDIR)/figures
 	mkdir -p $(OUTDIR)/tests
 	mkdir -p $(OUTDIR)/tests/figures
