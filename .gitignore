@@ -18,3 +18,5 @@ code/docs/html/
 *.ods
 *.png
 *.txt
+*.dat
+*.pyc
