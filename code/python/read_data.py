@@ -3,7 +3,7 @@ import os, sys
 
 def check_file(filename):
     if not os.path.isfile(filename):
-        print(">> PYTHON: file not fount -> {}".format(filename))
+        print(">> PYTHON: file not found -> {}".format(filename))
         sys.exit(1)
     else:
         return

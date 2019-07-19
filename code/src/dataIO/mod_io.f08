@@ -93,23 +93,25 @@ contains
 
 
 
-  subroutine save_eigenfunctions(omega, var_eigenf)
+  subroutine save_eigenfunctions(var_eigenf)
     use mod_types
 
-    complex(dp), intent(in)       :: omega(matrix_gridpts)
     type(eigenf_type), intent(in) :: var_eigenf
 
     character(str_len)            :: filenameEF_out
+    character                     :: idx
     integer                       :: file_out, w_idx
 
-    filenameEF_out = trim("output/eigenfunctions/" &
+    write(idx, '(i0)') var_eigenf % index
+
+    filenameEF_out = trim("output/eigenfunctions/" // trim(idx) // "_" &
                           // trim(var_eigenf % savename) // ".dat")
     file_out = var_eigenf % write_out
 
     call open_file(file_out, filenameEF_out, append=.false., stream=.true.)
 
     do w_idx = 1, matrix_gridpts
-      write(file_out) omega(w_idx), var_eigenf % eigenfunctions(:, w_idx)
+      write(file_out) var_eigenf % eigenfunctions(:, w_idx)
     end do
     close(file_out)
   end subroutine save_eigenfunctions
@@ -192,6 +194,13 @@ contains
     write(config, *) "Unit luminosity    : ", adjustl(char)
     write(char, form_eout) unit_resistivity
     write(config, *) "Unit resistivity   : ", adjustl(char)
+
+    write(config, *) ""
+
+    write(config, *) "Plot when finished  : ", plot_when_finished
+    write(config, *) "Write matrices      : ", write_AB
+    write(config, *) "Write eigenvectors  : ", write_eigenvectors
+    write(config, *) "Write eigenfunctions: ", write_eigenfunctions
 
     close(config)
   end subroutine save_config

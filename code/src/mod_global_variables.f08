@@ -126,6 +126,8 @@ module mod_global_variables
   logical, save             :: write_AB
   !> Write eigenvectors to file when finished
   logical, save             :: write_eigenvectors
+  !> Write eigenfunctions to file when finished
+  logical, save             :: write_eigenfunctions
 
 contains
 
