@@ -55,7 +55,20 @@ def plot_spectrum(fig, ax, omegas):
     ax.plot(np.real(omegas), np.imag(omegas), '.b', alpha=0.8)
     ax.set_xlabel(r"Re($\omega$)")
     ax.set_ylabel(r"Im($\omega$)")
-    ax.set_title("Spectrum")
+    ax.set_title("Spectrum: {}".format(config_dict["Equilibrium type"]))
+
+
+def plot_eigenfunctions(fig, ax, eigenfunctions, var, w_idx):
+    eigenf = eigenfunctions[var]
+    if isinstance(w_idx, list):
+        for w in w_idx:
+            lab = r"$\omega${} = {:.8f}".format(w, omegas[w])
+            ax.plot(grid, np.real(eigenf[w, :]), label=lab)
+    else:
+        lab = r"$\omega${} = {}".format(w, omegas[w])
+        ax.plot(grid, np.real(eigenf[w_idx, :]), label=lab)
+    ax.set_title(var)
+    ax.legend(loc='best')
 
 
 if __name__ == '__main__':
@@ -69,24 +82,53 @@ if __name__ == '__main__':
     filename_matB = "output/matrix_B.dat"
     filename_spec = "output/eigenvalues.dat"
 
-    eigenf_rho    = "output/eigenfunctions/rho_eigenfunction.dat"
+    eigenf_list = ["rho", "v1", "v2", "v3", "T", "a1", "a2", "a3"]
+    eigenfunctions = {}
 
-    grid = read_data.read_stream_data(filename_grid, content_type=np.float64,
-                    rows=1, cols=eigenf_gridpts)
+    # Read eigenvalues
     omegas   = read_data.read_stream_data(filename_spec, content_type=np.complex,
                                           rows=1, cols=matrix_gridpts)[0]
-
-    matrix_B = read_data.read_stream_data(filename_matB, content_type=np.float64,
-                    rows=matrix_gridpts, cols=matrix_gridpts)
-    matrix_A = read_data.read_stream_data(filename_matA, content_type=np.complex,
-                    rows=matrix_gridpts, cols=matrix_gridpts)
-
     fig, ax = plt.subplots(1, figsize=(12, 8))
     plot_spectrum(fig, ax, omegas)
     fig.tight_layout()
-    fig, ax = plt.subplots(1, 2, figsize=(12, 8))
-    plot_matrix(fig, ax, 1, matrix_B, title="Matrix B")
-    plot_matrix(fig, ax, 0, matrix_A, title="Matrix A")
-    fig.tight_layout()
+
+
+    if config_dict["Write matrices"]:
+        # Read matrix elements
+        matrix_B = read_data.read_stream_data(filename_matB,
+                        content_type=np.float64,
+                        rows=matrix_gridpts, cols=matrix_gridpts)
+        matrix_A = read_data.read_stream_data(filename_matA,
+                        content_type=np.complex,
+                        rows=matrix_gridpts, cols=matrix_gridpts)
+        fig, ax = plt.subplots(1, 2, figsize=(12, 8))
+        plot_matrix(fig, ax, 1, matrix_B, title="Matrix B")
+        plot_matrix(fig, ax, 0, matrix_A, title="Matrix A")
+        fig.tight_layout()
+
+
+    if config_dict["Write eigenfunctions"]:
+        # Read grid data
+        grid = read_data.read_stream_data(filename_grid,
+                        content_type=np.float64,
+                        rows=1, cols=eigenf_gridpts)[0]
+
+        # Read eigenfunctions, every row has the eigenvector corresponding to the
+        # eigenvalue at the same index in the 'omegas' array.
+        for i in range(1, 8+1):
+            varname = eigenf_list[i-1]
+            ef_name = "output/eigenfunctions/{}_{}_eigenfunction.dat".format(i,
+                                                                        varname)
+
+            eigenfunctions[varname] = read_data.read_stream_data(ef_name,
+                        content_type=np.complex,
+                        rows=matrix_gridpts,
+                        cols=eigenf_gridpts)
+
+        fig, ax = plt.subplots(1, figsize=(12, 8))
+        ef_nbs = [50, 80]
+        plot_eigenfunctions(fig, ax, eigenfunctions, 'rho', ef_nbs)
+        fig.tight_layout()
+
 
     plt.show()

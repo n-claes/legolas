@@ -31,8 +31,6 @@ program esonas
 
   call solve_eigenvalue_problem()
 
-  call get_eigenfunctions()
-
   call save_solutions()
 
   call cleanup()
@@ -92,32 +90,37 @@ contains
 
   end subroutine solve_eigenvalue_problem
 
-  !> Calculates the eigenfunctions
-  subroutine get_eigenfunctions()
-    use mod_eigenfunctions
-
-    call get_all_eigenfunctions(omega, eigenvecs_right)
-
-  end subroutine get_eigenfunctions
-
   !> Saves the solutions
   subroutine save_solutions()
+    use mod_eigenfunctions
     use mod_io
+
+    write(*, *) "Writing configuration to file..."
+    call save_config("config")
 
     write(*, *) "Writing eigenvalues to file..."
     call save_eigenvalues(omega, "eigenvalues", append=.false., stream=.true.)
-    write(*, *) "Writing configuration to file..."
-    call save_config("config")
+    call save_eigenvalues(omega, "eigenvalues_text", append=.false., stream=.false.)
+
     if (write_AB) then
       write(*, *) "Writing matrices to file..."
       call save_matrices(matrix_A, matrix_B, "matrix_A", "matrix_B")
     end if
+
     if (write_eigenvectors) then
       write(*, *) "Writing eigenvectors to file..."
       call save_eigenvectors(eigenvecs_left, eigenvecs_right, &
                              "v_left", "v_right")
     end if
-    call plot_results()
+
+    if (write_eigenfunctions) then
+      write(*, *) "Writing eigenfunctions to file..."
+      call get_all_eigenfunctions(eigenvecs_right)
+    end if
+    
+    if (plot_when_finished) then
+      call plot_results()
+    end if
   end subroutine save_solutions
 
   !> Performs cleanup, deallocates variables.

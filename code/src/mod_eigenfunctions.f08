@@ -16,15 +16,13 @@ contains
 
   !> Subroutine to calculate all eigenfunctions from the right eigenvectors.
   !! These are consequently saved to the proper files.
-  !! @param[in] omega The list of eigenvalues
   !! @param[in] vr    Array of right eigenvectors, where every column
   !!                  has the eigenvector corresponding to the eigenvalue
   !!                  in 'omega' at the same column index
-  subroutine get_all_eigenfunctions(omega, vr)
+  subroutine get_all_eigenfunctions(vr)
     use mod_types
     use mod_io
 
-    complex(dp), intent(in)     :: omega(matrix_gridpts)
     complex(dp), intent(in)     :: vr(matrix_gridpts, matrix_gridpts)
 
     complex(dp)                 :: Y(eigenf_gridpts)
@@ -56,7 +54,7 @@ contains
         var_eigenf % eigenfunctions(:, i) = Y(:)
       end do
 
-      call save_eigenfunctions(omega, var_eigenf)
+      call save_eigenfunctions(var_eigenf)
     end do
 
     call save_eigenf_grid(X_grid)

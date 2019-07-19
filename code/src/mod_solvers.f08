@@ -60,13 +60,8 @@ contains
     call get_B_invA(B_inv, A, B_invA)
 
     !! Calculate eigenvectors or not ('N' is no, 'V' is yes)
-    if (write_eigenvectors) then
-      jobvl = 'V'
-      jobvr = 'V'
-    else
-      jobvl = 'N'
-      jobvr = 'N'
-    end if
+    jobvl = 'V'
+    jobvr = 'V'
 
     !! Array dimensions
     N       = matrix_gridpts
@@ -87,20 +82,12 @@ contains
       write(*, *) 'Value for info parameter: ', info
     end if
 
-    if (.not. write_eigenvectors) then
-      vl = (0.0d0, 0.0d0)
-      vr = (0.0d0, 0.0d0)
-    end if
-
     deallocate(work)
     deallocate(rwork)
 
     call check_small_values(omega)
-
-    if (write_eigenvectors) then
-      call check_small_values(vl)
-      call check_small_values(vr)
-    end if
+    call check_small_values(vl)
+    call check_small_values(vr)
 
   end subroutine solve_QR
 
