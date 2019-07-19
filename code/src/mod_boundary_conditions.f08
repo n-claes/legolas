@@ -159,10 +159,12 @@ contains
 
       !! Additional requiremens on T1 if thermal conduction is included
       !! Rows and columns for T1 (2nd) (index 26 in bottom-right subblock)
-      quadblock(26, :) = (0.0d0, 0.0d0)
-      quadblock(:, 26) = (0.0d0, 0.0d0)
-      !! Insert unity at second diagonal element for B, zero for A
-      quadblock(26, 26) = unity
+      if (thermal_conduction) then
+        quadblock(26, :) = (0.0d0, 0.0d0)
+        quadblock(:, 26) = (0.0d0, 0.0d0)
+        !! Insert unity at second diagonal element for B, zero for A
+        quadblock(26, 26) = unity
+      end if
     else
       write(*, *) "Wrong edge passed when calling boundaries."
       write(*, *) "Currently set on: ", edge
