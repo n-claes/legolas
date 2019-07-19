@@ -105,7 +105,7 @@ contains
     use mod_io
 
     write(*, *) "Writing eigenvalues to file..."
-    call save_eigenvalues(omega, "eigenvalues", .false.)
+    call save_eigenvalues(omega, "eigenvalues", append=.false., stream=.true.)
     write(*, *) "Writing configuration to file..."
     call save_config("config")
     if (write_AB) then

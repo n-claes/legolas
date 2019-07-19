@@ -19,17 +19,17 @@ module mod_io
   character(8), parameter    :: form_f = '(f30.20)'
 
   character(8), parameter    :: form_eout = '(e20.10)'
-  !character(10), parameter   :: form_eout_long = '(e20.10e3)'
   character(8), parameter    :: form_fout = '(f20.10)'
 
   character(4), parameter    :: form_int  = '(i8)'
 
 contains
 
-  subroutine open_file(file_no, filename, append)
+  subroutine open_file(file_no, filename, append, stream)
     integer, intent(in)          :: file_no
     character(len=*), intent(in) :: filename
     logical, intent(in)          :: append
+    logical, intent(in)          :: stream
 
     logical                      :: file_present
 
@@ -37,38 +37,55 @@ contains
       inquire(file=filename, exist=file_present)
 
       if (file_present) then
-        open(file_no, file=filename, status='old', position='append', &
-             action='write')
+        if (stream) then
+          open(file_no, file=filename, status='old', position='append', &
+               access='stream', action='write')
+        else
+          open(file_no, file=filename, status='old', position='append', &
+               action='write')
+        end if
       else
-        open(file_no, file=filename, status='new', action='write')
+        if (stream) then
+          open(file_no, file=filename, status='new', access='stream', &
+               action='write')
+        else
+          open(file_no, file=filename, status='new', action='write')
+        end if
       end if
     else
-      open(file_no, file=filename, status='unknown')
+      if (stream) then
+        open(file_no, file=filename, access='stream', status='unknown')
+      else
+        open(file_no, file=filename, status='unknown')
+      end if
     end if
   end subroutine open_file
 
 
 
-  subroutine save_eigenvalues(omega, filenameW, append)
+  subroutine save_eigenvalues(omega, filenameW, append, stream)
     complex(dp), intent(in)      :: omega(matrix_gridpts)
     character(len=*), intent(in) :: filenameW
-    logical, intent(in)          :: append
+    logical, intent(in)          :: append, stream
     integer                      :: i
 
     character(30)                :: w_char_r, w_char_i
     character(str_len)           :: filenameW_out
 
-    filenameW_out = trim("output/" // trim(filenameW) // ".txt")
+    filenameW_out = trim("output/" // trim(filenameW) // ".dat")
 
-    call open_file(w_output, filenameW_out, append)
+    call open_file(w_output, filenameW_out, append, stream)
 
-    do i = 1, matrix_gridpts
-      ! Write normalised output
-      write(w_char_r, form_e) real(omega(i))
-      write(w_char_i, form_e) aimag(omega(i))
+    if (stream) then
+      write(w_output) omega
+    else
+      do i = 1, matrix_gridpts
+        write(w_char_r, form_e) real(omega(i))
+        write(w_char_i, form_e) aimag(omega(i))
 
-      write(w_output, *) w_char_r, ',', w_char_i
-    end do
+        write(w_output, *) w_char_r, ',', w_char_i
+      end do
+    end if
 
     close(w_output)
 
@@ -89,7 +106,8 @@ contains
                           // trim(var_eigenf % savename) // ".dat")
     file_out = var_eigenf % write_out
 
-    open(file_out, file=filenameEF_out, access="stream", status="unknown")
+    call open_file(file_out, filenameEF_out, append=.false., stream=.true.)
+
     do w_idx = 1, matrix_gridpts
       write(file_out) omega(w_idx), var_eigenf % eigenfunctions(:, w_idx)
     end do
@@ -100,7 +118,8 @@ contains
   subroutine save_eigenf_grid(eigenf_grid)
     real(dp), intent(in)  :: eigenf_grid(eigenf_gridpts)
 
-    open(grid_out, file='output/grid.dat', access="stream", status="unknown")
+    call open_file(grid_out, 'output/grid.dat', append=.false., stream=.true.)
+
     write(grid_out) eigenf_grid
     close(grid_out)
   end subroutine save_eigenf_grid
@@ -115,7 +134,7 @@ contains
 
     filenameCFG_out = trim("output/" // trim(filenameCFG) // ".txt")
 
-    call open_file(config, filenameCFG_out, .false.)
+    call open_file(config, filenameCFG_out, .false., .false.)
 
     write(config, *) "Equilibrium type   : ", equilibrium_type
 
@@ -146,6 +165,8 @@ contains
     write(config, *) "Matrix gridpoints  : ", adjustl(char)
     write(char, form_int) gauss_gridpts
     write(config, *) "Gaussian gridpoints: ", adjustl(char)
+    write(char, form_int) eigenf_gridpts
+    write(config, *) "Eigenfunction gridpoints: ", adjustl(char)
     write(config, *) "Mesh accumulation  : ", mesh_accumulation
 
     write(config, *) ""
@@ -182,32 +203,17 @@ contains
 
     character(len=str_len)    :: filenameA_out, filenameB_out
 
-    integer                   :: i, j
-    character(30)             :: char_A_r, char_A_i, char_B
-    character(8)              :: char_idx1, char_idx2
+    integer                   :: i
 
-    filenameA_out = trim("output/" // trim(filenameA) // ".txt")
-    filenameB_out = trim("output/" // trim(filenameB) // ".txt")
+    filenameA_out = trim("output/" // trim(filenameA) // ".dat")
+    filenameB_out = trim("output/" // trim(filenameB) // ".dat")
 
-    call open_file(mat_A_out, filenameA_out, .false.)
-    call open_file(mat_B_out, filenameB_out, .false.)
+    call open_file(mat_A_out, filenameA_out, append=.false., stream=.true.)
+    call open_file(mat_B_out, filenameB_out, append=.false., stream=.true.)
 
     do i = 1, matrix_gridpts
-      do j = 1, matrix_gridpts
-        write(char_idx1, form_int) i
-        write(char_idx2, form_int) j
-
-        write(char_A_r, form_eout) real(matrix_A(i, j))
-        write(char_A_i, form_eout) aimag(matrix_A(i, j))
-        write(char_B,   form_eout) matrix_B(i, j)
-
-        write(mat_A_out, *) char_idx1, ",", &
-                            char_idx2, ",", &
-                            char_A_r, ",", char_A_i
-        write(mat_B_out, *) char_idx1, ",", &
-                            char_idx2, ",", &
-                            char_B
-      end do
+      write(mat_B_out) matrix_B(i, :)
+      write(mat_A_out) matrix_A(i, :)
     end do
 
     close(mat_A_out)
@@ -222,33 +228,17 @@ contains
 
     character(len=str_len)       :: filenameL_out, filenameR_out
 
-    integer                      :: i, j
-    character(30)                :: char_l_r, char_l_i, char_r_r, char_r_i
-    character(8)                 :: char_idx1, char_idx2
+    integer                      :: i
 
-    filenameL_out = trim("output/" // trim(filenameL) // ".txt")
-    filenameR_out = trim("output/" // trim(filenameR) // ".txt")
+    filenameL_out = trim("output/" // trim(filenameL) // ".dat")
+    filenameR_out = trim("output/" // trim(filenameR) // ".dat")
 
-    call open_file(eigenvect_l_out, filenameL_out, .false.)
-    call open_file(eigenvect_r_out, filenameR_out, .false.)
+    call open_file(eigenvect_l_out, filenameL_out, append=.false., stream=.true.)
+    call open_file(eigenvect_r_out, filenameR_out, append=.false., stream=.true.)
 
     do i = 1, matrix_gridpts
-      do j = 1, matrix_gridpts
-        write(char_idx1, form_int) i
-        write(char_idx2, form_int) j
-
-        write(char_l_r, form_eout) real(vl(i, j))
-        write(char_l_i, form_eout) aimag(vl(i, j))
-        write(char_r_r, form_eout) real(vr(i, j))
-        write(char_r_i, form_eout) aimag(vr(i, j))
-
-        write(eigenvect_l_out, *) char_idx1, ",", &
-                               char_idx2, ",", &
-                               char_l_r, ",", char_l_i
-        write(eigenvect_r_out, *) char_idx1, ",", &
-                               char_idx2, ",", &
-                               char_r_r, ",", char_r_i
-      end do
+      write(eigenvect_l_out) vl(i, :)
+      write(eigenvect_r_out) vr(i, :)
     end do
 
     close(eigenvect_l_out)
@@ -260,8 +250,7 @@ contains
   subroutine plot_results()
     if (plot_when_finished) then
       write(*, *) "Plotting results..."
-      call execute_command_line('python python/plot_eigenvalues.py')
-      call execute_command_line('python python/plot_matrices.py')
+      call execute_command_line("python python/plot_data.py")
     end if
     return
   end subroutine plot_results

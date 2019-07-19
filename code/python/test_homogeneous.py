@@ -18,8 +18,8 @@ def plot_spectrum(fig, ax, marker, opacity, file):
 
 
 if __name__ == '__main__':
-    filename_code = "output/tests/test_homogeneous_code.txt"
-    filename_test = "output/tests/test_homogeneous_test.txt"
+    filename_code = "output/tests/test_homogeneous_code.dat"
+    filename_test = "output/tests/test_homogeneous_test.dat"
     file_code = open(filename_code, 'r')
     file_test = open(filename_test, 'r')
 
