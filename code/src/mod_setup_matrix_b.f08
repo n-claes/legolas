@@ -76,7 +76,7 @@ contains
 
       end do    ! end do iteration gaussian points
 
-      !! Solving in [0, 1], so scale with difference
+      !! *dx from integral
       quadblock = quadblock * (r_hi - r_lo)
 
       !! Apply boundary conditions on edges
