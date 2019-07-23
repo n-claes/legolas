@@ -192,7 +192,7 @@ contains
     call reset_positions(positions, 19)
 
     ! A(1, 1)
-    factors(1) = eps_inv * (eps_inv * v02 * k2 + v03 * k3) * d_eps_dr
+    factors(1) = eps_inv * (eps_inv * v02 * k2 + v03 * k3)
     positions(1, :) = [1, 1]
     ! A(1, 3)
     factors(2) = eps_inv * rho0 * k2
@@ -244,7 +244,7 @@ contains
                     + eps_inv * rho0 * (eps_inv * k2 * v02 + k3 * v03) &
                     + ic * gamma_1 * eps_inv * deta * ( &
                       dB02**2 + dB03**2 + 2*d_eps_dr * eps_inv * B02 * dB02 &
-                      + (d_eps_dr * eps_inv * dB02)**2 &
+                      + (d_eps_dr * eps_inv * B02)**2 &
                                                       )
     positions(15, :) = [5, 5]
     ! A(5, 6)   (term with eta-derivative has been rewritten)
@@ -252,7 +252,7 @@ contains
                     (dT0 * d_eps_dr * eps_inv**2 &
                          * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2) &
                     + eps_inv * k2 * eta * ddB03 &
-                    - k3 * eta * ddB02 + 2*(d_eps_dr*eps_inv)**2 * eta * B02 &
+                    - k3 * eta * ddB02 + 2*k3*(d_eps_dr*eps_inv)**2 * eta * B02 &
                                        )
     positions(16, :) = [5, 6]
     ! A(6, 3)
@@ -262,7 +262,7 @@ contains
     factors(18) = -eps_inv * B02
     positions(18, :) = [6, 4]
     ! A(6, 6)
-    factors(19) = eps_inv * k2 * v02 + k2 * v03 &
+    factors(19) = eps_inv * k2 * v02 + k3 * v03 &
                     -ic * eta * (eps_inv**2 * k2**2 + k3**2)
     positions(19, :) = [6, 6]
 
@@ -319,6 +319,10 @@ contains
                   h_quadratic, h_cubic)
 
 
+
+    !! \TODO: CHECKED UP TO HERE
+
+
     ! Quadratic * d(Cubic)/dr
     call reset_factors(factors, 10)
     call reset_positions(positions, 10)
@@ -372,7 +376,7 @@ contains
     factors(2) = -2 * d_eps_dr * eps_inv * rho0 * v02
     positions(2, :) = [2, 3]
     ! A(2, 6)
-    factors(3) = eps_inv * drB02 * k3 - eps * k3 * db02_r
+    factors(3) = eps_inv * drB02 * k3 - eps * k3 * dB02_r
     positions(3, :) = [2, 6]
     ! A(7, 5)
     factors(4) = -ic * eps_inv * deta * dB03
@@ -522,7 +526,7 @@ contains
     call reset_positions(positions, 1)
 
     ! A(5, 5)
-    factors(1) = -ic * gamma_1 * eps_inv * tc_perp
+    factors(1) = ic * gamma_1 * d_eps_dr * eps_inv**2 * tc_perp
     positions(1, :) = [5, 5]
 
     call subblock(quadblock, factors, positions, curr_weight, &
