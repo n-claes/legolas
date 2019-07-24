@@ -12,8 +12,6 @@ module mod_boundary_conditions
   use mod_global_variables
   implicit none
 
-  private
-
   public :: boundaries_B_left_edge
   public :: boundaries_B_right_edge
   public :: boundaries_A_left_edge
@@ -59,7 +57,9 @@ contains
 
     call fixed_boundaries(quadblock, "l_edge", "A")
 
-    call natural_boundaries(eps, d_eps_dr, quadblock, "l_edge")
+    if (boundary_type == 'free') then
+      call natural_boundaries(eps, d_eps_dr, quadblock, "l_edge")
+    end if
 
   end subroutine boundaries_A_left_edge
 
@@ -76,7 +76,9 @@ contains
 
     call fixed_boundaries(quadblock, "r_edge", "A")
 
-    call natural_boundaries(eps, d_eps_dr, quadblock, "r_edge")
+    if (boundary_type == 'free') then
+      call natural_boundaries(eps, d_eps_dr, quadblock, "r_edge")
+    end if
 
   end subroutine boundaries_A_right_edge
 
@@ -117,9 +119,9 @@ contains
     !! The first diagonal elements of the top-left quadblock are set to unity.
     if (edge == "l_edge") then
       do i = 1, dim_subblock, 2
-        ! Every odd column to zero
-        quadblock(i, :) = (0.0d0, 0.0d0)
         ! Every odd row to zero
+        quadblock(i, :) = (0.0d0, 0.0d0)
+        ! Every odd column to zero
         quadblock(:, i) = (0.0d0, 0.0d0)
         ! Unity on first diagonal elements for B, zero for A
         quadblock(i, i) = unity
@@ -240,7 +242,7 @@ contains
 
     !! Spline functions for the boundaries. Interval is [grid(1), grid(2)]
     !! for the left edge, [grid(N-1), grid(N)] for the right edge.
-    !! r is equal to grid_gauss(1) for left, grid_gauss(N) for right
+    !! r is equal to grid(1) for left, grid(N) for right
     call quadratic_factors(r, r_lo, r_hi, h_quadratic)
     call quadratic_factors_deriv(r, r_lo, r_hi, dh_quadratic_dr)
     call cubic_factors(r, r_lo, r_hi, h_cubic)
@@ -334,6 +336,7 @@ contains
 
     call add_factors_quadblock(quadblock, factors, positions, &
                                h_cubic, dh_cubic_dr, edge)
+
 
     deallocate(factors)
     deallocate(positions)
