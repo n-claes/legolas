@@ -15,8 +15,7 @@ module testmod_homogeneous
   complex(dp), allocatable     :: vl(:, :)
   complex(dp), allocatable     :: vr(:, :)
 
-  integer, parameter           :: gridpts_homo = 31
-  real(dp), parameter          :: eps = 1.0d-14
+  integer, parameter           :: gridpts_homo = 11
 
 
 contains
@@ -54,15 +53,12 @@ contains
 
     complex(dp)   :: omega_theory(8)
     complex(dp)   :: vl_theory(8, 8), vr_theory(8, 8)
-    complex(dp)   :: ic0
-    real(dp)      :: k1, k2, k3, va, vs
+    real(dp)      :: k1, va, vs
     real(dp)      :: P0, T0, B03, rho0
     integer       :: n, it_end, i
 
     real(dp)      :: w_real, w_imag
     logical       :: append
-
-    ic0 = (1.0d0, 0.0d0)
 
     !! Solve using the code itself
     call construct_B(mat_B)
@@ -96,9 +92,6 @@ contains
     vs = sqrt(gamma * P0 / rho0)
     ! Alfven speed  B0z / sqrt(rho0)    rho0 = 1, B0z = 1
     va = B03 / sqrt(rho0)
-
-    k2 = 0.0d0
-    k3 = dpi
 
     ! Code has #eigenvalues = #matrix_gridpts, and every iteration here
     ! yields 8 eigenvalues hence iterate up to it_end
@@ -138,10 +131,10 @@ contains
       do i = 1, 8
         w_real = real(omega_theory(i))
         w_imag = aimag(omega_theory(i))
-        if (abs(w_real) < eps) then
+        if (abs(w_real) < dp_LIMIT) then
           w_real = 0.0d0
         end if
-        if (abs(w_imag) < eps) then
+        if (abs(w_imag) < dp_LIMIT) then
           w_imag = 0.0d0
         end if
         omega_theory(i) = cmplx(w_real, w_imag, kind=dp)
