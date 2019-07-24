@@ -108,8 +108,6 @@ contains
 
     if (use_precoded) then
 
-      write(*, *) "Using precoded equilibrium: ", equilibrium_type
-
       select case(equilibrium_type)
 
       case("Adiabatic homogeneous")
@@ -156,7 +154,6 @@ contains
       call set_conduction_derivatives(T0_eq, rho0_eq, B0_eq)
     end if
     if (resistivity) then
-      write(*, *) "true"
       call get_eta(T0_eq, eta_eq)
       call set_resistivity_derivatives(T0_eq)
     end if
@@ -199,6 +196,8 @@ contains
     radiative_cooling = .false.
     thermal_conduction = .false.
     resistivity = .true.
+    use_fixed_resistivity = .true.
+    fixed_eta_value = 0.001d0
     external_gravity = .false.
 
     k2 = 0.0d0

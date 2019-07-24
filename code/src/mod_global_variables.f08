@@ -27,6 +27,15 @@ module mod_global_variables
   !> Values smaller than this are forced to zero
   real(dp), parameter :: dp_LIMIT = 1.0d-14
 
+  !> Format settings
+  character(8), parameter    :: form_e = '(e30.20)'
+  character(8), parameter    :: form_f = '(f30.20)'
+
+  character(8), parameter    :: form_eout = '(e20.10)'
+  character(8), parameter    :: form_fout = '(f20.10)'
+
+  character(4), parameter    :: form_int  = '(i8)'
+
   !! Physics parameters
   !> Complex number
   complex(dp), parameter    :: ic = (0.0d0, 1.0d0)

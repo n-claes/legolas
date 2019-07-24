@@ -28,7 +28,7 @@ contains
     geometry = "Cartesian"          !< geometry of the problem
     x_start  = 0.0d0                !< start of the grid
     x_end    = 1.0d0                !< end of the grid
-    gridpoints = 11
+    gridpoints = 21
 
     !> Meshlist defaults
     mesh_accumulation = .false.
@@ -60,7 +60,7 @@ contains
     !> Equilibriumlist defaults
     use_precoded = .true.                       !< use precoded equilibrium
     equilibrium_type = "Adiabatic homogeneous"
-    !equilibrium_type = "Resistive homogeneous"
+    ! equilibrium_type = "Resistive homogeneous"
     !equilibrium_type = "Suydam cluster modes"
     !equilibrium_type = "Kelvin-Helmholtz"
     boundary_type = 'wall'

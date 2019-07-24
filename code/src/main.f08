@@ -12,6 +12,8 @@
 
 program esonas
   use mod_global_variables
+  use mod_info
+  use mod_timer
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -25,18 +27,29 @@ program esonas
   !> Left eigenvectors
   complex(dp), allocatable  :: eigenvecs_left(:, :)
 
+  ! Initialisations
+  call set_time_start()
   call initialisation()
+  call set_time_initialisation
+  call show_startup_info()
 
+  ! Matrix creation
+  call set_time_start()
   call create_matrices()
+  call set_time_matrices()
 
+  ! Solving eigenvalue problem (timing is done inside module)
   call solve_eigenvalue_problem()
 
+  ! Save solutions (timing is done inside module)
   call save_solutions()
+  call show_final_info()
 
+  ! Wrap up
   call cleanup()
 
-  write(*, *) "Program finished."
-
+  ! Plot solutions if needed
+  call plot_solutions()
 
 
 contains
@@ -77,6 +90,8 @@ contains
     use mod_setup_matrix_b, only: construct_B
     use mod_setup_matrix_a, only: construct_A
 
+    write(*, *) "Creating matrices..."
+
     call construct_B(matrix_B)
     call construct_A(matrix_A)
 
@@ -85,6 +100,8 @@ contains
   !> Calls the solver.
   subroutine solve_eigenvalue_problem()
     use mod_solvers
+
+    write(*, *) "Solving eigenvalue problem..."
 
     call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
 
@@ -95,33 +112,48 @@ contains
     use mod_eigenfunctions
     use mod_io
 
+    write(*, *)
     write(*, *) "Writing configuration to file..."
     call save_config("config")
 
     write(*, *) "Writing eigenvalues to file..."
+    call set_time_start()
     call save_eigenvalues(omega, "eigenvalues", append=.false., stream=.true.)
     call save_eigenvalues(omega, "eigenvalues_text", append=.false., stream=.false.)
+    call set_time_write_omegas()
 
     if (write_AB) then
       write(*, *) "Writing matrices to file..."
+      call set_time_start()
       call save_matrices(matrix_A, matrix_B, "matrix_A", "matrix_B")
+      call set_time_write_matrices()
     end if
 
     if (write_eigenvectors) then
       write(*, *) "Writing eigenvectors to file..."
+      call set_time_start()
       call save_eigenvectors(eigenvecs_left, eigenvecs_right, &
                              "v_left", "v_right")
+      call set_time_write_eigenvectors()
     end if
 
     if (write_eigenfunctions) then
       write(*, *) "Writing eigenfunctions to file..."
+      call set_time_start()
       call get_all_eigenfunctions(eigenvecs_right)
-    end if
-    
-    if (plot_when_finished) then
-      call plot_results()
+      call set_time_write_eigenfunctions()
     end if
   end subroutine save_solutions
+
+  !> Routine to call Python script if plotting is requested.
+  subroutine plot_solutions()
+    if (plot_when_finished) then
+      write(*, *) ""
+      write(*, *) ""
+      write(*, *) "Plotting results..."
+      call execute_command_line("python python/plot_data.py")
+    end if
+  end subroutine plot_solutions
 
   !> Performs cleanup, deallocates variables.
   subroutine cleanup()
@@ -145,8 +177,6 @@ contains
       call radiative_cooling_clean
     end if
     call eigenfunctions_clean()
-
-
 
   end subroutine cleanup
 
