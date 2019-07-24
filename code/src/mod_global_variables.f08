@@ -52,6 +52,10 @@ module mod_global_variables
   logical, save             :: thermal_conduction
   !> Boolean to enable resistivity
   logical, save             :: resistivity
+  !> Boolean to set a fixed resistivity instead of a temperature dependence
+  logical, save             :: use_fixed_resistivity
+  !> Sets the fixed value for the resistivity
+  real(dp)                  :: fixed_eta_value
   !> Boolean for cgs units
   logical, save             :: cgs_units
 

@@ -15,7 +15,8 @@ contains
     namelist /meshlist/ mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
     namelist /physicslist/ mhd_gamma, flow, radiative_cooling, ncool, &
                            cooling_curve, external_gravity, gravity_type, &
-                           thermal_conduction, resistivity
+                           thermal_conduction, resistivity, &
+                           use_fixed_resistivity, fixed_eta_value
     namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
                          unit_temperature, unit_velocity
     namelist /equilibriumlist/ use_precoded, equilibrium_type, boundary_type
@@ -46,6 +47,8 @@ contains
     gravity_type = "solar"          !< strength of external gravity
     thermal_conduction = .false.    !< use thermal conduction
     resistivity = .false.           !< use resistivity
+    use_fixed_resistivity = .false. !< use fixed resistivity
+    fixed_eta_value = 0.0d0         !< value for fixed resistivity
 
     !> Unitslist defaults
     cgs_units = .true.              !< use cgs units
