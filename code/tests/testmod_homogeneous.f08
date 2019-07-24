@@ -5,6 +5,7 @@ module testmod_homogeneous
   use mod_equilibrium_derivatives
   use mod_setup_matrix_a
   use mod_setup_matrix_b
+  use mod_input
 
   implicit none
 
@@ -21,14 +22,10 @@ module testmod_homogeneous
 contains
 
   subroutine init_homogeneous()
-    use_precoded = .true.
+    call read_parfile()
+    
     equilibrium_type = "Adiabatic homogeneous"
 
-    !! Set grid points
-    x_start = 0.0d0
-    x_end   = 1.0d0
-    call set_gridpts(gridpts_homo)
-    call set_gamma(5.0d0 / 3.0d0)
     call initialise_grid()
     call set_grid_gauss()
 

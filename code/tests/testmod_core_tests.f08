@@ -10,6 +10,7 @@ module testmod_core_tests
   use mod_make_subblock
   use mod_solvers
   use mod_boundary_conditions
+  use mod_input
   implicit none
 
   integer, parameter  :: test_gridpts = 4
@@ -26,18 +27,8 @@ contains
     write(*, *) "==============================="
     write(*, *) "===== RUNNING CORE TESTS ======"
     write(*, *) "==============================="
-    !! Set global variables
-    flow = .false.
-    radiative_cooling = .false.
-    thermal_conduction = .false.
-    resistivity = .false.
-    external_gravity = .false.
 
-    !! Set grid points
-    x_start = 0.0d0
-    x_end   = 1.0d0
-    call set_gridpts(test_gridpts)
-    call set_gamma(5.0d0 / 3.0d0)
+    call read_parfile()
 
     successes = 0
     fails     = 0
