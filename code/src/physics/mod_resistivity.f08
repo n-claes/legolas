@@ -30,6 +30,11 @@ contains
     real(dp)                :: ec, me, e0, kB, eta_1MK
     real(dp)                :: T0_denorm(gauss_gridpts)
 
+    if (use_fixed_resistivity) then
+      eta(:) = fixed_eta_value
+      return
+    end if
+
     !! Denormalise variables for calculation
     T0_denorm = T0 * unit_temperature
 
@@ -61,6 +66,10 @@ contains
 
     real(dp)                :: ec, me, e0, kB
     real(dp)                :: T0_denorm(gauss_gridpts)
+
+    if (use_fixed_resistivity) then
+      deta_dT(:) = 0.0d0
+    end if
 
     !! Denormalise variables for calculation
     T0_denorm = T0 * unit_temperature
