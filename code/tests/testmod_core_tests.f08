@@ -9,6 +9,7 @@ module testmod_core_tests
   use mod_setup_matrix_a
   use mod_make_subblock
   use mod_solvers
+  use mod_boundary_conditions
   implicit none
 
   integer, parameter  :: test_gridpts = 4
@@ -99,6 +100,9 @@ contains
 
     !! Tests for the subblock routines
     call test_subblock()
+
+    !! Tests for the boundary conditions
+    call test_boundaries()
 
     !! Tests the different pre-implemented equilibrium configurations
     call print_separation("Testing different equilibrium configurations")
@@ -448,6 +452,97 @@ contains
     end do
     call check_test()
   end subroutine test_subblock
+
+
+  subroutine test_boundaries()
+    call print_separation("Tests for boundary conditions")
+    call test_fixed_boundaries_left()
+    call test_fixed_boundaries_right()
+  end subroutine test_boundaries
+
+
+  !> Tests the fixed boundary conditions for the left edge
+  subroutine test_fixed_boundaries_left()
+    complex(dp)                :: qblock_test(dim_quadblock, dim_quadblock)
+    integer                    :: i, j
+
+    write(*, *) "Testing fixed boundary conditions left..."
+
+    qblock_test = (5.0d0, 2.0d0)
+
+    call fixed_boundaries(qblock_test, 'l_edge', 'B')
+
+    do i = 1, dim_subblock, 2
+      do j = 1, dim_quadblock
+        if (i == j) then
+          call assert_complex_equal(qblock_test(i, j), (1.0d0, 0.0d0), bool)
+        else
+          ! Check rows
+          call assert_complex_equal(qblock_test(i, j), (0.0d0, 0.0d0), bool)
+          ! Check columns
+          call assert_complex_equal(qblock_test(j, i), (0.0d0, 0.0d0), bool)
+        end if
+        if (.not. bool) then
+          write(*, *) "    quadblock index  : ", i, j, "/", j, i
+          write(*, *) "    value at position: ", qblock_test(i, j), &
+                                              "/", qblock_test(j, i)
+          if (i == j) then
+            write(*, *) "    value should be  : ", (1.0d0, 0.0d0)
+          else
+            write(*, *) "    value should be  : ", (0.0d0, 0.0d0)
+          end if
+          call check_test()
+          return
+        end if
+      end do
+    end do
+    call check_test()
+  end subroutine test_fixed_boundaries_left
+
+
+  !> Tests the fixed boundary conditions for the right edge
+  subroutine test_fixed_boundaries_right()
+    complex(dp)                :: qblock_test(dim_quadblock, dim_quadblock)
+    integer                    :: i, j, curr_idx, idxs(3)
+
+    write(*, *) "Testing fixed boundary conditions right..."
+
+    idxs = (/ 19, 29, 31 /)
+
+    qblock_test = (5.0d0, 2.0d0)
+
+    call fixed_boundaries(qblock_test, 'r_edge', 'B')
+
+    do i = 1, dim_quadblock
+      do j = 1, size(idxs)
+        curr_idx = idxs(j)
+
+        if (i == curr_idx) then
+          call assert_complex_equal(qblock_test(i, curr_idx), (1.0d0, 0.0d0), &
+                                    bool)
+        else
+          call assert_complex_equal(qblock_test(i, curr_idx), (0.0d0, 0.0d0), &
+                                    bool)
+          call assert_complex_equal(qblock_test(curr_idx, i), (0.0d0, 0.0d0), &
+                                    bool)
+        end if
+        if (.not. bool) then
+          write(*, *) "    quadblock index  : ", i, curr_idx, "/", curr_idx, i
+          write(*, *) "    value at position: ", qblock_test(i, curr_idx), &
+                                              "/", qblock_test(curr_idx, i)
+          if (i == curr_idx) then
+            write(*, *) "    value should be  : ", (1.0d0, 0.0d0)
+          else
+            write(*, *) "    value should be  : ", (0.0d0, 0.0d0)
+          end if
+          call check_test()
+          return
+        end if
+      end do
+    end do
+    call check_test()
+  end subroutine test_fixed_boundaries_right
+
 
 
 
