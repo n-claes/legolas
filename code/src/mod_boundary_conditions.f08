@@ -64,6 +64,7 @@ contains
     else
       write(*, *) "Unknown boundary condition"
       write(*, *) "Currently set on:    ", boundary_type
+      stop
     end if
 
   end subroutine boundaries_A_left_edge
@@ -88,6 +89,7 @@ contains
     else
       write(*, *) "Unknown boundary condition"
       write(*, *) "Currently set on:    ", boundary_type
+      stop
     end if
 
   end subroutine boundaries_A_right_edge

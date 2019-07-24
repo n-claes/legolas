@@ -22,12 +22,16 @@ contains
   subroutine get_all_eigenfunctions(vr)
     use mod_types
     use mod_io
+    use mod_grid
 
     complex(dp), intent(in)     :: vr(matrix_gridpts, matrix_gridpts)
 
     complex(dp)                 :: Y(eigenf_gridpts)
-    integer                     :: i, j
+    complex(dp)                 :: current_eigenvec(matrix_gridpts)
+    integer                     :: i, j, k, idx
     character(len=3)            :: vars(8)
+    real(dp)                    :: r_mid, r_end
+    complex(dp)                 :: fact
 
     type (eigenf_type)          :: var_eigenf
 
@@ -47,10 +51,33 @@ contains
       ! Filename of the current variable, used for saving
       var_eigenf % savename = trim(trim(vars(j)) // '_eigenfunction')
 
+      ! do i = 1, matrix_gridpts
+      !   ! Every eigenfunction is stored in the column of 'eigenfunctions'.
+      !   ! That way columns correspond with the eigenvalues and eigenvectors.
+      !   call calculate_eigenfunction(trim(vars(j)), vr(:, i), Y)
+      !   var_eigenf % eigenfunctions(:, i) = Y(:)
+      ! end do
+
       do i = 1, matrix_gridpts
-        ! Every eigenfunction is stored in the column of 'eigenfunctions'.
-        ! That way columns correspond with the eigenvalues and eigenvectors.
-        call calculate_eigenfunction(trim(vars(j)), vr(:, i), Y)
+        current_eigenvec(:) = vr(:, i)
+        X_grid(1) = grid(1)
+        idx = (j - 1)*2 + 2
+        Y(1) = current_eigenvec(idx)
+
+        do k = 2, gridpts
+          r_mid = (grid(k) + grid(k-1)) / 2.0d0
+          r_end = grid(k)
+          X_grid(2*(k-1))   = r_mid
+          X_grid(2*(k-1)+1) = r_end
+
+          idx = (k - 1)*dim_subblock + (j-1)*2 + 1
+
+          call get_transform_factor(trim(vars(j)), r_mid, fact)
+          Y(2*(k-1)) = fact * current_eigenvec(idx)
+
+          call get_transform_factor(trim(vars(j)), r_end, fact)
+          Y(2*(k-1)+1) = fact * current_eigenvec(idx+1)
+        end do
         var_eigenf % eigenfunctions(:, i) = Y(:)
       end do
 
