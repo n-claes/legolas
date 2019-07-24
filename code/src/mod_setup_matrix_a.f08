@@ -236,7 +236,7 @@ contains
     positions(14, :) = [5, 4]
     ! A(5, 5)
     factors(15) = -eps_inv * ic * gamma_1 * ( &
-                    (tc_para - tc_perp) * B2_inv * (k2 * eps_inv * B02 + k3*B03) &
+                    (tc_para - tc_perp) * B2_inv * (k2 * eps_inv * B02 + k3*B03)**2 &
                      + tc_perp * (d_eps_dr * eps_inv)**2 &
                      + tc_perp * (k2**2 * eps_inv**2 + k3**2) &
                      + rho0 * L_T - d_eps_dr * eps_inv * dT0 * dtc_perp_dT &
@@ -259,7 +259,7 @@ contains
     factors(17) = -B03
     positions(17, :) = [6, 3]
     ! A(6, 4)
-    factors(18) = -eps_inv * B02
+    factors(18) = eps_inv * B02
     positions(18, :) = [6, 4]
     ! A(6, 6)
     factors(19) = eps_inv * k2 * v02 + k3 * v03 &
@@ -317,10 +317,6 @@ contains
 
     call subblock(quadblock, factors, positions, curr_weight, &
                   h_quadratic, h_cubic)
-
-
-
-    !! \TODO: CHECKED UP TO HERE
 
 
     ! Quadratic * d(Cubic)/dr
@@ -547,7 +543,7 @@ contains
     positions(2, :) = [5, 8]
 
     call subblock(quadblock, factors, positions, curr_weight, &
-                  dh_quadratic_dr, dh_quadratic_dr)
+                  dh_quadratic_dr, dh_cubic_dr)
 
     deallocate(factors)
     deallocate(positions)

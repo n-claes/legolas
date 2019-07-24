@@ -18,7 +18,7 @@ contains
                            thermal_conduction, resistivity
     namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
                          unit_temperature, unit_velocity
-    namelist /equilibriumlist/ use_precoded, equilibrium_type
+    namelist /equilibriumlist/ use_precoded, equilibrium_type, boundary_type
     namelist /savelist/ plot_when_finished, write_AB, write_eigenvectors, &
                         write_eigenfunctions
 
@@ -60,6 +60,7 @@ contains
     !equilibrium_type = "Resistive homogeneous"
     !equilibrium_type = "Suydam cluster modes"
     !equilibrium_type = "Kelvin-Helmholtz"
+    boundary_type = 'wall'
 
     !> Savelist defaults
     plot_when_finished = .true.     !< plot spectrum when finished

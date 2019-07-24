@@ -103,6 +103,8 @@ module mod_global_variables
   logical, save                :: use_precoded
   !> Type of equilibrium to set up
   character(len=str_len)       :: equilibrium_type
+  !> Type of boundary to use
+  character(len=str_len)       :: boundary_type
 
   !! Block-related parameters
   !> Number of equations
