@@ -59,6 +59,11 @@ contains
 
     if (boundary_type == 'free') then
       call natural_boundaries(eps, d_eps_dr, quadblock, "l_edge")
+    else if (boundary_type == 'wall') then
+      return
+    else
+      write(*, *) "Unknown boundary condition"
+      write(*, *) "Currently set on:    ", boundary_type
     end if
 
   end subroutine boundaries_A_left_edge
@@ -78,6 +83,11 @@ contains
 
     if (boundary_type == 'free') then
       call natural_boundaries(eps, d_eps_dr, quadblock, "r_edge")
+    else if (boundary_type == 'wall') then
+      return
+    else
+      write(*, *) "Unknown boundary condition"
+      write(*, *) "Currently set on:    ", boundary_type
     end if
 
   end subroutine boundaries_A_right_edge

@@ -27,9 +27,11 @@ TEST_OUT := run_tests.exe
 objects  := $(addprefix $(BINDIR)/, 			  		  \
 								mod_physical_constants.o					\
 								mod_global_variables.o 						\
+								mod_timer.o												\
 								mod_types.o												\
 								mod_check_values.o								\
 								mod_spline_functions.o						\
+								mod_info.o												\
 								mod_input.o												\
 								mod_io.o													\
 								mod_resistivity.o									\

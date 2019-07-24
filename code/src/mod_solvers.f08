@@ -11,6 +11,7 @@
 !
 module mod_solvers
   use mod_global_variables
+  use mod_timer
   implicit none
 
   public
@@ -53,11 +54,17 @@ contains
     real(dp), allocatable    :: rwork(:)
 
     !! Invert matrix B
+    call set_time_start()
     call invert_B(B, B_inv)
+    call set_time_invert()
 
     !! Matrix multiplication B^{-1} * A
     !call get_B_invA_matmul(B_inv, A, B_invA)
+    call set_time_start()
     call get_B_invA(B_inv, A, B_invA)
+    call set_time_multiply()
+
+    write(*, *) "  Solving wX = B^(-1)AX..."
 
     !! Calculate eigenvectors or not ('N' is no, 'V' is yes)
     jobvl = 'V'
@@ -74,8 +81,10 @@ contains
     allocate(work(lwork))
     allocate(rwork(2*N))
 
+    call set_time_start()
     call zgeev(jobvl, jobvr, N, B_invA, ldB_invA, omega, vl, ldvl, &
                vr, ldvr, work, lwork, rwork, info)
+    call set_time_QR()
 
     if (info .ne. 0) then
       write(*, *) 'LAPACK routine zggev failed'
@@ -103,6 +112,8 @@ contains
     integer               :: N, ldb, lwork, info
     integer, allocatable  :: ipiv(:)
     real(dp), allocatable :: work(:)
+
+    write(*, *) "  Inverting B matrix..."
 
     !! Copy B into B_inv
     B_inv = B
@@ -148,6 +159,8 @@ contains
     integer                   :: K, ldB_inv, ldA, ldB_invA
     complex(dp)               :: alpha, beta
     complex(dp)               :: B_inv_cplx(matrix_gridpts, matrix_gridpts)
+
+    write(*, *) "  Multiplying B^(-1) with A..."
 
     !! 'zgemm' performs one of the matrix-matrix operations
     !! C := alpha*op(A)*op(B) + beta*C

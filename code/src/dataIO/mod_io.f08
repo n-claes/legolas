@@ -15,14 +15,6 @@ module mod_io
   integer, parameter  :: eigenvectors_out    = 80
   integer, parameter  :: grid_out            = 90
 
-  character(8), parameter    :: form_e = '(e30.20)'
-  character(8), parameter    :: form_f = '(f30.20)'
-
-  character(8), parameter    :: form_eout = '(e20.10)'
-  character(8), parameter    :: form_fout = '(f20.10)'
-
-  character(4), parameter    :: form_int  = '(i8)'
-
 contains
 
   subroutine open_file(file_no, filename, append, stream)
@@ -253,15 +245,5 @@ contains
     close(eigenvect_l_out)
     close(eigenvect_r_out)
   end subroutine save_eigenvectors
-
-
-
-  subroutine plot_results()
-    if (plot_when_finished) then
-      write(*, *) "Plotting results..."
-      call execute_command_line("python python/plot_data.py")
-    end if
-    return
-  end subroutine plot_results
 
 end module mod_io
