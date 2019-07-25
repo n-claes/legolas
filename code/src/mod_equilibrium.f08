@@ -14,11 +14,6 @@ module mod_equilibrium
 
   public
 
-  !> Wavenumber in y-direction (Cartesian) or theta-direction (cylindrical)
-  real(dp)                      :: k2
-  !> Wavenumber in z-direction (Cartesian) or z-direction (cylindrical)
-  real(dp)                      :: k3
-
   !! Default equilibrium variables
   !> Equilibrium density
   real(dp), allocatable         :: rho0_eq(:)

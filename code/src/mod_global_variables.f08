@@ -25,7 +25,7 @@ module mod_global_variables
   integer, parameter :: str_len = 125
 
   !> Values smaller than this are forced to zero
-  real(dp), parameter :: dp_LIMIT = 1.0d-14
+  real(dp), parameter :: dp_LIMIT = 1.0d-12
 
   !> Format settings
   character(8), parameter    :: form_e = '(e30.20)'
@@ -41,6 +41,8 @@ module mod_global_variables
   complex(dp), parameter    :: ic = (0.0d0, 1.0d0)
   !> Complex real
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
+  !> Boolean for cgs units
+  logical, save             :: cgs_units
   !> Ratio of specific heats gamma
   real(dp), protected       :: gamma
   !> Variable for (gamma - 1)
@@ -65,8 +67,10 @@ module mod_global_variables
   logical, save             :: use_fixed_resistivity
   !> Sets the fixed value for the resistivity
   real(dp)                  :: fixed_eta_value
-  !> Boolean for cgs units
-  logical, save             :: cgs_units
+  !> Wavenumber in y-direction (Cartesian) or theta-direction (cylindrical)
+  real(dp)                  :: k2
+  !> Wavenumber in z-direction (Cartesian) or z-direction (cylindrical)
+  real(dp)                  :: k3
 
   !! Grid-related parameters
   !> Geometry of the problem: 'Cartesian' or 'cylindrical'
