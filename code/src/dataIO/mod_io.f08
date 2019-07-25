@@ -139,6 +139,13 @@ contains
     end if
     write(config, *) "Thermal conduction : ", thermal_conduction
     write(config, *) "Resistivity        : ", resistivity
+    if (resistivity) then
+      write(config, *) "Fixed Resistivity  :", use_fixed_resistivity
+      if (use_fixed_resistivity) then
+        write(char, form_fout) fixed_eta_value
+        write(config, *) "Fixed eta value    :", adjustl(char)
+      end if
+    end if
     write(config, *) "External gravity   : ", external_gravity
     if (external_gravity) then
       write(config, *) "Gravity strength   : ", gravity_type
@@ -146,6 +153,11 @@ contains
 
     write(char, form_fout) gamma
     write(config, *) "Gamma              : ", adjustl(char)
+    write(char, form_fout) k2
+    write(config, *) "k2                 : ", adjustl(char)
+    write(char, form_fout) k3
+    write(config, *) "k3                 : ", adjustl(char)
+
 
     write(config, *) ""
     write(config, *) "Geometry           : ", geometry

@@ -42,6 +42,10 @@ contains
     write(*, *) "-- Equilibrium settings --"
     write(*, *) "Equilibrium type   : ", equilibrium_type
     write(*, *) "Boundary conditions: ", boundary_type
+    write(*, *) ""
+
+    ! Physics info
+    write(*, *) "-- Physics settings --"
     call get_bool(flow, char)
     write(*, *) "Flow               : ", char
     call get_bool(radiative_cooling, char)

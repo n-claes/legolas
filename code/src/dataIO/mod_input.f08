@@ -16,7 +16,7 @@ contains
     namelist /physicslist/ mhd_gamma, flow, radiative_cooling, ncool, &
                            cooling_curve, external_gravity, gravity_type, &
                            thermal_conduction, resistivity, &
-                           use_fixed_resistivity, fixed_eta_value
+                           use_fixed_resistivity, fixed_eta_value, k2, k3
     namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
                          unit_temperature, unit_velocity
     namelist /equilibriumlist/ use_precoded, equilibrium_type, boundary_type
@@ -49,6 +49,8 @@ contains
     resistivity = .false.           !< use resistivity
     use_fixed_resistivity = .false. !< use fixed resistivity
     fixed_eta_value = 0.0d0         !< value for fixed resistivity
+    k2 = 1.0d0                      !< wavenumber in y-direction
+    k3 = 1.0d0                      !< wavenumber in z-direction
 
     !> Unitslist defaults
     cgs_units = .true.              !< use cgs units
