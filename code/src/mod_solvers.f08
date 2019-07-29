@@ -65,8 +65,13 @@ contains
     call set_time_multiply()
 
     !! Calculate eigenvectors or not ('N' is no, 'V' is yes)
-    jobvl = 'V'
-    jobvr = 'V'
+    if (write_eigenfunctions) then
+      jobvl = 'V'
+      jobvr = 'V'
+    else
+      jobvl = 'N'
+      jobvr = 'N'
+    end if
 
     !! Array dimensions
     N       = matrix_gridpts

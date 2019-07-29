@@ -10,6 +10,9 @@
 !
 module mod_equilibrium
   use mod_global_variables
+  use mod_physical_constants
+  use mod_equilibrium_derivatives
+  use mod_grid
   implicit none
 
   public
@@ -99,7 +102,6 @@ contains
     use mod_radiative_cooling, only: initialise_radiative_cooling
     use mod_thermal_conduction, only: get_kappa_para, get_kappa_perp
     use mod_resistivity, only: get_eta
-    use mod_equilibrium_derivatives
 
     if (use_precoded) then
 
@@ -107,17 +109,24 @@ contains
 
       case("Adiabatic homogeneous")
         call adiabatic_homo_eq()
-        ! derivatives remain zero so don't have to be set
 
       case("Resistive homogeneous")
         call resistive_homo_eq()
-        ! no explicit derivatives needed
+
+      case("Gravito MHD waves")
+        call gravito_mhd_waves_eq()
+
+      case("Resistive tearing modes")
+        call resistive_tearing_modes_eq()
 
       case("Suydam cluster modes")
         call suydam_cluster_eq()
 
       case("Kelvin-Helmholtz")
         call KH_instability_eq()
+
+      case("Rotating plasma cylinder")
+        call rotating_plasma_cyl_eq()
 
       case default
         write(*, *) "Precoded equilibrium not recognised."
@@ -158,9 +167,6 @@ contains
   !> Initialises equilibrium for an adiabatic homogeneous medium in Cartesian
   !! geometry.
   subroutine adiabatic_homo_eq()
-    use mod_grid
-    use mod_physical_constants
-
     k2 = 0.0d0
     k3 = dpi
 
@@ -181,9 +187,6 @@ contains
 
 
   subroutine resistive_homo_eq()
-    use mod_grid
-    use mod_physical_constants
-
     real(dp)  :: beta
 
     geometry = "Cartesian"
@@ -210,12 +213,88 @@ contains
   end subroutine resistive_homo_eq
 
 
+  subroutine gravito_mhd_waves_eq()
+    real(dp)    :: alpha, x, rho0, p0, B0
+    integer     :: i
+
+    geometry = "Cartesian"
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .true.
+
+    k2 = 0.0d0
+    k3 = dpi
+
+    alpha = 20
+
+    rho0 = 1.0d0
+    p0   = 1.0d0
+    B0   = 1.0d0
+
+    do i = 1, gauss_gridpts
+      x = grid_gauss(i)
+
+      rho0_eq(i) = rho0 * exp(-alpha * x)
+      B03_eq(i)  = B0 * exp(-0.5d0 * alpha * x)
+      T0_eq(i)   = p0 * exp(-alpha * x) / rho0_eq(i)
+    end do
+  end subroutine gravito_mhd_waves_eq
+
+
+  subroutine resistive_tearing_modes_eq()
+    real(dp)    :: alpha, beta, r
+    integer     :: i
+
+    geometry = "Cartesian"
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .true.
+    use_fixed_resistivity = .true.
+    fixed_eta_value = 0.0001d0
+    external_gravity = .false.
+
+    k2 = 0.49d0
+    k3 = 0.0d0
+
+    ! Parameters
+    alpha = 4.73884d0
+    beta  = 0.15d0
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+
+      ! Equilibrium
+      rho0_eq(i) = 1.0d0
+      B02_eq(i)  = sin(alpha * r)
+      B03_eq(i)  = cos(alpha * r)
+      B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)   = beta * B0_eq(i)**2 / (8*dpi)
+
+      ! Derivatives
+      d_B02_dr(i)   = alpha * cos(alpha * r)
+      d_B03_dr(i)   = -alpha * sin(alpha * r)
+      ! In Cartesian so epsilon = 1, hence d_rB02_dr = d_B02_dr
+      ! and d_B02_r_dr = d_B02_dr
+      d_rB02_dr(i)  = alpha * cos(alpha * r)
+      d_B02_r_dr(i) = alpha * cos(alpha * r)
+      ! No d_T0_dr needed, as B0**2 is independent of r
+
+      dd_B02_dr(i)  = -alpha**2 * sin(alpha * r)
+      dd_B03_dr(i)  = -alpha**2 * cos(alpha * r)
+    end do
+  end subroutine resistive_tearing_modes_eq
+
+
   !> Initialises equilibrium for Suydam cluster modes in cylindrical geometry.
   !! Obtained from Bondeson et al., Phys. Fluids 30 (1987)
   subroutine suydam_cluster_eq()
     use mod_grid
 
     real(dp)      :: v_z0, p0, p1, alpha, r
+    real(dp)      :: J0, J1, DJ0, DJ1
     real(dp)      :: P0_eq(gauss_gridpts)
     integer       :: i
 
@@ -232,23 +311,31 @@ contains
     p1    = 0.1d0
     alpha = 2
 
-    !! Filling equilibria
-    rho0_eq = 1.0d0
-    v02_eq  = 0.0d0
-
     k2 = 1.0d0
     k3 = -1.2d0
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
 
+      J0 = bessel_jn(0, alpha * r)
+      J1 = bessel_jn(1, alpha * r)
+      DJ0 = -J1
+      DJ1 = 0.5d0 * J0 - 0.5d0 * bessel_jn(2, alpha * r)
+
+      ! Equilibrium
+      rho0_eq(i) = 1.0d0
+      v02_eq(i) = 0.0d0
       v03_eq(i) = v_z0 * (1.0d0 - r**2)
-      B02_eq(i) = bessel_jn(1, alpha * r)
-      B03_eq(i) = sqrt(1.0d0 - p1) * bessel_jn(0, alpha * r)
-
-      P0_eq(i)  = p0 + 0.5 * p1 * bessel_jn(0, alpha * r)**2
-
+      B02_eq(i) = J1
+      B03_eq(i) = sqrt(1.0d0 - p1) * J0
+      P0_eq(i)  = p0 + 0.5d0 * p1 * J0**2
       T0_eq(i)  = P0_eq(i) / rho0_eq(i)
+
+      ! Derivatives
+      d_rB02_dr(i)  = J1 + r * DJ1
+      d_B02_r_dr(i) = (-1.0d0 / r**2) * J1 + (1.0d0 / r) * DJ1
+      d_T0_dr(i)    = -p1 * J0 * J1
+      d_v03_dr(i)   = -2.0d0 * v_z0 * r
     end do
 
   end subroutine suydam_cluster_eq
@@ -257,8 +344,6 @@ contains
   !! Cartesian geometry.
   !! From Miura et al., J. Geophys. Res. 87 (1982)
   subroutine KH_instability_eq()
-    use mod_grid
-
     real(dp)    :: a, x, p0, v0y, v0z
     integer     :: i
 
@@ -292,6 +377,59 @@ contains
     end do
 
   end subroutine KH_instability_eq
+
+
+  subroutine rotating_plasma_cyl_eq()
+    real(dp)    :: a21, a22, a3, b21, b22, b3, p0
+    real(dp)    :: r
+    integer     :: i
+
+    geometry = 'cylindrical'
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    a21 = 8.0d0
+    a22 = 0.0d0
+    a3  = 0.0d0
+    b21 = 1.0d0
+    b22 = 0.0d0
+    b3  = 0.0d0
+    p0  = 0.1d0
+
+    k2  = 1.0d0
+    k3  = 0.0d0
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+
+      !! Equilibrium
+      rho0_eq(i) = 1.0d0
+      v02_eq(i)  = a21*r + a22*r**2
+      v03_eq(i)  = a3
+      B02_eq(i)  = b21*r + b22*r**2
+      B03_eq(i)  = b3
+      T0_eq(i)   = (1.0d0 / rho0_eq(i)) * (p0 &
+                      + 0.5d0 * (a21**2 - 2*b21**2)*r**2 &
+                      + (2.0d0/3.0d0)*(a21*a22 - b21*b22)*r**3 &
+                      + (1.0d0/4.0d0)*(a22**2 - b22**2)*r**4)
+
+      !! Derivatives
+      d_B02_dr(i)   = b21 + 2*b22*r
+      d_B03_dr(i)   = 0.0d0
+      d_rB02_dr(i)  = 2*b21*r + 3*b22*r**2
+      d_B02_r_dr(i) = b22
+      d_rv02_dr(i)  = 2*a21*r + 3*a22*r**2
+      d_v03_dr(i)   = 0.0d0
+      d_T0_dr(i)    = (1.0d0 / rho0_eq(i)) * ( (a21**2 - 2*b21**2)*r &
+                         + 2.0d0*(a21*a22 - b21*b22)*r**2 &
+                         + (a22**2 - b22**2)*r**3 )
+    end do
+  end subroutine rotating_plasma_cyl_eq
+
 
   !> Cleaning routine, deallocates all arrays in this module.
   subroutine equilibrium_clean()
