@@ -42,6 +42,10 @@ contains
     write(*, *) "-- Equilibrium settings --"
     write(*, *) "Equilibrium type   : ", equilibrium_type
     write(*, *) "Boundary conditions: ", boundary_type
+    write(char, form_fout) k2
+    write(*, *) "Wave number k2     : ", adjustl(char)
+    write(char, form_fout) k3
+    write(*, *) "Wave number k3     : ", adjustl(char)
     write(*, *) ""
 
     ! Physics info

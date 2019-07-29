@@ -63,15 +63,18 @@ contains
     use_precoded = .true.                       !< use precoded equilibrium
     equilibrium_type = "Adiabatic homogeneous"
     ! equilibrium_type = "Resistive homogeneous"
-    !equilibrium_type = "Suydam cluster modes"
-    !equilibrium_type = "Kelvin-Helmholtz"
+    ! equilibrium_type = "Gravito MHD waves"
+    ! equilibrium_type = "Resistive tearing modes"
+    ! equilibrium_type = "Suydam cluster modes"
+    ! equilibrium_type = "Kelvin-Helmholtz"
+    ! equilibrium_type = "Rotating plasma cylinder"
     boundary_type = 'wall'
 
     !> Savelist defaults
     plot_when_finished = .true.     !< plot spectrum when finished
-    write_AB = .true.              !< write matrices A and B when finished
-    write_eigenvectors = .true.    !< writes eigenvectors to file
-    write_eigenfunctions = .true.   !< writes eigenfunctions to file
+    write_AB = .false.              !< write matrices A and B when finished
+    write_eigenvectors = .false.    !< writes eigenvectors to file
+    write_eigenfunctions = .true.  !< writes eigenfunctions to file
 
 
     call set_gridpts(gridpoints)
