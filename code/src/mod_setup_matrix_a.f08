@@ -301,17 +301,17 @@ contains
     ! A(5, 7)
     factors(9) = ic * gamma_1 * eps_inv * ( &
                    ((tc_para - tc_perp) * B2_inv * dT0 * &
-                      (k2 * k3 * B02 + k3**2 * B02)) &
-                   -2 * eta * k3**2 * dB03 &
-                   -2 * eta * k2 * k3 * eps_inv**2 * drB02 &
+                      (k2 * k3 * B02 + k3**2 * B03)) &
+                   -2.0d0 * eta * k3**2 * dB03 &
+                   -2.0d0 * eta * k2 * k3 * eps_inv**2 * drB02 &
                                             )
     positions(9, :) = [5, 7]
     ! A(5, 8)
     factors(10) = -ic * gamma_1 * eps_inv * ( &
                    ((tc_para - tc_perp) * B2_inv * dT0 * &
                       (k2**2 * B02 + k2 * k3 * B03)) &
-                   -2 * eta * k2 * k3 * dB03 &
-                   -2 * eta * k2**2 * eps_inv**2 * drB02 &
+                   -2.0d0 * eta * k2 * k3 * dB03 &
+                   -2.0d0 * eta * k2**2 * eps_inv**2 * drB02 &
                                               )
     positions(10, :) = [5, 8]
 
@@ -342,7 +342,7 @@ contains
     factors(6) = -gamma_1 * eps_inv * rho0 * T0
     positions(6, :) = [5, 2]
     ! A(5, 7)
-    factors(7) = 2*ic*gamma_1*eps_inv * &
+    factors(7) = 2.0d0*ic*gamma_1*eps_inv * &
                   (dT0 * B03 * d_eps_dr * eps_inv * dtc_perp_dB2 - eta * ddB03)
     positions(7, :) = [5, 7]
     ! A(5, 8)    (derivative of eta-term has been rewritten)
@@ -522,7 +522,7 @@ contains
     call reset_positions(positions, 1)
 
     ! A(5, 5)
-    factors(1) = ic * gamma_1 * d_eps_dr * eps_inv**2 * tc_perp
+    factors(1) = -ic * gamma_1 * eps_inv * tc_perp
     positions(1, :) = [5, 5]
 
     call subblock(quadblock, factors, positions, curr_weight, &
