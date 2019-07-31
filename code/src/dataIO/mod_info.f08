@@ -71,6 +71,16 @@ contains
     end if
     call get_bool(external_gravity, char)
     write(*, *) "External gravity   : ", char
+    if (external_gravity) then
+      call get_bool(use_custom_gravity, char)
+      write(*, *) "  Custom g value   : ", char
+      if (use_custom_gravity) then
+        write(char, form_fout) custom_g_value
+        write(*, *) "  Value for g      : ", adjustl(char)
+      else
+        write(*, *) "  Gravity strength : ", gravity_type
+      end if
+    end if
     call get_bool(cgs_units, char)
     write(*, *) "Using CGS units    : ", char
     write(*, *) ""

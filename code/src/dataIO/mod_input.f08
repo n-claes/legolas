@@ -15,6 +15,7 @@ contains
     namelist /meshlist/ mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
     namelist /physicslist/ mhd_gamma, flow, radiative_cooling, ncool, &
                            cooling_curve, external_gravity, gravity_type, &
+                           use_custom_gravity, custom_g_value, &
                            thermal_conduction, resistivity, &
                            use_fixed_resistivity, fixed_eta_value, k2, k3
     namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
@@ -44,6 +45,8 @@ contains
     ncool = 4000                    !< amount of points to interpolate curve
     cooling_curve = "JCcorona"      !< cooling curve to use
     external_gravity = .false.      !< use external gravity
+    use_custom_gravity = .false.    !< use a custom gravity value
+    custom_g_value = 0.0d0          !< value for custom gravity
     gravity_type = "solar"          !< strength of external gravity
     thermal_conduction = .false.    !< use thermal conduction
     resistivity = .false.           !< use resistivity
@@ -61,10 +64,12 @@ contains
 
     !> Equilibriumlist defaults
     use_precoded = .true.                       !< use precoded equilibrium
-    equilibrium_type = "Adiabatic homogeneous"
+    ! equilibrium_type = "Adiabatic homogeneous"
     ! equilibrium_type = "Resistive homogeneous"
     ! equilibrium_type = "Gravito MHD waves"
     ! equilibrium_type = "Resistive tearing modes"
+    ! equilibrium_type = "Resistive tearing modes with flow"
+    equilibrium_type = "Flow driven instabilities"
     ! equilibrium_type = "Suydam cluster modes"
     ! equilibrium_type = "Kelvin-Helmholtz"
     ! equilibrium_type = "Rotating plasma cylinder"
@@ -74,7 +79,7 @@ contains
     plot_when_finished = .true.     !< plot spectrum when finished
     write_AB = .false.              !< write matrices A and B when finished
     write_eigenvectors = .false.    !< writes eigenvectors to file
-    write_eigenfunctions = .true.  !< writes eigenfunctions to file
+    write_eigenfunctions = .true.   !< writes eigenfunctions to file
 
 
     call set_gridpts(gridpoints)
