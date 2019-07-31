@@ -136,7 +136,7 @@ contains
     real(dp)                  :: tc_para, tc_perp, L0, eta
 
     real(dp)                  :: drho0, drB02, dB02_r, dB03, dT0, dB02
-    real(dp)                  :: drv02, dv03
+    real(dp)                  :: drv02, dv02, dv03
     real(dp)                  :: dtc_perp_dT, dtc_perp_drho, dtc_perp_dB2
     real(dp)                  :: L_T, L_rho
     real(dp)                  :: deta, ddB03, ddB02
@@ -164,14 +164,12 @@ contains
     !! Derivatives of equilibrium quantities
     !! Default derivatives
     drho0   = d_rho0_dr(gauss_idx)
-    drB02   = d_rB02_dr(gauss_idx)
-    dB02_r  = d_B02_r_dr(gauss_idx)
+    dB02    = d_B02_dr(gauss_idx)
     dB03    = d_B03_dr(gauss_idx)
     dT0     = d_T0_dr(gauss_idx)
-    dB02    = d_B02_dr(gauss_idx)
     !! Flow
-    drv02   = d_rv02_dr(gauss_idx)
-    dv03    = d_v03_dr(gauss_idx)
+    dv02   = d_v02_dr(gauss_idx)
+    dv03   = d_v03_dr(gauss_idx)
     !! Thermal conduction
     dtc_perp_dT   = d_tc_perp_eq_dT(gauss_idx)
     dtc_perp_drho = d_tc_perp_eq_drho(gauss_idx)
@@ -183,6 +181,11 @@ contains
     deta    = d_eta_dT(gauss_idx)
     ddB02   = dd_B02_dr(gauss_idx)
     ddB03   = dd_B03_dr(gauss_idx)
+
+    !! Calculate derivatives eps*B02, B02/eps, eps*V02
+    drB02   = d_eps_dr * B02 + eps * dB02
+    dB02_r  = eps_inv * dB02 - d_eps_dr * eps_inv**2 * B02
+    drv02   = d_eps_dr * v02 + eps * dv02
 
 
     !! Setup of matrix elements
