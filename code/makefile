@@ -12,6 +12,14 @@ FFLAGS   := -fcheck=all -fbounds-check -Wall -Wextra -Wconversion \
 TSTFLAGS := -Wno-integer-division
 FC  		 := gfortran
 
+MKLCOMP := -m64 -I${MKLROOT}/include
+MKLLINK := ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group \
+					 ${MKLROOT}/lib/intel64/libmkl_gf_lp64.a \
+					 ${MKLROOT}/lib/intel64/libmkl_gnu_thread.a \
+					 ${MKLROOT}/lib/intel64/libmkl_core.a \
+					 ${MKLROOT}/lib/intel64/libmkl_blacs_intelmpi_lp64.a \
+					 						-Wl,--end-group -lgomp -lpthread -lm -ldl
+
 LIBS 		 := -lblas -llapack
 
 SRCDIR   := src
@@ -61,6 +69,10 @@ test_objects := $(addprefix $(BINDIR)/,		     		\
 								tests_main.o											\
 								)
 
+# If compiling for single core
+# MKLLINK := $(LIBS)
+# MKLCOMP := $(LIBS)
+
 all: compile_modules		  \
 		 compile_main_program \
 		 main_exec
@@ -77,10 +89,10 @@ compile_main_program: $(main_objects)
 compile_test_program: $(test_objects)
 
 main_exec:
-	$(FC) $(FFLAGS) $(objects) $(main_objects) $(LIBS) -o $(OUTPUT)
+	$(FC) $(FFLAGS) $(objects) $(main_objects) $(MKLLINK) -o $(OUTPUT)
 
 test_exec:
-	$(FC) $(FFLAGS) $(TSTFLAGS) $(objects) $(test_objects) $(LIBS) -o $(TEST_OUT)
+	$(FC) $(FFLAGS) $(TSTFLAGS) $(objects) $(test_objects) $(MKLLINK) -o $(TEST_OUT)
 
 # check directories
 $(BINDIR):
@@ -94,29 +106,21 @@ $(BINDIR):
 
 # root modules
 $(BINDIR)/%.o: $(SRCDIR)/%.f08 | $(BINDIR)
-	$(FC) $(FFLAGS) -c $^ -o $@  -J $(MODDIR)
+	$(FC) $(FFLAGS) -c $^ $(MKLCOMP) -o $@  -J $(MODDIR)
 
 # physics modules
 $(BINDIR)/%.o: $(SRCDIR)/physics/%.f08 | $(BINDIR)
-	$(FC) $(FFLAGS) -c $^ -o $@ -J $(MODDIR)
+	$(FC) $(FFLAGS) -c $^ $(MKLCOMP) -o $@ -J $(MODDIR)
 
 # dataIO modules
 $(BINDIR)/%.o: $(SRCDIR)/dataIO/%.f08 | $(BINDIR)
-	$(FC) $(FFLAGS) -c $^ -o $@ -J $(MODDIR)
+	$(FC) $(FFLAGS) -c $^ $(MKLCOMP) -o $@ -J $(MODDIR)
 
 # test modules
 $(BINDIR)/%.o: $(TSTDIR)/%.f08 | $(BINDIR)
-	$(FC) $(FFLAGS) -c $^ -o $@ -J $(MODDIR)
+	$(FC) $(FFLAGS) -c $^ $(MKLCOMP) -o $@ -J $(MODDIR)
 
 clean:
-	rm -rf $(BINDIR)
-	rm -rf $(MODDIR)
-	rm -f $(OUTPUT)
-	rm -f $(TEST_OUT)
-	rm -rf $(OUTDIR)
-	make
-
-purge:
 	rm -rf $(BINDIR)
 	rm -rf $(MODDIR)
 	rm -f $(OUTPUT)
