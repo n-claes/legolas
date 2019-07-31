@@ -140,15 +140,21 @@ contains
     write(config, *) "Thermal conduction : ", thermal_conduction
     write(config, *) "Resistivity        : ", resistivity
     if (resistivity) then
-      write(config, *) "Fixed Resistivity  :", use_fixed_resistivity
+      write(config, *) "Fixed Resistivity  : ", use_fixed_resistivity
       if (use_fixed_resistivity) then
         write(char, form_fout) fixed_eta_value
-        write(config, *) "Fixed eta value    :", adjustl(char)
+        write(config, *) "Fixed eta value    : ", adjustl(char)
       end if
     end if
     write(config, *) "External gravity   : ", external_gravity
     if (external_gravity) then
-      write(config, *) "Gravity strength   : ", gravity_type
+      write(config, *) "Custom gravity     : ", use_custom_gravity
+      if (use_custom_gravity) then
+        write(char, form_fout) custom_g_value
+        write(config, *) "g                  : ", adjustl(char)
+      else
+        write(config, *) "Gravity strength   : ", gravity_type
+      end if
     end if
 
     write(char, form_fout) gamma

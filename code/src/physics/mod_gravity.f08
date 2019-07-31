@@ -46,6 +46,12 @@ contains
   subroutine set_gravity()
     use mod_physical_constants
 
+    if (use_custom_gravity) then
+      grav = custom_g_value
+      return
+    end if
+
+
     ! Obtain gravity type
     select case(gravity_type)
 

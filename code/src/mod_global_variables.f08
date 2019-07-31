@@ -59,6 +59,10 @@ module mod_global_variables
   logical, save             :: external_gravity
   !> Strength of the gravitational acceleration, can be 'earth' or 'solar'
   character(len=str_len)    :: gravity_type
+  !> Boolean to set a user-defined gravity strength
+  logical, save             :: use_custom_gravity
+  !> Sets the custom value for gravity
+  real(dp)                  :: custom_g_value
   !> Boolean to enable thermal conduction
   logical, save             :: thermal_conduction
   !> Boolean to enable resistivity
