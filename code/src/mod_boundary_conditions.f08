@@ -56,16 +56,7 @@ contains
     complex(dp), intent(inout) :: quadblock(dim_quadblock, dim_quadblock)
 
     call fixed_boundaries(quadblock, "l_edge", "A")
-
-    if (boundary_type == 'free') then
-      call natural_boundaries(eps, d_eps_dr, quadblock, "l_edge")
-    else if (boundary_type == 'wall') then
-      return
-    else
-      write(*, *) "Unknown boundary condition"
-      write(*, *) "Currently set on:    ", boundary_type
-      stop
-    end if
+    call natural_boundaries(eps, d_eps_dr, quadblock, "l_edge")
 
   end subroutine boundaries_A_left_edge
 
@@ -81,23 +72,14 @@ contains
     complex(dp), intent(inout) :: quadblock(dim_quadblock, dim_quadblock)
 
     call fixed_boundaries(quadblock, "r_edge", "A")
-
-    if (boundary_type == 'free') then
-      call natural_boundaries(eps, d_eps_dr, quadblock, "r_edge")
-    else if (boundary_type == 'wall') then
-      return
-    else
-      write(*, *) "Unknown boundary condition"
-      write(*, *) "Currently set on:    ", boundary_type
-      stop
-    end if
+    call natural_boundaries(eps, d_eps_dr, quadblock, "r_edge")
 
   end subroutine boundaries_A_right_edge
 
 
-  !> Boundaries originating from the fixed conditions. When left_edge is
-  !! true, set regularity conditions for the left gridpoint. If left_edge is
-  !! false, set them for the right gridpoint.
+  !> Boundaries originating from the fixed conditions. When edge = l_edge,
+  !! set regularity conditions for the left gridpoint. If edge = r_edge,
+  !! set them for the right gridpoint.
   !! @param[in, out] quadblock    The 32x32 quadblock, containing 4 subblocks.
   !!                              Out: fixed boundary conditions applied.
   !! @param[in] edge    'r_edge' for right boundary, 'l_edge' for left boundary
@@ -153,37 +135,50 @@ contains
     !! to zero, and the first v1, a1 and a2 rows of the two bottom subblocks
     !! to zero.
   else if (edge == "r_edge") then
-      !! Rows and columns for v1 (index 19 in bottom-right subblock)
-      quadblock(19, :) = (0.0d0, 0.0d0)
-      quadblock(:, 19) = (0.0d0, 0.0d0)
-      !! Insert unity at first diagonal element for B, zero for A
-      quadblock(19, 19) = unity
 
-      !! Rows and columns for a2 (index 29 in bottom-right subblock)
-      quadblock(29, :) = (0.0d0, 0.0d0)
-      quadblock(:, 29) = (0.0d0, 0.0d0)
-      !! Insert unity at first diagonal element for B, zero for A
-      quadblock(29, 29) = unity
+    select case(boundary_type)
+      case("wall")
+        !! Rows and columns for v1 (index 19 in bottom-right subblock)
+        quadblock(19, :) = (0.0d0, 0.0d0)
+        quadblock(:, 19) = (0.0d0, 0.0d0)
+        !! Insert unity at first diagonal element for B, zero for A
+        quadblock(19, 19) = unity
 
-      !! Rows and columns for a3 (index 31 in bottom-right subblock)
-      quadblock(31, :) = (0.0d0, 0.0d0)
-      quadblock(:, 31) = (0.0d0, 0.0d0)
-      !! Insert unity at first diagonal element for B, zero for A
-      quadblock(31, 31) = unity
+        !! Rows and columns for a2 (index 29 in bottom-right subblock)
+        quadblock(29, :) = (0.0d0, 0.0d0)
+        quadblock(:, 29) = (0.0d0, 0.0d0)
+        !! Insert unity at first diagonal element for B, zero for A
+        quadblock(29, 29) = unity
 
-      !! Additional requiremens on T1 if thermal conduction is included
-      !! Rows and columns for T1 (2nd) (index 26 in bottom-right subblock)
-      if (thermal_conduction) then
-        quadblock(26, :) = (0.0d0, 0.0d0)
-        quadblock(:, 26) = (0.0d0, 0.0d0)
-        !! Insert unity at second diagonal element for B, zero for A
-        quadblock(26, 26) = unity
-      end if
-    else
-      write(*, *) "Wrong edge passed when calling boundaries."
-      write(*, *) "Currently set on: ", edge
-      stop
-    end if
+        !! Rows and columns for a3 (index 31 in bottom-right subblock)
+        quadblock(31, :) = (0.0d0, 0.0d0)
+        quadblock(:, 31) = (0.0d0, 0.0d0)
+        !! Insert unity at first diagonal element for B, zero for A
+        quadblock(31, 31) = unity
+
+        !! Additional requiremens on T1 if thermal conduction is included
+        !! Rows and columns for T1 (2nd) (index 26 in bottom-right subblock)
+        if (thermal_conduction) then
+          quadblock(26, :) = (0.0d0, 0.0d0)
+          quadblock(:, 26) = (0.0d0, 0.0d0)
+          !! Insert unity at second diagonal element for B, zero for A
+          quadblock(26, 26) = unity
+        end if
+
+      case("free")
+        ! If free boundary conditions, there is no wall at the outer side
+        ! and the plasma extends to infinity
+        return
+
+      case default
+        return
+    end select
+
+  else    ! if-case edge
+    write(*, *) "Wrong edge passed when calling boundaries."
+    write(*, *) "Currently set on: ", edge
+    stop
+  end if
 
   end subroutine fixed_boundaries
 
@@ -215,7 +210,7 @@ contains
 
     real(dp)                    :: rho0, T0, B02, B03
     real(dp)                    :: tc_perp, eta
-    real(dp)                    :: drB02, dT0, dB03
+    real(dp)                    :: drB02, dT0, dB02, dB03
     real(dp)                    :: dtc_perp_dT, dtc_perp_drho, dtc_perp_dB2
 
 
@@ -245,12 +240,14 @@ contains
     B03     = B03_eq(idx)
     tc_perp = tc_perp_eq(idx)
     eta     = eta_eq(idx)
-    drB02   = d_rB02_dr(idx)
     dT0     = d_T0_dr(idx)
+    dB02    = d_B02_dr(idx)
     dB03    = d_B03_dr(idx)
     dtc_perp_dT   = d_tc_perp_eq_dT(idx)
     dtc_perp_drho = d_tc_perp_eq_drho(idx)
     dtc_perp_dB2  = d_tc_perp_eq_dB2(idx)
+
+    drB02 = d_eps_dr*B02 + eps*dB02
 
     !! Spline functions for the boundaries. Interval is [grid(1), grid(2)]
     !! for the left edge, [grid(N-1), grid(N)] for the right edge.

@@ -21,20 +21,16 @@ module mod_equilibrium_derivatives
   !! Default derivatives
   !> Derivative rho0
   real(dp), allocatable       :: d_rho0_dr(:)
-  !> Derivative r*B02
-  real(dp), allocatable       :: d_rB02_dr(:)
-  !> Derivative B02/r
-  real(dp), allocatable       :: d_B02_r_dr(:)
+  !> Derivative B02
+  real(dp), allocatable       :: d_B02_dr(:)
   !> Derivative B03
   real(dp), allocatable       :: d_B03_dr(:)
   !> Derivative T0
   real(dp), allocatable       :: d_T0_dr(:)
-  !> Derivative B02
-  real(dp), allocatable       :: d_B02_dr(:)
 
   !! Flow derivatives
-  !> Derivative r*v02
-  real(dp), allocatable       :: d_rv02_dr(:)
+  !> Derivative v02
+  real(dp), allocatable       :: d_v02_dr(:)
   !> Derivative v03
   real(dp), allocatable       :: d_v03_dr(:)
 
@@ -65,13 +61,11 @@ contains
   !> Allocates and initialises all equilibrium derivatives arrays.
   subroutine initialise_equilibrium_derivatives()
     allocate(d_rho0_dr(gauss_gridpts))
-    allocate(d_rB02_dr(gauss_gridpts))
-    allocate(d_B02_r_dr(gauss_gridpts))
+    allocate(d_B02_dr(gauss_gridpts))
     allocate(d_B03_dr(gauss_gridpts))
     allocate(d_T0_dr(gauss_gridpts))
-    allocate(d_B02_dr(gauss_gridpts))
 
-    allocate(d_rv02_dr(gauss_gridpts))
+    allocate(d_v02_dr(gauss_gridpts))
     allocate(d_v03_dr(gauss_gridpts))
 
     allocate(d_tc_perp_eq_drho(gauss_gridpts))
@@ -87,13 +81,11 @@ contains
 
 
     d_rho0_dr  = 0.0d0
-    d_rB02_dr  = 0.0d0
-    d_B02_r_dr = 0.0d0
+    d_B02_dr  = 0.0d0
     d_B03_dr   = 0.0d0
     d_T0_dr    = 0.0d0
-    d_B02_dr   = 0.0d0
 
-    d_rv02_dr  = 0.0d0
+    d_v02_dr  = 0.0d0
     d_v03_dr   = 0.0d0
 
     d_tc_perp_eq_drho = 0.0d0
@@ -160,11 +152,8 @@ contains
     if (allocated(d_rho0_dr)) then
       deallocate(d_rho0_dr)
     end if
-    if (allocated(d_rB02_dr)) then
-      deallocate(d_rB02_dr)
-    end if
-    if (allocated(d_B02_r_dr)) then
-      deallocate(d_B02_r_dr)
+    if (allocated(d_B02_dr)) then
+      deallocate(d_B02_dr)
     end if
     if (allocated(d_B03_dr)) then
       deallocate(d_B03_dr)
@@ -172,12 +161,9 @@ contains
     if (allocated(d_T0_dr)) then
       deallocate(d_T0_dr)
     end if
-    if (allocated(d_B02_dr)) then
-      deallocate(d_B02_dr)
-    end if
 
-    if (allocated(d_rv02_dr)) then
-      deallocate(d_rv02_dr)
+    if (allocated(d_v02_dr)) then
+      deallocate(d_v02_dr)
     end if
     if (allocated(d_v03_dr)) then
       deallocate(d_v03_dr)

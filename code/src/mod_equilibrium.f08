@@ -119,6 +119,12 @@ contains
       case("Resistive tearing modes")
         call resistive_tearing_modes_eq()
 
+      case("Resistive tearing modes with flow")
+        call resistive_tearing_modes_flow_eq()
+
+      case("Flow driven instabilities")
+        call flow_driven_instabilities_eq()
+
       case("Suydam cluster modes")
         call suydam_cluster_eq()
 
@@ -236,15 +242,21 @@ contains
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
 
+      ! Equilibrium
       rho0_eq(i) = rho0 * exp(-alpha * x)
       B03_eq(i)  = B0 * exp(-0.5d0 * alpha * x)
       T0_eq(i)   = p0 * exp(-alpha * x) / rho0_eq(i)
+
+      ! Derivatives
+      d_rho0_dr(i) = -alpha * rho0 * exp(-alpha * x)
+      d_B03_dr(i)  = -0.5d0 * alpha * B0 * exp(-0.5d0 * alpha * x)
+      d_T0_dr(i)   = 0.0d0    ! (T0 is a constant)
     end do
   end subroutine gravito_mhd_waves_eq
 
 
   subroutine resistive_tearing_modes_eq()
-    real(dp)    :: alpha, beta, r
+    real(dp)    :: alpha, beta, x
     integer     :: i
 
     geometry = "Cartesian"
@@ -256,7 +268,48 @@ contains
     fixed_eta_value = 0.0001d0
     external_gravity = .false.
 
-    k2 = 0.49d0
+    k3 = 0.49d0
+    k2 = 0.0d0
+
+    ! Parameters
+    alpha = 4.73884d0
+    beta  = 0.15d0
+
+    do i = 1, gauss_gridpts
+      x = grid_gauss(i)
+
+      ! Equilibrium
+      rho0_eq(i) = 1.0d0
+      B02_eq(i)  = sin(alpha * x)
+      B03_eq(i)  = cos(alpha * x)
+      B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)   = beta * B0_eq(i)**2 / (8*dpi)
+
+      ! Derivatives
+      d_B02_dr(i)   = alpha * cos(alpha * x)
+      d_B03_dr(i)   = -alpha * sin(alpha * x)
+      ! No d_T0_dr needed, as B0**2 is independent of r
+
+      dd_B02_dr(i)  = -alpha**2 * sin(alpha * x)
+      dd_B03_dr(i)  = -alpha**2 * cos(alpha * x)
+    end do
+  end subroutine resistive_tearing_modes_eq
+
+
+  subroutine resistive_tearing_modes_flow_eq()
+    real(dp)    :: alpha, beta, x
+    integer     :: i
+
+    geometry = "Cartesian"
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .true.
+    use_fixed_resistivity = .true.
+    fixed_eta_value = 0.0001d0
+    external_gravity = .false.
+
+    k2 = 1.5d0
     k3 = 0.0d0
 
     ! Parameters
@@ -264,28 +317,87 @@ contains
     beta  = 0.15d0
 
     do i = 1, gauss_gridpts
-      r = grid_gauss(i)
+      x = grid_gauss(i)
 
       ! Equilibrium
       rho0_eq(i) = 1.0d0
-      B02_eq(i)  = sin(alpha * r)
-      B03_eq(i)  = cos(alpha * r)
+      B02_eq(i)  = sin(alpha * x)
+      B03_eq(i)  = cos(alpha * x)
       B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)   = beta * B0_eq(i)**2 / (8*dpi)
+      v02_eq(i)  = 0.15 * x
 
       ! Derivatives
-      d_B02_dr(i)   = alpha * cos(alpha * r)
-      d_B03_dr(i)   = -alpha * sin(alpha * r)
-      ! In Cartesian so epsilon = 1, hence d_rB02_dr = d_B02_dr
-      ! and d_B02_r_dr = d_B02_dr
-      d_rB02_dr(i)  = alpha * cos(alpha * r)
-      d_B02_r_dr(i) = alpha * cos(alpha * r)
+      d_B02_dr(i)   = alpha * cos(alpha * x)
+      d_B03_dr(i)   = -alpha * sin(alpha * x)
       ! No d_T0_dr needed, as B0**2 is independent of r
 
-      dd_B02_dr(i)  = -alpha**2 * sin(alpha * r)
-      dd_B03_dr(i)  = -alpha**2 * cos(alpha * r)
+      dd_B02_dr(i)  = -alpha**2 * sin(alpha * x)
+      dd_B03_dr(i)  = -alpha**2 * cos(alpha * x)
+
+      d_v02_dr(i)  = 0.15
     end do
-  end subroutine resistive_tearing_modes_eq
+  end subroutine resistive_tearing_modes_flow_eq
+
+
+  subroutine flow_driven_instabilities_eq()
+    real(dp)    :: rho0, delta, theta, v0, v1, v2, tau, &
+                   phi0, alpha, B0, x, k0, g, p0
+    real(dp)    :: v_x(gauss_gridpts), phi_x(gauss_gridpts), p_x(gauss_gridpts)
+    integer     :: i
+
+    g = 15.0d0
+
+    geometry = "Cartesian"
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .true.
+    use_custom_gravity = .true.
+    custom_g_value = g
+
+    ! Parameters
+    k0 = 1.0d0
+    delta = -5.0d0
+    phi0 = -0.35d0 * dpi
+    alpha = 0.0d0
+    theta = 0.35d0 * dpi
+    v0 = 0.2d0
+    v1 = 0.6d0
+    v2 = 0.0d0
+    tau = 0.0d0
+
+    k2 = 0.0d0
+    k3 = k0
+
+    rho0 = 1.0d0
+    p0   = 1.0d0
+    B0   = 1.0d0
+
+    do i = 1, gauss_gridpts
+      x = grid_gauss(i)
+      v_x(i)   = v0 + v1*(x - 0.5d0) + v2*sin(tau * (x - 0.5d0))
+      phi_x(i) = phi0 + alpha*(x - 0.5d0)
+      p_x(i)   = p0 - (x - 0.5d0 * delta * x**2)*g
+
+      rho0_eq(i) = rho0 * (1 - delta*x)
+      v02_eq(i)  = sin(theta) * v_x(i)
+      v03_eq(i)  = cos(theta) * v_x(i)
+      B02_eq(i)  = B0 * sin(phi_x(i))
+      B03_eq(i)  = B0 * cos(phi_x(i))
+      T0_eq(i)   = p_x(i) / rho0_eq(i)
+
+      d_rho0_dr(i) = -rho0 * delta
+      d_v02_dr(i)  = sin(theta) * (v1 + v2*cos(tau * (x - 0.5d0)) * tau)
+      d_v03_dr(i)  = cos(theta) * (v1 + v2*cos(tau * (x - 0.5d0)) * tau)
+      d_B02_dr(i)  = B0 * cos(phi_x(i)) * alpha
+      d_B03_dr(i)  = -B0 * sin(phi_x(i)) * alpha
+      d_T0_dr(i)   = (-rho0*(1.0d0 - delta * x)**2 * g + rho0*delta*p_x(i)) &
+                      / (rho0 * delta)**2
+    end do
+  end subroutine flow_driven_instabilities_eq
+
 
 
   !> Initialises equilibrium for Suydam cluster modes in cylindrical geometry.
@@ -332,8 +444,6 @@ contains
       T0_eq(i)  = P0_eq(i) / rho0_eq(i)
 
       ! Derivatives
-      d_rB02_dr(i)  = J1 + r * DJ1
-      d_B02_r_dr(i) = (-1.0d0 / r**2) * J1 + (1.0d0 / r) * DJ1
       d_T0_dr(i)    = -p1 * J0 * J1
       d_v03_dr(i)   = -2.0d0 * v_z0 * r
     end do
@@ -418,15 +528,13 @@ contains
                       + (1.0d0/4.0d0)*(a22**2 - b22**2)*r**4)
 
       !! Derivatives
-      d_B02_dr(i)   = b21 + 2*b22*r
-      d_B03_dr(i)   = 0.0d0
-      d_rB02_dr(i)  = 2*b21*r + 3*b22*r**2
-      d_B02_r_dr(i) = b22
-      d_rv02_dr(i)  = 2*a21*r + 3*a22*r**2
-      d_v03_dr(i)   = 0.0d0
-      d_T0_dr(i)    = (1.0d0 / rho0_eq(i)) * ( (a21**2 - 2*b21**2)*r &
-                         + 2.0d0*(a21*a22 - b21*b22)*r**2 &
-                         + (a22**2 - b22**2)*r**3 )
+      d_B02_dr(i) = b21 + 2*b22*r
+      d_B03_dr(i) = 0.0d0
+      d_v02_dr(i) = a21 + 2*a22*r
+      d_v03_dr(i) = 0.0d0
+      d_T0_dr(i)  = (1.0d0 / rho0_eq(i)) * ( (a21**2 - 2*b21**2)*r &
+                     + 2.0d0*(a21*a22 - b21*b22)*r**2 &
+                     + (a22**2 - b22**2)*r**3 )
     end do
   end subroutine rotating_plasma_cyl_eq
 

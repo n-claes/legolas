@@ -132,6 +132,7 @@ contains
     if (info .ne. 0) then
       write(*, *) 'LU factorisation of matrix B failed'
       write(*, *) 'Value for info parameter: ', info
+      stop
     end if
 
     call dgetri(N, B_inv, ldb, ipiv, work, lwork, info)
@@ -139,6 +140,7 @@ contains
     if (info .ne. 0) then
       write(*, *) 'Inversion of matrix B failed'
       write(*, *) 'Value for info parameter: ', info
+      stop
     end if
 
     deallocate(ipiv)
