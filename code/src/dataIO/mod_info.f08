@@ -50,6 +50,8 @@ contains
 
     ! Physics info
     write(*, *) "-- Physics settings --"
+    write(char, form_fout) gamma
+    write(*, *) "Gamma              : ", adjustl(char)
     call get_bool(flow, char)
     write(*, *) "Flow               : ", char
     call get_bool(radiative_cooling, char)

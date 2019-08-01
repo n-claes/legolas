@@ -3,6 +3,13 @@ module mod_input
   use mod_physical_constants
   implicit none
 
+  private
+
+  integer       :: unit_par = 101
+  logical, save :: parfile_present
+
+  public :: read_parfile
+
 contains
 
   subroutine read_parfile()
@@ -10,6 +17,7 @@ contains
     real(dp)    :: unit_length, unit_numberdensity, unit_temperature, &
                    unit_velocity
     integer     :: gridpoints
+    character(len=str_len)  :: filename_par
 
     namelist /gridlist/ geometry, x_start, x_end, gridpoints
     namelist /meshlist/ mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
@@ -24,12 +32,14 @@ contains
     namelist /savelist/ plot_when_finished, write_AB, write_eigenvectors, &
                         write_eigenfunctions
 
+    parfile_present = .false.
+
     !! Set defaults
     !> Gridlist defaults
     geometry = "Cartesian"          !< geometry of the problem
     x_start  = 0.0d0                !< start of the grid
     x_end    = 1.0d0                !< end of the grid
-    gridpoints = 21
+    gridpoints = 51
 
     !> Meshlist defaults
     mesh_accumulation = .false.
@@ -64,15 +74,7 @@ contains
 
     !> Equilibriumlist defaults
     use_precoded = .true.                       !< use precoded equilibrium
-    ! equilibrium_type = "Adiabatic homogeneous"
-    ! equilibrium_type = "Resistive homogeneous"
-    ! equilibrium_type = "Gravito MHD waves"
-    ! equilibrium_type = "Resistive tearing modes"
-    ! equilibrium_type = "Resistive tearing modes with flow"
-    equilibrium_type = "Flow driven instabilities"
-    ! equilibrium_type = "Suydam cluster modes"
-    ! equilibrium_type = "Kelvin-Helmholtz"
-    ! equilibrium_type = "Rotating plasma cylinder"
+    equilibrium_type = "Adiabatic homogeneous"
     boundary_type = 'wall'
 
     !> Savelist defaults
@@ -82,6 +84,35 @@ contains
     write_eigenfunctions = .true.   !< writes eigenfunctions to file
 
 
+
+    !> Retrieve user-defined configuration
+    call get_parfile(filename_par)
+    !! Read parfile, if supplied
+    if (parfile_present) then
+      open(unit_par, file=trim(filename_par), status='old')
+      !! Start reading namelists, rewind so they can appear out of order
+            rewind(unit_par)
+            read(unit_par, gridlist, end=1001)
+
+      1001  rewind(unit_par)
+            read(unit_par, meshlist, end=1002)
+
+      1002  rewind(unit_par)
+            read(unit_par, physicslist, end=1003)
+
+      1003  rewind(unit_par)
+            read(unit_par, unitslist, end=1004)
+
+      1004  rewind(unit_par)
+            read(unit_par, equilibriumlist, end=1005)
+
+      1005  rewind(unit_par)
+            read(unit_par, savelist, end=1006)
+
+      1006  close(unit_par)
+    end if
+
+    !> Set up grid and normalisations
     call set_gridpts(gridpoints)
     call set_gamma(mhd_gamma)
 
@@ -91,5 +122,47 @@ contains
     call set_normalisations(cgs_units)
 
   end subroutine read_parfile
+
+
+  subroutine get_parfile(filename_par)
+    character(len=str_len), intent(out) :: filename_par
+
+    integer                             :: num_args, i
+    character(len=20), allocatable      :: args(:)
+    logical                             :: file_exists
+
+
+    num_args = command_argument_count()
+    allocate(args(num_args))
+    do i = 1, num_args
+      call get_command_argument(i, args(i))
+    end do
+
+    filename_par = ""
+
+    do i = 1, num_args, 2
+      select case(args(i))
+      case('-i')
+        filename_par = args(i+1)
+      case default
+        write(*, *) "Unable to read in command line arguments."
+        stop
+      end select
+    end do
+
+    if (filename_par == "") then
+      write(*, *) "No parfile supplied, using default configuration."
+      parfile_present = .false.
+      return
+    end if
+
+    !! Check if supplied file exists
+    inquire(file=trim(filename_par), exist=file_exists)
+    if (.not. file_exists) then
+      write(*, *) "Parfile not found: ", trim(filename_par)
+      stop
+    end if
+    parfile_present = .true.
+  end subroutine get_parfile
 
 end module mod_input
