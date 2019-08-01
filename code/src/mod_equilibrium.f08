@@ -149,9 +149,8 @@ contains
     B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
 
     !! Enable additional physics if defined in the above configuration
-    if (external_gravity) then
-      call initialise_gravity()
-    end if
+    call initialise_gravity() ! Always initialised, set to 0 if not present.
+
     if (radiative_cooling) then
       call initialise_radiative_cooling()
       call set_cooling_derivatives(T0_eq, rho0_eq)

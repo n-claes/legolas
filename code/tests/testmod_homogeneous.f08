@@ -16,19 +16,17 @@ module testmod_homogeneous
   complex(dp), allocatable     :: vl(:, :)
   complex(dp), allocatable     :: vr(:, :)
 
-  integer, parameter           :: gridpts_homo = 11
+  integer, parameter           :: gridpts_homo = 31
 
 
 contains
 
   subroutine init_homogeneous()
     call read_parfile()
-    
+
     equilibrium_type = "Adiabatic homogeneous"
 
     call initialise_grid()
-    call set_grid_gauss()
-
     call initialise_equilibrium()
     call initialise_equilibrium_derivatives()
     call set_equilibrium()
