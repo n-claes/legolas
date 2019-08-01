@@ -80,6 +80,8 @@ contains
     call print_separation("Testing grids")
     call test_grid_carth()
     call test_grid_cyl()
+    call test_grid_structure()
+    call test_grid_gauss_structure()
 
     !! Tests for matrix routines
     call print_separation("Testing matrix routines")
@@ -120,22 +122,105 @@ contains
     geometry = 'Cartesian'
     call initialise_grid()
     write(*, *) "Testing Cartesian grid start..."
-    call assert_real_equal(grid(1), x_start, bool)
+    call assert_equal(grid(1), x_start, bool)
     call check_test()
     write(*, *) "Testing Cartesian grid end..."
-    call assert_real_equal(grid(gridpts), x_end, bool)
+    call assert_equal(grid(gridpts), x_end, bool)
     call check_test()
+    call grid_clean()
   end subroutine test_grid_carth
 
 
   !> Tests the origin in cylindrical geometry
   subroutine test_grid_cyl()
     geometry = "cylindrical"
-    call set_grid_gauss()
+    call initialise_grid()
     write(*, *) "Testing cylindrical grid start..."
-    call assert_real_larger(grid_gauss(1), 0.0d0, bool)
+    call assert_equal(grid(1), 1.0d-5, bool)
     call check_test()
+    write(*, *) "Testing cylindrical grid end..."
+    call assert_equal(grid(gridpts), x_end, bool)
+    call check_test()
+    call grid_clean()
   end subroutine test_grid_cyl
+
+  !> Tests structure of the grid
+  subroutine test_grid_structure()
+    real(dp)      :: x1, x2
+    integer       :: i
+    geometry = "Cartesian"
+    call initialise_grid()
+    write(*, *) "Testing grid structure, Cartesian..."
+    do i = 1, gridpts-1
+      x1 = grid(i)
+      x2 = grid(i+1)
+      call assert_smaller(x1, x2, bool)
+      if (.not. bool) then
+        write(*, *) "Grid is not monotone!"
+        call check_test()
+        call grid_clean()
+        return
+      end if
+    end do
+    call grid_clean()
+    call check_test()
+
+    geometry = "cylindrical"
+    call initialise_grid()
+    write(*, *) "Testing grid structure, cylindrical..."
+    do i = 1, gridpts-1
+      x1 = grid(i)
+      x2 = grid(i+1)
+      call assert_smaller(x1, x2, bool)
+      if (.not. bool) then
+        write(*, *) "Grid is not monotone!"
+        call check_test()
+        call grid_clean()
+        return
+      end if
+    end do
+    call grid_clean()
+    call check_test()
+  end subroutine test_grid_structure
+
+  subroutine test_grid_gauss_structure()
+    real(dp)      :: x1, x2
+    integer       :: i
+    geometry = "Cartesian"
+    call initialise_grid()
+    write(*, *) "Testing grid_gauss structure, Cartesian..."
+    do i = 1, gauss_gridpts-1
+      x1 = grid_gauss(i)
+      x2 = grid_gauss(i+1)
+      call assert_smaller(x1, x2, bool)
+      if (.not. bool) then
+        write(*, *) "Grid is not monotone!"
+        call check_test()
+        call grid_clean()
+        return
+      end if
+    end do
+    call grid_clean()
+    call check_test()
+
+    geometry = "cylindrical"
+    call initialise_grid()
+    write(*, *) "Testing grid_gauss structure, cylindrical..."
+    do i = 1, gauss_gridpts-1
+      x1 = grid_gauss(i)
+      x2 = grid_gauss(i+1)
+      call assert_smaller(x1, x2, bool)
+      if (.not. bool) then
+        write(*, *) "Grid is not monotone!"
+        call check_test()
+        call grid_clean()
+        return
+      end if
+    end do
+    call grid_clean()
+    call check_test()
+  end subroutine test_grid_gauss_structure
+
 
 
   !> Tests the matrix inversion subroutine, inverts the trivial case
@@ -169,7 +254,7 @@ contains
         else
           sol_ij = 0.0d0
         end if
-        call assert_real_equal(inv_B(i, j), sol_ij, bool)
+        call assert_equal(inv_B(i, j), sol_ij, bool)
         if (.not. bool) then
           write(*, *) "    index i, j          : ", i, j
           write(*, *) "    inverse B calculated: ", inv_B(i, j)
@@ -208,7 +293,7 @@ contains
     call invert_B(mat_B, inv_B)
     do i = 1, 3
       do j = 1, 3
-        call assert_real_equal(inv_B(i, j), inv_B_sol(i, j), bool)
+        call assert_equal(inv_B(i, j), inv_B_sol(i, j), bool)
         if (.not. bool) then
           write(*, *) "    index i, j          : ", i, j
           write(*, *) "    inverse B calculated: ", inv_B(i, j)
@@ -260,7 +345,7 @@ contains
 
     do i = 1, 4
       do j = 1, 4
-        call assert_complex_equal(BA(i, j), BA_sol(i, j), bool)
+        call assert_equal(BA(i, j), BA_sol(i, j), bool)
         if (.not. bool) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    value at index : ", BA(i, j)
@@ -311,7 +396,7 @@ contains
 
     do i = 1, 4
       do j = 1, 4
-        call assert_complex_equal(BA(i, j), BA_sol(i, j), bool)
+        call assert_equal(BA(i, j), BA_sol(i, j), bool)
         if (.not. bool) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    value at index : ", BA(i, j)
@@ -376,7 +461,7 @@ contains
     end do
 
     do i = 1, 4
-      call assert_complex_equal(omega(i), omega_sol(i), bool)
+      call assert_equal(omega(i), omega_sol(i), bool)
       if (.not. bool) then
         write(*, *) "    eigenvalue from QR  : ", omega(i)
         write(*, *) "    eigenvalue should be: ", omega_sol(i)
@@ -418,7 +503,7 @@ contains
     idx1 = (/ 7, 7, 8, 8,  7,  7,  8,  8, 23, 23, 24, 24, 23, 23, 24, 24 /)
     idx2 = (/ 5, 6, 5, 6, 21, 22, 21, 22,  5,  6,  5,  6, 21, 22, 21, 22 /)
     do i = 1, size(idx1)
-      call assert_complex_equal(quadblock(idx1(i), idx2(i)), a, bool)
+      call assert_equal(quadblock(idx1(i), idx2(i)), a, bool)
       if (.not. bool) then
         write(*, *) "    quadblock position: ", idx1(i), idx2(i)
         write(*, *) "    value at position : ", quadblock(idx1(i), idx2(i))
@@ -432,7 +517,7 @@ contains
     idx1 = (/ 13, 13, 14, 14, 13, 13, 14, 14, 29, 29, 30, 30, 29, 29, 30, 30 /)
     idx2 = (/  9, 10,  9, 10, 25, 26, 25, 26,  9, 10,  9, 10, 25, 26, 25, 26 /)
     do i = 1, size(idx1)
-      call assert_complex_equal(quadblock(idx1(i), idx2(i)), b, bool)
+      call assert_equal(quadblock(idx1(i), idx2(i)), b, bool)
       if (.not. bool) then
         write(*, *) "    quadblock position: ", idx1(i), idx2(i)
         write(*, *) "    value at position : ", quadblock(idx1(i), idx2(i))
@@ -466,12 +551,12 @@ contains
     do i = 1, dim_subblock, 2
       do j = 1, dim_quadblock
         if (i == j) then
-          call assert_complex_equal(qblock_test(i, j), (1.0d0, 0.0d0), bool)
+          call assert_equal(qblock_test(i, j), (1.0d0, 0.0d0), bool)
         else
           ! Check rows
-          call assert_complex_equal(qblock_test(i, j), (0.0d0, 0.0d0), bool)
+          call assert_equal(qblock_test(i, j), (0.0d0, 0.0d0), bool)
           ! Check columns
-          call assert_complex_equal(qblock_test(j, i), (0.0d0, 0.0d0), bool)
+          call assert_equal(qblock_test(j, i), (0.0d0, 0.0d0), bool)
         end if
         if (.not. bool) then
           write(*, *) "    quadblock index  : ", i, j, "/", j, i
@@ -497,40 +582,54 @@ contains
     integer                    :: i, j, curr_idx, idxs(3)
 
     write(*, *) "Testing fixed boundary conditions right..."
-
     idxs = (/ 19, 29, 31 /)
-
     qblock_test = (5.0d0, 2.0d0)
-
     call fixed_boundaries(qblock_test, 'r_edge', 'B')
 
-    do i = 1, dim_quadblock
-      do j = 1, size(idxs)
-        curr_idx = idxs(j)
+    if (boundary_type == 'wall') then
 
-        if (i == curr_idx) then
-          call assert_complex_equal(qblock_test(i, curr_idx), (1.0d0, 0.0d0), &
-                                    bool)
-        else
-          call assert_complex_equal(qblock_test(i, curr_idx), (0.0d0, 0.0d0), &
-                                    bool)
-          call assert_complex_equal(qblock_test(curr_idx, i), (0.0d0, 0.0d0), &
-                                    bool)
-        end if
-        if (.not. bool) then
-          write(*, *) "    quadblock index  : ", i, curr_idx, "/", curr_idx, i
-          write(*, *) "    value at position: ", qblock_test(i, curr_idx), &
-                                              "/", qblock_test(curr_idx, i)
+      do i = 1, dim_quadblock
+        do j = 1, size(idxs)
+          curr_idx = idxs(j)
           if (i == curr_idx) then
-            write(*, *) "    value should be  : ", (1.0d0, 0.0d0)
+            call assert_equal(qblock_test(i, curr_idx), (1.0d0, 0.0d0), &
+                                      bool)
           else
-            write(*, *) "    value should be  : ", (0.0d0, 0.0d0)
+            call assert_equal(qblock_test(i, curr_idx), (0.0d0, 0.0d0), &
+                                      bool)
+            call assert_equal(qblock_test(curr_idx, i), (0.0d0, 0.0d0), &
+                                      bool)
           end if
-          call check_test()
-          return
-        end if
+          if (.not. bool) then
+            write(*, *) "    quadblock index  : ", i, curr_idx, "/", curr_idx, i
+            write(*, *) "    value at position: ", qblock_test(i, curr_idx), &
+                                                "/", qblock_test(curr_idx, i)
+            if (i == curr_idx) then
+              write(*, *) "    value should be  : ", (1.0d0, 0.0d0)
+            else
+              write(*, *) "    value should be  : ", (0.0d0, 0.0d0)
+            end if
+            call check_test()
+            return
+          end if
+        end do
       end do
-    end do
+
+    else
+      do i = 1, dim_quadblock
+        do j = 1, dim_quadblock
+          call assert_equal(qblock_test(j, i), (5.0d0, 2.0d0), bool)
+          if (.not. bool) then
+            write(*, *) "    quadblock index  : ", j, i
+            write(*, *) "    value at position: ", qblock_test(j, i)
+            write(*, *) "    value should be  : ", (5.0d0, 2.0d0)
+            call check_test()
+            return
+          end if
+        end do
+      end do
+    end if
+
     call check_test()
   end subroutine test_fixed_boundaries_right
 
@@ -542,21 +641,27 @@ contains
   !! - Matrices A and B must be block-tri-diagonal
   !! - Matrices A and B can not contain 'inf' or 'NaN' elements
   subroutine test_equilibria()
+    character(len=str_len)  :: equil_list(9)
+    integer                 :: i
     use_precoded = .true.
 
-    equilibrium_type = "Adiabatic homogeneous"
-    call test_one_equilibrium()
+    equil_list = [character(str_len) :: &
+                          "Adiabatic homogeneous", &
+                          "Resistive homogeneous", &
+                          "Gravito MHD waves", &
+                          "Resistive tearing modes", &
+                          "Resistive tearing modes with flow", &
+                          "Flow driven instabilities", &
+                          "Suydam cluster modes", &
+                          "Kelvin-Helmholtz", &
+                          "Rotating plasma cylinder"]
 
-    equilibrium_type = "Suydam cluster modes"
-    call test_one_equilibrium()
-
-    equilibrium_type = "Kelvin-Helmholtz"
-    call test_one_equilibrium()
+    do i = 1, size(equil_list)
+      equilibrium_type = trim(equil_list(i))
+      write(*, *) "EQUILIBRIUM: ", equilibrium_type
+      call test_one_equilibrium()
+    end do
   end subroutine test_equilibria
-
-
-
-
 
 
 
@@ -575,6 +680,7 @@ contains
     complex(dp)    :: mat_A(matrix_gridpts, matrix_gridpts)
     real(dp)       :: mat_B(matrix_gridpts, matrix_gridpts)
 
+    call initialise_grid()
     call initialise_equilibrium()
     call initialise_equilibrium_derivatives()
     call set_equilibrium()
@@ -597,6 +703,7 @@ contains
     write(*, *) "Testing if matrix A is singular..."
     call test_A_singular(mat_A)
     ! cleanup
+    call grid_clean()
     call equilibrium_clean()
     call equilibrium_derivatives_clean()
     write(*, *) "------------------------------------------------"
@@ -630,7 +737,7 @@ contains
         end if
 
         if (j <= lb .or. j > rb) then
-          call assert_real_equal(mat_B(i, j), 0.0d0, bool)
+          call assert_equal(mat_B(i, j), 0.0d0, bool)
           if (.not. bool) then
             write(*, *) "    index i, j         : ", i, j
             write(*, *) "    Value of B at index: ", mat_B(i, j)
@@ -670,7 +777,7 @@ contains
         end if
 
         if (j < lb .or. j > rb) then
-          call assert_complex_equal(mat_A(i, j), (0.0d0, 0.0d0), bool)
+          call assert_equal(mat_A(i, j), (0.0d0, 0.0d0), bool)
           if (.not. bool) then
             write(*, *) "    index i, j         : ", i, j
             write(*, *) "    value of A at index: ", mat_A(i, j)
@@ -692,7 +799,7 @@ contains
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_real_is_finite(mat_B(i, j), bool)
+        call assert_is_finite(mat_B(i, j), bool)
         if (.not. bool) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    B-value at index is infinite"
@@ -712,8 +819,7 @@ contains
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_real_is_nan(mat_B(i, j), bool)  !! .true. if NaN
-        bool = .not. bool   !! so .false. if NaN
+        call assert_is_no_nan(mat_B(i, j), bool)
         if (.not. bool) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    B-value at index is NaN"
@@ -734,7 +840,7 @@ contains
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_complex_is_finite(mat_A(i, j), bool)
+        call assert_is_finite(mat_A(i, j), bool)
         if (.not. bool) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    value obtained : ", mat_A(i, j)
@@ -756,8 +862,7 @@ contains
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_complex_is_nan(mat_A(i, j), bool)   !! .true. if NaN
-        bool = .not. bool       !! so .false. if NaN
+        call assert_is_no_nan(mat_A(i, j), bool)
         if (.not. bool) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    value obtained : ", mat_A(i, j)
@@ -783,7 +888,7 @@ contains
     !! Iterate over columns
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_real_equal(mat_B(i, j), 0.0d0, equal)
+        call assert_equal(mat_B(i, j), 0.0d0, equal)
         if (equal) then
           counter = counter + 1
         end if
@@ -805,7 +910,7 @@ contains
     !! Iterate over rows
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_real_equal(mat_B(j, i), 0.0d0, equal)
+        call assert_equal(mat_B(j, i), 0.0d0, equal)
         if (equal) then
           counter = counter + 1
         end if
@@ -838,7 +943,7 @@ contains
     !! Iterate over columns
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_complex_equal(mat_A(i, j), (0.0d0, 0.0d0), equal)
+        call assert_equal(mat_A(i, j), (0.0d0, 0.0d0), equal)
         if (equal) then
           counter = counter + 1
         end if
@@ -859,7 +964,7 @@ contains
     !! Iterate over rows
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_complex_equal(mat_A(j, i), (0.0d0, 0.0d0), equal)
+        call assert_equal(mat_A(j, i), (0.0d0, 0.0d0), equal)
         if (equal) then
           counter = counter + 1
         end if
