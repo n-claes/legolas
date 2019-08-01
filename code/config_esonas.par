@@ -1,0 +1,44 @@
+&gridlist
+  geometry = 'Cartesian'
+  x_start  = 0.0d0
+  x_end    = 1.0d0
+  gridpoints = 31
+/
+
+&meshlist
+  mesh_accumulation = .false.
+/
+
+&physicslist
+  flow = .false.
+  radiative_cooling = .false.
+  external_gravity = .false.
+  thermal_conduction = .false.
+  resistivity = .false.
+/
+
+&unitslist
+  cgs_units = .true.
+/
+
+&equilibriumlist
+  use_precoded = .true.
+  equilibrium_type = "Adiabatic homogeneous"
+  ! equilibrium_type = "Resistive homogeneous"
+  ! equilibrium_type = "Gravitational homogeneous"
+  ! equilibrium_type = "Gravito MHD waves"
+  ! equilibrium_type = "Resistive tearing modes"
+  ! equilibrium_type = "Resistive tearing modes with flow"
+  ! equilibrium_type = "Flow driven instabilities"
+  ! equilibrium_type = "Suydam cluster modes"
+  ! equilibrium_type = "Kelvin-Helmholtz"
+  ! equilibrium_type = "Rotating plasma cylinder"
+  boundary_type = "wall"
+/
+
+&savelist
+  plot_when_finished = .true.
+  write_AB = .true.
+  write_eigenvectors = .false.
+  write_eigenfunctions = .true.
+/
