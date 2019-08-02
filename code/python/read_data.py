@@ -3,7 +3,7 @@ import os, sys
 
 def check_file(filename):
     if not os.path.isfile(filename):
-        print(">> PYTHON: file not found -> {}".format(filename))
+        print(">> file not found -> {}".format(filename))
         sys.exit(1)
     else:
         return
@@ -22,7 +22,7 @@ def read_stream_data(filename, content_type, rows, cols):
     check_file(filename)
 
     nbitems = rows * cols
-    print(">> PYTHON: Reading {}".format(filename))
+    print(">> Reading {}".format(filename))
     data = np.fromfile(filename, dtype=content_type, count=nbitems)
     results = data.reshape(rows, cols)
 
@@ -44,7 +44,7 @@ def read_config_file(filename):
         if len(line) == 1:
             continue
 
-        if 'T' in line[1] or 'F' in line[1]:
+        if line[1] == 'T' or line[1] == 'F':
             config_dict[line[0]] = read_bool(line[1])
         else:
             try:

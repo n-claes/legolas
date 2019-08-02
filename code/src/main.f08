@@ -151,7 +151,7 @@ contains
       write(*, *) ""
       write(*, *) ""
       write(*, *) "Plotting results..."
-      call execute_command_line("python python/plot_data.py")
+      call execute_command_line("python python/process_esonas.py")
     end if
   end subroutine plot_solutions
 

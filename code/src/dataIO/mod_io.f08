@@ -209,6 +209,7 @@ contains
 
     write(config, *) "Plot when finished  : ", plot_when_finished
     write(config, *) "Write matrices      : ", write_AB
+    write(config, *) "Plot matrices       : ", plot_AB
     write(config, *) "Write eigenvectors  : ", write_eigenvectors
     write(config, *) "Write eigenfunctions: ", write_eigenfunctions
 
