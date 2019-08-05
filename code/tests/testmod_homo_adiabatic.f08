@@ -1,4 +1,4 @@
-module testmod_homogeneous
+module testmod_homo_adiabatic
   use mod_global_variables
   use mod_grid
   use mod_equilibrium
@@ -16,15 +16,10 @@ module testmod_homogeneous
   complex(dp), allocatable     :: vl(:, :)
   complex(dp), allocatable     :: vr(:, :)
 
-  integer, parameter           :: gridpts_homo = 31
-
-
 contains
 
-  subroutine init_homogeneous()
-    call read_parfile()
-
-    equilibrium_type = "Adiabatic homogeneous"
+  subroutine init_homo_adiabatic_test()
+    call read_parfile("tests/testfile_homo_adiabatic.par")
 
     call initialise_grid()
     call initialise_equilibrium()
@@ -36,9 +31,9 @@ contains
     allocate(omega(matrix_gridpts))
     allocate(vl(matrix_gridpts, matrix_gridpts))
     allocate(vr(matrix_gridpts, matrix_gridpts))
-  end subroutine init_homogeneous
+  end subroutine init_homo_adiabatic_test
 
-  subroutine run_homogeneous_test()
+  subroutine run_homo_adiabatic_test()
     use mod_solvers
     use mod_physical_constants
     use mod_io
@@ -50,9 +45,8 @@ contains
     complex(dp)   :: vl_theory(8, 8), vr_theory(8, 8)
     real(dp)      :: k1, va, vs
     real(dp)      :: P0, T0, B03, rho0
-    integer       :: n, it_end, i
+    integer       :: n, it_end
 
-    real(dp)      :: w_real, w_imag
     logical       :: append
 
     !! Solve using the code itself
@@ -60,7 +54,8 @@ contains
     call construct_A(mat_A)
     call solve_QR(mat_A, mat_B, omega, vl, vr)
 
-    call save_eigenvalues(omega, "tests/test_homogeneous_code", .false., .false.)
+    call save_eigenvalues(omega, "tests/homo_adiabatic_test_CODE", &
+                          append=.false., stream=.true.)
 
     !! Rely on analytical solution and quantization of wave number,
     !! kx will be quantized according to kx = n*pi / L
@@ -122,46 +117,29 @@ contains
       call solve_QR(mat_A_theory, mat_B_theory, omega_theory, vl_theory, &
                     vr_theory)
 
-      ! For spectrum plotting, force very small numbers to 0
-      do i = 1, 8
-        w_real = real(omega_theory(i))
-        w_imag = aimag(omega_theory(i))
-        if (abs(w_real) < dp_LIMIT) then
-          w_real = 0.0d0
-        end if
-        if (abs(w_imag) < dp_LIMIT) then
-          w_imag = 0.0d0
-        end if
-        omega_theory(i) = cmplx(w_real, w_imag, kind=dp)
-      end do
-
       !after writing once, start appending to file
       if (n == 2) then
         append = .true.
       end if
 
-      call save_eigenvalues(omega_theory, "tests/test_homogeneous_test", append, &
-                            stream=.false.)
+      call save_eigenvalues(omega_theory, "tests/homo_adiabatic_test_THEORY", &
+                            append=append, stream=.true.)
 
     end do
 
-  end subroutine run_homogeneous_test
+  end subroutine run_homo_adiabatic_test
 
-  subroutine finish_homogeneous()
+  subroutine finish_homo_adiabatic_test()
     deallocate(mat_B)
     deallocate(mat_A)
     deallocate(omega)
     deallocate(vl)
     deallocate(vr)
-    write(*, *) "TEST COMPLETED"
+    write(*, *) ">> Adiabatic homogeneous test completed"
     call grid_clean()
     call equilibrium_clean()
     call equilibrium_derivatives_clean()
-  end subroutine finish_homogeneous
+  end subroutine finish_homo_adiabatic_test
 
 
-
-
-
-
-end module testmod_homogeneous
+end module testmod_homo_adiabatic

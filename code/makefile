@@ -65,7 +65,8 @@ main_objects := $(addprefix $(BINDIR)/,						\
 test_objects := $(addprefix $(BINDIR)/,		     		\
 								testmod_assert.o									\
 								testmod_core_tests.o							\
-								testmod_homogeneous.o							\
+								testmod_homo_adiabatic.o					\
+								testmod_homo_gravity.o						\
 								tests_main.o											\
 								)
 
@@ -126,3 +127,10 @@ clean:
 	rm -f $(OUTPUT)
 	rm -f $(TEST_OUT)
 	rm -rf $(OUTDIR)
+
+output_clean:
+	rm -rf $(OUTDIR)
+	mkdir -p $(OUTDIR)/eigenfunctions
+	mkdir -p $(OUTDIR)/figures
+	mkdir -p $(OUTDIR)/tests
+	mkdir -p $(OUTDIR)/tests/figures

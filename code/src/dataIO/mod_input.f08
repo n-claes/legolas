@@ -14,7 +14,7 @@ module mod_input
 contains
 
   subroutine read_parfile(parfile)
-    character(len=str_len), intent(in)  :: parfile
+    character(len=*), intent(in)  :: parfile
 
     real(dp)    :: mhd_gamma
     real(dp)    :: unit_length, unit_numberdensity, unit_temperature, &
