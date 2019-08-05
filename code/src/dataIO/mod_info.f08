@@ -89,14 +89,18 @@ contains
 
     ! Save info
     write(*, *) "-- DataIO settings --"
-    call get_bool(plot_when_finished, char)
-    write(*, *) "Plot results                 : ", char
     call get_bool(write_AB, char)
     write(*, *) "Write matrices to file       : ", char
     call get_bool(write_eigenvectors, char)
     write(*, *) "Write eigenvectors to file   : ", char
     call get_bool(write_eigenfunctions, char)
     write(*, *) "Write eigenfunctions to file : ", char
+    call get_bool(plot_when_finished, char)
+    write(*, *) "Plot results                 : ", char
+    call get_bool(plot_AB, char)
+    write(*, *) "Plot matrices                : ", char
+    call get_bool(plot_eigenfunctions, char)
+    write(*, *) "Plot eigenfunctions          : ", char
 
     call print_line()
 

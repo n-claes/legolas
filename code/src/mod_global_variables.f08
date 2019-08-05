@@ -143,14 +143,34 @@ module mod_global_variables
   integer, parameter        :: dim_quadblock = 2*dim_subblock
 
   !! Data IO-related parameters
-  !> Call python script when finishing to plot results
-  logical, save             :: plot_when_finished
   !> Write matrices A and B to file when finished
   logical, save             :: write_AB
   !> Write eigenvectors to file when finished
   logical, save             :: write_eigenvectors
   !> Write eigenfunctions to file when finished
   logical, save             :: write_eigenfunctions
+  !> Call python script when finishing to plot results
+  logical, save             :: plot_when_finished
+  !> Plot matrices A and B when finished
+  logical, save             :: plot_AB
+  !> Plot eigenfunctions when finished
+  logical, save             :: plot_eigenfunctions
+
+  !! Savelist-related parameters
+  !> Name for the configuration file
+  character(len=str_len)    :: savename_config
+  !> Name for the eigenvalues file
+  character(len=str_len)    :: savename_eigenvalues
+  !> Name for the grid file
+  character(len=str_len)    :: savename_grid
+  !> Name for the matrix A file
+  character(len=str_len)    :: savename_matrixA
+  !> Name for the matrix B file
+  character(len=str_len)    :: savename_matrixB
+  !> Name for the eigenvector files
+  character(len=str_len)    :: savename_eigenvectors
+  !> Name for the eigenfunction files
+  character(len=str_len)    :: savename_eigenfunctions
 
 contains
 

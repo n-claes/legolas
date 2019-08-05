@@ -29,8 +29,8 @@ contains
     namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
                          unit_temperature, unit_velocity
     namelist /equilibriumlist/ use_precoded, equilibrium_type, boundary_type
-    namelist /savelist/ plot_when_finished, write_AB, plot_AB, &
-                        write_eigenvectors, write_eigenfunctions
+    namelist /savelist/ write_AB, write_eigenvectors, write_eigenfunctions, &
+                        plot_when_finished, plot_AB, plot_eigenfunctions
     namelist /filelist/ savename_config, savename_eigenvalues, savename_grid, &
                         savename_matrixA, savename_matrixB, &
                         savename_eigenvectors, savename_eigenfunctions
@@ -81,11 +81,12 @@ contains
     boundary_type = 'wall'
 
     !> Savelist defaults
-    plot_when_finished = .true.     !< plot spectrum when finished
     write_AB = .false.              !< write matrices A and B when finished
-    plot_AB = .false.               !< plot matrices A and B when finished
     write_eigenvectors = .false.    !< writes eigenvectors to file
     write_eigenfunctions = .true.   !< writes eigenfunctions to file
+    plot_when_finished = .true.     !< plot spectrum when finished
+    plot_AB = .false.               !< plot matrices A and B when finished
+    plot_eigenfunctions = .true.    !< plots the eigenfunctions when finished
 
     !> Filelist defaults
     savename_config = "config"
