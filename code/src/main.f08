@@ -56,13 +56,16 @@ contains
 
   !> Initialises the grid and equilibrium configuration.
   subroutine initialisation()
-    use mod_input, only: read_parfile
+    use mod_input, only: read_parfile, get_parfile
     use mod_grid, only: initialise_grid
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
     use mod_eigenfunctions, only: initialise_eigenfunctions
 
-    call read_parfile()
+    character(len=str_len)  :: parfile
+
+    call get_parfile(parfile)
+    call read_parfile(parfile)
 
     ! Allocate matrices
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
