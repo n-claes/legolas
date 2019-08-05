@@ -1,39 +1,33 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
+import read_data
+import plot_data
 
-def plot_spectrum(fig, ax, marker, opacity, file):
-    w_real = []
-    w_imag = []
-    for line in file:
-        # split line at delimiter
-        line = line.split(",")
-        # strip line
-        line = [l.strip() for l in line]
 
-        w_real.append(float(line[0]))
-        w_imag.append(float(line[1]))
-
-    ax.plot(w_real, w_imag, marker, alpha=opacity)
 
 
 if __name__ == '__main__':
-    filename_code = "output/tests/test_homogeneous_code.dat"
-    filename_test = "output/tests/test_homogeneous_test.dat"
-    file_code = open(filename_code, 'r')
-    file_test = open(filename_test, 'r')
+    tests = ["adiabatic", "gravity"]
+    gridpts = 31
+    matrix_gridpts = 16*gridpts
 
-    print(">> PYTHON: Test: comparing spectra...")
+    for name in tests:
+        filename_code   = "output/tests/homo_{}_test_CODE.dat".format(name)
+        filename_theory = "output/tests/homo_{}_test_THEORY.dat".format(name)
+
+        w_code   = read_data.read_stream_data(filename_code,
+                                content_type=np.complex, rows=1,
+                                cols=matrix_gridpts)
+        w_theory = read_data.read_stream_data(filename_theory,
+                                content_type=np.complex, rows=1,
+                                cols=matrix_gridpts)
 
 
-    fig, ax = plt.subplots(1, figsize=(16,8))
+        fig, ax = plt.subplots(1, figsize=(16,8))
+        title = "{} (test)".format(name)
+        plot_data.plot_spectrum(fig, ax, w_code, marker='.b', alpha=0.8,
+                                title=title)
+        plot_data.plot_spectrum(fig, ax, w_theory, marker='rx', alpha=0.3)
 
-    plot_spectrum(fig, ax, '.b', 0.5, file_code)
-    plot_spectrum(fig, ax, 'xr', 0.3, file_test)
-    ax.set_xlabel(r"Re($\omega$)")
-    ax.set_ylabel(r"Im($\omega$)")
-
-    save = "output/tests/figures/spectrum_TEST.png"
     plt.show()
-    #fig.savefig(save)
-    #print(">>         figure saved to {}".format(save))

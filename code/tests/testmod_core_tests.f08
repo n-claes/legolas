@@ -28,7 +28,7 @@ contains
     write(*, *) "===== RUNNING CORE TESTS ======"
     write(*, *) "==============================="
 
-    call read_parfile()
+    call read_parfile("")
 
     successes = 0
     fails     = 0
