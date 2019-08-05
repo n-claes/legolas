@@ -9,15 +9,17 @@ module mod_input
   logical, save :: parfile_present
 
   public :: read_parfile
+  public :: get_parfile
 
 contains
 
-  subroutine read_parfile()
+  subroutine read_parfile(parfile)
+    character(len=str_len), intent(in)  :: parfile
+
     real(dp)    :: mhd_gamma
     real(dp)    :: unit_length, unit_numberdensity, unit_temperature, &
                    unit_velocity
     integer     :: gridpoints
-    character(len=str_len)  :: filename_par
 
     namelist /gridlist/ geometry, x_start, x_end, gridpoints
     namelist /meshlist/ mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
@@ -35,7 +37,11 @@ contains
                         savename_matrixA, savename_matrixB, &
                         savename_eigenvectors, savename_eigenfunctions
 
-    parfile_present = .false.
+    if (parfile == "") then
+      parfile_present = .false.
+    else
+      parfile_present = .true.
+    end if
 
     !! Set defaults
     !> Gridlist defaults
@@ -99,11 +105,9 @@ contains
 
 
 
-    !> Retrieve user-defined configuration
-    call get_parfile(filename_par)
     !! Read parfile, if supplied
     if (parfile_present) then
-      open(unit_par, file=trim(filename_par), status='old')
+      open(unit_par, file=trim(parfile), status='old')
       !! Start reading namelists, rewind so they can appear out of order
             rewind(unit_par)
             read(unit_par, gridlist, end=1001)
@@ -166,7 +170,6 @@ contains
 
     if (filename_par == "") then
       write(*, *) "No parfile supplied, using default configuration."
-      parfile_present = .false.
       return
     end if
 
@@ -176,7 +179,6 @@ contains
       write(*, *) "Parfile not found: ", trim(filename_par)
       stop
     end if
-    parfile_present = .true.
   end subroutine get_parfile
 
 end module mod_input
