@@ -41,9 +41,12 @@ def on_clicking(event):
     # Toolbar should be deactivated when doing interactive stuff
     if toolbar.mode == '':
         if event.button == 1:
+            # Prevent error when clicking outside of axes window
             if (event.xdata is None or event.ydata is None):
                 return
+            # Search nearest spectrum point to click, then plot
             idx = find_spectrum_point_idx(event.xdata, event.ydata)
+            # Check for double plotting of points
             if idx not in w_idx_list:
                 w_idx_list.append(idx)
                 ax3.plot(np.real(omegas[idx]), np.imag(omegas[idx]), 'rx',
@@ -68,6 +71,12 @@ def on_picking(event):
 
 def on_typing(event):
     global w_idx_list
+
+    # Pressing 'x' closes figures and finishes program
+    if event.key == 'x':
+        for i in plt.get_fignums():
+            plt.close(i)
+        return
 
     # Do nothing if nothing is selected
     if not w_idx_list:
@@ -121,18 +130,19 @@ if __name__ == '__main__':
     eigenf_list = np.asarray(["rho", "v1", "v2", "v3", "T", "a1", "a2", "a3"])
     eigenfunctions = {}
 
-
-    print("")
-    print("-"*50)
-    print(">>> INTERACTIVE PLOTTING OF EIGENFUNCTIONS <<<")
-    print("- Left-click  : select spectrum points (red cross)")
-    print("- Right-click : deselect spectrum points")
-    print("- Enter       : plot eigenfunctions corresponding to selected points")
-    print("- Up-arrow    : cycle upwards through eigenfunction variables")
-    print("- Down-arrow  : cycle downwards through eigenfunction variables")
-    print("- Delete      : clears selection and eigenfunction figure")
-    print("-"*50)
-    print("")
+    if config_dict["Plot eigenfunctions"]:
+        print("")
+        print("-"*50)
+        print(">>> INTERACTIVE PLOTTING OF EIGENFUNCTIONS <<<")
+        print("- Left-click  : select spectrum points (red cross)")
+        print("- Right-click : deselect spectrum points")
+        print("- Enter       : plot eigenfunctions corresponding to selected points")
+        print("- Up-arrow    : cycle upwards through eigenfunction variables")
+        print("- Down-arrow  : cycle downwards through eigenfunction variables")
+        print("- Delete      : clears selection and eigenfunction figure")
+        print("- x-key       : close figures and finish program ")
+        print("-"*50)
+        print("")
 
 
     # =============== READING DATA ================
@@ -143,7 +153,6 @@ if __name__ == '__main__':
 
     # Read matrices
     if config_dict["Plot matrices"]:
-        fig, ax = plt.subplots(1, 2, figsize=(12, 8))
         # Read matrix elements
         matrix_B = read_data.read_stream_data(filename_matB,
                         content_type=np.float64,
@@ -153,7 +162,7 @@ if __name__ == '__main__':
                         rows=matrix_gridpts, cols=matrix_gridpts)
 
     # Read eigenfunctions
-    if config_dict["Write eigenfunctions"]:
+    if config_dict["Plot eigenfunctions"]:
         # Read grid data
         grid = read_data.read_stream_data(filename_grid,
                                           content_type=np.float64,
@@ -178,19 +187,19 @@ if __name__ == '__main__':
         plot_data.plot_matrix(fig1, ax1, 1, matrix_B, title="Matrix B",
                               log=False)
 
-    if config_dict["Write eigenfunctions"]:
+    if config_dict["Plot eigenfunctions"]:
         fig2, ax2 = plt.subplots(1, 1, figsize=(12, 8))
         fig3, ax3 = plt.subplots(1, 1, figsize=(12, 8))
         # Initialise global variables in this case
         init_global_vars()
-        # Connect interactive functions with spectrum figure, only when
-        # eigenfunctions were also saved
+        # Connect interactive functions with figures
+        fig2.canvas.mpl_connect('key_press_event', on_typing)
         fig3.canvas.mpl_connect('key_press_event', on_typing)
         fig3.canvas.mpl_connect('button_press_event', on_clicking)
         fig3.canvas.mpl_connect('pick_event', on_picking)
         fig2.set_visible(False)
     else:
-        # If no eigenfunctions are plotted, no need to connect interatively
+        # If no eigenfunctions are required, no need to connect interactively
         fig3, ax3 = plt.subplots(1, 1, figsize=(12, 8))
 
     # Plot eigenvalues

@@ -29,7 +29,7 @@ MODDIR   := mod
 TSTDIR   := tests
 OUTDIR   := output
 
-OUTPUT   := program.exe
+OUTPUT   := esonas.exe
 TEST_OUT := run_tests.exe
 
 objects  := $(addprefix $(BINDIR)/, 			  		  \

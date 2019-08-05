@@ -37,8 +37,21 @@
 /
 
 &savelist
-  plot_when_finished = .true.
-  write_AB = .true.
+  write_AB = .false.
   write_eigenvectors = .false.
   write_eigenfunctions = .true.
+  plot_when_finished = .true.
+  plot_AB = .false.
+  plot_eigenfunctions = .true.
+/
+
+! This is not used for now
+&filelist
+  savename_config = "config"
+  savename_eigenvalues = "eigenvalues"
+  savename_grid = "grid"
+  savename_matrixA = "matrixA"
+  savename_matrixB = "matrixB"
+  savename_eigenvectors = "eigenvectors"
+  savename_eigenfunctions = "eigenfunction"
 /
