@@ -127,7 +127,10 @@ contains
       1005  rewind(unit_par)
             read(unit_par, savelist, end=1006)
 
-      1006  close(unit_par)
+      1006  rewind(unit_par)
+            read(unit_par, filelist, end=1007)
+
+      1007  close(unit_par)
     end if
 
     !> Set up grid and normalisations
