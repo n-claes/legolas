@@ -77,4 +77,18 @@ contains
     end do
   end subroutine small_values_complex_matrix
 
+  subroutine check_negative_array(array, variable_name)
+    real(dp), intent(in)          :: array(:)
+    character(len=*), intent(in)  :: variable_name
+    integer                       :: i
+
+    do i = 1, size(array)
+      if (array(i) < 0.0d0) then
+        write(*, *) "WARNING: ", trim(variable_name), " is negative somewhere!"
+        stop
+      end if
+    end do
+  end subroutine check_negative_array
+
+
 end module mod_check_values

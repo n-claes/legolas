@@ -1,5 +1,5 @@
 &gridlist
-  geometry = 'Cartesian'
+  geometry = 'cylindrical'
   x_start  = 0.0d0
   x_end    = 1.0d0
   gridpoints = 31
@@ -23,16 +23,17 @@
 
 &equilibriumlist
   use_precoded = .true.
-  equilibrium_type = "Adiabatic homogeneous"
-  ! equilibrium_type = "Resistive homogeneous"
-  ! equilibrium_type = "Gravitational homogeneous"
-  ! equilibrium_type = "Gravito MHD waves"
-  ! equilibrium_type = "Resistive tearing modes"
-  ! equilibrium_type = "Resistive tearing modes with flow"
-  ! equilibrium_type = "Flow driven instabilities"
-  ! equilibrium_type = "Suydam cluster modes"
-  ! equilibrium_type = "Kelvin-Helmholtz"
-  ! equilibrium_type = "Rotating plasma cylinder"
+  equilibrium_type = "Adiabatic homogeneous"                 ! Cartesian
+  ! equilibrium_type = "Resistive homogeneous"               ! Cartesian
+  ! equilibrium_type = "Gravitational homogeneous"           ! Cartesian
+  ! equilibrium_type = "Gravito MHD waves"                   ! Cartesian
+  ! equilibrium_type = "Interchange modes"                   ! cylindrical
+  ! equilibrium_type = "Resistive tearing modes"             ! Cartesian
+  ! equilibrium_type = "Resistive tearing modes with flow"   ! Cartesian
+  ! equilibrium_type = "Flow driven instabilities"           ! Cartesian
+  ! equilibrium_type = "Suydam cluster modes"                ! cylindrical
+  ! equilibrium_type = "Kelvin-Helmholtz"                    ! Cartesian
+  ! equilibrium_type = "Rotating plasma cylinder"            ! cylindrical
   boundary_type = "wall"
 /
 
@@ -42,7 +43,7 @@
   write_eigenfunctions = .true.
   plot_when_finished = .true.
   plot_AB = .false.
-  plot_eigenfunctions = .true.
+  plot_eigenfunctions = .false.
 /
 
 ! This is not used for now

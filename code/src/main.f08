@@ -121,8 +121,9 @@ contains
 
     write(*, *) "Writing eigenvalues to file..."
     call set_time_start()
-    call save_eigenvalues(omega, "eigenvalues", append=.false., stream=.true.)
-    call save_eigenvalues(omega, "eigenvalues_text", append=.false., stream=.false.)
+    call save_eigenvalues(omega, trim(savename_eigenvalues), &
+                          append=.false., stream=.true.)
+    ! call save_eigenvalues(omega, "eigenvalues_text", append=.false., stream=.false.)
     call set_time_write_omegas()
 
     if (write_AB) then

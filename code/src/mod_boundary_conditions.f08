@@ -51,28 +51,24 @@ contains
   !! @param[in] d_eps_dr  Epsilon derivative: 0 for Cartesian, 1 for cylindrical
   !! @param[in, out] quadblock    The 32x32 quadblock, containing 4 subblocks.
   !!                              Out: boundary conditions applied.
-  subroutine boundaries_A_left_edge(eps, d_eps_dr, quadblock)
-    real(dp), intent(in)       :: eps, d_eps_dr
+  subroutine boundaries_A_left_edge(quadblock)
     complex(dp), intent(inout) :: quadblock(dim_quadblock, dim_quadblock)
 
     call fixed_boundaries(quadblock, "l_edge", "A")
-    call natural_boundaries(eps, d_eps_dr, quadblock, "l_edge")
+    call natural_boundaries(quadblock, "l_edge")
 
   end subroutine boundaries_A_left_edge
 
 
   !> Boundary conditions matrix A, right edge. A-matrix has both natural
   !! (from partial integration) and essential (fixed) boundary conditions.
-  !! @param[in] eps   The value for epsilon: 1 for Cartesian, r for cylindrical
-  !! @param[in] d_eps_dr  Epsilon derivative: 0 for Cartesian, 1 for cylindrical
   !! @param[in, out] quadblock    The 32x32 quadblock, containing 4 subblocks.
   !!                              Out: boundary conditions applied.
-  subroutine boundaries_A_right_edge(eps, d_eps_dr, quadblock)
-    real(dp), intent(in)       :: eps, d_eps_dr
+  subroutine boundaries_A_right_edge(quadblock)
     complex(dp), intent(inout) :: quadblock(dim_quadblock, dim_quadblock)
 
     call fixed_boundaries(quadblock, "r_edge", "A")
-    call natural_boundaries(eps, d_eps_dr, quadblock, "r_edge")
+    call natural_boundaries(quadblock, "r_edge")
 
   end subroutine boundaries_A_right_edge
 
@@ -176,16 +172,15 @@ contains
   end subroutine fixed_boundaries
 
 
-  subroutine natural_boundaries(eps, d_eps_dr, quadblock, edge)
+  subroutine natural_boundaries(quadblock, edge)
     use mod_grid
     use mod_equilibrium
     use mod_equilibrium_derivatives
 
-    real(dp), intent(in)          :: eps, d_eps_dr
     complex(dp), intent(inout)    :: quadblock(dim_quadblock, dim_quadblock)
-    character(6), intent(in)       :: edge
+    character(6), intent(in)      :: edge
 
-    real(dp)                      :: eps_inv
+    real(dp)                      :: eps, d_eps_dr, eps_inv
     integer                       :: idx
 
     real(dp)                      :: rho0, T0, B02, B03, eta
@@ -200,8 +195,6 @@ contains
       write(*, *) "Currently set on: ", edge
       stop
     end if
-
-    eps_inv = 1.0d0 / eps
 
     !! Equilibrium quantities at the boundary
     rho0  = rho0_eq(idx)
@@ -250,7 +243,17 @@ contains
         stop
       end if  ! if-case geometry
 
+    ! === RIGHT EDGE ===
     else if (edge == 'r_edge') then
+      if (geometry == 'cylindrical') then
+        ! force eps to outer edge (currently equal to end of grid_gauss)
+        eps = grid(gridpts)
+        d_eps_dr = 1.0d0
+      else
+        eps = 1.0d0
+        d_eps_dr = 0.0d0
+      end if
+      eps_inv = 1.0d0 / eps
 
       select case(boundary_type)
       case('wall')
