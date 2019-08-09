@@ -75,16 +75,27 @@ def plot_spectrum(fig, ax, omegas, marker=None, alpha=0.8, title=None):
     fig.tight_layout()
 
 
-def plot_eigenfunctions(fig, ax, omegas, grid, eigenfunctions, var, w_idx):
+def plot_eigenfunctions(fig, ax, omegas, grid, eigenfunctions, var, w_idx,
+                        real=True):
     eigenf = eigenfunctions[var]
     if isinstance(w_idx, list):
         for w in w_idx:
             lab = r"$\omega${} = {:.8f}".format(w, omegas[w])
-            ax.plot(grid, np.real(eigenf[w, :]), label=lab)
+            if real:
+                ax.plot(grid, np.real(eigenf[w, :]), label=lab)
+            else:
+                ax.plot(grid, np.imag(eigenf[w, :]), label=lab)
     else:
         lab = r"$\omega${} = {}".format(w_idx, omegas[w_idx])
-        ax.plot(grid, np.real(eigenf[w_idx, :]), label=lab)
+        if real:
+            ax.plot(grid, np.real(eigenf[w_idx, :]), label=lab)
+        else:
+            ax.plot(grid, np.imag(eigenf[w_idx, :]), label=lab)
+
     ax.axhline(y=0, linestyle='dotted', color='grey')
-    ax.set_title(var)
+    if real:
+        ax.set_title(var + " (real part)")
+    else:
+        ax.set_title(var + " (imaginary part)")
     ax.legend(loc='best')
     fig.tight_layout()

@@ -13,7 +13,8 @@ if __name__ == '__main__':
     h_quadratic_2 = np.zeros_like(h_quadratic_1)
     h_quadratic_3 = (2*xL - x1 - x0)*(xL - x0) / (x1 - x0)**2
     h_quadratic_4 = (2*xR - x2 - x1)*(xR - x2) / (x2 - x1)**2
-	
+
+    
     fig, ax = plt.subplots(2, 2, figsize=(12, 8))
     ax[0][0].plot(xL, h_quadratic_1, color="blue", linestyle="solid")
     ax[0][0].plot(xR, h_quadratic_2, color="blue", linestyle="dashed")
@@ -55,5 +56,5 @@ if __name__ == '__main__':
     ax[1][1].set_title("Derivative cubic elements")
 
     fig.tight_layout()
-    
+
     plt.show()

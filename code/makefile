@@ -127,6 +127,7 @@ clean:
 	rm -f $(OUTPUT)
 	rm -f $(TEST_OUT)
 	rm -rf $(OUTDIR)
+	make
 
 output_clean:
 	rm -rf $(OUTDIR)
@@ -134,3 +135,7 @@ output_clean:
 	mkdir -p $(OUTDIR)/figures
 	mkdir -p $(OUTDIR)/tests
 	mkdir -p $(OUTDIR)/tests/figures
+
+run:
+	make
+	./esonas.exe -i config_esonas.par

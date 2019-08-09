@@ -5,9 +5,10 @@ import read_data
 import plot_data
 
 def init_global_vars():
-    global w_idx_list, current_var
+    global w_idx_list, current_var, plot_real
     w_idx_list = []
     current_var = 0
+    plot_real = True
 
 
 def select_next_variable():
@@ -28,6 +29,14 @@ def select_prev_variable():
 
 def get_current_variable():
     return eigenf_list[current_var]
+
+
+def switch_real():
+    global plot_real
+    if plot_real:
+        plot_real = False
+    else:
+        plot_real = True
 
 
 def find_spectrum_point_idx(x, y):
@@ -70,7 +79,7 @@ def on_picking(event):
     return
 
 def on_typing(event):
-    global w_idx_list
+    global w_idx_list, plot_real
 
     # Pressing 'x' closes figures and finishes program
     if event.key == 'x':
@@ -81,6 +90,14 @@ def on_typing(event):
     # Do nothing if nothing is selected
     if not w_idx_list:
         return
+
+    if event.key == "i":
+        switch_real()
+        ax2.clear()
+        var = get_current_variable()
+        plot_data.plot_eigenfunctions(fig2, ax2, omegas, grid, eigenfunctions,
+                                      var, w_idx_list, plot_real)
+
 
     # Pressing 'delete' clears the current figure and selection
     if event.key == 'delete':
@@ -100,12 +117,13 @@ def on_typing(event):
 
     # Pressing 'enter' plots eigenfunctions corresponding to selected points
     # Pressing 'left' or 'right' cycles through variable eigenfunctions
-    if event.key == 'enter' or event.key == 'up' or event.key == 'down':
+    if (event.key == 'enter' or event.key == 'up' or event.key == 'down' or
+        event.key == "i"):
         fig2.set_visible(True)
         ax2.clear()
         var = get_current_variable()
-        plot_data.plot_eigenfunctions(fig2, ax2, omegas, grid,
-                                      eigenfunctions, var, w_idx_list)
+        plot_data.plot_eigenfunctions(fig2, ax2, omegas, grid, eigenfunctions,
+                                      var, w_idx_list, plot_real)
 
     fig2.canvas.draw()
     fig3.canvas.draw()

@@ -90,18 +90,15 @@ contains
 
     eta_eq = 0.0d0
 
-    k2 = 1.0d0
-    k3 = 1.0d0
-
   end subroutine initialise_equilibrium
 
   !> Determines which pre-coded equilibrium configuration has to be loaded.
-  !! These set the physics, overriding the ones defined in mod_global_variables.
   subroutine set_equilibrium()
     use mod_gravity, only: initialise_gravity
     use mod_radiative_cooling, only: initialise_radiative_cooling
     use mod_thermal_conduction, only: get_kappa_para, get_kappa_perp
     use mod_resistivity, only: get_eta
+    use mod_check_values, only: check_negative_array
 
     if (use_precoded) then
 
@@ -113,8 +110,14 @@ contains
       case("Resistive homogeneous")
         call resistive_homo_eq()
 
+      case("Gravitational homogeneous")
+        call gravity_homo_eq()
+
       case("Gravito MHD waves")
         call gravito_mhd_waves_eq()
+
+      case("Interchange modes")
+        call interchange_modes_eq()
 
       case("Resistive tearing modes")
         call resistive_tearing_modes_eq()
@@ -167,6 +170,10 @@ contains
       call set_resistivity_derivatives(T0_eq)
     end if
 
+    ! Check for negative pressure, temperature, etc.
+    call check_negative_array(rho0_eq, "density")
+    call check_negative_array(T0_eq, "temperature")
+
   end subroutine set_equilibrium
 
   !> Initialises equilibrium for an adiabatic homogeneous medium in Cartesian
@@ -175,7 +182,6 @@ contains
     k2 = 0.0d0
     k3 = dpi
 
-    geometry = "Cartesian"
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -185,7 +191,7 @@ contains
     !! Parameters
     rho0_eq = 1.0d0
     T0_eq   = 1.0d0
-    B02_eq  = 0.0d0
+    B02_eq  = 1.0d0
     B03_eq  = 1.0d0
 
   end subroutine adiabatic_homo_eq
@@ -194,7 +200,6 @@ contains
   subroutine resistive_homo_eq()
     real(dp)  :: beta
 
-    geometry = "Cartesian"
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -218,11 +223,35 @@ contains
   end subroutine resistive_homo_eq
 
 
+  subroutine gravity_homo_eq()
+    real(dp)    :: g
+
+    g = 5.0d0
+
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .true.
+    use_custom_gravity = .true.
+    custom_g_value = g
+
+    k2 = 2.0d0
+    k3 = dpi
+
+    !! Parameters
+    rho0_eq = 1.0d0
+    B02_eq  = 1.0d0
+    B03_eq  = 1.0d0
+
+    T0_eq   = 1.0d0
+  end subroutine gravity_homo_eq
+
+
   subroutine gravito_mhd_waves_eq()
     real(dp)    :: alpha, x, rho0, p0, B0
     integer     :: i
 
-    geometry = "Cartesian"
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -254,11 +283,46 @@ contains
   end subroutine gravito_mhd_waves_eq
 
 
+  subroutine interchange_modes_eq()
+    integer       :: i, n
+    real(dp)      :: r, p0, A, R0, q
+
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    k2 = -2.0d0
+    k3 = 0.1d0
+
+    ! Use these to control nq
+    n = 1
+    q = 2.10d0
+
+    R0 = n / k3     ! From quantization k = n/R0
+    A  = 1.0d0 / (R0 * q)
+    p0 = 1.0d0
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+
+      rho0_eq(i) = 1.0d0
+      B02_eq(i)  = A * r
+      B03_eq(i)  = 1.0d0
+      T0_eq(i)   = (p0 - (A**2 * r**2)) / rho0_eq(i)
+
+      d_B02_dr(i) = A
+      d_T0_dr(i)  = -2.0d0 * A**2 * r / rho0_eq(i)
+    end do
+
+  end subroutine interchange_modes_eq
+
+
   subroutine resistive_tearing_modes_eq()
     real(dp)    :: alpha, beta, x
     integer     :: i
 
-    geometry = "Cartesian"
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -267,8 +331,8 @@ contains
     fixed_eta_value = 0.0001d0
     external_gravity = .false.
 
-    k3 = 0.49d0
-    k2 = 0.0d0
+    k2 = 0.49d0
+    k3 = 0.0d0
 
     ! Parameters
     alpha = 4.73884d0
@@ -299,7 +363,6 @@ contains
     real(dp)    :: alpha, beta, x
     integer     :: i
 
-    geometry = "Cartesian"
     flow = .true.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -347,7 +410,6 @@ contains
 
     g = 15.0d0
 
-    geometry = "Cartesian"
     flow = .true.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -409,7 +471,6 @@ contains
     real(dp)      :: P0_eq(gauss_gridpts)
     integer       :: i
 
-    geometry = "cylindrical"
     flow = .true.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -456,7 +517,6 @@ contains
     real(dp)    :: a, x, p0, v0y, v0z
     integer     :: i
 
-    geometry = "Cartesian"
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -493,7 +553,6 @@ contains
     real(dp)    :: r
     integer     :: i
 
-    geometry = 'cylindrical'
     flow = .true.
     radiative_cooling = .false.
     thermal_conduction = .false.

@@ -87,10 +87,10 @@ contains
 
       !! Apply boundary conditions on edges
       if (i == 1) then
-        call boundaries_A_left_edge(eps, d_eps_dr, quadblock)
+        call boundaries_A_left_edge(quadblock)
       end if
       if (i == gridpts - 1) then
-        call boundaries_A_right_edge(eps, d_eps_dr, quadblock)
+        call boundaries_A_right_edge(quadblock)
       end if
 
       ! Fill A-matrix with quadblock entries

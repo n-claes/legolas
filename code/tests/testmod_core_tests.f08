@@ -648,6 +648,7 @@ contains
     equil_list = [character(str_len) :: &
                           "Adiabatic homogeneous", &
                           "Resistive homogeneous", &
+                          "Gravitational homogeneous", &
                           "Gravito MHD waves", &
                           "Resistive tearing modes", &
                           "Resistive tearing modes with flow", &
