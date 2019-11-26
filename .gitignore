@@ -1,4 +1,5 @@
-code/docs/html/
+docs/html/
+*.DS_Store
 *.aux
 *.bbl
 *.bcf
