@@ -4,4 +4,4 @@
 
 # Introduction {#introduction}
 
-Documenation for the finite element code. 
+Documentation for the finite element code.

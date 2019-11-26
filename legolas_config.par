@@ -40,7 +40,7 @@
 &savelist
   write_AB = .false.
   write_eigenvectors = .false.
-  write_eigenfunctions = .true.
+  write_eigenfunctions = .false.
   plot_when_finished = .true.
   plot_AB = .false.
   plot_eigenfunctions = .false.

@@ -10,7 +10,7 @@
 !! Included physics: flow, radiative cooling, thermal conduction, resistivity
 !
 
-program esonas
+program legolas
   use mod_global_variables
   use mod_info
   use mod_timer
@@ -155,7 +155,7 @@ contains
       write(*, *) ""
       write(*, *) ""
       write(*, *) "Plotting results..."
-      call execute_command_line("python python/process_esonas.py")
+      call execute_command_line("python python/process_legolas.py")
     end if
   end subroutine plot_solutions
 
@@ -185,4 +185,4 @@ contains
   end subroutine cleanup
 
 
-end program esonas
+end program legolas
