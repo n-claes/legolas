@@ -619,6 +619,9 @@ contains
     if (allocated(v03_eq)) then
       deallocate(v03_eq)
     end if
+    if (allocated(grav_eq)) then
+      deallocate(grav_eq)
+    end if
     if (allocated(tc_para_eq)) then
       deallocate(tc_para_eq)
     end if
