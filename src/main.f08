@@ -14,6 +14,8 @@ program legolas
   use mod_global_variables
   use mod_info
   use mod_equilibrium, only: set_equilibrium
+  use mod_matrix_creation, only: create_matrices
+  use mod_solvers, only: solve_QR
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -34,10 +36,18 @@ program legolas
   ! print configuration to console
   call show_startup_info()
 
-  call create_matrices()
-  call solve_eigenvalue_problem()
+  ! create matrices A and B
+  write(*, *) "Creating matrices..."
+  call create_matrices(matrix_B, matrix_A)
+
+  ! solve eigenvalue problem
+  write(*, *) "Solving eigenvalue problem..."
+  call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
+
+  ! write spectrum, eigenvectors, matrices etc. to file
   call save_solutions()
 
+  ! deallocate everything
   call cleanup()
   call show_final_info()
 
@@ -81,25 +91,6 @@ contains
 
   end subroutine initialisation
 
-  !> Creates A and B matrices for the wBX = AX eigenvalue problem.
-  subroutine create_matrices()
-    use mod_setup_matrix_b, only: construct_B
-    use mod_setup_matrix_a, only: construct_A
-
-    write(*, *) "Creating matrices..."
-    call construct_B(matrix_B)
-    call construct_A(matrix_A)
-
-  end subroutine create_matrices
-
-  !> Calls the solver.
-  subroutine solve_eigenvalue_problem()
-    use mod_solvers
-
-    write(*, *) "Solving eigenvalue problem..."
-    call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
-
-  end subroutine solve_eigenvalue_problem
 
   !> Saves the solutions
   subroutine save_solutions()
