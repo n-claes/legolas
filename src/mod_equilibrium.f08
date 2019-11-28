@@ -13,7 +13,6 @@ module mod_equilibrium
   use mod_physical_constants
   use mod_equilibrium_derivatives
   use mod_grid
-  use mod_gravity, only: grav_eq
   implicit none
 
   public
@@ -36,6 +35,10 @@ module mod_equilibrium
   !> Equilibrium velocity in the z direction
   real(dp), allocatable         :: v03_eq(:)
 
+  !! Gravity equilibrium variables
+  !> Equilibrium gravity
+  real(dp), allocatable         :: grav_eq(:)
+
   !! Thermal conduction equilibrium variables
   !> Equilibrium parallel conduction
   real(dp), allocatable         :: tc_para_eq(:)
@@ -56,7 +59,6 @@ contains
   !> Initialises the equilibrium by allocating all equilibrium arrays and
   !! setting them to zero.
   subroutine initialise_equilibrium()
-    use mod_gravity, only: initialise_gravity
     use mod_radiative_cooling, only: initialise_radiative_cooling
 
     allocate(rho0_eq(gauss_gridpts))
@@ -67,6 +69,8 @@ contains
 
     allocate(v02_eq(gauss_gridpts))
     allocate(v03_eq(gauss_gridpts))
+
+    allocate(grav_eq(gauss_gridpts))
 
     allocate(tc_para_eq(gauss_gridpts))
     allocate(tc_perp_eq(gauss_gridpts))
@@ -91,8 +95,7 @@ contains
 
     eta_eq = 0.0d0
 
-    ! initialise gravity and radiative cooling if desired
-    call initialise_gravity()
+    ! radiative cooling if desired
     if (radiative_cooling) then
       call initialise_radiative_cooling()
     end if

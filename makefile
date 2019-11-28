@@ -47,7 +47,6 @@ objects  := $(addprefix $(BINDIR)/, \
               mod_info.o                    \
               mod_input.o                   \
               mod_io.o                      \
-              mod_gravity.o                 \
               mod_resistivity.o             \
               mod_cooling_curves.o          \
               mod_radiative_cooling.o       \
