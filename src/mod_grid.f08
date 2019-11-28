@@ -16,8 +16,7 @@ module mod_grid
 
   !> Array containing the regular (coarse) grid
   real(dp), allocatable      :: grid(:)
-  !> New array with 4x the length of grid, due to the 4 nodes of the
-  !! Gaussian quadrature
+  !> New array with 4x the length of grid (4 nodes of Gaussian quadrature)
   real(dp), allocatable      :: grid_gauss(:)
 
   private :: accumulate_mesh
@@ -25,7 +24,7 @@ module mod_grid
 
 contains
 
-  !> Initialises both the coarse grid and grid_gauss. Does mesh accumulation
+  !> Initialises both the regular grid and grid_gauss. Does mesh accumulation
   !! if desired.
   subroutine initialise_grid()
     integer                  :: i

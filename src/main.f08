@@ -13,7 +13,7 @@
 program legolas
   use mod_global_variables
   use mod_info
-  use mod_timer
+  use mod_equilibrium, only: set_equilibrium
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -27,29 +27,25 @@ program legolas
   !> Left eigenvectors
   complex(dp), allocatable  :: eigenvecs_left(:, :)
 
-  ! Initialisations
-  call set_time_start()
+  ! allocate variables, initialise grid and physics
   call initialisation()
-  call set_time_initialisation
+  ! set the equilibrium configuration
+  call set_equilibrium()
+  ! print configuration to console
   call show_startup_info()
 
-  ! Matrix creation
-  call set_time_start()
   call create_matrices()
-  call set_time_matrices()
-
-  ! Solving eigenvalue problem (timing is done inside module)
   call solve_eigenvalue_problem()
-
-  ! Save solutions (timing is done inside module)
   call save_solutions()
+
+  call cleanup()
   call show_final_info()
 
-  ! Wrap up
-  call cleanup()
-
-  ! Plot solutions if needed
-  call plot_solutions()
+  if (show_results) then
+    write(*, *) ""
+    write(*, *) "Plotting results..."
+    call execute_command_line("python3 python/process_legolas.py")
+  end if
 
 
 contains
@@ -58,7 +54,7 @@ contains
   subroutine initialisation()
     use mod_input, only: read_parfile, get_parfile
     use mod_grid, only: initialise_grid
-    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
+    use mod_equilibrium, only: initialise_equilibrium
     use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
     use mod_eigenfunctions, only: initialise_eigenfunctions
 
@@ -83,9 +79,6 @@ contains
     ! Initialise eigenfunction arrays
     call initialise_eigenfunctions()
 
-    ! Set equilibrium
-    call set_equilibrium()
-
   end subroutine initialisation
 
   !> Creates A and B matrices for the wBX = AX eigenvalue problem.
@@ -94,7 +87,6 @@ contains
     use mod_setup_matrix_a, only: construct_A
 
     write(*, *) "Creating matrices..."
-
     call construct_B(matrix_B)
     call construct_A(matrix_A)
 
@@ -105,7 +97,6 @@ contains
     use mod_solvers
 
     write(*, *) "Solving eigenvalue problem..."
-
     call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
 
   end subroutine solve_eigenvalue_problem
@@ -115,49 +106,31 @@ contains
     use mod_eigenfunctions
     use mod_io
 
-    write(*, *)
     write(*, *) "Writing configuration to file..."
     call save_config("config")
 
     write(*, *) "Writing eigenvalues to file..."
-    call set_time_start()
     call save_eigenvalues(omega, trim(savename_eigenvalues), &
                           append=.false., stream=.true.)
     ! call save_eigenvalues(omega, "eigenvalues_text", append=.false., stream=.false.)
-    call set_time_write_omegas()
 
-    if (write_AB) then
+    if (write_matrices) then
       write(*, *) "Writing matrices to file..."
-      call set_time_start()
       call save_matrices(matrix_A, matrix_B, "matrix_A", "matrix_B")
-      call set_time_write_matrices()
     end if
 
     if (write_eigenvectors) then
       write(*, *) "Writing eigenvectors to file..."
-      call set_time_start()
       call save_eigenvectors(eigenvecs_left, eigenvecs_right, &
                              "v_left", "v_right")
-      call set_time_write_eigenvectors()
     end if
 
     if (write_eigenfunctions) then
       write(*, *) "Writing eigenfunctions to file..."
-      call set_time_start()
       call get_all_eigenfunctions(eigenvecs_right)
-      call set_time_write_eigenfunctions()
     end if
   end subroutine save_solutions
 
-  !> Routine to call Python script if plotting is requested.
-  subroutine plot_solutions()
-    if (plot_when_finished) then
-      write(*, *) ""
-      write(*, *) ""
-      write(*, *) "Plotting results..."
-      call execute_command_line("python python/process_legolas.py")
-    end if
-  end subroutine plot_solutions
 
   !> Performs cleanup, deallocates variables.
   subroutine cleanup()
@@ -178,7 +151,7 @@ contains
     call equilibrium_derivatives_clean()
 
     if (radiative_cooling) then
-      call radiative_cooling_clean
+      call radiative_cooling_clean()
     end if
     call eigenfunctions_clean()
 
