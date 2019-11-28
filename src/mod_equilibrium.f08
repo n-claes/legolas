@@ -13,6 +13,7 @@ module mod_equilibrium
   use mod_physical_constants
   use mod_equilibrium_derivatives
   use mod_grid
+  use mod_gravity, only: grav_eq
   implicit none
 
   public
@@ -49,15 +50,15 @@ module mod_equilibrium
   !> Equilibrium resistivity
   real(dp), allocatable         :: eta_eq(:)
 
-  private :: suydam_cluster_eq
-
-
 
 contains
 
   !> Initialises the equilibrium by allocating all equilibrium arrays and
   !! setting them to zero.
   subroutine initialise_equilibrium()
+    use mod_gravity, only: initialise_gravity
+    use mod_radiative_cooling, only: initialise_radiative_cooling
+
     allocate(rho0_eq(gauss_gridpts))
     allocate(T0_eq(gauss_gridpts))
     allocate(B02_eq(gauss_gridpts))
@@ -90,72 +91,67 @@ contains
 
     eta_eq = 0.0d0
 
+    ! initialise gravity and radiative cooling if desired
+    call initialise_gravity()
+    if (radiative_cooling) then
+      call initialise_radiative_cooling()
+    end if
+
   end subroutine initialise_equilibrium
 
   !> Determines which pre-coded equilibrium configuration has to be loaded.
   subroutine set_equilibrium()
-    use mod_gravity, only: initialise_gravity
-    use mod_radiative_cooling, only: initialise_radiative_cooling
+    use mod_check_values, only: check_negative_array
     use mod_thermal_conduction, only: get_kappa_para, get_kappa_perp
     use mod_resistivity, only: get_eta
-    use mod_check_values, only: check_negative_array
 
-    if (use_precoded) then
+    select case(equilibrium_type)
 
-      select case(equilibrium_type)
+    case("Adiabatic homogeneous")
+      call adiabatic_homo_eq()
 
-      case("Adiabatic homogeneous")
-        call adiabatic_homo_eq()
+    case("Resistive homogeneous")
+      call resistive_homo_eq()
 
-      case("Resistive homogeneous")
-        call resistive_homo_eq()
+    case("Gravitational homogeneous")
+      call gravity_homo_eq()
 
-      case("Gravitational homogeneous")
-        call gravity_homo_eq()
+    case("Gravito MHD waves")
+      call gravito_mhd_waves_eq()
 
-      case("Gravito MHD waves")
-        call gravito_mhd_waves_eq()
+    case("Interchange modes")
+      call interchange_modes_eq()
 
-      case("Interchange modes")
-        call interchange_modes_eq()
+    case("Resistive tearing modes")
+      call resistive_tearing_modes_eq()
 
-      case("Resistive tearing modes")
-        call resistive_tearing_modes_eq()
+    case("Resistive tearing modes with flow")
+      call resistive_tearing_modes_flow_eq()
 
-      case("Resistive tearing modes with flow")
-        call resistive_tearing_modes_flow_eq()
+    case("Flow driven instabilities")
+      call flow_driven_instabilities_eq()
 
-      case("Flow driven instabilities")
-        call flow_driven_instabilities_eq()
+    case("Suydam cluster modes")
+      call suydam_cluster_eq()
 
-      case("Suydam cluster modes")
-        call suydam_cluster_eq()
+    case("Kelvin-Helmholtz")
+      call KH_instability_eq()
 
-      case("Kelvin-Helmholtz")
-        call KH_instability_eq()
+    case("Rotating plasma cylinder")
+      call rotating_plasma_cyl_eq()
 
-      case("Rotating plasma cylinder")
-        call rotating_plasma_cyl_eq()
+    case default
+      write(*, *) "Equilibrium not recognised."
+      write(*, *) "Currently set on: ", equilibrium_type
+      stop
 
-      case default
-        write(*, *) "Precoded equilibrium not recognised."
-        write(*, *) "Currently set on: ", equilibrium_type
-        stop
-
-      end select
-
-    else
-      write(*, *) "Not using precoded equilibrium."
-    end if
+    end select
 
     !! Calculate total magnetic field
     B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
 
-    !! Enable additional physics if defined in the above configuration
-    call initialise_gravity() ! Always initialised, set to 0 if not present.
-
+    !! Set equilibrium physics
     if (radiative_cooling) then
-      call initialise_radiative_cooling()
       call set_cooling_derivatives(T0_eq, rho0_eq)
       ! this is L_0, should balance out in thermal equilibrium.
       heat_loss_eq = 0.0d0
@@ -176,10 +172,11 @@ contains
 
   end subroutine set_equilibrium
 
+
   !> Initialises equilibrium for an adiabatic homogeneous medium in Cartesian
-  !! geometry.
+  !! geometry. Explicitly force physics to prevent 'hacking' through parfile.
   subroutine adiabatic_homo_eq()
-    k2 = 0.0d0
+    k2 = dpi
     k3 = dpi
 
     flow = .false.
@@ -233,8 +230,6 @@ contains
     thermal_conduction = .false.
     resistivity = .false.
     external_gravity = .true.
-    use_custom_gravity = .true.
-    custom_g_value = g
 
     k2 = 2.0d0
     k3 = dpi
@@ -245,6 +240,7 @@ contains
     B03_eq  = 1.0d0
 
     T0_eq   = 1.0d0
+    grav_eq = g
   end subroutine gravity_homo_eq
 
 
@@ -266,6 +262,7 @@ contains
     rho0 = 1.0d0
     p0   = 1.0d0
     B0   = 1.0d0
+    grav_eq = 1.0d0
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
@@ -415,8 +412,6 @@ contains
     thermal_conduction = .false.
     resistivity = .false.
     external_gravity = .true.
-    use_custom_gravity = .true.
-    custom_g_value = g
 
     ! Parameters
     k0 = 1.0d0
@@ -435,6 +430,7 @@ contains
     rho0 = 1.0d0
     p0   = 1.0d0
     B0   = 1.0d0
+    grav_eq = g
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)

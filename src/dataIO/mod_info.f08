@@ -73,34 +73,24 @@ contains
     end if
     call get_bool(external_gravity, char)
     write(*, *) "External gravity   : ", char
-    if (external_gravity) then
-      call get_bool(use_custom_gravity, char)
-      write(*, *) "  Custom g value   : ", char
-      if (use_custom_gravity) then
-        write(char, form_fout) custom_g_value
-        write(*, *) "  Value for g      : ", adjustl(char)
-      else
-        write(*, *) "  Gravity strength : ", gravity_type
-      end if
-    end if
     call get_bool(cgs_units, char)
     write(*, *) "Using CGS units    : ", char
     write(*, *) ""
 
     ! Save info
     write(*, *) "-- DataIO settings --"
-    call get_bool(write_AB, char)
+    call get_bool(write_matrices, char)
     write(*, *) "Write matrices to file       : ", char
     call get_bool(write_eigenvectors, char)
     write(*, *) "Write eigenvectors to file   : ", char
     call get_bool(write_eigenfunctions, char)
     write(*, *) "Write eigenfunctions to file : ", char
-    call get_bool(plot_when_finished, char)
-    write(*, *) "Plot results                 : ", char
-    call get_bool(plot_AB, char)
-    write(*, *) "Plot matrices                : ", char
-    call get_bool(plot_eigenfunctions, char)
-    write(*, *) "Plot eigenfunctions          : ", char
+    call get_bool(show_results, char)
+    write(*, *) "Showing results              : ", char
+    call get_bool(show_matrices, char)
+    write(*, *) "Showing matrices             : ", char
+    call get_bool(show_eigenfunctions, char)
+    write(*, *) "Showing eigenfunctions       : ", char
 
     call print_line()
 
@@ -108,59 +98,60 @@ contains
 
 
   subroutine show_final_info()
-    use mod_timer
-    real(dp)      :: total_runtime, total_matrixtime, total_writetime
-    character(6) :: form_fout_short = '(f8.1)'
-
-    call get_total_runtime(total_runtime)
-
-    if (total_runtime < 10.0d0) then
-      write(*, *) ""
-      write(*, *) "Finished ESoNaS."
-      return
-    end if
-
-
-    total_matrixtime = time_invert + time_multiply + time_QR
-    total_writetime  = time_write_omegas + time_write_matrices + &
-                       time_write_eigenvectors + time_write_eigenfunctions
-
-    call print_line()
-    write(*, *) "Division of total runtime:"
-    write(*, *) ""
-
-    write(char, form_fout_short) time_initialisation
-    write(*, *) "Initialisation             : ", trim(adjustl(char)), " s"
-
-    write(char, form_fout_short) time_matrices
-    write(*, *) "Matrix Creation            : ", trim(adjustl(char)), " s"
-
-    write(char, form_fout_short) total_matrixtime
-    write(*, *) "Solvers                    : ", trim(adjustl(char)), " s"
-    write(*, *) "    of which"
-    write(char, form_fout_short) time_invert
-    write(*, *) "  - Matrix B inversion     : ", trim(adjustl(char)), " s"
-    write(char, form_fout_short) time_multiply
-    write(*, *) "  - Matrix multiplication  : ", trim(adjustl(char)), " s"
-    write(char, form_fout_short) time_QR
-    write(*, *) "  - QR algorithm           : ", trim(adjustl(char)), " s"
-
-    write(char, form_fout_short) total_writetime
-    write(*, *) "Data IO                    : ", trim(adjustl(char)), " s"
-    write(*, *) "    of which"
-    write(char, form_fout_short) time_write_omegas
-    write(*, *) "  - Writing omegas         : ", trim(adjustl(char)), " s"
-    write(char, form_fout_short) time_write_matrices
-    write(*, *) "  - Writing matrices       : ", trim(adjustl(char)), " s"
-    write(char, form_fout_short) time_write_eigenvectors
-    write(*, *) "  - Writing eigenvectors   : ", trim(adjustl(char)), " s"
-    write(char, form_fout_short) time_write_eigenfunctions
-    write(*, *) "  - Writing eigenfunctions : ", trim(adjustl(char)), " s"
-
-    write(*, *) "----------------------------------------------------"
-    write(char, form_fout_short) total_runtime
-    write(*, *) "Finished ESoNaS in ", trim(adjustl(char)), " seconds"
-    write(*, *) ""
+    return
+    !use mod_timer
+    !real(dp)     :: total_runtime, total_matrixtime, total_writetime
+    !character(6) :: form_fout_short = '(f8.1)'
+    !
+    !write(*,*) "Finished Legolas"
+    !
+    ! call get_total_runtime(total_runtime)
+    !
+    ! if (total_runtime < 10.0d0) then
+    !   write(*, *) ""
+    !   write(*, *) "Finished ESoNaS."
+    !   return
+    ! end if
+    ! total_matrixtime = time_invert + time_multiply + time_QR
+    ! total_writetime  = time_write_omegas + time_write_matrices + &
+    !                    time_write_eigenvectors + time_write_eigenfunctions
+    !
+    ! call print_line()
+    ! write(*, *) "Division of total runtime:"
+    ! write(*, *) ""
+    !
+    ! write(char, form_fout_short) time_initialisation
+    ! write(*, *) "Initialisation             : ", trim(adjustl(char)), " s"
+    !
+    ! write(char, form_fout_short) time_matrices
+    ! write(*, *) "Matrix Creation            : ", trim(adjustl(char)), " s"
+    !
+    ! write(char, form_fout_short) total_matrixtime
+    ! write(*, *) "Solvers                    : ", trim(adjustl(char)), " s"
+    ! write(*, *) "    of which"
+    ! write(char, form_fout_short) time_invert
+    ! write(*, *) "  - Matrix B inversion     : ", trim(adjustl(char)), " s"
+    ! write(char, form_fout_short) time_multiply
+    ! write(*, *) "  - Matrix multiplication  : ", trim(adjustl(char)), " s"
+    ! write(char, form_fout_short) time_QR
+    ! write(*, *) "  - QR algorithm           : ", trim(adjustl(char)), " s"
+    !
+    ! write(char, form_fout_short) total_writetime
+    ! write(*, *) "Data IO                    : ", trim(adjustl(char)), " s"
+    ! write(*, *) "    of which"
+    ! write(char, form_fout_short) time_write_omegas
+    ! write(*, *) "  - Writing omegas         : ", trim(adjustl(char)), " s"
+    ! write(char, form_fout_short) time_write_matrices
+    ! write(*, *) "  - Writing matrices       : ", trim(adjustl(char)), " s"
+    ! write(char, form_fout_short) time_write_eigenvectors
+    ! write(*, *) "  - Writing eigenvectors   : ", trim(adjustl(char)), " s"
+    ! write(char, form_fout_short) time_write_eigenfunctions
+    ! write(*, *) "  - Writing eigenfunctions : ", trim(adjustl(char)), " s"
+    !
+    ! write(*, *) "----------------------------------------------------"
+    ! write(char, form_fout_short) total_runtime
+    ! write(*, *) "Finished ESoNaS in ", trim(adjustl(char)), " seconds"
+    ! write(*, *) ""
   end subroutine show_final_info
 
 

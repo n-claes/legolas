@@ -24,23 +24,22 @@ contains
     namelist /gridlist/ geometry, x_start, x_end, gridpoints
     namelist /meshlist/ mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
     namelist /physicslist/ mhd_gamma, flow, radiative_cooling, ncool, &
-                           cooling_curve, external_gravity, gravity_type, &
-                           use_custom_gravity, custom_g_value, &
+                           cooling_curve, external_gravity, &
                            thermal_conduction, resistivity, &
                            use_fixed_resistivity, fixed_eta_value, k2, k3
     namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
                          unit_temperature, unit_velocity
-    namelist /equilibriumlist/ use_precoded, equilibrium_type, boundary_type
-    namelist /savelist/ write_AB, write_eigenvectors, write_eigenfunctions, &
-                        plot_when_finished, plot_AB, plot_eigenfunctions
+    namelist /equilibriumlist/ equilibrium_type, boundary_type
+    namelist /savelist/ write_matrices, write_eigenvectors, &
+                        write_eigenfunctions, show_results, show_matrices, &
+                        show_eigenfunctions
     namelist /filelist/ savename_config, savename_eigenvalues, savename_grid, &
                         savename_matrixA, savename_matrixB, &
                         savename_eigenvectors, savename_eigenfunctions
 
+    parfile_present = .true.
     if (parfile == "") then
       parfile_present = .false.
-    else
-      parfile_present = .true.
     end if
 
     !! Set defaults
@@ -48,7 +47,7 @@ contains
     geometry = "Cartesian"          !< geometry of the problem
     x_start  = 0.0d0                !< start of the grid
     x_end    = 1.0d0                !< end of the grid
-    gridpoints = 51
+    gridpoints = 11                 !< gridpoints for regular grid
 
     !> Meshlist defaults
     mesh_accumulation = .false.
@@ -61,12 +60,9 @@ contains
     mhd_gamma = 5.0d0 / 3.0d0       !< ratio of specific heats
     flow  = .false.                 !< use flow
     radiative_cooling = .false.     !< use radiative cooling
-    ncool = 4000                    !< amount of points to interpolate curve
-    cooling_curve = "JCcorona"      !< cooling curve to use
+    ncool = 4000                    !< points for cooling curve interpolation
+    cooling_curve = "JCcorona"      !< radiative cooling curve to use
     external_gravity = .false.      !< use external gravity
-    use_custom_gravity = .false.    !< use a custom gravity value
-    custom_g_value = 0.0d0          !< value for custom gravity
-    gravity_type = "solar"          !< strength of external gravity
     thermal_conduction = .false.    !< use thermal conduction
     resistivity = .false.           !< use resistivity
     use_fixed_resistivity = .false. !< use fixed resistivity
@@ -76,23 +72,22 @@ contains
 
     !> Unitslist defaults
     cgs_units = .true.              !< use cgs units
-    unit_length = 1.0d9
-    unit_numberdensity = 1.0d9
-    unit_temperature = 1.0d6
-    unit_velocity = 0.0d0
+    unit_length = 1.0d9             !< length unit in cm (cgs) or m (mks)
+    unit_numberdensity = 1.0d9      !< cm**-3 (cgs) or m**-3 (mks)
+    unit_temperature = 1.0d6        !< temperature unit in kelvin
+    unit_velocity = 0.0d0           !< velocity unit in cm/s (cgs) or m/s (mks)
 
     !> Equilibriumlist defaults
-    use_precoded = .true.                       !< use precoded equilibrium
-    equilibrium_type = "Adiabatic homogeneous"
-    boundary_type = 'wall'
+    equilibrium_type = "Adiabatic homogeneous"  !< precoded equilibrium to use
+    boundary_type = 'wall'                      !< type of boundary condition
 
     !> Savelist defaults
-    write_AB = .false.              !< write matrices A and B when finished
+    write_matrices = .false.        !< write matrices A and B when finished
     write_eigenvectors = .false.    !< writes eigenvectors to file
-    write_eigenfunctions = .true.   !< writes eigenfunctions to file
-    plot_when_finished = .true.     !< plot spectrum when finished
-    plot_AB = .false.               !< plot matrices A and B when finished
-    plot_eigenfunctions = .true.    !< plots the eigenfunctions when finished
+    write_eigenfunctions = .false.  !< writes eigenfunctions to file
+    show_results = .true.           !< plot spectrum when finished
+    show_matrices = .false.         !< plot matrices A and B when finished
+    show_eigenfunctions = .false.   !< plots the eigenfunctions when finished
 
     !> Filelist defaults
     savename_config = "config"

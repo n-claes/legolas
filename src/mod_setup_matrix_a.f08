@@ -119,7 +119,7 @@ contains
     use mod_equilibrium
     use mod_equilibrium_derivatives
     use mod_make_subblock
-    use mod_gravity, only: grav
+    use mod_gravity
 
     integer, intent(in)       :: gauss_idx
     real(dp), intent(in)      :: eps, d_eps_dr, curr_weight
@@ -133,7 +133,7 @@ contains
     real(dp)                  :: eps_inv
     real(dp)                  :: rho0, T0, B02, B03, B2_inv
     real(dp)                  :: v02, v03
-    real(dp)                  :: tc_para, tc_perp, L0, eta
+    real(dp)                  :: tc_para, tc_perp, L0, eta, grav
 
     real(dp)                  :: drho0, drB02, dB02_r, dB03, dT0, dB02
     real(dp)                  :: drv02, dv02, dv03
@@ -160,6 +160,8 @@ contains
     L0      = heat_loss_eq(gauss_idx)
     !! Resistivity
     eta     = eta_eq(gauss_idx)
+    !! Gravity
+    grav    = grav_eq(gauss_idx)
 
     !! Derivatives of equilibrium quantities
     !! Default derivatives

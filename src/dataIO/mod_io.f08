@@ -147,15 +147,6 @@ contains
       end if
     end if
     write(config, *) "External gravity   : ", external_gravity
-    if (external_gravity) then
-      write(config, *) "Custom gravity     : ", use_custom_gravity
-      if (use_custom_gravity) then
-        write(char, form_fout) custom_g_value
-        write(config, *) "g                  : ", adjustl(char)
-      else
-        write(config, *) "Gravity strength   : ", gravity_type
-      end if
-    end if
 
     write(char, form_fout) gamma
     write(config, *) "Gamma              : ", adjustl(char)
@@ -207,12 +198,12 @@ contains
 
     write(config, *) ""
 
-    write(config, *) "Write matrices      : ", write_AB
+    write(config, *) "Write matrices      : ", write_matrices
     write(config, *) "Write eigenvectors  : ", write_eigenvectors
     write(config, *) "Write eigenfunctions: ", write_eigenfunctions
-    write(config, *) "Plot when finished  : ", plot_when_finished
-    write(config, *) "Plot matrices       : ", plot_AB
-    write(config, *) "Plot eigenfunctions : ", plot_eigenfunctions
+    write(config, *) "Plot when finished  : ", show_results
+    write(config, *) "Plot matrices       : ", show_matrices
+    write(config, *) "Plot eigenfunctions : ", show_eigenfunctions
 
     close(config)
   end subroutine save_config

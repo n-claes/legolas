@@ -47,8 +47,8 @@ objects  := $(addprefix $(BINDIR)/, \
               mod_info.o                    \
               mod_input.o                   \
               mod_io.o                      \
-              mod_resistivity.o             \
               mod_gravity.o                 \
+              mod_resistivity.o             \
               mod_cooling_curves.o          \
               mod_radiative_cooling.o       \
               mod_thermal_conduction.o      \
@@ -129,7 +129,6 @@ clean:
 	rm -f $(OUTPUT)
 	rm -f $(TEST_OUT)
 	rm -rf $(OUTDIR)
-	make
 
 output_clean:
 	rm -rf $(OUTDIR)
