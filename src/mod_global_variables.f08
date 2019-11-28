@@ -55,14 +55,8 @@ module mod_global_variables
   integer                   :: ncool
   !> Name of the cooling curve to use
   character(len=str_len)    :: cooling_curve
-  !> Boolean to enable external gravity
+  !> Boolean for external gravity
   logical, save             :: external_gravity
-  !> Strength of the gravitational acceleration, can be 'earth' or 'solar'
-  character(len=str_len)    :: gravity_type
-  !> Boolean to set a user-defined gravity strength
-  logical, save             :: use_custom_gravity
-  !> Sets the custom value for gravity
-  real(dp)                  :: custom_g_value
   !> Boolean to enable thermal conduction
   logical, save             :: thermal_conduction
   !> Boolean to enable resistivity
@@ -106,7 +100,7 @@ module mod_global_variables
 
   !! Equilibrium-related parameters
   !> Number of Gaussian points
-  integer, parameter                :: n_gauss = 4
+  integer, parameter           :: n_gauss = 4
   !> Gaussian nodes in the interval [-1, 1]
   real(dp), dimension(n_gauss) :: gaussian_nodes = &
                                       (/ -0.861136311594053, &
@@ -120,8 +114,6 @@ module mod_global_variables
                                          0.652145154862546, &
                                          0.347854845137454  /)
 
-  !> Use precoded equilibrium or not
-  logical, save                :: use_precoded
   !> Type of equilibrium to set up
   character(len=str_len)       :: equilibrium_type
   !> Type of boundary to use
@@ -144,17 +136,17 @@ module mod_global_variables
 
   !! Data IO-related parameters
   !> Write matrices A and B to file when finished
-  logical, save             :: write_AB
+  logical, save             :: write_matrices
   !> Write eigenvectors to file when finished
   logical, save             :: write_eigenvectors
   !> Write eigenfunctions to file when finished
   logical, save             :: write_eigenfunctions
   !> Call python script when finishing to plot results
-  logical, save             :: plot_when_finished
+  logical, save             :: show_results
   !> Plot matrices A and B when finished
-  logical, save             :: plot_AB
+  logical, save             :: show_matrices
   !> Plot eigenfunctions when finished
-  logical, save             :: plot_eigenfunctions
+  logical, save             :: show_eigenfunctions
 
   !! Savelist-related parameters
   !> Name for the configuration file

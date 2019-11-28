@@ -1,5 +1,5 @@
 &gridlist
-  geometry = 'cylindrical'
+  geometry = 'Cartesian'
   x_start  = 0.0d0
   x_end    = 1.0d0
   gridpoints = 31
@@ -15,6 +15,7 @@
   external_gravity = .false.
   thermal_conduction = .false.
   resistivity = .false.
+  external_gravity = .false.
 /
 
 &unitslist
@@ -22,7 +23,6 @@
 /
 
 &equilibriumlist
-  use_precoded = .true.
   equilibrium_type = "Adiabatic homogeneous"                 ! Cartesian
   ! equilibrium_type = "Resistive homogeneous"               ! Cartesian
   ! equilibrium_type = "Gravitational homogeneous"           ! Cartesian
@@ -38,12 +38,12 @@
 /
 
 &savelist
-  write_AB = .false.
+  write_matrices = .false.
   write_eigenvectors = .false.
   write_eigenfunctions = .false.
-  plot_when_finished = .true.
-  plot_AB = .false.
-  plot_eigenfunctions = .false.
+  show_results = .true.
+  show_matrices = .false.
+  show_eigenfunctions = .false.
 /
 
 ! This is not used for now

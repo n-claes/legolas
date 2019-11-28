@@ -108,44 +108,4 @@ contains
 
   end subroutine subblock
 
-
-  !> Resets the factors array: deallocates the array, reallocates it
-  !! with a new size and initialises it to zero.
-  !! @param[in, out] factors  The factors array. Out: deallocated and
-  !!                          reallocated with size_factors
-  !! @param[in] size_factors  The new size of the factors array
-  subroutine reset_factors(factors, size_factors)
-    complex(dp), intent(inout), allocatable :: factors(:)
-    integer, intent(in)     :: size_factors
-
-    if (allocated(factors)) then
-      deallocate(factors)
-    end if
-
-    allocate(factors(size_factors))
-    factors = (0.0d0, 0.0d0)
-
-  end subroutine reset_factors
-
-
-  !> Resets the positions array: deallocates the array, reallocates it
-  !! with a new size and initialises it to zero.
-  !! @param[in, out] positions  The positions array, containing the positions
-  !!                            of the factors. Out: deallocated and
-  !!                            reallocated with size_positions
-  !! @param[in] size_positions  The new size of the positions array.
-  subroutine reset_positions(positions, size_positions)
-    integer, intent(inout), allocatable :: positions(:, :)
-    integer, intent(in) :: size_positions
-
-    if (allocated(positions)) then
-      deallocate(positions)
-    end if
-
-    allocate(positions(size_positions, 2))
-    positions = 0
-
-  end subroutine reset_positions
-
-
 end module mod_make_subblock
