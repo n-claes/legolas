@@ -56,8 +56,7 @@ objects  := $(addprefix $(BINDIR)/, \
               mod_equilibrium.o             \
               mod_make_subblock.o           \
               mod_boundary_conditions.o     \
-              mod_setup_matrix_b.o          \
-              mod_setup_matrix_a.o          \
+							mod_matrix_creation.o					\
               mod_solvers.o                 \
               mod_eigenfunctions.o          \
              )
