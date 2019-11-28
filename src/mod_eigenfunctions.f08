@@ -27,11 +27,12 @@ contains
     complex(dp), intent(in)     :: vr(matrix_gridpts, matrix_gridpts)
 
     complex(dp)                 :: Y(eigenf_gridpts)
-    complex(dp)                 :: current_eigenvec(matrix_gridpts)
-    integer                     :: i, j, k, idx
+!    complex(dp)                 :: current_eigenvec(matrix_gridpts)
+    integer                     :: i, j
     character(len=3)            :: vars(8)
-    real(dp)                    :: r_mid, r_end
-    complex(dp)                 :: fact
+!    real(dp)                    :: r_mid, r_end
+!    complex(dp)                 :: fact
+!    integer                     :: k, idx
 
     type (eigenf_type)          :: var_eigenf
 

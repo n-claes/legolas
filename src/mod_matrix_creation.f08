@@ -6,9 +6,9 @@
 !> niels.claes@kuleuven.be
 !
 ! DESCRIPTION:
-!> Module to create the A-matrix in the eigenvalue problem AX = wBX.
+!> Module to create the matrices A and B in the eigenvalue problem AX = wBX
 !
-module mod_setup_matrix_a
+module mod_matrix_creation
   use mod_global_variables
   implicit none
 
@@ -23,107 +23,193 @@ module mod_setup_matrix_a
   !> Array containing the derivatives of the 4 cubic basis functions
   real(dp)                 :: dh_cubic_dr(4)
 
-  public  :: construct_A
+  public :: create_matrices
 
 contains
 
-  !> Constructs the A-matrix.
-  !! @param[in, out]  matrix_A  The A-matrix in AX = wBX
-  subroutine construct_A(matrix_A)
+  subroutine create_matrices(matrix_B, matrix_A)
     use mod_grid
-    use mod_equilibrium
     use mod_spline_functions
     use mod_boundary_conditions
 
-    complex(dp), intent(out)  :: matrix_A(matrix_gridpts, matrix_gridpts)
-    complex(dp)               :: quadblock(dim_quadblock, dim_quadblock)
-    real(dp)                  :: r_lo, r_hi, eps, d_eps_dr, curr_weight
-    real(dp)                  :: r
-    integer                   :: i, j, gauss_idx, k, l
-    integer                   :: quadblock_idx, idx1, idx2
+    real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(inout)  :: matrix_A(matrix_gridpts, matrix_gridpts)
+    complex(dp)                 :: quadblock_B(dim_quadblock, dim_quadblock)
+    complex(dp)                 :: quadblock_A(dim_quadblock, dim_quadblock)
 
-    ! Initialise matrix to zero (A is complex)
-    matrix_A = (0.0d0, 0.0d0)
+    real(dp)                    :: r, r_lo, r_hi, eps, d_eps_dr, curr_weight
+    integer                     :: i, j, gauss_idx, k, l
+    integer                     :: quadblock_idx, idx1, idx2
 
-    ! Initialise quadblock index to zero (used to shift the block)
+    ! initialise matrices (A is complex, B is real)
+    matrix_B = 0.0d0
+    matrix_A = 0.0d0
+
+    ! initialise quadblock index to 0 (used to shift the block along diagonal)
     quadblock_idx = 0
 
     do i = 1, gridpts-1
-      ! Set quadblock to zero
-      quadblock = (0.0d0, 0.0d0)
+      ! reset quadblock (complex)
+      quadblock_B = (0.0d0, 0.0d0)
+      quadblock_A = (0.0d0, 0.0d0)
 
+      ! This integrates in the interval grid(i) to grid(i + 1)
       r_lo = grid(i)
-      r_hi = grid(i + 1)
+      r_hi = grid(i+1)
 
+      ! in every grid interval loop over gaussian points to calculate integral
       do j = 1, n_gauss
-        ! Current grid index (from 4*n_gauss points)
+        ! current grid index (in grid_gauss)
         gauss_idx = (i - 1)*n_gauss + j
         r = grid_gauss(gauss_idx)
-        if ((geometry .eq. "cartesian") .or. (geometry .eq. "Cartesian")) then
-          eps      = 1.0d0
+
+        ! check geometry to define scale factor
+        if (geometry .eq. 'Cartesian') then
+          eps = 1.0d0
           d_eps_dr = 0.0d0
-        else if (geometry .eq. "cylindrical") then
-          eps      = r
+        else if (geometry .eq. 'cylindrical') then
+          eps = r
           d_eps_dr = 1.0d0
         else
-          write(*,*) "Geometry not defined correctly."
+          write(*,*) "Geometry should be 'Cartesian' or 'cylindrical'."
           write(*,*) "Currently set on:    ", geometry
           stop
         end if
 
         curr_weight = gaussian_weights(j)
 
+        ! calculate spline functions for this point (r) in the grid interval
         call quadratic_factors(r, r_lo, r_hi, h_quadratic)
         call quadratic_factors_deriv(r, r_lo, r_hi, dh_quadratic_dr)
         call cubic_factors(r, r_lo, r_hi, h_cubic)
         call cubic_factors_deriv(r, r_lo, r_hi, dh_cubic_dr)
 
-        call get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock)
+        ! calculate matrix elements for this point
+        call get_B_elements(gauss_idx, eps, curr_weight, quadblock_B)
+        call get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_A)
 
-      end do  ! end do iteration Gaussian points
+      end do   ! ends iteration gaussian points
 
-      !! *dx from integral
-      quadblock = quadblock * (r_hi - r_lo)
 
-      !! Apply boundary conditions on edges
+      ! multiply by dx for integral
+      quadblock_B = quadblock_B * (r_hi - r_lo)
+      quadblock_A = quadblock_A * (r_hi - r_lo)
+
+      ! apply boundary conditions on edges
       if (i == 1) then
-        call boundaries_A_left_edge(quadblock)
+        call boundaries_B_left_edge(quadblock_B)
+        call boundaries_A_left_edge(quadblock_A)
       end if
       if (i == gridpts - 1) then
-        call boundaries_A_right_edge(quadblock)
+        call boundaries_B_right_edge(quadblock_B)
+        call boundaries_B_right_edge(quadblock_A)
       end if
 
-      ! Fill A-matrix with quadblock entries
+      ! fill matrices with quadblock entries.
       do k = 1, dim_quadblock
         do l = 1, dim_quadblock
+          ! quadblock is shifted on main diagonal using idx1 and idx2
+          ! dimension dim_subblock is added instead of dim_quadblock, as the
+          ! bottom-right part of the quadblock overlaps with the top-left part
+          ! when shifting along the main diagonal
           idx1 = k + quadblock_idx
           idx2 = l + quadblock_idx
-          matrix_A(idx1, idx2) = matrix_A(idx1, idx2) + quadblock(k, l)
+          matrix_B(idx1, idx2) = matrix_B(idx1, idx2) + real(quadblock_B(k, l))
+          matrix_A(idx1, idx2) = matrix_A(idx1, idx2) + quadblock_A(k, l)
         end do
       end do
       quadblock_idx = quadblock_idx + dim_subblock
 
-    end do      ! end do iteration grid points
+    end do    ! ends iteration over grid points
 
-  end subroutine construct_A
+  end subroutine create_matrices
+
+
+  !> Calculates the different integral elements for the B-matrix.
+  !! @param[in] gauss_idx   The current index in the Gaussian grid (r-position)
+  !! @param[in] eps         The value for the scale factor epsilon
+  !! @param[in] curr_weight The current weight for the Gaussian quadrature
+  !! @param[in, out] quadblock_B The quadblock, used to calculate the B-matrix.
+  !!                             This block is shifted on the main diagonal
+  subroutine get_B_elements(gauss_idx, eps, curr_weight, quadblock_B)
+    use mod_equilibrium
+    use mod_make_subblock
+
+    integer, intent(in)          :: gauss_idx
+    real(dp), intent(in)         :: eps, curr_weight
+    complex(dp), intent(inout)   :: quadblock_B(dim_quadblock, dim_quadblock)
+
+    !> Array containing the integral expressions for the B-matrix
+    complex(dp), allocatable     :: factors(:)
+    !> Array containing the position of each integral, eg. [1, 3] for B(1, 3)
+    integer, allocatable         :: positions(:, :)
+
+    real(dp)                     :: rho
+
+    rho = rho0_eq(gauss_idx)
+
+    ! Quadratic * Quadratic
+    call reset_factors(factors, 5)
+    call reset_positions(positions, 5)
+
+    ! B(1,1)
+    factors(1) = 1.0d0 / eps
+    positions(1, :) = [1, 1]
+    ! B(3,3)
+    factors(2) = rho
+    positions(2, :) = [3, 3]
+    ! B(4,4)
+    factors(3) = rho / eps
+    positions(3, :) = [4, 4]
+    ! B(5,5)
+    factors(4) = rho / eps
+    positions(4, :) = [5, 5]
+    ! B(6,6)
+    factors(5) = 1.0d0
+    positions(5, :) = [6, 6]
+
+    call subblock(quadblock_B, factors, positions, curr_weight, &
+                  h_quadratic, h_quadratic)
+
+    ! Cubic * Cubic
+    call reset_factors(factors, 3)
+    call reset_positions(positions, 3)
+
+    ! B(2,2)
+    factors(1) = rho / eps
+    positions(1, :) = [2, 2]
+    ! B(7,7)
+    factors(2) = 1.0d0 / eps
+    positions(2, :) = [7, 7]
+    ! B(8,8)
+    factors(3) = 1.0d0
+    positions(3, :) = [8, 8]
+
+    call subblock(quadblock_B, factors, positions, curr_weight, h_cubic, h_cubic)
+
+    deallocate(factors)
+    deallocate(positions)
+
+  end subroutine get_B_elements
+
+
 
   !> Calculates the different integral elements for the A-matrix.
   !! @param[in] gauss_idx   The current index in the Gaussian grid (r-position)
   !! @param[in] eps         The value for the scale factor epsilon
   !! @param[in] d_eps_dr    Derivative of the scale factor epsilon
   !! @param[in] curr_weight The current weight for the Gaussian quadrature
-  !! @param[in, out] quadblock  The quadblock, used to calculate the A-matrix.
-  !!                            This block is shifted on the main diagonal
-  subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock)
+  !! @param[in, out] quadblock_A  The quadblock, used to calculate the A-matrix.
+  !!                              This block is shifted on the main diagonal
+  subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_A)
     use mod_grid
     use mod_equilibrium
     use mod_equilibrium_derivatives
     use mod_make_subblock
-    use mod_gravity, only: grav
 
     integer, intent(in)       :: gauss_idx
     real(dp), intent(in)      :: eps, d_eps_dr, curr_weight
-    complex(dp), intent(out)  :: quadblock(dim_quadblock, dim_quadblock)
+    complex(dp), intent(out)  :: quadblock_A(dim_quadblock, dim_quadblock)
 
     !> Array containing the integral expressions for the A-matrix
     complex(dp), allocatable  :: factors(:)
@@ -133,7 +219,7 @@ contains
     real(dp)                  :: eps_inv
     real(dp)                  :: rho0, T0, B02, B03, B2_inv
     real(dp)                  :: v02, v03
-    real(dp)                  :: tc_para, tc_perp, L0, eta
+    real(dp)                  :: tc_para, tc_perp, L0, eta, grav
 
     real(dp)                  :: drho0, drB02, dB02_r, dB03, dT0, dB02
     real(dp)                  :: drv02, dv02, dv03
@@ -160,6 +246,8 @@ contains
     L0      = heat_loss_eq(gauss_idx)
     !! Resistivity
     eta     = eta_eq(gauss_idx)
+    !! Gravity
+    grav    = grav_eq(gauss_idx)
 
     !! Derivatives of equilibrium quantities
     !! Default derivatives
@@ -269,7 +357,7 @@ contains
                     -ic * eta * (eps_inv**2 * k2**2 + k3**2)
     positions(19, :) = [6, 6]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   h_quadratic, h_quadratic)
 
 
@@ -318,7 +406,7 @@ contains
                                               )
     positions(10, :) = [5, 8]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   h_quadratic, h_cubic)
 
 
@@ -360,7 +448,7 @@ contains
     factors(10) = -v03 + ic * eta * k3
     positions(10, :) = [6, 8]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   h_quadratic, dh_cubic_dr)
 
 
@@ -387,7 +475,7 @@ contains
     factors(6) = -ic * eta * d_eps_dr * eps_inv * k3
     positions(6, :) = [8, 6]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   h_cubic, h_quadratic)
 
 
@@ -411,7 +499,7 @@ contains
     factors(5) = ic * eta * k3
     positions(5, :) = [8, 6]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   dh_cubic_dr, h_quadratic)
 
 
@@ -447,7 +535,7 @@ contains
     factors(9) = eps_inv * k2 * (v02 - ic * eta * eps_inv * k2)
     positions(9, :) = [8, 8]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   h_cubic, h_cubic)
 
 
@@ -462,7 +550,7 @@ contains
     factors(2) = ic * eta * d_eps_dr * eps_inv
     positions(2, :) = [8, 8]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   h_cubic, dh_cubic_dr)
 
 
@@ -483,7 +571,7 @@ contains
     factors(4) = -ic * eta
     positions(4, :) = [8, 8]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   dh_cubic_dr, dh_cubic_dr)
 
 
@@ -504,7 +592,7 @@ contains
                     - eta * k2 * dB03 + eta * k3 * drB02 )
     positions(3, :) = [5, 6]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   dh_quadratic_dr, h_quadratic)
 
 
@@ -516,7 +604,7 @@ contains
     factors(1) = ic * gamma_1 * d_eps_dr * eps_inv**2 * tc_perp
     positions(1, :) = [5, 5]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   h_quadratic, dh_quadratic_dr)
 
 
@@ -528,7 +616,7 @@ contains
     factors(1) = -ic * gamma_1 * eps_inv * tc_perp
     positions(1, :) = [5, 5]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   dh_quadratic_dr, dh_quadratic_dr)
 
 
@@ -545,7 +633,7 @@ contains
                    (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
     positions(2, :) = [5, 8]
 
-    call subblock(quadblock, factors, positions, curr_weight, &
+    call subblock(quadblock_A, factors, positions, curr_weight, &
                   dh_quadratic_dr, dh_cubic_dr)
 
     deallocate(factors)
@@ -554,4 +642,41 @@ contains
   end subroutine get_A_elements
 
 
-end module mod_setup_matrix_a
+
+  !> Resets the factors array: deallocates the array, reallocates it
+  !! with a new size and initialises it to zero.
+  !! @param[in, out] factors  The factors array. Out: deallocated and
+  !!                          reallocated with size_factors
+  !! @param[in] size_factors  The new size of the factors array
+  subroutine reset_factors(factors, size_factors)
+    complex(dp), intent(inout), allocatable :: factors(:)
+    integer, intent(in)     :: size_factors
+
+    if (allocated(factors)) then
+      deallocate(factors)
+    end if
+
+    allocate(factors(size_factors))
+    factors = (0.0d0, 0.0d0)
+  end subroutine reset_factors
+
+
+  !> Resets the positions array: deallocates the array, reallocates it
+  !! with a new size and initialises it to zero.
+  !! @param[in, out] positions  The positions array, containing the positions
+  !!                            of the factors. Out: deallocated and
+  !!                            reallocated with size_positions
+  !! @param[in] size_positions  The new size of the positions array.
+  subroutine reset_positions(positions, size_positions)
+    integer, intent(inout), allocatable :: positions(:, :)
+    integer, intent(in) :: size_positions
+
+    if (allocated(positions)) then
+      deallocate(positions)
+    end if
+
+    allocate(positions(size_positions, 2))
+    positions = 0
+  end subroutine reset_positions
+
+end module mod_matrix_creation

@@ -48,7 +48,6 @@ objects  := $(addprefix $(BINDIR)/, \
               mod_input.o                   \
               mod_io.o                      \
               mod_resistivity.o             \
-              mod_gravity.o                 \
               mod_cooling_curves.o          \
               mod_radiative_cooling.o       \
               mod_thermal_conduction.o      \
@@ -57,8 +56,7 @@ objects  := $(addprefix $(BINDIR)/, \
               mod_equilibrium.o             \
               mod_make_subblock.o           \
               mod_boundary_conditions.o     \
-              mod_setup_matrix_b.o          \
-              mod_setup_matrix_a.o          \
+							mod_matrix_creation.o					\
               mod_solvers.o                 \
               mod_eigenfunctions.o          \
              )
@@ -129,7 +127,6 @@ clean:
 	rm -f $(OUTPUT)
 	rm -f $(TEST_OUT)
 	rm -rf $(OUTDIR)
-	make
 
 output_clean:
 	rm -rf $(OUTDIR)
