@@ -119,7 +119,6 @@ contains
     use mod_equilibrium
     use mod_equilibrium_derivatives
     use mod_make_subblock
-    use mod_gravity
 
     integer, intent(in)       :: gauss_idx
     real(dp), intent(in)      :: eps, d_eps_dr, curr_weight
