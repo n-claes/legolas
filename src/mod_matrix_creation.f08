@@ -98,11 +98,11 @@ contains
       ! apply boundary conditions on edges
       if (i == 1) then
         call boundaries_B_left_edge(quadblock_B)
-        call boundaries_A_left_edge(quadblock_A)
+        call boundaries_A_left_edge(quadblock_A, eps, d_eps_dr)
       end if
       if (i == gridpts - 1) then
         call boundaries_B_right_edge(quadblock_B)
-        call boundaries_B_right_edge(quadblock_A)
+        call boundaries_A_right_edge(quadblock_A, eps, d_eps_dr)
       end if
 
       ! fill matrices with quadblock entries.
@@ -392,7 +392,7 @@ contains
     ! A(5, 7)
     factors(9) = ic * gamma_1 * eps_inv * ( &
                    ((tc_para - tc_perp) * B2_inv * dT0 * &
-                      (k2 * k3 * B02 + k3**2 * B03)) &
+                      (k2 * k3 * B02 * eps_inv + k3**2 * B03)) &
                    -2.0d0 * eta * k3**2 * dB03 &
                    -2.0d0 * eta * k2 * k3 * eps_inv**2 * drB02 &
                                             )
@@ -400,7 +400,7 @@ contains
     ! A(5, 8)
     factors(10) = -ic * gamma_1 * eps_inv * ( &
                    ((tc_para - tc_perp) * B2_inv * dT0 * &
-                      (k2**2 * B02 + k2 * k3 * B03)) &
+                      (k2**2 * B02 * eps_inv + k2 * k3 * B03)) &
                    -2.0d0 * eta * k2 * k3 * dB03 &
                    -2.0d0 * eta * k2**2 * eps_inv**2 * drB02 &
                                               )
@@ -466,7 +466,7 @@ contains
     factors(3) = eps_inv * drB02 * k3 - eps * k3 * dB02_r
     positions(3, :) = [2, 6]
     ! A(7, 5)
-    factors(4) = -ic * eps_inv * deta * dB03
+    factors(4) = ic * eps_inv * deta * dB03
     positions(4, :) = [7, 5]
     ! A(8, 5)
     factors(5) = -ic * eps_inv**2 * deta * drB02
@@ -493,7 +493,7 @@ contains
     factors(3) = eps_inv * k2 * B03 - k3 * B02
     positions(3, :) = [2, 6]
     ! A(7, 6)
-    factors(4) = -ic * eta * eps_inv * k2
+    factors(4) = ic * eta * eps_inv * k2
     positions(4, :) = [7, 6]
     ! A(8, 6)
     factors(5) = ic * eta * k3

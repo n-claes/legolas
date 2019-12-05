@@ -1,5 +1,5 @@
 !
-! PROGRAM: esonas
+! PROGRAM: legolas
 !
 !> @author: Niels Claes
 !> niels.claes@kuleuven.be
