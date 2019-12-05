@@ -69,7 +69,7 @@ contains
 
     ! Evaluate grid_gauss in nodes of Gaussian quadrature.
     ! An integral of f(x) in [a, b] can be approximated by
-    ! 0.5*(b-a) * SUM[i from 1 -> n] ( wi * f( 0.5*(b-a)*xi + 0.5*(b-a)) )
+    ! 0.5*(b-a) * SUM[i from 1 -> n] ( wi * f( 0.5*(b-a)*xi + 0.5*(a+b)) )
     ! where wi and xi are the weights and nodes at i (so 1 to 4 here).
     ! Hence we need the gridpoints equal to the evaluation points of f(x).
     do i = 1, gridpts - 1
