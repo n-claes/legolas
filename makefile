@@ -66,8 +66,6 @@ main_objects := $(addprefix $(BINDIR)/, \
 test_objects := $(addprefix $(BINDIR)/, \
                   testmod_assert.o         \
                   testmod_core_tests.o     \
-                  testmod_homo_adiabatic.o \
-                  testmod_homo_gravity.o   \
                   tests_main.o             \
                  )
 
