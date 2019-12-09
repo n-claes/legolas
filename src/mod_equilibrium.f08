@@ -88,6 +88,8 @@ contains
     v02_eq  = 0.0d0
     v03_eq  = 0.0d0
 
+    grav_eq = 0.0d0
+
     tc_para_eq = 0.0d0
     tc_perp_eq = 0.0d0
 
