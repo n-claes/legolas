@@ -1,16 +1,9 @@
 module testmod_core_tests
   use, intrinsic  ::  ieee_arithmetic
   use mod_global_variables
+
   use testmod_assert
-  use mod_grid
-  use mod_equilibrium
-  use mod_equilibrium_derivatives
-  use mod_setup_matrix_b
-  use mod_setup_matrix_a
-  use mod_make_subblock
-  use mod_solvers
-  use mod_boundary_conditions
-  use mod_input
+
   implicit none
 
   integer, parameter  :: test_gridpts = 4
@@ -18,37 +11,33 @@ module testmod_core_tests
   integer             :: successes
   integer             :: fails
   integer             :: total
-  logical             :: bool
+  logical             :: test_passed
 
 contains
 
   !> Initialise test variables.
   subroutine init_core()
+    use mod_input
+
     write(*, *) "==============================="
     write(*, *) "===== RUNNING CORE TESTS ======"
     write(*, *) "==============================="
 
+    ! set up default values
     call read_parfile("")
 
     successes = 0
     fails     = 0
     total     = 0
 
-    write(*, *) "Gridpts         : ", gridpts
-    write(*, *) "Gaussian gridpts: ", gauss_gridpts
-    write(*, *) "Matrix gridpts  : ", matrix_gridpts
-    write(*, *) "x start         : ", int(x_start)
-    write(*, *) "x end           : ", int(x_end)
-    write(*, *) "------------------------------------------------"
-    write(*, *) ""
-
   end subroutine init_core
+
 
 
   !> Checks a given test, used for overview and console output.
   subroutine check_test()
     total = total + 1
-    if (bool) then
+    if (test_passed) then
       successes = successes + 1
       write(*, *) "OK"
     else
@@ -58,8 +47,13 @@ contains
   end subroutine check_test
 
 
+
   !> Wraps up the test script.
   subroutine finish_core()
+    use mod_grid, only: grid_clean
+    use mod_equilibrium, only: equilibrium_clean
+    use mod_equilibrium_derivatives, only: equilibrium_derivatives_clean
+
     call grid_clean()
     call equilibrium_clean()
     call equilibrium_derivatives_clean()
@@ -75,11 +69,11 @@ contains
   end subroutine finish_core
 
 
+
   subroutine run_core_tests()
     !! Basic tests, grid etc.
     call print_separation("Testing grids")
-    call test_grid_carth()
-    call test_grid_cyl()
+    call test_grid_edges()
     call test_grid_structure()
     call test_grid_gauss_structure()
 
@@ -102,60 +96,64 @@ contains
     call test_equilibria()
   end subroutine run_core_tests
 
-  subroutine print_separation(toPrint)
-    character(len=*), intent(in)  :: toPrint
+
+
+  subroutine print_separation(message)
+    character(len=*), intent(in)  :: message
 
     write(*, *) ""
     write(*, *) "------------------------------------------------"
-    write(*, *) toPrint
+    write(*, *) message
     write(*, *) "------------------------------------------------"
     write(*, *) ""
   end subroutine print_separation
 
 
 
-
-
-
   !> Tests the Cartesian grid begin and end points
-  subroutine test_grid_carth()
+  subroutine test_grid_edges()
+    use mod_grid
+
     geometry = 'Cartesian'
     call initialise_grid()
-    write(*, *) "Testing Cartesian grid start..."
-    call assert_equal(grid(1), x_start, bool)
+    write(*, *) "Testing grid endpoints, Cartesian..."
+    call assert_equal(grid(1), x_start, test_passed)
+    write(*, *) "    grid start..."
     call check_test()
-    write(*, *) "Testing Cartesian grid end..."
-    call assert_equal(grid(gridpts), x_end, bool)
+    call assert_equal(grid(gridpts), x_end, test_passed)
+    write(*, *) "    grid end..."
     call check_test()
     call grid_clean()
-  end subroutine test_grid_carth
 
-
-  !> Tests the origin in cylindrical geometry
-  subroutine test_grid_cyl()
-    geometry = "cylindrical"
+    geometry = 'cylindrical'
     call initialise_grid()
-    write(*, *) "Testing cylindrical grid start..."
-    call assert_equal(grid(1), 1.0d-5, bool)
+    write(*, *) "Testing grid endpoints, cylindrical..."
+    call assert_equal(grid(1), 1.0d-5, test_passed)
+    write(*, *) "    grid start..."
     call check_test()
-    write(*, *) "Testing cylindrical grid end..."
-    call assert_equal(grid(gridpts), x_end, bool)
+    call assert_equal(grid(gridpts), x_end, test_passed)
+    write(*, *) "    grid end..."
     call check_test()
     call grid_clean()
-  end subroutine test_grid_cyl
+  end subroutine test_grid_edges
+
+
 
   !> Tests structure of the grid
   subroutine test_grid_structure()
+    use mod_grid
+
     real(dp)      :: x1, x2
     integer       :: i
+
     geometry = "Cartesian"
     call initialise_grid()
     write(*, *) "Testing grid structure, Cartesian..."
     do i = 1, gridpts-1
       x1 = grid(i)
       x2 = grid(i+1)
-      call assert_smaller(x1, x2, bool)
-      if (.not. bool) then
+      call assert_smaller(x1, x2, test_passed)
+      if (.not. test_passed) then
         write(*, *) "Grid is not monotone!"
         call check_test()
         call grid_clean()
@@ -171,8 +169,8 @@ contains
     do i = 1, gridpts-1
       x1 = grid(i)
       x2 = grid(i+1)
-      call assert_smaller(x1, x2, bool)
-      if (.not. bool) then
+      call assert_smaller(x1, x2, test_passed)
+      if (.not. test_passed) then
         write(*, *) "Grid is not monotone!"
         call check_test()
         call grid_clean()
@@ -183,17 +181,22 @@ contains
     call check_test()
   end subroutine test_grid_structure
 
+
+
   subroutine test_grid_gauss_structure()
+    use mod_grid
+
     real(dp)      :: x1, x2
     integer       :: i
+
     geometry = "Cartesian"
     call initialise_grid()
     write(*, *) "Testing grid_gauss structure, Cartesian..."
     do i = 1, gauss_gridpts-1
       x1 = grid_gauss(i)
       x2 = grid_gauss(i+1)
-      call assert_smaller(x1, x2, bool)
-      if (.not. bool) then
+      call assert_smaller(x1, x2, test_passed)
+      if (.not. test_passed) then
         write(*, *) "Grid is not monotone!"
         call check_test()
         call grid_clean()
@@ -209,8 +212,8 @@ contains
     do i = 1, gauss_gridpts-1
       x1 = grid_gauss(i)
       x2 = grid_gauss(i+1)
-      call assert_smaller(x1, x2, bool)
-      if (.not. bool) then
+      call assert_smaller(x1, x2, test_passed)
+      if (.not. test_passed) then
         write(*, *) "Grid is not monotone!"
         call check_test()
         call grid_clean()
@@ -226,6 +229,8 @@ contains
   !> Tests the matrix inversion subroutine, inverts the trivial case
   !! of a diagonal matrix.
   subroutine test_invert_diagonal_matrix()
+    use mod_solvers, only: invert_B
+
     real(dp)      :: mat_B(matrix_gridpts, matrix_gridpts)
     real(dp)      :: inv_B(matrix_gridpts, matrix_gridpts), sol_ij
     integer       :: i, j, k
@@ -254,8 +259,8 @@ contains
         else
           sol_ij = 0.0d0
         end if
-        call assert_equal(inv_B(i, j), sol_ij, bool)
-        if (.not. bool) then
+        call assert_equal(inv_B(i, j), sol_ij, test_passed)
+        if (.not. test_passed) then
           write(*, *) "    index i, j          : ", i, j
           write(*, *) "    inverse B calculated: ", inv_B(i, j)
           write(*, *) "    inverse B solution  : ", sol_ij
@@ -268,9 +273,12 @@ contains
   end subroutine test_invert_diagonal_matrix
 
 
+
   !> More in-depth test of the matrix inversion routine, inverts a
   !! double precision 4x4 matrix.
   subroutine test_invert_matrix()
+    use mod_solvers, only: invert_B
+
     real(dp)    :: mat_B(4, 4)
     real(dp)    :: inv_B(4, 4), inv_B_sol(4, 4)
     integer     :: i, j
@@ -293,8 +301,8 @@ contains
     call invert_B(mat_B, inv_B)
     do i = 1, 3
       do j = 1, 3
-        call assert_equal(inv_B(i, j), inv_B_sol(i, j), bool)
-        if (.not. bool) then
+        call assert_equal(inv_B(i, j), inv_B_sol(i, j), test_passed)
+        if (.not. test_passed) then
           write(*, *) "    index i, j          : ", i, j
           write(*, *) "    inverse B calculated: ", inv_B(i, j)
           write(*, *) "    inverse B solution  : ", inv_B_sol(i, j)
@@ -310,10 +318,13 @@ contains
   end subroutine test_invert_matrix
 
 
+
   !> Tests the matrix multiplication subroutine 'matmul', which is built-in
   !! Fortran. Used to compare results to the ones obtained from BLAS.
   !! Essentially tests BA where B is real and A is complex.
   subroutine test_matrix_multiplication()
+    use mod_solvers, only: get_B_invA_matmul
+
     real(dp)        :: mat_B(4, 4)
     complex(dp)     :: mat_A(4, 4)
     complex(dp)     :: BA(4, 4), BA_sol(4, 4), ir
@@ -341,12 +352,12 @@ contains
       (-12.0d0, 0.0d0), (-5.0d0, 0.0d0), (-9.0d0, 0.0d0), (-1.0d0, 0.0d0)/), &
                       shape(BA_sol))
 
-    call get_B_invA_manual(mat_B, mat_A, BA)
+    call get_B_invA_matmul(mat_B, mat_A, BA)
 
     do i = 1, 4
       do j = 1, 4
-        call assert_equal(BA(i, j), BA_sol(i, j), bool)
-        if (.not. bool) then
+        call assert_equal(BA(i, j), BA_sol(i, j), test_passed)
+        if (.not. test_passed) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    value at index : ", BA(i, j)
           write(*, *) "    value should be: ", BA_sol(i, j)
@@ -362,9 +373,12 @@ contains
   end subroutine test_matrix_multiplication
 
 
+
   !> Tests the BLAS routine to perform matrix multiplication. Essentially
   !! tests BA where B is real and A is complex.
   subroutine test_matrix_multiplication_blas()
+    use mod_solvers, only: get_B_invA
+
     real(dp)        :: mat_B(4, 4)
     complex(dp)     :: mat_A(4, 4)
     complex(dp)     :: BA(4, 4), BA_sol(4, 4), ir
@@ -396,8 +410,8 @@ contains
 
     do i = 1, 4
       do j = 1, 4
-        call assert_equal(BA(i, j), BA_sol(i, j), bool)
-        if (.not. bool) then
+        call assert_equal(BA(i, j), BA_sol(i, j), test_passed)
+        if (.not. test_passed) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    value at index : ", BA(i, j)
           write(*, *) "    value should be: ", BA_sol(i, j)
@@ -413,9 +427,12 @@ contains
   end subroutine test_matrix_multiplication_blas
 
 
+
   !> Tests the QR algorithm from LAPACK. Calculates the eigenvalues of a
   !! 4x4 complex matrix.
   subroutine test_QR()
+    use mod_solvers, only: solve_QR
+
     real(dp)        :: mat_B(4, 4)
     complex(dp)     :: mat_A(4, 4)
     complex(dp)     :: omega(4), omega_sol(4), temp
@@ -429,7 +446,7 @@ contains
     ir = (1.0d0, 0.0d0)
 
     !! Problem is wBX = AX, so use unit matrix for B as inversion
-    !! routines are already tested.
+    !! inversion routines are already tested at this point
     do i = 1, 4
       do j = 1, 4
         if (i == j) then
@@ -461,21 +478,22 @@ contains
     end do
 
     do i = 1, 4
-      call assert_equal(omega(i), omega_sol(i), bool)
-      if (.not. bool) then
+      call assert_equal(omega(i), omega_sol(i), test_passed)
+      if (.not. test_passed) then
         write(*, *) "    eigenvalue from QR  : ", omega(i)
         write(*, *) "    eigenvalue should be: ", omega_sol(i)
         call check_test()
         return
       end if
     end do
-
     call check_test()
     call set_gridpts(test_gridpts)
   end subroutine test_QR
 
 
+
   subroutine test_subblock()
+    use mod_make_subblock, only: subblock
     complex(dp)   :: quadblock(dim_quadblock, dim_quadblock)
     complex(dp)   :: factors(2), a, b
     real(dp)      :: spline1(4), spline2(4), weight
@@ -503,8 +521,8 @@ contains
     idx1 = (/ 7, 7, 8, 8,  7,  7,  8,  8, 23, 23, 24, 24, 23, 23, 24, 24 /)
     idx2 = (/ 5, 6, 5, 6, 21, 22, 21, 22,  5,  6,  5,  6, 21, 22, 21, 22 /)
     do i = 1, size(idx1)
-      call assert_equal(quadblock(idx1(i), idx2(i)), a, bool)
-      if (.not. bool) then
+      call assert_equal(quadblock(idx1(i), idx2(i)), a, test_passed)
+      if (.not. test_passed) then
         write(*, *) "    quadblock position: ", idx1(i), idx2(i)
         write(*, *) "    value at position : ", quadblock(idx1(i), idx2(i))
         write(*, *) "    value should be   : ", a
@@ -517,8 +535,8 @@ contains
     idx1 = (/ 13, 13, 14, 14, 13, 13, 14, 14, 29, 29, 30, 30, 29, 29, 30, 30 /)
     idx2 = (/  9, 10,  9, 10, 25, 26, 25, 26,  9, 10,  9, 10, 25, 26, 25, 26 /)
     do i = 1, size(idx1)
-      call assert_equal(quadblock(idx1(i), idx2(i)), b, bool)
-      if (.not. bool) then
+      call assert_equal(quadblock(idx1(i), idx2(i)), b, test_passed)
+      if (.not. test_passed) then
         write(*, *) "    quadblock position: ", idx1(i), idx2(i)
         write(*, *) "    value at position : ", quadblock(idx1(i), idx2(i))
         write(*, *) "    value should be   : ", b
@@ -530,6 +548,7 @@ contains
   end subroutine test_subblock
 
 
+
   subroutine test_boundaries()
     call print_separation("Tests for boundary conditions")
     call test_fixed_boundaries_left()
@@ -537,8 +556,11 @@ contains
   end subroutine test_boundaries
 
 
+
   !> Tests the fixed boundary conditions for the left edge
   subroutine test_fixed_boundaries_left()
+    use mod_boundary_conditions, only: fixed_boundaries
+
     complex(dp)                :: qblock_test(dim_quadblock, dim_quadblock)
     integer                    :: i, j
 
@@ -551,14 +573,14 @@ contains
     do i = 1, dim_subblock, 2
       do j = 1, dim_quadblock
         if (i == j) then
-          call assert_equal(qblock_test(i, j), (1.0d0, 0.0d0), bool)
+          call assert_equal(qblock_test(i, j), (1.0d0, 0.0d0), test_passed)
         else
           ! Check rows
-          call assert_equal(qblock_test(i, j), (0.0d0, 0.0d0), bool)
+          call assert_equal(qblock_test(i, j), (0.0d0, 0.0d0), test_passed)
           ! Check columns
-          call assert_equal(qblock_test(j, i), (0.0d0, 0.0d0), bool)
+          call assert_equal(qblock_test(j, i), (0.0d0, 0.0d0), test_passed)
         end if
-        if (.not. bool) then
+        if (.not. test_passed) then
           write(*, *) "    quadblock index  : ", i, j, "/", j, i
           write(*, *) "    value at position: ", qblock_test(i, j), &
                                               "/", qblock_test(j, i)
@@ -576,8 +598,11 @@ contains
   end subroutine test_fixed_boundaries_left
 
 
+
   !> Tests the fixed boundary conditions for the right edge
   subroutine test_fixed_boundaries_right()
+    use mod_boundary_conditions, only: fixed_boundaries
+
     complex(dp)                :: qblock_test(dim_quadblock, dim_quadblock)
     integer                    :: i, j, curr_idx, idxs(3)
 
@@ -593,14 +618,14 @@ contains
           curr_idx = idxs(j)
           if (i == curr_idx) then
             call assert_equal(qblock_test(i, curr_idx), (1.0d0, 0.0d0), &
-                                      bool)
+                                      test_passed)
           else
             call assert_equal(qblock_test(i, curr_idx), (0.0d0, 0.0d0), &
-                                      bool)
+                                      test_passed)
             call assert_equal(qblock_test(curr_idx, i), (0.0d0, 0.0d0), &
-                                      bool)
+                                      test_passed)
           end if
-          if (.not. bool) then
+          if (.not. test_passed) then
             write(*, *) "    quadblock index  : ", i, curr_idx, "/", curr_idx, i
             write(*, *) "    value at position: ", qblock_test(i, curr_idx), &
                                                 "/", qblock_test(curr_idx, i)
@@ -618,8 +643,8 @@ contains
     else
       do i = 1, dim_quadblock
         do j = 1, dim_quadblock
-          call assert_equal(qblock_test(j, i), (5.0d0, 2.0d0), bool)
-          if (.not. bool) then
+          call assert_equal(qblock_test(j, i), (5.0d0, 2.0d0), test_passed)
+          if (.not. test_passed) then
             write(*, *) "    quadblock index  : ", j, i
             write(*, *) "    value at position: ", qblock_test(j, i)
             write(*, *) "    value should be  : ", (5.0d0, 2.0d0)
@@ -643,7 +668,6 @@ contains
   subroutine test_equilibria()
     character(len=str_len)  :: equil_list(9)
     integer                 :: i
-    use_precoded = .true.
 
     equil_list = [character(str_len) :: &
                           "Adiabatic homogeneous", &
@@ -652,7 +676,6 @@ contains
                           "Gravito MHD waves", &
                           "Resistive tearing modes", &
                           "Resistive tearing modes with flow", &
-                          "Flow driven instabilities", &
                           "Suydam cluster modes", &
                           "Kelvin-Helmholtz", &
                           "Rotating plasma cylinder"]
@@ -666,18 +689,15 @@ contains
 
 
 
-
-
-
-
-
-
-
-
   !> Tests one specific equilibrium, this requires that use_precoded is
   !! already set to true, and equilibrium_type is set to one of the
   !! pre-coded cases.
   subroutine test_one_equilibrium()
+    use mod_grid, only: initialise_grid, grid_clean
+    use mod_equilibrium
+    use mod_equilibrium_derivatives
+    use mod_matrix_creation, only: create_matrices
+
     complex(dp)    :: mat_A(matrix_gridpts, matrix_gridpts)
     real(dp)       :: mat_B(matrix_gridpts, matrix_gridpts)
 
@@ -685,24 +705,21 @@ contains
     call initialise_equilibrium()
     call initialise_equilibrium_derivatives()
     call set_equilibrium()
-    call construct_B(mat_B)
-    call construct_A(mat_A)
+    call create_matrices(mat_B, mat_A)
     write(*, *) "Testing if matrix B is block-tridiagonal..."
     call test_B_tridiag(mat_B)
-    write(*, *) "Testing if matrix B has 'inf' elements..."
+    write(*, *) "Testing if matrix B has no 'inf' elements..."
     call test_B_inf(mat_B)
-    write(*, *) "Testing if matrix B has 'NaN' elements..."
+    write(*, *) "Testing if matrix B has no 'NaN' elements..."
     call test_B_nan(mat_B)
     write(*, *) "Testing if matrix B is singular..."
     call test_B_singular(mat_B)
     write(*, *) "Testing if matrix A is block-tridiagonal..."
     call test_A_tridiag(mat_A)
-    write(*, *) "Testing if matrix A has 'inf' elements..."
+    write(*, *) "Testing if matrix A has no 'inf' elements..."
     call test_A_inf(mat_A)
-    write(*, *) "Testing if matrix A has 'NaN' elements..."
+    write(*, *) "Testing if matrix A has no 'NaN' elements..."
     call test_A_nan(mat_A)
-    write(*, *) "Testing if matrix A is singular..."
-    call test_A_singular(mat_A)
     ! cleanup
     call grid_clean()
     call equilibrium_clean()
@@ -738,8 +755,8 @@ contains
         end if
 
         if (j <= lb .or. j > rb) then
-          call assert_equal(mat_B(i, j), 0.0d0, bool)
-          if (.not. bool) then
+          call assert_equal(mat_B(i, j), 0.0d0, test_passed)
+          if (.not. test_passed) then
             write(*, *) "    index i, j         : ", i, j
             write(*, *) "    Value of B at index: ", mat_B(i, j)
             write(*, *) "    Value should be    : ", (0.0d0, 0.0d0)
@@ -778,8 +795,8 @@ contains
         end if
 
         if (j < lb .or. j > rb) then
-          call assert_equal(mat_A(i, j), (0.0d0, 0.0d0), bool)
-          if (.not. bool) then
+          call assert_equal(mat_A(i, j), (0.0d0, 0.0d0), test_passed)
+          if (.not. test_passed) then
             write(*, *) "    index i, j         : ", i, j
             write(*, *) "    value of A at index: ", mat_A(i, j)
             write(*, *) "    value should be    : ", (0.0d0, 0.0d0)
@@ -793,6 +810,7 @@ contains
   end subroutine test_A_tridiag
 
 
+
   !> Tests if an element in the B matrix is infinite.
   subroutine test_B_inf(mat_B)
     real(dp), intent(in)    :: mat_B(matrix_gridpts, matrix_gridpts)
@@ -800,8 +818,8 @@ contains
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_is_finite(mat_B(i, j), bool)
-        if (.not. bool) then
+        call assert_is_finite(mat_B(i, j), test_passed)
+        if (.not. test_passed) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    B-value at index is infinite"
           call check_test()
@@ -813,6 +831,7 @@ contains
   end subroutine test_B_inf
 
 
+
   !> Tests if an element in the B matrix is NaN.
   subroutine test_B_nan(mat_B)
     real(dp), intent(in)    :: mat_B(matrix_gridpts, matrix_gridpts)
@@ -820,8 +839,8 @@ contains
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_is_no_nan(mat_B(i, j), bool)
-        if (.not. bool) then
+        call assert_is_no_nan(mat_B(i, j), test_passed)
+        if (.not. test_passed) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    B-value at index is NaN"
           call check_test()
@@ -833,6 +852,7 @@ contains
   end subroutine test_B_nan
 
 
+
   !> Tests if an element in the A matrix is infinite. A is complex, so both
   !! the real and complex parts are tested.
   subroutine test_A_inf(mat_A)
@@ -841,8 +861,8 @@ contains
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_is_finite(mat_A(i, j), bool)
-        if (.not. bool) then
+        call assert_is_finite(mat_A(i, j), test_passed)
+        if (.not. test_passed) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    value obtained : ", mat_A(i, j)
           write(*, *) "    A-value at index is infinite"
@@ -855,6 +875,7 @@ contains
   end subroutine test_A_inf
 
 
+
   !> Tests if an element in the A matrix is NaN. A is complex, so both the
   !! real and complex parts are tested.
   subroutine test_A_nan(mat_A)
@@ -863,8 +884,8 @@ contains
 
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
-        call assert_is_no_nan(mat_A(i, j), bool)
-        if (.not. bool) then
+        call assert_is_no_nan(mat_A(i, j), test_passed)
+        if (.not. test_passed) then
           write(*, *) "    index i, j     : ", i, j
           write(*, *) "    value obtained : ", mat_A(i, j)
           write(*, *) "    A-value at index is NaN"
@@ -876,7 +897,8 @@ contains
     call check_test()
   end subroutine test_A_nan
 
-  !> Tests if the matrix B is singular (row or column equal to zero)
+  !> Tests if the matrix B is singular (row or column equal to zero).
+  !! B is inverted, so this is important
   subroutine test_B_singular(mat_B)
     real(dp), intent(in)    :: mat_B(matrix_gridpts, matrix_gridpts)
     integer                 :: i, j, counter
@@ -886,15 +908,15 @@ contains
     counter = 0
     equal   = .false.
 
-    !! Iterate over columns
+    !! Iterate over columns (check for zero rows)
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
         call assert_equal(mat_B(i, j), 0.0d0, equal)
         if (equal) then
           counter = counter + 1
         end if
-        if (counter == matrix_gridpts) then
-          bool = .false.  !! fail test
+        if (counter == matrix_gridpts) then ! this means full row of zeroes
+          test_passed = .false. ! hence fail test
           write(*, *) "    Matrix B is singular"
           write(*, *) "    At least one zero row encountered"
           write(*, *) "    Row: ", i
@@ -908,7 +930,7 @@ contains
     counter = 0
     equal   = .false.
 
-    !! Iterate over rows
+    !! Iterate over rows  (check for zero columns)
     do i = 1, matrix_gridpts
       do j = 1, matrix_gridpts
         call assert_equal(mat_B(j, i), 0.0d0, equal)
@@ -916,7 +938,7 @@ contains
           counter = counter + 1
         end if
         if (counter == matrix_gridpts) then
-          bool = .false.  !! fail test
+          test_passed = .false.  !! fail test
           write(*, *) "    Matrix B is singular"
           write(*, *) "    At least one zero column encountered"
           write(*, *) "    Column: ", i
@@ -927,61 +949,8 @@ contains
       counter = 0
     end do
 
-    bool = .true.
+    test_passed = .true.
     call check_test()
   end subroutine test_B_singular
-
-  !> Tests if the matrix A is singular (row or column equal to zero)
-  subroutine test_A_singular(mat_A)
-    complex(dp), intent(in) :: mat_A(matrix_gridpts, matrix_gridpts)
-    integer                 :: i, j, counter
-
-    logical                 :: equal
-
-    counter = 0
-    equal   = .false.
-
-    !! Iterate over columns
-    do i = 1, matrix_gridpts
-      do j = 1, matrix_gridpts
-        call assert_equal(mat_A(i, j), (0.0d0, 0.0d0), equal)
-        if (equal) then
-          counter = counter + 1
-        end if
-        if (counter == matrix_gridpts) then
-          write(*, *) "    Matrix A is singular"
-          write(*, *) "    But A is never inverted, so should be fine"
-          bool = .true.
-          call check_test()
-          return
-        end if
-      end do
-      counter = 0
-    end do
-
-    counter = 0
-    equal   = .false.
-
-    !! Iterate over rows
-    do i = 1, matrix_gridpts
-      do j = 1, matrix_gridpts
-        call assert_equal(mat_A(j, i), (0.0d0, 0.0d0), equal)
-        if (equal) then
-          counter = counter + 1
-        end if
-        if (counter == matrix_gridpts) then
-          write(*, *) "    Matrix A is singular"
-          write(*, *) "    But A is never inverted, so should be fine"
-          bool = .true.
-          call check_test()
-          return
-        end if
-      end do
-      counter = 0
-    end do
-
-    bool = .true.
-    call check_test()
-  end subroutine test_A_singular
 
 end module testmod_core_tests
