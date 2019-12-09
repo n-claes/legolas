@@ -99,8 +99,8 @@ def on_typing(event):
                                       var, w_idx_list, plot_real)
 
 
-    # Pressing 'delete' clears the current figure and selection
-    if event.key == 'delete':
+    # Pressing 'd' clears the current figure and selection
+    if event.key == 'd':
         w_idx_list = []
         for artist in ax3.get_children():
             if (hasattr(artist, 'get_label') and
@@ -157,7 +157,7 @@ if __name__ == '__main__':
         print("- Enter       : plot eigenfunctions corresponding to selected points")
         print("- Up-arrow    : cycle upwards through eigenfunction variables")
         print("- Down-arrow  : cycle downwards through eigenfunction variables")
-        print("- Delete      : clears selection and eigenfunction figure")
+        print("- d-key       : clears selection and eigenfunction figure")
         print("- x-key       : close figures and finish program ")
         print("-"*50)
         print("")
