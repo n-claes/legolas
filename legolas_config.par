@@ -12,7 +12,6 @@
 &physicslist
   flow = .false.
   radiative_cooling = .false.
-  external_gravity = .false.
   thermal_conduction = .false.
   resistivity = .false.
   external_gravity = .false.
