@@ -492,8 +492,8 @@ contains
 
       J0 = bessel_jn(0, alpha * r)
       J1 = bessel_jn(1, alpha * r)
-      DJ0 = -J1
-      DJ1 = 0.5d0 * J0 - 0.5d0 * bessel_jn(2, alpha * r)
+      DJ0 = -alpha * J1
+      DJ1 = alpha * (0.5d0 * J0 - 0.5d0 * bessel_jn(2, alpha * r))
 
       ! Equilibrium
       rho0_eq(i) = 1.0d0
@@ -505,7 +505,7 @@ contains
       T0_eq(i)  = P0_eq(i) / rho0_eq(i)
 
       ! Derivatives
-      d_T0_dr(i)    = -p1 * J0 * J1
+      d_T0_dr(i)    = -p1 * J0 * DJ0
       d_v03_dr(i)   = -2.0d0 * v_z0 * r
     end do
 
