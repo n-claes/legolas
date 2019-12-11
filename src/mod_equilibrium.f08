@@ -505,7 +505,7 @@ contains
       T0_eq(i)  = P0_eq(i) / rho0_eq(i)
 
       ! Derivatives
-      d_T0_dr(i)    = -p1 * J0 * DJ0
+      d_T0_dr(i)    = p1 * J0 * DJ0
       d_v03_dr(i)   = -2.0d0 * v_z0 * r
     end do
 
