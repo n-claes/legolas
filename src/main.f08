@@ -80,8 +80,6 @@ contains
     allocate(eigenvecs_right(matrix_gridpts, matrix_gridpts))
     allocate(eigenvecs_left(matrix_gridpts, matrix_gridpts))
 
-    ! Initialise grid
-    call initialise_grid()
     ! Initialise equilibrium
     call initialise_equilibrium()
     ! Initialise equilibrium derivatives

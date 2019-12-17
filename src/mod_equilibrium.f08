@@ -181,6 +181,8 @@ contains
   !> Initialises equilibrium for an adiabatic homogeneous medium in Cartesian
   !! geometry. Explicitly force physics to prevent 'hacking' through parfile.
   subroutine adiabatic_homo_eq()
+    call initialise_grid() ! Initialise grid
+
     k2 = dpi
     k3 = dpi
 
@@ -202,6 +204,8 @@ contains
   subroutine resistive_homo_eq()
     real(dp)  :: beta
 
+    call initialise_grid() ! Initialise grid
+
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -221,12 +225,14 @@ contains
     B03_eq  = 1.0d0
 
     B0_eq   = 1.0d0
-    T0_eq   = beta * B0_eq**2 / (8*dpi)
+    T0_eq   = beta * B0_eq**2 / (2) ! n=1, kB=1, mu0=1
   end subroutine resistive_homo_eq
 
 
   subroutine gravity_homo_eq()
     real(dp)    :: g
+
+    call initialise_grid() ! Initialise grid
 
     g = 5.0d0
 
@@ -252,6 +258,8 @@ contains
   subroutine gravito_mhd_waves_eq()
     real(dp)    :: alpha, x, rho0, p0, B0
     integer     :: i
+
+    call initialise_grid() ! Initialise grid
 
     flow = .false.
     radiative_cooling = .false.
@@ -289,6 +297,8 @@ contains
     integer       :: i, n
     real(dp)      :: r, p0, A, R0, q
 
+    call initialise_grid() ! Initialise grid
+
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -322,8 +332,13 @@ contains
 
 
   subroutine resistive_tearing_modes_eq()
-    real(dp)    :: alpha, beta, x
-    integer     :: i
+    real(dp)              :: alpha, beta, x
+    integer               :: i
+
+    ! Override values from par file
+    x_start = -0.5d0
+    x_end   = 0.5d0
+    call initialise_grid() ! Initialise grid
 
     flow = .false.
     radiative_cooling = .false.
@@ -348,7 +363,7 @@ contains
       B02_eq(i)  = sin(alpha * x)
       B03_eq(i)  = cos(alpha * x)
       B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
-      T0_eq(i)   = beta * B0_eq(i)**2 / (8*dpi)
+      T0_eq(i)   = beta * B0_eq(i)**2 / (2) ! n=1, kB=1, mu0=1
 
       ! Derivatives
       d_B02_dr(i)   = alpha * cos(alpha * x)
@@ -364,6 +379,11 @@ contains
   subroutine resistive_tearing_modes_flow_eq()
     real(dp)    :: alpha, beta, x
     integer     :: i
+
+    ! Override values from par file
+    x_start = -0.5d0
+    x_end   = 0.5d0
+    call initialise_grid() ! Initialise grid
 
     flow = .true.
     radiative_cooling = .false.
@@ -388,7 +408,7 @@ contains
       B02_eq(i)  = sin(alpha * x)
       B03_eq(i)  = cos(alpha * x)
       B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
-      T0_eq(i)   = beta * B0_eq(i)**2 / (8*dpi)
+      T0_eq(i)   = beta * B0_eq(i)**2 / (2) ! n=1, kB=1, mu0=1
       v02_eq(i)  = 0.15 * x
 
       ! Derivatives
@@ -409,6 +429,8 @@ contains
                    phi0, alpha, B0, x, k0, g, p0
     real(dp)    :: v_x(gauss_gridpts), phi_x(gauss_gridpts), p_x(gauss_gridpts)
     integer     :: i
+
+    call initialise_grid() ! Initialise grid
 
     g = 15.0d0
 
@@ -465,12 +487,13 @@ contains
   !> Initialises equilibrium for Suydam cluster modes in cylindrical geometry.
   !! Obtained from Bondeson et al., Phys. Fluids 30 (1987)
   subroutine suydam_cluster_eq()
-    use mod_grid
 
     real(dp)      :: v_z0, p0, p1, alpha, r
     real(dp)      :: J0, J1, DJ0, DJ1
     real(dp)      :: P0_eq(gauss_gridpts)
     integer       :: i
+
+    call initialise_grid() ! Initialise grid
 
     flow = .true.
     radiative_cooling = .false.
@@ -518,6 +541,8 @@ contains
     real(dp)    :: a, x, p0, v0y, v0z
     integer     :: i
 
+    call initialise_grid() ! Initialise grid
+
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .false.
@@ -553,6 +578,8 @@ contains
     real(dp)    :: a21, a22, a3, b21, b22, b3, p0
     real(dp)    :: r
     integer     :: i
+
+    call initialise_grid() ! Initialise grid
 
     flow = .true.
     radiative_cooling = .false.
