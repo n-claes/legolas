@@ -48,6 +48,9 @@ module mod_output
 
 contains
 
+  !> Opens a file with given unit and filename.
+  !! @param[in] file_unit   IO unit for opening the file
+  !! @param[in] filename    filename to open
   subroutine open_file(file_unit, filename)
     integer, intent(in)           :: file_unit
     character(len=*), intent(in)  :: filename
@@ -57,6 +60,11 @@ contains
   end subroutine open_file
 
 
+  !> Creates a filename, prepending the output directory and appending the
+  !! file extension
+  !! @param[in] base_filename   the base filename to use
+  !! @param[out] filename       the resulting filename, of the form
+  !!                            output_folder/base_filename.extension
   subroutine make_filename(base_filename, filename)
     character(len=*), intent(in)  :: base_filename
     character(len=*), intent(out) :: filename
@@ -66,6 +74,9 @@ contains
   end subroutine make_filename
 
 
+  !> Writes the eigenvalues to a file.
+  !! @param[in] omega           the array of eigenvalues
+  !! @param[in] base_filename   filename to use, default 'eigenvalues'
   subroutine eigenvalues_tofile(omega, base_filename)
     complex(dp), intent(in)       :: omega(matrix_gridpts)
     character(len=*), intent(in)  :: base_filename
@@ -81,6 +92,10 @@ contains
   end subroutine eigenvalues_tofile
 
 
+  !> Writes the matrices A and B to a file.
+  !! @param[in] matrix_A    the A-matrix
+  !! @param[in] matrix_B    the B-matrix
+  !! @param[in] base_filename   filename to use, default 'matrix'
   subroutine matrices_tofile(matrix_A, matrix_B, base_filename)
     complex(dp), intent(in)       :: matrix_A(matrix_gridpts, matrix_gridpts)
     real(dp), intent(in)          :: matrix_B(matrix_gridpts, matrix_gridpts)
@@ -105,6 +120,10 @@ contains
   end subroutine matrices_tofile
 
 
+  !> Writes the left and right eigenvectors to a file.
+  !! @param[in] ev_l    matrix containing the left eigenvectors in columns
+  !! @param[in] ev_r    matrix containing the right eigenvectors in columns
+  !! @param[in] base_filename   filename to use, default 'eigenvectors'
   subroutine eigenvectors_tofile(ev_l, ev_r, base_filename)
     complex(dp), intent(in)       :: ev_l(matrix_gridpts, matrix_gridpts)
     complex(dp), intent(in)       :: ev_r(matrix_gridpts, matrix_gridpts)
@@ -129,6 +148,9 @@ contains
   end subroutine eigenvectors_tofile
 
 
+  !> Writes the eigenfunction grid to a file
+  !! @param[in] ef_grid     array containing the grid for an eigenfunction
+  !! @param[in] base_filename   filename to use, default 'ef_grid'
   subroutine ef_grid_tofile(ef_grid, base_filename)
     real(dp), intent(in)            :: ef_grid(ef_gridpts)
     character(len=*), intent(in)    :: base_filename
@@ -144,6 +166,12 @@ contains
   end subroutine ef_grid_tofile
 
 
+  !> Writes the eigenfunctions to a file. This saves the eigenfunctions for
+  !! exactly one variable (rho, v1, etc.) through the passed type. If all
+  !! eigenfunctions should be saved, this method should be called multiple
+  !! times, once for every variable.
+  !! @param[in] single_ef   type containing all eigenfunctions for one single
+  !!                        variable through single_ef % eigenfunctions.
   subroutine eigenfunctions_tofile(single_ef)
     use mod_types, only: ef_type
 
@@ -172,6 +200,9 @@ contains
   end subroutine eigenfunctions_tofile
 
 
+  !> Converts a Fortran logical ('T' or 'F') to a string ('true', 'false').
+  !! @param[in] boolean   Fortran logical to convert
+  !! @param[out] boolean_string   'true' if boolean == True, 'false' otherwise
   subroutine logical_tostring(boolean, boolean_string)
     logical, intent(in)             :: boolean
     character(len=20), intent(out)  :: boolean_string
@@ -184,6 +215,7 @@ contains
   end subroutine logical_tostring
 
 
+  !> Prints basic information of the current configuration to the console.
   subroutine startup_info_toconsole()
     character(20)                   :: char
 
