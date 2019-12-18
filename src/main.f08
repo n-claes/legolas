@@ -12,7 +12,7 @@
 
 program legolas
   use mod_global_variables
-  use mod_info
+  use mod_output
   use mod_equilibrium, only: set_equilibrium
   use mod_matrix_creation, only: create_matrices
   use mod_solvers, only: solve_QR
@@ -34,7 +34,7 @@ program legolas
   ! set the equilibrium configuration
   call set_equilibrium()
   ! print configuration to console
-  call show_startup_info()
+  call startup_info_toconsole()
 
   ! create matrices A and B
   write(*, *) "Creating matrices..."
@@ -49,7 +49,6 @@ program legolas
 
   ! deallocate everything
   call cleanup()
-  call show_final_info()
 
   if (show_results) then
     write(*, *) ""
@@ -93,30 +92,27 @@ contains
   !> Saves the solutions
   subroutine save_solutions()
     use mod_eigenfunctions
-    use mod_io
-
-    write(*, *) "Writing configuration to file..."
-    call save_config("config")
+    use mod_output
 
     write(*, *) "Writing eigenvalues to file..."
-    call save_eigenvalues(omega, trim(savename_eigenvalues), &
-                          append=.false., stream=.true.)
-    ! call save_eigenvalues(omega, "eigenvalues_text", append=.false., stream=.false.)
+    call eigenvalues_tofile(omega, savename_eigenvalues)
 
     if (write_matrices) then
       write(*, *) "Writing matrices to file..."
-      call save_matrices(matrix_A, matrix_B, "matrix_A", "matrix_B")
+      call matrices_tofile(matrix_A, matrix_B, trim(savename_matrix // 'A'), &
+                           trim(savename_matrix // 'B'))
     end if
 
     if (write_eigenvectors) then
       write(*, *) "Writing eigenvectors to file..."
-      call save_eigenvectors(eigenvecs_left, eigenvecs_right, &
-                             "v_left", "v_right")
+      call eigenvectors_tofile(eigenvecs_left, eigenvecs_right, &
+                               trim(savename_eigenvectors // '_left'), &
+                               trim(savename_eigenvectors // '_right'))
     end if
 
     if (write_eigenfunctions) then
       write(*, *) "Writing eigenfunctions to file..."
-      call get_all_eigenfunctions(eigenvecs_right)
+      call calculate_eigenfunctions(eigenvecs_right)
     end if
   end subroutine save_solutions
 
