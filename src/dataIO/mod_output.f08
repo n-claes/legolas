@@ -2,7 +2,7 @@ module mod_output
   use mod_global_variables
   implicit none
 
-  public
+  private
 
   !! IO units -- do not use 0/5/6/7, these are system-reserved
   !> IO unit for eigenvalues array omega
@@ -39,6 +39,13 @@ module mod_output
   !> filename extension
   character(len=4)    :: file_extension = '.dat'
 
+  public :: eigenvalues_tofile
+  public :: matrices_tofile
+  public :: eigenvectors_tofile
+  public :: ef_grid_tofile
+  public :: eigenfunctions_tofile
+  public :: startup_info_toconsole
+
 contains
 
   subroutine open_file(file_unit, filename)
@@ -59,7 +66,7 @@ contains
   end subroutine make_filename
 
 
-  subroutine omegas_tofile(omega, base_filename)
+  subroutine eigenvalues_tofile(omega, base_filename)
     complex(dp), intent(in)       :: omega(matrix_gridpts)
     character(len=*), intent(in)  :: base_filename
 
@@ -71,7 +78,7 @@ contains
     write(unit=omega_unit) omega
 
     close(unit=omega_unit)
-  end subroutine omegas_tofile
+  end subroutine eigenvalues_tofile
 
 
   subroutine matrices_tofile(matrix_A, matrix_B, base_filenameA, base_filenameB)
@@ -137,8 +144,8 @@ contains
   end subroutine ef_grid_tofile
 
 
-  subroutine eigenfunction_tofile(single_ef)
-    use mod_types
+  subroutine eigenfunctions_tofile(single_ef)
+    use mod_types, only: ef_type
 
     type(ef_type), intent(in)       :: single_ef
 
@@ -153,8 +160,8 @@ contains
 
     ! extend base filename with output folder and index
     base_filename = 'eigenfunctions/' // trim(idx) // '_' &
-                    // trim(var_eigenf % savename)
-    call make_filename(base_filename_ext, filename)
+                    // trim(single_ef % savename)
+    call make_filename(base_filename, filename)
 
     call open_file(single_ef_unit, filename)
 
@@ -162,7 +169,79 @@ contains
       write(single_ef_unit) single_ef % eigenfunctions(:, w_idx)
     end do
     close(single_ef_unit)
-  end subroutine eigenfunction_tofile
+  end subroutine eigenfunctions_tofile
+
+
+  subroutine logical_tostring(boolean, boolean_string)
+    logical, intent(in)             :: boolean
+    character(len=20), intent(out)  :: boolean_string
+
+    if (boolean) then
+      boolean_string = 'true'
+    else
+      boolean_string = 'false'
+    end if
+  end subroutine logical_tostring
+
+
+  subroutine startup_info_toconsole()
+    character(20)                   :: char
+
+    write(*, *) "------------------------------"
+    write(*, *) "----------- LEGOLAS ----------"
+    write(*, *) "------------------------------"
+    write(*, *) ""
+
+    write(*, *) "Running with the following configuration:"
+    write(*, *) ""
+
+    ! Geometry info
+    write(*, *) "-- Geometry settings --"
+    write(*, *) "Coordinate system  : ", geometry
+    write(char, form_fout) x_start
+    write(*, *) "Start              : ", adjustl(char)
+    write(char, form_fout) x_end
+    write(*, *) "End                : ", adjustl(char)
+    write(char, form_int) gridpts
+    write(*, *) "Gridpoints         : ", adjustl(char)
+    write(char, form_int) gauss_gridpts
+    write(*, *) "Gaussian gridpoints: ", adjustl(char)
+    write(char, form_int) matrix_gridpts
+    write(*, *) "Matrix gridpoints  : ", adjustl(char)
+    write(*, *) ""
+
+    ! Equilibrium info
+    write(*, *) "-- Equilibrium settings --"
+    write(*, *) "Equilibrium type   : ", equilibrium_type
+    write(*, *) "Boundary conditions: ", boundary_type
+    write(char, form_fout) k2
+    write(*, *) "Wave number k2     : ", adjustl(char)
+    write(char, form_fout) k3
+    write(*, *) "Wave number k3     : ", adjustl(char)
+    write(*, *) ""
+
+    ! Save info
+    write(*, *) "-- DataIO settings --"
+    call logical_tostring(write_matrices, char)
+    write(*, *) "Write matrices to file       : ", char
+    call logical_tostring(write_eigenvectors, char)
+    write(*, *) "Write eigenvectors to file   : ", char
+    call logical_tostring(write_eigenfunctions, char)
+    write(*, *) "Write eigenfunctions to file : ", char
+    call logical_tostring(show_results, char)
+    write(*, *) "Showing results              : ", char
+    call logical_tostring(show_matrices, char)
+    write(*, *) "Showing matrices             : ", char
+    call logical_tostring(show_eigenfunctions, char)
+    write(*, *) "Showing eigenfunctions       : ", char
+
+    write(*, *) '----------------------------------------------------'
+    write(*, *) ''
+
+  end subroutine startup_info_toconsole
+
+
+
 
 
 end module mod_output
