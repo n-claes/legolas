@@ -33,8 +33,7 @@ contains
     namelist /savelist/ write_matrices, write_eigenvectors, &
                         write_eigenfunctions, show_results, show_matrices, &
                         show_eigenfunctions
-    namelist /filelist/ savename_config, savename_eigenvalues, savename_grid, &
-                        savename_matrixA, savename_matrixB, &
+    namelist /filelist/ savename_eigenvalues, savename_grid, savename_matrix, &
                         savename_eigenvectors, savename_eigenfunctions
 
     parfile_present = .true.
@@ -47,7 +46,7 @@ contains
     geometry = "Cartesian"          !< geometry of the problem
     x_start  = 0.0d0                !< start of the grid
     x_end    = 1.0d0                !< end of the grid
-    gridpoints = 11                 !< gridpoints for regular grid
+    gridpoints = 31                 !< gridpoints for regular grid
 
     !> Meshlist defaults
     mesh_accumulation = .false.
@@ -90,11 +89,9 @@ contains
     show_eigenfunctions = .false.   !< plots the eigenfunctions when finished
 
     !> Filelist defaults
-    savename_config = "config"
     savename_eigenvalues = "eigenvalues"
     savename_grid = "grid"
-    savename_matrixA = "matrixA"
-    savename_matrixB = "matrixB"
+    savename_matrix = "matrix"
     savename_eigenvectors = "eigenvectors"
     savename_eigenfunctions = "eigenfunctions"
 
