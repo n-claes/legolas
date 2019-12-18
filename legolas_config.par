@@ -5,22 +5,6 @@
   gridpoints = 51
 /
 
-&meshlist
-  mesh_accumulation = .false.
-/
-
-&physicslist
-  flow = .false.
-  radiative_cooling = .false.
-  thermal_conduction = .false.
-  resistivity = .false.
-  external_gravity = .false.
-/
-
-&unitslist
-  cgs_units = .true.
-/
-
 &equilibriumlist
   ! equilibrium_type = "Adiabatic homogeneous"               ! Cartesian
   ! equilibrium_type = "Resistive homogeneous"               ! Cartesian
@@ -43,15 +27,4 @@
   show_results = .true.
   show_matrices = .false.
   show_eigenfunctions = .false.
-/
-
-! This is not used for now
-&filelist
-  savename_config = "config"
-  savename_eigenvalues = "eigenvalues"
-  savename_grid = "grid"
-  savename_matrixA = "matrixA"
-  savename_matrixB = "matrixB"
-  savename_eigenvectors = "eigenvectors"
-  savename_eigenfunctions = "eigenfunction"
 /
