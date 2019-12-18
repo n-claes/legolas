@@ -81,16 +81,16 @@ contains
   end subroutine eigenvalues_tofile
 
 
-  subroutine matrices_tofile(matrix_A, matrix_B, base_filenameA, base_filenameB)
+  subroutine matrices_tofile(matrix_A, matrix_B, base_filename)
     complex(dp), intent(in)       :: matrix_A(matrix_gridpts, matrix_gridpts)
     real(dp), intent(in)          :: matrix_B(matrix_gridpts, matrix_gridpts)
-    character(len=*), intent(in)  :: base_filenameA, base_filenameB
+    character(len=*), intent(in)  :: base_filename
 
     character(str_len)            :: filenameA, filenameB
     integer                       :: i
 
-    call make_filename(base_filenameA, filenameA)
-    call make_filename(base_filenameB, filenameB)
+    call make_filename(trim(base_filename) // '_A', filenameA)
+    call make_filename(trim(base_filename) // '_B', filenameB)
 
     call open_file(mat_a_unit, filenameA)
     call open_file(mat_b_unit, filenameB)
@@ -105,16 +105,16 @@ contains
   end subroutine matrices_tofile
 
 
-  subroutine eigenvectors_tofile(ev_l, ev_r, base_filenameL, base_filenameR)
+  subroutine eigenvectors_tofile(ev_l, ev_r, base_filename)
     complex(dp), intent(in)       :: ev_l(matrix_gridpts, matrix_gridpts)
     complex(dp), intent(in)       :: ev_r(matrix_gridpts, matrix_gridpts)
-    character(len=*), intent(in)  :: base_filenameL, base_filenameR
+    character(len=*), intent(in)  :: base_filename
 
     character(str_len)            :: filenameL, filenameR
     integer                       :: i
 
-    call make_filename(base_filenameL, filenameL)
-    call make_filename(base_filenameR, filenameR)
+    call make_filename(trim(base_filename) // '_L', filenameL)
+    call make_filename(trim(base_filename) // '_R', filenameR)
 
     call open_file(eigenvector_l_unit, filenameL)
     call open_file(eigenvector_r_unit, filenameR)

@@ -99,15 +99,13 @@ contains
 
     if (write_matrices) then
       write(*, *) "Writing matrices to file..."
-      call matrices_tofile(matrix_A, matrix_B, trim(savename_matrix // 'A'), &
-                           trim(savename_matrix // 'B'))
+      call matrices_tofile(matrix_A, matrix_B, savename_matrix)
     end if
 
     if (write_eigenvectors) then
       write(*, *) "Writing eigenvectors to file..."
       call eigenvectors_tofile(eigenvecs_left, eigenvecs_right, &
-                               trim(savename_eigenvectors // '_left'), &
-                               trim(savename_eigenvectors // '_right'))
+                               savename_eigenvectors)
     end if
 
     if (write_eigenfunctions) then
