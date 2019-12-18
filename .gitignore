@@ -21,3 +21,4 @@ docs/html/
 *.txt
 *.dat
 *.pyc
+*.idea
