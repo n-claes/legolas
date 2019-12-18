@@ -27,15 +27,6 @@ module mod_global_variables
   !> Values smaller than this are forced to zero
   real(dp), parameter :: dp_LIMIT = 1.0d-12
 
-  !> Format settings
-  character(8), parameter    :: form_e = '(e30.20)'
-  character(8), parameter    :: form_f = '(f30.20)'
-
-  character(8), parameter    :: form_eout = '(e20.10)'
-  character(8), parameter    :: form_fout = '(f20.10)'
-
-  character(4), parameter    :: form_int  = '(i8)'
-
   !! Physics parameters
   !> Complex number
   complex(dp), parameter    :: ic = (0.0d0, 1.0d0)
@@ -84,7 +75,7 @@ module mod_global_variables
   !> Gridpoints of matrices A and B, equal to 16 * gridpts
   integer, protected        :: matrix_gridpts
   !> Amount of gridpoints of an eigenfunction array
-  integer, protected        :: eigenf_gridpts
+  integer, protected        :: ef_gridpts
 
   !! Mesh-accumulation parameters
   !> Boolean to enable mesh accumulation
@@ -149,16 +140,12 @@ module mod_global_variables
   logical, save             :: show_eigenfunctions
 
   !! Savelist-related parameters
-  !> Name for the configuration file
-  character(len=str_len)    :: savename_config
   !> Name for the eigenvalues file
   character(len=str_len)    :: savename_eigenvalues
   !> Name for the grid file
   character(len=str_len)    :: savename_grid
-  !> Name for the matrix A file
-  character(len=str_len)    :: savename_matrixA
-  !> Name for the matrix B file
-  character(len=str_len)    :: savename_matrixB
+  !> Name for the matrix files
+  character(len=str_len)    :: savename_matrix
   !> Name for the eigenvector files
   character(len=str_len)    :: savename_eigenvectors
   !> Name for the eigenfunction files
@@ -184,7 +171,7 @@ contains
     gridpts        = gridpts_in
     gauss_gridpts  = 4*(gridpts - 1)
     matrix_gridpts = 16 * gridpts
-    eigenf_gridpts = 2*gridpts - 1
+    ef_gridpts     = 2*gridpts - 1
   end subroutine set_gridpts
 
   !> Subroutine to override the matrix gridpoints. This is solely used for
