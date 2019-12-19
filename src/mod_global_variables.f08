@@ -125,7 +125,7 @@ module mod_global_variables
   !! The quadblock is the matrix that is shifted on the main diagonal
   integer, parameter        :: dim_quadblock = 2*dim_subblock
 
-  !! Data IO-related parameters
+  !! Data IO-related parameters (savelist)
   !> Write matrices A and B to file when finished
   logical, save             :: write_matrices
   !> Write eigenvectors to file when finished
@@ -139,7 +139,7 @@ module mod_global_variables
   !> Plot eigenfunctions when finished
   logical, save             :: show_eigenfunctions
 
-  !! Savelist-related parameters
+  !! Related parameters for filenames (filelist)
   !> Name for the eigenvalues file
   character(len=str_len)    :: savename_eigenvalues
   !> Name for the grid file
@@ -150,6 +150,8 @@ module mod_global_variables
   character(len=str_len)    :: savename_eigenvectors
   !> Name for the eigenfunction files
   character(len=str_len)    :: savename_eigenfunctions
+  !> Name for the configuration file
+  character(len=str_len)    :: savename_config
 
 contains
 

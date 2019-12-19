@@ -21,9 +21,9 @@
 /
 
 &savelist
-  write_matrices = .false.
-  write_eigenvectors = .false.
-  write_eigenfunctions = .false.
+  write_matrices = .true.
+  write_eigenvectors = .true.
+  write_eigenfunctions = .true.
   show_results = .true.
   show_matrices = .false.
   show_eigenfunctions = .false.
