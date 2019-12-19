@@ -1,4 +1,5 @@
 docs/html/
+output/
 *.DS_Store
 *.aux
 *.bbl
