@@ -1,8 +1,12 @@
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 import sys, os
 import read_data
 import plot_data
+
+from argparse import ArgumentParser
 
 def init_global_vars():
     global w_idx_list, current_var, plot_real
@@ -14,7 +18,7 @@ def init_global_vars():
 def select_next_variable():
     global current_var
     current_var = current_var + 1
-    if (current_var > 7):
+    if current_var > 7:
         current_var = 0
     return eigenf_list[current_var]
 
@@ -22,7 +26,7 @@ def select_next_variable():
 def select_prev_variable():
     global current_var
     current_var = current_var - 1
-    if (current_var < 0):
+    if current_var < 0:
         current_var = 7
     return eigenf_list[current_var]
 
@@ -51,7 +55,7 @@ def on_clicking(event):
     if toolbar.mode == '':
         if event.button == 1:
             # Prevent error when clicking outside of axes window
-            if (event.xdata is None or event.ydata is None):
+            if event.xdata is None or event.ydata is None:
                 return
             # Search nearest spectrum point to click, then plot
             idx = find_spectrum_point_idx(event.xdata, event.ydata)
@@ -134,21 +138,36 @@ def on_typing(event):
 
 
 if __name__ == '__main__':
-    config_dict = read_data.read_config_file("output/config.txt")
-    gridpts = config_dict["Gridpoints"]
-    matrix_gridpts = config_dict["Matrix gridpoints"]
-    eigenf_gridpts = config_dict["Eigenfunction gridpoints"]
-    current_equil  = config_dict["Equilibrium type"]
+    parser = ArgumentParser()
+    parser.add_argument("-i", "--config_file", dest="config_file")
+    args = parser.parse_args()
 
-    filename_grid = "output/grid.dat"
-    filename_matA = "output/matrix_A.dat"
-    filename_matB = "output/matrix_B.dat"
-    filename_spec = "output/eigenvalues.dat"
+    config_file = args.config_file
+
+    if config_file is None:
+        raise TypeError('Configuration file could not be parsed.')
+
+    namelist = read_data.read_config_file(config_file)
+
+    # Retrieve values from namelist. Defaults should be provided INSIDE legolas so getting these
+    # should never fail. If it does, something is wrong.
+    gridpts = namelist['gridlist'].get('gridpts')
+    matrix_gridpts = namelist['gridlist'].get('matrix_gridpts')
+    eigenf_gridpts = namelist['gridlist'].get('ef_gridpts')
+    current_equil  = namelist['equilibriumlist'].get('equilibrium_type')
+
+    # setup the different filenames
+    output_folder = namelist['outputlist'].get('output_folder')
+    file_ext = namelist['outputlist'].get('file_extension')
+    filename_grid = output_folder + namelist['outputlist'].get('savename_efgrid') + file_ext
+    filename_matA = output_folder + namelist['outputlist'].get('savename_matrix') + '_A' + file_ext
+    filename_matB = output_folder + namelist['outputlist'].get('savename_matrix') + '_B' + file_ext
+    filename_omegas = output_folder + namelist['outputlist'].get('savename_eigenvalues') + file_ext
 
     eigenf_list = np.asarray(["rho", "v1", "v2", "v3", "T", "a1", "a2", "a3"])
     eigenfunctions = {}
 
-    if config_dict["Plot eigenfunctions"]:
+    if namelist['savelist']['show_eigenfunctions']:
         print("")
         print("-"*50)
         print(">>> INTERACTIVE PLOTTING OF EIGENFUNCTIONS <<<")
@@ -166,11 +185,11 @@ if __name__ == '__main__':
     # =============== READING DATA ================
 
     # Read eigenvalues
-    omegas   = read_data.read_stream_data(filename_spec, content_type=np.complex,
+    omegas   = read_data.read_stream_data(filename_omegas, content_type=np.complex,
                                           rows=1, cols=matrix_gridpts)[0]
 
     # Read matrices
-    if config_dict["Plot matrices"]:
+    if namelist['savelist']['show_matrices']:
         # Read matrix elements
         matrix_B = read_data.read_stream_data(filename_matB,
                         content_type=np.float64,
@@ -180,7 +199,7 @@ if __name__ == '__main__':
                         rows=matrix_gridpts, cols=matrix_gridpts)
 
     # Read eigenfunctions
-    if config_dict["Plot eigenfunctions"]:
+    if namelist['savelist']['show_eigenfunctions']:
         # Read grid data
         grid = read_data.read_stream_data(filename_grid,
                                           content_type=np.float64,
@@ -199,13 +218,12 @@ if __name__ == '__main__':
 
 
     # ================= CREATE FIGURES FOR PLOTTING ============
-    if config_dict["Plot matrices"]:
+    if namelist['savelist']['show_matrices']:
         fig1, ax1 = plt.subplots(1, 2, figsize=(12, 8))
         plot_data.plot_matrix(fig1, ax1, 0, matrix_A, title="Matrix A")
-        plot_data.plot_matrix(fig1, ax1, 1, matrix_B, title="Matrix B",
-                              log=False)
+        plot_data.plot_matrix(fig1, ax1, 1, matrix_B, title="Matrix B", log=False)
 
-    if config_dict["Plot eigenfunctions"]:
+    if namelist['savelist']['show_eigenfunctions']:
         fig2, ax2 = plt.subplots(1, 1, figsize=(12, 8))
         fig3, ax3 = plt.subplots(1, 1, figsize=(12, 8))
         # Initialise global variables in this case

@@ -5,7 +5,6 @@ mpl.use("TkAgg")
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import read_data
 
 def plot_matrix(fig, ax, ax_idx, matrix, title=None, log=True):
     matrix_gridpts = matrix.shape[0]
