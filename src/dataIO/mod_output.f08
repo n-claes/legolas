@@ -44,6 +44,7 @@ module mod_output
   public :: eigenvectors_tofile
   public :: ef_grid_tofile
   public :: eigenfunctions_tofile
+  public :: configuration_tofile
   public :: startup_info_toconsole
 
 contains
@@ -213,6 +214,35 @@ contains
       boolean_string = 'false'
     end if
   end subroutine logical_tostring
+
+
+  !> Saves the current configuration to a dedicated namelist so it can be
+  !! read in using Python.
+  !! @param[in] base_filename   base filename of the configuration file
+  !! @param[out] filename       filename of the configuration file, in the form
+  !!                            'output_folder/base_filename.nml'
+  subroutine configuration_tofile(base_filename, filename)
+    character(len=*), intent(in)    :: base_filename
+    character(str_len), intent(out) :: filename
+
+    namelist /gridlist/ geometry, x_start, x_end, gridpts, gauss_gridpts, &
+                        matrix_gridpts, ef_gridpts
+    namelist /equilibriumlist/ equilibrium_type, boundary_type
+    namelist /savelist/ write_matrices, write_eigenvectors, &
+                        write_eigenfunctions, show_results, show_matrices, &
+                        show_eigenfunctions
+    namelist /filelist/ savename_eigenvalues, savename_grid, savename_matrix, &
+                        savename_eigenvectors, savename_eigenfunctions
+
+    filename = trim('output/' // trim(base_filename) // '.nml')
+    open(unit=config_unit, file=filename, status='unknown', action='write')
+
+    write(config_unit, gridlist)
+    write(config_unit, equilibriumlist)
+    write(config_unit, savelist)
+    write(config_unit, filelist)
+    close(config_unit)
+  end subroutine configuration_tofile
 
 
   !> Prints basic information of the current configuration to the console.

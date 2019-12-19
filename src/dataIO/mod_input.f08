@@ -13,6 +13,8 @@ module mod_input
 
 contains
 
+  !> Reads in the supplied parfile and sets all global variables accordingly.
+  !! @param[in] parfile   The name of the parfile
   subroutine read_parfile(parfile)
     character(len=*), intent(in)  :: parfile
 
@@ -34,7 +36,8 @@ contains
                         write_eigenfunctions, show_results, show_matrices, &
                         show_eigenfunctions
     namelist /filelist/ savename_eigenvalues, savename_grid, savename_matrix, &
-                        savename_eigenvectors, savename_eigenfunctions
+                        savename_eigenvectors, savename_eigenfunctions, &
+                        savename_config
 
     parfile_present = .true.
     if (parfile == "") then
@@ -94,8 +97,7 @@ contains
     savename_matrix = "matrix"
     savename_eigenvectors = "eigenvectors"
     savename_eigenfunctions = "eigenfunctions"
-
-
+    savename_config = "configuration"
 
     !! Read parfile, if supplied
     if (parfile_present) then
@@ -137,6 +139,8 @@ contains
   end subroutine read_parfile
 
 
+  !> Retrieves the parfile passed as command line argument.
+  !! @param[out] filename_par   The name of the parfile
   subroutine get_parfile(filename_par)
     character(len=str_len), intent(out) :: filename_par
 

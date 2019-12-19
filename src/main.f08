@@ -28,6 +28,8 @@ program legolas
   complex(dp), allocatable  :: eigenvecs_right(:, :)
   !> Left eigenvectors
   complex(dp), allocatable  :: eigenvecs_left(:, :)
+  !> Name of the configuration file
+  character(str_len)        :: config_file
 
   ! allocate variables, initialise grid and physics
   call initialisation()
@@ -47,13 +49,18 @@ program legolas
   ! write spectrum, eigenvectors, matrices etc. to file
   call save_solutions()
 
+  ! save running configuration
+  call configuration_tofile(savename_config, config_file)
+
   ! deallocate everything
   call cleanup()
 
+  ! call python script and pass configuration file
   if (show_results) then
     write(*, *) ""
     write(*, *) "Plotting results..."
-    call execute_command_line("python3 python/process_legolas.py")
+    call execute_command_line("python3 python/process_legolas.py " // &
+                              "-i " // trim(config_file))
   end if
 
 
