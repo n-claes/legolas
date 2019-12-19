@@ -701,7 +701,6 @@ contains
     complex(dp)    :: mat_A(matrix_gridpts, matrix_gridpts)
     real(dp)       :: mat_B(matrix_gridpts, matrix_gridpts)
 
-    call initialise_grid()
     call initialise_equilibrium()
     call initialise_equilibrium_derivatives()
     call set_equilibrium()
