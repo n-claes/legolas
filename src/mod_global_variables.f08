@@ -142,8 +142,8 @@ module mod_global_variables
   !! Related parameters for filenames (filelist)
   !> Name for the eigenvalues file
   character(len=str_len)    :: savename_eigenvalues
-  !> Name for the grid file
-  character(len=str_len)    :: savename_grid
+  !> Name for the eigenfunction grid file
+  character(len=str_len)    :: savename_efgrid
   !> Name for the matrix files
   character(len=str_len)    :: savename_matrix
   !> Name for the eigenvector files

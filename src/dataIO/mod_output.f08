@@ -231,8 +231,9 @@ contains
     namelist /savelist/ write_matrices, write_eigenvectors, &
                         write_eigenfunctions, show_results, show_matrices, &
                         show_eigenfunctions
-    namelist /filelist/ savename_eigenvalues, savename_grid, savename_matrix, &
-                        savename_eigenvectors, savename_eigenfunctions
+    namelist /outputlist/ savename_eigenvalues, savename_efgrid, &
+                          savename_matrix, savename_eigenvectors, &
+                          savename_eigenfunctions, output_folder, file_extension
 
     filename = trim('output/' // trim(base_filename) // '.nml')
     open(unit=config_unit, file=filename, status='unknown', action='write')
@@ -240,7 +241,7 @@ contains
     write(config_unit, gridlist)
     write(config_unit, equilibriumlist)
     write(config_unit, savelist)
-    write(config_unit, filelist)
+    write(config_unit, outputlist)
     close(config_unit)
   end subroutine configuration_tofile
 

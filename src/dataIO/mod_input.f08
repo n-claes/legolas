@@ -35,9 +35,9 @@ contains
     namelist /savelist/ write_matrices, write_eigenvectors, &
                         write_eigenfunctions, show_results, show_matrices, &
                         show_eigenfunctions
-    namelist /filelist/ savename_eigenvalues, savename_grid, savename_matrix, &
-                        savename_eigenvectors, savename_eigenfunctions, &
-                        savename_config
+    namelist /filelist/ savename_eigenvalues, savename_efgrid, &
+                        savename_matrix, savename_eigenvectors, &
+                        savename_eigenfunctions, savename_config
 
     parfile_present = .true.
     if (parfile == "") then
@@ -93,7 +93,7 @@ contains
 
     !> Filelist defaults
     savename_eigenvalues = "eigenvalues"
-    savename_grid = "grid"
+    savename_efgrid = "ef_grid"
     savename_matrix = "matrix"
     savename_eigenvectors = "eigenvectors"
     savename_eigenfunctions = "eigenfunctions"
