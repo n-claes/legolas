@@ -54,7 +54,7 @@ contains
       call eigenfunctions_tofile(var_ef)
     end do
 
-    call ef_grid_tofile(ef_grid, trim('ef_' // savename_grid))
+    call ef_grid_tofile(ef_grid, trim(savename_efgrid))
     deallocate(var_ef % eigenfunctions)
 
   end subroutine calculate_eigenfunctions
