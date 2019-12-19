@@ -1,12 +1,44 @@
 import numpy as np
 import os, sys
+try:
+    import f90nml
+except ImportError:
+    print('f90nml package has to be installed first. \n'
+          '>> conda install -c conda-forge f90nml')
+    sys.exit(1)
+
 
 def check_file(filename):
+    """
+    Checks if the provided file exists
+    :param filename: path to file
+    :return: true if path exists, false otherwise
+    """
     if not os.path.isfile(filename):
         print(">> file not found -> {}".format(filename))
         sys.exit(1)
-    else:
-        return
+
+
+def read_config_file(config_file):
+    """
+    Reads the configuration namelist and processes it as a nested dictionary
+    :param config_file: namelist to read
+    :return: nested dictionary, access through eg. config_file['gridlist']['geometry']
+    """
+    check_file(config_file)
+
+    config_dict = f90nml.read(config_file)
+
+    # check strings for leading or trailing spaces and remove them
+    # iterate over different namelists
+    for namelist in config_dict:
+        # iterate over keys in each namelist
+        for namelist_key in config_dict[namelist]:
+            # if corresponding value is a string, remove spaces
+            if isinstance(config_dict[namelist][namelist_key], str):
+                config_dict[namelist][namelist_key] = config_dict[namelist][namelist_key].strip()
+
+    return config_dict
 
 
 def read_stream_data(filename, content_type, rows, cols):
@@ -24,35 +56,6 @@ def read_stream_data(filename, content_type, rows, cols):
     nbitems = rows * cols
     print(">> Reading {}".format(filename))
     data = np.fromfile(filename, dtype=content_type, count=nbitems)
-    results = data.reshape(rows, cols)
+    stream_data = data.reshape(rows, cols)
 
-    return results
-
-def read_config_file(filename):
-    def read_bool(bool):
-        return bool == 'T'
-
-    check_file(filename)
-
-    config_dict = {}
-
-    configfile = open(filename, 'r')
-    for line in configfile:
-        line = line.split(':')
-        line = [l.strip() for l in line]
-
-        if len(line) == 1:
-            continue
-
-        if line[1] == 'T' or line[1] == 'F':
-            config_dict[line[0]] = read_bool(line[1])
-        else:
-            try:
-                if "." in line[1]:
-                    config_dict[line[0]] = float(line[1])
-                else:
-                    config_dict[line[0]] = int(line[1])
-            except ValueError:
-                config_dict[line[0]] = line[1]
-
-    return config_dict
+    return stream_data
