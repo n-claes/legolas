@@ -152,9 +152,6 @@ contains
 
     end select
 
-    !! Calculate total magnetic field
-    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
-
     !! Set equilibrium physics
     if (radiative_cooling) then
       call set_cooling_derivatives(T0_eq, rho0_eq)
@@ -179,12 +176,10 @@ contains
 
 
   !> Initialises equilibrium for an adiabatic homogeneous medium in Cartesian
-  !! geometry. Explicitly force physics to prevent 'hacking' through parfile.
+  !! geometry.
   subroutine adiabatic_homo_eq()
-    call initialise_grid() ! Initialise grid
-
-    k2 = dpi
-    k3 = dpi
+    geometry = 'Cartesian'
+    call initialise_grid()
 
     flow = .false.
     radiative_cooling = .false.
@@ -192,19 +187,25 @@ contains
     resistivity = .false.
     external_gravity = .false.
 
+    k2 = dpi
+    k3 = dpi
+
     !! Parameters
     rho0_eq = 1.0d0
     T0_eq   = 1.0d0
     B02_eq  = 1.0d0
     B03_eq  = 1.0d0
-
+    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
   end subroutine adiabatic_homo_eq
 
 
+  !> Initialises equilibrium for a homogeneous medium in Cartesian geometry
+  !! with a constant resistivity value. From Advanced MHD, page 156.
   subroutine resistive_homo_eq()
     real(dp)  :: beta
 
-    call initialise_grid() ! Initialise grid
+    geometry = 'Cartesian'
+    call initialise_grid()
 
     flow = .false.
     radiative_cooling = .false.
@@ -216,25 +217,22 @@ contains
 
     k2 = 0.0d0
     k3 = 1.0d0
-
     beta = 0.25d0
 
     !! Parameters
     rho0_eq = 1.0d0
     B02_eq  = 0.0d0
     B03_eq  = 1.0d0
-
-    B0_eq   = 1.0d0
+    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
     T0_eq   = beta * B0_eq**2 / (2) ! n=1, kB=1, mu0=1
   end subroutine resistive_homo_eq
 
 
+  !> Initialises equilibrium for a homogeneous medium in Cartesian geometry
+  !! with a constant gravity term included.
   subroutine gravity_homo_eq()
-    real(dp)    :: g
-
-    call initialise_grid() ! Initialise grid
-
-    g = 5.0d0
+    geometry = 'Cartesian'
+    call initialise_grid()
 
     flow = .false.
     radiative_cooling = .false.
@@ -242,103 +240,30 @@ contains
     resistivity = .false.
     external_gravity = .true.
 
-    k2 = 2.0d0
+    k2 = dpi
     k3 = dpi
 
     !! Parameters
     rho0_eq = 1.0d0
     B02_eq  = 1.0d0
     B03_eq  = 1.0d0
-
+    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
     T0_eq   = 1.0d0
-    grav_eq = g
+    grav_eq = 0.5d0
   end subroutine gravity_homo_eq
 
 
-  subroutine gravito_mhd_waves_eq()
-    real(dp)    :: alpha, x, rho0, p0, B0
-    integer     :: i
-
-    call initialise_grid() ! Initialise grid
-
-    flow = .false.
-    radiative_cooling = .false.
-    thermal_conduction = .false.
-    resistivity = .false.
-    external_gravity = .true.
-
-    k2 = 0.0d0
-    k3 = dpi
-
-    alpha = 20
-
-    rho0 = 1.0d0
-    p0   = 1.0d0
-    B0   = 1.0d0
-    grav_eq = 1.0d0
-
-    do i = 1, gauss_gridpts
-      x = grid_gauss(i)
-
-      ! Equilibrium
-      rho0_eq(i) = rho0 * exp(-alpha * x)
-      B03_eq(i)  = B0 * exp(-0.5d0 * alpha * x)
-      T0_eq(i)   = p0 * exp(-alpha * x) / rho0_eq(i)
-
-      ! Derivatives
-      d_rho0_dr(i) = -alpha * rho0 * exp(-alpha * x)
-      d_B03_dr(i)  = -0.5d0 * alpha * B0 * exp(-0.5d0 * alpha * x)
-      d_T0_dr(i)   = 0.0d0    ! (T0 is a constant)
-    end do
-  end subroutine gravito_mhd_waves_eq
-
-
-  subroutine interchange_modes_eq()
-    integer       :: i, n
-    real(dp)      :: r, p0, A, R0, q
-
-    call initialise_grid() ! Initialise grid
-
-    flow = .false.
-    radiative_cooling = .false.
-    thermal_conduction = .false.
-    resistivity = .false.
-    external_gravity = .false.
-
-    k2 = -2.0d0
-    k3 = 0.1d0
-
-    ! Use these to control nq
-    n = 1
-    q = 2.10d0
-
-    R0 = n / k3     ! From quantization k = n/R0
-    A  = 1.0d0 / (R0 * q)
-    p0 = 1.0d0
-
-    do i = 1, gauss_gridpts
-      r = grid_gauss(i)
-
-      rho0_eq(i) = 1.0d0
-      B02_eq(i)  = A * r
-      B03_eq(i)  = 1.0d0
-      T0_eq(i)   = (p0 - (A**2 * r**2)) / rho0_eq(i)
-
-      d_B02_dr(i) = A
-      d_T0_dr(i)  = -2.0d0 * A**2 * r / rho0_eq(i)
-    end do
-
-  end subroutine interchange_modes_eq
-
-
+  !> Initialises equilibrium for the resistive tearing modes in Cartesian
+  !! geometry, without flow. From Advanced MHD, page 159.
   subroutine resistive_tearing_modes_eq()
     real(dp)              :: alpha, beta, x
     integer               :: i
 
+    geometry = 'Cartesian'
     ! Override values from par file
     x_start = -0.5d0
     x_end   = 0.5d0
-    call initialise_grid() ! Initialise grid
+    call initialise_grid()
 
     flow = .false.
     radiative_cooling = .false.
@@ -376,14 +301,17 @@ contains
   end subroutine resistive_tearing_modes_eq
 
 
+  !> Initialises equilibrium for the resistive tearing modes in Cartesian
+  !! geometry, with flow. From Advanced MHD, page 161.
   subroutine resistive_tearing_modes_flow_eq()
     real(dp)    :: alpha, beta, x
     integer     :: i
 
+    geometry = 'Cartesian'
     ! Override values from par file
     x_start = -0.5d0
     x_end   = 0.5d0
-    call initialise_grid() ! Initialise grid
+    call initialise_grid()
 
     flow = .true.
     radiative_cooling = .false.
@@ -430,7 +358,8 @@ contains
     real(dp)    :: v_x(gauss_gridpts), phi_x(gauss_gridpts), p_x(gauss_gridpts)
     integer     :: i
 
-    call initialise_grid() ! Initialise grid
+    geometry = 'Cartesian'
+    call initialise_grid()
 
     g = 15.0d0
 
@@ -470,6 +399,7 @@ contains
       v03_eq(i)  = cos(theta) * v_x(i)
       B02_eq(i)  = B0 * sin(phi_x(i))
       B03_eq(i)  = B0 * cos(phi_x(i))
+      B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)   = p_x(i) / rho0_eq(i)
 
       d_rho0_dr(i) = -rho0 * delta
@@ -483,7 +413,6 @@ contains
   end subroutine flow_driven_instabilities_eq
 
 
-
   !> Initialises equilibrium for Suydam cluster modes in cylindrical geometry.
   !! Obtained from Bondeson et al., Phys. Fluids 30 (1987)
   subroutine suydam_cluster_eq()
@@ -493,7 +422,8 @@ contains
     real(dp)      :: P0_eq(gauss_gridpts)
     integer       :: i
 
-    call initialise_grid() ! Initialise grid
+    geometry = 'cylindrical'
+    call initialise_grid()
 
     flow = .true.
     radiative_cooling = .false.
@@ -524,6 +454,7 @@ contains
       v03_eq(i) = v_z0 * (1.0d0 - r**2)
       B02_eq(i) = J1
       B03_eq(i) = sqrt(1.0d0 - p1) * J0
+      B0_eq(i)  = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       P0_eq(i)  = p0 + 0.5d0 * p1 * J0**2
       T0_eq(i)  = P0_eq(i) / rho0_eq(i)
 
@@ -531,8 +462,8 @@ contains
       d_T0_dr(i)    = p1 * J0 * DJ0
       d_v03_dr(i)   = -2.0d0 * v_z0 * r
     end do
-
   end subroutine suydam_cluster_eq
+
 
   !> Initialises equilibrium for the Kelvin-Helmholtz instability in
   !! Cartesian geometry.
@@ -541,7 +472,8 @@ contains
     real(dp)    :: a, x, p0, v0y, v0z
     integer     :: i
 
-    call initialise_grid() ! Initialise grid
+    geometry = 'Cartesian'
+    call initialise_grid()
 
     flow = .false.
     radiative_cooling = .false.
@@ -559,6 +491,7 @@ contains
     rho0_eq = 1.0d0
     B02_eq  = 0.0d0
     B03_eq  = 1.0d0
+    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
 
     k2 = 10
     k3 = 0
@@ -579,6 +512,7 @@ contains
     real(dp)    :: r
     integer     :: i
 
+    geometry = 'cylindrical'
     call initialise_grid() ! Initialise grid
 
     flow = .true.
@@ -608,6 +542,7 @@ contains
       v03_eq(i)  = a3
       B02_eq(i)  = b21*r + b22*r**2
       B03_eq(i)  = b3
+      B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)   = (1.0d0 / rho0_eq(i)) * (p0 &
                       + 0.5d0 * (a21**2 - 2*b21**2)*r**2 &
                       + (2.0d0/3.0d0)*(a21*a22 - b21*b22)*r**3 &
@@ -627,43 +562,18 @@ contains
 
   !> Cleaning routine, deallocates all arrays in this module.
   subroutine equilibrium_clean()
-    if (allocated(rho0_eq)) then
-      deallocate(rho0_eq)
-    end if
-    if (allocated(T0_eq)) then
-      deallocate(T0_eq)
-    end if
-    if (allocated(B02_eq)) then
-      deallocate(B02_eq)
-    end if
-    if (allocated(B03_eq)) then
-      deallocate(B03_eq)
-    end if
-    if (allocated(B0_eq)) then
-      deallocate(B0_eq)
-    end if
-    if (allocated(v02_eq)) then
-      deallocate(v02_eq)
-    end if
-    if (allocated(v03_eq)) then
-      deallocate(v03_eq)
-    end if
-    if (allocated(grav_eq)) then
-      deallocate(grav_eq)
-    end if
-    if (allocated(tc_para_eq)) then
-      deallocate(tc_para_eq)
-    end if
-    if (allocated(tc_perp_eq)) then
-      deallocate(tc_perp_eq)
-    end if
-    if (allocated(heat_loss_eq)) then
-      deallocate(heat_loss_eq)
-    end if
-    if (allocated(eta_eq)) then
-      deallocate(eta_eq)
-    end if
-
+    deallocate(rho0_eq)
+    deallocate(T0_eq)
+    deallocate(B02_eq)
+    deallocate(B03_eq)
+    deallocate(B0_eq)
+    deallocate(v02_eq)
+    deallocate(v03_eq)
+    deallocate(grav_eq)
+    deallocate(tc_para_eq)
+    deallocate(tc_perp_eq)
+    deallocate(heat_loss_eq)
+    deallocate(eta_eq)
   end subroutine equilibrium_clean
 
 
