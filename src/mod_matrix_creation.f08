@@ -327,26 +327,26 @@ contains
     positions(14, :) = [5, 4]
     ! A(5, 5)
     factors(15) = -eps_inv * ic * gamma_1 * ( &
-                    (tc_para - tc_perp) * B2_inv * (k2 * eps_inv * B02 + k3*B03)**2 &
-                     + tc_perp * (d_eps_dr * eps_inv)**2 &
-                     + tc_perp * (k2**2 * eps_inv**2 + k3**2) &
-                     + rho0 * L_T - d_eps_dr * eps_inv * dT0 * dtc_perp_dT &
-                                              ) &
-                    + eps_inv * rho0 * (eps_inv * k2 * v02 + k3 * v03) &
-                    + ic * gamma_1 * eps_inv * deta * ( &
-                      dB02**2 + dB03**2 + 2*d_eps_dr * eps_inv * B02 * dB02 &
-                      + (d_eps_dr * eps_inv * B02)**2 &
-                                                      )
+              (tc_para - tc_perp) * B2_inv * (k2 * eps_inv * B02 + k3*B03)**2 &
+              + tc_perp * (d_eps_dr * eps_inv)**2 &
+              + tc_perp * (k2**2 * eps_inv**2 + k3**2) &
+              + rho0 * L_T - d_eps_dr * eps_inv * dT0 * dtc_perp_dT &
+                                            ) &
+              + eps_inv * rho0 * (eps_inv * k2 * v02 + k3 * v03) &
+              + ic * gamma_1 * eps_inv * deta * ( &
+                  dB02**2 + dB03**2 + 2*d_eps_dr * eps_inv * B02 * dB02 &
+                  + (d_eps_dr * eps_inv * B02)**2 &
+                                                )
     positions(15, :) = [5, 5]
     ! A(5, 6)   (term with eta-derivative has been rewritten, d_eta_dr = deta * dT0)
     factors(16) = 2 * ic * gamma_1 * ( &
-                    (dT0 * d_eps_dr * eps_inv**2 &
-                         * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2) &
-                    + eps_inv * k2 * eta * ddB03 &
-                    - k3 * eta * ddB02 + 2*k3*(d_eps_dr*eps_inv)**2 * eta * B02 &
-                    + eps_inv * k2 * dB03 * deta * dT0 - k3 * dB02 * deta * dT0 &
-                    - d_eps_dr * eps_inv * B02 * deta * dT0 &
-                                       )
+              (dT0 * d_eps_dr * eps_inv**2 &
+              * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2) &
+              + eps_inv * k2 * eta * ddB03 &
+              - k3 * eta * ddB02 + 2*k3*(d_eps_dr*eps_inv)**2 * eta * B02 &
+              + eps_inv * k2 * dB03 * deta * dT0 - k3 * dB02 * deta * dT0 &
+              - k3 * d_eps_dr * eps_inv * B02 * deta * dT0 &
+                                      )
     positions(16, :) = [5, 6]
     ! A(6, 3)
     factors(17) = -B03
@@ -435,14 +435,18 @@ contains
     factors(6) = -gamma_1 * eps_inv * rho0 * T0
     positions(6, :) = [5, 2]
     ! A(5, 7)
-    factors(7) = 2.0d0*ic*gamma_1*eps_inv * &
-                  (dT0 * B03 * d_eps_dr * eps_inv * dtc_perp_dB2 - eta * ddB03)
+    factors(7) = 2.0d0*ic*gamma_1*eps_inv * ( &
+                    dT0 * B03 * d_eps_dr * eps_inv * dtc_perp_dB2 &
+                    - eta * ddB03 - deta * dT0 * dB03 &
+                                            )
     positions(7, :) = [5, 7]
     ! A(5, 8)    (derivative of eta-term has been rewritten, d_eta_dr = deta * dT0)
-    factors(8) = -2*ic*gamma_1 * &
-                    (dT0 * d_eps_dr * eps_inv * B02 * dtc_perp_dB2 &
-                     - eta*ddB02 + 2*(d_eps_dr * eps_inv)**2 * eta * B02 &
-                     - dB02 * deta * dT0 - d_eps_dr * eps_inv * B02 * deta * dT0 )
+    factors(8) = -2*ic*gamma_1 * ( &
+                    dT0 * d_eps_dr * eps_inv * B02 * dtc_perp_dB2 &
+                    - eta*ddB02 + 2*(d_eps_dr * eps_inv)**2 * eta * B02 &
+                    - dB02 * deta * dT0 &
+                    - d_eps_dr * eps_inv * B02 * deta * dT0 &
+                                 )
     positions(8, :) = [5, 8]
     ! A(6, 7)
     factors(9) = -eps_inv * v02 + ic * eta * eps_inv**2 * k2
