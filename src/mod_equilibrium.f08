@@ -121,12 +121,6 @@ contains
     case("Gravitational homogeneous")
       call gravity_homo_eq()
 
-    case("Gravito MHD waves")
-      call gravito_mhd_waves_eq()
-
-    case("Interchange modes")
-      call interchange_modes_eq()
-
     case("Resistive tearing modes")
       call resistive_tearing_modes_eq()
 
