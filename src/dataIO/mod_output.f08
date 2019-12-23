@@ -1,5 +1,5 @@
 module mod_output
-  use mod_global_variables
+  use mod_global_variables, only: dp, str_len, matrix_gridpts
   implicit none
 
   private
@@ -153,6 +153,8 @@ contains
   !! @param[in] ef_grid     array containing the grid for an eigenfunction
   !! @param[in] base_filename   filename to use, default 'ef_grid'
   subroutine ef_grid_tofile(ef_grid, base_filename)
+    use mod_global_variables, only: ef_gridpts
+    
     real(dp), intent(in)            :: ef_grid(ef_gridpts)
     character(len=*), intent(in)    :: base_filename
 
@@ -222,6 +224,8 @@ contains
   !! @param[out] filename       filename of the configuration file, in the form
   !!                            'output_folder/base_filename.nml'
   subroutine configuration_tofile(base_filename, filename)
+    use mod_global_variables
+    
     character(len=*), intent(in)    :: base_filename
     character(str_len), intent(out) :: filename
 
@@ -248,6 +252,8 @@ contains
 
   !> Prints basic information of the current configuration to the console.
   subroutine startup_info_toconsole()
+    use mod_global_variables
+    
     character(20)                   :: char
 
     write(*, *) "------------------------------"
@@ -302,9 +308,5 @@ contains
     write(*, *) ''
 
   end subroutine startup_info_toconsole
-
-
-
-
 
 end module mod_output

@@ -11,9 +11,7 @@
 !
 
 program legolas
-  use mod_global_variables
-  use mod_output
-  use mod_equilibrium, only: set_equilibrium
+  use mod_global_variables, only: dp, str_len, show_results
   use mod_matrix_creation, only: create_matrices
   use mod_solvers, only: solve_QR
   implicit none
@@ -31,12 +29,8 @@ program legolas
   !> Name of the configuration file
   character(str_len)        :: config_file
 
-  ! allocate variables, initialise grid and physics
+  ! allocate variables, initialise grid and physics, set equilibrium
   call initialisation()
-  ! set the equilibrium configuration
-  call set_equilibrium()
-  ! print configuration to console
-  call startup_info_toconsole()
 
   ! create matrices A and B
   write(*, *) "Creating matrices..."
@@ -47,10 +41,7 @@ program legolas
   call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
 
   ! write spectrum, eigenvectors, matrices etc. to file
-  call save_solutions()
-
-  ! save running configuration
-  call configuration_tofile(savename_config, config_file)
+  call finalise_results()
 
   ! deallocate everything
   call cleanup()
@@ -68,11 +59,13 @@ contains
 
   !> Initialises the grid and equilibrium configuration.
   subroutine initialisation()
+    use mod_global_variables, only: matrix_gridpts
     use mod_input, only: read_parfile, get_parfile
     use mod_grid, only: initialise_grid
-    use mod_equilibrium, only: initialise_equilibrium
+    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
     use mod_eigenfunctions, only: initialise_eigenfunctions
+    use mod_output, only: startup_info_toconsole
 
     character(len=str_len)  :: parfile
 
@@ -93,13 +86,20 @@ contains
     ! Initialise eigenfunction arrays
     call initialise_eigenfunctions()
 
+    ! set the equilibrium configuration
+    call set_equilibrium()
+    ! print configuration to console
+    call startup_info_toconsole()
+
   end subroutine initialisation
 
 
   !> Saves the solutions
-  subroutine save_solutions()
-    use mod_eigenfunctions
-    use mod_output
+  subroutine finalise_results()
+    use mod_global_variables, only: savename_eigenvalues, write_matrices, savename_matrix, write_eigenvectors, &
+                                    savename_eigenvectors, write_eigenfunctions, savename_config
+    use mod_output, only: eigenvalues_tofile, matrices_tofile, eigenvectors_tofile, configuration_tofile
+    use mod_eigenfunctions, only: calculate_eigenfunctions
 
     write(*, *) "Writing eigenvalues to file..."
     call eigenvalues_tofile(omega, savename_eigenvalues)
@@ -111,19 +111,22 @@ contains
 
     if (write_eigenvectors) then
       write(*, *) "Writing eigenvectors to file..."
-      call eigenvectors_tofile(eigenvecs_left, eigenvecs_right, &
-                               savename_eigenvectors)
+      call eigenvectors_tofile(eigenvecs_left, eigenvecs_right, savename_eigenvectors)
     end if
 
     if (write_eigenfunctions) then
       write(*, *) "Writing eigenfunctions to file..."
       call calculate_eigenfunctions(eigenvecs_right)
     end if
-  end subroutine save_solutions
+
+    ! save running configuration
+    call configuration_tofile(savename_config, config_file)
+  end subroutine finalise_results
 
 
   !> Performs cleanup, deallocates variables.
   subroutine cleanup()
+    use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid_clean
     use mod_equilibrium, only: equilibrium_clean
     use mod_equilibrium_derivatives, only: equilibrium_derivatives_clean

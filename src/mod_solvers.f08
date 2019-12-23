@@ -10,10 +10,12 @@
 !! Does calls to the BLAS and LAPACK libraries.
 !
 module mod_solvers
-  use mod_global_variables
+  use mod_global_variables, only: dp, matrix_gridpts
   implicit none
 
-  public
+  private
+  
+  public :: solve_QR
 
 contains
 
@@ -28,7 +30,8 @@ contains
   !! @param[out] vr The right eigenvectors, only calculated when
   !!                write_eigenfunctions is .true., otherwise zero.
   subroutine solve_QR(A, B, omega, vl, vr)
-    use mod_check_values
+    use mod_global_variables, only: write_eigenfunctions
+    use mod_check_values, only: check_small_values
 
     complex(dp), intent(in)  :: A(matrix_gridpts, matrix_gridpts)
     real(dp), intent(in)     :: B(matrix_gridpts, matrix_gridpts)
@@ -82,7 +85,7 @@ contains
     call zgeev(jobvl, jobvr, N, B_invA, ldB_invA, omega, vl, ldvl, &
                vr, ldvr, work, lwork, rwork, info)
 
-    if (info .ne. 0) then
+    if (info /= 0) then
       write(*, *) 'LAPACK routine zggev failed'
       write(*, *) 'Value for info parameter: ', info
     end if
@@ -122,7 +125,7 @@ contains
 
     ! Calculate pivot indices
     call dgetrf(N, N, B_inv, ldb, ipiv, info)
-    if (info .ne. 0) then
+    if (info /= 0) then
       write(*, *) 'LU factorisation of matrix B failed'
       write(*, *) 'Value for info parameter: ', info
       stop
@@ -130,7 +133,7 @@ contains
 
     call dgetri(N, B_inv, ldb, ipiv, work, lwork, info)
 
-    if (info .ne. 0) then
+    if (info /= 0) then
       write(*, *) 'Inversion of matrix B failed'
       write(*, *) 'Value for info parameter: ', info
       stop
@@ -176,45 +179,5 @@ contains
                beta, B_invA, ldB_invA)
 
   end subroutine get_B_invA
-
-
-  !> Also does the matrix multiplication B^{-1}A, but using Fortran's
-  !! build-in 'matmul' function. Used for comparison with the case above.
-  !! @param[in]   B_inv   The inverse of the matrix B
-  !! @param[in]   A       The matrix A
-  !! @param[out]  B_invA  The result of the matrix multiplication B_inv * A
-  subroutine get_B_invA_matmul(B_inv, A, B_invA)
-    real(dp), intent(in)      :: B_inv(matrix_gridpts, matrix_gridpts)
-    complex(dp), intent(in)   :: A(matrix_gridpts, matrix_gridpts)
-    complex(dp), intent(out)  :: B_invA(matrix_gridpts, matrix_gridpts)
-
-    B_invA = matmul(B_inv, A)
-
-  end subroutine get_B_invA_matmul
-
-
-  !> Also does the matrix multiplication B^{-1}A, but is manually implemented
-  !! using three do-loops. Used for comparison with the other methods.
-  !! @param[in]   B_inv   The inverse of the matrix B
-  !! @param[in]   A       The matrix A
-  !! @param[out]  B_invA  The result of the matrix multiplication B_inv * A
-  subroutine get_B_invA_manual(B_inv, A, B_invA)
-    real(dp), intent(in)      :: B_inv(matrix_gridpts, matrix_gridpts)
-    complex(dp), intent(in)   :: A(matrix_gridpts, matrix_gridpts)
-    complex(dp), intent(out)  :: B_invA(matrix_gridpts, matrix_gridpts)
-
-    integer                   :: i, j, k
-
-    B_invA = (0.0d0, 0.0d0)
-
-    do i = 1, matrix_gridpts
-      do j = 1, matrix_gridpts
-        do k = 1, matrix_gridpts
-          B_invA(i, j) = B_invA(i, j) + B_inv(i, k) * A(k, j)
-        end do
-      end do
-    end do
-
-  end subroutine get_B_invA_manual
 
 end module mod_solvers

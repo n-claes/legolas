@@ -1,6 +1,8 @@
 module mod_check_values
-  use mod_global_variables
+  use mod_global_variables, only: dp, dp_LIMIT
   implicit none
+  
+  private
 
   interface check_small_values
     module procedure small_values_real_array
@@ -8,6 +10,9 @@ module mod_check_values
     module procedure small_values_real_matrix
     module procedure small_values_complex_matrix
   end interface check_small_values
+  
+  public :: check_small_values
+  public :: check_negative_array
 
 contains
 
