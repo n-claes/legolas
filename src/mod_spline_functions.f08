@@ -21,11 +21,16 @@
 !! derivatives.
 !
 module mod_spline_functions
-  use mod_global_variables
-  use mod_check_values
+  use mod_global_variables, only: dp
+  use mod_check_values, only: check_small_values
   implicit none
 
-  public
+  private
+  
+  public :: quadratic_factors
+  public :: quadratic_factors_deriv
+  public :: cubic_factors
+  public :: cubic_factors_deriv
 
 contains
 

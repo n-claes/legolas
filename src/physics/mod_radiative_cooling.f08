@@ -9,8 +9,7 @@
 !> Module to calculate the radiative cooling contributions.
 !
 module mod_radiative_cooling
-  use mod_global_variables
-  use mod_physical_constants, only: unit_temperature
+  use mod_global_variables, only: dp, ncool
   implicit none
 
   private
@@ -43,6 +42,7 @@ contains
   !! curve specified. Interpolates the data from mod_cooling_curves using
   !! ncool gridpoints.
   subroutine initialise_radiative_cooling()
+    use mod_global_variables, only: cooling_curve
     use mod_cooling_curves
 
     real(dp), allocatable       :: table_T(:), table_L(:)
@@ -136,6 +136,8 @@ contains
   !! @param[out] lambda   Interpolated lambda (value of the cooling curve)
   !!                      for every temperature in the T0 array
   subroutine get_Lambda(T0, lambda)
+    use mod_global_variables, only: gauss_gridpts
+    
     real(dp), intent(in)  :: T0(gauss_gridpts)
     real(dp), intent(out) :: lambda(gauss_gridpts)
     integer               :: idx, i
@@ -167,6 +169,8 @@ contains
   !! @param[out] dLambdadT  Interpolated derivative of lambda
   !!                        for every temperature in the T0 array
   subroutine get_dLambdadT(T0, dLambdadT)
+    use mod_global_variables, only: gauss_gridpts
+    
     real(dp), intent(in)     :: T0(gauss_gridpts)
     real(dp), intent(out)    :: dLambdadT(gauss_gridpts)
     integer                  :: idx, i
@@ -198,7 +202,7 @@ contains
   !! @param[in] table_T   Temperature entries of cooling table.
   !! @param[in] table_L   Luminosity entries of cooling table.
   subroutine interpolate_cooling_curve(ntable, table_T, table_L)
-    use mod_physical_constants
+    use mod_physical_constants, only: unit_temperature, unit_luminosity
 
     integer, intent(in)   :: ntable
     real(dp), intent(in)  :: table_T(:), table_L(:)
@@ -218,11 +222,11 @@ contains
 
     do i=2, ncool        ! loop to create one table
       interp_table_T(i) = interp_table_T(i-1) + ratt
-      do j=1,ntable-1    ! loop to create one spot on a table
+      do j=1, ntable-1    ! loop to create one spot on a table
       ! Second order polynomial interpolation, except at the outer edge,
       ! or in case of a large jump.
         if (interp_table_T(i) < table_T(j+1)) then
-           if (j.eq. ntable-1 ) then
+           if (j == ntable-1 ) then
              fact1 = (interp_table_T(i)-table_T(j+1))      &
                    /(table_T(j)-table_T(j+1))
 
@@ -237,7 +241,7 @@ contains
              jump =(max(dabs(dL1),dabs(dL2)) > 2*min(dabs(dL1),dabs(dL2)))
            endif
 
-           if( jump ) then
+           if (jump) then
              fact1 = (interp_table_T(i)-table_T(j+1))      &
                    /(table_T(j)-table_T(j+1))
 
@@ -267,7 +271,7 @@ contains
              exit
            endif
         endif
-      enddo  ! end loop to find create one spot on a table
+      enddo  ! end loop to create one spot on a table
     enddo    ! end loop to create one table
 
     ! Go from logarithmic to actual values.

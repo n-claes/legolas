@@ -10,10 +10,13 @@
 !! Gaussian grid.
 !
 module mod_make_subblock
-  use mod_global_variables
   implicit none
 
-  public
+  private
+  
+  public :: subblock
+  public :: reset_factors
+  public :: reset_positions
 
 
 contains
@@ -30,7 +33,8 @@ contains
   !! @param[in] spline2   Right basis function of the current integral elements
   subroutine subblock(quadblock, factors, positions, &
                       curr_weight, spline1, spline2)
-
+    use mod_global_variables, only: dp, dim_quadblock, dim_subblock
+    
     complex(dp), intent(inout)  :: quadblock(dim_quadblock, dim_quadblock)
     complex(dp), intent(inout)  :: factors(:)
     integer, intent(in)         :: positions(:, :)
@@ -114,6 +118,8 @@ contains
   !!                          reallocated with size_factors
   !! @param[in] size_factors  The new size of the factors array
   subroutine reset_factors(factors, size_factors)
+    use mod_global_variables, only: dp
+    
     complex(dp), intent(inout), allocatable :: factors(:)
     integer, intent(in)     :: size_factors
 

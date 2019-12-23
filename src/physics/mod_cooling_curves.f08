@@ -9,7 +9,7 @@
 !> Module containing the data of different cooling curves.
 !
 module mod_cooling_curves
-  use mod_global_variables
+  use mod_global_variables, only: dp
   implicit none
 
   integer, protected     :: n_JCcorona      , n_DM      , n_MLsolar      , &

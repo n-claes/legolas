@@ -9,14 +9,14 @@
 !> Module to calculate the resistivity contributions.
 !
 module mod_resistivity
-  use mod_global_variables
-  use mod_physical_constants
+  use mod_global_variables, only: dp, gauss_gridpts
+  use mod_physical_constants, only: dpi, Z_ion, coulomb_log
   implicit none
 
-  public
-
-  private :: get_constants
-
+  private
+  
+  public :: get_eta
+  public :: get_deta_dT
 
 contains
 
@@ -24,6 +24,9 @@ contains
   !! @param[in]  T0   Array with the equilibrium temperatures, in K
   !! @param[out] eta  Array containing the Spitzer resistivity as a function of T
   subroutine get_eta(T0, eta)
+    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
+    use mod_physical_constants, only: unit_temperature, set_unit_resistivity, unit_resistivity
+    
     real(dp), intent(in)    :: T0(gauss_gridpts)
     real(dp), intent(out)   :: eta(gauss_gridpts)
 
@@ -61,6 +64,9 @@ contains
   !! @param[out] deta_dT Array containing the derivative of the Spitzer
   !!                     resistivity with respect to temperature
   subroutine get_deta_dT(T0, deta_dT)
+    use mod_global_variables, only: use_fixed_resistivity
+    use mod_physical_constants, only: unit_temperature, unit_deta_dT
+    
     real(dp), intent(in)    :: T0(gauss_gridpts)
     real(dp), intent(out)   :: deta_dT(gauss_gridpts)
 
@@ -90,6 +96,9 @@ contains
   !! @param[out] e0   The permittivity of free space in SI or cgs units
   !! @param[out] kB   The Boltzmann constant in SI or cgs units
   subroutine get_constants(ec, me, e0, kB)
+    use mod_global_variables, only: cgs_units
+    use mod_physical_constants, only: ec_cgs, me_cgs, kB_cgs, ec_si, me_si, e0_si, kB_si
+    
     real(dp), intent(out) :: ec, me, e0, kB
 
     if (cgs_units) then
@@ -105,6 +114,5 @@ contains
     end if
 
   end subroutine get_constants
-
 
 end module mod_resistivity
