@@ -1,6 +1,5 @@
 module mod_input
   use mod_global_variables
-  use mod_physical_constants
   implicit none
 
   private
@@ -16,6 +15,8 @@ contains
   !> Reads in the supplied parfile and sets all global variables accordingly.
   !! @param[in] parfile   The name of the parfile
   subroutine read_parfile(parfile)
+    use mod_physical_constants, only: set_unit_length, set_unit_numberdensity, set_unit_temperature, set_normalisations
+    
     character(len=*), intent(in)  :: parfile
 
     real(dp)    :: mhd_gamma

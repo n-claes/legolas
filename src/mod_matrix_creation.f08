@@ -9,7 +9,7 @@
 !> Module to create the matrices A and B in the eigenvalue problem AX = wBX
 !
 module mod_matrix_creation
-  use mod_global_variables
+  use mod_global_variables, only: dp, gridpts, matrix_gridpts, dim_quadblock, dim_subblock
   implicit none
 
   private
@@ -28,9 +28,11 @@ module mod_matrix_creation
 contains
 
   subroutine create_matrices(matrix_B, matrix_A)
-    use mod_grid
-    use mod_spline_functions
-    use mod_boundary_conditions
+    use mod_global_variables, only: geometry, gaussian_weights, n_gauss
+    use mod_grid, only: grid, grid_gauss
+    use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, cubic_factors, cubic_factors_deriv
+    use mod_boundary_conditions, only: boundaries_B_left_edge, boundaries_B_right_edge, &
+                                       boundaries_A_left_edge, boundaries_A_right_edge
 
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp), intent(inout)  :: matrix_A(matrix_gridpts, matrix_gridpts)
@@ -64,10 +66,10 @@ contains
         r = grid_gauss(gauss_idx)
 
         ! check geometry to define scale factor
-        if (geometry .eq. 'Cartesian') then
+        if (geometry == 'Cartesian') then
           eps = 1.0d0
           d_eps_dr = 0.0d0
-        else if (geometry .eq. 'cylindrical') then
+        else if (geometry == 'cylindrical') then
           eps = r
           d_eps_dr = 1.0d0
         else
@@ -132,8 +134,8 @@ contains
   !! @param[in, out] quadblock_B The quadblock, used to calculate the B-matrix.
   !!                             This block is shifted on the main diagonal
   subroutine get_B_elements(gauss_idx, eps, curr_weight, quadblock_B)
-    use mod_equilibrium
-    use mod_make_subblock
+    use mod_equilibrium, only: rho0_eq
+    use mod_make_subblock, only: subblock, reset_positions, reset_factors
 
     integer, intent(in)          :: gauss_idx
     real(dp), intent(in)         :: eps, curr_weight
@@ -202,10 +204,13 @@ contains
   !! @param[in, out] quadblock_A  The quadblock, used to calculate the A-matrix.
   !!                              This block is shifted on the main diagonal
   subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_A)
-    use mod_grid
-    use mod_equilibrium
-    use mod_equilibrium_derivatives
-    use mod_make_subblock
+    use mod_global_variables, only: ic, gamma_1, k2, k3
+    use mod_equilibrium, only: rho0_eq, T0_eq, B02_eq, B03_eq, B0_eq, v02_eq, v03_eq, tc_para_eq, tc_perp_eq, &
+                               heat_loss_eq, eta_eq, grav_eq
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_B02_dr, d_B03_dr, d_T0_dr, d_v02_dr, d_v03_dr, &
+                               d_tc_perp_eq_drho, d_tc_perp_eq_dB2, d_tc_perp_eq_dT, d_L_dT, d_L_drho, &
+                               d_eta_dT, dd_B02_dr, dd_B03_dr
+    use mod_make_subblock, only: subblock, reset_factors, reset_positions
 
     integer, intent(in)       :: gauss_idx
     real(dp), intent(in)      :: eps, d_eps_dr, curr_weight

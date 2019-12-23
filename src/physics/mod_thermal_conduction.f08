@@ -9,11 +9,17 @@
 !> Module to calculate the thermal conduction contributions.
 !
 module mod_thermal_conduction
-  use mod_physical_constants
-  use mod_global_variables
+  use mod_global_variables, only: dp, gauss_gridpts, cgs_units
+  use mod_physical_constants, only: dpi, coulomb_log, mp_cgs, mp_si, unit_temperature
   implicit none
 
-  public
+  private
+  
+  public :: get_kappa_para
+  public :: get_kappa_perp
+  public :: get_dkappa_perp_drho
+  public :: get_dkappa_perp_dT
+  public :: get_dkappa_perp_dB2
 
 contains
 
@@ -22,6 +28,8 @@ contains
   !! @param[in]  T0_eq    Array containing the equilibrium temperatures, in K
   !! @param[out] tc_para  Array containing the parallel conduction coefficients
   subroutine get_kappa_para(T0_eq, tc_para)
+    use mod_physical_constants, only: unit_conduction
+    
     real(dp), intent(in)  :: T0_eq(gauss_gridpts)
     real(dp), intent(out) :: tc_para(gauss_gridpts)
 
@@ -50,6 +58,8 @@ contains
   !! @param[in]  B0_eq    Array containing the equilibrium magnetic field
   !! @param[out] tc_perp  Array containing the perpendicular conduction coefficients
   subroutine get_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp)
+    use mod_physical_constants, only: unit_magneticfield, unit_conduction, unit_numberdensity
+    
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: tc_perp(gauss_gridpts)
@@ -94,6 +104,8 @@ contains
   !!                        perpendicular conduction coefficient
   !!                        with respect to density
   subroutine get_dkappa_perp_drho(T0_eq, rho0_eq, B0_eq, d_tc_drho)
+    use mod_physical_constants, only: unit_magneticfield, unit_dtc_drho, unit_numberdensity
+    
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: d_tc_drho(gauss_gridpts)
@@ -136,6 +148,8 @@ contains
   !!                      perpendicular conduction coefficient
   !!                      with respect to temperature
   subroutine get_dkappa_perp_dT(T0_eq, rho0_eq, B0_eq, d_tc_dT)
+    use mod_physical_constants, only: unit_magneticfield, unit_dtc_dT, unit_numberdensity
+    
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: d_tc_dT(gauss_gridpts)
@@ -176,6 +190,8 @@ contains
   !!                       perpendicular conduction coefficient
   !!                       with respect to B^2
   subroutine get_dkappa_perp_dB2(T0_eq, rho0_eq, B0_eq, d_tc_dB2)
+    use mod_physical_constants, only: unit_magneticfield, unit_dtc_dB2, unit_numberdensity
+    
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: d_tc_dB2(gauss_gridpts)
@@ -212,6 +228,8 @@ contains
   !! @param[in]  mp        The proton mass, in cgs or SI units
   !! @param[out] nH        Array containing the equilibrium number density
   subroutine get_nH(rho0_eq, mp, nH)
+    use mod_physical_constants, only: unit_density, unit_numberdensity, He_abundance
+    
     real(dp), intent(in)  :: rho0_eq(gauss_gridpts), mp
     real(dp), intent(out) :: nH(gauss_gridpts)
     real(dp)              :: rho0_eq_denorm(gauss_gridpts)
