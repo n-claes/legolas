@@ -2,18 +2,18 @@
   geometry = 'Cartesian'
   x_start  = 0.0d0
   x_end    = 1.0d0
-  gridpoints = 51
+  gridpoints = 101
 /
 
 &equilibriumlist
   ! equilibrium_type = "Adiabatic homogeneous"               ! Cartesian
-   equilibrium_type = "Resistive homogeneous"               ! Cartesian
+  ! equilibrium_type = "Resistive homogeneous"               ! Cartesian
   ! equilibrium_type = "Gravitational homogeneous"           ! Cartesian
   ! equilibrium_type = "Resistive tearing modes"             ! Cartesian
   ! equilibrium_type = "Resistive tearing modes with flow"   ! Cartesian
   ! equilibrium_type = "Flow driven instabilities"           ! Cartesian
   ! equilibrium_type = "Suydam cluster modes"                ! cylindrical
-  ! equilibrium_type = "Kelvin-Helmholtz"                    ! Cartesian
+   equilibrium_type = "Kelvin-Helmholtz"                    ! Cartesian
   ! equilibrium_type = "Rotating plasma cylinder"            ! cylindrical
   boundary_type = "wall"
 /
@@ -24,5 +24,5 @@
   write_eigenfunctions = .true.
   show_results = .true.
   show_matrices = .false.
-  show_eigenfunctions = .false.
+  show_eigenfunctions = .true.
 /

@@ -52,7 +52,7 @@ module mod_equilibrium
   !! Resistivity equilibrium variables
   !> Equilibrium resistivity
   real(dp), allocatable         :: eta_eq(:)
-  
+
   public :: rho0_eq, T0_eq, B02_eq, B03_eq, B0_eq, v02_eq, v03_eq
   public :: grav_eq
   public :: tc_para_eq, tc_perp_eq, heat_loss_eq, eta_eq
@@ -124,31 +124,31 @@ contains
     select case(equilibrium_type)
       case("Adiabatic homogeneous")
         call adiabatic_homo_eq()
-  
+
       case("Resistive homogeneous")
         call resistive_homo_eq()
-  
+
       case("Gravitational homogeneous")
         call gravity_homo_eq()
-  
+
       case("Resistive tearing modes")
         call resistive_tearing_modes_eq()
-  
+
       case("Resistive tearing modes with flow")
         call resistive_tearing_modes_flow_eq()
-  
+
       case("Flow driven instabilities")
         call flow_driven_instabilities_eq()
-  
+
       case("Suydam cluster modes")
         call suydam_cluster_eq()
-  
+
       case("Kelvin-Helmholtz")
         call KH_instability_eq()
-  
+
       case("Rotating plasma cylinder")
         call rotating_plasma_cyl_eq()
-  
+
       case default
         write(*, *) "Equilibrium not recognised."
         write(*, *) "Currently set on: ", equilibrium_type
@@ -205,7 +205,7 @@ contains
   !! with a constant resistivity value. From Advanced MHD, page 156.
   subroutine resistive_homo_eq()
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
-    
+
     real(dp)  :: beta
 
     geometry = 'Cartesian'
@@ -262,7 +262,7 @@ contains
   subroutine resistive_tearing_modes_eq()
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
-    
+
     real(dp)              :: alpha, beta, x
     integer               :: i
 
@@ -313,7 +313,7 @@ contains
   subroutine resistive_tearing_modes_flow_eq()
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr, d_v02_dr
-    
+
     real(dp)    :: alpha, beta, x
     integer     :: i
 
@@ -364,7 +364,7 @@ contains
 
   subroutine flow_driven_instabilities_eq()
     use mod_equilibrium_derivatives, only: d_rho0_dr, d_v02_dr, d_v03_dr, d_B02_dr, d_B03_dr, d_T0_dr
-    
+
     real(dp)    :: rho0, delta, theta, v0, v1, v2, tau, phi0, alpha, B0, x, k0, g, p0
     real(dp)    :: v_x(gauss_gridpts), phi_x(gauss_gridpts), p_x(gauss_gridpts)
     integer     :: i
@@ -428,7 +428,7 @@ contains
   !! Obtained from Bondeson et al., Phys. Fluids 30 (1987)
   subroutine suydam_cluster_eq()
     use mod_equilibrium_derivatives, only: d_T0_dr, d_v03_dr
-    
+
     real(dp)      :: v_z0, p0, p1, alpha, r
     real(dp)      :: J0, J1, DJ0, DJ1
     real(dp)      :: P0_eq(gauss_gridpts)
@@ -481,13 +481,15 @@ contains
   !! Cartesian geometry.
   !! From Miura et al., J. Geophys. Res. 87 (1982)
   subroutine KH_instability_eq()
+    use mod_equilibrium_derivatives, only: d_v02_dr, d_v03_dr
+
     real(dp)    :: a, x, p0, v0y, v0z
     integer     :: i
 
     geometry = 'Cartesian'
     call initialise_grid()
 
-    flow = .false.
+    flow = .true.
     radiative_cooling = .false.
     thermal_conduction = .false.
     resistivity = .false.
@@ -505,22 +507,26 @@ contains
     B03_eq  = 1.0d0
     B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
 
-    k2 = 10
-    k3 = 0
+    k2 = 10.0d0
+    k3 = 0.0d0
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
-      v02_eq(i) = -v0y * tanh((x - 0.5d0) / a)
-      v03_eq(i) = -v0z * tanh((x - 0.5d0) / a)
+      v02_eq(i)   = -v0y * tanh((x - 0.5d0) / a)
+      v03_eq(i)   = -v0z * tanh((x - 0.5d0) / a)
 
-      T0_eq(i)  = P0 / rho0_eq(i)
+      T0_eq(i)    = P0 / rho0_eq(i)
+
+      ! Derivatives
+      d_v02_dr(i) = -v0y / (a * cosh((x - 0.5d0) / a)**2)
+      d_v03_dr(i) = -v0z / (a * cosh((x - 0.5d0) / a)**2)
     end do
   end subroutine KH_instability_eq
 
 
   subroutine rotating_plasma_cyl_eq()
     use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, d_v02_dr, d_v03_dr, d_T0_dr
-    
+
     real(dp)    :: a21, a22, a3, b21, b22, b3, p0
     real(dp)    :: r
     integer     :: i
@@ -562,11 +568,11 @@ contains
                       + (1.0d0/4.0d0)*(a22**2 - b22**2)*r**4)
 
       !! Derivatives
-      d_B02_dr(i) = b21 + 2*b22*r
+      d_B02_dr(i) = b21 + 2.0d0*b22*r
       d_B03_dr(i) = 0.0d0
-      d_v02_dr(i) = a21 + 2*a22*r
+      d_v02_dr(i) = a21 + 2.0d0*a22*r
       d_v03_dr(i) = 0.0d0
-      d_T0_dr(i)  = (1.0d0 / rho0_eq(i)) * ( (a21**2 - 2*b21**2)*r &
+      d_T0_dr(i)  = (1.0d0 / rho0_eq(i)) * ( (a21**2 - 2.0d0*b21**2)*r &
                      + 2.0d0*(a21*a22 - b21*b22)*r**2 &
                      + (a22**2 - b22**2)*r**3 )
     end do
