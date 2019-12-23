@@ -9,24 +9,28 @@
 !> Module to create the grid and to do mesh accumulation if needed.
 !
 module mod_grid
-  use mod_global_variables
+  use mod_global_variables, only: dp, gridpts
   implicit none
 
-  public
+  private
 
   !> Array containing the regular (coarse) grid
   real(dp), allocatable      :: grid(:)
   !> New array with 4x the length of grid (4 nodes of Gaussian quadrature)
   real(dp), allocatable      :: grid_gauss(:)
 
-  private :: accumulate_mesh
-  private :: gaussian
+  public :: grid, grid_gauss
+  public :: initialise_grid
+  public :: set_grid_gauss
+  public :: grid_clean
 
 contains
 
   !> Initialises both the regular grid and grid_gauss. Does mesh accumulation
   !! if desired.
   subroutine initialise_grid()
+    use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, gauss_gridpts
+    
     integer                  :: i
     real(dp)                 :: dx
 
@@ -43,7 +47,7 @@ contains
       grid(i) = x_start + (i - 1)*dx
     end do
 
-    if (geometry == "cylindrical" .and. grid(1) .le. 1.0d-5) then
+    if (geometry == "cylindrical" .and. grid(1) <= 1.0d-5) then
       grid(1) = 1.0d-5
     end if
 
@@ -58,14 +62,10 @@ contains
   !> Sets up grid_gauss, that is, the grid evaluated in the four
   !! Gaussian points.
   subroutine set_grid_gauss()
+    use mod_global_variables, only: gaussian_nodes, n_gauss
+    
     real(dp)              :: x_lo, x_hi, dx, xi(n_gauss)
     integer               :: i, j, idx
-
-    ! Check for origin in cylindrical coordinates
-    ! \TODO: is this needed? This is automatically handled in the loop below??
-    if (geometry == "cylindrical" .and. grid_gauss(1) .le. 1.0d-5) then
-      grid_gauss(1) = 1.0d-5
-    end if
 
     ! Evaluate grid_gauss in nodes of Gaussian quadrature.
     ! An integral of f(x) in [a, b] can be approximated by
@@ -91,6 +91,8 @@ contains
   !! using equidistribution based on the integral under the curve defined
   !! by the function gaussian().
   subroutine accumulate_mesh()
+    use mod_global_variables, only: x_start, x_end
+    
     integer                  :: i, integral_gridpts
     integer                  :: integral_gridpts_1, integral_gridpts_2
     real(dp)                 :: dx, dx_0, xi, bgf, fact, dx_eq
@@ -162,7 +164,8 @@ contains
   !! @param[in] fact Division factor in the Gaussian function, hardcoded to 1.0
   !! @return f_gauss  Value of the Gaussian function, evaluated in x
   function gaussian(x, bgf, fact) result(f_gauss)
-    use mod_physical_constants
+    use mod_global_variables, only: ev_1, ev_2, sigma_1, sigma_2
+    use mod_physical_constants, only: dpi
 
     real(dp), intent(in)    :: x, bgf, fact
     real(dp)                :: f_gauss
@@ -180,12 +183,8 @@ contains
 
   !> Deallocates arrays defined in this module.
   subroutine grid_clean()
-    if (allocated(grid)) then
-      deallocate(grid)
-    end if
-    if (allocated(grid_gauss)) then
-      deallocate(grid_gauss)
-    end if
+    deallocate(grid)
+    deallocate(grid_gauss)
   end subroutine grid_clean
 
 

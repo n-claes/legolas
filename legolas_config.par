@@ -7,8 +7,8 @@
 
 &equilibriumlist
   ! equilibrium_type = "Adiabatic homogeneous"               ! Cartesian
-  ! equilibrium_type = "Resistive homogeneous"               ! Cartesian
-  equilibrium_type = "Gravitational homogeneous"           ! Cartesian
+   equilibrium_type = "Resistive homogeneous"               ! Cartesian
+  ! equilibrium_type = "Gravitational homogeneous"           ! Cartesian
   ! equilibrium_type = "Resistive tearing modes"               ! Cartesian
   ! equilibrium_type = "Resistive tearing modes with flow"   ! Cartesian
   ! equilibrium_type = "Flow driven instabilities"           ! Cartesian

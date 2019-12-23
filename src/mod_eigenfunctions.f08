@@ -1,8 +1,15 @@
 module mod_eigenfunctions
-  use mod_global_variables
+  use mod_global_variables, only: dp, matrix_gridpts, ef_gridpts
   implicit none
+  
+  private
 
   real(dp), allocatable         :: ef_grid(:)
+  
+  public :: ef_grid
+  public :: initialise_eigenfunctions
+  public :: calculate_eigenfunctions
+  public :: eigenfunctions_clean
 
 
 contains
@@ -20,6 +27,7 @@ contains
   !!                  has the eigenvector corresponding to the eigenvalue
   !!                  in 'omega' at the same column index
   subroutine calculate_eigenfunctions(vr)
+    use mod_global_variables, only: savename_efgrid
     use mod_types, only: ef_type
     use mod_output, only: eigenfunctions_tofile, ef_grid_tofile
 
@@ -67,6 +75,7 @@ contains
   !! @param[out] Y  The eigenfunction corresponding to the requested variable
   !!                and eigenvector
   subroutine get_eigenfunction(var, eigenvector, Y)
+    use mod_global_variables, only: dim_subblock, gridpts
     use mod_grid, only: grid
 
     character(len=*), intent(in)  :: var
@@ -165,7 +174,7 @@ contains
   !! @param[in] r_hi  Right edge of the current grid interval
   !! @param[out] spline The finite element basis function, depending on 'var'
   subroutine get_spline(var, r, r_lo, r_hi, spline)
-    use mod_spline_functions
+    use mod_spline_functions, only: cubic_factors, quadratic_factors
 
     character(len=*), intent(in)    :: var
     real(dp), intent(in)            :: r, r_lo, r_hi
@@ -186,6 +195,8 @@ contains
   !! @param[in] r     The current position in the grid
   !! @param[out] fact Transformation factor depending on the variable
   subroutine get_transform_factor(var, r, fact)
+    use mod_global_variables, only: geometry, ir, ic
+    
     character(len=*), intent(in) :: var
     real(dp), intent(in)         :: r
     complex(dp), intent(out)     :: fact

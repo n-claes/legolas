@@ -9,9 +9,10 @@
 !> Module containing the derivatives of the equilibrium arrays.
 !
 module mod_equilibrium_derivatives
-  use mod_global_variables
+  use mod_global_variables, only: dp, gauss_gridpts
   implicit none
 
+  !! all routines and variables should be accessible here
   public
 
   !! Derivatives of the equilibrium variable arrays.
@@ -107,7 +108,7 @@ contains
   !! @param[in] rho0_eq Equilibrium density
   !! @param[in] B0_eq   Equilibrium magnetic field
   subroutine set_conduction_derivatives(T0_eq, rho0_eq, B0_eq)
-    use mod_thermal_conduction
+    use mod_thermal_conduction, only: get_dkappa_perp_drho, get_dkappa_perp_dT, get_dkappa_perp_dB2
 
     real(dp), intent(in)    :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
                                B0_eq(gauss_gridpts)
@@ -121,7 +122,7 @@ contains
   !! @param[in] T0_eq   Equilibrium temperature
   !! @param[in] rho0_eq Equilibrium density
   subroutine set_cooling_derivatives(T0_eq, rho0_eq)
-    use mod_radiative_cooling
+    use mod_radiative_cooling, only: get_dLambdadT, get_Lambda
 
     real(dp), intent(in) :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts)
     real(dp)             :: d_lambda_dT(gauss_gridpts)
@@ -138,7 +139,7 @@ contains
   !> Calculates the derivative resistivity arrays, if resistivity is enabled.
   !! @param[in] T0_eq   Equilibrium temperature
   subroutine set_resistivity_derivatives(T0_eq)
-    use mod_resistivity
+    use mod_resistivity, only: get_deta_dT
 
     real(dp), intent(in)  :: T0_eq(gauss_gridpts)
 
@@ -149,52 +150,20 @@ contains
 
   !> Cleaning routine, deallocates all arrays in this module.
   subroutine equilibrium_derivatives_clean()
-    if (allocated(d_rho0_dr)) then
-      deallocate(d_rho0_dr)
-    end if
-    if (allocated(d_B02_dr)) then
-      deallocate(d_B02_dr)
-    end if
-    if (allocated(d_B03_dr)) then
-      deallocate(d_B03_dr)
-    end if
-    if (allocated(d_T0_dr)) then
-      deallocate(d_T0_dr)
-    end if
-
-    if (allocated(d_v02_dr)) then
-      deallocate(d_v02_dr)
-    end if
-    if (allocated(d_v03_dr)) then
-      deallocate(d_v03_dr)
-    end if
-
-    if (allocated(d_tc_perp_eq_drho)) then
-      deallocate(d_tc_perp_eq_drho)
-    end if
-    if (allocated(d_tc_perp_eq_dT)) then
-      deallocate(d_tc_perp_eq_dT)
-    end if
-    if (allocated(d_tc_perp_eq_dB2)) then
-      deallocate(d_tc_perp_eq_dB2)
-    end if
-
-    if (allocated(d_L_dT)) then
-      deallocate(d_L_dT)
-    end if
-    if (allocated(d_L_drho)) then
-      deallocate(d_L_drho)
-    end if
-
-    if (allocated(d_eta_dT)) then
-      deallocate(d_eta_dT)
-    end if
-    if (allocated(dd_B03_dr)) then
-      deallocate(dd_B03_dr)
-    end if
-    if (allocated(dd_B02_dr)) then
-      deallocate(dd_B02_dr)
-    end if
+    deallocate(d_rho0_dr)
+    deallocate(d_B02_dr)
+    deallocate(d_B03_dr)
+    deallocate(d_T0_dr)
+    deallocate(d_v02_dr)
+    deallocate(d_v03_dr)
+    deallocate(d_tc_perp_eq_drho)
+    deallocate(d_tc_perp_eq_dT)
+    deallocate(d_tc_perp_eq_dB2)
+    deallocate(d_L_dT)
+    deallocate(d_L_drho)
+    deallocate(d_eta_dT)
+    deallocate(dd_B03_dr)
+    deallocate(dd_B02_dr)
   end subroutine equilibrium_derivatives_clean
 
 end module mod_equilibrium_derivatives
