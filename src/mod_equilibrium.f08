@@ -429,7 +429,7 @@ contains
     v_z0  = 0.14d0
     p0    = 0.05d0
     p1    = 0.1d0
-    alpha = 2
+    alpha = 2.0d0
 
     k2 = 1.0d0
     k3 = -1.2d0
