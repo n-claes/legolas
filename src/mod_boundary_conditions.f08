@@ -264,7 +264,7 @@ contains
                                           - d_eps_dr * eps_inv * tc_perp)
     positions(2, :) = [5, 5]
     ! A(5, 6)
-    factors(3) = 2 * ic * gamma_1 * eps_inv * ( &
+    factors(3) = 2.0d0 * ic * gamma_1 * eps_inv * ( &
                    dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2 &
                  - eta * dB03 * k2 + eta * k3 * drB02)
     positions(3, :) = [5, 6]
@@ -288,10 +288,10 @@ contains
     call reset_factors(factors, 2)
     call reset_positions(positions, 2)
     ! A(5, 7)
-    factors(1) = 2*ic*gamma_1*eps_inv * (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
+    factors(1) = 2.0d0*ic*gamma_1*eps_inv * (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
     positions(1, :) = [5, 7]
     ! A(5, 8)
-    factors(2) = -2*ic*gamma_1 * (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
+    factors(2) = -2.0d0*ic*gamma_1 * (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
     positions(2, :) = [5, 8]
 
     call add_factors_quadblock(quadblock, factors, positions, &
