@@ -334,12 +334,12 @@ contains
                                             ) &
               + eps_inv * rho0 * (eps_inv * k2 * v02 + k3 * v03) &
               + ic * gamma_1 * eps_inv * deta * ( &
-                  dB02**2 + dB03**2 + 2*d_eps_dr * eps_inv * B02 * dB02 &
+                  dB02**2 + dB03**2 + 2.0d0*d_eps_dr * eps_inv * B02 * dB02 &
                   + (d_eps_dr * eps_inv * B02)**2 &
                                                 )
     positions(15, :) = [5, 5]
     ! A(5, 6)   (term with eta-derivative has been rewritten, d_eta_dr = deta * dT0)
-    factors(16) = 2 * ic * gamma_1 * ( &
+    factors(16) = 2.0d0 * ic * gamma_1 * ( &
               (dT0 * d_eps_dr * eps_inv**2 &
               * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2) &
               + eps_inv * k2 * eta * ddB03 &
@@ -441,9 +441,9 @@ contains
                                             )
     positions(7, :) = [5, 7]
     ! A(5, 8)    (derivative of eta-term has been rewritten, d_eta_dr = deta * dT0)
-    factors(8) = -2*ic*gamma_1 * ( &
+    factors(8) = -2.0d0*ic*gamma_1 * ( &
                     dT0 * d_eps_dr * eps_inv * B02 * dtc_perp_dB2 &
-                    - eta*ddB02 + 2*(d_eps_dr * eps_inv)**2 * eta * B02 &
+                    - eta*ddB02 + 2.0d0*(d_eps_dr * eps_inv)**2 * eta * B02 &
                     - dB02 * deta * dT0 &
                     - d_eps_dr * eps_inv * B02 * deta * dT0 &
                                  )
@@ -551,7 +551,7 @@ contains
     call reset_positions(positions, 2)
 
     ! A(2, 8)
-    factors(1) = -2 * B02 * d_eps_dr * eps_inv
+    factors(1) = -2.0d0 * B02 * d_eps_dr * eps_inv
     positions(1, :) = [2, 8]
     ! A(8, 8)
     factors(2) = ic * eta * d_eps_dr * eps_inv
@@ -594,7 +594,7 @@ contains
                                              - dT0 * dtc_perp_dT)
     positions(2, :) = [5, 5]
     ! A(5, 6)
-    factors(3) = -2 * ic * gamma_1 * eps_inv * &
+    factors(3) = -2.0d0 * ic * gamma_1 * eps_inv * &
                    (dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2  &
                     - eta * k2 * dB03 + eta * k3 * drB02 )
     positions(3, :) = [5, 6]
@@ -632,11 +632,11 @@ contains
     call reset_positions(positions, 2)
 
     ! A(5, 7)
-    factors(1) = -2 * ic * gamma_1 * eps_inv * &
+    factors(1) = -2.0d0 * ic * gamma_1 * eps_inv * &
                    (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
     positions(1, :) = [5, 7]
     ! A(5, 8)
-    factors(2) = 2 * ic * gamma_1 * &
+    factors(2) = 2.0d0 * ic * gamma_1 * &
                    (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
     positions(2, :) = [5, 8]
 
