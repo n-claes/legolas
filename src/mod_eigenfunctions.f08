@@ -1,11 +1,11 @@
 module mod_eigenfunctions
   use mod_global_variables, only: dp, matrix_gridpts, ef_gridpts
   implicit none
-  
+
   private
 
   real(dp), allocatable         :: ef_grid(:)
-  
+
   public :: ef_grid
   public :: initialise_eigenfunctions
   public :: calculate_eigenfunctions
@@ -196,7 +196,7 @@ contains
   !! @param[out] fact Transformation factor depending on the variable
   subroutine get_transform_factor(var, r, fact)
     use mod_global_variables, only: geometry, ir, ic
-    
+
     character(len=*), intent(in) :: var
     real(dp), intent(in)         :: r
     complex(dp), intent(out)     :: fact
@@ -216,21 +216,21 @@ contains
     !! \note: ic = (0.0d0, 1.0d0) and ir = (1.0d0, 0.0d0)
     select case(var)
       case('rho')
-        fact = (1.0d0 / eps) * ir
+        fact = ir / eps
       case('v1')
-        fact = 1.0d0 / (ic * eps)
+        fact = - ic / eps
       case('v2')
-        fact = 1.0d0 * ir
+        fact = ir
       case('v3')
-        fact = (1.0d0 / eps) * ir
+        fact = ir / eps
       case('T')
-        fact = (1.0d0 / eps) * ir
+        fact = ir / eps
       case('a1')
-        fact = 1.0d0 / ic
+        fact = - ic
       case('a2')
-        fact = (1.0d0 / eps) * ir
+        fact = ir / eps
       case('a3')
-        fact = 1.0d0 * ir
+        fact = ir
       case default
         write(*, *) "Var not defined correctly"
         stop
