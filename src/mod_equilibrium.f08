@@ -56,7 +56,7 @@ module mod_equilibrium
   public :: rho0_eq, T0_eq, B02_eq, B03_eq, B0_eq, v02_eq, v03_eq
   public :: grav_eq
   public :: tc_para_eq, tc_perp_eq, heat_loss_eq, eta_eq
-  
+
   public :: initialise_equilibrium
   public :: set_equilibrium
   public :: equilibrium_clean
@@ -487,13 +487,16 @@ contains
     integer     :: i
 
     geometry = 'Cartesian'
+    ! Override values from par file: if on interval [0,1], change velocity profile x --> x - 0.5
+    x_start = -0.5d0
+    x_end   = 0.5d0
     call initialise_grid()
 
     flow = .true.
     radiative_cooling = .false.
     thermal_conduction = .false.
     resistivity = .false.
-    external_gravity = .false.
+    external_gravity = .true.
 
     !! Parameters
     a   = 0.05d0
@@ -506,20 +509,21 @@ contains
     B02_eq  = 0.0d0
     B03_eq  = 1.0d0
     B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
+    grav_eq = 10.0d0
 
     k2 = 10.0d0
     k3 = 0.0d0
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
-      v02_eq(i)   = -v0y * tanh((x - 0.5d0) / a)
-      v03_eq(i)   = -v0z * tanh((x - 0.5d0) / a)
+      v02_eq(i)   = -v0y * tanh(x / a)
+      v03_eq(i)   = -v0z * tanh(x / a)
 
       T0_eq(i)    = P0 / rho0_eq(i)
 
       ! Derivatives
-      d_v02_dr(i) = -v0y / (a * cosh((x - 0.5d0) / a)**2)
-      d_v03_dr(i) = -v0z / (a * cosh((x - 0.5d0) / a)**2)
+      d_v02_dr(i) = -v0y / (a * cosh(x / a)**2)
+      d_v03_dr(i) = -v0z / (a * cosh(x / a)**2)
     end do
   end subroutine KH_instability_eq
 
