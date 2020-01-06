@@ -1,3 +1,19 @@
+subroutine create_test_grid(pts, geom)
+  use mod_global_variables, only: set_gridpts, x_start, x_end, geometry
+  use mod_grid, only: initialise_grid
+  
+  integer, intent(in) :: pts
+  character(len=*)    :: geom
+  
+  geometry = geom
+  
+  x_start = 0.0d0
+  x_end = 1.0d0 
+  call set_gridpts(pts)
+  call initialise_grid()
+end subroutine create_test_grid
+
+
 @test
 subroutine test_gamma()
    use, intrinsic :: iso_fortran_env, only: dp => real64
@@ -6,9 +22,102 @@ subroutine test_gamma()
 
    real(dp), parameter :: gamma_test = 5.0d0 / 3.0d0
    real(dp), parameter :: gamma_test_1 = gamma_test - 1.0d0
+   
+   write(*, *) "Testing gamma setters"
 
    call set_gamma(gamma_test)
 
    @assertEqual(gamma_test, gamma)
    @assertEqual(gamma_test_1, gamma_1)
 end subroutine test_gamma
+
+
+@test 
+subroutine test_gridpts()
+  use mod_global_variables, only: set_gridpts, gridpts, gauss_gridpts, &
+                                  matrix_gridpts, ef_gridpts
+  use funit 
+  
+  integer, parameter :: gridpts_test = 11
+  
+  write(*, *) "Testing gridpoints"
+  
+  call set_gridpts(gridpts_test)
+  
+  @assertEqual(gridpts_test, gridpts)
+  @assertEqual(40, gauss_gridpts)
+  @assertEqual(176, matrix_gridpts)
+  @assertEqual(21, ef_gridpts)
+end subroutine test_gridpts
+
+
+@test
+subroutine test_cartesian_grid_edges()
+  use mod_global_variables, only: gridpts, x_start, x_end
+  use mod_grid, only: grid_clean, grid
+  use funit
+
+  write(*, *) "Testing Cartesian grid edges"
+  call create_test_grid(31, 'Cartesian')
+
+  @assertEqual(x_start, grid(1))
+  @assertEqual(x_end, grid(gridpts))
+  call grid_clean()
+end subroutine test_cartesian_grid_edges
+
+
+@test 
+subroutine test_cylindrical_grid_edges()
+  use mod_global_variables, only: gridpts, x_end
+  use mod_grid, only: grid_clean, grid
+  use funit 
+
+  write(*, *) "Testing cylindrical grid edges"
+  call create_test_grid(31, 'cylindrical')
+
+  @assertNotEqual(grid(1), 0.0d0)
+  @assertEqual(grid(1), 1.0d-5)
+  @assertEqual(grid(gridpts), x_end)
+  call grid_clean()
+end subroutine test_cylindrical_grid_edges
+
+
+@test 
+subroutine test_grid_monotonicity()
+  use mod_global_variables, only: geometry, gridpts
+  use mod_grid, only: grid_clean, grid 
+  use funit 
+
+  integer   :: idx
+
+  write(*, *) "Testing grid monotonicity"
+  call create_test_grid(31, 'Cartesian')
+  
+  do idx = 1, gridpts-1
+    @assertLessThan(grid(idx), grid(idx+1))
+  end do
+  call grid_clean()
+end subroutine test_grid_monotonicity
+
+
+@test 
+subroutine test_grid_gauss_monotonicity()
+  use mod_global_variables, only: geometry, gauss_gridpts
+  use mod_grid, only: grid_clean, grid_gauss
+  use funit 
+
+  integer   :: idx 
+
+  write(*, *) "Testing grid_gauss monotonicity"
+  call create_test_grid(31, 'Cartesian')
+  
+  do idx = 1, gauss_gridpts-1
+    @assertLessThan(grid_gauss(idx), grid_gauss(idx+1))
+  end do 
+  call grid_clean()
+end subroutine test_grid_gauss_monotonicity
+  
+
+! TODO 
+! - grid monotonicity Cartesian + cylindrical 
+! - 
