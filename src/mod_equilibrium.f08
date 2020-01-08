@@ -235,6 +235,8 @@ contains
   !> Initialises equilibrium for a homogeneous medium in Cartesian geometry
   !! with a constant gravity term included.
   subroutine gravity_homo_eq()
+    use mod_equilibrium_derivatives, only: d_rho0_dr
+
     geometry = 'Cartesian'
     call initialise_grid()
 
@@ -254,6 +256,9 @@ contains
     B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
     T0_eq   = 1.0d0
     grav_eq = 0.5d0
+
+    !! Derivatives
+    d_rho0_dr = - grav_eq
   end subroutine gravity_homo_eq
 
 
@@ -427,7 +432,7 @@ contains
   !> Initialises equilibrium for Suydam cluster modes in cylindrical geometry.
   !! Obtained from Bondeson et al., Phys. Fluids 30 (1987)
   subroutine suydam_cluster_eq()
-    use mod_equilibrium_derivatives, only: d_T0_dr, d_v03_dr
+    use mod_equilibrium_derivatives, only: d_T0_dr, d_v03_dr, d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
 
     real(dp)      :: v_z0, p0, p1, alpha, r
     real(dp)      :: J0, J1, DJ0, DJ1
@@ -473,6 +478,11 @@ contains
       ! Derivatives
       d_T0_dr(i)    = p1 * J0 * DJ0
       d_v03_dr(i)   = -2.0d0 * v_z0 * r
+      d_B02_dr(i)   = DJ1
+      d_B03_dr(i)   = -alpha * sqrt(1.0d0 - p1) * J1
+
+      dd_B02_dr(i)  = alpha**2 * (3.0d0 * J1 + bessel_jn(3, alpha * r)) / (4.0d0)
+      dd_B03_dr(i)  = -alpha * sqrt(1.0d0 - p1) * DJ1
     end do
   end subroutine suydam_cluster_eq
 
@@ -481,7 +491,7 @@ contains
   !! Cartesian geometry.
   !! From Miura et al., J. Geophys. Res. 87 (1982)
   subroutine KH_instability_eq()
-    use mod_equilibrium_derivatives, only: d_v02_dr, d_v03_dr
+    use mod_equilibrium_derivatives, only: d_v02_dr, d_v03_dr, d_rho0_dr
 
     real(dp)    :: a, x, p0, v0y, v0z
     integer     :: i
@@ -513,6 +523,9 @@ contains
 
     k2 = 10.0d0
     k3 = 0.0d0
+
+    ! Derivatives
+    d_rho0_dr = - grav_eq / P0
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
