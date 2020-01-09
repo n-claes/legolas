@@ -23,7 +23,7 @@ FFLAGS += $(PFUNIT_EXTRA_FFLAGS)
 test_legolas: libPFUnit.a
 
 test_legolas_TESTS := core_tests.pf
-test_legolas_OTHER_LIBRARIES := -L. -lPFUnit
+test_legolas_OTHER_LIBRARIES := -L. -lPFUnit -lblas -llapack
 $(eval $(call make_pfunit_test,test_legolas))
 
 
