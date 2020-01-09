@@ -16,6 +16,8 @@ module mod_solvers
   private
   
   public :: solve_QR
+  public :: invert_B
+  public :: get_B_invA
 
 contains
 
