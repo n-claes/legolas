@@ -119,7 +119,7 @@ contains
     use mod_thermal_conduction, only: get_kappa_para, get_kappa_perp
     use mod_resistivity, only: get_eta
     use mod_equilibrium_derivatives, only: set_cooling_derivatives, set_resistivity_derivatives, &
-                                           set_conduction_derivatives
+                                           set_conduction_derivatives, d_rho0_dr, d_T0_dr, d_B02_dr, d_B03_dr
 
     select case(equilibrium_type)
       case("Adiabatic homogeneous")
@@ -174,6 +174,8 @@ contains
     ! Check for negative pressure, temperature, etc.
     call check_negative_array(rho0_eq, "density")
     call check_negative_array(T0_eq, "temperature")
+    call check_equilibrium_conditions(rho0_eq, d_rho0_dr, T0_eq, d_T0_dr, B02_eq, &
+                                    d_B02_dr, B03_eq, d_B03_dr, grav_eq, v02_eq, geometry)
   end subroutine set_equilibrium
 
 
@@ -237,7 +239,13 @@ contains
   subroutine gravity_homo_eq()
     use mod_equilibrium_derivatives, only: d_rho0_dr
 
+    real(dp)  :: x, g
+    integer   :: i
+
     geometry = 'Cartesian'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
     call initialise_grid()
 
     flow = .false.
@@ -250,15 +258,21 @@ contains
     k3 = dpi
 
     !! Parameters
-    rho0_eq = 1.0d0
     B02_eq  = 1.0d0
     B03_eq  = 1.0d0
     B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
     T0_eq   = 1.0d0
     grav_eq = 0.5d0
 
-    !! Derivatives
-    d_rho0_dr = - grav_eq
+    ! Not homogeneous, but consistent with Nijboer equilibrium equation (7)
+    do i = 1, gauss_gridpts
+      x = grid_gauss(i)
+      g = grav_eq(i)
+      rho0_eq(i) = exp(-g*x)
+
+      !! Derivatives
+      d_rho0_dr(i) = -g * exp(-g*x)
+    end do
   end subroutine gravity_homo_eq
 
 
@@ -491,9 +505,10 @@ contains
   !! Cartesian geometry.
   !! From Miura et al., J. Geophys. Res. 87 (1982)
   subroutine KH_instability_eq()
-    use mod_equilibrium_derivatives, only: d_v02_dr, d_v03_dr, d_rho0_dr
+    use mod_equilibrium_derivatives, only: d_v02_dr, d_v03_dr!, d_rho0_dr
 
     real(dp)    :: a, x, p0, v0y, v0z
+    !real(dp)    :: g
     integer     :: i
 
     geometry = 'Cartesian'
@@ -525,16 +540,18 @@ contains
     k3 = 0.0d0
 
     ! Derivatives
-    d_rho0_dr = - grav_eq / P0
+    !d_rho0_dr = - g / P0
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
+      !g = grav_eq(i)
       v02_eq(i)   = -v0y * tanh(x / a)
       v03_eq(i)   = -v0z * tanh(x / a)
 
       T0_eq(i)    = P0 / rho0_eq(i)
 
       ! Derivatives
+      !d_rho0_dr(i) = - g * exp(-g*x) / P0
       d_v02_dr(i) = -v0y / (a * cosh(x / a)**2)
       d_v03_dr(i) = -v0z / (a * cosh(x / a)**2)
     end do
@@ -595,6 +612,44 @@ contains
     end do
   end subroutine rotating_plasma_cyl_eq
 
+
+  !> Checks equilibrium conditions
+  subroutine check_equilibrium_conditions(rho0, d_rho0_dr, T0, d_T0_dr, B02, d_B02_dr, B03, d_B03_dr, grav, v02, geometry)
+    use mod_global_variables, only: dp_LIMIT
+
+    character(len=*), intent(in)  :: geometry
+    real(dp), intent(in)          :: rho0(:), d_rho0_dr(:), T0(:), d_T0_dr(:), B02(:), d_B02_dr(:), B03(:), d_B03_dr(:)
+    real(dp), intent(in)          :: grav(:), v02(:)
+    real(dp)                      :: eps, d_eps, eq_cond(gauss_gridpts)
+    integer                       :: i
+
+    do i = 1, gauss_gridpts
+      if (geometry == 'Cartesian') then
+        eps   = 1.0d0
+        d_eps = 0.0d0
+      else if (geometry == 'cylindrical') then
+        eps   = grid_gauss(i)
+        d_eps = 1
+      else
+        write(*, *) "Geometry not defined correctly"
+        write(*, *) "Currently set on: ", geometry
+        stop
+      end if
+
+      eq_cond(i) = d_rho0_dr(i) * T0(i) + rho0(i) * d_T0_dr(i) &
+                  + B02(i) * d_B02_dr(i) + B03(i) * d_B03_dr(i) &
+                  + rho0(i) * grav(i) - (d_eps/eps) * (rho0(i) * v02(i)**2 - B02(i)**2)
+      if (eq_cond(i) > dp_LIMIT) then
+        write(*, *) "WARNING: equilibrium conditions not met!"
+        stop
+      end if
+    end do
+
+    !if (geometry == 'cylindrical') then
+       !check (8) from Nijboer
+       !CHALLENGE: gaussian point for r=0?
+    !end if
+  end subroutine
 
   !> Cleaning routine, deallocates all arrays in this module.
   subroutine equilibrium_clean()
