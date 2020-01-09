@@ -119,7 +119,7 @@ contains
     use mod_thermal_conduction, only: get_kappa_para, get_kappa_perp
     use mod_resistivity, only: get_eta
     use mod_equilibrium_derivatives, only: set_cooling_derivatives, set_resistivity_derivatives, &
-                                           set_conduction_derivatives, d_rho0_dr, d_T0_dr, d_B02_dr, d_B03_dr
+                                           set_conduction_derivatives, d_rho0_dr, d_T0_dr, d_B02_dr, d_B03_dr, d_v03_dr
 
     select case(equilibrium_type)
       case("Adiabatic homogeneous")
@@ -174,8 +174,8 @@ contains
     ! Check for negative pressure, temperature, etc.
     call check_negative_array(rho0_eq, "density")
     call check_negative_array(T0_eq, "temperature")
-    call check_equilibrium_conditions(rho0_eq, d_rho0_dr, T0_eq, d_T0_dr, B02_eq, &
-                                    d_B02_dr, B03_eq, d_B03_dr, grav_eq, v02_eq, geometry)
+    call check_equilibrium_conditions(rho0_eq, d_rho0_dr, T0_eq, d_T0_dr, B02_eq, d_B02_dr, &
+                                      B03_eq, d_B03_dr, grav_eq, v02_eq, d_v03_dr, geometry)
   end subroutine set_equilibrium
 
 
@@ -454,6 +454,9 @@ contains
     integer       :: i
 
     geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
     call initialise_grid()
 
     flow = .true.
@@ -534,7 +537,6 @@ contains
     B02_eq  = 0.0d0
     B03_eq  = 1.0d0
     B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
-    grav_eq = 10.0d0
 
     k2 = 10.0d0
     k3 = 0.0d0
@@ -566,6 +568,9 @@ contains
     integer     :: i
 
     geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
     call initialise_grid() ! Initialise grid
 
     flow = .true.
@@ -614,13 +619,14 @@ contains
 
 
   !> Checks equilibrium conditions
-  subroutine check_equilibrium_conditions(rho0, d_rho0_dr, T0, d_T0_dr, B02, d_B02_dr, B03, d_B03_dr, grav, v02, geometry)
+  subroutine check_equilibrium_conditions(rho0, d_rho0_dr, T0, d_T0_dr, B02, d_B02_dr, B03, d_B03_dr, grav, v02, d_v03_dr, geometry)
     use mod_global_variables, only: dp_LIMIT
 
     character(len=*), intent(in)  :: geometry
     real(dp), intent(in)          :: rho0(:), d_rho0_dr(:), T0(:), d_T0_dr(:), B02(:), d_B02_dr(:), B03(:), d_B03_dr(:)
-    real(dp), intent(in)          :: grav(:), v02(:)
+    real(dp), intent(in)          :: grav(:), v02(:), d_v03_dr(:)
     real(dp)                      :: eps, d_eps, eq_cond(gauss_gridpts)
+    real(dp)                      :: eq_limit = 1.0d-2
     integer                       :: i
 
     do i = 1, gauss_gridpts
@@ -640,15 +646,18 @@ contains
                   + B02(i) * d_B02_dr(i) + B03(i) * d_B03_dr(i) &
                   + rho0(i) * grav(i) - (d_eps/eps) * (rho0(i) * v02(i)**2 - B02(i)**2)
       if (eq_cond(i) > dp_LIMIT) then
-        write(*, *) "WARNING: equilibrium conditions not met!"
+        write(*, *) "WARNING: equilibrium condition not met!"
         stop
       end if
     end do
 
-    !if (geometry == 'cylindrical') then
-       !check (8) from Nijboer
-       !CHALLENGE: gaussian point for r=0?
-    !end if
+    if (geometry == 'cylindrical') then
+       if (abs(B02(1)) > eq_limit .or. abs(d_B03_dr(1)) > eq_limit &
+              .or. abs(v02(1)) > eq_limit .or. abs(d_v03_dr(1)) > eq_limit) then
+         write(*, *) "WARNING: equilibrium regularity conditions not met!"
+         stop
+       end if
+    end if
   end subroutine
 
   !> Cleaning routine, deallocates all arrays in this module.
