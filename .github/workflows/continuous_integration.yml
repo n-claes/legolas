@@ -1,0 +1,57 @@
+name: Automatic Tests
+
+on:
+  push:
+    branches: 
+      - master
+  pull_request:
+    branches: 
+      - master
+
+jobs:
+  build:
+
+    runs-on: [ubuntu-latest]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install gfortran
+      run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt update
+        sudo apt-get install gfortran
+        sudo apt-get install gfortran-9
+    - name: Check gfortran
+      run: |
+        gfortran --version
+        gfortran-9 --version
+    - name: Install cmake
+      run: sudo apt-get -y install cmake
+    - name: Check cmake
+      run: cmake --version
+    - name: Install BLAS library
+      run: sudo apt-get install libblas-dev
+    - name: Install LAPACK library
+      run: sudo apt-get install liblapack-dev
+    - name: Get pFUnit
+      run: |
+        cd tests
+        git clone https://github.com/Goddard-Fortran-Ecosystem/pFUnit.git
+    - name: Build pFUnit
+      run: |
+        cd tests/pFUnit
+        mkdir build
+        cd build
+        cmake ..
+    - name: Compile pFUnit 1/2 (tests)
+      run: |
+        cd tests/pFUnit/build
+        make tests FC=gfortran-9
+    - name: Compile pFUnit 2/2 (install)
+      run: |
+        cd tests/pFUnit/build
+        make install FC=gfortran-9
+    - name: compile LEGOLAS
+      run: make FC=gfortran-9
+
+      
