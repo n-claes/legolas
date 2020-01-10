@@ -1,392 +1,379 @@
-subroutine create_test_grid(pts, geom)
-  use mod_global_variables, only: set_gridpts, x_start, x_end, geometry
-  use mod_grid, only: initialise_grid
-  
-  integer, intent(in) :: pts
-  character(len=*)    :: geom
-  
-  geometry = geom
-  
-  x_start = 0.0d0
-  x_end = 1.0d0 
-  call set_gridpts(pts)
-  call initialise_grid()
-end subroutine create_test_grid
-
-
-@test
-subroutine test_gamma()
-   use mod_global_variables, only: set_gamma, gamma, gamma_1, dp
-   use funit
-
-   real(dp), parameter :: gamma_test = 5.0d0 / 3.0d0
-   real(dp), parameter :: gamma_test_1 = gamma_test - 1.0d0
-   
-   write(*, *) "Testing gamma setters"
-   call set_gamma(gamma_test)
-
-   @assertEqual(gamma_test, gamma)
-   @assertEqual(gamma_test_1, gamma_1)
-end subroutine test_gamma
-
-
-@test 
-subroutine test_gridpts()
-  use mod_global_variables, only: set_gridpts, gridpts, gauss_gridpts, &
-                                  matrix_gridpts, ef_gridpts
+module core_tests
   use funit 
   
-  integer, parameter :: gridpts_test = 11
-  
-  write(*, *) "Testing gridpoints"
-  call set_gridpts(gridpts_test)
-  
-  @assertEqual(gridpts_test, gridpts)
-  @assertEqual(40, gauss_gridpts)
-  @assertEqual(176, matrix_gridpts)
-  @assertEqual(21, ef_gridpts)
-end subroutine test_gridpts
+contains 
+
+  subroutine create_test_grid(pts, geom)
+    use mod_global_variables, only: set_gridpts, x_start, x_end, geometry
+    use mod_grid, only: initialise_grid
+    
+    integer, intent(in) :: pts
+    character(len=*)    :: geom
+    
+    geometry = geom
+    
+    x_start = 0.0d0
+    x_end = 1.0d0 
+    call set_gridpts(pts)
+    call initialise_grid()
+  end subroutine create_test_grid
 
 
-@test
-subroutine test_cartesian_grid_edges()
-  use mod_global_variables, only: gridpts, x_start, x_end
-  use mod_grid, only: grid_clean, grid
-  use funit
+  @test
+  subroutine test_gamma()
+     use mod_global_variables, only: set_gamma, gamma, gamma_1, dp
 
-  write(*, *) "Testing Cartesian grid edges"
-  call create_test_grid(31, 'Cartesian')
+     real(dp), parameter :: gamma_test = 5.0d0 / 3.0d0
+     real(dp), parameter :: gamma_test_1 = gamma_test - 1.0d0
+     
+     write(*, *) "Testing gamma setters"
+     call set_gamma(gamma_test)
 
-  @assertEqual(x_start, grid(1))
-  @assertEqual(x_end, grid(gridpts))
-  call grid_clean()
-end subroutine test_cartesian_grid_edges
-
-
-@test 
-subroutine test_cylindrical_grid_edges()
-  use mod_global_variables, only: gridpts, x_end
-  use mod_grid, only: grid_clean, grid
-  use funit 
-
-  write(*, *) "Testing cylindrical grid edges"
-  call create_test_grid(31, 'cylindrical')
-
-  @assertNotEqual(grid(1), 0.0d0)
-  @assertEqual(grid(1), 1.0d-5)
-  @assertEqual(grid(gridpts), x_end)
-  call grid_clean()
-end subroutine test_cylindrical_grid_edges
+     @assertEqual(gamma_test, gamma)
+     @assertEqual(gamma_test_1, gamma_1)
+  end subroutine test_gamma
 
 
-@test 
-subroutine test_grid_monotonicity()
-  use mod_global_variables, only: geometry, gridpts
-  use mod_grid, only: grid_clean, grid 
-  use funit 
-
-  integer   :: idx
-
-  write(*, *) "Testing grid monotonicity"
-  call create_test_grid(31, 'Cartesian')
-  
-  do idx = 1, gridpts-1
-    @assertLessThan(grid(idx), grid(idx+1))
-  end do
-  call grid_clean()
-end subroutine test_grid_monotonicity
-
-
-@test 
-subroutine test_grid_gauss_monotonicity()
-  use mod_global_variables, only: geometry, gauss_gridpts
-  use mod_grid, only: grid_clean, grid_gauss
-  use funit 
-
-  integer   :: idx 
-
-  write(*, *) "Testing grid_gauss monotonicity"
-  call create_test_grid(31, 'Cartesian')
-  
-  do idx = 1, gauss_gridpts-1
-    @assertLessThan(grid_gauss(idx), grid_gauss(idx+1))
-  end do 
-  call grid_clean()
-end subroutine test_grid_gauss_monotonicity
+  @test 
+  subroutine test_gridpts()
+    use mod_global_variables, only: set_gridpts, gridpts, gauss_gridpts, &
+                                    matrix_gridpts, ef_gridpts
+    
+    integer, parameter :: gridpts_test = 11
+    
+    write(*, *) "Testing gridpoints"
+    call set_gridpts(gridpts_test)
+    
+    @assertEqual(gridpts_test, gridpts)
+    @assertEqual(40, gauss_gridpts)
+    @assertEqual(176, matrix_gridpts)
+    @assertEqual(21, ef_gridpts)
+  end subroutine test_gridpts
 
 
-@test 
-subroutine test_matrix_inversion()
-  use mod_global_variables, only: dp, set_matrix_gridpts
-  use mod_solvers, only: invert_B
-  use funit
-  
-  real(dp)  :: matrix(4, 4), matrix_inverse(4, 4), solution(4, 4)
-  integer   :: i, j
-  
-  write(*, *) "Testing matrix inversion"
-  call set_matrix_gridpts(4)
-  matrix    = reshape((/ 7,  0, -3,  2,   &   ! column 1
-                         2,  3,  4,  2,   &   ! column 2
-                         1, -1, -2, -1,   &
-                        -2,  2,  1,  4 /), shape(matrix))
-  solution  = reshape((/ 1.0d0/7.0d0,   0.0d0,        -2.0d0/7.0d0,   -1.0d0/7.0d0,    &
-                        -4.0d0/7.0d0,   1.0d0,        22.0d0/7.0d0,    4.0d0/7.0d0,    &
-                        10.0d0/49.0d0, -2.0d0/7.0d0, -76.0d0/49.0d0, -17.0d0/49.0d0,   &
-                        15.0d0/49.0d0, -3.0d0/7.0d0, -65.0d0/49.0d0, -1.0d0/49.0d0 /), &
-                        shape(solution))                      
-  call invert_B(matrix, matrix_inverse)
-  
-  @assertEqual(matrix_inverse, solution, tolerance=1.0d-12)
-end subroutine test_matrix_inversion
+  @test
+  subroutine test_cartesian_grid_edges()
+    use mod_global_variables, only: gridpts, x_start, x_end
+    use mod_grid, only: grid_clean, grid
+
+    write(*, *) "Testing Cartesian grid edges"
+    call create_test_grid(31, 'Cartesian')
+
+    @assertEqual(x_start, grid(1))
+    @assertEqual(x_end, grid(gridpts))
+    call grid_clean()
+  end subroutine test_cartesian_grid_edges
 
 
-@test 
-subroutine test_matrix_multiplication()
-  use mod_global_variables, only: dp, set_matrix_gridpts, ir, ic
-  use mod_solvers, only: get_B_invA
-  use funit 
-  
-  real(dp)     :: matrixB(4, 4)
-  complex(dp)  :: matrixA(4, 4), multiplication_result(4, 4), solution(4, 4)
-  integer      :: i, j
-  
-  write(*, *) "Testing matrix multiplication"
-  call set_matrix_gridpts(4)
-  matrixB = reshape((/ 7.0d0,  0.0d0, -3.0d0,  2.0d0,   &  ! column 1
-                       2.0d0,  3.0d0,  4.0d0,  2.0d0,   &  ! column 2
-                       1.0d0, -1.0d0, -2.0d0, -1.0d0,   &
-                      -2.0d0,  2.0d0,  1.0d0,  4.0d0 /), shape(matrixB))
-  matrixA = reshape((/ 2.0d0*ir,  0.0d0*ir,  1.0d0*ic, -3.0d0*ir, &
-                       3.0d0*ir,  0.0d0*ir,  2.0d0*ic,  1.0d0*ir, &
-                       4.0d0*ic,  3.0d0*ir, -7.0d0*ir,  5.0d0*ic, &
-                      -1.0d0*ir, -2.0d0*ir,  3.0d0*ir,  2.0d0*ir /), shape(matrixA))
-  solution = reshape((/ ( 20.0d0, 1.0d0), (-6.0d0,-1.0d0), (-9.0d0,-2.0d0), (-8.0d0,-1.0d0),   &
-                        ( 19.0d0, 2.0d0), ( 2.0d0,-2.0d0), (-8.0d0,-4.0d0), (10.0d0,-2.0d0),   &
-                        ( -1.0d0,18.0d0), (16.0d0,10.0d0), (26.0d0,-7.0d0), (13.0d0,28.0d0),   &
-                        (-12.0d0, 0.0d0), (-5.0d0, 0.0d0), (-9.0d0, 0.0d0), (-1.0d0, 0.0d0)/), &
-                     shape(solution))
-  call get_B_invA(matrixB, matrixA, multiplication_result)
-  
-  @assertEqual(multiplication_result, solution, tolerance=1.0d-12)
-end subroutine test_matrix_multiplication
+  @test 
+  subroutine test_cylindrical_grid_edges()
+    use mod_global_variables, only: gridpts, x_end
+    use mod_grid, only: grid_clean, grid
+
+    write(*, *) "Testing cylindrical grid edges"
+    call create_test_grid(31, 'cylindrical')
+
+    @assertNotEqual(grid(1), 0.0d0)
+    @assertEqual(grid(1), 1.0d-5)
+    @assertEqual(grid(gridpts), x_end)
+    call grid_clean()
+  end subroutine test_cylindrical_grid_edges
 
 
-@test 
-subroutine test_matrix_qr_solver()
-  use mod_global_variables, only: dp, set_matrix_gridpts, ir, ic
-  use mod_solvers, only: solve_QR
-  use funit 
-  
-  real(dp)    :: matrixB(4, 4)
-  complex(dp) :: matrixA(4, 4), eigenvals(4), eigenvals_solution(4)
-  complex(dp) :: vl(4, 4), vr(4, 4), temp
-  integer     :: i, j, minidx
-  
-  write(*, *) "Testing matrix QR solver"
-  call set_matrix_gridpts(4)
-  
-  ! define identity matrix for convenience, inversion is already tested here
-  do i = 1, 4
-    do j = 1, 4
-      if (i == j) then 
-        matrixB(j, i) = 1.0d0 
-      else
-        matrixB(j, i) = 0.0d0
-      end if 
+  @test 
+  subroutine test_grid_monotonicity()
+    use mod_global_variables, only: geometry, gridpts
+    use mod_grid, only: grid_clean, grid 
+
+    integer   :: idx
+
+    write(*, *) "Testing grid monotonicity"
+    call create_test_grid(31, 'Cartesian')
+    
+    do idx = 1, gridpts-1
+      @assertLessThan(grid(idx), grid(idx+1))
+    end do
+    call grid_clean()
+  end subroutine test_grid_monotonicity
+
+
+  @test 
+  subroutine test_grid_gauss_monotonicity()
+    use mod_global_variables, only: geometry, gauss_gridpts
+    use mod_grid, only: grid_clean, grid_gauss
+
+    integer   :: idx 
+
+    write(*, *) "Testing grid_gauss monotonicity"
+    call create_test_grid(31, 'Cartesian')
+    
+    do idx = 1, gauss_gridpts-1
+      @assertLessThan(grid_gauss(idx), grid_gauss(idx+1))
     end do 
-  end do 
-  
-  matrixA = reshape((/  2.0d0*ir, -1.0d0*ir, 0.0d0*ir,  0.0d0*ir, & 
-                        9.0d0*ir,  2.0d0*ir, 0.0d0*ir,  0.0d0*ir, &
-                        0.0d0*ir,  1.0d0*ir, 3.0d0*ir,  1.0d0*ir, &
-                        2.0d0*ir,  0.0d0*ir, 0.0d0*ir, -1.0d0*ir/), shape(matrixA))
-  call solve_QR(matrixA, matrixB, eigenvals, vl, vr)  
-  !! sort eigenvalues (using selection sort, based on real part)
-  do i = 1, size(eigenvals)-1
-    minidx = minloc(real(eigenvals(i:)), 1) + i - 1
-    if (real(eigenvals(i)) > real(eigenvals(minidx))) then
-      temp = eigenvals(i)
-      eigenvals(i) = eigenvals(minidx)
-      eigenvals(minidx) = temp
-    end if
-  end do
-  
-  eigenvals_solution =  (/ (-1.0d0, 0.0d0), (2.0d0, -3.0d0), &
-                        ( 2.0d0, 3.0d0), (3.0d0,  0.0d0) /)
-  
-  @assertEqual(eigenvals, eigenvals_solution, tolerance=1.0d-12)
-end subroutine test_matrix_qr_solver
+    call grid_clean()
+  end subroutine test_grid_gauss_monotonicity
 
 
-@test 
-subroutine test_subblock_fill()
-  use mod_global_variables, only: dp, dim_quadblock
-  use mod_make_subblock, only: subblock
-  use funit 
-  
-  complex(dp) :: quadblock(dim_quadblock, dim_quadblock)
-  complex(dp) :: factors(2), val1, val2
-  real(dp)    :: spline1(4), spline2(4), weight 
-  integer     :: positions(2, 2), i, idx1(16), idx2(16)
-  
-  write(*, *) "Testing subblock filling"
-  quadblock = (0.0d0, 0.0d0)
-  val1 = (3.0d0, 1.0d0)
-  val2 = (-1.0d0, 5.0d0)
-  
-  !! Two factors and positions are chosen freely
-  factors(1) = val1
-  positions(1, :) = [4, 3]
-  factors(2) = val2
-  positions(2, :) = [7, 5]
-  
-  !! weight and splines are set to unity for testing purposes
-  weight = 1.0d0 
-  spline1 = 1.0d0 
-  spline2 = 1.0d0 
-  call subblock(quadblock, factors, positions, weight, spline1, spline2)
-  
-  !! first factor 
-  idx1 = (/ 7, 7, 8, 8,  7,  7,  8,  8, 23, 23, 24, 24, 23, 23, 24, 24 /)
-  idx2 = (/ 5, 6, 5, 6, 21, 22, 21, 22,  5,  6,  5,  6, 21, 22, 21, 22 /)
-  do i = 1, size(idx1)
-    @assertEqual(quadblock(idx1(i), idx2(i)), val1, tolerance=1.0d-12)
-  end do 
-  
-  ! !! second factor
-  idx1 = (/ 13, 13, 14, 14, 13, 13, 14, 14, 29, 29, 30, 30, 29, 29, 30, 30 /)
-  idx2 = (/  9, 10,  9, 10, 25, 26, 25, 26,  9, 10,  9, 10, 25, 26, 25, 26 /)
-  do i = 1, size(idx1)
-    @assertEqual(quadblock(idx1(i), idx2(i)), val2, tolerance=1.0d-12)
-  end do 
-end subroutine test_subblock_fill
+  @test 
+  subroutine test_matrix_inversion()
+    use mod_global_variables, only: dp, set_matrix_gridpts
+    use mod_solvers, only: invert_B
+    
+    real(dp)  :: matrix(4, 4), matrix_inverse(4, 4), solution(4, 4)
+    integer   :: i, j
+    
+    write(*, *) "Testing matrix inversion"
+    call set_matrix_gridpts(4)
+    matrix    = reshape((/ 7,  0, -3,  2,   &   ! column 1
+                           2,  3,  4,  2,   &   ! column 2
+                           1, -1, -2, -1,   &
+                          -2,  2,  1,  4 /), shape(matrix))
+    solution  = reshape((/ 1.0d0/7.0d0,   0.0d0,        -2.0d0/7.0d0,   -1.0d0/7.0d0,    &
+                          -4.0d0/7.0d0,   1.0d0,        22.0d0/7.0d0,    4.0d0/7.0d0,    &
+                          10.0d0/49.0d0, -2.0d0/7.0d0, -76.0d0/49.0d0, -17.0d0/49.0d0,   &
+                          15.0d0/49.0d0, -3.0d0/7.0d0, -65.0d0/49.0d0, -1.0d0/49.0d0 /), &
+                          shape(solution))                      
+    call invert_B(matrix, matrix_inverse)
+    
+    @assertEqual(matrix_inverse, solution, tolerance=1.0d-12)
+  end subroutine test_matrix_inversion
 
 
-@test 
-subroutine test_fixed_boundaries_left()
-  use mod_global_variables, only: dp, dim_quadblock, dim_subblock
-  use mod_boundary_conditions, only: boundaries_B_left_edge
-  use funit
-  
-  complex(dp) :: quadblock_test(dim_quadblock, dim_quadblock)
-  complex(dp) :: quadblock_solution(dim_quadblock, dim_quadblock)
-  integer     :: i
-  
-  write(*, *) "Testing fixed boundary conditions (left)"
-  quadblock_test = (5.0d0, 2.0d0)
-  quadblock_solution = (5.0d0, 2.0d0)
-  call boundaries_B_left_edge(quadblock_test)
-  
-  do i = 1, dim_subblock, 2
-    ! odd rows should be zero for top two blocks 
-    quadblock_solution(i, :) = (0.0d0, 0.0d0)
-    ! odd columns should be zero for left two blocks
-    quadblock_solution(:, i) = (0.0d0, 0.0d0)
-    ! first diagonal elements should be unity 
-    quadblock_solution(i, i) = (1.0d0, 0.0d0)
-  end do 
-  
-  @assertEqual(quadblock_test, quadblock_solution, tolerance=1.0d-12)
-end subroutine test_fixed_boundaries_left
+  @test 
+  subroutine test_matrix_multiplication()
+    use mod_global_variables, only: dp, set_matrix_gridpts, ir, ic
+    use mod_solvers, only: get_B_invA
+    
+    real(dp)     :: matrixB(4, 4)
+    complex(dp)  :: matrixA(4, 4), multiplication_result(4, 4), solution(4, 4)
+    integer      :: i, j
+    
+    write(*, *) "Testing matrix multiplication"
+    call set_matrix_gridpts(4)
+    matrixB = reshape((/ 7.0d0,  0.0d0, -3.0d0,  2.0d0,   &  ! column 1
+                         2.0d0,  3.0d0,  4.0d0,  2.0d0,   &  ! column 2
+                         1.0d0, -1.0d0, -2.0d0, -1.0d0,   &
+                        -2.0d0,  2.0d0,  1.0d0,  4.0d0 /), shape(matrixB))
+    matrixA = reshape((/ 2.0d0*ir,  0.0d0*ir,  1.0d0*ic, -3.0d0*ir, &
+                         3.0d0*ir,  0.0d0*ir,  2.0d0*ic,  1.0d0*ir, &
+                         4.0d0*ic,  3.0d0*ir, -7.0d0*ir,  5.0d0*ic, &
+                        -1.0d0*ir, -2.0d0*ir,  3.0d0*ir,  2.0d0*ir /), shape(matrixA))
+    solution = reshape((/ ( 20.0d0, 1.0d0), (-6.0d0,-1.0d0), (-9.0d0,-2.0d0), (-8.0d0,-1.0d0),   &
+                          ( 19.0d0, 2.0d0), ( 2.0d0,-2.0d0), (-8.0d0,-4.0d0), (10.0d0,-2.0d0),   &
+                          ( -1.0d0,18.0d0), (16.0d0,10.0d0), (26.0d0,-7.0d0), (13.0d0,28.0d0),   &
+                          (-12.0d0, 0.0d0), (-5.0d0, 0.0d0), (-9.0d0, 0.0d0), (-1.0d0, 0.0d0)/), &
+                       shape(solution))
+    call get_B_invA(matrixB, matrixA, multiplication_result)
+    
+    @assertEqual(multiplication_result, solution, tolerance=1.0d-12)
+  end subroutine test_matrix_multiplication
 
 
-@test 
-subroutine test_fixed_boundaries_left_conduction()
-  use mod_global_variables, only: dp, dim_quadblock, dim_subblock, thermal_conduction
-  use mod_boundary_conditions, only: boundaries_B_left_edge
-  use funit
-  
-  complex(dp) :: quadblock_test(dim_quadblock, dim_quadblock)
-  complex(dp) :: quadblock_solution(dim_quadblock, dim_quadblock)
-  integer     :: i
-  
-  write(*, *) "Testing fixed boundary conditions (left) with conduction"
-  quadblock_test = (15.0d0, 3.0d0)
-  quadblock_solution = (15.0d0, 3.0d0)
-  thermal_conduction = .true.
-  call boundaries_B_left_edge(quadblock_test)
-  
-  do i = 1, dim_subblock, 2
-    ! odd rows should be zero for top two blocks 
-    quadblock_solution(i, :) = (0.0d0, 0.0d0)
-    ! odd columns should be zero for left two blocks
-    quadblock_solution(:, i) = (0.0d0, 0.0d0)
-    ! first diagonal elements should be unity 
-    quadblock_solution(i, i) = (1.0d0, 0.0d0)
-  end do
-  quadblock_solution(10, :) = (0.0d0, 0.0d0)
-  quadblock_solution(:, 10) = (0.0d0, 0.0d0)
-  quadblock_solution(10, 10) = (1.0d0, 0.0d0)
-  
-  @assertEqual(quadblock_test, quadblock_solution, tolerance=1.0d-12)
-  
-  ! reset conduction parameter 
-  thermal_conduction = .false.
-end subroutine test_fixed_boundaries_left_conduction
+  @test 
+  subroutine test_matrix_qr_solver()
+    use mod_global_variables, only: dp, set_matrix_gridpts, ir, ic
+    use mod_solvers, only: solve_QR
+    
+    real(dp)    :: matrixB(4, 4)
+    complex(dp) :: matrixA(4, 4), eigenvals(4), eigenvals_solution(4)
+    complex(dp) :: vl(4, 4), vr(4, 4), temp
+    integer     :: i, j, minidx
+    
+    write(*, *) "Testing matrix QR solver"
+    call set_matrix_gridpts(4)
+    
+    ! define identity matrix for convenience, inversion is already tested here
+    do i = 1, 4
+      do j = 1, 4
+        if (i == j) then 
+          matrixB(j, i) = 1.0d0 
+        else
+          matrixB(j, i) = 0.0d0
+        end if 
+      end do 
+    end do 
+    
+    matrixA = reshape((/  2.0d0*ir, -1.0d0*ir, 0.0d0*ir,  0.0d0*ir, & 
+                          9.0d0*ir,  2.0d0*ir, 0.0d0*ir,  0.0d0*ir, &
+                          0.0d0*ir,  1.0d0*ir, 3.0d0*ir,  1.0d0*ir, &
+                          2.0d0*ir,  0.0d0*ir, 0.0d0*ir, -1.0d0*ir/), shape(matrixA))
+    call solve_QR(matrixA, matrixB, eigenvals, vl, vr)  
+    !! sort eigenvalues (using selection sort, based on real part)
+    do i = 1, size(eigenvals)-1
+      minidx = minloc(real(eigenvals(i:)), 1) + i - 1
+      if (real(eigenvals(i)) > real(eigenvals(minidx))) then
+        temp = eigenvals(i)
+        eigenvals(i) = eigenvals(minidx)
+        eigenvals(minidx) = temp
+      end if
+    end do
+    
+    eigenvals_solution =  (/ (-1.0d0, 0.0d0), (2.0d0, -3.0d0), &
+                          ( 2.0d0, 3.0d0), (3.0d0,  0.0d0) /)
+    
+    @assertEqual(eigenvals, eigenvals_solution, tolerance=1.0d-12)
+  end subroutine test_matrix_qr_solver
 
 
-@test 
-subroutine test_fixed_boundaries_right_wall()
-  use mod_global_variables, only: dp, dim_quadblock, dim_subblock, boundary_type
-  use mod_boundary_conditions, only: boundaries_B_right_edge
-  use funit
-  
-  complex(dp) :: quadblock_test(dim_quadblock, dim_quadblock)
-  complex(dp) :: quadblock_solution(dim_quadblock, dim_quadblock)
-  integer     :: i, idxs(3)
-  
-  write(*, *) "Testing fixed boundary conditions (right)"
-  boundary_type = "wall"
-  quadblock_test = (7.0d0, 1.0d0)
-  quadblock_solution = (7.0d0, 1.0d0)
-  call boundaries_B_right_edge(quadblock_test)
-  
-  idxs = (/ 19, 29, 31 /)
-  do i = 1, size(idxs)
-    ! rows and columns at each index to zero (v1, a2, a3)
-    quadblock_solution(idxs(i), :) = (0.0d0, 0.0d0)
-    quadblock_solution(:, idxs(i)) = (0.0d0, 0.0d0)
-    quadblock_solution(idxs(i), idxs(i)) = (1.0d0, 0.0d0)
-  end do 
-  
-  @assertEqual(quadblock_test, quadblock_solution, tolerance=1.0d-12)
-end subroutine test_fixed_boundaries_right_wall
+  @test 
+  subroutine test_subblock_fill()
+    use mod_global_variables, only: dp, dim_quadblock
+    use mod_make_subblock, only: subblock
+    
+    complex(dp) :: quadblock(dim_quadblock, dim_quadblock)
+    complex(dp) :: factors(2), val1, val2
+    real(dp)    :: spline1(4), spline2(4), weight 
+    integer     :: positions(2, 2), i, idx1(16), idx2(16)
+    
+    write(*, *) "Testing subblock filling"
+    quadblock = (0.0d0, 0.0d0)
+    val1 = (3.0d0, 1.0d0)
+    val2 = (-1.0d0, 5.0d0)
+    
+    !! Two factors and positions are chosen freely
+    factors(1) = val1
+    positions(1, :) = [4, 3]
+    factors(2) = val2
+    positions(2, :) = [7, 5]
+    
+    !! weight and splines are set to unity for testing purposes
+    weight = 1.0d0 
+    spline1 = 1.0d0 
+    spline2 = 1.0d0 
+    call subblock(quadblock, factors, positions, weight, spline1, spline2)
+    
+    !! first factor 
+    idx1 = (/ 7, 7, 8, 8,  7,  7,  8,  8, 23, 23, 24, 24, 23, 23, 24, 24 /)
+    idx2 = (/ 5, 6, 5, 6, 21, 22, 21, 22,  5,  6,  5,  6, 21, 22, 21, 22 /)
+    do i = 1, size(idx1)
+      @assertEqual(quadblock(idx1(i), idx2(i)), val1, tolerance=1.0d-12)
+    end do 
+    
+    ! !! second factor
+    idx1 = (/ 13, 13, 14, 14, 13, 13, 14, 14, 29, 29, 30, 30, 29, 29, 30, 30 /)
+    idx2 = (/  9, 10,  9, 10, 25, 26, 25, 26,  9, 10,  9, 10, 25, 26, 25, 26 /)
+    do i = 1, size(idx1)
+      @assertEqual(quadblock(idx1(i), idx2(i)), val2, tolerance=1.0d-12)
+    end do 
+  end subroutine test_subblock_fill
 
 
-@test 
-subroutine test_fixed_boundaries_right_wall_conduction()
-  use mod_global_variables, only: dp, dim_quadblock, dim_subblock, thermal_conduction, boundary_type
-  use mod_boundary_conditions, only: boundaries_B_right_edge
-  use funit
-  
-  complex(dp) :: quadblock_test(dim_quadblock, dim_quadblock)
-  complex(dp) :: quadblock_solution(dim_quadblock, dim_quadblock)
-  integer     :: i, idxs(4)
-  
-  write(*, *) "Testing fixed boundary conditions (right) with conduction"
-  boundary_type = "wall"
-  thermal_conduction = .true.
-  quadblock_test = (12.0d0, 5.0d0)
-  quadblock_solution = (12.0d0, 5.0d0)
-  call boundaries_B_right_edge(quadblock_test)
-  
-  idxs = (/ 19, 26, 29, 31 /)
-  do i = 1, size(idxs)
-    ! rows and columns at each index to zero (v1, a2, a3) + T1 2nd row/column
-    quadblock_solution(idxs(i), :) = (0.0d0, 0.0d0)
-    quadblock_solution(:, idxs(i)) = (0.0d0, 0.0d0)
-    quadblock_solution(idxs(i), idxs(i)) = (1.0d0, 0.0d0)
-  end do 
-  
-  @assertEqual(quadblock_test, quadblock_solution, tolerance=1.0d-12)
-  
-  ! reset conduction parameter 
-  thermal_conduction = .false.
-end subroutine test_fixed_boundaries_right_wall_conduction
+  @test 
+  subroutine test_fixed_boundaries_left()
+    use mod_global_variables, only: dp, dim_quadblock, dim_subblock
+    use mod_boundary_conditions, only: boundaries_B_left_edge
+    
+    complex(dp) :: quadblock_test(dim_quadblock, dim_quadblock)
+    complex(dp) :: quadblock_solution(dim_quadblock, dim_quadblock)
+    integer     :: i
+    
+    write(*, *) "Testing fixed boundary conditions (left)"
+    quadblock_test = (5.0d0, 2.0d0)
+    quadblock_solution = (5.0d0, 2.0d0)
+    call boundaries_B_left_edge(quadblock_test)
+    
+    do i = 1, dim_subblock, 2
+      ! odd rows should be zero for top two blocks 
+      quadblock_solution(i, :) = (0.0d0, 0.0d0)
+      ! odd columns should be zero for left two blocks
+      quadblock_solution(:, i) = (0.0d0, 0.0d0)
+      ! first diagonal elements should be unity 
+      quadblock_solution(i, i) = (1.0d0, 0.0d0)
+    end do 
+    
+    @assertEqual(quadblock_test, quadblock_solution, tolerance=1.0d-12)
+  end subroutine test_fixed_boundaries_left
 
+
+  @test 
+  subroutine test_fixed_boundaries_left_conduction()
+    use mod_global_variables, only: dp, dim_quadblock, dim_subblock, thermal_conduction
+    use mod_boundary_conditions, only: boundaries_B_left_edge
+    
+    complex(dp) :: quadblock_test(dim_quadblock, dim_quadblock)
+    complex(dp) :: quadblock_solution(dim_quadblock, dim_quadblock)
+    integer     :: i
+    
+    write(*, *) "Testing fixed boundary conditions (left) with conduction"
+    quadblock_test = (15.0d0, 3.0d0)
+    quadblock_solution = (15.0d0, 3.0d0)
+    thermal_conduction = .true.
+    call boundaries_B_left_edge(quadblock_test)
+    
+    do i = 1, dim_subblock, 2
+      ! odd rows should be zero for top two blocks 
+      quadblock_solution(i, :) = (0.0d0, 0.0d0)
+      ! odd columns should be zero for left two blocks
+      quadblock_solution(:, i) = (0.0d0, 0.0d0)
+      ! first diagonal elements should be unity 
+      quadblock_solution(i, i) = (1.0d0, 0.0d0)
+    end do
+    quadblock_solution(10, :) = (0.0d0, 0.0d0)
+    quadblock_solution(:, 10) = (0.0d0, 0.0d0)
+    quadblock_solution(10, 10) = (1.0d0, 0.0d0)
+    
+    @assertEqual(quadblock_test, quadblock_solution, tolerance=1.0d-12)
+    
+    ! reset conduction parameter 
+    thermal_conduction = .false.
+  end subroutine test_fixed_boundaries_left_conduction
+
+
+  @test 
+  subroutine test_fixed_boundaries_right_wall()
+    use mod_global_variables, only: dp, dim_quadblock, dim_subblock, boundary_type
+    use mod_boundary_conditions, only: boundaries_B_right_edge
+    
+    complex(dp) :: quadblock_test(dim_quadblock, dim_quadblock)
+    complex(dp) :: quadblock_solution(dim_quadblock, dim_quadblock)
+    integer     :: i, idxs(3)
+    
+    write(*, *) "Testing fixed boundary conditions (right)"
+    boundary_type = "wall"
+    quadblock_test = (7.0d0, 1.0d0)
+    quadblock_solution = (7.0d0, 1.0d0)
+    call boundaries_B_right_edge(quadblock_test)
+    
+    idxs = (/ 19, 29, 31 /)
+    do i = 1, size(idxs)
+      ! rows and columns at each index to zero (v1, a2, a3)
+      quadblock_solution(idxs(i), :) = (0.0d0, 0.0d0)
+      quadblock_solution(:, idxs(i)) = (0.0d0, 0.0d0)
+      quadblock_solution(idxs(i), idxs(i)) = (1.0d0, 0.0d0)
+    end do 
+    
+    @assertEqual(quadblock_test, quadblock_solution, tolerance=1.0d-12)
+  end subroutine test_fixed_boundaries_right_wall
+
+
+  @test 
+  subroutine test_fixed_boundaries_right_wall_conduction()
+    use mod_global_variables, only: dp, dim_quadblock, dim_subblock, thermal_conduction, boundary_type
+    use mod_boundary_conditions, only: boundaries_B_right_edge
+    
+    complex(dp) :: quadblock_test(dim_quadblock, dim_quadblock)
+    complex(dp) :: quadblock_solution(dim_quadblock, dim_quadblock)
+    integer     :: i, idxs(4)
+    
+    write(*, *) "Testing fixed boundary conditions (right) with conduction"
+    boundary_type = "wall"
+    thermal_conduction = .true.
+    quadblock_test = (12.0d0, 5.0d0)
+    quadblock_solution = (12.0d0, 5.0d0)
+    call boundaries_B_right_edge(quadblock_test)
+    
+    idxs = (/ 19, 26, 29, 31 /)
+    do i = 1, size(idxs)
+      ! rows and columns at each index to zero (v1, a2, a3) + T1 2nd row/column
+      quadblock_solution(idxs(i), :) = (0.0d0, 0.0d0)
+      quadblock_solution(:, idxs(i)) = (0.0d0, 0.0d0)
+      quadblock_solution(idxs(i), idxs(i)) = (1.0d0, 0.0d0)
+    end do 
+    
+    @assertEqual(quadblock_test, quadblock_solution, tolerance=1.0d-12)
+    
+    ! reset conduction parameter 
+    thermal_conduction = .false.
+  end subroutine test_fixed_boundaries_right_wall_conduction
   
-  
-  
-  
-  
+end module core_tests
