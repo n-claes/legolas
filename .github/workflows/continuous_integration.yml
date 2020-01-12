@@ -15,16 +15,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Install gfortran
+    - name: Install gfortran-9
       run: |
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test
         sudo apt update
-        sudo apt-get install gfortran
         sudo apt-get install gfortran-9
-    - name: Check gfortran
-      run: |
-        gfortran --version
-        gfortran-9 --version
+    - name: Check gfortran-9
+      run: gfortran-9 --version
     - name: Install cmake
       run: sudo apt-get -y install cmake
     - name: Check cmake
@@ -38,20 +35,39 @@ jobs:
         cd tests
         git clone https://github.com/Goddard-Fortran-Ecosystem/pFUnit.git
     - name: Build pFUnit
+      env: 
+        CC: "/usr/bin/gcc-9"
+        FC: "/usr/bin/gfortran-9"
       run: |
         cd tests/pFUnit
         mkdir build
         cd build
         cmake ..
     - name: Compile pFUnit 1/2 (tests)
+      env: 
+        CC: "/usr/bin/gcc-9"
+        FC: "/usr/bin/gfortran-9"
       run: |
         cd tests/pFUnit/build
-        make tests FC=gfortran-9
+        make tests
     - name: Compile pFUnit 2/2 (install)
+      env: 
+        CC: "/usr/bin/gcc-9"
+        FC: "/usr/bin/gfortran-9"
       run: |
         cd tests/pFUnit/build
-        make install FC=gfortran-9
-    - name: compile LEGOLAS
+        make install
+    - name: Compile LEGOLAS
       run: make FC=gfortran-9
+    - name: Compile tests 
+      env:
+        PFUNIT_DIR: "/home/runner/work/legolas/legolas/tests/pFUnit/build/installed"
+      run: |
+        cd tests
+        make FC=gfortran-9
+    - name: Run tests
+      run: |
+        cd tests
+        ./test_legolas
 
       
