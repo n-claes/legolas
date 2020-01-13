@@ -13,16 +13,21 @@
   ! equilibrium_type = "Resistive tearing modes with flow"   ! Cartesian
   ! equilibrium_type = "Flow driven instabilities"           ! Cartesian
   ! equilibrium_type = "Suydam cluster modes"                ! cylindrical
-   equilibrium_type = "Kelvin-Helmholtz"                    ! Cartesian
+  ! equilibrium_type = "Kelvin-Helmholtz"                    ! Cartesian
   ! equilibrium_type = "Rotating plasma cylinder"            ! cylindrical
+   equilibrium_type = "Kelvin-Helmholtz and current driven" ! cylindrical
+
+  ! Test equilibria
+  ! equilibrium_type = "Beta=0 test"
+  ! equilibrium_type = "Hydrodynamics test"
   boundary_type = "wall"
 /
 
 &savelist
   write_matrices = .true.
   write_eigenvectors = .true.
-  write_eigenfunctions = .true.
+  write_eigenfunctions = .false.
   show_results = .true.
   show_matrices = .false.
-  show_eigenfunctions = .true.
+  show_eigenfunctions = .false.
 /

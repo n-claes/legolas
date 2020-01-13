@@ -16,10 +16,11 @@ contains
   !! @param[in] parfile   The name of the parfile
   subroutine read_parfile(parfile)
     use mod_physical_constants, only: set_unit_length, set_unit_numberdensity, set_unit_temperature, set_normalisations
-    
+
     character(len=*), intent(in)  :: parfile
 
     real(dp)    :: mhd_gamma
+    ! integer     :: big      !< incommpressible limit test
     real(dp)    :: unit_length, unit_numberdensity, unit_temperature, &
                    unit_velocity
     integer     :: gridpoints
@@ -61,6 +62,7 @@ contains
 
     !> Physicslist defaults
     mhd_gamma = 5.0d0 / 3.0d0       !< ratio of specific heats
+    ! mhd_gamma = real(huge(big))     !< incompressible limit test
     flow  = .false.                 !< use flow
     radiative_cooling = .false.     !< use radiative cooling
     ncool = 4000                    !< points for cooling curve interpolation
