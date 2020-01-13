@@ -149,6 +149,16 @@ contains
       case("Rotating plasma cylinder")
         call rotating_plasma_cyl_eq()
 
+      case("Kelvin-Helmholtz and current driven")
+        call kh_cd_instability_eq()
+
+      ! Tests
+    case("Beta=0 test")
+        call beta0_test_eq()
+
+      case("Hydrodynamics test")
+        call hydro_test_eq()
+
       case default
         write(*, *) "Equilibrium not recognised."
         write(*, *) "Currently set on: ", equilibrium_type
@@ -524,7 +534,7 @@ contains
     radiative_cooling = .false.
     thermal_conduction = .false.
     resistivity = .false.
-    external_gravity = .true.
+    external_gravity = .false.
 
     !! Parameters
     a   = 0.05d0
@@ -559,9 +569,11 @@ contains
     end do
   end subroutine KH_instability_eq
 
-
+  !> Initialises equilibrium for a rotating plasma cylinder (cylindrical geometry).
+  !! Obtained from Nijboer et al., J Plasma Phys 58(1) (1997)
   subroutine rotating_plasma_cyl_eq()
-    use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, d_v02_dr, d_v03_dr, d_T0_dr
+    use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, d_v02_dr, d_v03_dr, &
+                                          d_T0_dr, dd_B02_dr
 
     real(dp)    :: a21, a22, a3, b21, b22, b3, p0
     real(dp)    :: r
@@ -602,7 +614,7 @@ contains
       B03_eq(i)  = b3
       B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)   = (1.0d0 / rho0_eq(i)) * (p0 &
-                      + 0.5d0 * (a21**2 - 2*b21**2)*r**2 &
+                      + 0.5d0 * (a21**2 - 2.0d0*b21**2)*r**2 &
                       + (2.0d0/3.0d0)*(a21*a22 - b21*b22)*r**3 &
                       + (1.0d0/4.0d0)*(a22**2 - b22**2)*r**4)
 
@@ -614,17 +626,102 @@ contains
       d_T0_dr(i)  = (1.0d0 / rho0_eq(i)) * ( (a21**2 - 2.0d0*b21**2)*r &
                      + 2.0d0*(a21*a22 - b21*b22)*r**2 &
                      + (a22**2 - b22**2)*r**3 )
+
+      dd_B02_dr   = 2.0d0*b22
     end do
   end subroutine rotating_plasma_cyl_eq
 
+  !> Initialises equilibrium for unperturbed magnetzied jet model in
+  !! cylindrical geometry.
+  !! Obtained from Baty & Keppens, Astrophys. J 580 (2002)
+  subroutine kh_cd_instability_eq()
+    use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, d_v02_dr, d_v03_dr, d_T0_dr, dd_B02_dr
+
+    real(dp)    :: V, rj, rc, r, a, p0, Bth0, Bz0
+    integer     :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid() ! Initialise grid
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    V   = 1.63d0
+    rj  = 1.0d0
+    a   = 0.1d0 * rj
+    p0  = 1.0d0
+    Bth0 = 1.0d0
+    Bz0 = 0.25d0
+    rc  = 2.0d0
+
+    k2  = 1.0d0
+    k3  = 0.0d0
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+
+      !! Equilibrium
+      rho0_eq(i) = 1.0d0
+      v02_eq(i)  = 0.0d0
+      v03_eq(i)  = (V/2.0d0) * tanh((rj-r)/a)
+      B02_eq(i)  = Bth0 * (r/rc) / (1 + (r/rc)**2 )
+      B03_eq(i)  = Bz0
+      B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)   = p0 / rho0_eq(i) - (Bth0**2/(2.0d0*rho0_eq(i))) * &
+                  (1 - 1/(1+(r/rc)**2)**2)
+
+      !! Derivatives
+      d_B02_dr(i) = Bth0 * rc * (rc**2-r**2) / (r**2+rc**2)**2
+      d_B03_dr(i) = 0.0d0
+      d_v02_dr(i) = 0.0d0
+      d_v03_dr(i) = - (V/(2*a)) / cosh((rj-r)/a)**2
+      d_T0_dr(i)  = - (2*Bth0**2/rho0_eq(i)) * rc**4*r / (r**2+rc**2)**3
+
+      dd_B02_dr   = -2*r*rc * Bth0 * (3*rc**2-r**2) / (r**2+rc**2)**3
+    end do
+  end subroutine
+
+  !> Limit tests
+  !> The following equilibria test the program in certain limits
+  subroutine beta0_test_eq()
+    use mod_equilibrium_derivatives, only: d_T0_dr
+
+    write(*, *) "This test displays the adiabatic homogeneous case in the beta=0 limit."
+    call adiabatic_homo_eq()
+
+    T0_eq   = 0.0d0
+    d_T0_dr = 0.0d0
+  end subroutine
+
+  subroutine hydro_test_eq()
+    use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
+
+    write(*, *) "This test displays the adiabatic homogeneous case in the hydrodynamics limit (B=0)."
+    call adiabatic_homo_eq()
+
+    B02_eq      = 0.0d0
+    B03_eq      = 0.0d0
+    d_B02_dr    = 0.0d0
+    d_B03_dr    = 0.0d0
+    dd_B02_dr   = 0.0d0
+    dd_B03_dr   = 0.0d0
+  end subroutine
 
   !> Checks equilibrium conditions
-  subroutine check_equilibrium_conditions(rho0, d_rho0_dr, T0, d_T0_dr, B02, d_B02_dr, B03, d_B03_dr, grav, v02, d_v03_dr, geometry)
+  subroutine check_equilibrium_conditions(rho0, d_rho0_dr, T0, d_T0_dr, B02, d_B02_dr, &
+                                          B03, d_B03_dr, grav, v02, d_v03_dr, geometry)
     use mod_global_variables, only: dp_LIMIT
 
     character(len=*), intent(in)  :: geometry
-    real(dp), intent(in)          :: rho0(:), d_rho0_dr(:), T0(:), d_T0_dr(:), B02(:), d_B02_dr(:), B03(:), d_B03_dr(:)
-    real(dp), intent(in)          :: grav(:), v02(:), d_v03_dr(:)
+    real(dp), intent(in)          :: rho0(:), d_rho0_dr(:), B02(:), d_B02_dr(:), B03(:), d_B03_dr(:)
+    real(dp), intent(in)          :: T0(:), d_T0_dr(:), grav(:), v02(:), d_v03_dr(:)
     real(dp)                      :: eps, d_eps, eq_cond(gauss_gridpts)
     real(dp)                      :: eq_limit = 1.0d-2
     integer                       :: i
@@ -655,6 +752,7 @@ contains
        if (abs(B02(1)) > eq_limit .or. abs(d_B03_dr(1)) > eq_limit &
               .or. abs(v02(1)) > eq_limit .or. abs(d_v03_dr(1)) > eq_limit) then
          write(*, *) "WARNING: equilibrium regularity conditions not met!"
+         write(*, *) "Try a higher number of grid points."
          stop
        end if
     end if
