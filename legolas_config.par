@@ -2,7 +2,7 @@
   geometry = 'Cartesian'
   x_start  = 0.0d0
   x_end    = 1.0d0
-  gridpoints = 51
+  gridpoints = 101
 /
 
 &equilibriumlist
@@ -15,7 +15,8 @@
   ! equilibrium_type = "Suydam cluster modes"                ! cylindrical
   ! equilibrium_type = "Kelvin-Helmholtz"                    ! Cartesian
   ! equilibrium_type = "Rotating plasma cylinder"            ! cylindrical
-   equilibrium_type = "Kelvin-Helmholtz and current driven" ! cylindrical
+  ! equilibrium_type = "Kelvin-Helmholtz and current driven" ! cylindrical
+   equilibrium_type = "Internal kink modes"                 ! cylindrical
 
   ! Test equilibria
   ! equilibrium_type = "Beta=0 test"
