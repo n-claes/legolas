@@ -155,8 +155,11 @@ contains
       case("Internal kink modes")
         call internal_kink_eq()
 
+      case("Rayleigh-Taylor instabilities")
+        call rt_instability_eq()
+
       ! Tests
-    case("Beta=0 test")
+      case("Beta=0 test")
         call beta0_test_eq()
 
       case("Hydrodynamics test")
@@ -693,7 +696,8 @@ contains
     end do
   end subroutine
 
-  !> Initializes equilibrium for current-driven internal kink instability.
+  !> Initializes equilibrium for current-driven internal kink instability in
+  !! cylindrical geometry.
   !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
   subroutine internal_kink_eq()
     use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v03_dr, &
@@ -754,6 +758,62 @@ contains
 
       dd_B02_dr(i)  = DDJ1
       dd_B03_dr(i)  = DDJ0
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for Rayleigh-Taylor instabilities in
+  !! cylindrical geometry.
+  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
+  subroutine rt_instability_eq()
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_B03_dr, dd_B03_dr
+
+    real(dp)      :: p0, alpha, r, rho0, B_inf
+    real(dp)      :: x, fx, dfx, ddfx, a, d, x0
+    integer       :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    rho0  = 1.0d0
+    alpha = 2.0d0
+    a     = 1.0d0
+    d     = 0.1667d0
+    B_inf = 1.0d0
+    p0    = 0.5d0 * (1.0d0-d)**2 * B_inf**2
+    x0    = 0.0d0
+
+    k2 = 1.0d0
+    k3 = 0.0d0
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+
+      x     = r / a
+      fx    = alpha**2 * (x**2 - x0**2)
+      dfx   = 2.0d0 * alpha**2 * x / a
+      ddfx  = 2.0d0 * alpha**2 / a**2
+
+      ! Equilibrium
+      rho0_eq(i)  = rho0 / cosh(fx)**2
+      B03_eq(i)   = B_inf * (d + (1.0d0-d) * tanh(fx))
+      B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)    = p0 / rho0
+
+      ! Derivatives
+      d_rho0_dr(i)  = -2.0d0*rho0 * dfx * tanh(fx) / cosh(fx)**2
+      d_B03_dr(i)   = B_inf * (1-d) * dfx / cosh(fx)**2
+
+      dd_B03_dr(i)  = B_inf * (1-d) * (ddfx - 2.0d0*fx**2*tanh(fx))
     end do
   end subroutine
 

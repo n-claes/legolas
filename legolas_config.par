@@ -16,7 +16,8 @@
   ! equilibrium_type = "Kelvin-Helmholtz"                    ! Cartesian
   ! equilibrium_type = "Rotating plasma cylinder"            ! cylindrical
   ! equilibrium_type = "Kelvin-Helmholtz and current driven" ! cylindrical
-   equilibrium_type = "Internal kink modes"                 ! cylindrical
+  ! equilibrium_type = "Internal kink modes"                 ! cylindrical
+   equilibrium_type = "Rayleigh-Taylor instabilities"       ! cylindrical
 
   ! Test equilibria
   ! equilibrium_type = "Beta=0 test"
