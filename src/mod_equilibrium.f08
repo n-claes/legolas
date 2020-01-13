@@ -152,6 +152,9 @@ contains
       case("Kelvin-Helmholtz and current driven")
         call kh_cd_instability_eq()
 
+      case("Internal kink modes")
+        call internal_kink_eq()
+
       ! Tests
     case("Beta=0 test")
         call beta0_test_eq()
@@ -518,10 +521,9 @@ contains
   !! Cartesian geometry.
   !! From Miura et al., J. Geophys. Res. 87 (1982)
   subroutine KH_instability_eq()
-    use mod_equilibrium_derivatives, only: d_v02_dr, d_v03_dr!, d_rho0_dr
+    use mod_equilibrium_derivatives, only: d_v02_dr, d_v03_dr
 
     real(dp)    :: a, x, p0, v0y, v0z
-    !real(dp)    :: g
     integer     :: i
 
     geometry = 'Cartesian'
@@ -551,19 +553,14 @@ contains
     k2 = 10.0d0
     k3 = 0.0d0
 
-    ! Derivatives
-    !d_rho0_dr = - g / P0
-
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
-      !g = grav_eq(i)
       v02_eq(i)   = -v0y * tanh(x / a)
       v03_eq(i)   = -v0z * tanh(x / a)
 
       T0_eq(i)    = P0 / rho0_eq(i)
 
       ! Derivatives
-      !d_rho0_dr(i) = - g * exp(-g*x) / P0
       d_v02_dr(i) = -v0y / (a * cosh(x / a)**2)
       d_v03_dr(i) = -v0z / (a * cosh(x / a)**2)
     end do
@@ -635,7 +632,7 @@ contains
   !! cylindrical geometry.
   !! Obtained from Baty & Keppens, Astrophys. J 580 (2002)
   subroutine kh_cd_instability_eq()
-    use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, d_v02_dr, d_v03_dr, d_T0_dr, dd_B02_dr
+    use mod_equilibrium_derivatives, only: d_B02_dr, d_v03_dr, d_T0_dr, dd_B02_dr
 
     real(dp)    :: V, rj, rc, r, a, p0, Bth0, Bz0
     integer     :: i
@@ -653,16 +650,26 @@ contains
     external_gravity = .false.
 
     !! Parameters
-    V   = 1.63d0
-    rj  = 1.0d0
-    a   = 0.1d0 * rj
-    p0  = 1.0d0
-    Bth0 = 1.0d0
-    Bz0 = 0.25d0
-    rc  = 2.0d0
+    V     = 1.63d0
+    rj    = 1.0d0
+    a     = 0.1d0 * rj
+    p0    = 1.0d0
+    Bz0   = 0.25d0
 
-    k2  = 1.0d0
-    k3  = 0.0d0
+    ! UNI
+    !rc    = 1.0d0
+    !Bth0  = 0.0d0
+
+    ! HEL1
+    !rc    = 2.0d0
+    !Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
+
+    ! HEL2
+    rc    = 0.5d0
+    Bth0  = 0.4d0 * (1+(rj/rc)**2) / (rj/rc)
+
+    k2  = -1.0d0
+    k3  = dpi / rj
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
@@ -671,20 +678,82 @@ contains
       rho0_eq(i) = 1.0d0
       v02_eq(i)  = 0.0d0
       v03_eq(i)  = (V/2.0d0) * tanh((rj-r)/a)
-      B02_eq(i)  = Bth0 * (r/rc) / (1 + (r/rc)**2 )
+      B02_eq(i)  = Bth0 * r*rc / (rc**2 + r**2 )
       B03_eq(i)  = Bz0
       B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)   = p0 / rho0_eq(i) - (Bth0**2/(2.0d0*rho0_eq(i))) * &
-                  (1 - 1/(1+(r/rc)**2)**2)
+                  (1 - rc**4/(rc**2+r**2)**2)
 
       !! Derivatives
       d_B02_dr(i) = Bth0 * rc * (rc**2-r**2) / (r**2+rc**2)**2
-      d_B03_dr(i) = 0.0d0
-      d_v02_dr(i) = 0.0d0
       d_v03_dr(i) = - (V/(2*a)) / cosh((rj-r)/a)**2
-      d_T0_dr(i)  = - (2*Bth0**2/rho0_eq(i)) * rc**4*r / (r**2+rc**2)**3
+      d_T0_dr(i)  = - (2.0d0*Bth0**2/rho0_eq(i)) * rc**4*r / (r**2+rc**2)**3
 
-      dd_B02_dr   = -2*r*rc * Bth0 * (3*rc**2-r**2) / (r**2+rc**2)**3
+      dd_B02_dr   = -2.0d0*r*rc * Bth0 * (3.0d0*rc**2-r**2) / (r**2+rc**2)**3
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for current-driven internal kink instability.
+  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
+  subroutine internal_kink_eq()
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v03_dr, &
+                                      d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
+
+    real(dp)      :: v_z0, p0, alpha, r, rho0
+    real(dp)      :: J0, J1, J2, J3, DJ0, DJ1, DDJ0, DDJ1
+    integer       :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    rho0  = 1.0d0
+    v_z0  = 1.0d0
+    p0    = 3.0d0
+    alpha = 5.0d0
+
+    k2 = 1.0d0
+    k3 = 0.16d0 * alpha
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+
+      J0 = bessel_jn(0, alpha * r)
+      J1 = bessel_jn(1, alpha * r)
+      J2 = bessel_jn(2, alpha * r)
+      J3 = bessel_jn(3, alpha * r)
+      DJ0 = -alpha * J1
+      DJ1 = alpha * (0.5d0 * J0 - 0.5d0 * J2)
+      DDJ0 = -alpha * DJ1
+      DDJ1 = -alpha**2 * (0.75d0 * J1 - J3)
+
+      ! Equilibrium
+      rho0_eq(i) = rho0 * (1-r**2)
+      v02_eq(i) = 0.0d0
+      v03_eq(i) = v_z0 * (1-r**2)
+      B02_eq(i) = J1
+      B03_eq(i) = J0
+      B0_eq(i)  = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)  = p0 / rho0_eq(i)
+
+      ! Derivatives
+      d_rho0_dr(i)  = -2*r*rho0
+      d_T0_dr(i)    = 2*r * p0 / (rho0 * (1-r**2)**2)
+      d_v03_dr(i)   = -2.0d0*v_z0*r
+      d_B02_dr(i)   = DJ1
+      d_B03_dr(i)   = DJ0
+
+      dd_B02_dr(i)  = DDJ1
+      dd_B03_dr(i)  = DDJ0
     end do
   end subroutine
 
