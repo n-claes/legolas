@@ -631,7 +631,7 @@ contains
     end do
   end subroutine rotating_plasma_cyl_eq
 
-  !> Initialises equilibrium for unperturbed magnetzied jet model in
+  !> Initialises equilibrium for unperturbed magnetized jet model in
   !! cylindrical geometry.
   !! Obtained from Baty & Keppens, Astrophys. J 580 (2002)
   subroutine kh_cd_instability_eq()
@@ -640,10 +640,13 @@ contains
     real(dp)    :: V, rj, rc, r, a, p0, Bth0, Bz0
     integer     :: i
 
+    ! Jet radius, other parameters in function of rj
+    rj    = 1.0d0
+
     geometry = 'cylindrical'
     ! Override values from par file
     x_start = 0.0d0
-    x_end   = 1.0d0
+    x_end   = 2.0d0 * rj
     call initialise_grid() ! Initialise grid
 
     flow = .true.
@@ -654,7 +657,6 @@ contains
 
     !! Parameters
     V     = 1.63d0
-    rj    = 1.0d0
     a     = 0.1d0 * rj
     p0    = 1.0d0
     Bz0   = 0.25d0
@@ -669,7 +671,7 @@ contains
 
     ! HEL2
     rc    = 0.5d0
-    Bth0  = 0.4d0 * (1+(rj/rc)**2) / (rj/rc)
+    Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
 
     k2  = -1.0d0
     k3  = dpi / rj
@@ -679,7 +681,6 @@ contains
 
       !! Equilibrium
       rho0_eq(i) = 1.0d0
-      v02_eq(i)  = 0.0d0
       v03_eq(i)  = (V/2.0d0) * tanh((rj-r)/a)
       B02_eq(i)  = Bth0 * r*rc / (rc**2 + r**2 )
       B03_eq(i)  = Bz0
@@ -689,7 +690,7 @@ contains
 
       !! Derivatives
       d_B02_dr(i) = Bth0 * rc * (rc**2-r**2) / (r**2+rc**2)**2
-      d_v03_dr(i) = - (V/(2*a)) / cosh((rj-r)/a)**2
+      d_v03_dr(i) = - (V/(2.0d0*a)) / cosh((rj-r)/a)**2
       d_T0_dr(i)  = - (2.0d0*Bth0**2/rho0_eq(i)) * rc**4*r / (r**2+rc**2)**3
 
       dd_B02_dr   = -2.0d0*r*rc * Bth0 * (3.0d0*rc**2-r**2) / (r**2+rc**2)**3
@@ -703,14 +704,14 @@ contains
     use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v03_dr, &
                                       d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
 
-    real(dp)      :: v_z0, p0, alpha, r, rho0
+    real(dp)      :: v_z0, p0, alpha, r, rho0, x
     real(dp)      :: J0, J1, J2, J3, DJ0, DJ1, DDJ0, DDJ1
     integer       :: i
 
     geometry = 'cylindrical'
     ! Override values from par file
     x_start = 0.0d0
-    x_end   = 1.0d0
+    x_end   = 1.0d0         ! this is parameter a in the paper
     call initialise_grid()
 
     flow = .true.
@@ -723,36 +724,36 @@ contains
     rho0  = 1.0d0
     v_z0  = 1.0d0
     p0    = 3.0d0
-    alpha = 5.0d0
+    alpha = 5.0d0 / x_end
 
     k2 = 1.0d0
     k3 = 0.16d0 * alpha
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
+      x = r / x_end
 
-      J0 = bessel_jn(0, alpha * r)
-      J1 = bessel_jn(1, alpha * r)
-      J2 = bessel_jn(2, alpha * r)
-      J3 = bessel_jn(3, alpha * r)
+      J0 = bessel_jn(0, alpha * x)
+      J1 = bessel_jn(1, alpha * x)
+      J2 = bessel_jn(2, alpha * x)
+      J3 = bessel_jn(3, alpha * x)
       DJ0 = -alpha * J1
       DJ1 = alpha * (0.5d0 * J0 - 0.5d0 * J2)
       DDJ0 = -alpha * DJ1
       DDJ1 = -alpha**2 * (0.75d0 * J1 - J3)
 
       ! Equilibrium
-      rho0_eq(i) = rho0 * (1-r**2)
-      v02_eq(i) = 0.0d0
-      v03_eq(i) = v_z0 * (1-r**2)
+      rho0_eq(i) = rho0 * (1-x**2)
+      v03_eq(i) = v_z0 * (1-x**2)
       B02_eq(i) = J1
       B03_eq(i) = J0
       B0_eq(i)  = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)  = p0 / rho0_eq(i)
 
       ! Derivatives
-      d_rho0_dr(i)  = -2*r*rho0
-      d_T0_dr(i)    = 2*r * p0 / (rho0 * (1-r**2)**2)
-      d_v03_dr(i)   = -2.0d0*v_z0*r
+      d_rho0_dr(i)  = -2.0d0*x*rho0
+      d_T0_dr(i)    = 2.0d0*x * p0 / (rho0 * (1-x**2)**2)
+      d_v03_dr(i)   = -2.0d0*v_z0*x
       d_B02_dr(i)   = DJ1
       d_B03_dr(i)   = DJ0
 
@@ -765,10 +766,10 @@ contains
   !! cylindrical geometry.
   !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
   subroutine rt_instability_eq()
-    use mod_equilibrium_derivatives, only: d_rho0_dr, d_B03_dr, dd_B03_dr
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_v02_dr, d_B03_dr, dd_B03_dr
 
     real(dp)      :: p0, alpha, r, rho0, B_inf
-    real(dp)      :: x, fx, dfx, ddfx, a, d, x0
+    real(dp)      :: x, fx, dfx, ddfx, a, d, x0, bigO
     integer       :: i
 
     geometry = 'cylindrical'
@@ -786,11 +787,12 @@ contains
     !! Parameters
     rho0  = 1.0d0
     alpha = 2.0d0
-    a     = 1.0d0
+    a     = x_end
     d     = 0.1667d0
     B_inf = 1.0d0
     p0    = 0.5d0 * (1.0d0-d)**2 * B_inf**2
     x0    = 0.0d0
+    bigO  = alpha * sqrt(2.0d0*d*(1-d)) * B_inf / (a*sqrt(rho0))
 
     k2 = 1.0d0
     k3 = 0.0d0
@@ -805,15 +807,17 @@ contains
 
       ! Equilibrium
       rho0_eq(i)  = rho0 / cosh(fx)**2
+      v02_eq(i)   = bigO * r
       B03_eq(i)   = B_inf * (d + (1.0d0-d) * tanh(fx))
       B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)    = p0 / rho0
 
       ! Derivatives
       d_rho0_dr(i)  = -2.0d0*rho0 * dfx * tanh(fx) / cosh(fx)**2
+      d_v02_dr      = bigO
       d_B03_dr(i)   = B_inf * (1-d) * dfx / cosh(fx)**2
 
-      dd_B03_dr(i)  = B_inf * (1-d) * (ddfx - 2.0d0*fx**2*tanh(fx))
+      dd_B03_dr(i)  = B_inf * (1-d) * (ddfx - 2.0d0*dfx**2*tanh(fx)) / cosh(fx)**2
     end do
   end subroutine
 
