@@ -158,6 +158,9 @@ contains
       case("Rayleigh-Taylor instabilities")
         call rt_instability_eq()
 
+      case("Ideal quasimodes")
+        call ideal_quasimodes_eq()
+
       ! Tests
       case("Beta=0 test")
         call beta0_test_eq()
@@ -821,6 +824,53 @@ contains
     end do
   end subroutine
 
+  !> Initializes equilibrium for ideal quasimodes in cylindrical geometry.
+  !! Obtained from Poedts & Kerner, Physical Review Letters 66 (22), (1991)
+  subroutine ideal_quasimodes_eq()
+    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
+    use mod_equilibrium_derivatives, only: d_v03_dr
+
+    real(dp)      :: r, x, j0, n, L
+    integer       :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.6d0
+    call initialise_grid()
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .true.
+    use_fixed_resistivity = .true.
+    fixed_eta_value = 5.0d-5
+    external_gravity = .false.
+
+    !! Parameters
+    j0  = 0.5d0
+    n   = 1.0d0
+    L   = 10*dpi
+
+    k2 = 2.0d0
+    k3 = 2.0d0*dpi*n/L
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+      x = r / x_end
+
+      ! Equilibrium
+      rho0_eq(i)  = 1.0d0
+      v03_eq(i)   = j0 * (1-x**2)
+      B03_eq(i)   = 1.0d0
+      B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)    = 1.0d0
+
+      ! Derivatives
+      d_v03_dr  = -2.0d0*j0*x / x_end
+    end do
+  end subroutine
+
   !> Limit tests
   !> The following equilibria test the program in certain limits
   subroutine beta0_test_eq()
@@ -856,7 +906,7 @@ contains
     real(dp), intent(in)          :: rho0(:), d_rho0_dr(:), B02(:), d_B02_dr(:), B03(:), d_B03_dr(:)
     real(dp), intent(in)          :: T0(:), d_T0_dr(:), grav(:), v02(:), d_v03_dr(:)
     real(dp)                      :: eps, d_eps, eq_cond(gauss_gridpts)
-    real(dp)                      :: eq_limit = 1.0d-2
+    real(dp)                      :: eq_limit = 1.0
     integer                       :: i
 
     do i = 1, gauss_gridpts
