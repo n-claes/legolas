@@ -5,7 +5,7 @@ MODDIR := ../mod
 
 all: test_legolas
 
-libPFUnit.a: $(BINDIR)/*.o
+libpFUnit.a: $(BINDIR)/*.o
 	$(AR) -r $@ $?
 
 ifeq (nagfor,$(findstring nagfor,$(FC)))
@@ -20,10 +20,10 @@ include $(LATEST_PFUNIT_DIR)/include/PFUNIT.mk
 
 FFLAGS += $(PFUNIT_EXTRA_FFLAGS)
 
-test_legolas: libPFUnit.a
+test_legolas: libpFUnit.a
 
-test_legolas_TESTS := core_tests.pf
-test_legolas_OTHER_LIBRARIES := -L. -lPFUnit -lblas -llapack
+test_legolas_TESTS := core_tests.pf comparison_tests.pf
+test_legolas_OTHER_LIBRARIES := -L. -lpFUnit -lblas -llapack
 $(eval $(call make_pfunit_test,test_legolas))
 
 
