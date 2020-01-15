@@ -830,7 +830,7 @@ contains
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_derivatives, only: d_v03_dr
 
-    real(dp)      :: r, x, j0, n, L
+    real(dp)      :: r, x, j0, n, L, beta
     integer       :: i
 
     geometry = 'cylindrical'
@@ -861,10 +861,10 @@ contains
 
       ! Equilibrium
       rho0_eq(i)  = 1.0d0
-      v03_eq(i)   = j0 * (1-x**2)
+      v03_eq(i)   = j0 * (1-x**2) / rho0_eq(i)
       B03_eq(i)   = 1.0d0
       B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
-      T0_eq(i)    = 1.0d0
+      T0_eq(i)    = beta * B0_eq(i)**2 / (2*rho0_eq(i)) ! n=1, kB=1, mu0=1
 
       ! Derivatives
       d_v03_dr  = -2.0d0*j0*x / x_end
