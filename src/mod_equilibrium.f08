@@ -149,6 +149,25 @@ contains
       case("Rotating plasma cylinder")
         call rotating_plasma_cyl_eq()
 
+      case("Kelvin-Helmholtz and current driven")
+        call kh_cd_instability_eq()
+
+      case("Internal kink modes")
+        call internal_kink_eq()
+
+      case("Rayleigh-Taylor instabilities")
+        call rt_instability_eq()
+
+      case("Ideal quasimodes")
+        call ideal_quasimodes_eq()
+
+      ! Tests
+      case("Beta=0 test")
+        call beta0_test_eq()
+
+      case("Hydrodynamics test")
+        call hydro_test_eq()
+
       case default
         write(*, *) "Equilibrium not recognised."
         write(*, *) "Currently set on: ", equilibrium_type
@@ -508,10 +527,9 @@ contains
   !! Cartesian geometry.
   !! From Miura et al., J. Geophys. Res. 87 (1982)
   subroutine KH_instability_eq()
-    use mod_equilibrium_derivatives, only: d_v02_dr, d_v03_dr!, d_rho0_dr
+    use mod_equilibrium_derivatives, only: d_v02_dr, d_v03_dr
 
     real(dp)    :: a, x, p0, v0y, v0z
-    !real(dp)    :: g
     integer     :: i
 
     geometry = 'Cartesian'
@@ -524,7 +542,7 @@ contains
     radiative_cooling = .false.
     thermal_conduction = .false.
     resistivity = .false.
-    external_gravity = .true.
+    external_gravity = .false.
 
     !! Parameters
     a   = 0.05d0
@@ -541,27 +559,24 @@ contains
     k2 = 10.0d0
     k3 = 0.0d0
 
-    ! Derivatives
-    !d_rho0_dr = - g / P0
-
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
-      !g = grav_eq(i)
       v02_eq(i)   = -v0y * tanh(x / a)
       v03_eq(i)   = -v0z * tanh(x / a)
 
       T0_eq(i)    = P0 / rho0_eq(i)
 
       ! Derivatives
-      !d_rho0_dr(i) = - g * exp(-g*x) / P0
       d_v02_dr(i) = -v0y / (a * cosh(x / a)**2)
       d_v03_dr(i) = -v0z / (a * cosh(x / a)**2)
     end do
   end subroutine KH_instability_eq
 
-
+  !> Initialises equilibrium for a rotating plasma cylinder (cylindrical geometry).
+  !! Obtained from Nijboer et al., J Plasma Phys 58(1) (1997)
   subroutine rotating_plasma_cyl_eq()
-    use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, d_v02_dr, d_v03_dr, d_T0_dr
+    use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, d_v02_dr, d_v03_dr, &
+                                          d_T0_dr, dd_B02_dr
 
     real(dp)    :: a21, a22, a3, b21, b22, b3, p0
     real(dp)    :: r
@@ -602,7 +617,7 @@ contains
       B03_eq(i)  = b3
       B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)   = (1.0d0 / rho0_eq(i)) * (p0 &
-                      + 0.5d0 * (a21**2 - 2*b21**2)*r**2 &
+                      + 0.5d0 * (a21**2 - 2.0d0*b21**2)*r**2 &
                       + (2.0d0/3.0d0)*(a21*a22 - b21*b22)*r**3 &
                       + (1.0d0/4.0d0)*(a22**2 - b22**2)*r**4)
 
@@ -614,19 +629,284 @@ contains
       d_T0_dr(i)  = (1.0d0 / rho0_eq(i)) * ( (a21**2 - 2.0d0*b21**2)*r &
                      + 2.0d0*(a21*a22 - b21*b22)*r**2 &
                      + (a22**2 - b22**2)*r**3 )
+
+      dd_B02_dr   = 2.0d0*b22
     end do
   end subroutine rotating_plasma_cyl_eq
 
+  !> Initialises equilibrium for unperturbed magnetized jet model in
+  !! cylindrical geometry.
+  !! Obtained from Baty & Keppens, Astrophys. J 580 (2002)
+  subroutine kh_cd_instability_eq()
+    use mod_equilibrium_derivatives, only: d_B02_dr, d_v03_dr, d_T0_dr, dd_B02_dr
+
+    real(dp)    :: V, rj, rc, r, a, p0, Bth0, Bz0
+    integer     :: i
+
+    ! Jet radius, other parameters in function of rj
+    rj    = 1.0d0
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 2.0d0 * rj
+    call initialise_grid() ! Initialise grid
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    V     = 1.63d0
+    a     = 0.1d0 * rj
+    p0    = 1.0d0
+    Bz0   = 0.25d0
+
+    ! UNI
+    !rc    = 1.0d0
+    !Bth0  = 0.0d0
+
+    ! HEL1
+    !rc    = 2.0d0
+    !Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
+
+    ! HEL2
+    rc    = 0.5d0
+    Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
+
+    k2  = -1.0d0
+    k3  = dpi / rj
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+
+      !! Equilibrium
+      rho0_eq(i) = 1.0d0
+      v03_eq(i)  = (V/2.0d0) * tanh((rj-r)/a)
+      B02_eq(i)  = Bth0 * r*rc / (rc**2 + r**2 )
+      B03_eq(i)  = Bz0
+      B0_eq(i)   = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)   = p0 / rho0_eq(i) - (Bth0**2/(2.0d0*rho0_eq(i))) * &
+                  (1 - rc**4/(rc**2+r**2)**2)
+
+      !! Derivatives
+      d_B02_dr(i) = Bth0 * rc * (rc**2-r**2) / (r**2+rc**2)**2
+      d_v03_dr(i) = - (V/(2.0d0*a)) / cosh((rj-r)/a)**2
+      d_T0_dr(i)  = - (2.0d0*Bth0**2/rho0_eq(i)) * rc**4*r / (r**2+rc**2)**3
+
+      dd_B02_dr   = -2.0d0*r*rc * Bth0 * (3.0d0*rc**2-r**2) / (r**2+rc**2)**3
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for current-driven internal kink instability in
+  !! cylindrical geometry.
+  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
+  subroutine internal_kink_eq()
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v03_dr, &
+                                      d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
+
+    real(dp)      :: v_z0, p0, alpha, r, rho0, x
+    real(dp)      :: J0, J1, J2, J3, DJ0, DJ1, DDJ0, DDJ1
+    integer       :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0         ! this is parameter a in the paper
+    call initialise_grid()
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    rho0  = 1.0d0
+    v_z0  = 1.0d0
+    p0    = 3.0d0
+    alpha = 5.0d0 / x_end
+
+    k2 = 1.0d0
+    k3 = 0.16d0 * alpha
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+      x = r / x_end
+
+      J0 = bessel_jn(0, alpha * x)
+      J1 = bessel_jn(1, alpha * x)
+      J2 = bessel_jn(2, alpha * x)
+      J3 = bessel_jn(3, alpha * x)
+      DJ0 = -alpha * J1
+      DJ1 = alpha * (0.5d0 * J0 - 0.5d0 * J2)
+      DDJ0 = -alpha * DJ1
+      DDJ1 = -alpha**2 * (0.75d0 * J1 - J3)
+
+      ! Equilibrium
+      rho0_eq(i) = rho0 * (1-x**2)
+      v03_eq(i) = v_z0 * (1-x**2)
+      B02_eq(i) = J1
+      B03_eq(i) = J0
+      B0_eq(i)  = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)  = p0 / rho0_eq(i)
+
+      ! Derivatives
+      d_rho0_dr(i)  = -2.0d0*x*rho0
+      d_T0_dr(i)    = 2.0d0*x * p0 / (rho0 * (1-x**2)**2)
+      d_v03_dr(i)   = -2.0d0*v_z0*x
+      d_B02_dr(i)   = DJ1
+      d_B03_dr(i)   = DJ0
+
+      dd_B02_dr(i)  = DDJ1
+      dd_B03_dr(i)  = DDJ0
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for Rayleigh-Taylor instabilities in
+  !! cylindrical geometry.
+  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
+  subroutine rt_instability_eq()
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_v02_dr, d_B03_dr, dd_B03_dr
+
+    real(dp)      :: p0, alpha, r, rho0, B_inf
+    real(dp)      :: x, fx, dfx, ddfx, a, d, x0, bigO
+    integer       :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    rho0  = 1.0d0
+    alpha = 2.0d0
+    a     = x_end
+    d     = 0.1667d0
+    B_inf = 1.0d0
+    p0    = 0.5d0 * (1.0d0-d)**2 * B_inf**2
+    x0    = 0.0d0
+    bigO  = alpha * sqrt(2.0d0*d*(1-d)) * B_inf / (a*sqrt(rho0))
+
+    k2 = 1.0d0
+    k3 = 0.0d0
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+
+      x     = r / a
+      fx    = alpha**2 * (x**2 - x0**2)
+      dfx   = 2.0d0 * alpha**2 * x / a
+      ddfx  = 2.0d0 * alpha**2 / a**2
+
+      ! Equilibrium
+      rho0_eq(i)  = rho0 / cosh(fx)**2
+      v02_eq(i)   = bigO * r
+      B03_eq(i)   = B_inf * (d + (1.0d0-d) * tanh(fx))
+      B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)    = p0 / rho0
+
+      ! Derivatives
+      d_rho0_dr(i)  = -2.0d0*rho0 * dfx * tanh(fx) / cosh(fx)**2
+      d_v02_dr      = bigO
+      d_B03_dr(i)   = B_inf * (1-d) * dfx / cosh(fx)**2
+
+      dd_B03_dr(i)  = B_inf * (1-d) * (ddfx - 2.0d0*dfx**2*tanh(fx)) / cosh(fx)**2
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for ideal quasimodes in cylindrical geometry.
+  !! Obtained from Poedts & Kerner, Physical Review Letters 66 (22), (1991)
+  subroutine ideal_quasimodes_eq()
+    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
+    use mod_equilibrium_derivatives, only: d_v03_dr
+
+    real(dp)      :: r, x, j0, n, L, beta
+    integer       :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.6d0
+    call initialise_grid()
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .true.
+    use_fixed_resistivity = .true.
+    fixed_eta_value = 5.0d-5
+    external_gravity = .false.
+
+    !! Parameters
+    j0  = 0.5d0
+    n   = 1.0d0
+    L   = 10*dpi
+
+    k2 = 2.0d0
+    k3 = 2.0d0*dpi*n/L
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+      x = r / x_end
+
+      ! Equilibrium
+      rho0_eq(i)  = 1.0d0
+      v03_eq(i)   = j0 * (1-x**2) / rho0_eq(i)
+      B03_eq(i)   = 1.0d0
+      B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)    = beta * B0_eq(i)**2 / (2*rho0_eq(i)) ! n=1, kB=1, mu0=1
+
+      ! Derivatives
+      d_v03_dr  = -2.0d0*j0*x / x_end
+    end do
+  end subroutine
+
+  !> Limit tests
+  !> The following equilibria test the program in certain limits
+  subroutine beta0_test_eq()
+    use mod_equilibrium_derivatives, only: d_T0_dr
+
+    write(*, *) "This test displays the adiabatic homogeneous case in the beta=0 limit."
+    call adiabatic_homo_eq()
+
+    T0_eq   = 0.0d0
+    d_T0_dr = 0.0d0
+  end subroutine
+
+  subroutine hydro_test_eq()
+    use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
+
+    write(*, *) "This test displays the adiabatic homogeneous case in the hydrodynamics limit (B=0)."
+    call adiabatic_homo_eq()
+
+    B02_eq      = 0.0d0
+    B03_eq      = 0.0d0
+    d_B02_dr    = 0.0d0
+    d_B03_dr    = 0.0d0
+    dd_B02_dr   = 0.0d0
+    dd_B03_dr   = 0.0d0
+  end subroutine
 
   !> Checks equilibrium conditions
-  subroutine check_equilibrium_conditions(rho0, d_rho0_dr, T0, d_T0_dr, B02, d_B02_dr, B03, d_B03_dr, grav, v02, d_v03_dr, geometry)
+  subroutine check_equilibrium_conditions(rho0, d_rho0_dr, T0, d_T0_dr, B02, d_B02_dr, &
+                                          B03, d_B03_dr, grav, v02, d_v03_dr, geometry)
     use mod_global_variables, only: dp_LIMIT
 
     character(len=*), intent(in)  :: geometry
-    real(dp), intent(in)          :: rho0(:), d_rho0_dr(:), T0(:), d_T0_dr(:), B02(:), d_B02_dr(:), B03(:), d_B03_dr(:)
-    real(dp), intent(in)          :: grav(:), v02(:), d_v03_dr(:)
+    real(dp), intent(in)          :: rho0(:), d_rho0_dr(:), B02(:), d_B02_dr(:), B03(:), d_B03_dr(:)
+    real(dp), intent(in)          :: T0(:), d_T0_dr(:), grav(:), v02(:), d_v03_dr(:)
     real(dp)                      :: eps, d_eps, eq_cond(gauss_gridpts)
-    real(dp)                      :: eq_limit = 1.0d-2
+    real(dp)                      :: eq_limit = 1.0
     integer                       :: i
 
     do i = 1, gauss_gridpts
@@ -655,6 +935,7 @@ contains
        if (abs(B02(1)) > eq_limit .or. abs(d_B03_dr(1)) > eq_limit &
               .or. abs(v02(1)) > eq_limit .or. abs(d_v03_dr(1)) > eq_limit) then
          write(*, *) "WARNING: equilibrium regularity conditions not met!"
+         write(*, *) "Try a higher number of grid points."
          stop
        end if
     end if
