@@ -1,5 +1,6 @@
 module core_tests
   use funit 
+  implicit none
   
 contains 
 

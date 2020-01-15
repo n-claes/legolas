@@ -1,6 +1,7 @@
 module comparison_tests
   use mod_global_variables, only: dp, matrix_gridpts
   use funit 
+  implicit none
   
   integer, parameter    :: test_gridpts = 101
   integer, parameter    :: omega_base_unit = 10
@@ -15,8 +16,10 @@ contains
     use mod_global_variables, only: set_gridpts, set_gamma
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
+    use mod_input, only: read_parfile
     
     !! Initialise basic configuration
+    call read_parfile("")   !! this sets all default values
     call set_gridpts(test_gridpts)
     call set_gamma(5.0d0/3.0d0)
     call initialise_equilibrium()
@@ -46,6 +49,7 @@ contains
     
     open(unit=omega_base_unit, file=filename, access='stream', status='old', action='read')
     read(unit=omega_base_unit) omega_base
+    close(unit=omega_base_unit)
   end subroutine read_stored_eigenvals
   
   
@@ -91,7 +95,6 @@ contains
     write(*, *) "  - equilibrium set: ", trim(equilibrium_type)
   
     !! solve test problem 
-    write(*, *) "  - building matrices..."
     call create_matrices(matrix_B, matrix_A)
     write(*, *) "  - solving eigenvalue problem..."
     call solve_QR(matrix_A, matrix_B, omega, ev_l, ev_r)
@@ -138,7 +141,6 @@ contains
   
   
   @test 
-  @disable
   subroutine test_resistive_homogeneous()
     use mod_global_variables, only: str_len, equilibrium_type
     
@@ -162,7 +164,58 @@ contains
     deallocate(omega_base)
     
   end subroutine test_resistive_homogeneous
+  
+  
+  @test 
+  subroutine test_resistive_tearing()
+    use mod_global_variables, only: str_len, equilibrium_type
     
+    character(len=str_len)    :: filename 
+    complex(dp), allocatable  :: omega(:), omega_base(:)
+    
+    write(*, *) "Testing resistive tearing equilibrium"
+    
+    call setup_test_config()
+    allocate(omega(matrix_gridpts))
+    allocate(omega_base(matrix_gridpts))
+    
+    filename = results_folder // "4-resistive-tearing.dat"
+    equilibrium_type = "Resistive tearing modes"
+    
+    call get_comparison_test(trim(filename), omega, omega_base)
+    call teardown_test_config()
+    
+    @assertEqual(omega, omega_base, tolerance=TOL)
+    deallocate(omega)
+    deallocate(omega_base)
+    
+  end subroutine test_resistive_tearing
+  
+  
+  @test 
+  subroutine test_resistive_tearing_flow()
+    use mod_global_variables, only: str_len, equilibrium_type
+    
+    character(len=str_len)    :: filename 
+    complex(dp), allocatable  :: omega(:), omega_base(:)
+    
+    write(*, *) "Testing resistive tearing (flow) equilibrium"
+    
+    call setup_test_config()
+    allocate(omega(matrix_gridpts))
+    allocate(omega_base(matrix_gridpts))
+    
+    filename = results_folder // "5-resistive-tearing-flow.dat"
+    equilibrium_type = "Resistive tearing modes with flow"
+    
+    call get_comparison_test(trim(filename), omega, omega_base)
+    call teardown_test_config()
+    
+    @assertEqual(omega, omega_base, tolerance=TOL)
+    deallocate(omega)
+    deallocate(omega_base)
+    
+  end subroutine test_resistive_tearing_flow
     
 end module comparison_tests
   
