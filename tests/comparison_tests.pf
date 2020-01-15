@@ -141,6 +141,7 @@ contains
   
   
   @test 
+  @disable
   subroutine test_resistive_homogeneous()
     use mod_global_variables, only: str_len, equilibrium_type
     
@@ -167,6 +168,7 @@ contains
   
   
   @test 
+  @disable
   subroutine test_resistive_tearing()
     use mod_global_variables, only: str_len, equilibrium_type
     
@@ -193,6 +195,7 @@ contains
   
   
   @test 
+  @disable
   subroutine test_resistive_tearing_flow()
     use mod_global_variables, only: str_len, equilibrium_type
     
