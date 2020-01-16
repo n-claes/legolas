@@ -168,6 +168,9 @@ contains
       case("Hydrodynamics test")
         call hydro_test_eq()
 
+      case("Non-adiabatic discrete Alfven")
+        call discrete_alfven_eq()
+
       case default
         write(*, *) "Equilibrium not recognised."
         write(*, *) "Currently set on: ", equilibrium_type
@@ -852,6 +855,8 @@ contains
     n   = 1.0d0
     L   = 10*dpi
 
+    beta = 2.0d0
+
     k2 = 2.0d0
     k3 = 2.0d0*dpi*n/L
 
@@ -864,10 +869,67 @@ contains
       v03_eq(i)   = j0 * (1-x**2) / rho0_eq(i)
       B03_eq(i)   = 1.0d0
       B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
-      T0_eq(i)    = beta * B0_eq(i)**2 / (2*rho0_eq(i)) ! n=1, kB=1, mu0=1
+      T0_eq(i)    = beta * B0_eq(i)**2 / (2.0d0*rho0_eq(i)) ! n=1, kB=1, mu0=1
 
       ! Derivatives
-      d_v03_dr  = -2.0d0*j0*x / x_end
+      d_v03_dr  = -2.0d0*j0*x / (x_end*rho0_eq(i))
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for non-adiabatic discrete Alfvén waves
+  !! in cylindrical geometry.
+  !! Obtained from Keppens et al., Solar Physics 144, 267 (1993)
+  subroutine discrete_alfven_eq()
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v03_dr, &
+                                            d_B02_dr, dd_B02_dr
+
+    real(dp)      :: r, x, j0, nu, nu_g, nu_l, d
+    integer       :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    ! Parameters
+    nu    = 2.0d0
+    nu_g  = nu + 1.0d0
+    nu_l  = nu - 1.0d0
+    j0    = 0.125d0
+    d     = 0.2d0
+
+    k2 = 1.0d0
+    k3 = 0.05d0
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+      x = r / x_end
+
+      ! Equilibrium
+      rho0_eq(i)  = 1.0d0 - (1.0d0-d) * x**2
+      v03_eq(i)   = j0 * (1.0d0-x**2)**nu
+      B02_eq(i)   = j0 * (1.0d0 - (1.0d0-x**2)**nu_g) / (2.0d0*x*nu_g)
+      B03_eq(i)   = 1.0d0
+      B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)    = 1.0d0 / rho0_eq(i)
+
+      ! Derivatives
+      d_rho0_dr(i)  = -2.0d0 * (1.0d0-d) * r
+      d_T0_dr(i)    = - d_rho0_dr(i) / rho0_eq(i)**2
+      d_v03_dr(i)   = -2.0d0 * j0 * nu * x * (1.0d0-x**2)**nu_l
+      d_B02_dr(i)   = j0 * (1.0d0-x**2)**nu - j0 * (1.0d0-(1.0d0-x**2)**nu_g) &
+                      / (2.0d0*r**2*nu_g)
+
+      dd_B02_dr(i)  = (j0 / 2.0d0*nu_g) * ( - 4.0d0*nu_g*(1.0d0-x**2)**nu / x &
+                      + (2.0d0*nu_g*(1-x**2)**nu - 4.0d0*nu*nu_g*x**2*(1.0d0-x**2)**nu_l) / x &
+                      + 2.0d0*(1.0d0*(1.0d0-x**2)**nu_g) / x**3)
     end do
   end subroutine
 

@@ -18,7 +18,8 @@
   ! equilibrium_type = "Kelvin-Helmholtz and current driven" ! cylindrical
   ! equilibrium_type = "Internal kink modes"                 ! cylindrical
   ! equilibrium_type = "Rayleigh-Taylor instabilities"       ! cylindrical
-   equilibrium_type = "Ideal quasimodes"                    ! cylindrical
+  ! equilibrium_type = "Ideal quasimodes"                    ! cylindrical
+   equilibrium_type = "Non-adiabatic discrete Alfven"       ! cylindrical
 
   ! Test equilibria
   ! equilibrium_type = "Beta=0 test"
