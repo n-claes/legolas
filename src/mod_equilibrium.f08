@@ -161,6 +161,9 @@ contains
       case("Ideal quasimodes")
         call ideal_quasimodes_eq()
 
+      case("Uniform with thermal conduction")
+        call uniform_thermal_cond_eq()
+
       ! Tests
       case("Beta=0 test")
         call beta0_test_eq()
@@ -402,15 +405,20 @@ contains
     end do
   end subroutine resistive_tearing_modes_flow_eq
 
-
+  !> Initialises equilibrium for the flow-driven instabilities in Cartesian
+  !! geometry. From Advanced MHD, page 71 (sec. 13.2).
   subroutine flow_driven_instabilities_eq()
-    use mod_equilibrium_derivatives, only: d_rho0_dr, d_v02_dr, d_v03_dr, d_B02_dr, d_B03_dr, d_T0_dr
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_v02_dr, d_v03_dr, d_B02_dr, &
+                                          d_B03_dr, d_T0_dr, dd_B02_dr, dd_B03_dr
 
     real(dp)    :: rho0, delta, theta, v0, v1, v2, tau, phi0, alpha, B0, x, k0, g, p0
     real(dp)    :: v_x(gauss_gridpts), phi_x(gauss_gridpts), p_x(gauss_gridpts)
     integer     :: i
 
     geometry = 'Cartesian'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
     call initialise_grid()
 
     g = 15.0d0
@@ -436,7 +444,7 @@ contains
     k3 = k0
 
     rho0 = 1.0d0
-    p0   = 1.0d0
+    p0   = (1.0d0 - 0.5d0 * delta) * g
     B0   = 1.0d0
     grav_eq = g
 
@@ -446,7 +454,7 @@ contains
       phi_x(i) = phi0 + alpha*(x - 0.5d0)
       p_x(i)   = p0 - (x - 0.5d0 * delta * x**2)*g
 
-      rho0_eq(i) = rho0 * (1 - delta*x)
+      rho0_eq(i) = rho0 * (1.0d0 - delta*x)
       v02_eq(i)  = sin(theta) * v_x(i)
       v03_eq(i)  = cos(theta) * v_x(i)
       B02_eq(i)  = B0 * sin(phi_x(i))
@@ -459,8 +467,11 @@ contains
       d_v03_dr(i)  = cos(theta) * (v1 + v2*cos(tau * (x - 0.5d0)) * tau)
       d_B02_dr(i)  = B0 * cos(phi_x(i)) * alpha
       d_B03_dr(i)  = -B0 * sin(phi_x(i)) * alpha
-      d_T0_dr(i)   = (-rho0*(1.0d0 - delta * x)**2 * g + rho0*delta*p_x(i)) &
-                      / (rho0 * delta)**2
+      d_T0_dr(i)   = (-g * rho0*(1.0d0 - delta * x)**2 + rho0*delta*p_x(i)) &
+                      / rho0_eq(i)**2
+
+      dd_B02_dr(i) = -B0 * sin(phi_x(i)) * alpha**2
+      dd_B03_dr(i) = -B0 * cos(phi_x(i)) * alpha**2
     end do
   end subroutine flow_driven_instabilities_eq
 
@@ -931,6 +942,36 @@ contains
                       + (2.0d0*nu_g*(1-x**2)**nu - 4.0d0*nu*nu_g*x**2*(1.0d0-x**2)**nu_l) / x &
                       + 2.0d0*(1.0d0*(1.0d0-x**2)**nu_g) / x**3)
     end do
+  end subroutine
+
+  !> Initializes equilibrium for a uniform case, with finite thermal conduction
+  !! in cylindrical geometry.
+  !! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.18
+  subroutine uniform_thermal_cond_eq()
+    geometry = 'Cartesian'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .true.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    rho0_eq = 1.0d0
+    T0_eq   = 1.0d0
+    B02_eq  = 0.0d0
+    B03_eq  = 1.0d0
+    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
+
+    k2 = 0.0d0
+    k3 = 1.0d0
+
+    tc_para_eq = 0.001d0
+    tc_perp_eq = 0.0d0
   end subroutine
 
   !> Limit tests

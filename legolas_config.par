@@ -11,7 +11,7 @@
   ! equilibrium_type = "Gravitational homogeneous"           ! Cartesian
   ! equilibrium_type = "Resistive tearing modes"             ! Cartesian
   ! equilibrium_type = "Resistive tearing modes with flow"   ! Cartesian
-  ! equilibrium_type = "Flow driven instabilities"           ! Cartesian
+   equilibrium_type = "Flow driven instabilities"           ! Cartesian
   ! equilibrium_type = "Suydam cluster modes"                ! cylindrical
   ! equilibrium_type = "Kelvin-Helmholtz"                    ! Cartesian
   ! equilibrium_type = "Rotating plasma cylinder"            ! cylindrical
@@ -19,7 +19,8 @@
   ! equilibrium_type = "Internal kink modes"                 ! cylindrical
   ! equilibrium_type = "Rayleigh-Taylor instabilities"       ! cylindrical
   ! equilibrium_type = "Ideal quasimodes"                    ! cylindrical
-   equilibrium_type = "Non-adiabatic discrete Alfven"       ! cylindrical
+  ! equilibrium_type = "Non-adiabatic discrete Alfven"       ! cylindrical
+  ! equilibrium_type = "Uniform with thermal conduction"     ! Cartesian
 
   ! Test equilibria
   ! equilibrium_type = "Beta=0 test"
