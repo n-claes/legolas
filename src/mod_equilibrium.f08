@@ -155,14 +155,23 @@ contains
       case("Internal kink modes")
         call internal_kink_eq()
 
-      case("Rayleigh-Taylor instabilities")
-        call rt_instability_eq()
+      case("Rotating theta pinch")
+        call rotating_theta_pinch_eq()
 
       case("Ideal quasimodes")
         call ideal_quasimodes_eq()
 
       case("Uniform with thermal conduction")
         call uniform_thermal_cond_eq()
+
+      case("Non-uniform with thermal conduction")
+        call nonuniform_thermal_cond_eq()
+
+      case("Magneto-rotational instability")
+        call magneto_rotational_eq()
+
+      case("Interface")
+        call interface_eq()
 
       ! Tests
       case("Beta=0 test")
@@ -782,7 +791,8 @@ contains
   !> Initializes equilibrium for Rayleigh-Taylor instabilities in
   !! cylindrical geometry.
   !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
-  subroutine rt_instability_eq()
+  !! Also appears in Magnetohydrodynamics (2019), Fig. 13.12
+  subroutine rotating_theta_pinch_eq()
     use mod_equilibrium_derivatives, only: d_rho0_dr, d_v02_dr, d_B03_dr, dd_B03_dr
 
     real(dp)      :: p0, alpha, r, rho0, B_inf
@@ -960,7 +970,7 @@ contains
     resistivity = .false.
     external_gravity = .false.
 
-    !! Parameters
+    !! Equilibrium
     rho0_eq = 1.0d0
     T0_eq   = 1.0d0
     B02_eq  = 0.0d0
@@ -972,6 +982,158 @@ contains
 
     tc_para_eq = 0.001d0
     tc_perp_eq = 0.0d0
+  end subroutine
+
+  !> Initializes equilibrium for a non-uniform case, with finite thermal
+  !! conduction in cylindrical geometry.
+  !! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.19
+  subroutine nonuniform_thermal_cond_eq()
+    use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr
+
+    real(dp)      :: x, B0, beta
+    integer       :: i
+
+    geometry = 'Cartesian'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .true.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Equilibrium
+    rho0_eq = 1.0d0
+    T0_eq   = 1.0d0
+
+    k2 = 0.0d0
+    k3 = 1.0d0
+
+    B0    = 1.0d0
+    beta  = 0.25d0
+
+    tc_para_eq = 0.001d0
+    tc_perp_eq = 0.0d0
+
+    do i = 1, gauss_gridpts
+      x = grid_gauss(i)
+
+      B02_eq(i)   = B0*sin(x)
+      B03_eq(i)   = B0*cos(x)
+      B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+
+      d_B02_dr(i)   = B0*cos(x)
+      d_B03_dr(i)   = -B0*sin(x)
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for a magneto-rotational instability
+  !! in cylindrical geometry.
+  !! Obtained from Magnetohydrodynamics (2019), Fig. 13.17
+  subroutine magneto_rotational_eq()
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v02_dr, &
+                                      d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
+
+    real(dp)      :: r, v1, p1, B21, B31
+    real(dp)      :: p0(gauss_gridpts), d_p0_dr(gauss_gridpts)
+    integer       :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    v1  = 1.0d0
+    p1  = 0.01d0
+    B21 = 0.01d0
+    B31 = 0.01d0
+
+    k2  = 1.0d0
+    k3  = 70.0d0
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+
+      p0(i)       = p1 / sqrt(r)**5
+      d_p0_dr(i)  = -(5.0d0/2.0d0) * p1 / sqrt(r)**7
+
+      !! Equilibrium
+      rho0_eq(i)  = r**(-3.0d0/2.0d0)
+      T0_eq(i)    = p0(i) / rho0_eq(i)
+      v02_eq(i)   = v1 / sqrt(r)
+      B02_eq(i)   = B21 / r**(5.0d0/4.0d0)
+      B03_eq(i)   = B31 / r**(5.0d0/4.0d0)
+      B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+
+      !! Derivatives
+      d_rho0_dr(i)  = -(3.0d0/2.0d0) * r**(-5.0d0/2.0d0)
+      d_T0_dr(i)    = (d_p0_dr(i) * rho0_eq(i) - d_rho0_dr(i) * p0(i)) / rho0_eq(i)**2
+      d_v02_dr(i)   = -0.5d0 * v1 / sqrt(r)**3
+      d_B02_dr(i)   = -(5.0d0/4.0d0) * B21 / r**(9.0d0/4.0d0)
+      d_B03_dr(i)   = -(5.0d0/4.0d0) * B31 / r**(9.0d0/4.0d0)
+
+      dd_B02_dr(i)  = (45.0d0/16.0d0) * B21 / r**(13.0d0/4.0d0)
+      dd_B03_dr(i)  = (45.0d0/16.0d0) * B31 / r**(13.0d0/4.0d0)
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for a magneto-rotational instability
+  !! in cylindrical geometry.
+  !! Obtained from Magnetohydrodynamics (2019), Fig. 13.17
+  subroutine interface_eq()
+    !use mod_equilibrium_derivatives, only:
+
+    real(dp)      :: x, B0, B_e, rho0, rho_e, T0, T_e
+    integer       :: i
+
+    geometry = 'Cartesian'
+    ! Override values from par file
+    x_start = -0.5d0
+    x_end   = 0.5d0
+    call initialise_grid()
+
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    rho_e = 1.0d0
+    T_e   = 1.0d0
+    B_e   = 1.0d0
+    rho0  = 0.0d0
+    T0    = 0.0d0
+    B0    = sqrt(2*rho_e*T_e+B_e**2)
+
+    k2  = 0.0d0
+    k3  = 1.0d0
+
+    do i = 1, gauss_gridpts
+      x = grid_gauss(i)
+
+      !! Equilibrium
+      if (x > 0) then
+        rho0_eq(i)  = rho_e
+        T0_eq(i)    = T_e
+        B03_eq(i)   = B_e
+      else
+        rho0_eq(i)  = rho0
+        T0_eq(i)    = T0
+        B03_eq(i)   = B0
+      end if
+    end do
   end subroutine
 
   !> Limit tests
@@ -1035,10 +1197,17 @@ contains
     end do
 
     if (geometry == 'cylindrical') then
-       if (abs(B02(1)) > eq_limit .or. abs(d_B03_dr(1)) > eq_limit &
-              .or. abs(v02(1)) > eq_limit .or. abs(d_v03_dr(1)) > eq_limit) then
-         write(*, *) "WARNING: equilibrium regularity conditions not met!"
-         write(*, *) "Try a higher number of grid points."
+       if (abs(B02(1)) > eq_limit) then
+         write(*, *) "WARNING: B_theta(0) is non-zero!"
+         stop
+       else if (abs(d_B03_dr(1)) > eq_limit) then
+         write(*, *) "WARNING: dB_z/dr(0) is non-zero!"
+         stop
+       else if (abs(v02(1)) > eq_limit) then
+         write(*, *) "WARNING: v_theta(0) is non-zero!"
+         stop
+       else if (abs(d_v03_dr(1)) > eq_limit) then
+         write(*, *) "WARNING: d_v03_dr(0) is non-zero!"
          stop
        end if
     end if
