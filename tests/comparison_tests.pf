@@ -12,22 +12,23 @@ module comparison_tests
 contains 
   
   
-  subroutine setup_test_config()
-    use mod_global_variables, only: set_gridpts, set_gamma
+  @before
+  subroutine init_test()
+    use mod_global_variables, only: set_gridpts
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
     use mod_input, only: read_parfile
     
-    !! Initialise basic configuration
-    call read_parfile("")   !! this sets all default values
+    ! This sets all default values 
+    call read_parfile("")
     call set_gridpts(test_gridpts)
-    call set_gamma(5.0d0/3.0d0)
     call initialise_equilibrium()
     call initialise_equilibrium_derivatives()
-  end subroutine setup_test_config
+  end subroutine init_test
   
   
-  subroutine teardown_test_config()
+  @after 
+  subroutine teardown_test()
     use mod_grid, only: grid_clean
     use mod_equilibrium, only: equilibrium_clean
     use mod_equilibrium_derivatives, only: equilibrium_derivatives_clean
@@ -40,7 +41,7 @@ contains
     if (radiative_cooling) then 
       call radiative_cooling_clean()
     end if
-  end subroutine teardown_test_config
+  end subroutine teardown_test
   
   
   subroutine read_stored_eigenvals(filename, omega_base)
@@ -110,113 +111,70 @@ contains
   subroutine test_adiabatic_homogeneous()
     use mod_global_variables, only: str_len, equilibrium_type
     
-    character(len=str_len)    :: filename
-    complex(dp), allocatable  :: omega(:), omega_base(:)
-    
-    !!@note: it is important to make omega and omega_base allocatable.
-    !!       At this point matrix_gridpts is not yet properly initialised, this 
-    !!       is done in setup_test_config()
-    !!       Not doing this yields a segfault, as matrix_gridpts will have different 
-    !!       values between here and the main source code before it is set.
+    character(len=str_len)  :: filename
+    complex(dp)             :: omega(matrix_gridpts), omega_base(matrix_gridpts)
     
     write(*, *) "Testing adiabatic homogeneous equilibrium"
-    
-    call setup_test_config()
-    allocate(omega(matrix_gridpts))
-    allocate(omega_base(matrix_gridpts))
 
     filename = results_folder // "1-adiabatic-homo.dat"
     equilibrium_type = "Adiabatic homogeneous"
 
     call get_comparison_test(trim(filename), omega, omega_base)
-    !! Deallocate configuration, only omega and omega_base are needed to compare.
-    !! Done to prevent skipping deallocation if test fails.
-    call teardown_test_config()
-    
     @assertEqual(omega, omega_base, tolerance=TOL)
-    deallocate(omega)
-    deallocate(omega_base)
     
   end subroutine test_adiabatic_homogeneous
   
   
   @test 
-  @disable
   subroutine test_resistive_homogeneous()
     use mod_global_variables, only: str_len, equilibrium_type
     
-    character(len=str_len)    :: filename 
-    complex(dp), allocatable  :: omega(:), omega_base(:)
+    character(len=str_len)  :: filename 
+    complex(dp)             :: omega(matrix_gridpts), omega_base(matrix_gridpts)
     
     write(*, *) "Testing resistive homogeneous equilibrium"
-    
-    call setup_test_config()
-    allocate(omega(matrix_gridpts))
-    allocate(omega_base(matrix_gridpts))
     
     filename = results_folder // "2-resistive-homo.dat"
     equilibrium_type = "Resistive homogeneous"
     
     call get_comparison_test(trim(filename), omega, omega_base)
-    call teardown_test_config()
-    
     @assertEqual(omega, omega_base, tolerance=TOL)
-    deallocate(omega)
-    deallocate(omega_base)
     
   end subroutine test_resistive_homogeneous
   
   
   @test 
-  @disable
   subroutine test_resistive_tearing()
     use mod_global_variables, only: str_len, equilibrium_type
     
-    character(len=str_len)    :: filename 
-    complex(dp), allocatable  :: omega(:), omega_base(:)
+    character(len=str_len)  :: filename 
+    complex(dp)             :: omega(matrix_gridpts), omega_base(matrix_gridpts)
     
     write(*, *) "Testing resistive tearing equilibrium"
-    
-    call setup_test_config()
-    allocate(omega(matrix_gridpts))
-    allocate(omega_base(matrix_gridpts))
     
     filename = results_folder // "4-resistive-tearing.dat"
     equilibrium_type = "Resistive tearing modes"
     
     call get_comparison_test(trim(filename), omega, omega_base)
-    call teardown_test_config()
-    
     @assertEqual(omega, omega_base, tolerance=TOL)
-    deallocate(omega)
-    deallocate(omega_base)
     
   end subroutine test_resistive_tearing
   
   
   @test 
-  @disable
   subroutine test_resistive_tearing_flow()
     use mod_global_variables, only: str_len, equilibrium_type
     
-    character(len=str_len)    :: filename 
-    complex(dp), allocatable  :: omega(:), omega_base(:)
+    character(len=str_len)  :: filename 
+    complex(dp)             :: omega(matrix_gridpts), omega_base(matrix_gridpts)
     
     write(*, *) "Testing resistive tearing (flow) equilibrium"
-    
-    call setup_test_config()
-    allocate(omega(matrix_gridpts))
-    allocate(omega_base(matrix_gridpts))
     
     filename = results_folder // "5-resistive-tearing-flow.dat"
     equilibrium_type = "Resistive tearing modes with flow"
     
     call get_comparison_test(trim(filename), omega, omega_base)
-    call teardown_test_config()
-    
     @assertEqual(omega, omega_base, tolerance=TOL)
-    deallocate(omega)
-    deallocate(omega_base)
     
   end subroutine test_resistive_tearing_flow
     
