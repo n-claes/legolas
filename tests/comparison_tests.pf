@@ -8,9 +8,24 @@ module comparison_tests
   real(dp), parameter   :: TOL = 1.0d-9
   
   character(len=21), parameter  :: results_folder = "correct_test_results/"
+  character(len=4), parameter   :: file_extension = '.dat'
+  
+  character(len=6)              :: os_suffix 
+  logical, save                 :: os_is_set = .false.
   
 contains 
   
+  !> Determines current operating system using pre-processor directives.
+  !! It's important that all lines starting with '#' are NOT indented.
+  subroutine set_operating_system()
+#ifdef __linux__
+    os_suffix = '_LINUX'
+#else 
+    os_suffix = '_MACOS'
+#endif
+    write(*, *) '>> os_suffix set on ', os_suffix
+  end subroutine set_operating_system
+    
   
   @before
   subroutine init_test()
@@ -18,6 +33,11 @@ contains
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
     use mod_input, only: read_parfile
+    
+    if (.not. os_is_set) then 
+      call set_operating_system()
+      os_is_set = .true.
+    end if
     
     ! This sets all default values 
     call read_parfile("")
@@ -42,6 +62,17 @@ contains
       call radiative_cooling_clean()
     end if
   end subroutine teardown_test
+  
+  
+  subroutine get_filename(base_filename, filename)
+    use mod_global_variables, only: str_len
+    
+    character(len=*), intent(in)        :: base_filename
+    character(len=str_len), intent(out) :: filename
+    
+    filename = results_folder // base_filename // &
+               os_suffix // file_extension
+  end subroutine get_filename
   
   
   subroutine read_stored_eigenvals(filename, omega_base)
@@ -119,8 +150,8 @@ contains
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
     
     write(*, *) "Testing adiabatic homogeneous equilibrium"
-
-    filename = results_folder // "1-adiabatic-homo.dat"
+    
+    call get_filename('1-adiabatic-homo', filename)
     equilibrium_type = "Adiabatic homogeneous"
 
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
@@ -138,7 +169,7 @@ contains
     
     write(*, *) "Testing resistive homogeneous equilibrium"
     
-    filename = results_folder // "2-resistive-homo.dat"
+    call get_filename('2-resistive-homo', filename)
     equilibrium_type = "Resistive homogeneous"
     
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
@@ -156,7 +187,7 @@ contains
     
     write(*, *) "Testing resistive tearing equilibrium"
     
-    filename = results_folder // "4-resistive-tearing.dat"
+    call get_filename('4-resistive-tearing', filename)
     equilibrium_type = "Resistive tearing modes"
     
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
@@ -174,7 +205,7 @@ contains
     
     write(*, *) "Testing resistive tearing (flow) equilibrium"
     
-    filename = results_folder // "5-resistive-tearing-flow.dat"
+    call get_filename('5-resistive-tearing-flow', filename)
     equilibrium_type = "Resistive tearing modes with flow"
     
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)

@@ -11,6 +11,7 @@ libpFUnit.a: $(BINDIR)/*.o
 ifeq (nagfor,$(findstring nagfor,$(FC)))
   FFLAGS += -fpp
 endif
+FFLAGS += -cpp
 
 %.o : %.F90
 	$(FC) -c $(FFLAGS) -I$(MODDIR) -I$(BINDIR) -I$(SRCDIR) $<
