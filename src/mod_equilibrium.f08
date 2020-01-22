@@ -453,7 +453,7 @@ contains
     k3 = k0
 
     rho0 = 1.0d0
-    p0   = (1.0d0 - 0.5d0 * delta) * g
+    p0   = 1.0d0 + (1.0d0 - 0.5d0 * delta) * g  ! arbitrarily imposed such that T > 0
     B0   = 1.0d0
     grav_eq = g
 
@@ -725,7 +725,7 @@ contains
 
   !> Initializes equilibrium for current-driven internal kink instability in
   !! cylindrical geometry.
-  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
+  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 3, 5
   subroutine internal_kink_eq()
     use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v03_dr, &
                                       d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
@@ -766,19 +766,19 @@ contains
       DJ0 = -alpha * J1
       DJ1 = alpha * (0.5d0 * J0 - 0.5d0 * J2)
       DDJ0 = -alpha * DJ1
-      DDJ1 = -alpha**2 * (0.75d0 * J1 - J3)
+      DDJ1 = -alpha**2 * (0.75d0 * J1 - 0.25d0 * J3)
 
       ! Equilibrium
-      rho0_eq(i) = rho0 * (1-x**2)
-      v03_eq(i) = v_z0 * (1-x**2)
+      rho0_eq(i) = rho0 * (1.0d0-x**2)
+      v03_eq(i) = v_z0 * (1.0d0-x**2)
       B02_eq(i) = J1
       B03_eq(i) = J0
       B0_eq(i)  = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)  = p0 / rho0_eq(i)
 
       ! Derivatives
-      d_rho0_dr(i)  = -2.0d0*x*rho0
-      d_T0_dr(i)    = 2.0d0*x * p0 / (rho0 * (1-x**2)**2)
+      d_rho0_dr(i)  = -2.0d0*rho0*x
+      d_T0_dr(i)    = 2.0d0*x * p0 / (rho0 * (1.0d0-x**2)**2)
       d_v03_dr(i)   = -2.0d0*v_z0*x
       d_B02_dr(i)   = DJ1
       d_B03_dr(i)   = DJ0
@@ -790,8 +790,8 @@ contains
 
   !> Initializes equilibrium for Rayleigh-Taylor instabilities in
   !! cylindrical geometry.
-  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
-  !! Also appears in Magnetohydrodynamics (2019), Fig. 13.12
+  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 9, 11
+  !! Also appears in Magnetohydrodynamics (2019), Fig. 13.12, 13.14
   subroutine rotating_theta_pinch_eq()
     use mod_equilibrium_derivatives, only: d_rho0_dr, d_v02_dr, d_B03_dr, dd_B03_dr
 
@@ -887,7 +887,7 @@ contains
 
       ! Equilibrium
       rho0_eq(i)  = 1.0d0
-      v03_eq(i)   = j0 * (1-x**2) / rho0_eq(i)
+      v03_eq(i)   = j0 * (1.0d0-x**2) / rho0_eq(i)
       B03_eq(i)   = 1.0d0
       B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)    = beta * B0_eq(i)**2 / (2.0d0*rho0_eq(i)) ! n=1, kB=1, mu0=1
@@ -935,18 +935,19 @@ contains
 
       ! Equilibrium
       rho0_eq(i)  = 1.0d0 - (1.0d0-d) * x**2
-      v03_eq(i)   = j0 * (1.0d0-x**2)**nu
+      v03_eq(i)   = j0 * (1.0d0-x**2)**nu / rho0_eq(i)
       B02_eq(i)   = j0 * (1.0d0 - (1.0d0-x**2)**nu_g) / (2.0d0*x*nu_g)
       B03_eq(i)   = 1.0d0
       B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)    = 1.0d0 / rho0_eq(i)
 
       ! Derivatives
-      d_rho0_dr(i)  = -2.0d0 * (1.0d0-d) * r
+      d_rho0_dr(i)  = -2.0d0 * (1.0d0-d) * x
       d_T0_dr(i)    = - d_rho0_dr(i) / rho0_eq(i)**2
-      d_v03_dr(i)   = -2.0d0 * j0 * nu * x * (1.0d0-x**2)**nu_l
+      d_v03_dr(i)   = (-2.0d0*nu*j0*x*(1.0d0-r**2)**nu_l * rho0_eq(i) &
+                        - d_rho0_dr(i) * j0*(1.0d0-x**2)**nu) / rho0_eq(i)**2
       d_B02_dr(i)   = j0 * (1.0d0-x**2)**nu - j0 * (1.0d0-(1.0d0-x**2)**nu_g) &
-                      / (2.0d0*r**2*nu_g)
+                      / (2.0d0*x**2*nu_g)
 
       dd_B02_dr(i)  = (j0 / 2.0d0*nu_g) * ( - 4.0d0*nu_g*(1.0d0-x**2)**nu / x &
                       + (2.0d0*nu_g*(1-x**2)**nu - 4.0d0*nu*nu_g*x**2*(1.0d0-x**2)**nu_l) / x &
@@ -958,6 +959,8 @@ contains
   !! in cylindrical geometry.
   !! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.18
   subroutine uniform_thermal_cond_eq()
+    real(dp)  :: beta
+
     geometry = 'Cartesian'
     ! Override values from par file
     x_start = 0.0d0
@@ -970,15 +973,17 @@ contains
     resistivity = .false.
     external_gravity = .false.
 
-    !! Equilibrium
+    k2 = 0.0d0
+    k3 = 1.0d0
+
+    beta = 0.25d0
+
+    !! Parameters
     rho0_eq = 1.0d0
-    T0_eq   = 1.0d0
     B02_eq  = 0.0d0
     B03_eq  = 1.0d0
     B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
-
-    k2 = 0.0d0
-    k3 = 1.0d0
+    T0_eq   = beta * B0_eq**2 / (2) ! n=1, kB=1, mu0=1
 
     tc_para_eq = 0.001d0
     tc_perp_eq = 0.0d0
@@ -1033,6 +1038,7 @@ contains
   !> Initializes equilibrium for a magneto-rotational instability
   !! in cylindrical geometry.
   !! Obtained from Magnetohydrodynamics (2019), Fig. 13.17
+  !! Also appears in Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 13
   subroutine magneto_rotational_eq()
     use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v02_dr, &
                                       d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
@@ -1156,6 +1162,7 @@ contains
 
     B02_eq      = 0.0d0
     B03_eq      = 0.0d0
+    B0_eq       = 0.0d0
     d_B02_dr    = 0.0d0
     d_B03_dr    = 0.0d0
     dd_B02_dr   = 0.0d0
