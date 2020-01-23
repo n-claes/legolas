@@ -155,11 +155,23 @@ contains
       case("Internal kink modes")
         call internal_kink_eq()
 
-      case("Rayleigh-Taylor instabilities")
-        call rt_instability_eq()
+      case("Rotating theta pinch")
+        call rotating_theta_pinch_eq()
 
       case("Ideal quasimodes")
         call ideal_quasimodes_eq()
+
+      case("Uniform with thermal conduction")
+        call uniform_thermal_cond_eq()
+
+      case("Non-uniform with thermal conduction")
+        call nonuniform_thermal_cond_eq()
+
+      case("Magneto-rotational instability")
+        call magneto_rotational_eq()
+
+      case("Interface")
+        call interface_eq()
 
       ! Tests
       case("Beta=0 test")
@@ -167,6 +179,9 @@ contains
 
       case("Hydrodynamics test")
         call hydro_test_eq()
+
+      case("Non-adiabatic discrete Alfven")
+        call discrete_alfven_eq()
 
       case default
         write(*, *) "Equilibrium not recognised."
@@ -399,15 +414,20 @@ contains
     end do
   end subroutine resistive_tearing_modes_flow_eq
 
-
+  !> Initialises equilibrium for the flow-driven instabilities in Cartesian
+  !! geometry. From Advanced MHD, page 71 (sec. 13.2).
   subroutine flow_driven_instabilities_eq()
-    use mod_equilibrium_derivatives, only: d_rho0_dr, d_v02_dr, d_v03_dr, d_B02_dr, d_B03_dr, d_T0_dr
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_v02_dr, d_v03_dr, d_B02_dr, &
+                                          d_B03_dr, d_T0_dr, dd_B02_dr, dd_B03_dr
 
     real(dp)    :: rho0, delta, theta, v0, v1, v2, tau, phi0, alpha, B0, x, k0, g, p0
     real(dp)    :: v_x(gauss_gridpts), phi_x(gauss_gridpts), p_x(gauss_gridpts)
     integer     :: i
 
     geometry = 'Cartesian'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
     call initialise_grid()
 
     g = 15.0d0
@@ -433,7 +453,7 @@ contains
     k3 = k0
 
     rho0 = 1.0d0
-    p0   = 1.0d0
+    p0   = 1.0d0 + (1.0d0 - 0.5d0 * delta) * g  ! arbitrarily imposed such that T > 0
     B0   = 1.0d0
     grav_eq = g
 
@@ -443,7 +463,7 @@ contains
       phi_x(i) = phi0 + alpha*(x - 0.5d0)
       p_x(i)   = p0 - (x - 0.5d0 * delta * x**2)*g
 
-      rho0_eq(i) = rho0 * (1 - delta*x)
+      rho0_eq(i) = rho0 * (1.0d0 - delta*x)
       v02_eq(i)  = sin(theta) * v_x(i)
       v03_eq(i)  = cos(theta) * v_x(i)
       B02_eq(i)  = B0 * sin(phi_x(i))
@@ -456,8 +476,11 @@ contains
       d_v03_dr(i)  = cos(theta) * (v1 + v2*cos(tau * (x - 0.5d0)) * tau)
       d_B02_dr(i)  = B0 * cos(phi_x(i)) * alpha
       d_B03_dr(i)  = -B0 * sin(phi_x(i)) * alpha
-      d_T0_dr(i)   = (-rho0*(1.0d0 - delta * x)**2 * g + rho0*delta*p_x(i)) &
-                      / (rho0 * delta)**2
+      d_T0_dr(i)   = (-g * rho0*(1.0d0 - delta * x)**2 + rho0*delta*p_x(i)) &
+                      / rho0_eq(i)**2
+
+      dd_B02_dr(i) = -B0 * sin(phi_x(i)) * alpha**2
+      dd_B03_dr(i) = -B0 * cos(phi_x(i)) * alpha**2
     end do
   end subroutine flow_driven_instabilities_eq
 
@@ -702,7 +725,7 @@ contains
 
   !> Initializes equilibrium for current-driven internal kink instability in
   !! cylindrical geometry.
-  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
+  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 3, 5
   subroutine internal_kink_eq()
     use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v03_dr, &
                                       d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
@@ -743,19 +766,19 @@ contains
       DJ0 = -alpha * J1
       DJ1 = alpha * (0.5d0 * J0 - 0.5d0 * J2)
       DDJ0 = -alpha * DJ1
-      DDJ1 = -alpha**2 * (0.75d0 * J1 - J3)
+      DDJ1 = -alpha**2 * (0.75d0 * J1 - 0.25d0 * J3)
 
       ! Equilibrium
-      rho0_eq(i) = rho0 * (1-x**2)
-      v03_eq(i) = v_z0 * (1-x**2)
+      rho0_eq(i) = rho0 * (1.0d0-x**2)
+      v03_eq(i) = v_z0 * (1.0d0-x**2)
       B02_eq(i) = J1
       B03_eq(i) = J0
       B0_eq(i)  = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
       T0_eq(i)  = p0 / rho0_eq(i)
 
       ! Derivatives
-      d_rho0_dr(i)  = -2.0d0*x*rho0
-      d_T0_dr(i)    = 2.0d0*x * p0 / (rho0 * (1-x**2)**2)
+      d_rho0_dr(i)  = -2.0d0*rho0*x
+      d_T0_dr(i)    = 2.0d0*x * p0 / (rho0 * (1.0d0-x**2)**2)
       d_v03_dr(i)   = -2.0d0*v_z0*x
       d_B02_dr(i)   = DJ1
       d_B03_dr(i)   = DJ0
@@ -767,8 +790,9 @@ contains
 
   !> Initializes equilibrium for Rayleigh-Taylor instabilities in
   !! cylindrical geometry.
-  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018)
-  subroutine rt_instability_eq()
+  !! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 9, 11
+  !! Also appears in Magnetohydrodynamics (2019), Fig. 13.12, 13.14
+  subroutine rotating_theta_pinch_eq()
     use mod_equilibrium_derivatives, only: d_rho0_dr, d_v02_dr, d_B03_dr, dd_B03_dr
 
     real(dp)      :: p0, alpha, r, rho0, B_inf
@@ -852,6 +876,8 @@ contains
     n   = 1.0d0
     L   = 10*dpi
 
+    beta = 2.0d0
+
     k2 = 2.0d0
     k3 = 2.0d0*dpi*n/L
 
@@ -861,13 +887,258 @@ contains
 
       ! Equilibrium
       rho0_eq(i)  = 1.0d0
-      v03_eq(i)   = j0 * (1-x**2) / rho0_eq(i)
+      v03_eq(i)   = j0 * (1.0d0-x**2) / rho0_eq(i)
       B03_eq(i)   = 1.0d0
       B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
-      T0_eq(i)    = beta * B0_eq(i)**2 / (2*rho0_eq(i)) ! n=1, kB=1, mu0=1
+      T0_eq(i)    = beta * B0_eq(i)**2 / (2.0d0*rho0_eq(i)) ! n=1, kB=1, mu0=1
 
       ! Derivatives
-      d_v03_dr  = -2.0d0*j0*x / x_end
+      d_v03_dr  = -2.0d0*j0*x / (x_end*rho0_eq(i))
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for non-adiabatic discrete Alfvén waves
+  !! in cylindrical geometry.
+  !! Obtained from Keppens et al., Solar Physics 144, 267 (1993)
+  subroutine discrete_alfven_eq()
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v03_dr, &
+                                            d_B02_dr, dd_B02_dr
+
+    real(dp)      :: r, x, j0, nu, nu_g, nu_l, d
+    integer       :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    ! Parameters
+    nu    = 2.0d0
+    nu_g  = nu + 1.0d0
+    nu_l  = nu - 1.0d0
+    j0    = 0.125d0
+    d     = 0.2d0
+
+    k2 = 1.0d0
+    k3 = 0.05d0
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+      x = r / x_end
+
+      ! Equilibrium
+      rho0_eq(i)  = 1.0d0 - (1.0d0-d) * x**2
+      v03_eq(i)   = j0 * (1.0d0-x**2)**nu / rho0_eq(i)
+      B02_eq(i)   = j0 * (1.0d0 - (1.0d0-x**2)**nu_g) / (2.0d0*x*nu_g)
+      B03_eq(i)   = 1.0d0
+      B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+      T0_eq(i)    = 1.0d0 / rho0_eq(i)
+
+      ! Derivatives
+      d_rho0_dr(i)  = -2.0d0 * (1.0d0-d) * x
+      d_T0_dr(i)    = - d_rho0_dr(i) / rho0_eq(i)**2
+      d_v03_dr(i)   = (-2.0d0*nu*j0*x*(1.0d0-r**2)**nu_l * rho0_eq(i) &
+                        - d_rho0_dr(i) * j0*(1.0d0-x**2)**nu) / rho0_eq(i)**2
+      d_B02_dr(i)   = j0 * (1.0d0-x**2)**nu - j0 * (1.0d0-(1.0d0-x**2)**nu_g) &
+                      / (2.0d0*x**2*nu_g)
+
+      dd_B02_dr(i)  = (j0 / 2.0d0*nu_g) * ( - 4.0d0*nu_g*(1.0d0-x**2)**nu / x &
+                      + (2.0d0*nu_g*(1-x**2)**nu - 4.0d0*nu*nu_g*x**2*(1.0d0-x**2)**nu_l) / x &
+                      + 2.0d0*(1.0d0*(1.0d0-x**2)**nu_g) / x**3)
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for a uniform case, with finite thermal conduction
+  !! in cylindrical geometry.
+  !! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.18
+  subroutine uniform_thermal_cond_eq()
+    real(dp)  :: beta
+
+    geometry = 'Cartesian'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .true.
+    resistivity = .false.
+    external_gravity = .false.
+
+    k2 = 0.0d0
+    k3 = 1.0d0
+
+    beta = 0.25d0
+
+    !! Parameters
+    rho0_eq = 1.0d0
+    B02_eq  = 0.0d0
+    B03_eq  = 1.0d0
+    B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
+    T0_eq   = beta * B0_eq**2 / (2) ! n=1, kB=1, mu0=1
+
+    tc_para_eq = 0.001d0
+    tc_perp_eq = 0.0d0
+  end subroutine
+
+  !> Initializes equilibrium for a non-uniform case, with finite thermal
+  !! conduction in cylindrical geometry.
+  !! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.19
+  subroutine nonuniform_thermal_cond_eq()
+    use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr
+
+    real(dp)      :: x, B0, beta
+    integer       :: i
+
+    geometry = 'Cartesian'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .true.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Equilibrium
+    rho0_eq = 1.0d0
+    T0_eq   = 1.0d0
+
+    k2 = 0.0d0
+    k3 = 1.0d0
+
+    B0    = 1.0d0
+    beta  = 0.25d0
+
+    tc_para_eq = 0.001d0
+    tc_perp_eq = 0.0d0
+
+    do i = 1, gauss_gridpts
+      x = grid_gauss(i)
+
+      B02_eq(i)   = B0*sin(x)
+      B03_eq(i)   = B0*cos(x)
+      B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+
+      d_B02_dr(i)   = B0*cos(x)
+      d_B03_dr(i)   = -B0*sin(x)
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for a magneto-rotational instability
+  !! in cylindrical geometry.
+  !! Obtained from Magnetohydrodynamics (2019), Fig. 13.17
+  !! Also appears in Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 13
+  subroutine magneto_rotational_eq()
+    use mod_equilibrium_derivatives, only: d_rho0_dr, d_T0_dr, d_v02_dr, &
+                                      d_B02_dr, d_B03_dr, dd_B02_dr, dd_B03_dr
+
+    real(dp)      :: r, v1, p1, B21, B31
+    real(dp)      :: p0(gauss_gridpts), d_p0_dr(gauss_gridpts)
+    integer       :: i
+
+    geometry = 'cylindrical'
+    ! Override values from par file
+    x_start = 0.0d0
+    x_end   = 1.0d0
+    call initialise_grid()
+
+    flow = .true.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    v1  = 1.0d0
+    p1  = 0.01d0
+    B21 = 0.01d0
+    B31 = 0.01d0
+
+    k2  = 1.0d0
+    k3  = 70.0d0
+
+    do i = 1, gauss_gridpts
+      r = grid_gauss(i)
+
+      p0(i)       = p1 / sqrt(r)**5
+      d_p0_dr(i)  = -(5.0d0/2.0d0) * p1 / sqrt(r)**7
+
+      !! Equilibrium
+      rho0_eq(i)  = r**(-3.0d0/2.0d0)
+      T0_eq(i)    = p0(i) / rho0_eq(i)
+      v02_eq(i)   = v1 / sqrt(r)
+      B02_eq(i)   = B21 / r**(5.0d0/4.0d0)
+      B03_eq(i)   = B31 / r**(5.0d0/4.0d0)
+      B0_eq(i)    = sqrt(B02_eq(i)**2 + B03_eq(i)**2)
+
+      !! Derivatives
+      d_rho0_dr(i)  = -(3.0d0/2.0d0) * r**(-5.0d0/2.0d0)
+      d_T0_dr(i)    = (d_p0_dr(i) * rho0_eq(i) - d_rho0_dr(i) * p0(i)) / rho0_eq(i)**2
+      d_v02_dr(i)   = -0.5d0 * v1 / sqrt(r)**3
+      d_B02_dr(i)   = -(5.0d0/4.0d0) * B21 / r**(9.0d0/4.0d0)
+      d_B03_dr(i)   = -(5.0d0/4.0d0) * B31 / r**(9.0d0/4.0d0)
+
+      dd_B02_dr(i)  = (45.0d0/16.0d0) * B21 / r**(13.0d0/4.0d0)
+      dd_B03_dr(i)  = (45.0d0/16.0d0) * B31 / r**(13.0d0/4.0d0)
+    end do
+  end subroutine
+
+  !> Initializes equilibrium for a magneto-rotational instability
+  !! in cylindrical geometry.
+  !! Obtained from Magnetohydrodynamics (2019), Fig. 13.17
+  subroutine interface_eq()
+    !use mod_equilibrium_derivatives, only:
+
+    real(dp)      :: x, B0, B_e, rho0, rho_e, T0, T_e
+    integer       :: i
+
+    geometry = 'Cartesian'
+    ! Override values from par file
+    x_start = -0.5d0
+    x_end   = 0.5d0
+    call initialise_grid()
+
+    flow = .false.
+    radiative_cooling = .false.
+    thermal_conduction = .false.
+    resistivity = .false.
+    external_gravity = .false.
+
+    !! Parameters
+    rho_e = 1.0d0
+    T_e   = 1.0d0
+    B_e   = 1.0d0
+    rho0  = 0.0d0
+    T0    = 0.0d0
+    B0    = sqrt(2*rho_e*T_e+B_e**2)
+
+    k2  = 0.0d0
+    k3  = 1.0d0
+
+    do i = 1, gauss_gridpts
+      x = grid_gauss(i)
+
+      !! Equilibrium
+      if (x > 0) then
+        rho0_eq(i)  = rho_e
+        T0_eq(i)    = T_e
+        B03_eq(i)   = B_e
+      else
+        rho0_eq(i)  = rho0
+        T0_eq(i)    = T0
+        B03_eq(i)   = B0
+      end if
     end do
   end subroutine
 
@@ -891,6 +1162,7 @@ contains
 
     B02_eq      = 0.0d0
     B03_eq      = 0.0d0
+    B0_eq       = 0.0d0
     d_B02_dr    = 0.0d0
     d_B03_dr    = 0.0d0
     dd_B02_dr   = 0.0d0
@@ -932,10 +1204,17 @@ contains
     end do
 
     if (geometry == 'cylindrical') then
-       if (abs(B02(1)) > eq_limit .or. abs(d_B03_dr(1)) > eq_limit &
-              .or. abs(v02(1)) > eq_limit .or. abs(d_v03_dr(1)) > eq_limit) then
-         write(*, *) "WARNING: equilibrium regularity conditions not met!"
-         write(*, *) "Try a higher number of grid points."
+       if (abs(B02(1)) > eq_limit) then
+         write(*, *) "WARNING: B_theta(0) is non-zero!"
+         stop
+       else if (abs(d_B03_dr(1)) > eq_limit) then
+         write(*, *) "WARNING: dB_z/dr(0) is non-zero!"
+         stop
+       else if (abs(v02(1)) > eq_limit) then
+         write(*, *) "WARNING: v_theta(0) is non-zero!"
+         stop
+       else if (abs(d_v03_dr(1)) > eq_limit) then
+         write(*, *) "WARNING: d_v03_dr(0) is non-zero!"
          stop
        end if
     end if

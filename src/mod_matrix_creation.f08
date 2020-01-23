@@ -9,7 +9,8 @@
 !> Module to create the matrices A and B in the eigenvalue problem AX = wBX
 !
 module mod_matrix_creation
-  use mod_global_variables, only: dp, gridpts, matrix_gridpts, dim_quadblock, dim_subblock
+  use mod_global_variables, only: dp, gridpts, matrix_gridpts, dim_quadblock, &
+                                      dim_subblock, thermal_conduction
   implicit none
 
   private
@@ -332,8 +333,7 @@ contains
     positions(14, :) = [5, 4]
     ! A(5, 5)
     factors(15) = -eps_inv * ic * gamma_1 * ( &
-              (tc_para - tc_perp) * B2_inv * (k2 * eps_inv * B02 + k3*B03)**2 &
-              + tc_perp * (d_eps_dr * eps_inv)**2 &
+              tc_perp * (d_eps_dr * eps_inv)**2 &
               + tc_perp * (k2**2 * eps_inv**2 + k3**2) &
               + rho0 * L_T - d_eps_dr * eps_inv * dT0 * dtc_perp_dT &
                                             ) &
@@ -342,6 +342,10 @@ contains
                   dB02**2 + dB03**2 + 2.0d0*d_eps_dr * eps_inv * B02 * dB02 &
                   + (d_eps_dr * eps_inv * B02)**2 &
                                                 )
+    if (thermal_conduction .eqv. .true.) then
+      factors(15) = factors(15) - eps_inv * ic * gamma_1 * (tc_para - tc_perp) &
+                    * B2_inv * (k2 * eps_inv * B02 + k3*B03)**2
+    end if
     positions(15, :) = [5, 5]
     ! A(5, 6)   (term with eta-derivative has been rewritten, d_eta_dr = deta * dT0)
     factors(16) = 2.0d0 * ic * gamma_1 * ( &
@@ -398,19 +402,27 @@ contains
     positions(8, :) = [5, 2]
     ! A(5, 7)
     factors(9) = ic * gamma_1 * eps_inv * ( &
-                   ((tc_para - tc_perp) * B2_inv * dT0 * &
-                      (k2 * k3 * B02 * eps_inv + k3**2 * B03)) &
                    -2.0d0 * eta * k3**2 * dB03 &
                    -2.0d0 * eta * k2 * k3 * eps_inv**2 * drB02 &
                                             )
+    if (thermal_conduction .eqv. .true.) then
+      factors(9) = factors(9) + ic * gamma_1 * eps_inv * ( &
+                          (tc_para - tc_perp) * B2_inv * dT0 * &
+                          (k2 * k3 * B02 * eps_inv + k3**2 * B03) &
+                                                          )
+    end if
     positions(9, :) = [5, 7]
     ! A(5, 8)
     factors(10) = -ic * gamma_1 * eps_inv * ( &
-                   ((tc_para - tc_perp) * B2_inv * dT0 * &
-                      (k2**2 * B02 * eps_inv + k2 * k3 * B03)) &
                    -2.0d0 * eta * k2 * k3 * dB03 &
                    -2.0d0 * eta * k2**2 * eps_inv**2 * drB02 &
                                               )
+    if (thermal_conduction .eqv. .true.) then
+      factors(10) = factors(10) -ic * gamma_1 * eps_inv * ( &
+                (tc_para - tc_perp) * B2_inv * dT0 * &
+                (k2**2 * B02 * eps_inv + k2 * k3 * B03) &
+                                                          )
+    end if
     positions(10, :) = [5, 8]
 
     call subblock(quadblock_A, factors, positions, curr_weight, &
