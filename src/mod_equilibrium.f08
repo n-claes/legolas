@@ -959,9 +959,11 @@ contains
   !! in cylindrical geometry.
   !! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.18
   subroutine uniform_thermal_cond_eq()
+    use mod_global_variables, only: use_fixed_tc, fixed_tc_para_value, fixed_tc_perp_value
+
     real(dp)  :: beta
 
-    geometry = 'Cartesian'
+    geometry = 'cylindrical'
     ! Override values from par file
     x_start = 0.0d0
     x_end   = 1.0d0
@@ -970,11 +972,14 @@ contains
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .true.
+    use_fixed_tc = .true.
+    fixed_tc_para_value = 0.001d0
+    fixed_tc_perp_value = 0.0d0
     resistivity = .false.
     external_gravity = .false.
 
-    k2 = 0.0d0
-    k3 = 1.0d0
+    k2 = 1.0d0
+    k3 = dpi
 
     beta = 0.25d0
 
@@ -984,15 +989,13 @@ contains
     B03_eq  = 1.0d0
     B0_eq   = sqrt(B02_eq**2 + B03_eq**2)
     T0_eq   = beta * B0_eq**2 / (2) ! n=1, kB=1, mu0=1
-
-    tc_para_eq = 0.001d0
-    tc_perp_eq = 0.0d0
   end subroutine
 
   !> Initializes equilibrium for a non-uniform case, with finite thermal
   !! conduction in cylindrical geometry.
   !! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.19
   subroutine nonuniform_thermal_cond_eq()
+    use mod_global_variables, only: use_fixed_tc, fixed_tc_para_value, fixed_tc_perp_value
     use mod_equilibrium_derivatives, only: d_B02_dr, d_B03_dr
 
     real(dp)      :: x, B0, beta
@@ -1007,6 +1010,9 @@ contains
     flow = .false.
     radiative_cooling = .false.
     thermal_conduction = .true.
+    use_fixed_tc = .true.
+    fixed_tc_para_value = 0.001d0
+    fixed_tc_perp_value = 0.0d0
     resistivity = .false.
     external_gravity = .false.
 
@@ -1019,9 +1025,6 @@ contains
 
     B0    = 1.0d0
     beta  = 0.25d0
-
-    tc_para_eq = 0.001d0
-    tc_perp_eq = 0.0d0
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
