@@ -3,8 +3,12 @@ SRCDIR := ../src
 BINDIR := ../bin
 MODDIR := ../mod
 
-all: test_legolas
-
+all:	list_builtins \
+			test_legolas
+	
+list_builtins: 
+	$(FC) -E -dM - < /dev/null > builtins.inc
+		
 libpFUnit.a: $(BINDIR)/*.o
 	$(AR) -r $@ $?
 

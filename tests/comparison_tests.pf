@@ -17,11 +17,16 @@ contains
   
   !> Determines current operating system using pre-processor directives.
   !! It's important that all lines starting with '#' are NOT indented.
+  !! The file 'builtins.inc' HAS to be generated through the makefile
   subroutine set_operating_system()
-#ifdef __linux__
-    os_suffix = '_LINUX'
-#else 
+#include "builtins.inc"
+#if defined(__APPLE__)
     os_suffix = '_MACOS'
+#elif defined(__linux__) 
+    os_suffix = '_LINUX'
+#else
+    write(*, *) "Unable to detect OS!"
+    stop
 #endif
     write(*, *) '>> os_suffix set on ', os_suffix
   end subroutine set_operating_system
