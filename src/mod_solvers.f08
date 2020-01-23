@@ -14,7 +14,7 @@ module mod_solvers
   implicit none
 
   private
-  
+
   public :: solve_QR
   public :: invert_B
   public :: get_B_invA
@@ -88,7 +88,7 @@ contains
                vr, ldvr, work, lwork, rwork, info)
 
     if (info /= 0) then
-      write(*, *) 'LAPACK routine zggev failed'
+      write(*, *) 'LAPACK routine zgeev failed'
       write(*, *) 'Value for info parameter: ', info
     end if
 
