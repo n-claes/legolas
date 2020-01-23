@@ -14,7 +14,7 @@ module mod_resistivity
   implicit none
 
   private
-  
+
   public :: get_eta
   public :: get_deta_dT
 
@@ -26,7 +26,7 @@ contains
   subroutine get_eta(T0, eta)
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_physical_constants, only: unit_temperature, set_unit_resistivity, unit_resistivity
-    
+
     real(dp), intent(in)    :: T0(gauss_gridpts)
     real(dp), intent(out)   :: eta(gauss_gridpts)
 
@@ -66,7 +66,7 @@ contains
   subroutine get_deta_dT(T0, deta_dT)
     use mod_global_variables, only: use_fixed_resistivity
     use mod_physical_constants, only: unit_temperature, unit_deta_dT
-    
+
     real(dp), intent(in)    :: T0(gauss_gridpts)
     real(dp), intent(out)   :: deta_dT(gauss_gridpts)
 
@@ -75,6 +75,7 @@ contains
 
     if (use_fixed_resistivity) then
       deta_dT(:) = 0.0d0
+      return
     end if
 
     !! Denormalise variables for calculation
@@ -98,7 +99,7 @@ contains
   subroutine get_constants(ec, me, e0, kB)
     use mod_global_variables, only: cgs_units
     use mod_physical_constants, only: ec_cgs, me_cgs, kB_cgs, ec_si, me_si, e0_si, kB_si
-    
+
     real(dp), intent(out) :: ec, me, e0, kB
 
     if (cgs_units) then

@@ -342,7 +342,7 @@ contains
                   dB02**2 + dB03**2 + 2.0d0*d_eps_dr * eps_inv * B02 * dB02 &
                   + (d_eps_dr * eps_inv * B02)**2 &
                                                 )
-    if (thermal_conduction .eqv. .true.) then
+    if (thermal_conduction) then
       factors(15) = factors(15) - eps_inv * ic * gamma_1 * (tc_para - tc_perp) &
                     * B2_inv * (k2 * eps_inv * B02 + k3*B03)**2
     end if
@@ -405,7 +405,7 @@ contains
                    -2.0d0 * eta * k3**2 * dB03 &
                    -2.0d0 * eta * k2 * k3 * eps_inv**2 * drB02 &
                                             )
-    if (thermal_conduction .eqv. .true.) then
+    if (thermal_conduction) then
       factors(9) = factors(9) + ic * gamma_1 * eps_inv * ( &
                           (tc_para - tc_perp) * B2_inv * dT0 * &
                           (k2 * k3 * B02 * eps_inv + k3**2 * B03) &
@@ -417,7 +417,7 @@ contains
                    -2.0d0 * eta * k2 * k3 * dB03 &
                    -2.0d0 * eta * k2**2 * eps_inv**2 * drB02 &
                                               )
-    if (thermal_conduction .eqv. .true.) then
+    if (thermal_conduction) then
       factors(10) = factors(10) -ic * gamma_1 * eps_inv * ( &
                 (tc_para - tc_perp) * B2_inv * dT0 * &
                 (k2**2 * B02 * eps_inv + k2 * k3 * B03) &

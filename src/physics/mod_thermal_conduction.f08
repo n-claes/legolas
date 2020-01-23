@@ -14,7 +14,7 @@ module mod_thermal_conduction
   implicit none
 
   private
-  
+
   public :: get_kappa_para
   public :: get_kappa_perp
   public :: get_dkappa_perp_drho
@@ -28,13 +28,19 @@ contains
   !! @param[in]  T0_eq    Array containing the equilibrium temperatures, in K
   !! @param[out] tc_para  Array containing the parallel conduction coefficients
   subroutine get_kappa_para(T0_eq, tc_para)
+    use mod_global_variables, only: use_fixed_tc, fixed_tc_para_value
     use mod_physical_constants, only: unit_conduction
-    
+
     real(dp), intent(in)  :: T0_eq(gauss_gridpts)
     real(dp), intent(out) :: tc_para(gauss_gridpts)
 
     real(dp)              :: prefactor_para
     real(dp)              :: T0_eq_denorm(gauss_gridpts)
+
+    if (use_fixed_tc) then
+      tc_para = fixed_tc_para_value
+      return
+    end if
 
     !! Denormalise variables for calculation
     T0_eq_denorm = T0_eq * unit_temperature
@@ -58,8 +64,9 @@ contains
   !! @param[in]  B0_eq    Array containing the equilibrium magnetic field
   !! @param[out] tc_perp  Array containing the perpendicular conduction coefficients
   subroutine get_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp)
+    use mod_global_variables, only: use_fixed_tc, fixed_tc_perp_value
     use mod_physical_constants, only: unit_magneticfield, unit_conduction, unit_numberdensity
-    
+
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: tc_perp(gauss_gridpts)
@@ -68,6 +75,11 @@ contains
                              B0_eq_denorm(gauss_gridpts)
     real(dp)              :: tc_para(gauss_gridpts), nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
+
+    if (use_fixed_tc) then
+      tc_perp = fixed_tc_perp_value
+      return
+    end if
 
     !! Denormalise variables for calculation
     T0_eq_denorm   = T0_eq * unit_temperature
@@ -104,8 +116,9 @@ contains
   !!                        perpendicular conduction coefficient
   !!                        with respect to density
   subroutine get_dkappa_perp_drho(T0_eq, rho0_eq, B0_eq, d_tc_drho)
+    use mod_global_variables, only: use_fixed_tc
     use mod_physical_constants, only: unit_magneticfield, unit_dtc_drho, unit_numberdensity
-    
+
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: d_tc_drho(gauss_gridpts)
@@ -114,6 +127,11 @@ contains
                              B0_eq_denorm(gauss_gridpts)
     real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
+
+    if (use_fixed_tc) then
+      d_tc_drho = 0.0d0
+      return
+    end if
 
     !! Denormalise variables for calculation
     T0_eq_denorm = T0_eq * unit_temperature
@@ -148,8 +166,9 @@ contains
   !!                      perpendicular conduction coefficient
   !!                      with respect to temperature
   subroutine get_dkappa_perp_dT(T0_eq, rho0_eq, B0_eq, d_tc_dT)
+    use mod_global_variables, only: use_fixed_tc
     use mod_physical_constants, only: unit_magneticfield, unit_dtc_dT, unit_numberdensity
-    
+
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: d_tc_dT(gauss_gridpts)
@@ -158,6 +177,11 @@ contains
                              B0_eq_denorm(gauss_gridpts)
     real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
+
+    if (use_fixed_tc) then
+      d_tc_dT = 0.0d0
+      return
+    end if
 
     !! Denormalise variables for calculation
     T0_eq_denorm = T0_eq * unit_temperature
@@ -190,8 +214,9 @@ contains
   !!                       perpendicular conduction coefficient
   !!                       with respect to B^2
   subroutine get_dkappa_perp_dB2(T0_eq, rho0_eq, B0_eq, d_tc_dB2)
+    use mod_global_variables, only: use_fixed_tc
     use mod_physical_constants, only: unit_magneticfield, unit_dtc_dB2, unit_numberdensity
-    
+
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
                              B0_eq(gauss_gridpts)
     real(dp), intent(out) :: d_tc_dB2(gauss_gridpts)
@@ -200,6 +225,11 @@ contains
                              B0_eq_denorm(gauss_gridpts)
     real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
+
+    if (use_fixed_tc) then
+      d_tc_dB2 = 0.0d0
+      return
+    end if
 
     !! Denormalise variables for calculation
     T0_eq_denorm = T0_eq * unit_temperature
@@ -229,7 +259,7 @@ contains
   !! @param[out] nH        Array containing the equilibrium number density
   subroutine get_nH(rho0_eq, mp, nH)
     use mod_physical_constants, only: unit_density, unit_numberdensity, He_abundance
-    
+
     real(dp), intent(in)  :: rho0_eq(gauss_gridpts), mp
     real(dp), intent(out) :: nH(gauss_gridpts)
     real(dp)              :: rho0_eq_denorm(gauss_gridpts)
