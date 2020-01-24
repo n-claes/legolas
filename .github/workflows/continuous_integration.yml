@@ -16,26 +16,35 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Install gfortran-9
+    - name: Install dependencies
       run: |
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test
         sudo apt update
         sudo apt-get install gfortran-9
-    - name: Check gfortran-9
-      run: gfortran-9 --version
-    - name: Install cmake
-      run: sudo apt-get -y install cmake
-    - name: Check cmake
-      run: cmake --version
-    - name: Install BLAS library
-      run: sudo apt-get install libblas-dev
-    - name: Install LAPACK library
-      run: sudo apt-get install liblapack-dev
+        sudo apt-get -y install cmake
+    - name: Check dependencies
+      run: |
+        gfortran-9 --version
+        cmake --version
+    - name: Install BLAS and LAPACK libraries
+      run: |
+        sudo apt-get install libblas-dev
+        sudo apt-get install liblapack-dev
+        
+    - name: Cache pFUnit
+      id: pfunit-cache
+      uses: actions/cache@v1
+      with:
+        path: tests/pFUnit/
+        key: ${{ runner.os }}-pfunit
+        
     - name: Get pFUnit
+      if: steps.pfunit-cache.outputs.cache-hit != 'true'
       run: |
         cd tests
         git clone https://github.com/Goddard-Fortran-Ecosystem/pFUnit.git
     - name: Build pFUnit
+      if: steps.pfunit-cache.outputs.cache-hit != 'true'
       env: 
         CC: "/usr/bin/gcc-9"
         FC: "/usr/bin/gfortran-9"
@@ -44,20 +53,16 @@ jobs:
         mkdir build
         cd build
         cmake ..
-    - name: Compile pFUnit 1/2 (tests)
+    - name: Compile pFUnit
+      if: steps.pfunit-cache.outputs.cache-hit != 'true'
       env: 
         CC: "/usr/bin/gcc-9"
         FC: "/usr/bin/gfortran-9"
       run: |
         cd tests/pFUnit/build
         make tests
-    - name: Compile pFUnit 2/2 (install)
-      env: 
-        CC: "/usr/bin/gcc-9"
-        FC: "/usr/bin/gfortran-9"
-      run: |
-        cd tests/pFUnit/build
         make install
+        
     - name: Compile LEGOLAS
       run: make FC=gfortran-9
     - name: Compile tests 
