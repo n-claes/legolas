@@ -1,4 +1,4 @@
-# makefile for the finite elements source code
+# makefile for the finite elements code LEGOLAS
 
 # activate lots of flags for debugging
 # -fcheck=all and -fbounds-check: checks for arrays and array calling
@@ -9,39 +9,22 @@
 # -fbacktrace: produce backtrace when crashing
 FFLAGS   := -fcheck=all -fbounds-check -Wall -Wextra -Wconversion \
             -pedantic -fbacktrace
-TSTFLAGS := -Wno-integer-division
 FC       := gfortran
 
-# If compiling for parallel running
-#MKLCOMP := -m64 -I${MKLROOT}/include
-#MKLLINK := ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group \
-#					  ${MKLROOT}/lib/intel64/libmkl_gf_lp64.a \
-#					  ${MKLROOT}/lib/intel64/libmkl_gnu_thread.a \
-#				 	  ${MKLROOT}/lib/intel64/libmkl_core.a \
-#				  	${MKLROOT}/lib/intel64/libmkl_blacs_intelmpi_lp64.a \
-#           -Wl,--end-group -lgomp -lpthread -lm -ldl
-#
-
-# If compiling for single core
 LIBS    := -lblas -llapack
-MKLLINK := $(LIBS)
-MKLCOMP := $(LIBS)
 
 SRCDIR   := src
 BINDIR   := bin
 MODDIR   := mod
 
-TSTDIR   := tests
 OUTDIR   := output
+OUTPUT   := legolas
 
-OUTPUT   := legolas.exe
-TEST_OUT := run_tests.exe
-
-objects  := $(addprefix $(BINDIR)/, \
+objects  := $(addprefix $(BINDIR)/,         \
               mod_physical_constants.o      \
               mod_global_variables.o        \
               mod_types.o                   \
-							mod_output.o									\
+              mod_output.o                  \
               mod_check_values.o            \
               mod_spline_functions.o        \
               mod_input.o                   \
@@ -54,7 +37,7 @@ objects  := $(addprefix $(BINDIR)/, \
               mod_equilibrium.o             \
               mod_make_subblock.o           \
               mod_boundary_conditions.o     \
-							mod_matrix_creation.o					\
+              mod_matrix_creation.o         \
               mod_solvers.o                 \
               mod_eigenfunctions.o          \
              )
@@ -63,33 +46,17 @@ main_objects := $(addprefix $(BINDIR)/, \
                   main.o          \
                  )
 
-test_objects := $(addprefix $(BINDIR)/, \
-                  testmod_assert.o         \
-                  testmod_core_tests.o     \
-                  tests_main.o             \
-                 )
-
 
 all: compile_modules      \
      compile_main_program \
      main_exec
 
-test: compile_modules      \
-      compile_main_program \
-      compile_test_program \
-      test_exec
-
 compile_modules: $(objects)
 
 compile_main_program: $(main_objects)
 
-compile_test_program: $(test_objects)
-
 main_exec:
-	$(FC) $(FFLAGS) $(objects) $(main_objects) $(MKLLINK) -o $(OUTPUT)
-
-test_exec:
-	$(FC) $(FFLAGS) $(TSTFLAGS) $(objects) $(test_objects) $(MKLLINK) -o $(TEST_OUT)
+	$(FC) $(FFLAGS) $(objects) $(main_objects) $(LIBS) -o $(OUTPUT)
 
 # check directories
 $(BINDIR):
@@ -98,39 +65,30 @@ $(BINDIR):
 	mkdir -p $(OUTDIR)
 	mkdir -p $(OUTDIR)/eigenfunctions
 	mkdir -p $(OUTDIR)/figures
-	mkdir -p $(OUTDIR)/tests
-	mkdir -p $(OUTDIR)/tests/figures
 
 # root modules
 $(BINDIR)/%.o: $(SRCDIR)/%.f08 | $(BINDIR)
-	$(FC) $(FFLAGS) -c $^ $(MKLCOMP) -o $@  -J $(MODDIR)
+	$(FC) $(FFLAGS) -c $^ $(LIBS) -o $@  -J $(MODDIR)
 
 # physics modules
 $(BINDIR)/%.o: $(SRCDIR)/physics/%.f08 | $(BINDIR)
-	$(FC) $(FFLAGS) -c $^ $(MKLCOMP) -o $@ -J $(MODDIR)
+	$(FC) $(FFLAGS) -c $^ $(LIBS) -o $@ -J $(MODDIR)
 
 # dataIO modules
 $(BINDIR)/%.o: $(SRCDIR)/dataIO/%.f08 | $(BINDIR)
-	$(FC) $(FFLAGS) -c $^ $(MKLCOMP) -o $@ -J $(MODDIR)
-
-# test modules
-$(BINDIR)/%.o: $(TSTDIR)/%.f08 | $(BINDIR)
-	$(FC) $(FFLAGS) -c $^ $(MKLCOMP) -o $@ -J $(MODDIR)
+	$(FC) $(FFLAGS) -c $^ $(LIBS) -o $@ -J $(MODDIR)
 
 clean:
 	rm -rf $(BINDIR)
 	rm -rf $(MODDIR)
 	rm -f $(OUTPUT)
-	rm -f $(TEST_OUT)
 	rm -rf $(OUTDIR)
 
 output_clean:
 	rm -rf $(OUTDIR)
 	mkdir -p $(OUTDIR)/eigenfunctions
 	mkdir -p $(OUTDIR)/figures
-	mkdir -p $(OUTDIR)/tests
-	mkdir -p $(OUTDIR)/tests/figures
 
 run:
 	make
-	./legolas.exe -i legolas_config.par
+	./legolas -i legolas_config.par
