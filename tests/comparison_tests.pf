@@ -8,26 +8,52 @@ module comparison_tests
   real(dp), parameter   :: TOL = 1.0d-9
   
   character(len=21), parameter  :: results_folder = "correct_test_results/"
+  character(len=4), parameter   :: file_extension = '.dat'
+  
+  character(len=6)              :: os_suffix 
+  logical, save                 :: os_is_set = .false.
   
 contains 
   
+  !> Determines current operating system using pre-processor directives.
+  !! It's important that all lines starting with '#' are NOT indented.
+  !! The file 'builtins.inc' HAS to be generated through the makefile
+  subroutine set_operating_system()
+#include "builtins.inc"
+#if defined(__APPLE__)
+    os_suffix = '_MACOS'
+#elif defined(__linux__) 
+    os_suffix = '_LINUX'
+#else
+    write(*, *) "Unable to detect OS!"
+    stop
+#endif
+    write(*, *) '>> os_suffix set on ', os_suffix
+  end subroutine set_operating_system
+    
   
-  subroutine setup_test_config()
-    use mod_global_variables, only: set_gridpts, set_gamma
+  @before
+  subroutine init_test()
+    use mod_global_variables, only: set_gridpts
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
     use mod_input, only: read_parfile
     
-    !! Initialise basic configuration
-    call read_parfile("")   !! this sets all default values
+    if (.not. os_is_set) then 
+      call set_operating_system()
+      os_is_set = .true.
+    end if
+    
+    ! This sets all default values 
+    call read_parfile("")
     call set_gridpts(test_gridpts)
-    call set_gamma(5.0d0/3.0d0)
     call initialise_equilibrium()
     call initialise_equilibrium_derivatives()
-  end subroutine setup_test_config
+  end subroutine init_test
   
   
-  subroutine teardown_test_config()
+  @after 
+  subroutine teardown_test()
     use mod_grid, only: grid_clean
     use mod_equilibrium, only: equilibrium_clean
     use mod_equilibrium_derivatives, only: equilibrium_derivatives_clean
@@ -40,7 +66,18 @@ contains
     if (radiative_cooling) then 
       call radiative_cooling_clean()
     end if
-  end subroutine teardown_test_config
+  end subroutine teardown_test
+  
+  
+  subroutine get_filename(base_filename, filename)
+    use mod_global_variables, only: str_len
+    
+    character(len=*), intent(in)        :: base_filename
+    character(len=str_len), intent(out) :: filename
+    
+    filename = results_folder // base_filename // &
+               os_suffix // file_extension
+  end subroutine get_filename
   
   
   subroutine read_stored_eigenvals(filename, omega_base)
@@ -53,43 +90,44 @@ contains
   end subroutine read_stored_eigenvals
   
   
-  subroutine sort_eigenvalues(eigenvals)
-    complex(dp), intent(inout)  :: eigenvals(matrix_gridpts)
-    complex(dp)                 :: temp
-    integer                     :: i, minidx
+  subroutine sort_array(array)
+    real(dp), intent(inout)  :: array(matrix_gridpts)
+    real(dp)                 :: temp
+    integer                  :: i, minidx
     
-    do i = 1, size(eigenvals)-1
-      minidx = minloc(real(eigenvals(i:)), 1) + i - 1
-      if (real(eigenvals(i)) > real(eigenvals(minidx))) then
-        temp = eigenvals(i)
-        eigenvals(i) = eigenvals(minidx)
-        eigenvals(minidx) = temp
+    do i = 1, size(array)-1
+      minidx = minloc(array(i:), 1) + i - 1
+      if (array(i) > array(minidx)) then
+        temp = array(i)
+        array(i) = array(minidx)
+        array(minidx) = temp
       end if
     end do
     
-  end subroutine sort_eigenvalues
+  end subroutine sort_array
   
   
-  subroutine get_comparison_test(filename, omega, omega_base)
+  subroutine get_comparison_test(filename, moduli_w, moduli_w_base)
     use mod_global_variables, only: equilibrium_type
     use mod_equilibrium, only: set_equilibrium
     use mod_matrix_creation, only: create_matrices
     use mod_solvers, only: solve_QR
   
     character(len=*), intent(in)  :: filename 
-    complex(dp), intent(out)      :: omega(matrix_gridpts), omega_base(matrix_gridpts)
+    real(dp), intent(out)         :: moduli_w(matrix_gridpts), &
+                                     moduli_w_base(matrix_gridpts)
   
     real(dp)      :: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp)   :: matrix_A(matrix_gridpts, matrix_gridpts)
     complex(dp)   :: ev_l(matrix_gridpts, matrix_gridpts)
     complex(dp)   :: ev_r(matrix_gridpts, matrix_gridpts)
+    complex(dp)   :: omega(matrix_gridpts), omega_base(matrix_gridpts)
     
     write(*, *) "  - setting up test..."
   
     !! read correct test results, store in 'omega_base'
     write(*, *) "  - reading and storing correct base solutions..."
     call read_stored_eigenvals(filename, omega_base)
-    call sort_eigenvalues(omega_base)
 
     call set_equilibrium()
     write(*, *) "  - equilibrium set: ", trim(equilibrium_type)
@@ -101,7 +139,10 @@ contains
   
     !! sort result and wrap up 
     write(*, *) "  - comparing results to base..."
-    call sort_eigenvalues(omega)
+    moduli_w = sqrt(real(omega)**2 + aimag(omega)**2)
+    moduli_w_base = sqrt(real(omega_base)**2 + aimag(omega_base)**2)
+    call sort_array(moduli_w)
+    call sort_array(moduli_w_base)
   
   end subroutine get_comparison_test
   
@@ -110,113 +151,70 @@ contains
   subroutine test_adiabatic_homogeneous()
     use mod_global_variables, only: str_len, equilibrium_type
     
-    character(len=str_len)    :: filename
-    complex(dp), allocatable  :: omega(:), omega_base(:)
-    
-    !!@note: it is important to make omega and omega_base allocatable.
-    !!       At this point matrix_gridpts is not yet properly initialised, this 
-    !!       is done in setup_test_config()
-    !!       Not doing this yields a segfault, as matrix_gridpts will have different 
-    !!       values between here and the main source code before it is set.
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
     
     write(*, *) "Testing adiabatic homogeneous equilibrium"
     
-    call setup_test_config()
-    allocate(omega(matrix_gridpts))
-    allocate(omega_base(matrix_gridpts))
-
-    filename = results_folder // "1-adiabatic-homo.dat"
+    call get_filename('1-adiabatic-homo', filename)
     equilibrium_type = "Adiabatic homogeneous"
 
-    call get_comparison_test(trim(filename), omega, omega_base)
-    !! Deallocate configuration, only omega and omega_base are needed to compare.
-    !! Done to prevent skipping deallocation if test fails.
-    call teardown_test_config()
-    
-    @assertEqual(omega, omega_base, tolerance=TOL)
-    deallocate(omega)
-    deallocate(omega_base)
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
     
   end subroutine test_adiabatic_homogeneous
   
   
   @test 
-  @disable
   subroutine test_resistive_homogeneous()
     use mod_global_variables, only: str_len, equilibrium_type
     
-    character(len=str_len)    :: filename 
-    complex(dp), allocatable  :: omega(:), omega_base(:)
+    character(len=str_len)  :: filename 
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
     
     write(*, *) "Testing resistive homogeneous equilibrium"
     
-    call setup_test_config()
-    allocate(omega(matrix_gridpts))
-    allocate(omega_base(matrix_gridpts))
-    
-    filename = results_folder // "2-resistive-homo.dat"
+    call get_filename('2-resistive-homo', filename)
     equilibrium_type = "Resistive homogeneous"
     
-    call get_comparison_test(trim(filename), omega, omega_base)
-    call teardown_test_config()
-    
-    @assertEqual(omega, omega_base, tolerance=TOL)
-    deallocate(omega)
-    deallocate(omega_base)
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
     
   end subroutine test_resistive_homogeneous
   
   
   @test 
-  @disable
   subroutine test_resistive_tearing()
     use mod_global_variables, only: str_len, equilibrium_type
     
-    character(len=str_len)    :: filename 
-    complex(dp), allocatable  :: omega(:), omega_base(:)
+    character(len=str_len)  :: filename 
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
     
     write(*, *) "Testing resistive tearing equilibrium"
     
-    call setup_test_config()
-    allocate(omega(matrix_gridpts))
-    allocate(omega_base(matrix_gridpts))
-    
-    filename = results_folder // "4-resistive-tearing.dat"
+    call get_filename('4-resistive-tearing', filename)
     equilibrium_type = "Resistive tearing modes"
     
-    call get_comparison_test(trim(filename), omega, omega_base)
-    call teardown_test_config()
-    
-    @assertEqual(omega, omega_base, tolerance=TOL)
-    deallocate(omega)
-    deallocate(omega_base)
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
     
   end subroutine test_resistive_tearing
   
   
   @test 
-  @disable
   subroutine test_resistive_tearing_flow()
     use mod_global_variables, only: str_len, equilibrium_type
     
-    character(len=str_len)    :: filename 
-    complex(dp), allocatable  :: omega(:), omega_base(:)
+    character(len=str_len)  :: filename 
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
     
     write(*, *) "Testing resistive tearing (flow) equilibrium"
     
-    call setup_test_config()
-    allocate(omega(matrix_gridpts))
-    allocate(omega_base(matrix_gridpts))
-    
-    filename = results_folder // "5-resistive-tearing-flow.dat"
+    call get_filename('5-resistive-tearing-flow', filename)
     equilibrium_type = "Resistive tearing modes with flow"
     
-    call get_comparison_test(trim(filename), omega, omega_base)
-    call teardown_test_config()
-    
-    @assertEqual(omega, omega_base, tolerance=TOL)
-    deallocate(omega)
-    deallocate(omega_base)
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
     
   end subroutine test_resistive_tearing_flow
     
