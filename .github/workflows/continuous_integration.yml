@@ -3,7 +3,9 @@ name: Automatic Tests
 on:
   push:
     branches: 
+      - master
       - testing_framework
+      - develop
   pull_request:
     branches: 
       - master
