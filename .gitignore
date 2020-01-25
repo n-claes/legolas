@@ -1,5 +1,8 @@
 docs/html/
 output/
+legolas
+test_legolas
+
 *.DS_Store
 *.aux
 *.bbl
@@ -23,3 +26,6 @@ output/
 *.dat
 *.pyc
 *.idea
+*.F90
+*.inc
+*.a
