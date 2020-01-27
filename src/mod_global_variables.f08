@@ -50,6 +50,12 @@ module mod_global_variables
   logical, save             :: external_gravity
   !> Boolean to enable thermal conduction
   logical, save             :: thermal_conduction
+  !> Boolean to set a fixed thermal conduction
+  logical, save             :: use_fixed_tc
+  !> Sets the fixed value for the parallel thermal conduction
+  real(dp)                  :: fixed_tc_para_value
+  !> Sets the fixed value for the perpendicular thermal conduction
+  real(dp)                  :: fixed_tc_perp_value
   !> Boolean to enable resistivity
   logical, save             :: resistivity
   !> Boolean to set a fixed resistivity instead of a temperature dependence
