@@ -15,11 +15,19 @@ module mod_grid
   private
 
   !> Array containing the regular (coarse) grid
-  real(dp), allocatable      :: grid(:)
+  real(dp), allocatable   :: grid(:)
   !> New array with 4x the length of grid (4 nodes of Gaussian quadrature)
-  real(dp), allocatable      :: grid_gauss(:)
+  real(dp), allocatable   :: grid_gauss(:)
+  !> Array containing the scale factor epsilon for the entire grid
+  real(dp), allocatable   :: eps_grid(:)
+  !> Array containing the derivative of the scale factor epsilon for the entire grid
+  real(dp), allocatable   :: d_eps_grid_dr(:)
 
-  public :: grid, grid_gauss
+  public :: grid
+  public :: grid_gauss
+  public :: eps_grid
+  public :: d_eps_grid_dr
+  
   public :: initialise_grid
   public :: set_grid_gauss
   public :: grid_clean
@@ -36,6 +44,8 @@ contains
 
     allocate(grid(gridpts))
     allocate(grid_gauss(gauss_gridpts))
+    allocate(eps_grid(gauss_gridpts))
+    allocate(d_eps_grid_dr(gauss_gridpts))
 
     ! Initialise grids
     grid       = 0.0d0
@@ -56,6 +66,7 @@ contains
     end if
 
     call set_grid_gauss()
+    call set_scale_factor()
 
   end subroutine initialise_grid
 
@@ -84,7 +95,27 @@ contains
       end do
     end do
   end subroutine set_grid_gauss
-
+  
+  
+  !> Subroutine to set the scale factor for switching between Cartesian and 
+  !! cylindrical geometries. 'eps' will be equal to grid_gauss for Cylindrical, and 
+  !! is equal to one for Cartesian. 'd_eps_dr' is one in Cylindrical, and zero in Cartesian.
+  subroutine set_scale_factor()
+    use mod_global_variables, only: geometry
+    
+    if (geometry == 'Cartesian') then 
+      eps_grid = 1.0d0 
+      d_eps_grid_dr = 0.0d0 
+    else if (geometry == 'cylindrical') then 
+      eps_grid = grid_gauss
+      d_eps_grid_dr = 1.0d0
+    else
+      write(*, *) "Geometry not defined correctly."
+      write(*, *) "Currently set on: ", geometry 
+    end if 
+  end subroutine set_scale_factor
+  
+  
   !> Subroutine to re-grid the mesh to a non-uniform spacing.
   !! This is based on two Gaussian curves with known widths (from
   !! mod_global_variables); the grid is accumulated near each Gaussian maximum,
@@ -185,6 +216,8 @@ contains
   subroutine grid_clean()
     deallocate(grid)
     deallocate(grid_gauss)
+    deallocate(eps_grid)
+    deallocate(d_eps_grid_dr)
   end subroutine grid_clean
 
 
