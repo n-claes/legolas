@@ -23,6 +23,7 @@ OUTPUT   := legolas
 objects  := $(addprefix $(BINDIR)/,         \
               mod_physical_constants.o      \
               mod_global_variables.o        \
+							mod_grid.o										\
               mod_types.o                   \
               mod_output.o                  \
               mod_check_values.o            \
@@ -32,9 +33,9 @@ objects  := $(addprefix $(BINDIR)/,         \
               mod_cooling_curves.o          \
               mod_radiative_cooling.o       \
               mod_thermal_conduction.o      \
-              mod_grid.o                    \
-              mod_equilibrium_derivatives.o \
               mod_equilibrium.o             \
+							smod_equil_adiabatic_homo.o		\
+							smod_equil_resistive_homo.o		\
               mod_make_subblock.o           \
               mod_boundary_conditions.o     \
               mod_matrix_creation.o         \
@@ -76,6 +77,10 @@ $(BINDIR)/%.o: $(SRCDIR)/physics/%.f08 | $(BINDIR)
 
 # dataIO modules
 $(BINDIR)/%.o: $(SRCDIR)/dataIO/%.f08 | $(BINDIR)
+	$(FC) $(FFLAGS) -c $^ $(LIBS) -o $@ -J $(MODDIR)
+	
+# equilibrium submodules
+$(BINDIR)/%.o: $(SRCDIR)/equilibria/%.f08 | $(BINDIR)
 	$(FC) $(FFLAGS) -c $^ $(LIBS) -o $@ -J $(MODDIR)
 
 clean:
