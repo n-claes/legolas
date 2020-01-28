@@ -1,3 +1,8 @@
+!
+! SUBMODULE: smod_equil_adiabatic_homo
+! 
+! DESCRIPTION:
+!> Submodule defining an adiabatic homogeneous medium in Cartesian geometry.
 submodule (mod_equilibrium) smod_equil_adiabatic_homo
   implicit none
   
