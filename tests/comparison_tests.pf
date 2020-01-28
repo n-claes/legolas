@@ -36,7 +36,6 @@ contains
   subroutine init_test()
     use mod_global_variables, only: set_gridpts
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
-    use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
     use mod_input, only: read_parfile
     
     if (.not. os_is_set) then 
@@ -48,7 +47,6 @@ contains
     call read_parfile("")
     call set_gridpts(test_gridpts)
     call initialise_equilibrium()
-    call initialise_equilibrium_derivatives()
   end subroutine init_test
   
   
@@ -56,13 +54,11 @@ contains
   subroutine teardown_test()
     use mod_grid, only: grid_clean
     use mod_equilibrium, only: equilibrium_clean
-    use mod_equilibrium_derivatives, only: equilibrium_derivatives_clean
     use mod_global_variables, only: radiative_cooling
     use mod_radiative_cooling, only: radiative_cooling_clean
     
     call grid_clean()
     call equilibrium_clean()
-    call equilibrium_derivatives_clean()
     if (radiative_cooling) then 
       call radiative_cooling_clean()
     end if
