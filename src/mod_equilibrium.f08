@@ -15,7 +15,7 @@ module mod_equilibrium
                                   flow, resistivity, external_gravity, radiative_cooling, &
                                   thermal_conduction, geometry
   use mod_physical_constants, only: dpi
-  use mod_grid, only: initialise_grid
+  use mod_grid, only: initialise_grid, grid_gauss
   implicit none
 
   private
@@ -138,6 +138,45 @@ contains
       set_equilibrium_values => adiabatic_homo_eq
     case('Resistive homogeneous')
       set_equilibrium_values => resistive_homo_eq
+    case("Gravitational homogeneous")
+      set_equilibrium_values => gravity_homo_eq
+    case("Resistive tearing modes")
+      set_equilibrium_values => resistive_tearing_modes_eq
+    case("Resistive tearing modes with flow")
+      set_equilibrium_values => resistive_tearing_modes_flow_eq
+    case("Flow driven instabilities")
+      set_equilibrium_values => flow_driven_instabilities_eq
+    case("Suydam cluster modes")
+      set_equilibrium_values => suydam_cluster_eq
+    case("Kelvin-Helmholtz")
+      set_equilibrium_values => kh_instability_eq
+    case("Rotating plasma cylinder")
+      set_equilibrium_values => rotating_plasma_cyl_eq
+    case("Kelvin-Helmholtz and current driven")
+      set_equilibrium_values => kh_cd_instability_eq
+    case("Internal kink modes")
+      set_equilibrium_values => internal_kink_eq
+    case("Rotating theta pinch")
+      set_equilibrium_values => rotating_theta_pinch_eq
+    case("Ideal quasimodes")
+      set_equilibrium_values => ideal_quasimodes_eq
+    case("Uniform with thermal conduction")
+      set_equilibrium_values => uniform_thermal_cond_eq
+    case("Non-uniform with thermal conduction")
+      set_equilibrium_values => nonuniform_thermal_cond_eq
+    case("Magneto-rotational instability")
+      set_equilibrium_values => magneto_rotational_eq
+    case("Interface")
+      set_equilibrium_values => interface_modes_eq
+    case("Non-adiabatic discrete Alfven")
+      set_equilibrium_values => discrete_alfven_eq
+
+    ! Tests
+    case("Beta=0 test")
+      set_equilibrium_values => beta0_test_eq
+    case("Hydrodynamics test")
+      set_equilibrium_values => hydro_test_eq
+
     case default 
       write(*, *) "Equilibrium not recognised."
       write(*, *) "currently set on: ", equilibrium_type

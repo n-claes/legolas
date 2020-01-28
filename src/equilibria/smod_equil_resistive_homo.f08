@@ -1,3 +1,10 @@
+!
+! SUBMODULE: smod_equil_resistive_homo
+! 
+! DESCRIPTION:
+!> Submodule defining a homogeneous medium in Cartesian geometry with a 
+!! constant resistivity value. From Advanced Magnetohydrodynamics by Goedbloed, Keppens
+!! and Poedts, page 156.
 submodule (mod_equilibrium) smod_equil_resistive_homo
   implicit none
   
@@ -28,5 +35,3 @@ contains
   end subroutine resistive_homo_eq
   
 end submodule smod_equil_resistive_homo
-  
-  
