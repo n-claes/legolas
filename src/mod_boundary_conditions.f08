@@ -187,9 +187,7 @@ contains
     use mod_global_variables, only: ic, gamma_1, k2, k3, gauss_gridpts, gridpts
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, cubic_factors, cubic_factors_deriv
     use mod_grid, only: grid
-    use mod_equilibrium, only: rho0_eq, T0_eq, B02_eq, B03_eq, tc_perp_eq, eta_eq
-    use mod_equilibrium_derivatives, only: d_T0_dr, d_B02_dr, d_B03_dr, &
-                                           d_tc_perp_eq_dT, d_tc_perp_eq_drho, d_tc_perp_eq_dB2
+    use mod_equilibrium, only: rho_field, T_field, B_field, kappa_field, eta_field
     use mod_make_subblock, only: subblock, reset_factors, reset_positions
 
     real(dp), intent(in)        :: eps, d_eps_dr
@@ -228,19 +226,19 @@ contains
     eps_inv = 1.0d0 / eps
 
     !! Equilibrium quantities at the boundary
-    rho0    = rho0_eq(idx)
-    T0      = T0_eq(idx)
-    B02     = B02_eq(idx)
-    B03     = B03_eq(idx)
-    tc_perp = tc_perp_eq(idx)
-    eta     = eta_eq(idx)
-    dT0     = d_T0_dr(idx)
-    dB02    = d_B02_dr(idx)
-    dB03    = d_B03_dr(idx)
-    dtc_perp_dT   = d_tc_perp_eq_dT(idx)
-    dtc_perp_drho = d_tc_perp_eq_drho(idx)
-    dtc_perp_dB2  = d_tc_perp_eq_dB2(idx)
-
+    rho0    = rho_field % rho0(idx)
+    T0      = T_field % T0(idx)
+    dT0     = T_field % d_T0_dr(idx)
+    B02     = B_field % B02(idx)
+    B03     = B_field % B03(idx)
+    dB02    = B_field % d_B02_dr(idx)
+    dB03    = B_field % d_B03_dr(idx)
+    eta     = eta_field % eta(idx)
+    tc_perp = kappa_field % kappa_perp(idx)
+    dtc_perp_dT   = kappa_field % d_kappa_perp_dT(idx)
+    dtc_perp_drho = kappa_field % d_kappa_perp_drho(idx)
+    dtc_perp_dB2  = kappa_field % d_kappa_perp_dB2(idx)
+    
     drB02 = d_eps_dr*B02 + eps*dB02
 
     !! Spline functions for the boundaries. Interval is [grid(1), grid(2)]
