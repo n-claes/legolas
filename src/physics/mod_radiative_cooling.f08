@@ -32,8 +32,7 @@ module mod_radiative_cooling
   real(dp)                      :: min_T
 
   public  :: initialise_radiative_cooling
-  public  :: get_Lambda
-  public  :: get_dLambdadT
+  public  :: set_radiative_cooling_values
   public  :: radiative_cooling_clean
 
 contains
@@ -129,7 +128,26 @@ contains
     deallocate(table_L)
 
   end subroutine initialise_radiative_cooling
-
+  
+  
+  subroutine set_radiative_cooling_values(rho_field, T_field, rc_field)
+    use mod_types, only: density_type, temperature_type, cooling_type
+    use mod_global_variables, only: gauss_gridpts
+    
+    type(density_type), intent(in)      :: rho_field
+    type(temperature_type), intent(in)  :: T_field 
+    type(cooling_type), intent(inout)   :: rc_field
+    
+    real(dp)    :: d_lambda_dT(gauss_gridpts)
+    
+    !! dL/dT = rho0 * d_lambda_dT (where lambda(T) = cooling curve)
+    call get_dLambdadT(T_field % T0, d_lambda_dT)
+    rc_field % d_L_dT = (rho_field % rho0) * d_lambda_dT
+    
+    !! dL/drho = lambda(T)
+    call get_Lambda(T_field % T0, rc_field % d_L_drho)
+  end subroutine set_radiative_cooling_values
+    
 
   !> Interpolates the luminosity based on the given temperatures T0.
   !! @param[in]  T0       Array with the equilibrium temperatures (normalised)

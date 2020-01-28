@@ -14,14 +14,30 @@ module mod_thermal_conduction
   implicit none
 
   private
-
-  public :: get_kappa_para
-  public :: get_kappa_perp
-  public :: get_dkappa_perp_drho
-  public :: get_dkappa_perp_dT
-  public :: get_dkappa_perp_dB2
+  
+  public :: set_conduction_values
 
 contains
+  
+  subroutine set_conduction_values(rho_field, T_field, B_field, kappa_field)
+    use mod_types, only: density_type, temperature_type, bfield_type, conduction_type
+    
+    type(density_type), intent(in)        :: rho_field
+    type(temperature_type), intent(in)    :: T_field
+    type(bfield_type), intent(in)         :: B_field
+    type(conduction_type), intent(inout)  :: kappa_field
+    
+    call get_kappa_para(T_field % T0, kappa_field % kappa_para)
+    call get_kappa_perp(T_field % T0, rho_field % rho0, B_field % B0, kappa_field % kappa_perp)
+    
+    call get_dkappa_perp_drho(T_field % T0, rho_field % rho0, B_field % B0, &
+                              kappa_field % d_kappa_perp_drho)
+    call get_dkappa_perp_dT(T_field % T0, rho_field % rho0, B_field % B0, &
+                            kappa_field % d_kappa_perp_dT)
+    call get_dkappa_perp_dB2(T_field % T0, rho_field % rho0, B_field % B0, &
+                             kappa_field % d_kappa_perp_dB2)
+  end subroutine set_conduction_values
+    
 
   !> Calculates the parallel conduction coefficient as a function of the
   !! equilibrium temperature.
