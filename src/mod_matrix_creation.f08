@@ -29,9 +29,10 @@ module mod_matrix_creation
 contains
 
   subroutine create_matrices(matrix_B, matrix_A)
-    use mod_global_variables, only: geometry, gaussian_weights, n_gauss
-    use mod_grid, only: grid, grid_gauss
-    use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, cubic_factors, cubic_factors_deriv
+    use mod_global_variables, only: gaussian_weights, n_gauss
+    use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
+    use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
+                                    cubic_factors, cubic_factors_deriv
     use mod_boundary_conditions, only: boundaries_B_left_edge, boundaries_B_right_edge, &
                                        boundaries_A_left_edge, boundaries_A_right_edge
 
@@ -66,18 +67,9 @@ contains
         gauss_idx = (i - 1)*n_gauss + j
         r = grid_gauss(gauss_idx)
 
-        ! check geometry to define scale factor
-        if (geometry == 'Cartesian') then
-          eps = 1.0d0
-          d_eps_dr = 0.0d0
-        else if (geometry == 'cylindrical') then
-          eps = r
-          d_eps_dr = 1.0d0
-        else
-          write(*,*) "Geometry should be 'Cartesian' or 'cylindrical'."
-          write(*,*) "Currently set on:    ", geometry
-          stop
-        end if
+        ! define scale factor
+        eps = eps_grid(i)
+        d_eps_dr = d_eps_grid_dr(i)
 
         curr_weight = gaussian_weights(j)
 
@@ -135,7 +127,7 @@ contains
   !! @param[in, out] quadblock_B The quadblock, used to calculate the B-matrix.
   !!                             This block is shifted on the main diagonal
   subroutine get_B_elements(gauss_idx, eps, curr_weight, quadblock_B)
-    use mod_equilibrium, only: rho0_eq
+    use mod_equilibrium, only: rho_field
     use mod_make_subblock, only: subblock, reset_positions, reset_factors
 
     integer, intent(in)          :: gauss_idx
@@ -149,7 +141,7 @@ contains
 
     real(dp)                     :: rho
 
-    rho = rho0_eq(gauss_idx)
+    rho = rho_field % rho0(gauss_idx)
 
     ! Quadratic * Quadratic
     call reset_factors(factors, 5)
@@ -206,11 +198,8 @@ contains
   !!                              This block is shifted on the main diagonal
   subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_A)
     use mod_global_variables, only: ic, gamma_1, k2, k3
-    use mod_equilibrium, only: rho0_eq, T0_eq, B02_eq, B03_eq, B0_eq, v02_eq, v03_eq, tc_para_eq, tc_perp_eq, &
-                               heat_loss_eq, eta_eq, grav_eq
-    use mod_equilibrium_derivatives, only: d_rho0_dr, d_B02_dr, d_B03_dr, d_T0_dr, d_v02_dr, d_v03_dr, &
-                               d_tc_perp_eq_drho, d_tc_perp_eq_dB2, d_tc_perp_eq_dT, d_L_dT, d_L_drho, &
-                               d_eta_dT, dd_B02_dr, dd_B03_dr
+    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, grav_field, eta_field, &
+                               rc_field, kappa_field
     use mod_make_subblock, only: subblock, reset_factors, reset_positions
 
     integer, intent(in)       :: gauss_idx
@@ -236,50 +225,44 @@ contains
     eps_inv = 1.0d0 / eps
 
     !! Equilibrium quantities
-    !! Default variables
-    rho0    = rho0_eq(gauss_idx)
-    T0      = T0_eq(gauss_idx)
-    B02     = B02_eq(gauss_idx)
-    B03     = B03_eq(gauss_idx)
-    B2_inv  = 1.0d0 / (B0_eq(gauss_idx)**2)
-    !! Flow
-    v02     = v02_eq(gauss_idx)
-    v03     = v03_eq(gauss_idx)
-    !! Thermal conduction
-    tc_para = tc_para_eq(gauss_idx)
-    tc_perp = tc_perp_eq(gauss_idx)
-    !! Radiative cooling
-    L0      = heat_loss_eq(gauss_idx)
-    !! Resistivity
-    eta     = eta_eq(gauss_idx)
-    !! Gravity
-    grav    = grav_eq(gauss_idx)
-
-    !! Derivatives of equilibrium quantities
-    !! Default derivatives
-    drho0   = d_rho0_dr(gauss_idx)
-    dB02    = d_B02_dr(gauss_idx)
-    dB03    = d_B03_dr(gauss_idx)
-    dT0     = d_T0_dr(gauss_idx)
-    !! Flow
-    dv02   = d_v02_dr(gauss_idx)
-    dv03   = d_v03_dr(gauss_idx)
-    !! Thermal conduction
-    dtc_perp_dT   = d_tc_perp_eq_dT(gauss_idx)
-    dtc_perp_drho = d_tc_perp_eq_drho(gauss_idx)
-    dtc_perp_dB2  = d_tc_perp_eq_dB2(gauss_idx)
-    !! Radiative cooling
-    L_T     = d_L_dT(gauss_idx)
-    L_rho   = d_L_drho(gauss_idx)
-    !! Resistivity
-    deta    = d_eta_dT(gauss_idx)
-    ddB02   = dd_B02_dr(gauss_idx)
-    ddB03   = dd_B03_dr(gauss_idx)
+    rho0 = rho_field % rho0(gauss_idx)
+    drho0 = rho_field % d_rho0_dr(gauss_idx)
+    
+    T0 = T_field % T0(gauss_idx)
+    dT0 = T_field % d_T0_dr(gauss_idx)
+    
+    B02 = B_field % B02(gauss_idx)
+    dB02 = B_field % d_B02_dr(gauss_idx)
+    B03 = B_field % B03(gauss_idx)
+    dB03   = B_field % d_B03_dr(gauss_idx)
+    B2_inv = 1.0d0 / (B_field % B0(gauss_idx))**2
+    
+    v02 = v_field % v02(gauss_idx)
+    dv02 = v_field % d_v02_dr(gauss_idx)
+    v03  = v_field % v03(gauss_idx)
+    dv03 = v_field % d_v03_dr(gauss_idx)
+    
+    grav = grav_field % grav(gauss_idx)
+    
+    eta = eta_field % eta(gauss_idx)
+    deta = eta_field % d_eta_dT(gauss_idx)
+    ddB02 = eta_field % dd_B02_dr(gauss_idx)
+    ddB03 = eta_field % dd_B03_dr(gauss_idx)
+    
+    L0 = rc_field % heat_loss(gauss_idx)
+    L_T = rc_field % d_L_dT(gauss_idx)
+    L_rho = rc_field % d_L_drho(gauss_idx)
+    
+    tc_para = kappa_field % kappa_para(gauss_idx)
+    tc_perp = kappa_field % kappa_perp(gauss_idx)
+    dtc_perp_drho = kappa_field % d_kappa_perp_drho(gauss_idx)
+    dtc_perp_dT = kappa_field % d_kappa_perp_dT(gauss_idx)
+    dtc_perp_dB2 = kappa_field % d_kappa_perp_dB2(gauss_idx)
 
     !! Calculate derivatives eps*B02, B02/eps, eps*V02
-    drB02   = d_eps_dr * B02 + eps * dB02
-    dB02_r  = eps_inv * dB02 - d_eps_dr * eps_inv**2 * B02
-    drv02   = d_eps_dr * v02 + eps * dv02
+    drB02 = d_eps_dr * B02 + eps * dB02
+    dB02_r = eps_inv * dB02 - d_eps_dr * eps_inv**2 * B02
+    drv02 = d_eps_dr * v02 + eps * dv02
 
 
     !! Setup of matrix elements

@@ -17,6 +17,7 @@ test_legolas
 *.gz
 *.exe
 *.mod
+*.smod
 *.o
 *.xlsm
 *.xlsx
