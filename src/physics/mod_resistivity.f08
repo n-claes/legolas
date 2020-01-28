@@ -14,11 +14,21 @@ module mod_resistivity
   implicit none
 
   private
-
-  public :: get_eta
-  public :: get_deta_dT
+  
+  public :: set_resistivity_values
 
 contains
+  
+  subroutine set_resistivity_values(T_field, eta_field)
+    use mod_types, only: temperature_type, resistivity_type
+    
+    type(temperature_type), intent(in)    :: T_field 
+    type(resistivity_type), intent(inout) :: eta_field
+    
+    call get_eta(T_field % T0, eta_field % eta)
+    call get_deta_dT(T_field % T0, eta_field % d_eta_dT)
+  end subroutine set_resistivity_values
+    
 
   !> Calculates the Spitzer resistivity based on the equilibrium temperatures.
   !! @param[in]  T0   Array with the equilibrium temperatures, in K
@@ -28,13 +38,13 @@ contains
     use mod_physical_constants, only: unit_temperature, set_unit_resistivity, unit_resistivity
 
     real(dp), intent(in)    :: T0(gauss_gridpts)
-    real(dp), intent(out)   :: eta(gauss_gridpts)
+    real(dp), intent(inout) :: eta(gauss_gridpts)
 
     real(dp)                :: ec, me, e0, kB, eta_1MK
     real(dp)                :: T0_denorm(gauss_gridpts)
 
     if (use_fixed_resistivity) then
-      eta(:) = fixed_eta_value
+      eta = fixed_eta_value
       return
     end if
 
@@ -74,7 +84,7 @@ contains
     real(dp)                :: T0_denorm(gauss_gridpts)
 
     if (use_fixed_resistivity) then
-      deta_dT(:) = 0.0d0
+      deta_dT = 0.0d0
       return
     end if
 

@@ -63,7 +63,6 @@ contains
     use mod_input, only: read_parfile, get_parfile
     use mod_grid, only: initialise_grid
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
-    use mod_equilibrium_derivatives, only: initialise_equilibrium_derivatives
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_output, only: startup_info_toconsole
 
@@ -81,8 +80,7 @@ contains
 
     ! Initialise equilibrium
     call initialise_equilibrium()
-    ! Initialise equilibrium derivatives
-    call initialise_equilibrium_derivatives()
+
     ! Initialise eigenfunction arrays
     call initialise_eigenfunctions()
 
@@ -129,7 +127,6 @@ contains
     use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid_clean
     use mod_equilibrium, only: equilibrium_clean
-    use mod_equilibrium_derivatives, only: equilibrium_derivatives_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
     use mod_eigenfunctions, only: eigenfunctions_clean
 
@@ -141,7 +138,6 @@ contains
 
     call grid_clean()
     call equilibrium_clean()
-    call equilibrium_derivatives_clean()
 
     if (radiative_cooling) then
       call radiative_cooling_clean()
