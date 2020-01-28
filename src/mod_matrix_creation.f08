@@ -29,8 +29,8 @@ module mod_matrix_creation
 contains
 
   subroutine create_matrices(matrix_B, matrix_A)
-    use mod_global_variables, only: geometry, gaussian_weights, n_gauss
-    use mod_grid, only: grid, grid_gauss
+    use mod_global_variables, only: gaussian_weights, n_gauss
+    use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
                                     cubic_factors, cubic_factors_deriv
     use mod_boundary_conditions, only: boundaries_B_left_edge, boundaries_B_right_edge, &
@@ -67,18 +67,9 @@ contains
         gauss_idx = (i - 1)*n_gauss + j
         r = grid_gauss(gauss_idx)
 
-        ! check geometry to define scale factor
-        if (geometry == 'Cartesian') then
-          eps = 1.0d0
-          d_eps_dr = 0.0d0
-        else if (geometry == 'cylindrical') then
-          eps = r
-          d_eps_dr = 1.0d0
-        else
-          write(*,*) "Geometry should be 'Cartesian' or 'cylindrical'."
-          write(*,*) "Currently set on:    ", geometry
-          stop
-        end if
+        ! define scale factor
+        eps = eps_grid(i)
+        d_eps_dr = d_eps_grid_dr(i)
 
         curr_weight = gaussian_weights(j)
 
