@@ -1,14 +1,14 @@
 !
 ! SUBMODULE: smod_equil_kelvin_helmholtz_cd
-! 
+!
 ! DESCRIPTION:
 !> Submodule defining an unperturbed magnetised jet model in cylindrical geometry.
 !! Obtained from Baty & Keppens, Astrophys. J 580 (2002).
 submodule (mod_equilibrium) smod_equil_kelvin_helmholtz_cd
   implicit none
-  
+
 contains
-  
+
   module subroutine kh_cd_instability_eq()
     real(dp)    :: V, rj, rc, r, a, p0, Bth0, Bz0
     integer     :: i
@@ -49,22 +49,19 @@ contains
 
       !! Equilibrium
       rho_field % rho0(i) = 1.0d0
-      v_field % v03(i) = (V/2.0d0) * tanh((rj-r)/a)
-      B_field % B02(i) = Bth0 * r*rc / (rc**2 + r**2 )
-      B_field % B03(i) = Bz0
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      T_field % T0(i) = p0 / (rho_field % rho0(i)) - (Bth0**2/(2.0d0*(rho_field % rho0(i)))) &
-                        * (1 - rc**4/(rc**2+r**2)**2)
+      v_field % v03(i)    = (V/2.0d0) * tanh((rj-r)/a)
+      B_field % B02(i)    = Bth0 * r*rc / (rc**2 + r**2 )
+      B_field % B03(i)    = Bz0
+      B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
+      T_field % T0(i)     = p0 / (rho_field % rho0(i)) - (Bth0**2/(2.0d0*(rho_field % rho0(i)))) &
+                              * (1 - rc**4/(rc**2+r**2)**2)
 
       !! Derivatives
       B_field % d_B02_dr(i) = Bth0 * rc * (rc**2-r**2) / (r**2+rc**2)**2
       v_field % d_v03_dr(i) = - (V/(2.0d0*a)) / cosh((rj-r)/a)**2
-      T_field % d_T0_dr(i) = - (2.0d0*Bth0**2/(rho_field % rho0(i))) * rc**4*r / (r**2+rc**2)**3
-
-      !! TODO: resistivity? and index i??
-      eta_field % dd_B02_dr(i) = -2.0d0*r*rc * Bth0 * (3.0d0*rc**2-r**2) / (r**2+rc**2)**3
+      T_field % d_T0_dr(i)  = - (2.0d0*Bth0**2/(rho_field % rho0(i))) * rc**4*r / (r**2+rc**2)**3
     end do
-    
+
   end subroutine kh_cd_instability_eq
-  
+
 end submodule smod_equil_kelvin_helmholtz_cd
