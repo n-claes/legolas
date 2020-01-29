@@ -1,14 +1,14 @@
 !
 ! SUBMODULE: smod_equil_resistive_tearing
-! 
+!
 ! DESCRIPTION:
 !> Submodule defining resistive tearing modes in Cartesian geometry without flow.
 !! From Advanced Magnetohydrodynamics by Goedbloed, Keppens and Poedts, page 159.
 submodule (mod_equilibrium) smod_equil_resistive_tearing
   implicit none
-  
+
 contains
-  
+
   module subroutine resistive_tearing_modes_eq()
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
 
@@ -36,10 +36,11 @@ contains
 
       ! Equilibrium
       rho_field % rho0(i) = 1.0d0
-      B_field % B02(i) = sin(alpha * x)
-      B_field % B03(i) = cos(alpha * x)
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      T_field % T0(i) = beta * (B_field % B0(i))**2 / (2) ! n=1, kB=1, mu0=1
+      B_field % B02(i)    = sin(alpha * x)
+      B_field % B03(i)    = cos(alpha * x)
+      B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
+      ! n=1, kB=1, mu0=1 for T0
+      T_field % T0(i)     = beta * (B_field % B0(i))**2 / (2.0d0)
 
       ! Derivatives
       B_field % d_B02_dr(i) = alpha * cos(alpha * x)
@@ -50,5 +51,5 @@ contains
       eta_field % dd_B03_dr(i) = -alpha**2 * cos(alpha * x)
     end do
   end subroutine resistive_tearing_modes_eq
-  
+
 end submodule smod_equil_resistive_tearing
