@@ -21,6 +21,7 @@ contains
     call initialise_grid()
 
     flow = .true.
+    resistivity = .true.
     use_fixed_resistivity = .true.
     fixed_eta_value = 5.0d-5
 
