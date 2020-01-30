@@ -68,8 +68,8 @@ contains
         r = grid_gauss(gauss_idx)
 
         ! define scale factor
-        eps = eps_grid(i)
-        d_eps_dr = d_eps_grid_dr(i)
+        eps = eps_grid(gauss_idx)
+        d_eps_dr = d_eps_grid_dr(gauss_idx)
 
         curr_weight = gaussian_weights(j)
 
