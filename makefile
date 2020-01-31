@@ -53,7 +53,6 @@ objects  := $(addprefix $(BINDIR)/,         \
 							smod_equil_rotating_plasma_cylinder.o	\
 							smod_equil_rotating_theta_pinch.o	\
 							smod_equil_suydam_cluster.o	\
-							smod_equil_tokamak_cyl.o	\
 							smod_equil_uniform_conduction.o	\
 							smod_test_beta0.o	\
 							smod_test_hydro.o	\
