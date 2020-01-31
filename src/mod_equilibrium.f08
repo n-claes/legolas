@@ -43,7 +43,6 @@ module mod_equilibrium
     module subroutine rotating_theta_pinch_eq; end subroutine
     module subroutine ideal_quasimodes_eq; end subroutine
     module subroutine uniform_thermal_cond_eq; end subroutine
-    module subroutine tokamak_cyl_eq; end subroutine
     module subroutine nonuniform_thermal_cond_eq; end subroutine
     module subroutine magneto_rotational_eq; end subroutine
     module subroutine interface_modes_eq; end subroutine
@@ -167,8 +166,6 @@ contains
       set_equilibrium_values => rotating_theta_pinch_eq
     case("Ideal quasimodes")
       set_equilibrium_values => ideal_quasimodes_eq
-    case("Simple tokamak with resistivity")
-      set_equilibrium_values => tokamak_cyl_eq
     case("Uniform with thermal conduction")
       set_equilibrium_values => uniform_thermal_cond_eq
     case("Non-uniform with thermal conduction")
