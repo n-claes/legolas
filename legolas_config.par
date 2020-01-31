@@ -19,8 +19,7 @@
   ! equilibrium_type = "Kelvin-Helmholtz and current driven" ! cylindrical
   ! equilibrium_type = "Internal kink modes"                 ! cylindrical
   ! equilibrium_type = "Rotating theta pinch"                ! cylindrical
-  ! equilibrium_type = "Ideal quasimodes"                    ! cylindrical
-  ! equilibrium_type = "Simple tokamak with resistivity"     ! cylindrical
+   equilibrium_type = "Ideal quasimodes"                    ! cylindrical
   ! equilibrium_type = "Non-adiabatic discrete Alfven"       ! cylindrical
   ! equilibrium_type = "Uniform with thermal conduction"     ! Cartesian
   ! equilibrium_type = "Non-uniform with thermal conduction" ! Cartesian
@@ -28,7 +27,7 @@
   ! equilibrium_type = "Interface modes"                     ! Cartesian
   ! equilibrium_type = "Interchange modes"                   ! Cartesian
 
-  equilibrium_type = "User defined equilibrium"
+  ! equilibrium_type = "User defined equilibrium"
 
   !> Test equilibria
   ! equilibrium_type = "Beta=0 test"
@@ -37,8 +36,8 @@
 /
 
 &savelist
-  write_matrices = .true.
-  write_eigenvectors = .true.
+  write_matrices = .false.
+  write_eigenvectors = .false.
   write_eigenfunctions = .false.
   show_results = .true.
   show_matrices = .false.
