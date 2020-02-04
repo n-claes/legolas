@@ -19,13 +19,14 @@
   ! equilibrium_type = "Kelvin-Helmholtz and current driven" ! cylindrical
   ! equilibrium_type = "Internal kink modes"                 ! cylindrical
   ! equilibrium_type = "Rotating theta pinch"                ! cylindrical
-   equilibrium_type = "Ideal quasimodes"                    ! cylindrical
+  ! equilibrium_type = "Ideal quasimodes"                    ! cylindrical
   ! equilibrium_type = "Non-adiabatic discrete Alfven"       ! cylindrical
   ! equilibrium_type = "Uniform with thermal conduction"     ! Cartesian
   ! equilibrium_type = "Non-uniform with thermal conduction" ! Cartesian
   ! equilibrium_type = "Magneto-rotational instability"      ! cylindrical
   ! equilibrium_type = "Interface modes"                     ! Cartesian
   ! equilibrium_type = "Interchange modes"                   ! Cartesian
+   equilibrium_type = "Constant current tokamak"            ! cylindrical
 
   ! equilibrium_type = "User defined equilibrium"
 
