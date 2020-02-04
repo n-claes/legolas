@@ -29,7 +29,7 @@ contains
     n   = 1.0d0
     L   = 10*dpi
 
-    c = 5.0d0/192.0d0     ! implies T = 0 at r = 1 for j0 = 0.5
+    c = 5.0d0*j0**2 / 48.0d0     ! implies T = 0 at r = 1
 
     k2 = 2.0d0
     k3 = 2.0d0*dpi*n/L
@@ -45,10 +45,12 @@ contains
       ! T obtained by solving the equilibrium condition for p0 (integration constant c)
       T_field % T0(i)     = c - 0.25d0*j0**2*r**2 * (1.0d0 - 0.75d0*r**2 + r**4/(6.0d0))
 
-      ! Derivative
+      ! Derivatives
       B_field % d_B02_dr(i) = -0.25d0*j0 * (1.0d0 - (1.0d0-r**2)**2) / r**2 &
-                                + 0.5d0*j0 * (1.0d0-r**2)
+                                + j0 * (1.0d0-r**2)
       T_field % d_T0_dr(i)  = -0.5d0*j0**2*r * (1.0d0 - 1.5d0*r**2 + 0.5d0*r**4)
+
+      eta_field % dd_B02_dr(i)  = -3.0d0*j0*r / 2.0d0
     end do
 
   end subroutine ideal_quasimodes_eq
