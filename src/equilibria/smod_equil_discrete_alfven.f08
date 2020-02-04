@@ -11,7 +11,7 @@ submodule (mod_equilibrium) smod_equil_discrete_alfven
 contains
 
   module subroutine discrete_alfven_eq()
-    real(dp)      :: r, j0, nu, nu_g, nu_l, d, c
+    real(dp)      :: r, j0, nu, nu_g, d, c
     real(dp)      :: p_x(gauss_gridpts), dp_x(gauss_gridpts)
     integer       :: i
 
@@ -20,13 +20,14 @@ contains
     x_end   = 1.0d0
     call initialise_grid()
 
+    thermal_conduction = .true.
+
     ! Parameters
     nu    = 2.0d0
     nu_g  = nu + 1.0d0
-    nu_l  = nu - 1.0d0
     j0    = 0.125d0
     d     = 0.2d0
-    c     = 10.0d0
+    c     = 47.0d0*j0**2 / 720.0d0    ! implies T = 0 at r = 1
 
     k2 = 1.0d0
     k3 = 0.05d0
@@ -46,10 +47,10 @@ contains
       T_field % T0(i)     = p_x(i) / (rho_field % rho0(i))
 
       ! Derivatives
-      rho_field % d_rho0_dr(i) = -2.0d0 * (1.0d0-d) * r
+      rho_field % d_rho0_dr(i) = 2.0d0 * (d-1.0d0) * r
       ! Again, only for nu = 2
       dp_x(i)                  = -j0**2 * (r**9/6.0d0 - (5.0d0/6.0d0)*r**7 &
-                                  + (5.0d0/3.0d0)*r**5 - 1.5d0*r**3 + r/2.0d0)
+                                  + (5.0d0/3.0d0)*r**5 - 1.5d0*r**3 + 0.5d0*r)
       T_field % d_T0_dr(i)     = (dp_x(i) * (rho_field % rho0(i)) &
                                   - (rho_field % d_rho0_dr(i)) * p_x(i)) &
                                   / (rho_field % rho0(i))**2
