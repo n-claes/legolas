@@ -11,7 +11,7 @@ contains
 
   module subroutine internal_kink_eq()
     real(dp)      :: v_z0, p0, alpha, r, rho0, x
-    real(dp)      :: J0, J1, J2, J3, DJ0, DJ1, DDJ0, DDJ1
+    real(dp)      :: J0, J1, J2, J3, DJ0, DJ1!, DDJ0, DDJ1
     integer       :: i
 
     geometry = 'cylindrical'
@@ -40,8 +40,6 @@ contains
       J3   = bessel_jn(3, alpha * x)
       DJ0  = -alpha * J1
       DJ1  = alpha * (0.5d0 * J0 - 0.5d0 * J2)
-      DDJ0 = -alpha * DJ1
-      DDJ1 = -alpha**2 * (0.75d0 * J1 - 0.25d0 * J3)
 
       ! Equilibrium
       rho_field % rho0(i) = rho0 * (1.0d0-x**2)

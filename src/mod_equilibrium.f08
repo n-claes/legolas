@@ -48,6 +48,7 @@ module mod_equilibrium
     module subroutine interface_modes_eq; end subroutine
     module subroutine discrete_alfven_eq; end subroutine
     module subroutine interchange_modes_eq; end subroutine
+    module subroutine constant_current_eq; end subroutine
 
     module subroutine user_defined_eq; end subroutine
 
@@ -178,6 +179,8 @@ contains
       set_equilibrium_values => discrete_alfven_eq
     case("Interchange modes")
       set_equilibrium_values => interchange_modes_eq
+    case("Constant current tokamak")
+      set_equilibrium_values => constant_current_eq
 
     ! User defined
     case("User defined equilibrium")

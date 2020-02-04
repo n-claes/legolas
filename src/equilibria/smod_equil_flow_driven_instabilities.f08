@@ -3,7 +3,7 @@
 !
 ! DESCRIPTION:
 !> Submodule defining flow-driven instabilities in Cartesian geometry.
-!! From Advanced Magnetohydrodynamics by Goedbloed, Keppens and Poedts, p. 17 (sec. 13.2).
+!! From Magnetohydrodynamics by Goedbloed, Keppens and Poedts, sec. 13.2 (p. 486).
 submodule (mod_equilibrium) smod_equil_flow_driven_instabilities
   implicit none
 
@@ -12,14 +12,14 @@ contains
   module subroutine flow_driven_instabilities_eq()
     real(dp)    :: rho0, delta, theta, v0, v1, v2, tau, phi0, alpha, B0, x, k0, g, p0
     real(dp)    :: v_x(gauss_gridpts), phi_x(gauss_gridpts), p_x(gauss_gridpts)
-    integer     :: i, big
+    integer     :: i
 
     geometry = 'Cartesian'
     x_start = 0.0d0
     x_end   = 1.0d0
     call initialise_grid()
 
-    g = 15.0d0
+    g = 100.0d0!15.0d0
 
     flow = .true.
     external_gravity = .true.
@@ -27,19 +27,19 @@ contains
     ! Parameters
     k0 = 1.0d0
     delta = -5.0d0
-    phi0 = -0.35d0 * dpi
-    alpha = 0.0d0
-    theta = 0.35d0 * dpi
-    v0 = 0.2d0
-    v1 = 0.6d0
-    v2 = 0.0d0
-    tau = 0.0d0
+    phi0 = 0.5d0*dpi!-0.35d0 * dpi
+    alpha = -dpi!0.0d0
+    theta = 0.0d0!0.35d0 * dpi
+    v0 = 1.0d0!0.2d0
+    v1 = 2.0d0!0.6d0
+    v2 = 1.0d0!0.0d0
+    tau = 4.0d0!0.0d0
 
     k2 = 0.0d0
     k3 = k0
 
     rho0 = 1.0d0
-    p0   = real(huge(big))  ! arbitrarily imposed such that T > 0
+    p0   = 1000.0d0          ! arbitrarily large, imposed such that T > 0
     B0   = 1.0d0
     grav_field % grav = g
 

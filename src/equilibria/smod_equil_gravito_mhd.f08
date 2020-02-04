@@ -4,7 +4,7 @@
 ! DESCRIPTION:
 !> Submodule defining an exponentially stratified medium in Cartesian geometry
 !! with a constant gravity term included.
-!! From Magnetohydrodynamics (2019), sec. 7.3.3
+!! From Magnetohydrodynamics (2019) by Goedbloed, Keppens and Poedts, sec. 7.3.3
 submodule (mod_equilibrium) smod_equil_gravito_mhd
   implicit none
 
@@ -48,7 +48,7 @@ contains
       rho_field % d_rho0_dr(i) = -alpha * (rho_field % rho0(i))
       B_field % d_B03_dr(i)    = -0.5d0 * alpha * (B_field % B03(i))
     end do
-    
+
   end subroutine gravito_mhd_eq
 
 end submodule smod_equil_gravito_mhd

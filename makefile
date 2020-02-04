@@ -35,6 +35,7 @@ objects  := $(addprefix $(BINDIR)/,         \
               mod_thermal_conduction.o      \
               mod_equilibrium.o             \
 							smod_equil_adiabatic_homo.o		\
+							smod_equil_constant_current.o	\
 							smod_equil_discrete_alfven.o	\
 							smod_equil_flow_driven_instabilities.o	\
 							smod_equil_gravito_acoustic.o	\
