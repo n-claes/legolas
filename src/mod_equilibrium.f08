@@ -11,11 +11,12 @@
 module mod_equilibrium
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
                        gravity_type, resistivity_type, cooling_type, conduction_type
-  use mod_global_variables, only: dp, gauss_gridpts, k2, k3, x_start, x_end, &
+  use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
                                   flow, resistivity, external_gravity, radiative_cooling, &
                                   thermal_conduction, geometry
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
+  use mod_equilibrium_params
   implicit none
 
   private

@@ -62,10 +62,6 @@ module mod_global_variables
   logical, save             :: use_fixed_resistivity
   !> Sets the fixed value for the resistivity
   real(dp)                  :: fixed_eta_value
-  !> Wavenumber in y-direction (Cartesian) or theta-direction (cylindrical)
-  real(dp)                  :: k2
-  !> Wavenumber in z-direction (Cartesian) or z-direction (cylindrical)
-  real(dp)                  :: k3
 
   !! Grid-related parameters
   !> Geometry of the problem: 'Cartesian' or 'cylindrical'
@@ -115,6 +111,8 @@ module mod_global_variables
   character(len=str_len)       :: equilibrium_type
   !> Type of boundary to use
   character(len=str_len)       :: boundary_type
+  !> Use defaults for equilibrium parameters
+  logical, save                :: use_defaults
 
   !! Block-related parameters
   !> Number of equations
