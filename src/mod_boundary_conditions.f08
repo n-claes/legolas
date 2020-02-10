@@ -184,7 +184,8 @@ contains
   !!                              Out: natural boundary conditions applied.
   !! @param[in] edge  'r_edge' for right boundary, 'l_edge' for left boundary
   subroutine natural_boundaries(eps, d_eps_dr, quadblock, edge)
-    use mod_global_variables, only: ic, gamma_1, k2, k3, gauss_gridpts, gridpts
+    use mod_global_variables, only: ic, gamma_1, gauss_gridpts, gridpts
+    use mod_equilibrium_params, only: k2, k3
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, cubic_factors, cubic_factors_deriv
     use mod_grid, only: grid
     use mod_equilibrium, only: rho_field, T_field, B_field, kappa_field, eta_field
@@ -238,7 +239,7 @@ contains
     dtc_perp_dT   = kappa_field % d_kappa_perp_dT(idx)
     dtc_perp_drho = kappa_field % d_kappa_perp_drho(idx)
     dtc_perp_dB2  = kappa_field % d_kappa_perp_dB2(idx)
-    
+
     drB02 = d_eps_dr*B02 + eps*dB02
 
     !! Spline functions for the boundaries. Interval is [grid(1), grid(2)]

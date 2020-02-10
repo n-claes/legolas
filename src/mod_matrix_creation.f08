@@ -197,7 +197,8 @@ contains
   !! @param[in, out] quadblock_A  The quadblock, used to calculate the A-matrix.
   !!                              This block is shifted on the main diagonal
   subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_A)
-    use mod_global_variables, only: ic, gamma_1, k2, k3
+    use mod_global_variables, only: ic, gamma_1
+    use mod_equilibrium_params, only: k2, k3
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, grav_field, eta_field, &
                                rc_field, kappa_field
     use mod_make_subblock, only: subblock, reset_factors, reset_positions
@@ -227,32 +228,32 @@ contains
     !! Equilibrium quantities
     rho0 = rho_field % rho0(gauss_idx)
     drho0 = rho_field % d_rho0_dr(gauss_idx)
-    
+
     T0 = T_field % T0(gauss_idx)
     dT0 = T_field % d_T0_dr(gauss_idx)
-    
+
     B02 = B_field % B02(gauss_idx)
     dB02 = B_field % d_B02_dr(gauss_idx)
     B03 = B_field % B03(gauss_idx)
     dB03   = B_field % d_B03_dr(gauss_idx)
     B2_inv = 1.0d0 / (B_field % B0(gauss_idx))**2
-    
+
     v02 = v_field % v02(gauss_idx)
     dv02 = v_field % d_v02_dr(gauss_idx)
     v03  = v_field % v03(gauss_idx)
     dv03 = v_field % d_v03_dr(gauss_idx)
-    
+
     grav = grav_field % grav(gauss_idx)
-    
+
     eta = eta_field % eta(gauss_idx)
     deta = eta_field % d_eta_dT(gauss_idx)
     ddB02 = eta_field % dd_B02_dr(gauss_idx)
     ddB03 = eta_field % dd_B03_dr(gauss_idx)
-    
+
     L0 = rc_field % heat_loss(gauss_idx)
     L_T = rc_field % d_L_dT(gauss_idx)
     L_rho = rc_field % d_L_drho(gauss_idx)
-    
+
     tc_para = kappa_field % kappa_para(gauss_idx)
     tc_perp = kappa_field % kappa_perp(gauss_idx)
     dtc_perp_drho = kappa_field % d_kappa_perp_drho(gauss_idx)

@@ -154,7 +154,7 @@ contains
   !! @param[in] base_filename   filename to use, default 'ef_grid'
   subroutine ef_grid_tofile(ef_grid, base_filename)
     use mod_global_variables, only: ef_gridpts
-    
+
     real(dp), intent(in)            :: ef_grid(ef_gridpts)
     character(len=*), intent(in)    :: base_filename
 
@@ -225,7 +225,7 @@ contains
   !!                            'output_folder/base_filename.nml'
   subroutine configuration_tofile(base_filename, filename)
     use mod_global_variables
-    
+
     character(len=*), intent(in)    :: base_filename
     character(str_len), intent(out) :: filename
 
@@ -253,7 +253,8 @@ contains
   !> Prints basic information of the current configuration to the console.
   subroutine startup_info_toconsole()
     use mod_global_variables
-    
+    use mod_equilibrium_params, only: k2, k3
+
     character(20)                   :: char
 
     write(*, *) "------------------------------"

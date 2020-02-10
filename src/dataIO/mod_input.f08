@@ -1,5 +1,6 @@
 module mod_input
   use mod_global_variables
+  use mod_equilibrium_params
   implicit none
 
   private
@@ -15,7 +16,8 @@ contains
   !> Reads in the supplied parfile and sets all global variables accordingly.
   !! @param[in] parfile   The name of the parfile
   subroutine read_parfile(parfile)
-    use mod_physical_constants, only: set_unit_length, set_unit_numberdensity, set_unit_temperature, set_normalisations
+    use mod_physical_constants, only: set_unit_length, set_unit_numberdensity, &
+                                      set_unit_temperature, set_normalisations
 
     character(len=*), intent(in)  :: parfile
 
@@ -30,16 +32,20 @@ contains
     namelist /physicslist/ mhd_gamma, flow, radiative_cooling, ncool, &
                            cooling_curve, external_gravity, &
                            thermal_conduction, resistivity, &
-                           use_fixed_resistivity, fixed_eta_value, k2, k3
+                           use_fixed_resistivity, fixed_eta_value
     namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
                          unit_temperature, unit_velocity
-    namelist /equilibriumlist/ equilibrium_type, boundary_type
+    namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
     namelist /savelist/ write_matrices, write_eigenvectors, &
                         write_eigenfunctions, show_results, show_matrices, &
                         show_eigenfunctions
     namelist /filelist/ savename_eigenvalues, savename_efgrid, &
                         savename_matrix, savename_eigenvectors, &
                         savename_eigenfunctions, savename_config
+    namelist /paramlist/ k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, &
+                         cte_grav, cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
+                         alpha, beta, delta, theta, tau, lambda, nu, &
+                         r0, rc, rj, Bth, Bz, V
 
     parfile_present = .true.
     if (parfile == "") then
@@ -72,8 +78,6 @@ contains
     resistivity = .false.           !< use resistivity
     use_fixed_resistivity = .false. !< use fixed resistivity
     fixed_eta_value = 0.0d0         !< value for fixed resistivity
-    k2 = 1.0d0                      !< wavenumber in y-direction
-    k3 = 1.0d0                      !< wavenumber in z-direction
 
     !> Unitslist defaults
     cgs_units = .true.              !< use cgs units
@@ -85,6 +89,7 @@ contains
     !> Equilibriumlist defaults
     equilibrium_type = "Adiabatic homogeneous"  !< precoded equilibrium to use
     boundary_type = 'wall'                      !< type of boundary condition
+    use_defaults = .true.                       !< use defaults for equilibrium parameters
 
     !> Savelist defaults
     write_matrices = .false.        !< write matrices A and B when finished
@@ -101,6 +106,10 @@ contains
     savename_eigenvectors = "eigenvectors"
     savename_eigenfunctions = "eigenfunctions"
     savename_config = "configuration"
+
+    !! Initialise equilibrium parameters to nan. These are controlled
+    !! using the par file and/or the equilibrium submodules.
+    call init_equilibrium_params()
 
     !! Read parfile, if supplied
     if (parfile_present) then
@@ -127,7 +136,10 @@ contains
       1006  rewind(unit_par)
             read(unit_par, filelist, end=1007)
 
-      1007  close(unit_par)
+      1007  rewind(unit_par)
+            read(unit_par, paramlist, end=1008)
+
+      1008  close(unit_par)
     end if
 
     !> Set up grid and normalisations
