@@ -10,7 +10,9 @@ submodule (mod_equilibrium) smod_equil_constant_current
 contains
 
   module subroutine constant_current_eq()
-    real(dp)  :: r, j0
+    use mod_equilibrium_params, only: j0
+
+    real(dp)  :: r
     real(dp)  :: p_x(gauss_gridpts), dp_x(gauss_gridpts)
     integer   :: i
 
@@ -22,11 +24,12 @@ contains
 
     external_gravity = .true.
 
-    k2 = dpi
-    k3 = dpi
+    if (use_defaults) then
+      k2 = dpi
+      k3 = dpi
 
-    !! Parameters
-    j0 = 0.125d0
+      j0 = 0.125d0
+    end if
 
     !! Equilibrium
     rho_field % rho0  = 1.0d0

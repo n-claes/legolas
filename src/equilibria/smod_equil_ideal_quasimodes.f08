@@ -11,8 +11,9 @@ contains
 
   module subroutine ideal_quasimodes_eq()
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
+    use mod_equilibrium_params, only: j0, p1, r0
 
-    real(dp)      :: r, j0, n, L, c
+    real(dp)      :: r, n, L, c
     integer       :: i
 
     geometry = 'cylindrical'
@@ -24,15 +25,18 @@ contains
     use_fixed_resistivity = .true.
     fixed_eta_value = 5.0d-5
 
-    !! Parameters
-    j0  = 0.5d0
-    n   = 1.0d0
-    L   = 10*dpi
+    if (use_defaults) then
+      j0 = 0.5d0
+      n = 1.0d0
+      L = 10*dpi
+      k2 = 2.0d0
+    else
+      n = p1
+      L = r0
+    end if
 
-    c = 5.0d0*j0**2 / 48.0d0     ! implies T = 0 at r = 1
-
-    k2 = 2.0d0
     k3 = 2.0d0*dpi*n/L
+    c = 5.0d0*j0**2 / 48.0d0     ! implies T = 0 at r = 1
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)

@@ -11,7 +11,9 @@ submodule (mod_equilibrium) smod_equil_discrete_alfven
 contains
 
   module subroutine discrete_alfven_eq()
-    real(dp)      :: r, j0, nu, nu_g, d, c
+    use mod_equilibrium_params, only: nu, j0, r0
+
+    real(dp)      :: r, nu_g, d, c
     real(dp)      :: p_x(gauss_gridpts), dp_x(gauss_gridpts)
     integer       :: i
 
@@ -22,15 +24,19 @@ contains
 
     thermal_conduction = .true.
 
-    ! Parameters
-    nu    = 2.0d0
-    nu_g  = nu + 1.0d0
-    j0    = 0.125d0
-    d     = 0.2d0
-    c     = 47.0d0*j0**2 / 720.0d0    ! implies T = 0 at r = 1
+    if (use_defaults) then
+      nu    = 2.0d0
+      j0    = 0.125d0
+      d     = 0.2d0
 
-    k2 = 1.0d0
-    k3 = 0.05d0
+      k2 = 1.0d0
+      k3 = 0.05d0
+    else
+      d = r0
+    end if
+
+    nu_g  = nu + 1.0d0
+    c     = 47.0d0*j0**2 / 720.0d0    ! implies T = 0 at r = 1
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
