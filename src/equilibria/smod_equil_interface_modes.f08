@@ -11,8 +11,9 @@ contains
 
   module subroutine interface_modes_eq()
     use mod_global_variables, only: gridpts, dp_LIMIT
+    use mod_equilibrium_params, only: cte_rho0, cte_T0, p1, p2, p3
 
-    real(dp)      :: x, B0, B_e, rho0, rho_e, T0, T_e
+    real(dp)      :: x, B0, B_e, rho_e, T_e
     integer       :: i
 
     geometry = 'Cartesian'
@@ -21,20 +22,25 @@ contains
     x_end   = 0.5d0
     call initialise_grid()
 
-    !! Parameters
-    rho_e = 10.0d0
-    T_e   = 10.0d0
-    B_e   = 10.0d0
-    rho0  = 1.0d0
-    T0    = 1.0d0
-    B0    = sqrt(2.0d0*rho_e*T_e + B_e**2 - 2.0d0*rho0*T0)
+    if (use_defaults) then
+      rho_e = 10.0d0
+      T_e = 10.0d0
+      B_e = 10.0d0
+      cte_rho0  = 1.0d0
+      cte_T0 = 1.0d0
+      B0 = sqrt(2.0d0*rho_e*T_e + B_e**2 - 2.0d0*cte_rho0*cte_T0)
 
-    if (abs(rho0*T0 + 0.5d0*B0**2 - rho_e*T_e - 0.5*B_e**2) > dp_LIMIT) then
-      stop "Total pressure balance is not satisfied."
+      k2  = 0.0d0
+      k3  = 1.0d0
+    else
+      rho_e = p1
+      T_e = p2
+      B_e = p3
     end if
 
-    k2  = 0.0d0
-    k3  = 1.0d0
+    if (abs(cte_rho0*cte_T0 + 0.5d0*B0**2 - rho_e*T_e - 0.5*B_e**2) > dp_LIMIT) then
+      stop "Total pressure balance is not satisfied."
+    end if
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
@@ -44,8 +50,8 @@ contains
         rho_field % rho0(i) = rho_e
         T_field % T0(i)     = T_e
       else
-        rho_field % rho0(i) = rho0
-        T_field % T0(i)     = T0
+        rho_field % rho0(i) = cte_rho0
+        T_field % T0(i)     = cte_T0
       end if
 
       B_field % B03(i)      = 0.5d0 * (B_e + B0) + 0.5d0 * (B_e - B0) * tanh(gridpts*x)

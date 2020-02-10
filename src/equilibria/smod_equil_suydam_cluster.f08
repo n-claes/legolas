@@ -10,8 +10,9 @@ submodule (mod_equilibrium) smod_equil_suydam_cluster
 contains
 
   module subroutine suydam_cluster_eq()
+    use mod_equilibrium_params, only: cte_v03, cte_p0, p1, alpha
 
-    real(dp)      :: v_z0, p0, p1, alpha, r
+    real(dp)      :: r
     real(dp)      :: J0, J1, DJ0, DJ1
     real(dp)      :: P0_eq(gauss_gridpts)
     integer       :: i
@@ -23,14 +24,15 @@ contains
 
     flow = .true.
 
-    !! Parameters
-    v_z0  = 0.14d0
-    p0    = 0.05d0
-    p1    = 0.1d0
-    alpha = 2.0d0
+    if (use_defaults) then
+      cte_v03  = 0.14d0
+      cte_p0    = 0.05d0
+      p1    = 0.1d0
+      alpha = 2.0d0
 
-    k2 = 1.0d0
-    k3 = -1.2d0
+      k2 = 1.0d0
+      k3 = -1.2d0
+    end if
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
@@ -43,16 +45,16 @@ contains
       ! Equilibrium
       rho_field % rho0(i) = 1.0d0
       v_field % v02(i)    = 0.0d0
-      v_field % v03(i)    = v_z0 * (1.0d0 - r**2)
+      v_field % v03(i)    = cte_v03 * (1.0d0 - r**2)
       B_field % B02(i)    = J1
       B_field % B03(i)    = sqrt(1.0d0 - p1) * J0
       B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      P0_eq(i)            = p0 + 0.5d0 * p1 * J0**2
+      P0_eq(i)            = cte_p0 + 0.5d0 * p1 * J0**2
       T_field % T0(i)     = P0_eq(i) / (rho_field % rho0(i))
 
       ! Derivatives
       T_field % d_T0_dr(i)  = p1 * J0 * DJ0
-      v_field % d_v03_dr(i) = -2.0d0 * v_z0 * r
+      v_field % d_v03_dr(i) = -2.0d0 * cte_v03 * r
       B_field % d_B02_dr(i) = DJ1
       B_field % d_B03_dr(i) = -alpha * sqrt(1.0d0 - p1) * J1
     end do

@@ -10,7 +10,9 @@ submodule (mod_equilibrium) smod_equil_rotating_plasma_cylinder
 contains
 
   module subroutine rotating_plasma_cyl_eq()
-    real(dp)    :: a21, a22, a3, b21, b22, b3, p0
+    use mod_equilibrium_params, only: cte_p0, p1, p2, p3, p4, p5, p6
+
+    real(dp)    :: a21, a22, a3, b21, b22, b3
     real(dp)    :: r
     integer     :: i
 
@@ -21,17 +23,25 @@ contains
 
     flow = .true.
 
-    !! Parameters
-    a21 = 8.0d0
-    a22 = 0.0d0
-    a3  = 0.0d0
-    b21 = 1.0d0
-    b22 = 0.0d0
-    b3  = 0.0d0
-    p0  = 0.1d0
+    if (use_defaults) then
+      a21 = 8.0d0
+      a22 = 0.0d0
+      a3  = 0.0d0
+      b21 = 1.0d0
+      b22 = 0.0d0
+      b3  = 0.0d0
+      cte_p0  = 0.1d0
 
-    k2  = 1.0d0
-    k3  = 0.0d0
+      k2  = 1.0d0
+      k3  = 0.0d0
+    else
+      a21 = p1
+      a22 = p2
+      a3 = p3
+      b21 = p4
+      b22 = p5
+      b3 = p6
+    end if
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
@@ -44,7 +54,7 @@ contains
       B_field % B03(i) = b3
       B_field % B0(i)  = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
       T_field % T0(i)  = (1.0d0 / (rho_field % rho0(i))) &
-                          * (p0 + 0.5d0 * (a21**2 - 2.0d0*b21**2)*r**2 &
+                          * (cte_p0 + 0.5d0 * (a21**2 - 2.0d0*b21**2)*r**2 &
                             + (2.0d0/3.0d0)*(a21*a22 - b21*b22)*r**3 &
                             + (1.0d0/4.0d0)*(a22**2 - b22**2)*r**4)
       !! Derivatives

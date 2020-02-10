@@ -10,7 +10,9 @@ submodule (mod_equilibrium) smod_equil_kelvin_helmholtz_cd
 contains
 
   module subroutine kh_cd_instability_eq()
-    real(dp)    :: V, rj, rc, r, a, p0, Bth0, Bz0
+    use mod_equilibrium_params, only: V, cte_p0, Bz0, rc, Bth0, rj
+
+    real(dp)    :: r, a
     integer     :: i
 
     ! Jet radius, other parameters in function of rj
@@ -23,25 +25,27 @@ contains
 
     flow = .true.
 
-    !! Parameters
-    V     = 1.63d0
-    a     = 0.1d0 * rj
-    p0    = 1.0d0
-    Bz0   = 0.25d0
+    if (use_defaults) then
+      V = 1.63d0
+      cte_p0 = 1.0d0
+      Bz0 = 0.25d0
 
-    ! UNI
-    !rc    = 1.0d0
-    !Bth0  = 0.0d0
+      ! UNI
+      !rc    = 1.0d0
+      !Bth0  = 0.0d0
 
-    ! HEL1
-    !rc    = 2.0d0
-    !Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
+      ! HEL1
+      !rc    = 2.0d0
+      !Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
 
-    ! HEL2
-    rc    = 0.5d0
-    Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
+      ! HEL2
+      rc    = 0.5d0
+      Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
 
-    k2  = -1.0d0
+      k2  = -1.0d0
+    end if
+
+    a = 0.1d0 * rj
     k3  = dpi / rj
 
     do i = 1, gauss_gridpts
@@ -53,7 +57,7 @@ contains
       B_field % B02(i)    = Bth0 * r*rc / (rc**2 + r**2 )
       B_field % B03(i)    = Bz0
       B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      T_field % T0(i)     = p0 / (rho_field % rho0(i)) - (Bth0**2/(2.0d0*(rho_field % rho0(i)))) &
+      T_field % T0(i)     = cte_p0 / (rho_field % rho0(i)) - (Bth0**2/(2.0d0*(rho_field % rho0(i)))) &
                               * (1 - rc**4/(rc**2+r**2)**2)
 
       !! Derivatives

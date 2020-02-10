@@ -13,8 +13,10 @@ contains
     geometry = 'Cartesian'
     call initialise_grid()
 
-    k2 = dpi
-    k3 = dpi
+    if (use_defaults) then
+      k2 = dpi
+      k3 = dpi
+    end if
 
     rho_field % rho0 = 1.0d0
     T_field % T0     = 1.0d0
