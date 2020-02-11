@@ -1,5 +1,5 @@
 module mod_check_values
-  use mod_global_variables, only: dp, dp_LIMIT
+  use mod_global_variables, only: dp, dp_LIMIT, gauss_gridpts
   implicit none
 
   private
@@ -11,9 +11,18 @@ module mod_check_values
     module procedure small_values_complex_matrix
   end interface check_small_values
 
+  interface check_nan_values
+    module procedure check_nan_values_density
+    module procedure check_nan_values_temperature
+    module procedure check_nan_values_bfield
+    module procedure check_nan_values_velocity
+    module procedure check_nan_values_gravity
+  end interface check_nan_values
+
   public :: check_small_values
   public :: check_negative_array
   public :: check_equilibrium_conditions
+  public :: check_nan_values
 
 contains
 
@@ -99,7 +108,7 @@ contains
 
   subroutine check_equilibrium_conditions(rho_field, T_field, B_field, v_field, grav_field)
     use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, gravity_type
-    use mod_global_variables, only: geometry, dp_LIMIT, gauss_gridpts
+    use mod_global_variables, only: geometry
     use mod_grid, only: eps_grid, d_eps_grid_dr
 
     type(density_type), intent(in)      :: rho_field
@@ -154,5 +163,74 @@ contains
   end subroutine check_equilibrium_conditions
 
 
+  subroutine stop_if_nan(array, array_name)
+    use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan
+
+    real(dp), intent(in)  :: array(gauss_gridpts)
+    character(len=*), intent(in)  :: array_name
+    integer :: i
+
+    do i = 1, gauss_gridpts
+      if (ieee_is_nan(array(i))) then
+        write(*, *) "NaN encountered in ", array_name
+        stop
+      end if
+    end do
+  end subroutine stop_if_nan
+
+
+
+  subroutine check_nan_values_density(rho_field)
+    use mod_types, only: density_type
+
+    type(density_type), intent(in)  :: rho_field
+
+    call stop_if_nan(rho_field % rho0, "rho0")
+    call stop_if_nan(rho_field % d_rho0_dr, "drho0")
+  end subroutine check_nan_values_density
+
+
+  subroutine check_nan_values_temperature(T_field)
+    use mod_types, only: temperature_type
+
+    type(temperature_type), intent(in)  :: T_field
+
+    call stop_if_nan(T_field % T0, "T0")
+    call stop_if_nan(T_field % d_T0_dr, "dT0")
+  end subroutine check_nan_values_temperature
+
+
+  subroutine check_nan_values_bfield(B_field)
+    use mod_types, only: bfield_type
+
+    type(bfield_type), intent(in) :: B_field
+
+    call stop_if_nan(B_field % B02, "B02")
+    call stop_if_nan(B_field % B03, "B03")
+    call stop_if_nan(B_field % B0, "B0")
+    call stop_if_nan(B_field % d_B02_dr, "dB02")
+    call stop_if_nan(B_field % d_B03_dr, "dB03")
+  end subroutine check_nan_values_bfield
+
+
+  subroutine check_nan_values_velocity(v_field)
+    use mod_types, only: velocity_type
+
+    type(velocity_type), intent(in) :: v_field
+
+    call stop_if_nan(v_field % v02, "v02")
+    call stop_if_nan(v_field % v03, "v03")
+    call stop_if_nan(v_field % d_v02_dr, "dv02")
+    call stop_if_nan(v_field % d_v03_dr, "dv03")
+  end subroutine check_nan_values_velocity
+
+
+  subroutine check_nan_values_gravity(grav_field)
+    use mod_types, only: gravity_type
+
+    type(gravity_type), intent(in)  :: grav_field
+
+    call stop_if_nan(grav_field % grav, "g")
+  end subroutine check_nan_values_gravity
 
 end module mod_check_values
