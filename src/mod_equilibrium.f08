@@ -107,7 +107,8 @@ contains
 
 
   subroutine set_equilibrium()
-    use mod_check_values, only: check_negative_array, check_equilibrium_conditions
+    use mod_check_values, only: check_negative_array, check_equilibrium_conditions, &
+                                check_nan_values
     use mod_resistivity, only: set_resistivity_values
     use mod_radiative_cooling, only: set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
@@ -132,6 +133,11 @@ contains
     call check_negative_array(rho_field % rho0, 'density')
     call check_negative_array(T_field % T0, 'temperature')
     call check_equilibrium_conditions(rho_field, T_field, B_field, v_field, grav_field)
+    call check_nan_values(rho_field)
+    call check_nan_values(T_field)
+    call check_nan_values(B_field)
+    call check_nan_values(v_field)
+    call check_nan_values(grav_field)
 
   end subroutine set_equilibrium
 
