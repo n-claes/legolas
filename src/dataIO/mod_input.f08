@@ -161,7 +161,7 @@ contains
     character(len=str_len), intent(out) :: filename_par
 
     integer                             :: num_args, i
-    character(len=20), allocatable      :: args(:)
+    character(len=str_len), allocatable :: args(:)
     logical                             :: file_exists
 
 
