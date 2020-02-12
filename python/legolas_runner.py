@@ -1,5 +1,5 @@
 from utilities.parameters import DEFAULT_PARAMS
-from utilities.tools import custom_enumerate
+from utilities.tools import custom_enumerate, progressbar
 
 import numpy as np
 import f90nml
@@ -60,5 +60,5 @@ if __name__ == '__main__':
         f90nml.write(namelist, parfile_name, force=True)
 
         # run legolas
-        print('{}/{}...'.format(run, nb_runs))
+        progressbar(run, nb_runs, '{}/{}'.format(run, nb_runs))
         subprocess.check_call(['./legolas', '-i', parfile_name])
