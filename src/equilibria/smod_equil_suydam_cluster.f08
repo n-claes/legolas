@@ -25,9 +25,9 @@ contains
     flow = .true.
 
     if (use_defaults) then
-      cte_v03  = 0.14d0
-      cte_p0    = 0.05d0
-      p1    = 0.1d0
+      cte_v03 = 0.14d0
+      cte_p0 = 0.05d0
+      p1 = 0.1d0
       alpha = 2.0d0
 
       k2 = 1.0d0

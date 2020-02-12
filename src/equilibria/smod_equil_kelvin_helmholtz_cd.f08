@@ -40,11 +40,10 @@ contains
 
       ! HEL2
       rc    = 0.5d0
-      Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
-
       k2  = -1.0d0
     end if
 
+    Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
     a = 0.1d0 * rj
     k3  = dpi / rj
 
