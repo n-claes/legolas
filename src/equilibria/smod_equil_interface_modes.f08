@@ -28,7 +28,6 @@ contains
       B_e = 10.0d0
       cte_rho0  = 1.0d0
       cte_T0 = 1.0d0
-      B0 = sqrt(2.0d0*rho_e*T_e + B_e**2 - 2.0d0*cte_rho0*cte_T0)
 
       k2  = 0.0d0
       k3  = 1.0d0
@@ -37,6 +36,8 @@ contains
       T_e = p2
       B_e = p3
     end if
+
+    B0 = sqrt(2.0d0*rho_e*T_e + B_e**2 - 2.0d0*cte_rho0*cte_T0)
 
     if (abs(cte_rho0*cte_T0 + 0.5d0*B0**2 - rho_e*T_e - 0.5*B_e**2) > dp_LIMIT) then
       stop "Total pressure balance is not satisfied."
