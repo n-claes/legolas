@@ -11,7 +11,7 @@
 !
 
 program legolas
-  use mod_global_variables, only: dp, str_len, show_results
+  use mod_global_variables, only: dp, str_len, show_results, run_silent
   use mod_matrix_creation, only: create_matrices
   use mod_solvers, only: solve_QR
   implicit none
@@ -33,11 +33,12 @@ program legolas
   call initialisation()
 
   ! create matrices A and B
-  write(*, *) "Creating matrices..."
   call create_matrices(matrix_B, matrix_A)
 
   ! solve eigenvalue problem
-  write(*, *) "Solving eigenvalue problem..."
+  if (.not. run_silent) then
+    write(*, *) "Solving eigenvalue problem..."
+  end if
   call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
 
   ! write spectrum, eigenvectors, matrices etc. to file
@@ -86,8 +87,11 @@ contains
 
     ! set the equilibrium configuration
     call set_equilibrium()
+
     ! print configuration to console
-    call startup_info_toconsole()
+    if (.not. run_silent) then
+      call startup_info_toconsole()
+    end if
 
   end subroutine initialisation
 
@@ -99,21 +103,17 @@ contains
     use mod_output, only: eigenvalues_tofile, matrices_tofile, eigenvectors_tofile, configuration_tofile
     use mod_eigenfunctions, only: calculate_eigenfunctions
 
-    write(*, *) "Writing eigenvalues to file..."
     call eigenvalues_tofile(omega, savename_eigenvalues)
 
     if (write_matrices) then
-      write(*, *) "Writing matrices to file..."
       call matrices_tofile(matrix_A, matrix_B, savename_matrix)
     end if
 
     if (write_eigenvectors) then
-      write(*, *) "Writing eigenvectors to file..."
       call eigenvectors_tofile(eigenvecs_left, eigenvecs_right, savename_eigenvectors)
     end if
 
     if (write_eigenfunctions) then
-      write(*, *) "Writing eigenfunctions to file..."
       call calculate_eigenfunctions(eigenvecs_right)
     end if
 
