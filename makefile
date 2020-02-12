@@ -89,6 +89,7 @@ $(BINDIR):
 	mkdir -p $(OUTDIR)
 	mkdir -p $(OUTDIR)/eigenfunctions
 	mkdir -p $(OUTDIR)/figures
+	mkdir -p $(OUTDIR)/multiruns
 
 # root modules
 $(BINDIR)/%.o: $(SRCDIR)/%.f08 | $(BINDIR)
@@ -116,6 +117,7 @@ output_clean:
 	rm -rf $(OUTDIR)
 	mkdir -p $(OUTDIR)/eigenfunctions
 	mkdir -p $(OUTDIR)/figures
+	mkdir -p $(OUTDIR)/multiruns
 
 run:
 	make
