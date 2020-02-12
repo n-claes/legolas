@@ -3,7 +3,7 @@
 /
 
 &equilibriumlist
-  equilibrium_type = "Rotating theta pinch"
+  equilibrium_type = "rotating_theta_pinch"
   boundary_type = "wall"
   use_defaults = .false.
 /

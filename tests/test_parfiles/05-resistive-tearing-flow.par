@@ -3,7 +3,7 @@
 /
 
 &equilibriumlist
-  equilibrium_type = "Resistive tearing modes with flow"
+  equilibrium_type = "resistive_tearing_flow"
   boundary_type = "wall"
   use_defaults = .false.
 /

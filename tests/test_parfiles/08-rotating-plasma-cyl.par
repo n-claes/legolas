@@ -3,7 +3,7 @@
 /
 
 &equilibriumlist
-  equilibrium_type = "Rotating plasma cylinder"
+  equilibrium_type = "rotating_plasma_cylinder"
   boundary_type = "wall"
   use_defaults = .false.
 /

@@ -3,7 +3,7 @@
 /
 
 &equilibriumlist
-  equilibrium_type = "Suydam cluster modes"
+  equilibrium_type = "suydam_cluster"
   boundary_type = "wall"
   use_defaults = .false.
 /

@@ -6,33 +6,33 @@
 /
 
 &equilibriumlist
-  ! equilibrium_type = "Adiabatic homogeneous"               ! Cartesian
-  ! equilibrium_type = "Resistive homogeneous"               ! Cartesian
-  ! equilibrium_type = "Gravito-acoustic waves"              ! Cartesian
-  ! equilibrium_type = "Gravito-MHD waves"                   ! Cartesian
-  ! equilibrium_type = "Resistive tearing modes"             ! Cartesian
-  ! equilibrium_type = "Resistive tearing modes with flow"   ! Cartesian
-  ! equilibrium_type = "Flow driven instabilities"           ! Cartesian
-  ! equilibrium_type = "Suydam cluster modes"                ! cylindrical
-  ! equilibrium_type = "Kelvin-Helmholtz"                    ! Cartesian
-  ! equilibrium_type = "Rotating plasma cylinder"            ! cylindrical
-  ! equilibrium_type = "Kelvin-Helmholtz and current driven" ! cylindrical
-  ! equilibrium_type = "Internal kink modes"                 ! cylindrical
-  ! equilibrium_type = "Rotating theta pinch"                ! cylindrical
-  ! equilibrium_type = "Ideal quasimodes"                    ! cylindrical
-  ! equilibrium_type = "Non-adiabatic discrete Alfven"       ! cylindrical
-  ! equilibrium_type = "Uniform with thermal conduction"     ! Cartesian
-  ! equilibrium_type = "Non-uniform with thermal conduction" ! Cartesian
-  ! equilibrium_type = "Magneto-rotational instability"      ! cylindrical
-  ! equilibrium_type = "Interface modes"                     ! Cartesian
-  ! equilibrium_type = "Interchange modes"                   ! Cartesian
-   equilibrium_type = "Constant current tokamak"            ! cylindrical
+  ! equilibrium_type = "adiabatic_homo"               ! Cartesian
+  ! equilibrium_type = "resistive_homo"               ! Cartesian
+  ! equilibrium_type = "gravito_acoustic"             ! Cartesian
+  ! equilibrium_type = "gravito_mhd""                 ! Cartesian
+  ! equilibrium_type = "resistive_tearing"            ! Cartesian
+  ! equilibrium_type = "resistive_tearing_flow"       ! Cartesian
+  ! equilibrium_type = "flow_driven_instabilities"    ! Cartesian
+  ! equilibrium_type = "suydam_cluster"               ! cylindrical
+  ! equilibrium_type = "kelvin_helmholtz"             ! Cartesian
+  ! equilibrium_type = "rotating_plasma_cylinder"     ! cylindrical
+  ! equilibrium_type = "kelvin_helmholtz_cd"          ! cylindrical
+  ! equilibrium_type = "internal_kink"                ! cylindrical
+  ! equilibrium_type = "rotating_theta_pinch"         ! cylindrical
+  ! equilibrium_type = "ideal_quasimodes"             ! cylindrical
+  ! equilibrium_type = "discrete_alfven"              ! cylindrical
+  ! equilibrium_type = "uniform_conduction"           ! Cartesian
+  ! equilibrium_type = "nonuniform_conduction"        ! Cartesian
+  ! equilibrium_type = "magneto_rotational"           ! cylindrical
+  ! equilibrium_type = "interface_modes"              ! Cartesian
+  ! equilibrium_type = "interchange_modes"            ! Cartesian
+   equilibrium_type = "constant_current_tokamak"      ! cylindrical
 
-  ! equilibrium_type = "User defined equilibrium"
+  ! equilibrium_type = "user_defined"
 
   !> Test equilibria
-  ! equilibrium_type = "Beta=0 test"
-  ! equilibrium_type = "Hydrodynamics test"
+  ! equilibrium_type = "beta0_test"
+  ! equilibrium_type = "hydro_test"
   boundary_type = "wall"
 /
 
