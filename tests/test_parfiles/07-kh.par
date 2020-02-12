@@ -3,7 +3,7 @@
 /
 
 &equilibriumlist
-  equilibrium_type = "Kelvin-Helmholtz"
+  equilibrium_type = "kelvin_helmholtz"
   boundary_type = "wall"
   use_defaults = .false.
 /

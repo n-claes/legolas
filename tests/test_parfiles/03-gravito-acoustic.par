@@ -3,7 +3,7 @@
 /
 
 &equilibriumlist
-  equilibrium_type = "Gravito-acoustic waves"
+  equilibrium_type = "gravito_acoustic"
   boundary_type = "wall"
   use_defaults = .false.
 /

@@ -3,7 +3,7 @@
 /
 
 &equilibriumlist
-  equilibrium_type = "Adiabatic homogeneous"
+  equilibrium_type = "adiabatic_homo"
   boundary_type = "wall"
   use_defaults = .false.
 /

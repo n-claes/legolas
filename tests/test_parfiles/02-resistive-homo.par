@@ -3,7 +3,7 @@
 /
 
 &equilibriumlist
-  equilibrium_type = "Resistive homogeneous"
+  equilibrium_type = "resistive_homo"
   boundary_type = "wall"
   use_defaults = .false.
 /

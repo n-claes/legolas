@@ -146,57 +146,57 @@ contains
     use mod_global_variables, only: equilibrium_type
 
     select case(equilibrium_type)
-    case('Adiabatic homogeneous')
+    case('adiabatic_homo')
       set_equilibrium_values => adiabatic_homo_eq
-    case('Resistive homogeneous')
+    case('resistive_homo')
       set_equilibrium_values => resistive_homo_eq
-    case("Gravito-acoustic waves")
+    case("gravito_acoustic")
       set_equilibrium_values => gravito_acoustic_eq
-    case("Gravito-MHD waves")
+    case("gravito_mhd")
       set_equilibrium_values => gravito_mhd_eq
-    case("Resistive tearing modes")
+    case("resistive_tearing")
       set_equilibrium_values => resistive_tearing_modes_eq
-    case("Resistive tearing modes with flow")
+    case("resistive_tearing_flow")
       set_equilibrium_values => resistive_tearing_modes_flow_eq
-    case("Flow driven instabilities")
+    case("flow_driven_instabilities")
       set_equilibrium_values => flow_driven_instabilities_eq
-    case("Suydam cluster modes")
+    case("suydam_cluster")
       set_equilibrium_values => suydam_cluster_eq
-    case("Kelvin-Helmholtz")
+    case("kelvin_helmholtz")
       set_equilibrium_values => kh_instability_eq
-    case("Rotating plasma cylinder")
+    case("rotating_plasma_cylinder")
       set_equilibrium_values => rotating_plasma_cyl_eq
-    case("Kelvin-Helmholtz and current driven")
+    case("kelvin_helmholtz_cd")
       set_equilibrium_values => kh_cd_instability_eq
-    case("Internal kink modes")
+    case("internal_kink")
       set_equilibrium_values => internal_kink_eq
-    case("Rotating theta pinch")
+    case("rotating_theta_pinch")
       set_equilibrium_values => rotating_theta_pinch_eq
-    case("Ideal quasimodes")
+    case("ideal_quasimodes")
       set_equilibrium_values => ideal_quasimodes_eq
-    case("Uniform with thermal conduction")
+    case("uniform_conduction")
       set_equilibrium_values => uniform_thermal_cond_eq
-    case("Non-uniform with thermal conduction")
+    case("nonuniform_conduction")
       set_equilibrium_values => nonuniform_thermal_cond_eq
-    case("Magneto-rotational instability")
+    case("magneto_rotational")
       set_equilibrium_values => magneto_rotational_eq
-    case("Interface modes")
+    case("interface_modes")
       set_equilibrium_values => interface_modes_eq
-    case("Non-adiabatic discrete Alfven")
+    case("discrete_alfven")
       set_equilibrium_values => discrete_alfven_eq
-    case("Interchange modes")
+    case("interchange_modes")
       set_equilibrium_values => interchange_modes_eq
-    case("Constant current tokamak")
+    case("constant_current_tokamak")
       set_equilibrium_values => constant_current_eq
 
     ! User defined
-    case("User defined equilibrium")
+  case("user_defined")
       set_equilibrium_values => user_defined_eq
 
     ! Tests
-    case("Beta=0 test")
+  case("beta0_test")
       set_equilibrium_values => beta0_test_eq
-    case("Hydrodynamics test")
+    case("hydro_test")
       set_equilibrium_values => hydro_test_eq
 
     case default
