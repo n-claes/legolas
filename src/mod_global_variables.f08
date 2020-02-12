@@ -130,6 +130,8 @@ module mod_global_variables
   integer, parameter        :: dim_quadblock = 2*dim_subblock
 
   !! Data IO-related parameters (savelist)
+  !> Suppress console output
+  logical, save             :: run_silent
   !> Write matrices A and B to file when finished
   logical, save             :: write_matrices
   !> Write eigenvectors to file when finished

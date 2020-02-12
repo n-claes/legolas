@@ -36,7 +36,7 @@ contains
     namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
                          unit_temperature, unit_velocity
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
-    namelist /savelist/ write_matrices, write_eigenvectors, &
+    namelist /savelist/ run_silent, write_matrices, write_eigenvectors, &
                         write_eigenfunctions, show_results, show_matrices, &
                         show_eigenfunctions
     namelist /filelist/ savename_eigenvalues, savename_efgrid, &
@@ -92,6 +92,7 @@ contains
     use_defaults = .true.                       !< use defaults for equilibrium parameters
 
     !> Savelist defaults
+    run_silent = .false.            !< if true, no console output
     write_matrices = .false.        !< write matrices A and B when finished
     write_eigenvectors = .false.    !< writes eigenvectors to file
     write_eigenfunctions = .false.  !< writes eigenfunctions to file
