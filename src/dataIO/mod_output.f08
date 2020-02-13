@@ -225,6 +225,7 @@ contains
   !!                            'output_folder/base_filename.nml'
   subroutine configuration_tofile(base_filename, filename)
     use mod_global_variables
+    use mod_equilibrium_params
 
     character(len=*), intent(in)    :: base_filename
     character(str_len), intent(out) :: filename
@@ -235,9 +236,13 @@ contains
     namelist /savelist/ write_matrices, write_eigenvectors, &
                         write_eigenfunctions, show_results, show_matrices, &
                         show_eigenfunctions
-    namelist /outputlist/ savename_eigenvalues, savename_efgrid, &
-                          savename_matrix, savename_eigenvectors, &
-                          savename_eigenfunctions, output_folder, file_extension
+    namelist /filelist/ savename_eigenvalues, savename_efgrid, &
+                        savename_matrix, savename_eigenvectors, &
+                        savename_eigenfunctions, savename_config, output_folder, file_extension
+    namelist /paramlist/ k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, &
+                         cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
+                         alpha, beta, delta, theta, tau, lambda, nu, &
+                         r0, rc, rj, Bth0, Bz0, V, j0, g
 
     filename = trim('output/' // trim(base_filename) // '.nml')
     open(unit=config_unit, file=filename, status='unknown', action='write')
@@ -245,7 +250,8 @@ contains
     write(config_unit, gridlist)
     write(config_unit, equilibriumlist)
     write(config_unit, savelist)
-    write(config_unit, outputlist)
+    write(config_unit, filelist)
+    write(config_unit, paramlist)
     close(config_unit)
   end subroutine configuration_tofile
 

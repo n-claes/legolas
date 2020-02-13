@@ -155,12 +155,12 @@ if __name__ == '__main__':
     current_equil  = namelist['equilibriumlist'].get('equilibrium_type')
 
     # setup the different filenames
-    output_folder = namelist['outputlist'].get('output_folder')
-    file_ext = namelist['outputlist'].get('file_extension')
-    filename_grid = output_folder + namelist['outputlist'].get('savename_efgrid') + file_ext
-    filename_matA = output_folder + namelist['outputlist'].get('savename_matrix') + '_A' + file_ext
-    filename_matB = output_folder + namelist['outputlist'].get('savename_matrix') + '_B' + file_ext
-    filename_omegas = output_folder + namelist['outputlist'].get('savename_eigenvalues') + file_ext
+    output_folder = namelist['filelist'].get('output_folder')
+    file_ext = namelist['filelist'].get('file_extension')
+    filename_grid = output_folder + namelist['filelist'].get('savename_efgrid') + file_ext
+    filename_matA = output_folder + namelist['filelist'].get('savename_matrix') + '_A' + file_ext
+    filename_matB = output_folder + namelist['filelist'].get('savename_matrix') + '_B' + file_ext
+    filename_omegas = output_folder + namelist['filelist'].get('savename_eigenvalues') + file_ext
 
     eigenf_list = np.asarray(["rho", "v1", "v2", "v3", "T", "a1", "a2", "a3"])
     eigenfunctions = {}
