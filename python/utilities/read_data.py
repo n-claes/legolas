@@ -8,7 +8,7 @@ except ImportError:
     sys.exit(1)
 
 
-def check_file(filename):
+def _check_file(filename):
     """
     Checks if the provided file exists
     :param filename: path to file
@@ -25,7 +25,7 @@ def read_config_file(config_file):
     :param config_file: namelist to read
     :return: nested dictionary, access through eg. config_file['gridlist']['geometry']
     """
-    check_file(config_file)
+    _check_file(config_file)
 
     config_dict = f90nml.read(config_file)
 

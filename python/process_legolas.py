@@ -2,9 +2,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
-import sys, os
-import read_data
-import plot_data
+from utilities import plot_data, read_data
 
 from argparse import ArgumentParser
 
@@ -192,11 +190,11 @@ if __name__ == '__main__':
     if namelist['savelist']['show_matrices']:
         # Read matrix elements
         matrix_B = read_data.read_stream_data(filename_matB,
-                        content_type=np.float64,
-                        rows=matrix_gridpts, cols=matrix_gridpts)
+                                              content_type=np.float64,
+                                              rows=matrix_gridpts, cols=matrix_gridpts)
         matrix_A = read_data.read_stream_data(filename_matA,
-                        content_type=np.complex,
-                        rows=matrix_gridpts, cols=matrix_gridpts)
+                                              content_type=np.complex,
+                                              rows=matrix_gridpts, cols=matrix_gridpts)
 
     # Read eigenfunctions
     if namelist['savelist']['show_eigenfunctions']:
@@ -212,9 +210,9 @@ if __name__ == '__main__':
             ef_name = "output/eigenfunctions/{}_{}_eigenfunction.dat".format(i,
                                                                         varname)
             eigenfunctions[varname] = read_data.read_stream_data(ef_name,
-                                                content_type=np.complex,
-                                                rows=matrix_gridpts,
-                                                cols=eigenf_gridpts)
+                                                                 content_type=np.complex,
+                                                                 rows=matrix_gridpts,
+                                                                 cols=eigenf_gridpts)
 
 
     # ================= CREATE FIGURES FOR PLOTTING ============
