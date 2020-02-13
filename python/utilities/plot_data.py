@@ -1,5 +1,4 @@
 import numpy as np
-import os, sys
 import matplotlib as mpl
 mpl.use("TkAgg")
 import matplotlib.pyplot as plt
@@ -30,7 +29,7 @@ def plot_matrix(fig, ax, ax_idx, matrix, title=None, log=True):
         for j in range(0, matrix_gridpts):
             m = np.sqrt(matrix[i, j].real**2 + matrix[i, j].imag**2)
 
-            if abs(m - 0.0) < 1.0e-12:
+            if abs(m) < 1.0e-12:
                 continue
             else:
                 elements.append(m)
@@ -38,11 +37,9 @@ def plot_matrix(fig, ax, ax_idx, matrix, title=None, log=True):
                 col_idxs.append(j+1)
 
     if log:
-        im = ax[ax_idx].scatter(col_idxs, row_idxs, s=16, c=elements,
-                                cmap='jet',norm=mpl.colors.LogNorm())
+        im = ax[ax_idx].scatter(col_idxs, row_idxs, s=16, c=elements, cmap='jet', norm=mpl.colors.LogNorm())
     else:
-        im = ax[ax_idx].scatter(col_idxs, row_idxs, s=16, c=elements,
-                                cmap='jet')
+        im = ax[ax_idx].scatter(col_idxs, row_idxs, s=16, c=elements, cmap='jet')
 
     ax[ax_idx].invert_yaxis()
 
