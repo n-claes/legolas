@@ -38,7 +38,7 @@ def read_config_file(config_file):
             if isinstance(config_dict[namelist][namelist_key], str):
                 config_dict[namelist][namelist_key] = config_dict[namelist][namelist_key].strip()
 
-    return config_dict
+    return dict(config_dict)
 
 
 def read_stream_data(filename, content_type, rows, cols):
@@ -51,7 +51,7 @@ def read_stream_data(filename, content_type, rows, cols):
     :param rows: The number of rows in the file
     :param cols: The number of columns in the file
     """
-    check_file(filename)
+    _check_file(filename)
 
     nbitems = rows * cols
     print(">> Reading {}".format(filename))
