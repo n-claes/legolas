@@ -2,16 +2,16 @@ import sys, os
 import f90nml
 import subprocess
 
-EQUILIBRIA = ['Adiabatic homogeneous',
-              'Resistive homogeneous',
-              'Gravito-acoustic waves',
-              'Resistive tearing modes',
-              'Resistive tearing modes with flow',
-              'Suydam cluster modes',
-              'Kelvin-Helmholtz',
-              'Rotating plasma cylinder',
-              'Kelvin-Helmholtz and current driven',
-              'Rotating theta pinch']
+EQUILIBRIA = ['adiabatic_homo',
+              'resistive_homo',
+              'gravito_acoustic',
+              'resistive_tearing',
+              'resistive_tearing_flow',
+              'suydam_cluster',
+              'kelvin_helmholtz',
+              'rotating_plasma_cylinder',
+              'kelvin_helmholtz_cd',
+              'rotating_theta_pinch']
 
 NAMES = ['01-adiabatic-homo',
          '02-resistive-homo',
