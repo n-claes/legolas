@@ -62,8 +62,8 @@ if __name__ == '__main__':
         namelist['equilibriumlist']['equilibrium_type'] = chosen_eq
         namelist['savelist']['run_silent'] = True
         namelist['savelist']['show_results'] = False
-        namelist['filelist']['savename_eigenvalues'] = base_filename + 'eigenvals'
-        namelist['filelist']['savename_config'] = base_filename + 'config'
+        namelist['filelist']['savename_eigenvalues'] = multi_dir.name + '/' + base_filename + 'eigenvals'
+        namelist['filelist']['savename_config'] = multi_dir.name + '/' + base_filename + 'config'
 
         # get default parameters for this equilibrium, add to namelist
         namelist['paramlist'] = DEFAULT_PARAMS[chosen_eq]
