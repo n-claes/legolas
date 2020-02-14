@@ -4,6 +4,7 @@ from utilities.read_data import read_config_files
 from visualisations.single_spectrum import SingleSpectrum
 
 import tkinter as tk
+import matplotlib.pyplot as plt
 import sys
 
 
@@ -21,6 +22,7 @@ def _main():
         root = tk.Tk()
         root.withdraw()
         selected_files = list(filedialog.askopenfilenames(parent=root, title='Select .nml file(s)'))
+        root.destroy()
 
         for file in selected_files:
             if '.nml' not in file:
@@ -32,9 +34,11 @@ def _main():
     namelists = read_config_files(selected_files)
 
     if len(namelists) == 1:
-        ss = SingleSpectrum(*namelists)
+        ss = SingleSpectrum(namelists)
         ss.plot()
 
 
 if __name__ == '__main__':
     _main()
+
+    plt.show()
