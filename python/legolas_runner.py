@@ -60,6 +60,7 @@ if __name__ == '__main__':
 
         namelist['gridlist']['gridpoints'] = gridpts
         namelist['equilibriumlist']['equilibrium_type'] = chosen_eq
+        namelist['equilibriumlist']['use_defaults'] = False
         namelist['savelist']['run_silent'] = True
         namelist['savelist']['show_results'] = False
         namelist['filelist']['savename_eigenvalues'] = multi_dir.name + '/' + base_filename + 'eigenvals'
