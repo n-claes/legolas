@@ -29,8 +29,8 @@ class EigenfunctionHandler:
         self.fig, self.ax = plt.subplots(1, 1, figsize=(12, 8))
 
         self.ef_list = ss.ef_list
-        self.grid = ss.read_grid()
-        self.eigenfuncs = ss.read_eigenfuncs()
+        self.grid = ss.grid
+        self.eigenfuncs = ss.eigenfuncs
 
 
     def connect_interactive_funcs(self):
