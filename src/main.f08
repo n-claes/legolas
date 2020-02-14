@@ -51,7 +51,7 @@ program legolas
   if (show_results) then
     write(*, *) ""
     write(*, *) "Plotting results..."
-    call execute_command_line("python3 python/process_legolas.py " // &
+    call execute_command_line("python3 python/legolas_analyser.py " // &
                               "-i " // trim(config_file))
   end if
 
