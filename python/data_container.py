@@ -20,7 +20,7 @@ class _SingleDataContainer:
         self.gridpts = self.namelist['gridlist'].get('gridpoints')
         self.mat_gridpts = self.namelist['gridlist'].get('matrix_gridpts')
         self.ef_gridpts = self.namelist['gridlist'].get('ef_gridpts')
-        self.current_eq = self.namelist['equilibriumlist'].get('current_equilibrium')
+        self.current_eq = self.namelist['equilibriumlist'].get('equilibrium_type')
 
         self.output_folder = self.namelist['filelist'].get('output_folder')
         self.file_ext = self.namelist['filelist'].get('file_extension')
