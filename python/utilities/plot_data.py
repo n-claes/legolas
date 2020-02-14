@@ -29,9 +29,7 @@ def plot_matrix(fig, ax, ax_idx, matrix, title=None, log=True):
         for j in range(0, matrix_gridpts):
             m = np.sqrt(matrix[i, j].real**2 + matrix[i, j].imag**2)
 
-            if abs(m) < 1.0e-12:
-                continue
-            else:
+            if abs(m) >= 1.0e-12:
                 elements.append(m)
                 row_idxs.append(i+1)    # for visual and fortran indexing
                 col_idxs.append(j+1)

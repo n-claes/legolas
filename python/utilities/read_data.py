@@ -58,7 +58,6 @@ def read_stream_data(filename, content_type, rows, cols):
     _check_file(filename)
 
     nbitems = rows * cols
-    print(">> Reading {}".format(filename))
     data = np.fromfile(filename, dtype=content_type, count=nbitems)
     stream_data = data.reshape(rows, cols)
 
