@@ -10,6 +10,26 @@ class LEGOLASDataContainer(list):
         for namelist in namelist_array:
             self.append(_SingleDataContainer(namelist))
 
+        self._validate_namelists()
+
+
+    def _validate_namelists(self):
+        gridpts = None
+        equil = None
+
+        for data in self:
+            if gridpts is None:
+                gridpts = data.gridpts
+            elif gridpts != data.gridpts:
+                raise ValueError('Different number of gridpoints encountered!')
+
+            if equil is None:
+                equil = data.current_eq
+            elif equil != data.current_eq:
+                raise ValueError('Different equilibrium encountered!')
+
+
+
 
 class _SingleDataContainer:
     def __init__(self, namelist):
