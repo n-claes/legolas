@@ -99,9 +99,13 @@ contains
   !> Saves the solutions
   subroutine finalise_results()
     use mod_global_variables, only: savename_eigenvalues, write_matrices, savename_matrix, write_eigenvectors, &
-                                    savename_eigenvectors, write_eigenfunctions, savename_config
-    use mod_output, only: eigenvalues_tofile, matrices_tofile, eigenvectors_tofile, configuration_tofile
+                                    savename_eigenvectors, write_eigenfunctions, write_equilibrium, &
+                                    savename_equil, savename_config
+    use mod_output, only: eigenvalues_tofile, matrices_tofile, eigenvectors_tofile, &
+                          configuration_tofile, equilibrium_tofile
     use mod_eigenfunctions, only: calculate_eigenfunctions
+    use mod_equilibrium, only: rho_field, T_field, B_field, v_field
+    use mod_grid, only: grid_gauss
 
     call eigenvalues_tofile(omega, savename_eigenvalues)
 
@@ -115,6 +119,10 @@ contains
 
     if (write_eigenfunctions) then
       call calculate_eigenfunctions(eigenvecs_right)
+    end if
+
+    if (write_equilibrium) then
+      call equilibrium_tofile(grid_gauss, rho_field, T_field, B_field, v_field, savename_equil)
     end if
 
     ! save running configuration
