@@ -2,6 +2,7 @@ from tkinter import filedialog
 from argparse import ArgumentParser
 from utilities.read_data import read_config_files
 from visualisations.single_spectrum import SingleSpectrum
+from visualisations.multirun_spectrum import MultiSpectrum
 
 import tkinter as tk
 import matplotlib.pyplot as plt
@@ -36,6 +37,9 @@ def _main():
     if len(namelists) == 1:
         ss = SingleSpectrum(namelists)
         ss.plot()
+    else:
+        ms = MultiSpectrum(namelists)
+        ms.plot()
 
 
 if __name__ == '__main__':
