@@ -138,12 +138,16 @@ module mod_global_variables
   logical, save             :: write_eigenvectors
   !> Write eigenfunctions to file when finished
   logical, save             :: write_eigenfunctions
+  !> Write equilibrium configuration to file when finished
+  logical, save             :: write_equilibrium
   !> Call python script when finishing to plot results
   logical, save             :: show_results
   !> Plot matrices A and B when finished
   logical, save             :: show_matrices
   !> Plot eigenfunctions when finished
   logical, save             :: show_eigenfunctions
+  !> Show equilibrium configuration when finished
+  logical, save             :: show_equilibrium
 
   !! Related parameters for filenames (filelist)
   !> Name for the eigenvalues file
@@ -158,6 +162,8 @@ module mod_global_variables
   character(len=str_len)    :: savename_eigenfunctions
   !> Name for the configuration file
   character(len=str_len)    :: savename_config
+  !> Name for the equilibrium file
+  character(len=str_len)    :: savename_equil
 
 contains
 

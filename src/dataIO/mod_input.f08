@@ -37,11 +37,11 @@ contains
                          unit_temperature, unit_velocity
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
     namelist /savelist/ run_silent, write_matrices, write_eigenvectors, &
-                        write_eigenfunctions, show_results, show_matrices, &
-                        show_eigenfunctions
+                        write_eigenfunctions, write_equilibrium, show_results, &
+                        show_matrices, show_eigenfunctions, show_equilibrium
     namelist /filelist/ savename_eigenvalues, savename_efgrid, &
                         savename_matrix, savename_eigenvectors, &
-                        savename_eigenfunctions, savename_config
+                        savename_eigenfunctions, savename_config, savename_equil
     namelist /paramlist/ k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, &
                          cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
                          alpha, beta, delta, theta, tau, lambda, nu, &
@@ -96,9 +96,11 @@ contains
     write_matrices = .false.        !< write matrices A and B when finished
     write_eigenvectors = .false.    !< writes eigenvectors to file
     write_eigenfunctions = .false.  !< writes eigenfunctions to file
+    write_equilibrium = .true.      !< writes equilibrium config to file
     show_results = .true.           !< plot spectrum when finished
     show_matrices = .false.         !< plot matrices A and B when finished
     show_eigenfunctions = .false.   !< plots the eigenfunctions when finished
+    show_equilibrium = .false.      !< plots equilibrium configuration when finished
 
     !> Filelist defaults
     savename_eigenvalues = "eigenvalues"
@@ -107,6 +109,7 @@ contains
     savename_eigenvectors = "eigenvectors"
     savename_eigenfunctions = "eigenfunctions"
     savename_config = "configuration"
+    savename_equil = 'equilibrium'
 
     !! Initialise equilibrium parameters to nan. These are controlled
     !! using the par file and/or the equilibrium submodules.
