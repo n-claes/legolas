@@ -26,7 +26,7 @@ class EigenfunctionHandler:
         self.current_var = 0
         self.plot_real = True
 
-        self.fig, self.ax = plt.subplots(1, 1, figsize=(12, 8))
+        self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
 
         self.ef_list = ss.ef_list
         self.grid = ss.grid
@@ -34,11 +34,83 @@ class EigenfunctionHandler:
 
 
     def connect_interactive_funcs(self):
+        def _on_clicking(event):
+            toolbar = self.spec_fig.canvas.manager.toolbar
+            # Toolbar should be deactivated when in interactive mode
+            if toolbar.mode == '':
+                if event.button == 1:
+                    # Prevent error when clicking outside of axis window
+                    if event.xdata is None or event.ydata is None:
+                        return
+                    # Search nearest spectrum point to click, then plot
+                    idx = self._find_spectrum_point(event.xdata, event.ydata)
+                    # Check for double plotting of points
+                    if idx not in self.w_idx_list:
+                        self.w_idx_list.append(idx)
+                        self.spec_ax.plot(np.real(self.omegas[idx]), np.imag(self.omegas[idx]), 'rx',
+                                          markersize=8, picker=10, label='w_point')
+            self.spec_fig.canvas.draw()
+
+        def _on_picking(event):
+            # Right clicking on point removes the point. Radius in which clicking is detected depends on 'picker'
+            # argument when plotting the point itself (see _on_clicking)
+            if event.mouseevent.button == 3:
+                if hasattr(event.artist, 'get_label') and event.artist.get_label() == 'w_point':
+                    event.artist.remove()
+                    # remove point from index list as well
+                    idx = self._find_spectrum_point(event.artist.get_xdata(), event.artist.get_ydata())
+                    self.w_idx_list.remove(idx)
+            self.spec_fig.canvas.draw()
+
+        def _on_typing(event):
+            # Press 'x' to close figures
+            if event.key == 'x':
+                for i in plt.get_fignums():
+                    plt.close(i)
+                return
+
+            # Press 'd' clears current figure and selection
+            if event.key == 'd':
+                self.w_idx_list.clear()
+                for artist in self.spec_ax.get_children():
+                    if hasattr(artist, 'get_label') and artist.get_label() == 'w_point':
+                        artist.remove()
+                self.ax.clear()
+                self.fig.set_visible(False)
+                self.fig.canvas.draw()
+                self.spec_fig.canvas.draw()
+
+            # Do nothing if nothing is selected
+            if not self.w_idx_list:
+                return
+
+            # Press 'i' to switch between real and imaginary parts
+            if event.key == 'i':
+                self._switch_real()
+                self.ax.clear()
+                var = self._get_current_variable()
+                plot_eigenfunctions(self.fig, self.ax, self.omegas, self.grid, self.eigenfuncs,
+                                    var, self.w_idx_list, self.plot_real)
+            if event.key == 'down':
+                self.var = self._select_next_variable()
+            if event.key == 'up':
+                self.var = self._select_next_variable()
+
+            # Press 'enter' to plot eigenfunctions, press up/down to cycle
+            if event.key == 'enter' or event.key == 'up' or event.key == 'down' or event.key == 'i':
+                self.fig.set_visible(True)
+                self.ax.clear()
+                var = self._get_current_variable()
+                plot_eigenfunctions(self.fig, self.ax, self.omegas, self.grid, self.eigenfuncs,
+                                    var, self.w_idx_list, self.plot_real)
+            self.fig.canvas.draw()
+            self.spec_fig.canvas.draw()
+
         # connect interactive functions
-        self.fig.canvas.mpl_connect('key_press_event', self._on_typing)
-        self.spec_fig.canvas.mpl_connect('key_press_event', self._on_typing)
-        self.spec_fig.canvas.mpl_connect('button_press_event', self._on_clicking)
-        self.spec_fig.canvas.mpl_connect('pick_event', self._on_picking)
+        self.fig.canvas.mpl_connect('key_press_event', _on_typing)
+        self.spec_fig.canvas.mpl_connect('key_press_event', _on_typing)
+        self.spec_fig.canvas.mpl_connect('button_press_event', _on_clicking)
+        self.spec_fig.canvas.mpl_connect('pick_event', _on_picking)
         self.fig.set_visible(False)
 
 
@@ -70,80 +142,4 @@ class EigenfunctionHandler:
         return idx
 
 
-    def _on_clicking(self, event):
-        toolbar = self.spec_fig.canvas.manager.toolbar
-        # Toolbar should be deactivated when in interactive mode
-        if toolbar.mode == '':
-            if event.button == 1:
-                # Prevent error when clicking outside of axis window
-                if event.xdata is None or event.ydata is None:
-                    return
-                # Search nearest spectrum point to click, then plot
-                idx = self._find_spectrum_point(event.xdata, event.ydata)
-                # Check for double plotting of points
-                if idx not in self.w_idx_list:
-                    self.w_idx_list.append(idx)
-                    self.spec_ax.plot(np.real(self.omegas[idx]), np.imag(self.omegas[idx]), 'rx',
-                                      markersize=8, picker=10, label='w_point')
-        self.spec_fig.canvas.draw()
 
-
-    def _on_picking(self, event):
-        # Right clicking on point removes the point. Radius in which clicking is detected depends on 'picker'
-        # argument when plotting the point itself (see _on_clicking)
-        if event.mouseevent.button == 3:
-            if hasattr(event.artist, 'get_label') and event.artist.get_label() == 'w_point':
-                event.artist.remove()
-                # remove point from index list as well
-                idx = self._find_spectrum_point(event.artist.get_xdata(), event.artist.get_ydata())
-                self.w_idx_list.remove(idx)
-        self.spec_fig.canvas.draw()
-
-
-    def _on_typing(self, event):
-        # Press 'x' to close figures
-        if event.key == 'x':
-            for i in plt.get_fignums():
-                plt.close(i)
-            return
-
-        # Press 'd' clears current figure and selection
-        if event.key == 'd':
-            self.w_idx_list.clear()
-            for artist in self.spec_ax.get_children():
-                if hasattr(artist, 'get_label') and artist.get_label() == 'w_point':
-                    artist.remove()
-            self.ax.clear()
-            self.fig.set_visible(False)
-            self.fig.canvas.draw()
-            self.spec_fig.canvas.draw()
-
-        # Do nothing if nothing is selected
-        if not self.w_idx_list:
-            return
-
-        # Press 'i' to switch between real and imaginary parts
-        if event.key == 'i':
-            self._switch_real()
-            self.ax.clear()
-            var = self._get_current_variable()
-            plot_eigenfunctions(self.fig, self.ax, self.omegas, self.grid, self.eigenfuncs,
-                                var, self.w_idx_list, self.plot_real)
-
-
-        if event.key == 'down':
-            self.var = self._select_next_variable()
-
-        if event.key == 'up':
-            self.var = self._select_next_variable()
-
-        # Press 'enter' to plot eigenfunctions, press up/down to cycle
-        if event.key == 'enter' or event.key == 'up' or event.key == 'down' or event.key == 'i':
-            self.fig.set_visible(True)
-            self.ax.clear()
-            var = self._get_current_variable()
-            plot_eigenfunctions(self.fig, self.ax, self.omegas, self.grid, self.eigenfuncs,
-                                var, self.w_idx_list, self.plot_real)
-
-        self.fig.canvas.draw()
-        self.spec_fig.canvas.draw()
