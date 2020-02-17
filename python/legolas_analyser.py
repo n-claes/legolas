@@ -5,7 +5,13 @@ from visualisations.single_spectrum import SingleSpectrum
 from visualisations.multirun_spectrum import MultiSpectrum
 
 import tkinter as tk
-import matplotlib.pyplot as plt
+try:
+    import matplotlib
+    matplotlib.use('Qt4Agg')
+    import matplotlib.pyplot as plt
+except ImportError:
+    import matplotlib
+    import matplotlib.pyplot as plt
 import sys
 
 

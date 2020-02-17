@@ -59,6 +59,6 @@ def read_stream_data(filename, content_type, rows, cols):
 
     nbitems = rows * cols
     data = np.fromfile(filename, dtype=content_type, count=nbitems)
-    stream_data = data.reshape(rows, cols)
+    stream_data = data.reshape(rows, cols, order='F')
 
     return stream_data

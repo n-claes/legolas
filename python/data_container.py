@@ -39,6 +39,7 @@ class _SingleDataContainer:
 
         self.gridpts = self.namelist['gridlist'].get('gridpoints')
         self.mat_gridpts = self.namelist['gridlist'].get('matrix_gridpts')
+        self.gauss_gridpts = self.namelist['gridlist'].get('gauss_gridpts')
         self.ef_gridpts = self.namelist['gridlist'].get('ef_gridpts')
         self.current_eq = self.namelist['equilibriumlist'].get('equilibrium_type')
 
@@ -49,9 +50,11 @@ class _SingleDataContainer:
         self.fname_matA = self.output_folder + self.namelist['filelist'].get('savename_matrix') + '_A' + self.file_ext
         self.fname_matB = self.output_folder + self.namelist['filelist'].get('savename_matrix') + '_B' + self.file_ext
         self.fname_w = self.output_folder + self.namelist['filelist'].get('savename_eigenvalues') + self.file_ext
+        self.fname_eq = self.output_folder + self.namelist['filelist'].get('savename_equil') + self.file_ext
 
         self.show_mats = self.namelist['savelist'].get('show_matrices')
         self.show_eigenfuncs = self.namelist['savelist'].get('show_eigenfunctions')
+        self.show_equil = self.namelist['savelist'].get('show_equilibrium')
         self.ef_list = np.asarray(['rho', 'v1', 'v2', 'v3', 'T', 'a1', 'a2', 'a3'])
 
         self.params = self.namelist['paramlist']
@@ -60,13 +63,17 @@ class _SingleDataContainer:
         self.matA = None
         self.matB = None
         self.grid = None
+        self.grid_gauss = None
         self.eigenfuncs = None
+        self.equil_data = None
 
         self.read_omegas()
         if self.show_mats:
             self.read_matrices()
         if self.show_eigenfuncs:
             self.read_eigenfuncs()
+        if self.show_equil:
+            self.read_equilibrium()
 
 
     def read_omegas(self):
@@ -93,3 +100,19 @@ class _SingleDataContainer:
             eigenfuncs[varname] = read_stream_data(fname, content_type=np.complex,
                                                    rows=self.mat_gridpts, cols=self.ef_gridpts)
         self.eigenfuncs = eigenfuncs
+
+
+    def read_equilibrium(self):
+        fname = (self.src_dir / (self.fname_eq[:-4] + '_names.dat')).resolve()
+        with open(fname, 'r') as f:
+            eq_names = f.read().split()
+
+        fname = (self.src_dir / self.fname_eq).resolve()
+        equil = read_stream_data(fname, content_type=np.float64, rows=len(eq_names), cols=self.gauss_gridpts)
+
+        self.grid_gauss = equil[eq_names.index('grid'), :]
+
+        equil_data = {}
+        for i in range(1, len(eq_names)):
+            equil_data[eq_names[i]] = equil[i, :]
+        self.equil_data = equil_data
