@@ -27,11 +27,11 @@ contains
       k2 = dpi
       k3 = dpi
 
+      cte_rho0 = 1.0d0
+      cte_p0 = 1.0d0
       g     = 0.5d0
     end if
 
-    cte_rho0 = 1.0d0
-    cte_p0 = 1.0d0
     B0 = 1.0d0
     beta  = 2.0d0*cte_p0 / B0**2
     alpha = cte_rho0 * g / (cte_p0 + 0.5d0 * B0**2)
