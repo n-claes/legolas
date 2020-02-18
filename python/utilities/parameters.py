@@ -38,6 +38,8 @@ DEFAULT_PARAMS = {
     'gravito_mhd': {
         'k2': np.pi,
         'k3': np.pi,
+        'cte_rho0': 1.0,
+        'cte_p0': 1.0,
         'g': 0.5
     },
     'ideal_quasimodes': {
@@ -49,7 +51,10 @@ DEFAULT_PARAMS = {
     'interchange_modes': {
         'k2': np.pi,
         'k3': np.pi,
-        'g': 0.5
+        'g': 0.5,
+        'cte_rho0': 1.0,
+        'cte_p0': 1.0,
+        'lambda': 0.3
     },
     'interface_modes': {
         'k2': 0.0,
