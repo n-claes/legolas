@@ -38,9 +38,9 @@ DEFAULT_PARAMS = {
     'gravito_mhd': {
         'k2': np.pi,
         'k3': np.pi,
-        'cte_rho0': 1.0,
         'cte_p0': 1.0,
-        'g': 0.5
+        'g': 0.5,
+        'alpha': 20.0
     },
     'ideal_quasimodes': {
         'k2': 2.0,
@@ -52,9 +52,9 @@ DEFAULT_PARAMS = {
         'k2': np.pi,
         'k3': np.pi,
         'g': 0.5,
-        'cte_rho0': 1.0,
         'cte_p0': 1.0,
-        'lambda': 0.3
+        'lambda': 0.3,
+        'alpha': 20.0
     },
     'interface_modes': {
         'k2': 0.0,
@@ -148,5 +148,64 @@ DEFAULT_PARAMS = {
         'k2': 1.0,
         'k3': np.pi,
         'beta': 0.25
+    }
+}
+
+PRECODED_MULTIRUNS = {
+    'gravito_mhd_beta1': {
+        'equilibrium': 'gravito_mhd',
+        'gridpts': 31,
+        'nb_runs': 40,
+        'parameters': {
+            'k2': np.linspace(0, np.sqrt(250), 40),
+            'k3': np.linspace(0, np.sqrt(250), 40),
+            'cte_p0': 0.5,  # so beta = 1
+            'alpha': 20.0
+        },
+    },
+    'gravito_mhd_beta50': {
+        'equilibrium': 'gravito_mhd',
+        'gridpts': 31,
+        'nb_runs': 40,
+        'parameters': {
+            'k2': np.linspace(0, np.sqrt(250), 40),
+            'k3': np.linspace(0, np.sqrt(250), 40),
+            'cte_p0': 25.0, # so beta = 50
+            'alpha': 20.0
+        },
+    },
+    'interchange_modes_noshear': {
+        'equilibrium': 'interchange_modes',
+        'gridpts': 31,
+        'nb_runs': 40,
+        'parameters': {
+            'k2': np.pi * np.cos(np.linspace(0, np.pi, 40)),
+            'k3': np.pi * np.sin(np.linspace(0, np.pi, 40)),
+            'lambda': 0.0,
+            'cte_p0': 0.25, # so beta = 0.5
+            'alpha': 20.0
+        }
+    },
+    'interchange_modes_0.3shear': {
+        'equilibrium': 'interchange_modes',
+        'gridpts': 31,
+        'nb_runs': 40,
+        'parameters': {
+            'k2': np.pi * np.cos(np.linspace(0, np.pi, 40)),
+            'k3': np.pi * np.sin(np.linspace(0, np.pi, 40)),
+            'lambda': 0.3,
+            'cte_p0': 0.25, # so beta = 0.5
+            'alpha': 20.0
+        }
+    },
+    'constant_current_m-2': {
+        'equilibrium': 'constant_current_tokamak',
+        'gridpts': 51,
+        'nb_runs': 40,
+        'parameters': {
+            'k2': -2.0,
+            'k3': 0.2,
+            'j0': (2.0 * 0.2) / np.linspace(1.9, 2.1, 40)
+        }
     }
 }
