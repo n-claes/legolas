@@ -31,7 +31,7 @@ contains
       cte_p0 = 1.0d0
       g = 0.5d0
       lambda = 0.3d0
-      alpha = 20
+      alpha = 20.0d0
     end if
 
     B0 = 1.0d0
