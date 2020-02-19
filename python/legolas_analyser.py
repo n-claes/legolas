@@ -38,6 +38,10 @@ def _main():
     else:
         selected_files.append(config_file)
 
+    # end program if file selection is cancelled
+    if not selected_files:
+        return
+
     namelists = read_config_files(selected_files)
 
     if len(namelists) == 1:
