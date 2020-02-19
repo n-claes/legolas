@@ -16,6 +16,7 @@ class LEGOLASDataContainer(list):
     def _validate_namelists(self):
         gridpts = None
         equil = None
+        fname_len = None
 
         for data in self:
             if gridpts is None:
@@ -28,6 +29,12 @@ class LEGOLASDataContainer(list):
             elif equil != data.current_eq:
                 raise ValueError('Different equilibrium encountered!')
 
+            if fname_len is None:
+                fname_len = len(data.fname_w)
+            elif fname_len != len(data.fname_w):
+                raise ValueError('Different filename encountered in series! (wrong file included?)')
+
+
 
 
 
@@ -37,7 +44,7 @@ class _SingleDataContainer:
         self.src_dir = Path(__file__).parent.parent
         self.namelist = namelist
 
-        self.gridpts = self.namelist['gridlist'].get('gridpoints')
+        self.gridpts = self.namelist['gridlist'].get('gridpts')
         self.mat_gridpts = self.namelist['gridlist'].get('matrix_gridpts')
         self.gauss_gridpts = self.namelist['gridlist'].get('gauss_gridpts')
         self.ef_gridpts = self.namelist['gridlist'].get('ef_gridpts')
