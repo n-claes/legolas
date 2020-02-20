@@ -107,7 +107,7 @@ class _SingleDataContainer:
             ef_name = self.output_folder + 'eigenfunctions/{}_{}_eigenfunction'.format(i + 1, varname) + self.file_ext
             fname = (self.src_dir / ef_name).resolve()
             eigenfuncs[varname] = read_stream_data(fname, content_type=np.complex,
-                                                   rows=self.mat_gridpts, cols=self.ef_gridpts)
+                                                   rows=self.ef_gridpts, cols=self.mat_gridpts)
         self.eigenfuncs = eigenfuncs
 
 
