@@ -3,12 +3,14 @@ from pathlib import Path
 
 import numpy as np
 
-class LEGOLASDataContainer(list):
+class LEGOLASDataContainer:
     def __init__(self, namelist_array):
-        super().__init__()
 
-        for namelist in namelist_array:
-            self.append(_SingleDataContainer(namelist))
+        self.namelist_array = namelist_array
+        self.datacontainer = []
+
+        for namelist in self.namelist_array:
+            self.datacontainer.append(_SingleDataContainer(namelist))
 
         self._validate_namelists()
 
@@ -18,7 +20,7 @@ class LEGOLASDataContainer(list):
         equil = None
         fname_len = None
 
-        for data in self:
+        for data in self.datacontainer:
             if gridpts is None:
                 gridpts = data.gridpts
             elif gridpts != data.gridpts:

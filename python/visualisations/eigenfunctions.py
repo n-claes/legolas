@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class EigenfunctionHandler:
-    def __init__(self, ss):
+    def __init__(self, data, fig, ax):
         print("")
         print("-" * 50)
         print(">>> INTERACTIVE PLOTTING OF EIGENFUNCTIONS <<<")
@@ -18,9 +18,9 @@ class EigenfunctionHandler:
         print("-" * 50)
         print("")
 
-        self.spec_fig = ss.fig
-        self.spec_ax = ss.ax
-        self.omegas = ss.omegas
+        self.spec_fig = fig
+        self.spec_ax = ax
+        self.omegas = data.omegas
 
         self.w_idx_list = []
         self.current_var = 0
@@ -28,9 +28,9 @@ class EigenfunctionHandler:
 
         self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
 
-        self.ef_list = ss.ef_list
-        self.grid = ss.grid
-        self.eigenfuncs = ss.eigenfuncs
+        self.ef_list = data.ef_list
+        self.grid = data.grid
+        self.eigenfuncs = data.eigenfuncs
 
 
     def connect_interactive_funcs(self):
