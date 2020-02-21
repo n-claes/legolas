@@ -3,7 +3,8 @@ from visualisations.eigenfunctions import EigenfunctionHandler
 from utilities.plot_data import plot_spectrum, plot_matrix
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+import matplotlib.lines as mpl_lines
+import matplotlib.patches as mpl_patches
 import numpy as np
 
 
@@ -44,26 +45,39 @@ class SingleSpectrum(LEGOLASDataContainer):
         ax.legend(loc='best')
 
     def _annotate_frequencies(self):
-        legend_handles = []
-        legend_names = []
+        legend_items = []
+        alpha_box = 0.3
+        alpha_point = 0.5
 
-        def draw_region(array, facecolor, alpha, legend_text=None):
+        def on_legend_pick(event):
+            artist = event.artist
+            item = regions[artist]
+            visible = not item.get_visible()
+            item.set_visible(visible)
+            if visible:
+                if isinstance(artist, mpl_lines.Line2D):
+                    artist.set_alpha(alpha_point)
+                else:
+                    artist.set_alpha(alpha_box)
+            else:
+                artist.set_alpha(0.1)
+            self.fig.canvas.draw()
+
+        def draw_region(array, facecolor, legend_lbl=None):
             lb = np.min(array)
             rb = np.max(array)
 
             if np.abs(lb - rb) > 1e-10:
-                self.ax.axvspan(np.min(array), np.max(array), facecolor=facecolor, alpha=alpha)
-            else:   # handles the case where range of frequencies is collapsed to a single point
-                self.ax.plot([rb], 0, marker='X', markersize=8, color=facecolor, alpha=0.6)
+                legend_item = self.ax.axvspan(np.min(array), np.max(array), facecolor=facecolor,
+                                              alpha=alpha_box, label=legend_lbl)
+            else:   # handles the case where continua are collapsed to a single point
+                legend_item, = self.ax.plot([lb], 0, marker='p', markersize=8, color=facecolor,
+                                            alpha=alpha_point, label=legend_lbl)
 
-            if legend_text is not None:
-                rect = patches.Rectangle((0, 0), 1, 1, facecolor=facecolor, alpha=5*alpha)
-                legend_handles.append(rect)
-                legend_names.append(legend_text)
+            legend_items.append(legend_item)
 
         k2 = self.data.params['k2']
         k3 = self.data.params['k3']
-        k0 = np.sqrt(k2**2 + k3**2)
 
         rho = self.data.equil_data['rho0']
         B02 = self.data.equil_data['B02']
@@ -78,39 +92,54 @@ class SingleSpectrum(LEGOLASDataContainer):
         # Omega_0 = k0 dot v (doppler shift)
         doppler_shift = k2 * v02 + k3 * v03
 
-        # --- Cartesian case ---
         if self.data.geometry == 'Cartesian':
-            # Alfven and slow genuine singularities
             wA2 = (1/rho) * (k2*B02 + k3*B03)**2
             wS2 = (gamma*p / (gamma*p + B0**2)) * wA2
-
-            wm2 = k0**2 * (gamma*p + B0**2) / rho
-
-        # --- cylindrical case ---
         else:
             r = self.data.grid_gauss
             F = (k2 * B02 / r) + k3 * B03
-            h2 = (k2**2 / r**2) + k3**2
-            # Alfven and slow genuine singularities
             wA2 = F**2 / rho
             wS2 = (gamma*p / (gamma*p + B0**2)) * F**2 / rho
 
-            wm2 = h2 * (gamma*p + B0**2) / rho
+        alfven_cont_neg = doppler_shift - np.sqrt(wA2)
+        alfven_cont_pos = doppler_shift + np.sqrt(wA2)
+        slow_cont_neg = doppler_shift - np.sqrt(wS2)
+        slow_cont_pos = doppler_shift + np.sqrt(wS2)
 
-        # slow and fast apparent singularities (Cartesian/cylindrical differ through wm2)
-        ws02 = 0.5 * wm2 * (1 - np.sqrt(1 - 4 * wS2 / wm2))
-        wf02 = 0.5 * wm2 * (1 + np.sqrt(1 - 4 * wS2 / wm2))
+        draw_region(alfven_cont_neg, facecolor='red', legend_lbl=r'$\Omega_A^-$ Alfvén continuum')
+        draw_region(alfven_cont_pos, facecolor='green', legend_lbl=r'$\Omega_A^+$ Alfvén continuum')
+        draw_region(slow_cont_neg, facecolor='blue', legend_lbl=r'$\Omega_S^-$ slow continuum')
+        draw_region(slow_cont_pos, facecolor='yellow', legend_lbl=r'$\Omega_S^+$ slow continuum')
+        legend = self.ax.legend(loc='best')
 
-        # split plotting of continua and singularities to avoid cluttering the plot
-        # plot continua on the left side
-        draw_region(doppler_shift - np.sqrt(wA2), facecolor='green', alpha=0.05,
-                    legend_text=r'$\Omega_A^-(x)$ Alfven continuum')
-        draw_region(doppler_shift - np.sqrt(wS2), facecolor='red', alpha=0.05,
-                    legend_text=r'$\Omega_S^-(x)$ slow continuum')
-        # plot apparent singularities on right side
-        draw_region(doppler_shift + np.sqrt(ws02), facecolor='yellow', alpha=0.05,
-                    legend_text=r'$\Omega_{s0}^+(x)$ apparent slow singularity')
-        draw_region(doppler_shift + np.sqrt(wf02), facecolor='blue', alpha=0.05,
-                    legend_text=r'$\Omega_{f0}^+(x)$ apparent fast singularity')
+        regions = {}
+        patches = legend.get_patches()
+        lines = legend.get_lines()
+        for region in legend_items:
+            if isinstance(region, mpl_patches.Polygon):
+                l_item = patches.pop(0)
+            elif isinstance(region, mpl_lines.Line2D):
+                l_item = lines.pop(0)
+            else:
+                raise ValueError
+            l_item.set_picker(5)
+            region.set_visible(False)   # make continuum regions invisible by default
+            regions[l_item] = region
+        self.fig.canvas.mpl_connect('pick_event', on_legend_pick)
+        self._plot_continua(alfven_cont_neg, alfven_cont_pos, slow_cont_neg, slow_cont_pos)
 
-        self.ax.legend(legend_handles, legend_names, loc='best')
+    def _plot_continua(self, alfven_cont_neg, alfven_cont_pos, slow_cont_neg, slow_cont_pos):
+        # plot Alfven and slow continua on a separate figure
+        fig, ax = plt.subplots(2, 1, figsize=(12, 8), sharex='all')
+
+        ax[0].plot(self.data.grid_gauss, alfven_cont_neg, color='red', label=r'$\Omega_A^-$ Alfvén continuum')
+        ax[0].plot(self.data.grid_gauss, alfven_cont_pos, color='green', label=r'$\Omega_A^+$ Alfvén continuum')
+        ax[0].legend(loc='best')
+        ax[0].set_xlim([self.data.grid_gauss[0], self.data.grid_gauss[-1]])
+
+        ax[1].plot(self.data.grid_gauss, slow_cont_neg, color='blue', label=r'$\Omega_S^-$ slow continuum')
+        ax[1].plot(self.data.grid_gauss, slow_cont_pos, color='yellow', label=r'$\Omega_S^+$ slow continuum')
+        ax[1].set_xlabel('Gaussian grid')
+        ax[1].legend(loc='best')
+        ax[1].set_xlim([self.data.grid_gauss[0], self.data.grid_gauss[-1]])
+        fig.subplots_adjust(hspace=0)
