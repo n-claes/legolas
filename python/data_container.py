@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
+
 class LEGOLASDataContainer:
     def __init__(self, namelist_array):
 
@@ -13,7 +14,6 @@ class LEGOLASDataContainer:
             self.datacontainer.append(_SingleDataContainer(namelist))
 
         self._validate_namelists()
-
 
     def _validate_namelists(self):
         gridpts = None
@@ -37,19 +37,18 @@ class LEGOLASDataContainer:
                 raise ValueError('Different filename encountered in series! (wrong file included?)')
 
 
-
-
-
 class _SingleDataContainer:
     def __init__(self, namelist):
         # source directory is two directories up
         self.src_dir = Path(__file__).parent.parent
         self.namelist = namelist
 
+        self.geometry = self.namelist['gridlist'].get('geometry')
         self.gridpts = self.namelist['gridlist'].get('gridpts')
         self.mat_gridpts = self.namelist['gridlist'].get('matrix_gridpts')
         self.gauss_gridpts = self.namelist['gridlist'].get('gauss_gridpts')
         self.ef_gridpts = self.namelist['gridlist'].get('ef_gridpts')
+        self.gamma = self.namelist['equilibriumlist'].get('gamma')
         self.current_eq = self.namelist['equilibriumlist'].get('equilibrium_type')
 
         self.output_folder = self.namelist['filelist'].get('output_folder')
@@ -63,6 +62,7 @@ class _SingleDataContainer:
 
         self.show_mats = self.namelist['savelist'].get('show_matrices')
         self.show_eigenfuncs = self.namelist['savelist'].get('show_eigenfunctions')
+        self.write_equil = self.namelist['savelist'].get('write_equilibrium')
         self.show_equil = self.namelist['savelist'].get('show_equilibrium')
         self.ef_list = np.asarray(['rho', 'v1', 'v2', 'v3', 'T', 'a1', 'a2', 'a3'])
 
@@ -77,25 +77,22 @@ class _SingleDataContainer:
         self.equil_data = None
 
         self.read_omegas()
+        if self.write_equil:
+            self.read_equilibrium()
         if self.show_mats:
             self.read_matrices()
         if self.show_eigenfuncs:
             self.read_eigenfuncs()
-        if self.show_equil:
-            self.read_equilibrium()
-
 
     def read_omegas(self):
         fname = (self.src_dir / self.fname_w).resolve()
         self.omegas = read_stream_data(fname, content_type=np.complex, rows=1, cols=self.mat_gridpts)[0]
-
 
     def read_matrices(self):
         fname = (self.src_dir / self.fname_matA).resolve()
         self.matA = read_stream_data(fname, content_type=np.complex, rows=self.mat_gridpts, cols=self.mat_gridpts)
         fname = (self.src_dir / self.fname_matB).resolve()
         self.matB = read_stream_data(fname, content_type=np.float64, rows=self.mat_gridpts, cols=self.mat_gridpts)
-
 
     def read_eigenfuncs(self):
         fname = (self.src_dir / self.fname_grid).resolve()
@@ -109,7 +106,6 @@ class _SingleDataContainer:
             eigenfuncs[varname] = read_stream_data(fname, content_type=np.complex,
                                                    rows=self.ef_gridpts, cols=self.mat_gridpts)
         self.eigenfuncs = eigenfuncs
-
 
     def read_equilibrium(self):
         fname = (self.src_dir / (self.fname_eq[:-4] + '_names.dat')).resolve()

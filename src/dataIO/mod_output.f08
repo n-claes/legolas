@@ -281,7 +281,7 @@ contains
 
     namelist /gridlist/ geometry, x_start, x_end, gridpts, gauss_gridpts, &
                         matrix_gridpts, ef_gridpts
-    namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
+    namelist /equilibriumlist/ gamma, equilibrium_type, boundary_type, use_defaults
     namelist /savelist/ write_matrices, write_eigenvectors, &
                         write_eigenfunctions, write_equilibrium, &
                         show_results, show_matrices, show_eigenfunctions, show_equilibrium
