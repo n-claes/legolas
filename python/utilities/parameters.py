@@ -33,12 +33,14 @@ DEFAULT_PARAMS = {
     'gravito_acoustic': {
         'k2': np.pi,
         'k3': np.pi,
-        'g': 0.5
+        'cte_p0': 1.0,
+        'g': 0.5,
+        'alpha': 20.42
     },
     'gravito_mhd': {
         'k2': np.pi,
         'k3': np.pi,
-        'cte_p0': 1.0,
+        'cte_p0': 0.5,
         'g': 0.5,
         'alpha': 20.0
     },
@@ -152,6 +154,15 @@ DEFAULT_PARAMS = {
 }
 
 PRECODED_MULTIRUNS = {
+    'gravito_acoustic_NB10': {
+        'equilibrium': 'gravito_acoustic',
+        'gridpts': 31,
+        'nb_runs': 40,
+        'parameters': {
+            'k2': np.linspace(0, np.sqrt(250), 40),
+            'k3': np.linspace(0, np.sqrt(250), 40)
+        }
+    },
     'gravito_mhd_beta1': {
         'equilibrium': 'gravito_mhd',
         'gridpts': 31,
@@ -201,11 +212,11 @@ PRECODED_MULTIRUNS = {
     'constant_current_m-2': {
         'equilibrium': 'constant_current_tokamak',
         'gridpts': 51,
-        'nb_runs': 40,
+        'nb_runs': 37,
         'parameters': {
             'k2': -2.0,
             'k3': 0.2,
-            'j0': (2.0 * 0.2) / np.linspace(1.9, 2.1, 40)
+            'j0': (2.0 * 0.2) / np.linspace(1.9, 2.1, 37)
         }
     }
 }
