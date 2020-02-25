@@ -50,6 +50,7 @@ module mod_equilibrium
     module subroutine discrete_alfven_eq; end subroutine
     module subroutine interchange_modes_eq; end subroutine
     module subroutine constant_current_eq; end subroutine
+    module subroutine resonant_absorption_eq; end subroutine
 
     module subroutine user_defined_eq; end subroutine
 
@@ -188,6 +189,8 @@ contains
       set_equilibrium_values => interchange_modes_eq
     case("constant_current_tokamak")
       set_equilibrium_values => constant_current_eq
+    case("resonant_absorption")
+      set_equilibrium_values => resonant_absorption_eq
 
     ! User defined
   case("user_defined")
