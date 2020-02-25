@@ -26,13 +26,13 @@ contains
     if (use_defaults) then
       k2 = dpi
       k3 = dpi
+      cte_p0 = 1.0d0
+      alpha = 20.42
 
       g = 0.5d0
     end if
 
-    cte_rho0  = 1.0d0
-    cte_p0    = 1.0d0
-    alpha = cte_rho0 * g / cte_p0
+    cte_rho0 = alpha * cte_p0 / g
 
     !! Equilibrium
     T_field % T0      = cte_p0 / cte_rho0

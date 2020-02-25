@@ -27,7 +27,7 @@ contains
       k2 = dpi
       k3 = dpi
 
-      cte_p0 = 1.0d0
+      cte_p0 = 0.5d0
       g = 0.5d0
       alpha = 20.0d0
     end if

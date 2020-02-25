@@ -28,9 +28,9 @@ contains
       k2 = dpi
       k3 = dpi
 
-      cte_p0 = 1.0d0
+      cte_p0 = 0.25d0
       g = 0.5d0
-      lambda = 0.3d0
+      lambda = 0.0d0
       alpha = 20.0d0
     end if
 
@@ -49,7 +49,7 @@ contains
       rho_field % rho0(i) = cte_rho0 * exp(-alpha*x)
       B_field % B02(i)    = B0 * exp(-0.5d0 * alpha * x) * sin(lambda*x)
       B_field % B03(i)    = B0 * exp(-0.5d0 * alpha * x) * cos(lambda*x)
-      B_field % B0(i)     = B0 * exp(-0.5d0 * alpha * x)
+      B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
 
       !! Derivatives
       rho_field % d_rho0_dr(i) = -alpha * (rho_field % rho0(i))
