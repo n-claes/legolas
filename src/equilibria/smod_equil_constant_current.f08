@@ -22,8 +22,6 @@ contains
     x_end   = 1.0d0
     call initialise_grid()
 
-    external_gravity = .true.
-
     if (use_defaults) then
       k2 = dpi
       k3 = dpi

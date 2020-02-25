@@ -35,6 +35,10 @@ contains
       L = r0
     end if
 
+    !! Equilibrium
+    rho_field % rho0 = 1.0d0
+    B_field % B03 = 1.0d0
+
     k3 = 2.0d0*dpi*n/L
     c = 5.0d0*j0**2 / 48.0d0     ! implies T = 0 at r = 1
 
@@ -42,9 +46,7 @@ contains
       r = grid_gauss(i)
 
       ! Equilibrium
-      rho_field % rho0(i) = 1.0d0
       B_field % B02(i)    = j0 * (1.0d0 - (1.0d0-r**2)**2) / (4.0d0*r)
-      B_field % B03(i)    = 1.0d0
       B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
       ! T obtained by solving the equilibrium condition for p0 (integration constant c)
       T_field % T0(i)     = c - 0.25d0*j0**2*r**2 * (1.0d0 - 0.75d0*r**2 + r**4/(6.0d0))
