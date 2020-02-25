@@ -12,16 +12,29 @@ class MultiSpectrum(LEGOLASDataContainer):
         self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
         self.gridpts_title = ' ({} gridpts / run)'.format(self.datacontainer[0].gridpts)
 
-
     def plot(self):
         mr_name = self._get_precoded_name()
 
         # first check custom plot requirements
-        if 'gravito_mhd' in mr_name:
+        if 'gravito_acoustic' in mr_name:
+            for data in self.datacontainer:
+                # prefactor in this case is a/c where a is domain length (=1) and c sound speed (c2 = gamma*p0/rho0)
+                w_prefact = 1.0 / np.sqrt(data.gamma * data.params['cte_p0'] / data.params['cte_rho0'])
+                omega2 = w_prefact**2 * np.real(data.omegas**2)
+                k02 = (data.params['k2']**2 + data.params['k3']**2) * np.ones_like(omega2)
+                self.ax.plot(k02, omega2, '.b', markersize=2, alpha=0.8)
+            self.ax.axhline(y=100, linestyle='dotted', color='grey', lw=1)
+            self.ax.set_ylabel(r'$\dfrac{1}{c^2}\omega^2$')
+            self.ax.set_xlabel('$k_0^2$')
+            self.ax.set_title(mr_name + self.gridpts_title)
+            self.ax.set_xlim([0, 500])
+            self.ax.set_ylim([0, 500])
+
+        elif 'gravito_mhd' in mr_name:
             for data in self.datacontainer:
                 w_prefact = np.sqrt(data.params['cte_rho0'])
                 omega2 = w_prefact**2 * np.real(data.omegas**2)
-                k02 = (data.params['k2'] ** 2 + data.params['k3'] ** 2) * np.ones_like(omega2)
+                k02 = (data.params['k2']**2 + data.params['k3']**2) * np.ones_like(omega2)
                 self.ax.plot(k02, omega2, '.b', markersize=2, alpha=0.8)
             self.ax.set_ylabel(r'$\dfrac{1}{v_A^2}\omega^2$')
             self.ax.set_xlabel('$k_0^2$')
@@ -63,7 +76,6 @@ class MultiSpectrum(LEGOLASDataContainer):
             self.ax.set_ylabel(r'$\omega^2$')
             self.ax.set_xlabel('$k_0^2$')
             self.ax.set_title(self.datacontainer[0].current_eq + self.gridpts_title)
-
 
     def _get_precoded_name(self):
         for mr_name in PRECODED_MULTIRUNS:

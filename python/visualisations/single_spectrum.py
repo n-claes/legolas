@@ -16,7 +16,7 @@ class SingleSpectrum(LEGOLASDataContainer):
         self.data = self.datacontainer.pop()
 
     def plot(self):
-        spectrum_title = self.data.current_eq + '   ({})'.format(self.data.geometry)
+        spectrum_title = self.data.current_eq + '   ({}, {} gridpts)'.format(self.data.geometry, self.data.gridpts)
         plot_spectrum(self.fig, self.ax, self.data.omegas, title=spectrum_title)
 
         if self.data.equil_data is not None:
@@ -36,9 +36,11 @@ class SingleSpectrum(LEGOLASDataContainer):
 
     def _plot_equilibria(self):
         fig, ax = plt.subplots(1, figsize=(12, 8))
+        colors = ['blue', 'red', 'green', 'cyan', 'orange', 'grey']
 
-        for var in ['rho0', 'T0', 'v02', 'v03', 'B02', 'B03']:
-            ax.plot(self.data.grid_gauss, self.data.equil_data[var], label=var)
+        for idx, var in enumerate(['rho0', 'T0', 'v02', 'v03', 'B02', 'B03']):
+            ax.plot(self.data.grid_gauss, self.data.equil_data[var], 'o', markersize=2, color=colors[idx], label=var)
+            ax.plot(self.data.grid_gauss, self.data.equil_data[var], color=colors[idx], alpha=0.3)
         ax.set_xlabel('Gaussian grid')
         ax.set_title('Equilibrium configuration')
         ax.set_xlim([self.data.grid_gauss[0], self.data.grid_gauss[-1]])
