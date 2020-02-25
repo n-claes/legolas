@@ -83,7 +83,8 @@ contains
   !! @param[in] edge    'r_edge' for right boundary, 'l_edge' for left boundary
   !! @param[in] matrix  'A' for A-matrix boundaries, 'B' for B-matrix boundaries
   subroutine fixed_boundaries(quadblock, edge, matrix)
-    use mod_global_variables, only: dim_subblock, boundary_type, thermal_conduction
+    use mod_global_variables, only: dim_subblock, boundary_type, thermal_conduction, geometry, dp_LIMIT
+    use mod_equilibrium_params, only: k2, k3
 
     complex(dp), intent(inout)  :: quadblock(dim_quadblock, dim_quadblock)
     character(6), intent(in)    :: edge
@@ -113,9 +114,18 @@ contains
     !! The first diagonal elements of the top-left quadblock are set to unity.
     if (edge == "l_edge") then
       do i = 1, dim_subblock, 2
-        ! Every odd row to zero
+        if (geometry == 'cylindrical') then
+          if (i == 13 .and. abs(k3) < dp_LIMIT) then ! if k3 is zero, do not set rows and col with index 13 to zero
+            cycle
+          end if
+          if (i == 15 .and. abs(k2) < dp_LIMIT) then ! if k2 is zero, do not set rows and cols with index 15 to zero
+            cycle
+          end if
+        end if
+
+        ! odd rows to zero
         quadblock(i, :) = (0.0d0, 0.0d0)
-        ! Every odd column to zero
+        ! odd columns to zero
         quadblock(:, i) = (0.0d0, 0.0d0)
         ! Unity on first diagonal elements for B, zero for A
         quadblock(i, i) = unity
