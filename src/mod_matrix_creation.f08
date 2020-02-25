@@ -47,7 +47,7 @@ contains
 
     ! initialise matrices (A is complex, B is real)
     matrix_B = 0.0d0
-    matrix_A = 0.0d0
+    matrix_A = (0.0d0, 0.0d0)
 
     ! initialise quadblock index to 0 (used to shift the block along diagonal)
     quadblock_idx = 0
@@ -146,7 +146,6 @@ contains
     ! Quadratic * Quadratic
     call reset_factors(factors, 5)
     call reset_positions(positions, 5)
-
     ! B(1,1)
     factors(1) = 1.0d0 / eps
     positions(1, :) = [1, 1]
@@ -162,14 +161,11 @@ contains
     ! B(6,6)
     factors(5) = 1.0d0
     positions(5, :) = [6, 6]
-
-    call subblock(quadblock_B, factors, positions, curr_weight, &
-                  h_quadratic, h_quadratic)
+    call subblock(quadblock_B, factors, positions, curr_weight, h_quadratic, h_quadratic)
 
     ! Cubic * Cubic
     call reset_factors(factors, 3)
     call reset_positions(positions, 3)
-
     ! B(2,2)
     factors(1) = rho / eps
     positions(1, :) = [2, 2]
@@ -179,7 +175,6 @@ contains
     ! B(8,8)
     factors(3) = 1.0d0
     positions(3, :) = [8, 8]
-
     call subblock(quadblock_B, factors, positions, curr_weight, h_cubic, h_cubic)
 
     deallocate(factors)
@@ -271,7 +266,6 @@ contains
     ! Quadratic * Quadratic
     call reset_factors(factors, 19)
     call reset_positions(positions, 19)
-
     ! A(1, 1)
     factors(1) = eps_inv * (eps_inv * v02 * k2 + v03 * k3)
     positions(1, :) = [1, 1]
@@ -306,8 +300,7 @@ contains
     factors(11) = B02 * (k3**2 + k2**2 * eps_inv**2)
     positions(11, :) = [4, 6]
     ! A(5, 1)
-    factors(12) = ic * gamma_1 * eps_inv * &
-                    (d_eps_dr * eps_inv * dT0 * dtc_perp_drho - L0 - rho0*L_rho)
+    factors(12) = ic * gamma_1 * eps_inv * (d_eps_dr * eps_inv * dT0 * dtc_perp_drho - L0 - rho0*L_rho)
     positions(12, :) = [5, 1]
     ! A(5, 3)
     factors(13) = gamma_1 * eps_inv * rho0 * T0 * k2
@@ -316,30 +309,24 @@ contains
     factors(14) = gamma_1 * eps_inv * rho0 * T0 * k3
     positions(14, :) = [5, 4]
     ! A(5, 5)
-    factors(15) = -eps_inv * ic * gamma_1 * ( &
-              tc_perp * (d_eps_dr * eps_inv)**2 &
-              + tc_perp * (k2**2 * eps_inv**2 + k3**2) &
-              + rho0 * L_T - d_eps_dr * eps_inv * dT0 * dtc_perp_dT &
-                                            ) &
-              + eps_inv * rho0 * (eps_inv * k2 * v02 + k3 * v03) &
-              + ic * gamma_1 * eps_inv * deta * ( &
-                  dB02**2 + dB03**2 + 2.0d0*d_eps_dr * eps_inv * B02 * dB02 &
-                  + (d_eps_dr * eps_inv * B02)**2 &
-                                                )
+    factors(15) = -eps_inv * ic * gamma_1 * ( tc_perp * (d_eps_dr * eps_inv)**2 &
+                                              + tc_perp * (k2**2 * eps_inv**2 + k3**2) &
+                                              + rho0 * L_T - d_eps_dr * eps_inv * dT0 * dtc_perp_dT ) &
+                  + eps_inv * rho0 * (eps_inv * k2 * v02 + k3 * v03) &
+                  + ic * gamma_1 * eps_inv * deta * ( dB02**2 + dB03**2 + 2.0d0*d_eps_dr * eps_inv * B02 * dB02 &
+                                                      + (d_eps_dr * eps_inv * B02)**2  )
     if (thermal_conduction) then
-      factors(15) = factors(15) - eps_inv * ic * gamma_1 * (tc_para - tc_perp) &
-                    * B2_inv * (k2 * eps_inv * B02 + k3*B03)**2
+      factors(15) = factors(15) - eps_inv * ic * gamma_1 * (tc_para-tc_perp) * B2_inv * (k2 * eps_inv * B02 + k3 * B03)**2
     end if
     positions(15, :) = [5, 5]
     ! A(5, 6)   (term with eta-derivative has been rewritten, d_eta_dr = deta * dT0)
-    factors(16) = 2.0d0 * ic * gamma_1 * ( &
-              (dT0 * d_eps_dr * eps_inv**2 &
-              * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2) &
-              + eps_inv * k2 * eta * ddB03 &
-              - k3 * eta * ddB02 + 2*k3*(d_eps_dr*eps_inv)**2 * eta * B02 &
-              + eps_inv * k2 * dB03 * deta * dT0 - k3 * dB02 * deta * dT0 &
-              - k3 * d_eps_dr * eps_inv * B02 * deta * dT0 &
-                                      )
+    factors(16) = 2.0d0 * ic * gamma_1 * ( (dT0 * d_eps_dr * eps_inv**2 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2) &
+                                          + eps_inv * k2 * eta * ddB03 &
+                                          - k3 * eta * ddB02 &
+                                          + 2 * k3 * (d_eps_dr * eps_inv)**2 * eta * B02 &
+                                          + eps_inv * k2 * dB03 * deta * dT0 &
+                                          - k3 * dB02 * deta * dT0 &
+                                          - k3 * d_eps_dr * eps_inv * B02 * deta * dT0 )
     positions(16, :) = [5, 6]
     ! A(6, 3)
     factors(17) = -B03
@@ -348,18 +335,14 @@ contains
     factors(18) = eps_inv * B02
     positions(18, :) = [6, 4]
     ! A(6, 6)
-    factors(19) = eps_inv * k2 * v02 + k3 * v03 &
-                    -ic * eta * (eps_inv**2 * k2**2 + k3**2)
+    factors(19) = eps_inv * k2 * v02 + k3 * v03 - ic * eta * (eps_inv**2 * k2**2 + k3**2)
     positions(19, :) = [6, 6]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  h_quadratic, h_quadratic)
+    call subblock(quadblock_A, factors, positions, curr_weight, h_quadratic, h_quadratic)
 
 
     ! Quadratic * Cubic
     call reset_factors(factors, 10)
     call reset_positions(positions, 10)
-
     ! A(1, 2)
     factors(1) = -eps_inv * drho0
     positions(1, :) = [1, 2]
@@ -385,38 +368,25 @@ contains
     factors(8) = -eps_inv * rho0 * dT0
     positions(8, :) = [5, 2]
     ! A(5, 7)
-    factors(9) = ic * gamma_1 * eps_inv * ( &
-                   -2.0d0 * eta * k3**2 * dB03 &
-                   -2.0d0 * eta * k2 * k3 * eps_inv**2 * drB02 &
-                                            )
+    factors(9) = ic * gamma_1 * eps_inv * (-2.0d0 * eta * k3**2 * dB03 - 2.0d0 * eta * k2 * k3 * eps_inv**2 * drB02)
     if (thermal_conduction) then
-      factors(9) = factors(9) + ic * gamma_1 * eps_inv * ( &
-                          (tc_para - tc_perp) * B2_inv * dT0 * &
-                          (k2 * k3 * B02 * eps_inv + k3**2 * B03) &
-                                                          )
+      factors(9) = factors(9) + ic * gamma_1 * eps_inv * ( (tc_para - tc_perp) * B2_inv * dT0 &
+                                                            * (k2 * k3 * B02 * eps_inv + k3**2 * B03) )
     end if
     positions(9, :) = [5, 7]
     ! A(5, 8)
-    factors(10) = -ic * gamma_1 * eps_inv * ( &
-                   -2.0d0 * eta * k2 * k3 * dB03 &
-                   -2.0d0 * eta * k2**2 * eps_inv**2 * drB02 &
-                                              )
+    factors(10) = -ic * gamma_1 * eps_inv * (-2.0d0 * eta * k2 * k3 * dB03 - 2.0d0 * eta * k2**2 * eps_inv**2 * drB02)
     if (thermal_conduction) then
-      factors(10) = factors(10) -ic * gamma_1 * eps_inv * ( &
-                (tc_para - tc_perp) * B2_inv * dT0 * &
-                (k2**2 * B02 * eps_inv + k2 * k3 * B03) &
-                                                          )
+      factors(10) = factors(10) - ic * gamma_1 * eps_inv * ( (tc_para - tc_perp) * B2_inv * dT0 &
+                                                              * (k2**2 * B02 * eps_inv + k2 * k3 * B03) )
     end if
     positions(10, :) = [5, 8]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  h_quadratic, h_cubic)
+    call subblock(quadblock_A, factors, positions, curr_weight, h_quadratic, h_cubic)
 
 
     ! Quadratic * d(Cubic)/dr
     call reset_factors(factors, 10)
     call reset_positions(positions, 10)
-
     ! A(1, 2)
     factors(1) = -eps_inv * rho0
     positions(1, :) = [1, 2]
@@ -436,18 +406,15 @@ contains
     factors(6) = -gamma_1 * eps_inv * rho0 * T0
     positions(6, :) = [5, 2]
     ! A(5, 7)
-    factors(7) = 2.0d0*ic*gamma_1*eps_inv * ( &
-                    dT0 * B03 * d_eps_dr * eps_inv * dtc_perp_dB2 &
-                    - eta * ddB03 - deta * dT0 * dB03 &
-                                            )
+    factors(7) = 2.0d0 * ic * gamma_1 * eps_inv * ( dT0 * B03 * d_eps_dr * eps_inv * dtc_perp_dB2 &
+                                                    - eta * ddB03 - deta * dT0 * dB03 )
     positions(7, :) = [5, 7]
     ! A(5, 8)    (derivative of eta-term has been rewritten, d_eta_dr = deta * dT0)
-    factors(8) = -2.0d0*ic*gamma_1 * ( &
-                    dT0 * d_eps_dr * eps_inv * B02 * dtc_perp_dB2 &
-                    - eta*ddB02 + 2.0d0*(d_eps_dr * eps_inv)**2 * eta * B02 &
-                    - dB02 * deta * dT0 &
-                    - d_eps_dr * eps_inv * B02 * deta * dT0 &
-                                 )
+    factors(8) = -2.0d0 * ic * gamma_1 * ( dT0 * d_eps_dr * eps_inv * B02 * dtc_perp_dB2 &
+                                          - eta * ddB02 &
+                                          + 2.0d0 * (d_eps_dr * eps_inv)**2 * eta * B02 &
+                                          - dB02 * deta * dT0 &
+                                          - d_eps_dr * eps_inv * B02 * deta * dT0 )
     positions(8, :) = [5, 8]
     ! A(6, 7)
     factors(9) = -eps_inv * v02 + ic * eta * eps_inv**2 * k2
@@ -455,20 +422,17 @@ contains
     ! A(6, 8)
     factors(10) = -v03 + ic * eta * k3
     positions(10, :) = [6, 8]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  h_quadratic, dh_cubic_dr)
+    call subblock(quadblock_A, factors, positions, curr_weight, h_quadratic, dh_cubic_dr)
 
 
     ! Cubic * Quadratic
     call reset_factors(factors, 6)
     call reset_positions(positions, 6)
-
     ! A(2, 1)
     factors(1) = -d_eps_dr * eps_inv**2 * v02**2 + eps_inv * grav
     positions(1, :) = [2, 1]
     ! A(2, 3)
-    factors(2) = -2 * d_eps_dr * eps_inv * rho0 * v02
+    factors(2) = -2.0d0 * d_eps_dr * eps_inv * rho0 * v02
     positions(2, :) = [2, 3]
     ! A(2, 6)
     factors(3) = eps_inv * drB02 * k3 - eps * k3 * dB02_r
@@ -482,15 +446,12 @@ contains
     ! A(8, 6)
     factors(6) = -ic * eta * d_eps_dr * eps_inv * k3
     positions(6, :) = [8, 6]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  h_cubic, h_quadratic)
+    call subblock(quadblock_A, factors, positions, curr_weight, h_cubic, h_quadratic)
 
 
     ! d(Cubic)/dr * Quadratic
     call reset_factors(factors, 5)
     call reset_positions(positions, 5)
-
     ! A(2, 1)
     factors(1) = -T0 * eps_inv
     positions(1, :) = [2, 1]
@@ -506,15 +467,12 @@ contains
     ! A(8, 6)
     factors(5) = ic * eta * k3
     positions(5, :) = [8, 6]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  dh_cubic_dr, h_quadratic)
+    call subblock(quadblock_A, factors, positions, curr_weight, dh_cubic_dr, h_quadratic)
 
 
     ! Cubic * Cubic
     call reset_factors(factors, 9)
     call reset_positions(positions, 9)
-
     ! A(2, 2)
     factors(1) = eps_inv * (eps_inv * v02 * k2 + v03 * k3) * rho0
     positions(1, :) = [2, 2]
@@ -542,30 +500,24 @@ contains
     ! A(8, 8)
     factors(9) = eps_inv * k2 * (v02 - ic * eta * eps_inv * k2)
     positions(9, :) = [8, 8]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  h_cubic, h_cubic)
+    call subblock(quadblock_A, factors, positions, curr_weight, h_cubic, h_cubic)
 
 
     ! Cubic * d(Cubic)/dr
     call reset_factors(factors, 2)
     call reset_positions(positions, 2)
-
     ! A(2, 8)
     factors(1) = -2.0d0 * B02 * d_eps_dr * eps_inv
     positions(1, :) = [2, 8]
     ! A(8, 8)
     factors(2) = ic * eta * d_eps_dr * eps_inv
     positions(2, :) = [8, 8]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  h_cubic, dh_cubic_dr)
+    call subblock(quadblock_A, factors, positions, curr_weight, h_cubic, dh_cubic_dr)
 
 
     ! d(Cubic)/dr * d(Cubic)/dr
     call reset_factors(factors, 4)
     call reset_positions(positions, 4)
-
     ! A(2, 7)
     factors(1) = -B03 * eps_inv
     positions(1, :) = [2, 7]
@@ -578,71 +530,53 @@ contains
     ! A(8, 8)
     factors(4) = -ic * eta
     positions(4, :) = [8, 8]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  dh_cubic_dr, dh_cubic_dr)
+    call subblock(quadblock_A, factors, positions, curr_weight, dh_cubic_dr, dh_cubic_dr)
 
 
     ! d(Quadratic)/dr * Quadratic
     call reset_factors(factors, 3)
     call reset_positions(positions, 3)
-
     ! A(5, 1)
     factors(1) = -ic * gamma_1 * eps_inv * dT0 * dtc_perp_drho
     positions(1, :) = [5, 1]
     ! A(5, 5)
-    factors(2) = ic * gamma_1 * eps_inv * (d_eps_dr * eps_inv * tc_perp &
-                                             - dT0 * dtc_perp_dT)
+    factors(2) = ic * gamma_1 * eps_inv * (d_eps_dr * eps_inv * tc_perp - dT0 * dtc_perp_dT)
     positions(2, :) = [5, 5]
     ! A(5, 6)
-    factors(3) = -2.0d0 * ic * gamma_1 * eps_inv * &
-                   (dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2  &
-                    - eta * k2 * dB03 + eta * k3 * drB02 )
+    factors(3) = -2.0d0 * ic * gamma_1 * eps_inv * ( dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2 &
+                                                    - eta * k2 * dB03 + eta * k3 * drB02 )
     positions(3, :) = [5, 6]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  dh_quadratic_dr, h_quadratic)
+    call subblock(quadblock_A, factors, positions, curr_weight, dh_quadratic_dr, h_quadratic)
 
 
     ! Quadratic * d(Quadratic)/dr
     call reset_factors(factors, 1)
     call reset_positions(positions, 1)
-
     ! A(5, 5)
     factors(1) = ic * gamma_1 * d_eps_dr * eps_inv**2 * tc_perp
     positions(1, :) = [5, 5]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  h_quadratic, dh_quadratic_dr)
+    call subblock(quadblock_A, factors, positions, curr_weight, h_quadratic, dh_quadratic_dr)
 
 
     ! d(Quadratic)/dr * d(Quadratic)/dr
     call reset_factors(factors, 1)
     call reset_positions(positions, 1)
-
     ! A(5, 5)
     factors(1) = -ic * gamma_1 * eps_inv * tc_perp
     positions(1, :) = [5, 5]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  dh_quadratic_dr, dh_quadratic_dr)
+    call subblock(quadblock_A, factors, positions, curr_weight, dh_quadratic_dr, dh_quadratic_dr)
 
 
     ! d(Quadratic)/dr * d(Cubic)/dr
     call reset_factors(factors, 2)
     call reset_positions(positions, 2)
-
     ! A(5, 7)
-    factors(1) = -2.0d0 * ic * gamma_1 * eps_inv * &
-                   (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
+    factors(1) = -2.0d0 * ic * gamma_1 * eps_inv * (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
     positions(1, :) = [5, 7]
     ! A(5, 8)
-    factors(2) = 2.0d0 * ic * gamma_1 * &
-                   (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
+    factors(2) = 2.0d0 * ic * gamma_1 * (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
     positions(2, :) = [5, 8]
-
-    call subblock(quadblock_A, factors, positions, curr_weight, &
-                  dh_quadratic_dr, dh_cubic_dr)
+    call subblock(quadblock_A, factors, positions, curr_weight, dh_quadratic_dr, dh_cubic_dr)
 
     deallocate(factors)
     deallocate(positions)

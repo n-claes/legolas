@@ -250,7 +250,7 @@ contains
     dtc_perp_drho = kappa_field % d_kappa_perp_drho(idx)
     dtc_perp_dB2  = kappa_field % d_kappa_perp_dB2(idx)
 
-    drB02 = d_eps_dr*B02 + eps*dB02
+    drB02 = d_eps_dr * B02 + eps * dB02
 
     !! Spline functions for the boundaries. Interval is [grid(1), grid(2)]
     !! for the left edge, [grid(N-1), grid(N)] for the right edge.
@@ -269,17 +269,14 @@ contains
     factors(1) = ic * gamma_1 * eps_inv * dT0 * dtc_perp_drho
     positions(1, :) = [5, 1]
     ! A(5, 5)
-    factors(2) = ic * gamma_1 * eps_inv * (dT0 * dtc_perp_dT &
-                                          - d_eps_dr * eps_inv * tc_perp)
+    factors(2) = ic * gamma_1 * eps_inv * (dT0 * dtc_perp_dT - d_eps_dr * eps_inv * tc_perp)
     positions(2, :) = [5, 5]
     ! A(5, 6)
-    factors(3) = 2.0d0 * ic * gamma_1 * eps_inv * ( &
-                   dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2 &
-                 - eta * dB03 * k2 + eta * k3 * drB02)
+    factors(3) = 2.0d0 * ic * gamma_1 * eps_inv * ( dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2 &
+                                                    - eta * dB03 * k2 + eta * k3 * drB02)
     positions(3, :) = [5, 6]
 
-    call add_factors_quadblock(quadblock, factors, positions, &
-                              h_quadratic, h_quadratic, edge)
+    call add_factors_quadblock(quadblock, factors, positions, h_quadratic, h_quadratic, edge)
 
 
     ! Quadratic *  d(Quadratic)/dr
@@ -289,22 +286,20 @@ contains
     factors(1) = ic * gamma_1 * eps_inv * tc_perp
     positions(1, :) = [5, 5]
 
-    call add_factors_quadblock(quadblock, factors, positions, &
-                              h_quadratic, dh_quadratic_dr, edge)
+    call add_factors_quadblock(quadblock, factors, positions, h_quadratic, dh_quadratic_dr, edge)
 
 
     ! Quadratic * d(Cubic)/dr
     call reset_factors(factors, 2)
     call reset_positions(positions, 2)
     ! A(5, 7)
-    factors(1) = 2.0d0*ic*gamma_1*eps_inv * (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
+    factors(1) = 2.0d0 * ic * gamma_1 * eps_inv * (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
     positions(1, :) = [5, 7]
     ! A(5, 8)
-    factors(2) = -2.0d0*ic*gamma_1 * (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
+    factors(2) = -2.0d0 * ic * gamma_1 * (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
     positions(2, :) = [5, 8]
 
-    call add_factors_quadblock(quadblock, factors, positions, &
-                              h_quadratic, dh_cubic_dr, edge)
+    call add_factors_quadblock(quadblock, factors, positions, h_quadratic, dh_cubic_dr, edge)
 
 
     ! Cubic * Quadratic
@@ -320,14 +315,13 @@ contains
     factors(3) = B02 * k3 - eps_inv * B03 * k2
     positions(3, :) = [2, 6]
     ! A(7, 6)
-    factors(4) = - ic * eta * eps_inv * k2
+    factors(4) = -ic * eta * eps_inv * k2
     positions(4, :) = [7, 6]
     ! A(8, 6)
     factors(5) = -ic * eta * k3
     positions(5, :) = [8, 6]
 
-    call add_factors_quadblock(quadblock, factors, positions, &
-                              h_cubic, h_quadratic, edge)
+    call add_factors_quadblock(quadblock, factors, positions, h_cubic, h_quadratic, edge)
 
 
     ! Cubic * d(Cubic)/dr
@@ -346,8 +340,7 @@ contains
     factors(4) = ic * eta
     positions(4, :) = [8, 8]
 
-    call add_factors_quadblock(quadblock, factors, positions, &
-                              h_cubic, dh_cubic_dr, edge)
+    call add_factors_quadblock(quadblock, factors, positions, h_cubic, dh_cubic_dr, edge)
 
     deallocate(factors)
     deallocate(positions)
