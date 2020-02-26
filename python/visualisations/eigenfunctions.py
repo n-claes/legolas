@@ -92,7 +92,7 @@ class EigenfunctionHandler:
                 plot_eigenfunctions(self.fig, self.ax, self.omegas, self.grid, self.eigenfuncs,
                                     var, self.w_idx_list, self.plot_real)
             if event.key == 'down':
-                self.var = self._select_next_variable()
+                self.var = self._select_prev_variable()
             if event.key == 'up':
                 self.var = self._select_next_variable()
 
