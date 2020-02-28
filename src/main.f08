@@ -8,8 +8,6 @@
 !> Main program. Finite element code to calculate eigenvalues
 !! and eigenvectors of the complete non-adiabatic MHD spectrum.
 !! Included physics: flow, radiative cooling, thermal conduction, resistivity
-!
-
 program legolas
   use mod_global_variables, only: dp, str_len, show_results, run_silent
   use mod_matrix_creation, only: create_matrices
@@ -55,19 +53,20 @@ program legolas
                               "-i " // trim(config_file))
   end if
 
-
 contains
 
   !> Initialises the grid and equilibrium configuration.
   subroutine initialisation()
     use mod_global_variables, only: matrix_gridpts
     use mod_input, only: read_parfile, get_parfile
-    use mod_grid, only: initialise_grid
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_output, only: startup_info_toconsole
 
     character(len=str_len)  :: parfile
+
+    ! print empty line
+    write(*, *) ""
 
     call get_parfile(parfile)
     call read_parfile(parfile)
@@ -153,6 +152,5 @@ contains
     call eigenfunctions_clean()
 
   end subroutine cleanup
-
 
 end program legolas
