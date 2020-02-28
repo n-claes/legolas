@@ -27,7 +27,7 @@ module mod_grid
   public :: grid_gauss
   public :: eps_grid
   public :: d_eps_grid_dr
-  
+
   public :: initialise_grid
   public :: set_grid_gauss
   public :: grid_clean
@@ -38,7 +38,7 @@ contains
   !! if desired.
   subroutine initialise_grid()
     use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, gauss_gridpts
-    
+
     integer                  :: i
     real(dp)                 :: dx
 
@@ -51,15 +51,15 @@ contains
     grid       = 0.0d0
     grid_gauss = 0.0d0
 
+    if (geometry == "cylindrical" .and. x_start <= 1.0d-5) then
+      x_start = 1.0d-5
+    end if
+
     ! minus one here to include x_end
     dx = (x_end - x_start) / (gridpts-1)
     do i = 1, gridpts
       grid(i) = x_start + (i - 1)*dx
     end do
-
-    if (geometry == "cylindrical" .and. grid(1) <= 1.0d-5) then
-      grid(1) = 1.0d-5
-    end if
 
     if (mesh_accumulation) then
       call accumulate_mesh()
@@ -74,7 +74,7 @@ contains
   !! Gaussian points.
   subroutine set_grid_gauss()
     use mod_global_variables, only: gaussian_nodes, n_gauss
-    
+
     real(dp)              :: x_lo, x_hi, dx, xi(n_gauss)
     integer               :: i, j, idx
 
@@ -95,27 +95,27 @@ contains
       end do
     end do
   end subroutine set_grid_gauss
-  
-  
-  !> Subroutine to set the scale factor for switching between Cartesian and 
-  !! cylindrical geometries. 'eps' will be equal to grid_gauss for Cylindrical, and 
+
+
+  !> Subroutine to set the scale factor for switching between Cartesian and
+  !! cylindrical geometries. 'eps' will be equal to grid_gauss for Cylindrical, and
   !! is equal to one for Cartesian. 'd_eps_dr' is one in Cylindrical, and zero in Cartesian.
   subroutine set_scale_factor()
     use mod_global_variables, only: geometry
-    
-    if (geometry == 'Cartesian') then 
-      eps_grid = 1.0d0 
-      d_eps_grid_dr = 0.0d0 
-    else if (geometry == 'cylindrical') then 
+
+    if (geometry == 'Cartesian') then
+      eps_grid = 1.0d0
+      d_eps_grid_dr = 0.0d0
+    else if (geometry == 'cylindrical') then
       eps_grid = grid_gauss
       d_eps_grid_dr = 1.0d0
     else
       write(*, *) "Geometry not defined correctly."
-      write(*, *) "Currently set on: ", geometry 
-    end if 
+      write(*, *) "Currently set on: ", geometry
+    end if
   end subroutine set_scale_factor
-  
-  
+
+
   !> Subroutine to re-grid the mesh to a non-uniform spacing.
   !! This is based on two Gaussian curves with known widths (from
   !! mod_global_variables); the grid is accumulated near each Gaussian maximum,
@@ -123,7 +123,7 @@ contains
   !! by the function gaussian().
   subroutine accumulate_mesh()
     use mod_global_variables, only: x_start, x_end
-    
+
     integer                  :: i, integral_gridpts
     integer                  :: integral_gridpts_1, integral_gridpts_2
     real(dp)                 :: dx, dx_0, xi, bgf, fact, dx_eq
@@ -219,8 +219,5 @@ contains
     deallocate(eps_grid)
     deallocate(d_eps_grid_dr)
   end subroutine grid_clean
-
-
-
 
 end module mod_grid
