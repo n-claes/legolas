@@ -100,7 +100,7 @@ contains
     do i = 1, size(array)
       if (array(i) < 0.0d0) then
         write(*, *) "WARNING: ", trim(variable_name), " is negative somewhere!"
-        stop
+        error stop
       end if
     end do
   end subroutine check_negative_array
@@ -141,8 +141,7 @@ contains
                    - (d_eps/eps) * (rho * v02**2 - B02**2)
 
       if (eq_cond(i) > dp_LIMIT) then
-        write(*, *) "WARNING: equilibrium conditions not met!"
-        stop
+        error stop "WARNING: equilibrium conditions not met!"
       end if
     end do
 
@@ -150,13 +149,13 @@ contains
 
     if (geometry == 'cylindrical') then
       if (abs(B_field % B02(1)) > eq_limit) then
-        stop "WARNING: B_theta(0) is non-zero!"
+        error stop "WARNING: B_theta(0) is non-zero!"
       else if (abs(B_field % d_B03_dr(1)) > eq_limit) then
-        stop "WARNING: dB_z/dr(0) is non-zero!"
+        error stop "WARNING: dB_z/dr(0) is non-zero!"
       else if (abs(v_field % v02(1)) > eq_limit) then
-        stop "WARNING: v_theta(0) is non-zero!"
+        error stop "WARNING: v_theta(0) is non-zero!"
       else if (abs(v_field % d_v03_dr(1)) > eq_limit) then
-        stop "WARNING: d_v03_dr(0) is non-zero!"
+        error stop "WARNING: d_v03_dr(0) is non-zero!"
       end if
     end if
 
@@ -172,8 +171,8 @@ contains
 
     do i = 1, gauss_gridpts
       if (ieee_is_nan(array(i))) then
-        write(*, *) "NaN encountered in ", array_name
-        stop
+        write(*, *) "Checking ", array_name
+        error stop "NaN encountered!"
       end if
     end do
   end subroutine stop_if_nan
