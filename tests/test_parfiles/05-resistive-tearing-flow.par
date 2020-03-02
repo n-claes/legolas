@@ -18,8 +18,8 @@
 /
 
 &paramlist
-k2 = 1.5d0
-k3 = 0.0d0
-alpha = 4.73884d0
-beta = 0.15d0
+  k2 = 1.5d0
+  k3 = 0.0d0
+  alpha = 4.73884d0
+  beta = 0.15d0
 /
