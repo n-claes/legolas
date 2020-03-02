@@ -87,7 +87,7 @@ contains
     unit_velocity = 0.0d0           !< velocity unit in cm/s (cgs) or m/s (mks)
 
     !> Equilibriumlist defaults
-    equilibrium_type = "Adiabatic homogeneous"  !< precoded equilibrium to use
+    equilibrium_type = "adiabatic_homo"         !< precoded equilibrium to use
     boundary_type = 'wall'                      !< type of boundary condition
     use_defaults = .true.                       !< use defaults for equilibrium parameters
 
