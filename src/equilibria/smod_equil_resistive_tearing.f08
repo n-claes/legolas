@@ -11,8 +11,9 @@ contains
 
   module subroutine resistive_tearing_modes_eq()
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
+    use mod_equilibrium_params, only: alpha, beta
 
-    real(dp)              :: alpha, beta, x
+    real(dp)              :: x
     integer               :: i
 
     geometry = 'Cartesian'
@@ -24,12 +25,13 @@ contains
     use_fixed_resistivity = .true.
     fixed_eta_value = 0.0001d0
 
-    k2 = 0.49d0
-    k3 = 0.0d0
+    if (use_defaults) then
+      k2 = 0.49d0
+      k3 = 0.0d0
 
-    ! Parameters
-    alpha = 4.73884d0
-    beta  = 0.15d0
+      alpha = 4.73884d0
+      beta  = 0.15d0
+    end if
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)

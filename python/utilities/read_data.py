@@ -8,7 +8,7 @@ except ImportError:
     sys.exit(1)
 
 
-def check_file(filename):
+def _check_file(filename):
     """
     Checks if the provided file exists
     :param filename: path to file
@@ -19,26 +19,30 @@ def check_file(filename):
         sys.exit(1)
 
 
-def read_config_file(config_file):
+def read_config_files(config_files):
     """
     Reads the configuration namelist and processes it as a nested dictionary
-    :param config_file: namelist to read
+    :param config_files: list containing the namelists to read
     :return: nested dictionary, access through eg. config_file['gridlist']['geometry']
     """
-    check_file(config_file)
+    namelists = []
 
-    config_dict = f90nml.read(config_file)
+    for file in config_files:
+        _check_file(file)
+        config_dict = f90nml.read(file)
 
-    # check strings for leading or trailing spaces and remove them
-    # iterate over different namelists
-    for namelist in config_dict:
-        # iterate over keys in each namelist
-        for namelist_key in config_dict[namelist]:
-            # if corresponding value is a string, remove spaces
-            if isinstance(config_dict[namelist][namelist_key], str):
-                config_dict[namelist][namelist_key] = config_dict[namelist][namelist_key].strip()
+        # check strings for leading or trailing spaces and remove them
+        # iterate over different namelists
+        for namelist in config_dict:
+            # iterate over keys in each namelist
+            for namelist_key in config_dict[namelist]:
+                # if corresponding value is a string, remove spaces
+                if isinstance(config_dict[namelist][namelist_key], str):
+                    config_dict[namelist][namelist_key] = config_dict[namelist][namelist_key].strip()
 
-    return config_dict
+        namelists.append(dict(config_dict))
+
+    return namelists
 
 
 def read_stream_data(filename, content_type, rows, cols):
@@ -51,11 +55,10 @@ def read_stream_data(filename, content_type, rows, cols):
     :param rows: The number of rows in the file
     :param cols: The number of columns in the file
     """
-    check_file(filename)
+    _check_file(filename)
 
     nbitems = rows * cols
-    print(">> Reading {}".format(filename))
     data = np.fromfile(filename, dtype=content_type, count=nbitems)
-    stream_data = data.reshape(rows, cols)
+    stream_data = data.reshape(rows, cols, order='F')
 
     return stream_data

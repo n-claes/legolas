@@ -1,5 +1,4 @@
 import numpy as np
-import os, sys
 import matplotlib as mpl
 mpl.use("TkAgg")
 import matplotlib.pyplot as plt
@@ -30,19 +29,15 @@ def plot_matrix(fig, ax, ax_idx, matrix, title=None, log=True):
         for j in range(0, matrix_gridpts):
             m = np.sqrt(matrix[i, j].real**2 + matrix[i, j].imag**2)
 
-            if abs(m - 0.0) < 1.0e-12:
-                continue
-            else:
+            if abs(m) >= 1.0e-12:
                 elements.append(m)
                 row_idxs.append(i+1)    # for visual and fortran indexing
                 col_idxs.append(j+1)
 
     if log:
-        im = ax[ax_idx].scatter(col_idxs, row_idxs, s=16, c=elements,
-                                cmap='jet',norm=mpl.colors.LogNorm())
+        im = ax[ax_idx].scatter(col_idxs, row_idxs, s=16, c=elements, cmap='jet', norm=mpl.colors.LogNorm())
     else:
-        im = ax[ax_idx].scatter(col_idxs, row_idxs, s=16, c=elements,
-                                cmap='jet')
+        im = ax[ax_idx].scatter(col_idxs, row_idxs, s=16, c=elements, cmap='jet')
 
     ax[ax_idx].invert_yaxis()
 
@@ -74,22 +69,21 @@ def plot_spectrum(fig, ax, omegas, marker=None, alpha=0.8, title=None):
     fig.tight_layout()
 
 
-def plot_eigenfunctions(fig, ax, omegas, grid, eigenfunctions, var, w_idx,
-                        real=True):
+def plot_eigenfunctions(fig, ax, omegas, grid, eigenfunctions, var, w_idx, real=True):
     eigenf = eigenfunctions[var]
     if isinstance(w_idx, list):
         for w in w_idx:
             lab = r"$\omega${} = {:.8f}".format(w, omegas[w])
             if real:
-                ax.plot(grid, np.real(eigenf[w, :]), label=lab)
+                ax.plot(grid, np.real(eigenf[:, w]), label=lab)
             else:
-                ax.plot(grid, np.imag(eigenf[w, :]), label=lab)
+                ax.plot(grid, np.imag(eigenf[:, w]), label=lab)
     else:
         lab = r"$\omega${} = {}".format(w_idx, omegas[w_idx])
         if real:
-            ax.plot(grid, np.real(eigenf[w_idx, :]), label=lab)
+            ax.plot(grid, np.real(eigenf[:, w_idx]), label=lab)
         else:
-            ax.plot(grid, np.imag(eigenf[w_idx, :]), label=lab)
+            ax.plot(grid, np.imag(eigenf[:, w_idx]), label=lab)
 
     ax.axhline(y=0, linestyle='dotted', color='grey')
     if real:

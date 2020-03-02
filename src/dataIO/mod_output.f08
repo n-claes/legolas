@@ -21,6 +21,8 @@ module mod_output
   integer, parameter  :: eigenvector_r_unit = 80
   !> IO unit for eigenfunction grid (2*gridpts - 1 = ef_gridpts)
   integer, parameter  :: ef_grid_unit = 90
+  !> IO unit for equilibrium values
+  integer, parameter  :: equil_unit = 110
 
   !! Format settings
   !> long exponential format
@@ -43,6 +45,7 @@ module mod_output
   public :: matrices_tofile
   public :: eigenvectors_tofile
   public :: ef_grid_tofile
+  public :: equilibrium_tofile
   public :: eigenfunctions_tofile
   public :: configuration_tofile
   public :: startup_info_toconsole
@@ -154,7 +157,7 @@ contains
   !! @param[in] base_filename   filename to use, default 'ef_grid'
   subroutine ef_grid_tofile(ef_grid, base_filename)
     use mod_global_variables, only: ef_gridpts
-    
+
     real(dp), intent(in)            :: ef_grid(ef_gridpts)
     character(len=*), intent(in)    :: base_filename
 
@@ -203,6 +206,52 @@ contains
   end subroutine eigenfunctions_tofile
 
 
+  subroutine equilibrium_tofile(grid_gauss, rho_field, T_field, B_field, v_field, base_filename)
+    use mod_global_variables, only: gauss_gridpts
+    use mod_types, only: density_type, temperature_type, bfield_type, velocity_type
+
+    real(dp), intent(in)                :: grid_gauss(gauss_gridpts)
+    type(density_type), intent(in)      :: rho_field
+    type(temperature_type), intent(in)  :: T_field
+    type(bfield_type), intent(in)       :: B_field
+    type(velocity_type), intent(in)     :: v_field
+    character(len=*), intent(in)        :: base_filename
+
+    character(str_len)                  :: filename, filename_names
+    character(len=6)                    :: vars_saved(14)
+    real(dp)                            :: equil_vars(14, gauss_gridpts)
+
+    vars_saved = [character(6) :: 'grid', 'rho0', 'drho0', 'T0', 'dT0', 'B02', 'B03', &
+                                  'dB02', 'dB03', 'B0', 'v02', 'dv02', 'v03', 'dv03']
+
+    call make_filename(base_filename, filename)
+    call make_filename(trim(base_filename) // '_names', filename_names)
+
+    equil_vars(1, :) = grid_gauss
+    equil_vars(2, :) = rho_field % rho0
+    equil_vars(3, :) = rho_field % d_rho0_dr
+    equil_vars(4, :) = T_field % T0
+    equil_vars(5, :) = T_field % d_T0_dr
+    equil_vars(6, :) = B_field % B02
+    equil_vars(7, :) = B_field % B03
+    equil_vars(8, :) = B_field % d_B02_dr
+    equil_vars(9, :) = B_field % d_B03_dr
+    equil_vars(10, :) = B_field % B0
+    equil_vars(11, :) = v_field % v02
+    equil_vars(12, :) = v_field % d_v02_dr
+    equil_vars(13, :) = v_field % v03
+    equil_vars(14, :) = v_field % d_v03_dr
+
+    call open_file(equil_unit, filename)
+    write(equil_unit) equil_vars
+    close(equil_unit)
+    call open_file(equil_unit + 1, filename_names)
+    write(equil_unit + 1) vars_saved
+    close(equil_unit + 1)
+
+  end subroutine equilibrium_tofile
+
+
   !> Converts a Fortran logical ('T' or 'F') to a string ('true', 'false').
   !! @param[in] boolean   Fortran logical to convert
   !! @param[out] boolean_string   'true' if boolean == True, 'false' otherwise
@@ -225,19 +274,24 @@ contains
   !!                            'output_folder/base_filename.nml'
   subroutine configuration_tofile(base_filename, filename)
     use mod_global_variables
-    
+    use mod_equilibrium_params
+
     character(len=*), intent(in)    :: base_filename
     character(str_len), intent(out) :: filename
 
     namelist /gridlist/ geometry, x_start, x_end, gridpts, gauss_gridpts, &
                         matrix_gridpts, ef_gridpts
-    namelist /equilibriumlist/ equilibrium_type, boundary_type
+    namelist /equilibriumlist/ gamma, equilibrium_type, boundary_type, use_defaults
     namelist /savelist/ write_matrices, write_eigenvectors, &
-                        write_eigenfunctions, show_results, show_matrices, &
-                        show_eigenfunctions
-    namelist /outputlist/ savename_eigenvalues, savename_efgrid, &
-                          savename_matrix, savename_eigenvectors, &
-                          savename_eigenfunctions, output_folder, file_extension
+                        write_eigenfunctions, write_equilibrium, &
+                        show_results, show_matrices, show_eigenfunctions, show_equilibrium
+    namelist /filelist/ savename_eigenvalues, savename_efgrid, &
+                        savename_matrix, savename_eigenvectors, savename_equil, &
+                        savename_eigenfunctions, savename_config, output_folder, file_extension
+    namelist /paramlist/ k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, &
+                         cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
+                         alpha, beta, delta, theta, tau, lambda, nu, &
+                         r0, rc, rj, Bth0, Bz0, V, j0, g
 
     filename = trim('output/' // trim(base_filename) // '.nml')
     open(unit=config_unit, file=filename, status='unknown', action='write')
@@ -245,7 +299,8 @@ contains
     write(config_unit, gridlist)
     write(config_unit, equilibriumlist)
     write(config_unit, savelist)
-    write(config_unit, outputlist)
+    write(config_unit, filelist)
+    write(config_unit, paramlist)
     close(config_unit)
   end subroutine configuration_tofile
 
@@ -253,7 +308,8 @@ contains
   !> Prints basic information of the current configuration to the console.
   subroutine startup_info_toconsole()
     use mod_global_variables
-    
+    use mod_equilibrium_params, only: k2, k3
+
     character(20)                   :: char
 
     write(*, *) "------------------------------"
@@ -297,12 +353,16 @@ contains
     write(*, *) "Write eigenvectors to file   : ", char
     call logical_tostring(write_eigenfunctions, char)
     write(*, *) "Write eigenfunctions to file : ", char
+    call logical_tostring(write_equilibrium, char)
+    write(*, *) "Write equilibrium to file    : ", char
     call logical_tostring(show_results, char)
     write(*, *) "Showing results              : ", char
     call logical_tostring(show_matrices, char)
     write(*, *) "Showing matrices             : ", char
     call logical_tostring(show_eigenfunctions, char)
     write(*, *) "Showing eigenfunctions       : ", char
+    call logical_tostring(show_equilibrium, char)
+    write(*, *) "Showing equilibrium config   : ", char
 
     write(*, *) '----------------------------------------------------'
     write(*, *) ''

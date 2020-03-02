@@ -58,11 +58,11 @@ module mod_physical_constants
 
   !! Physical constants
   !> Value for pi
-  real(real64), parameter       :: dpi = 3.141592653589793238462643383279
+  real(real64), parameter       :: dpi = 3.141592653589793238462643383279d0
   !> Helium abundance [He]/[H]
   real(real64), parameter       :: He_abundance = 0.1d0
   !> Coulomb logarithm
-  real(real64), parameter       :: coulomb_log = 22
+  real(real64), parameter       :: coulomb_log = 22d0
   !> Proton mass in g (cgs)
   real(real64), parameter       :: mp_cgs = 1.672621777d-24
   !> Proton mass in kg (SI)

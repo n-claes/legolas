@@ -1,0 +1,28 @@
+&gridlist
+  gridpoints = 101
+/
+
+&equilibriumlist
+  equilibrium_type = "rotating_theta_pinch"
+  boundary_type = "wall"
+  use_defaults = .false.
+/
+
+&savelist
+  write_matrices = .false.
+  write_eigenvectors = .false.
+  write_eigenfunctions = .false.
+  show_results = .false.
+  show_matrices = .false.
+  show_eigenfunctions = .false.
+/
+
+&paramlist
+  k2 = 1.0d0
+  k3 = 0.0d0
+  cte_rho0 = 1.0d0
+  alpha = 2.0d0
+  p1 = 0.1667d0   ! parameter d
+  p2 = 1.0d0      ! parameter Binf
+  p3 = 0.0d0      ! parameter x0
+/

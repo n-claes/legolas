@@ -1,0 +1,27 @@
+&gridlist
+  gridpoints = 101
+/
+
+&equilibriumlist
+  equilibrium_type = "kelvin_helmholtz"
+  boundary_type = "wall"
+  use_defaults = .false.
+/
+
+&savelist
+  write_matrices = .false.
+  write_eigenvectors = .false.
+  write_eigenfunctions = .false.
+  show_results = .false.
+  show_matrices = .false.
+  show_eigenfunctions = .false.
+/
+
+&paramlist
+  k2 = 10.0d0
+  k3 = 0.0d0
+  cte_p0 = 3.6d0
+  cte_v02 = 1.67d0
+  cte_v03 = 0.0d0
+  p1 = 0.05d0   ! this is parameter a
+/

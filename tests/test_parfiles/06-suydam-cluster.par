@@ -1,0 +1,27 @@
+&gridlist
+  gridpoints = 101
+/
+
+&equilibriumlist
+  equilibrium_type = "suydam_cluster"
+  boundary_type = "wall"
+  use_defaults = .false.
+/
+
+&savelist
+  write_matrices = .false.
+  write_eigenvectors = .false.
+  write_eigenfunctions = .false.
+  show_results = .false.
+  show_matrices = .false.
+  show_eigenfunctions = .false.
+/
+
+&paramlist
+  cte_v03 = 0.14d0
+  cte_p0 = 0.05d0
+  p1 = 0.1d0
+  alpha = 2.0d0
+  k2 = 1.0d0
+  k3 = -1.2d0
+/

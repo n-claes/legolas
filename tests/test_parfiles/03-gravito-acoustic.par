@@ -1,0 +1,26 @@
+&gridlist
+  gridpoints = 101
+/
+
+&equilibriumlist
+  equilibrium_type = "gravito_acoustic"
+  boundary_type = "wall"
+  use_defaults = .false.
+/
+
+&savelist
+  write_matrices = .false.
+  write_eigenvectors = .false.
+  write_eigenfunctions = .false.
+  show_results = .false.
+  show_matrices = .false.
+  show_eigenfunctions = .false.
+/
+
+&paramlist
+  k2 = 3.141592653589793238462643383279d0
+  k3 = 3.141592653589793238462643383279d0
+  cte_p0 = 1.0d0
+  g = 0.5d0
+  alpha = 20.42d0
+/

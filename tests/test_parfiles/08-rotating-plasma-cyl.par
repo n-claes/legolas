@@ -1,0 +1,30 @@
+&gridlist
+  gridpoints = 101
+/
+
+&equilibriumlist
+  equilibrium_type = "rotating_plasma_cylinder"
+  boundary_type = "wall"
+  use_defaults = .false.
+/
+
+&savelist
+  write_matrices = .false.
+  write_eigenvectors = .false.
+  write_eigenfunctions = .false.
+  show_results = .false.
+  show_matrices = .false.
+  show_eigenfunctions = .false.
+/
+
+&paramlist
+  k2 = 1.0d0
+  k3 = 0.0d0
+  cte_p0 = 0.1d0
+  p1 = 8.0d0    ! parameter a21
+  p2 = 0.0d0    ! parameter a22
+  p3 = 0.0d0    ! parameter a3
+  p4 = 1.0d0    ! parameter b21
+  p5 = 0.0d0    ! parameter b22
+  p6 = 0.0d0    ! parameter b3
+/

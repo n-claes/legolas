@@ -11,11 +11,12 @@
 module mod_equilibrium
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
                        gravity_type, resistivity_type, cooling_type, conduction_type
-  use mod_global_variables, only: dp, gauss_gridpts, k2, k3, x_start, x_end, &
+  use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
                                   flow, resistivity, external_gravity, radiative_cooling, &
-                                  thermal_conduction, geometry
+                                  thermal_conduction, geometry, use_defaults
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
+  use mod_equilibrium_params, only: k2, k3
   implicit none
 
   private
@@ -48,6 +49,8 @@ module mod_equilibrium
     module subroutine interface_modes_eq; end subroutine
     module subroutine discrete_alfven_eq; end subroutine
     module subroutine interchange_modes_eq; end subroutine
+    module subroutine constant_current_eq; end subroutine
+    module subroutine resonant_absorption_eq; end subroutine
 
     module subroutine user_defined_eq; end subroutine
 
@@ -105,7 +108,8 @@ contains
 
 
   subroutine set_equilibrium()
-    use mod_check_values, only: check_negative_array, check_equilibrium_conditions
+    use mod_check_values, only: check_negative_array, check_equilibrium_conditions, &
+                                check_nan_values
     use mod_resistivity, only: set_resistivity_values
     use mod_radiative_cooling, only: set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
@@ -130,6 +134,11 @@ contains
     call check_negative_array(rho_field % rho0, 'density')
     call check_negative_array(T_field % T0, 'temperature')
     call check_equilibrium_conditions(rho_field, T_field, B_field, v_field, grav_field)
+    call check_nan_values(rho_field)
+    call check_nan_values(T_field)
+    call check_nan_values(B_field)
+    call check_nan_values(v_field)
+    call check_nan_values(grav_field)
 
   end subroutine set_equilibrium
 
@@ -138,55 +147,59 @@ contains
     use mod_global_variables, only: equilibrium_type
 
     select case(equilibrium_type)
-    case('Adiabatic homogeneous')
+    case('adiabatic_homo')
       set_equilibrium_values => adiabatic_homo_eq
-    case('Resistive homogeneous')
+    case('resistive_homo')
       set_equilibrium_values => resistive_homo_eq
-    case("Gravito-acoustic waves")
+    case("gravito_acoustic")
       set_equilibrium_values => gravito_acoustic_eq
-    case("Gravito-MHD waves")
+    case("gravito_mhd")
       set_equilibrium_values => gravito_mhd_eq
-    case("Resistive tearing modes")
+    case("resistive_tearing")
       set_equilibrium_values => resistive_tearing_modes_eq
-    case("Resistive tearing modes with flow")
+    case("resistive_tearing_flow")
       set_equilibrium_values => resistive_tearing_modes_flow_eq
-    case("Flow driven instabilities")
+    case("flow_driven_instabilities")
       set_equilibrium_values => flow_driven_instabilities_eq
-    case("Suydam cluster modes")
+    case("suydam_cluster")
       set_equilibrium_values => suydam_cluster_eq
-    case("Kelvin-Helmholtz")
+    case("kelvin_helmholtz")
       set_equilibrium_values => kh_instability_eq
-    case("Rotating plasma cylinder")
+    case("rotating_plasma_cylinder")
       set_equilibrium_values => rotating_plasma_cyl_eq
-    case("Kelvin-Helmholtz and current driven")
+    case("kelvin_helmholtz_cd")
       set_equilibrium_values => kh_cd_instability_eq
-    case("Internal kink modes")
+    case("internal_kink")
       set_equilibrium_values => internal_kink_eq
-    case("Rotating theta pinch")
+    case("rotating_theta_pinch")
       set_equilibrium_values => rotating_theta_pinch_eq
-    case("Ideal quasimodes")
+    case("ideal_quasimodes")
       set_equilibrium_values => ideal_quasimodes_eq
-    case("Uniform with thermal conduction")
+    case("uniform_conduction")
       set_equilibrium_values => uniform_thermal_cond_eq
-    case("Non-uniform with thermal conduction")
+    case("nonuniform_conduction")
       set_equilibrium_values => nonuniform_thermal_cond_eq
-    case("Magneto-rotational instability")
+    case("magneto_rotational")
       set_equilibrium_values => magneto_rotational_eq
-    case("Interface modes")
+    case("interface_modes")
       set_equilibrium_values => interface_modes_eq
-    case("Non-adiabatic discrete Alfven")
+    case("discrete_alfven")
       set_equilibrium_values => discrete_alfven_eq
-    case("Interchange modes")
+    case("interchange_modes")
       set_equilibrium_values => interchange_modes_eq
+    case("constant_current_tokamak")
+      set_equilibrium_values => constant_current_eq
+    case("resonant_absorption")
+      set_equilibrium_values => resonant_absorption_eq
 
     ! User defined
-    case("User defined equilibrium")
+  case("user_defined")
       set_equilibrium_values => user_defined_eq
 
     ! Tests
-    case("Beta=0 test")
+  case("beta0_test")
       set_equilibrium_values => beta0_test_eq
-    case("Hydrodynamics test")
+    case("hydro_test")
       set_equilibrium_values => hydro_test_eq
 
     case default
