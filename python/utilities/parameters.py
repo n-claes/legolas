@@ -190,8 +190,8 @@ PRECODED_MULTIRUNS = {
         'gridpts': 31,
         'nb_runs': 40,
         'parameters': {
-            'k2': np.pi * np.cos(np.linspace(0, np.pi, 40)),
-            'k3': np.pi * np.sin(np.linspace(0, np.pi, 40)),
+            'k2': np.pi * np.sin(np.linspace(0, np.pi, 40)),
+            'k3': np.pi * np.cos(np.linspace(0, np.pi, 40)),
             'lambda': 0.0,
             'cte_p0': 0.25, # so beta = 0.5
             'alpha': 20.0
@@ -202,8 +202,8 @@ PRECODED_MULTIRUNS = {
         'gridpts': 31,
         'nb_runs': 40,
         'parameters': {
-            'k2': np.pi * np.cos(np.linspace(0, np.pi, 40)),
-            'k3': np.pi * np.sin(np.linspace(0, np.pi, 40)),
+            'k2': np.pi * np.sin(np.linspace(0, np.pi, 40)),
+            'k3': np.pi * np.cos(np.linspace(0, np.pi, 40)),
             'lambda': 0.3,
             'cte_p0': 0.25, # so beta = 0.5
             'alpha': 20.0
