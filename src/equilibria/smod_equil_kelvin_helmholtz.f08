@@ -10,7 +10,9 @@ submodule (mod_equilibrium) smod_equil_kelvin_helmholtz
 contains
 
   module subroutine kh_instability_eq()
-    real(dp)    :: a, x, p0, v0y, v0z
+    use mod_equilibrium_params, only: cte_p0, cte_v02, cte_v03, p1
+
+    real(dp)    :: a, x
     integer     :: i
 
     geometry = 'Cartesian'
@@ -21,14 +23,17 @@ contains
 
     flow = .true.
 
-    k2 = 10.0d0
-    k3 = 0.0d0
+    if (use_defaults) then
+      k2 = 10.0d0
+      k3 = 0.0d0
 
-    !! Parameters
-    a   = 0.05d0
-    P0  = 3.6d0
-    v0y = 1.67d0
-    v0z = 0.0d0   ! so B is perpendicular to v
+      a = 0.05d0
+      cte_p0  = 3.6d0
+      cte_v02 = 1.67d0
+      cte_v03 = 0.0d0   ! so B is perpendicular to v
+    else
+      a = p1
+    end if
 
     !! Filling equilibria
     rho_field % rho0 = 1.0d0
@@ -38,13 +43,13 @@ contains
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
-      v_field % v02(i) = -v0y * tanh(x / a)
-      v_field % v03(i) = -v0z * tanh(x / a)
-      T_field % T0(i)  = P0 / (rho_field % rho0(i))
+      v_field % v02(i) = -cte_v02 * tanh(x / a)
+      v_field % v03(i) = -cte_v03 * tanh(x / a)
+      T_field % T0(i)  = cte_p0 / (rho_field % rho0(i))
 
       ! Derivatives
-      v_field % d_v02_dr(i) = -v0y / (a * cosh(x / a)**2)
-      v_field % d_v03_dr(i) = -v0z / (a * cosh(x / a)**2)
+      v_field % d_v02_dr(i) = -cte_v02 / (a * cosh(x / a)**2)
+      v_field % d_v03_dr(i) = -cte_v03 / (a * cosh(x / a)**2)
     end do
 
   end subroutine kh_instability_eq

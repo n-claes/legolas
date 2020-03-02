@@ -12,7 +12,7 @@ contains
 
   module subroutine uniform_thermal_cond_eq()
     use mod_global_variables, only: use_fixed_tc, fixed_tc_para_value, fixed_tc_perp_value
-    real(dp)  :: beta
+    use mod_equilibrium_params, only: beta
 
     geometry = 'cylindrical'
     x_start = 0.0d0
@@ -24,10 +24,12 @@ contains
     fixed_tc_para_value = 0.001d0
     fixed_tc_perp_value = 0.0d0
 
-    k2 = 1.0d0
-    k3 = dpi
+    if (use_defaults) then
+      k2 = 1.0d0
+      k3 = dpi
 
-    beta = 0.25d0
+      beta = 0.25d0
+    end if
 
     !! Parameters
     rho_field % rho0 = 1.0d0

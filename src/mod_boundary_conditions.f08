@@ -83,7 +83,8 @@ contains
   !! @param[in] edge    'r_edge' for right boundary, 'l_edge' for left boundary
   !! @param[in] matrix  'A' for A-matrix boundaries, 'B' for B-matrix boundaries
   subroutine fixed_boundaries(quadblock, edge, matrix)
-    use mod_global_variables, only: dim_subblock, boundary_type, thermal_conduction
+    use mod_global_variables, only: dim_subblock, boundary_type, thermal_conduction, geometry, dp_LIMIT
+    use mod_equilibrium_params, only: k2, k3
 
     complex(dp), intent(inout)  :: quadblock(dim_quadblock, dim_quadblock)
     character(6), intent(in)    :: edge
@@ -113,9 +114,18 @@ contains
     !! The first diagonal elements of the top-left quadblock are set to unity.
     if (edge == "l_edge") then
       do i = 1, dim_subblock, 2
-        ! Every odd row to zero
+        if (geometry == 'cylindrical') then
+          if (i == 13 .and. abs(k3) < dp_LIMIT) then ! if k3 is zero, do not set rows and col with index 13 to zero
+            cycle
+          end if
+          if (i == 15 .and. abs(k2) < dp_LIMIT) then ! if k2 is zero, do not set rows and cols with index 15 to zero
+            cycle
+          end if
+        end if
+
+        ! odd rows to zero
         quadblock(i, :) = (0.0d0, 0.0d0)
-        ! Every odd column to zero
+        ! odd columns to zero
         quadblock(:, i) = (0.0d0, 0.0d0)
         ! Unity on first diagonal elements for B, zero for A
         quadblock(i, i) = unity
@@ -184,7 +194,8 @@ contains
   !!                              Out: natural boundary conditions applied.
   !! @param[in] edge  'r_edge' for right boundary, 'l_edge' for left boundary
   subroutine natural_boundaries(eps, d_eps_dr, quadblock, edge)
-    use mod_global_variables, only: ic, gamma_1, k2, k3, gauss_gridpts, gridpts
+    use mod_global_variables, only: ic, gamma_1, gauss_gridpts, gridpts
+    use mod_equilibrium_params, only: k2, k3
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, cubic_factors, cubic_factors_deriv
     use mod_grid, only: grid
     use mod_equilibrium, only: rho_field, T_field, B_field, kappa_field, eta_field
@@ -238,8 +249,8 @@ contains
     dtc_perp_dT   = kappa_field % d_kappa_perp_dT(idx)
     dtc_perp_drho = kappa_field % d_kappa_perp_drho(idx)
     dtc_perp_dB2  = kappa_field % d_kappa_perp_dB2(idx)
-    
-    drB02 = d_eps_dr*B02 + eps*dB02
+
+    drB02 = d_eps_dr * B02 + eps * dB02
 
     !! Spline functions for the boundaries. Interval is [grid(1), grid(2)]
     !! for the left edge, [grid(N-1), grid(N)] for the right edge.
@@ -258,17 +269,14 @@ contains
     factors(1) = ic * gamma_1 * eps_inv * dT0 * dtc_perp_drho
     positions(1, :) = [5, 1]
     ! A(5, 5)
-    factors(2) = ic * gamma_1 * eps_inv * (dT0 * dtc_perp_dT &
-                                          - d_eps_dr * eps_inv * tc_perp)
+    factors(2) = ic * gamma_1 * eps_inv * (dT0 * dtc_perp_dT - d_eps_dr * eps_inv * tc_perp)
     positions(2, :) = [5, 5]
     ! A(5, 6)
-    factors(3) = 2.0d0 * ic * gamma_1 * eps_inv * ( &
-                   dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2 &
-                 - eta * dB03 * k2 + eta * k3 * drB02)
+    factors(3) = 2.0d0 * ic * gamma_1 * eps_inv * ( dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2 &
+                                                    - eta * dB03 * k2 + eta * k3 * drB02)
     positions(3, :) = [5, 6]
 
-    call add_factors_quadblock(quadblock, factors, positions, &
-                              h_quadratic, h_quadratic, edge)
+    call add_factors_quadblock(quadblock, factors, positions, h_quadratic, h_quadratic, edge)
 
 
     ! Quadratic *  d(Quadratic)/dr
@@ -278,22 +286,20 @@ contains
     factors(1) = ic * gamma_1 * eps_inv * tc_perp
     positions(1, :) = [5, 5]
 
-    call add_factors_quadblock(quadblock, factors, positions, &
-                              h_quadratic, dh_quadratic_dr, edge)
+    call add_factors_quadblock(quadblock, factors, positions, h_quadratic, dh_quadratic_dr, edge)
 
 
     ! Quadratic * d(Cubic)/dr
     call reset_factors(factors, 2)
     call reset_positions(positions, 2)
     ! A(5, 7)
-    factors(1) = 2.0d0*ic*gamma_1*eps_inv * (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
+    factors(1) = 2.0d0 * ic * gamma_1 * eps_inv * (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
     positions(1, :) = [5, 7]
     ! A(5, 8)
-    factors(2) = -2.0d0*ic*gamma_1 * (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
+    factors(2) = -2.0d0 * ic * gamma_1 * (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
     positions(2, :) = [5, 8]
 
-    call add_factors_quadblock(quadblock, factors, positions, &
-                              h_quadratic, dh_cubic_dr, edge)
+    call add_factors_quadblock(quadblock, factors, positions, h_quadratic, dh_cubic_dr, edge)
 
 
     ! Cubic * Quadratic
@@ -309,14 +315,13 @@ contains
     factors(3) = B02 * k3 - eps_inv * B03 * k2
     positions(3, :) = [2, 6]
     ! A(7, 6)
-    factors(4) = - ic * eta * eps_inv * k2
+    factors(4) = -ic * eta * eps_inv * k2
     positions(4, :) = [7, 6]
     ! A(8, 6)
     factors(5) = -ic * eta * k3
     positions(5, :) = [8, 6]
 
-    call add_factors_quadblock(quadblock, factors, positions, &
-                              h_cubic, h_quadratic, edge)
+    call add_factors_quadblock(quadblock, factors, positions, h_cubic, h_quadratic, edge)
 
 
     ! Cubic * d(Cubic)/dr
@@ -335,8 +340,7 @@ contains
     factors(4) = ic * eta
     positions(4, :) = [8, 8]
 
-    call add_factors_quadblock(quadblock, factors, positions, &
-                              h_cubic, dh_cubic_dr, edge)
+    call add_factors_quadblock(quadblock, factors, positions, h_cubic, dh_cubic_dr, edge)
 
     deallocate(factors)
     deallocate(positions)

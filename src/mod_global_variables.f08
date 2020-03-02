@@ -62,10 +62,6 @@ module mod_global_variables
   logical, save             :: use_fixed_resistivity
   !> Sets the fixed value for the resistivity
   real(dp)                  :: fixed_eta_value
-  !> Wavenumber in y-direction (Cartesian) or theta-direction (cylindrical)
-  real(dp)                  :: k2
-  !> Wavenumber in z-direction (Cartesian) or z-direction (cylindrical)
-  real(dp)                  :: k3
 
   !! Grid-related parameters
   !> Geometry of the problem: 'Cartesian' or 'cylindrical'
@@ -115,6 +111,8 @@ module mod_global_variables
   character(len=str_len)       :: equilibrium_type
   !> Type of boundary to use
   character(len=str_len)       :: boundary_type
+  !> Use defaults for equilibrium parameters
+  logical, save                :: use_defaults
 
   !! Block-related parameters
   !> Number of equations
@@ -132,18 +130,24 @@ module mod_global_variables
   integer, parameter        :: dim_quadblock = 2*dim_subblock
 
   !! Data IO-related parameters (savelist)
+  !> Suppress console output
+  logical, save             :: run_silent
   !> Write matrices A and B to file when finished
   logical, save             :: write_matrices
   !> Write eigenvectors to file when finished
   logical, save             :: write_eigenvectors
   !> Write eigenfunctions to file when finished
   logical, save             :: write_eigenfunctions
+  !> Write equilibrium configuration to file when finished
+  logical, save             :: write_equilibrium
   !> Call python script when finishing to plot results
   logical, save             :: show_results
   !> Plot matrices A and B when finished
   logical, save             :: show_matrices
   !> Plot eigenfunctions when finished
   logical, save             :: show_eigenfunctions
+  !> Show equilibrium configuration when finished
+  logical, save             :: show_equilibrium
 
   !! Related parameters for filenames (filelist)
   !> Name for the eigenvalues file
@@ -158,6 +162,8 @@ module mod_global_variables
   character(len=str_len)    :: savename_eigenfunctions
   !> Name for the configuration file
   character(len=str_len)    :: savename_config
+  !> Name for the equilibrium file
+  character(len=str_len)    :: savename_equil
 
 contains
 

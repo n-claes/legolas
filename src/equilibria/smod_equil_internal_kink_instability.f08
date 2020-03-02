@@ -10,8 +10,9 @@ submodule (mod_equilibrium) smod_equil_internal_kink_instability
 contains
 
   module subroutine internal_kink_eq()
-    real(dp)      :: v_z0, p0, alpha, r, rho0, x
-    real(dp)      :: J0, J1, J2, J3, DJ0, DJ1, DDJ0, DDJ1
+    use mod_equilibrium_params, only: cte_rho0, cte_v03, cte_p0, alpha
+    real(dp)      :: r, x
+    real(dp)      :: J0, J1, J2, J3, DJ0, DJ1!, DDJ0, DDJ1
     integer       :: i
 
     geometry = 'cylindrical'
@@ -21,13 +22,15 @@ contains
 
     flow = .true.
 
-    !! Parameters
-    rho0  = 1.0d0
-    v_z0  = 1.0d0
-    p0    = 3.0d0
-    alpha = 5.0d0 / x_end
+    if (use_defaults) then
+      cte_rho0 = 1.0d0
+      cte_v03  = 1.0d0
+      cte_p0 = 3.0d0
 
-    k2 = 1.0d0
+      k2 = 1.0d0
+    end if
+
+    alpha = 5.0d0 / x_end
     k3 = 0.16d0 * alpha
 
     do i = 1, gauss_gridpts
@@ -40,21 +43,19 @@ contains
       J3   = bessel_jn(3, alpha * x)
       DJ0  = -alpha * J1
       DJ1  = alpha * (0.5d0 * J0 - 0.5d0 * J2)
-      DDJ0 = -alpha * DJ1
-      DDJ1 = -alpha**2 * (0.75d0 * J1 - 0.25d0 * J3)
 
       ! Equilibrium
-      rho_field % rho0(i) = rho0 * (1.0d0-x**2)
-      v_field % v03(i)    = v_z0 * (1.0d0-x**2)
+      rho_field % rho0(i) = cte_rho0 * (1.0d0-x**2)
+      v_field % v03(i)    = cte_v03 * (1.0d0-x**2)
       B_field % B02(i)    = J1
       B_field % B03(i)    = J0
       B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      T_field % T0(i)     = p0 / (rho_field % rho0(i))
+      T_field % T0(i)     = cte_p0 / (rho_field % rho0(i))
 
       ! Derivatives
-      rho_field % d_rho0_dr(i) = -2.0d0*rho0*x
-      T_field % d_T0_dr(i)     = 2.0d0*x * p0 / (rho0 * (1.0d0-x**2)**2)
-      v_field % d_v03_dr(i)    = -2.0d0*v_z0*x
+      rho_field % d_rho0_dr(i) = -2.0d0*cte_rho0*x
+      T_field % d_T0_dr(i)     = 2.0d0*x * cte_p0 / (cte_rho0 * (1.0d0-x**2)**2)
+      v_field % d_v03_dr(i)    = -2.0d0*cte_v03*x
       B_field % d_B02_dr(i)    = DJ1
       B_field % d_B03_dr(i)    = DJ0
     end do

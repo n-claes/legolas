@@ -12,7 +12,9 @@ contains
 
   module subroutine nonuniform_thermal_cond_eq()
     use mod_global_variables, only: use_fixed_tc, fixed_tc_para_value, fixed_tc_perp_value
-    real(dp)      :: x, B0, beta
+    use mod_equilibrium_params, only: beta
+
+    real(dp)      :: x, B0
     integer       :: i
 
     geometry = 'Cartesian'
@@ -25,15 +27,16 @@ contains
     fixed_tc_para_value = 0.001d0
     fixed_tc_perp_value = 0.0d0
 
-    !! Equilibrium
+    if (use_defaults) then
+      k2 = 0.0d0
+      k3 = 1.0d0
+      beta = 0.25d0
+    end if
+
+    B0 = 1.0d0
+
     rho_field % rho0 = 1.0d0
-    T_field % T0     = 1.0d0
-
-    k2 = 0.0d0
-    k3 = 1.0d0
-
-    B0    = 1.0d0
-    beta  = 0.25d0
+    T_field % T0 = 1.0d0
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)

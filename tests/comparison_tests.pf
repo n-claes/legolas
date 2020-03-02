@@ -1,5 +1,6 @@
 module comparison_tests
-  use mod_global_variables, only: dp, matrix_gridpts
+  use mod_global_variables, only: dp, matrix_gridpts, str_len
+  use mod_input, only: read_parfile
   use funit
   implicit none
 
@@ -8,6 +9,7 @@ module comparison_tests
   real(dp), parameter   :: TOL = 1.0d-14
 
   character(len=21), parameter  :: results_folder = "correct_test_results/"
+  character(len=14), parameter  :: parfile_folder = "test_parfiles/"
   character(len=4), parameter   :: file_extension = '.dat'
 
   character(len=6)              :: os_suffix
@@ -28,7 +30,6 @@ contains
     write(*, *) "Unable to detect OS!"
     stop
 #endif
-    write(*, *) '>> os_suffix set on ', os_suffix
   end subroutine set_operating_system
 
 
@@ -36,7 +37,6 @@ contains
   subroutine init_test()
     use mod_global_variables, only: set_gridpts
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
-    use mod_input, only: read_parfile
 
     if (.not. os_is_set) then
       call set_operating_system()
@@ -119,22 +119,15 @@ contains
     complex(dp)   :: ev_r(matrix_gridpts, matrix_gridpts)
     complex(dp)   :: omega(matrix_gridpts), omega_base(matrix_gridpts)
 
-    write(*, *) "  - setting up test..."
-
     !! read correct test results, store in 'omega_base'
-    write(*, *) "  - reading and storing correct base solutions..."
     call read_stored_eigenvals(filename, omega_base)
-
     call set_equilibrium()
-    write(*, *) "  - equilibrium set: ", trim(equilibrium_type)
 
     !! solve test problem
     call create_matrices(matrix_B, matrix_A)
-    write(*, *) "  - solving eigenvalue problem..."
     call solve_QR(matrix_A, matrix_B, omega, ev_l, ev_r)
 
     !! sort result and wrap up
-    write(*, *) "  - comparing results to base..."
     moduli_w = sqrt(real(omega)**2 + aimag(omega)**2)
     moduli_w_base = sqrt(real(omega_base)**2 + aimag(omega_base)**2)
     call sort_array(moduli_w)
@@ -145,181 +138,281 @@ contains
 
   @test
   subroutine test_adiabatic_homogeneous()
-    use mod_global_variables, only: str_len, equilibrium_type
+    use mod_global_variables, only: equilibrium_type
 
     character(len=str_len)  :: filename
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
 
-    write(*, *) "Testing adiabatic homogeneous equilibrium"
-
+    write(*, *) "Testing adiabatic homogeneous"
     call get_filename('01-adiabatic-homo', filename)
-    equilibrium_type = "Adiabatic homogeneous"
-
+    equilibrium_type = "adiabatic_homo"
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
     @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
-
   end subroutine test_adiabatic_homogeneous
 
 
   @test
+  subroutine test_adiabatic_homogeneous_nodef()
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
+
+    write(*, *) "Testing adiabatic homogeneous -- no defaults"
+    call get_filename('01-adiabatic-homo', filename)
+    call read_parfile(parfile_folder // '01-adiabatic-homo.par')
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
+  end subroutine test_adiabatic_homogeneous_nodef
+
+
+  @test
   subroutine test_resistive_homogeneous()
-    use mod_global_variables, only: str_len, equilibrium_type
+    use mod_global_variables, only: equilibrium_type
 
     character(len=str_len)  :: filename
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
 
-    write(*, *) "Testing resistive homogeneous equilibrium"
-
+    write(*, *) "Testing resistive homogeneous"
     call get_filename('02-resistive-homo', filename)
-    equilibrium_type = "Resistive homogeneous"
-
+    equilibrium_type = "resistive_homo"
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
     @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
-
   end subroutine test_resistive_homogeneous
 
 
   @test
+  subroutine test_resistive_homogeneous_nodef()
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
+
+    write(*, *) "Testing resistive homogeneous -- no defaults"
+    call get_filename('02-resistive-homo', filename)
+    call read_parfile(parfile_folder // '02-resistive-homo.par')
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertequal(moduli_w, moduli_w_base, tolerance=TOL)
+  end subroutine test_resistive_homogeneous_nodef
+
+
+  @test
   subroutine test_gravito_acoustic()
-    use mod_global_variables, only: str_len, equilibrium_type
+    use mod_global_variables, only: equilibrium_type
 
     character(len=str_len)  :: filename
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
 
-    write(*, *) "Testing gravito-acoustic waves equilibrium"
-
+    write(*, *) "Testing gravito-acoustic waves"
     call get_filename('03-gravito-acoustic', filename)
-    equilibrium_type = "Gravito-acoustic waves"
-
+    equilibrium_type = "gravito_acoustic"
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
     @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
-
   end subroutine test_gravito_acoustic
 
 
   @test
+  subroutine test_gravito_acoustic_nodef()
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
+
+    write(*, *) "Testing gravito-acoustic waves -- no defaults"
+    call get_filename('03-gravito-acoustic', filename)
+    call read_parfile(parfile_folder // '03-gravito-acoustic.par')
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
+  end subroutine test_gravito_acoustic_nodef
+
+
+  @test
   subroutine test_resistive_tearing()
-    use mod_global_variables, only: str_len, equilibrium_type
+    use mod_global_variables, only: equilibrium_type
 
     character(len=str_len)  :: filename
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
 
-    write(*, *) "Testing resistive tearing equilibrium"
-
+    write(*, *) "Testing resistive tearing"
     call get_filename('04-resistive-tearing', filename)
-    equilibrium_type = "Resistive tearing modes"
-
+    equilibrium_type = "resistive_tearing"
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
     @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
-
   end subroutine test_resistive_tearing
 
 
   @test
+  subroutine test_resistive_tearing_nodef()
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
+
+    write(*, *) "Testing resistive tearing -- no defaults"
+    call get_filename('04-resistive-tearing', filename)
+    call read_parfile(parfile_folder // '04-resistive-tearing.par')
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
+  end subroutine test_resistive_tearing_nodef
+
+
+  @test
   subroutine test_resistive_tearing_flow()
-    use mod_global_variables, only: str_len, equilibrium_type
+    use mod_global_variables, only: equilibrium_type
 
     character(len=str_len)  :: filename
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
 
-    write(*, *) "Testing resistive tearing (flow) equilibrium"
-
+    write(*, *) "Testing resistive tearing (flow)"
     call get_filename('05-resistive-tearing-flow', filename)
-    equilibrium_type = "Resistive tearing modes with flow"
-
+    equilibrium_type = "resistive_tearing_flow"
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
     @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
-
   end subroutine test_resistive_tearing_flow
 
 
   @test
+  subroutine test_resistive_tearing_flow_nodef()
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
+
+    write(*, *) "Testing resistive tearing (flow) -- no defaults"
+    call get_filename('05-resistive-tearing-flow', filename)
+    call read_parfile(parfile_folder // '05-resistive-tearing-flow.par')
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
+  end subroutine test_resistive_tearing_flow_nodef
+
+
+  @test
   subroutine test_suydam_cluster()
-    use mod_global_variables, only: str_len, equilibrium_type
+    use mod_global_variables, only: equilibrium_type
 
     character(len=str_len)  :: filename
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
 
-    write(*, *) "Testing Suydam cluster modes equilibrium"
-
+    write(*, *) "Testing Suydam cluster modes"
     call get_filename('06-suydam-cluster', filename)
-    equilibrium_type = "Suydam cluster modes"
-
+    equilibrium_type = "suydam_cluster"
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
     @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
-
   end subroutine test_suydam_cluster
 
 
   @test
+  subroutine test_suydam_cluster_nodef()
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
+
+    write(*, *) "Testing Suydam cluster modes -- no defaults"
+    call get_filename('06-suydam-cluster', filename)
+    call read_parfile(parfile_folder // '06-suydam-cluster.par')
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
+  end subroutine test_suydam_cluster_nodef
+
+
+  @test
   subroutine test_kh_instability()
-    use mod_global_variables, only: str_len, equilibrium_type
+    use mod_global_variables, only: equilibrium_type
 
     character(len=str_len)  :: filename
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
 
-    write(*, *) "Testing Kelvin-Helmholtz instability equilibrium"
-
+    write(*, *) "Testing Kelvin-Helmholtz"
     call get_filename('07-kh', filename)
-    equilibrium_type = "Kelvin-Helmholtz"
-
+    equilibrium_type = "kelvin_helmholtz"
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
     @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
-
   end subroutine test_kh_instability
 
 
   @test
+  subroutine test_kh_instability_nodef()
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
+
+    write(*, *) "Testing Kelvin-Helmholtz -- no defaults"
+    call get_filename('07-kh', filename)
+    call read_parfile(parfile_folder // '07-kh.par')
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
+  end subroutine test_kh_instability_nodef
+
+
+  @test
   subroutine test_rotating_plasma_cyl()
-    use mod_global_variables, only: str_len, equilibrium_type
+    use mod_global_variables, only: equilibrium_type
 
     character(len=str_len)  :: filename
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
 
-    write(*, *) "Testing rotating plasma cylinder equilibrium"
-
+    write(*, *) "Testing rotating plasma cylinder"
     call get_filename('08-rotating-plasma-cyl', filename)
-    equilibrium_type = "Rotating plasma cylinder"
-
+    equilibrium_type = "rotating_plasma_cylinder"
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
     @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
-
   end subroutine test_rotating_plasma_cyl
 
 
   @test
+  subroutine test_rotating_plasma_cyl_nodef()
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
+
+    write(*, *) "Testing rotating plasma cylinder -- no defaults"
+    call get_filename('08-rotating-plasma-cyl', filename)
+    call read_parfile(parfile_folder // '08-rotating-plasma-cyl.par')
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
+  end subroutine test_rotating_plasma_cyl_nodef
+
+
+  @test
   subroutine test_kh_cd()
-    use mod_global_variables, only: str_len, equilibrium_type
+    use mod_global_variables, only: equilibrium_type
 
     character(len=str_len)  :: filename
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
 
-    write(*, *) "Testing Kelvin-Helmholtz and current driven instabilities equilibrium"
-
+    write(*, *) "Testing Kelvin-Helmholtz and current driven"
     call get_filename('09-kh-cd', filename)
-    equilibrium_type = "Kelvin-Helmholtz and current driven"
-
+    equilibrium_type = "kelvin_helmholtz_cd"
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
     @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
-
   end subroutine test_kh_cd
 
 
   @test
+  subroutine test_kh_cd_nodef()
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
+
+    write(*, *) "Testing Kelvin-Helmholtz and current driven -- no defaults"
+    call get_filename('09-kh-cd', filename)
+    call read_parfile(parfile_folder // '09-kh-cd.par')
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
+  end subroutine test_kh_cd_nodef
+
+
+  @test
   subroutine test_rotating_theta_pinch()
-    use mod_global_variables, only: str_len, equilibrium_type
+    use mod_global_variables, only: equilibrium_type
 
     character(len=str_len)  :: filename
     real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
 
-    write(*, *) "Testing rotating theta pinch equilibrium"
-
+    write(*, *) "Testing rotating theta pinch"
     call get_filename('10-rotating-theta-pinch', filename)
-    equilibrium_type = "Rotating theta pinch"
-
+    equilibrium_type = "rotating_theta_pinch"
     call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
     @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
-
   end subroutine test_rotating_theta_pinch
+
+
+  @test
+  subroutine test_rotating_theta_pinch_nodef()
+    character(len=str_len)  :: filename
+    real(dp)                :: moduli_w(matrix_gridpts), moduli_w_base(matrix_gridpts)
+
+    write(*, *) "Testing rotating theta pinch -- no defaults"
+    call get_filename('10-rotating-theta-pinch', filename)
+    call read_parfile(parfile_folder // '10-rotating-theta-pinch.par')
+    call get_comparison_test(trim(filename), moduli_w, moduli_w_base)
+    @assertEqual(moduli_w, moduli_w_base, tolerance=TOL)
+  end subroutine test_rotating_theta_pinch_nodef
 
 end module comparison_tests

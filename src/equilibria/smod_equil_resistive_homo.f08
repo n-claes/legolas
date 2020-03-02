@@ -12,8 +12,7 @@ contains
 
   module subroutine resistive_homo_eq()
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
-
-    real(dp)  :: beta
+    use mod_equilibrium_params, only: beta
 
     geometry = "Cartesian"
     call initialise_grid()
@@ -22,9 +21,11 @@ contains
     use_fixed_resistivity = .true.
     fixed_eta_value = 0.001d0
 
-    k2 = 0.0d0
-    k3 = 1.0d0
-    beta = 0.25d0
+    if (use_defaults) then
+      k2 = 0.0d0
+      k3 = 1.0d0
+      beta = 0.25d0
+    end if
 
     !! Equilibrium
     rho_field % rho0 = 1.0d0
