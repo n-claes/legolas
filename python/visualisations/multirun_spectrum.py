@@ -52,8 +52,10 @@ class MultiSpectrum(LEGOLASDataContainer):
             self.ax.set_ylabel(r'$\dfrac{1}{v_A^2}\omega^2$')
             self.ax.set_xlabel(r'$\theta$ / $\pi$')
             self.ax.set_title(mr_name + self.gridpts_title)
-            self.ax.set_ylim([-3, 14])
-            self.ax.set_xlim([0, 1])
+            self.ax.set_ylim([-4.1, 14.4])
+            self.ax.set_xlim([-0.01, 1.01])
+            self.ax.set_xticks(np.arange(0, 1.2, 0.2))
+            self.ax.set_yticks(np.arange(-4, 16, 2))
 
         elif 'constant_current' in mr_name:
             # for constant current modes we plot w**2 vs the safety factor q = 2*k/j0
