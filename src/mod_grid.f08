@@ -51,15 +51,15 @@ contains
     grid       = 0.0d0
     grid_gauss = 0.0d0
 
-    if (geometry == "cylindrical" .and. x_start <= 1.0d-5) then
-      x_start = 1.0d-5
-    end if
-
     ! minus one here to include x_end
     dx = (x_end - x_start) / (gridpts-1)
     do i = 1, gridpts
       grid(i) = x_start + (i - 1)*dx
     end do
+
+    if (geometry == "cylindrical" .and. grid(1) <= 1.0d-5) then
+       grid(1) = 1.0d-5
+     end if
 
     if (mesh_accumulation) then
       call accumulate_mesh()
