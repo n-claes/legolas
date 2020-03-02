@@ -65,11 +65,13 @@ contains
 
     character(len=str_len)  :: parfile
 
-    ! print empty line
-    write(*, *) ""
-
     call get_parfile(parfile)
     call read_parfile(parfile)
+
+    ! print empty line
+    if (.not. run_silent) then
+      write(*, *) ""
+    end if
 
     ! Allocate matrices
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
