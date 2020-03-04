@@ -65,7 +65,7 @@ module mod_global_variables
 
   !! Grid-related parameters
   !> Geometry of the problem: 'Cartesian' or 'cylindrical'
-  character(len=str_len)    :: geometry
+  character(len=str_len)    :: geometry = ""
   !> Starting value for the x-array
   real(dp)                  :: x_start
   !> Final value of the x-array

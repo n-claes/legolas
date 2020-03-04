@@ -42,6 +42,10 @@ contains
     integer                  :: i
     real(dp)                 :: dx
 
+    if (geometry == "") then
+      error stop "Geometry must be set in the equilibrium submodule!"
+    end if
+
     allocate(grid(gridpts))
     allocate(grid_gauss(gauss_gridpts))
     allocate(eps_grid(gauss_gridpts))

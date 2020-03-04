@@ -27,7 +27,7 @@ contains
                    unit_velocity
     integer     :: gridpoints
 
-    namelist /gridlist/ geometry, x_start, x_end, gridpoints
+    namelist /gridlist/ x_start, x_end, gridpoints
     namelist /meshlist/ mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
     namelist /physicslist/ mhd_gamma, flow, radiative_cooling, ncool, &
                            cooling_curve, external_gravity, &
@@ -54,7 +54,6 @@ contains
 
     !! Set defaults
     !> Gridlist defaults
-    geometry = "Cartesian"          !< geometry of the problem
     x_start  = 0.0d0                !< start of the grid
     x_end    = 1.0d0                !< end of the grid
     gridpoints = 31                 !< gridpoints for regular grid
