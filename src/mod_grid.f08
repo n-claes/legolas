@@ -61,10 +61,6 @@ contains
       grid(i) = x_start + (i - 1)*dx
     end do
 
-    if (geometry == "cylindrical" .and. grid(1) <= 1.0d-5) then
-       grid(1) = 1.0d-5
-     end if
-
     if (mesh_accumulation) then
       call accumulate_mesh()
     end if
