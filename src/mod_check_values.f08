@@ -124,7 +124,7 @@ contains
     integer     :: i, k2_int
 
     k2_int = int(k2)
-    axis_limit = 1.0d-3
+    axis_limit = 1.0d-2
 
     if (geometry == 'cylindrical') then
       ! in cylindrical geometry, m should be an integer
