@@ -21,12 +21,7 @@ module mod_equilibrium
 
   private
 
-  abstract interface
-    subroutine eq_void()
-    end subroutine eq_void
-  end interface
-
-  procedure (eq_void), pointer :: set_equilibrium_values => null()
+  procedure(), pointer :: set_equilibrium_values => null()
 
   interface
     module subroutine adiabatic_homo_eq; end subroutine
