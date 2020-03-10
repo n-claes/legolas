@@ -27,47 +27,44 @@ module mod_equilibrium_params
 contains
 
   subroutine init_equilibrium_params()
-    use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
-    real(dp)  :: nan
+    use mod_global_variables, only: NaN
 
-    nan = ieee_value(nan, ieee_quiet_nan)
+    k2 = NaN
+    k3 = NaN
 
-    k2 = nan
-    k3 = nan
+    cte_rho0 = NaN
+    cte_T0 = NaN
+    cte_B02 = NaN
+    cte_B03 = NaN
+    cte_v02 = NaN
+    cte_v03 = NaN
+    cte_p0 = NaN
 
-    cte_rho0 = nan
-    cte_T0 = nan
-    cte_B02 = nan
-    cte_B03 = nan
-    cte_v02 = nan
-    cte_v03 = nan
-    cte_p0 = nan
+    p1 = NaN
+    p2 = NaN
+    p3 = NaN
+    p4 = NaN
+    p5 = NaN
+    p6 = NaN
+    p7 = NaN
+    p8 = NaN
 
-    p1 = nan
-    p2 = nan
-    p3 = nan
-    p4 = nan
-    p5 = nan
-    p6 = nan
-    p7 = nan
-    p8 = nan
+    alpha = NaN
+    beta = NaN
+    delta = NaN
+    theta = NaN
+    tau = NaN
+    lambda = NaN
+    nu = NaN
 
-    alpha = nan
-    beta = nan
-    delta = nan
-    theta = nan
-    tau = nan
-    lambda = nan
-    nu = nan
-
-    r0 = nan
-    rc = nan
-    rj = nan
-    Bth0 = nan
-    Bz0 = nan
-    V = nan
-    j0 = nan
-    g = nan
+    r0 = NaN
+    rc = NaN
+    rj = NaN
+    Bth0 = NaN
+    Bz0 = NaN
+    V = NaN
+    j0 = NaN
+    g = NaN
   end subroutine init_equilibrium_params
 
 end module mod_equilibrium_params

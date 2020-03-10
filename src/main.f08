@@ -57,13 +57,15 @@ contains
 
   !> Initialises the grid and equilibrium configuration.
   subroutine initialisation()
-    use mod_global_variables, only: matrix_gridpts
+    use mod_global_variables, only: initialise_globals, matrix_gridpts
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_output, only: startup_info_toconsole
 
     character(len=str_len)  :: parfile
+
+    call initialise_globals()
 
     call get_parfile(parfile)
     call read_parfile(parfile)
