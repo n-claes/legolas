@@ -212,11 +212,11 @@ PRECODED_MULTIRUNS = {
     'constant_current_m-2': {
         'equilibrium': 'constant_current_tokamak',
         'gridpts': 51,
-        'nb_runs': 37,
+        'nb_runs': 39,
         'parameters': {
             'k2': -2.0,
             'k3': 0.2,
-            'j0': (2.0 * 0.2) / np.linspace(1.9, 2.1, 37)
+            'j0': (2.0 * 0.2) / np.linspace(1.9, 2.1, 39)
         }
     }
 }

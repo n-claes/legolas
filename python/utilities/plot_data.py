@@ -86,6 +86,7 @@ def plot_eigenfunctions(fig, ax, omegas, grid, eigenfunctions, var, w_idx, real=
             ax.plot(grid, np.imag(eigenf[:, w_idx]), label=lab)
 
     ax.axhline(y=0, linestyle='dotted', color='grey')
+    ax.axvline(x=0, linestyle='dotted', color='grey')
     if real:
         ax.set_title(var + " (real part)")
     else:
