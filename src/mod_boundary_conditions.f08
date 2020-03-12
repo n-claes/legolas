@@ -55,8 +55,8 @@ contains
     complex(dp), intent(inout) :: quadblock(dim_quadblock, dim_quadblock)
     real(dp), intent(in)       :: eps, d_eps_dr
 
-    call fixed_boundaries(quadblock, "l_edge", "A")
     call natural_boundaries(eps, d_eps_dr, quadblock, "l_edge")
+    call fixed_boundaries(quadblock, "l_edge", "A")
 
   end subroutine boundaries_A_left_edge
 
@@ -69,8 +69,8 @@ contains
     complex(dp), intent(inout) :: quadblock(dim_quadblock, dim_quadblock)
     real(dp), intent(in)       :: eps, d_eps_dr
 
-    call fixed_boundaries(quadblock, "r_edge", "A")
     call natural_boundaries(eps, d_eps_dr, quadblock, "r_edge")
+    call fixed_boundaries(quadblock, "r_edge", "A")
 
   end subroutine boundaries_A_right_edge
 
