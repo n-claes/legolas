@@ -225,4 +225,28 @@ module mod_cooling_curves
                         -25.6811, -25.6733, -25.6641, -25.6525, &
                         -25.6325, -25.6080, -25.5367, -25.4806  /
 
+contains
+
+  subroutine get_rosner_cooling(T0, lambda_T, d_lambda_dT)
+    use mod_global_variables, only: gauss_gridpts
+    use mod_physical_constants, only: unit_temperature, unit_luminosity
+
+    real(dp), intent(in)  :: T0(gauss_gridpts)
+    real(dp), intent(in)  :: lambda_T(gauss_gridpts), d_lambda_dT(gauss_gridpts)
+    real(dp)    :: T0_dimfull(gauss_gridpts)
+    real(dp)    :: rosner_log10_T(9), rosner_log10_xi(9)
+
+    data    rosner_log10_T / 3.89063, 4.30195, 4.575, 4.9, 5.4, 5.77, &
+                             6.315, 7.60457, 7.60457 /
+
+    data    rosner_log10_xi / -82.9, -61.307, -34.85, -44.0, -34.2, &
+                              -23.4, -34.94, -30.73, -39.602 /
+
+    T0_dimfull = T0 * unit_temperature
+
+    ! TODO
+    stop "TODO: Rosner cooling not yet implemented!"
+
+  end subroutine get_rosner_cooling
+
 end module mod_cooling_curves
