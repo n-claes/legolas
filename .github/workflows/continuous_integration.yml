@@ -2,11 +2,11 @@ name: Automatic Tests
 
 on:
   push:
-    branches: 
-      - master
+    branches-ignore: 
+      - '**'
   pull_request:
-    branches: 
-      - master
+    branches-ignore: 
+      - '**'
 
 jobs:
   build:

@@ -55,8 +55,8 @@ contains
     complex(dp), intent(inout) :: quadblock(dim_quadblock, dim_quadblock)
     real(dp), intent(in)       :: eps, d_eps_dr
 
-    call fixed_boundaries(quadblock, "l_edge", "A")
     call natural_boundaries(eps, d_eps_dr, quadblock, "l_edge")
+    call fixed_boundaries(quadblock, "l_edge", "A")
 
   end subroutine boundaries_A_left_edge
 
@@ -69,8 +69,8 @@ contains
     complex(dp), intent(inout) :: quadblock(dim_quadblock, dim_quadblock)
     real(dp), intent(in)       :: eps, d_eps_dr
 
-    call fixed_boundaries(quadblock, "r_edge", "A")
     call natural_boundaries(eps, d_eps_dr, quadblock, "r_edge")
+    call fixed_boundaries(quadblock, "r_edge", "A")
 
   end subroutine boundaries_A_right_edge
 
@@ -83,8 +83,7 @@ contains
   !! @param[in] edge    'r_edge' for right boundary, 'l_edge' for left boundary
   !! @param[in] matrix  'A' for A-matrix boundaries, 'B' for B-matrix boundaries
   subroutine fixed_boundaries(quadblock, edge, matrix)
-    use mod_global_variables, only: dim_subblock, boundary_type, thermal_conduction, geometry, dp_LIMIT
-    use mod_equilibrium_params, only: k2, k3
+    use mod_global_variables, only: dim_subblock, boundary_type, thermal_conduction
 
     complex(dp), intent(inout)  :: quadblock(dim_quadblock, dim_quadblock)
     character(6), intent(in)    :: edge
@@ -114,15 +113,6 @@ contains
     !! The first diagonal elements of the top-left quadblock are set to unity.
     if (edge == "l_edge") then
       do i = 1, dim_subblock, 2
-        if (geometry == 'cylindrical') then
-          if (i == 13 .and. abs(k3) < dp_LIMIT) then ! if k3 is zero, do not set rows and col with index 13 to zero
-            cycle
-          end if
-          if (i == 15 .and. abs(k2) < dp_LIMIT) then ! if k2 is zero, do not set rows and cols with index 15 to zero
-            cycle
-          end if
-        end if
-
         ! odd rows to zero
         quadblock(i, :) = (0.0d0, 0.0d0)
         ! odd columns to zero
@@ -389,42 +379,40 @@ contains
                                          spline1(4) * factors(i) * spline2(4)
        end if
 
-
-     ! Subblock top-right corner, filled both for left and right bounds
-     idx(:) = [2*curr_position(1), 2*curr_position(2) + dim_subblock]
-     quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
-                                     spline1(2) * factors(i) * spline2(1)
-     quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
-                                     spline1(2) * factors(i) * spline2(3)
-     quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
-                                     spline1(4) * factors(i) * spline2(1)
-     quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
-                                     spline1(4) * factors(i) * spline2(3)
-
-     ! Subblock bottom-left corner, filled both for left and right bounds
-     idx(:) = [2*curr_position(1) + dim_subblock, 2*curr_position(2)]
-     quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
-                                     spline1(1) * factors(i) * spline2(2)
-     quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
-                                     spline1(1) * factors(i) * spline2(4)
-     quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
-                                     spline1(3) * factors(i) * spline2(2)
-     quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
-                                     spline1(3) * factors(i) * spline2(4)
-
-     if (edge == 'r_edge') then
-       ! Subblock bottom-right corner, only for right boundary conditions
-       idx(:) = 2*curr_position(:) + dim_subblock
+       ! Subblock top-right corner, filled both for left and right bounds
+       idx(:) = [2*curr_position(1), 2*curr_position(2) + dim_subblock]
        quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
-                                       spline1(1) * factors(i) * spline2(1)
+                                       spline1(2) * factors(i) * spline2(1)
        quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
-                                       spline1(1) * factors(i) * spline2(3)
+                                       spline1(2) * factors(i) * spline2(3)
        quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
-                                       spline1(3) * factors(i) * spline2(1)
+                                       spline1(4) * factors(i) * spline2(1)
        quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
-                                       spline1(3) * factors(i) * spline2(3)
-     end if
+                                       spline1(4) * factors(i) * spline2(3)
 
+       ! Subblock bottom-left corner, filled both for left and right bounds
+       idx(:) = [2*curr_position(1) + dim_subblock, 2*curr_position(2)]
+       quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
+                                       spline1(1) * factors(i) * spline2(2)
+       quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
+                                       spline1(1) * factors(i) * spline2(4)
+       quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
+                                       spline1(3) * factors(i) * spline2(2)
+       quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
+                                       spline1(3) * factors(i) * spline2(4)
+
+       if (edge == 'r_edge') then
+         ! Subblock bottom-right corner, only for right boundary conditions
+         idx(:) = 2*curr_position(:) + dim_subblock
+         quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
+                                         spline1(1) * factors(i) * spline2(1)
+         quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
+                                         spline1(1) * factors(i) * spline2(3)
+         quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
+                                         spline1(3) * factors(i) * spline2(1)
+         quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
+                                         spline1(3) * factors(i) * spline2(3)
+       end if
     end do
 
   end subroutine add_factors_quadblock

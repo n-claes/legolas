@@ -26,6 +26,8 @@ module mod_global_variables
 
   !> Values smaller than this are forced to zero
   real(dp), parameter :: dp_LIMIT = 1.0d-12
+  !> NaN value
+  real(dp), protected :: NaN
 
   !! Physics parameters
   !> Complex number
@@ -166,6 +168,12 @@ module mod_global_variables
   character(len=str_len)    :: savename_equil
 
 contains
+
+  subroutine initialise_globals()
+    use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
+
+    NaN = ieee_value(NaN, ieee_quiet_nan)
+  end subroutine initialise_globals
 
   !> Subroutine to set gamma and (gamma - 1)
   !! @param[in] gamma_in  The ratio of specific heats gamma

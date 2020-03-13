@@ -42,6 +42,10 @@ contains
     integer                  :: i
     real(dp)                 :: dx
 
+    if (geometry == "") then
+      error stop "Geometry must be set in the equilibrium submodule!"
+    end if
+
     allocate(grid(gridpts))
     allocate(grid_gauss(gauss_gridpts))
     allocate(eps_grid(gauss_gridpts))
@@ -56,10 +60,6 @@ contains
     do i = 1, gridpts
       grid(i) = x_start + (i - 1)*dx
     end do
-
-    if (geometry == "cylindrical" .and. grid(1) <= 1.0d-5) then
-       grid(1) = 1.0d-5
-     end if
 
     if (mesh_accumulation) then
       call accumulate_mesh()
