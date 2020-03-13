@@ -15,21 +15,23 @@ module mod_radiative_cooling
   private
 
   !> Radiative cooling table containing temperatures
-  real(dp), allocatable         :: interp_table_T(:)
+  real(dp), allocatable :: interp_table_T(:)
   !> Radiative cooling table containing luminosities
-  real(dp), allocatable         :: interp_table_L(:)
+  real(dp), allocatable :: interp_table_L(:)
   !> Radiative cooling table containing derivative luminosity to temperature
-  real(dp), allocatable         :: interp_table_dLdT(:)
+  real(dp), allocatable :: interp_table_dLdT(:)
   !> Log10 of minimum temperature in the interpolated cooling curve.
-  real(dp)                      :: lgmin_T
+  real(dp)              :: lgmin_T
   !> Log10 of maximum temperature in the interpolated cooling curve.
-  real(dp)                      :: lgmax_T
+  real(dp)              :: lgmax_T
   !> Log10 of the stepsize in the interpolated cooling curve.
-  real(dp)                      :: lgstep
+  real(dp)              :: lgstep
   !> Maximum temperature of interpolated cooling curve.
-  real(dp)                      :: max_T
+  real(dp)              :: max_T
   !> Minimum temperature of interpolated cooling curve.
-  real(dp)                      :: min_T
+  real(dp)              :: min_T
+  !> Use an interpolated cooling curve or not
+  logical, save         :: interpolated_curve = .true.
 
   public  :: initialise_radiative_cooling
   public  :: set_radiative_cooling_values
@@ -44,174 +46,129 @@ contains
     use mod_global_variables, only: cooling_curve
     use mod_cooling_curves
 
-    real(dp), allocatable       :: table_T(:), table_L(:)
-    integer                     :: ntable
+    real(dp), allocatable :: table_T(:), table_L(:)
+    integer               :: ntable
 
-    allocate(interp_table_T(ncool))
-    allocate(interp_table_L(ncool))
-    allocate(interp_table_dLdT(ncool))
-
-    ! Initialise interpolated tables to zero
-    interp_table_T    = 0.0d0
-    interp_table_L    = 0.0d0
-    interp_table_dLdT = 0.0d0
-
-    ! Read cooling curve
     select case(cooling_curve)
+    case('jc_corona')
+       ntable = n_jc_corona
+       allocate(table_T(ntable))
+       allocate(table_L(ntable))
+       table_T = t_jc_corona
+       table_L = l_jc_corona
 
-    case('JCcorona')
-       write(*,*) "Use Colgan & Feldman (2008) cooling curve"
+    case('dalgarno')
+       ntable = n_dalgarno
+       allocate(table_T(ntable))
+       allocate(table_L(ntable))
+       table_T = t_dalgarno
+       table_L = l_dalgarno
 
-       ntable = n_JCcorona
+    case('ml_solar')
+       ntable = n_ml_solar
+       allocate(table_T(ntable))
+       allocate(table_L(ntable))
+       table_T = t_ml_solar
+       table_L = l_ml_solar
 
-       allocate(table_T(1:ntable))
-       allocate(table_L(1:ntable))
-       table_T(1:ntable) = t_JCcorona(1:n_JCcorona)
-       table_L(1:ntable) = l_JCcorona(1:n_JCcorona)
+    case('spex')
+       ntable = n_spex
+       allocate(table_T(ntable))
+       allocate(table_L(ntable))
+       table_T = t_spex
+       table_l = l_spex
 
-    case('DM')
-       write(*,*) "Use Delgano & McCray (1972) cooling curve"
+    case('spex_dalgarno')
+       ntable = n_spex + n_dalgarno2 - 6
+       allocate(table_T(ntable))
+       allocate(table_L(ntable))
+       table_T(1:n_dalgarno2-1) = t_dalgarno2(1:n_dalgarno2-1)
+       table_L(1:n_dalgarno2-1) = l_dalgarno2(1:n_dalgarno2-1)
+       table_T(n_dalgarno2:ntable) = t_spex(6:n_spex)
+       table_L(n_dalgarno2:ntable) = l_spex(6:n_SPEX) + log10(n_spex_enh(6:n_spex))
 
-       ntable = n_DM
+    case('rosner')
+      interpolated_curve = .false.
 
-       allocate(table_T(1:ntable))
-       allocate(table_L(1:ntable))
-       table_T(1:ntable) = t_DM(1:n_DM)
-       table_L(1:ntable) = l_DM(1:n_DM)
-
-    case('MLsolar')
-       write(*,*) "Use Mellema & Lundqvist (2002) cooling curve ", &
-                  "for solar metallicity"
-
-       ntable = n_MLsolar
-
-       allocate(table_T(1:ntable))
-       allocate(table_L(1:ntable))
-       table_T(1:ntable) = t_MLsolar(1:n_MLsolar)
-       table_L(1:ntable) = l_MLsolar(1:n_MLsolar)
-
-    case('SPEX')
-       write(*,*) "Use SPEX cooling curve (Schure et al. 2009) ", &
-                  "for solar metallicity"
-
-       ntable = n_SPEX
-
-       allocate(table_T(1:ntable))
-       allocate(table_L(1:ntable))
-       table_T(1:ntable) = t_SPEX(1:n_SPEX)
-       table_L(1:ntable) = l_SPEX(1:n_SPEX) + log10(nenh_SPEX(1:n_SPEX))
-
-    case('SPEX_DM')
-          write(*,*) "Use SPEX cooling curve for solar metallicity ", &
-                     "above 10^4 K, Schure et al. (2009)."
-          write(*,*) "At lower temperatures, use Dalgarno & McCray (1972), ", &
-                     "with a pre-set ionization fraction of 10^-3."
-
-       ntable = n_SPEX + n_DM_2 - 6
-
-       allocate(table_T(1:ntable))
-       allocate(table_L(1:ntable))
-       table_T(1:n_DM_2-1) = t_DM_2(1:n_DM_2-1)
-       table_L(1:n_DM_2-1) = L_DM_2(1:n_DM_2-1)
-       table_T(n_DM_2:ntable) = t_SPEX(6:n_SPEX)
-       table_L(n_DM_2:ntable) = l_SPEX(6:n_SPEX) + log10(nenh_SPEX(6:n_SPEX))
     case default
-      write(*, *) "Cooling curve not defined correctly."
-      write(*, *) "Currently set on:   ", cooling_curve
-      stop
+      write(*, *) "Unknown cooling curve '", cooling_curve, "' provided!"
+      error stop
     end select
 
-    ! Interpolate cooling curves
-    call interpolate_cooling_curve(ntable, table_T, table_L)
+    if (interpolated_curve) then
+      allocate(interp_table_T(ncool))
+      allocate(interp_table_L(ncool))
+      allocate(interp_table_dLdT(ncool))
 
-    deallocate(table_T)
-    deallocate(table_L)
+      ! Initialise interpolated tables to zero
+      interp_table_T    = 0.0d0
+      interp_table_L    = 0.0d0
+      interp_table_dLdT = 0.0d0
+
+      call interpolate_cooling_curve(ntable, table_T, table_L)
+
+      deallocate(table_T)
+      deallocate(table_L)
+    end if
 
   end subroutine initialise_radiative_cooling
-  
-  
+
+
   subroutine set_radiative_cooling_values(rho_field, T_field, rc_field)
     use mod_types, only: density_type, temperature_type, cooling_type
-    use mod_global_variables, only: gauss_gridpts
-    
+    use mod_global_variables, only: gauss_gridpts, cooling_curve
+    use mod_cooling_curves, only: get_rosner_cooling
+
     type(density_type), intent(in)      :: rho_field
-    type(temperature_type), intent(in)  :: T_field 
+    type(temperature_type), intent(in)  :: T_field
     type(cooling_type), intent(inout)   :: rc_field
-    
+
+    real(dp)    :: lambda_T(gauss_gridpts)
     real(dp)    :: d_lambda_dT(gauss_gridpts)
-    
-    !! dL/dT = rho0 * d_lambda_dT (where lambda(T) = cooling curve)
-    call get_dLambdadT(T_field % T0, d_lambda_dT)
+    real(dp)    :: T0(gauss_gridpts)
+    integer     :: idx, i
+
+    T0 = T_field % T0
+
+    if (interpolated_curve) then
+      do i = 1, gauss_gridpts
+          if (T0(i) <= min_T) then
+            ! No cooling if T0 below lower limit of cooling curve
+            lambda_T(i) = 0.0d0
+            d_lambda_dT(i) = 0.0d0
+          else if (T0(i) >= max_T) then
+            ! Assume Bremmstrahlung sqrt(T/Tmax) if T is above upper limit of cooling curve
+            lambda_T(i) = interp_table_L(ncool) * sqrt(T0(i) / max_T)
+            d_lambda_dT(i) = 0.5d0 * interp_table_L(ncool) / sqrt(T0(i) * max_T)
+          else
+            ! Interpolate values from the cooling curves
+            idx = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
+            lambda_T(i) = interp_table_L(idx) + (T0(i) - interp_table_T(idx)) &
+                          * (interp_table_L(idx + 1) - interp_table_L(idx))   &
+                          / (interp_table_T(idx + 1) - interp_table_T(idx))
+            d_lambda_dT(i) = interp_table_dLdT(idx) + (T0(i) - interp_table_T(idx)) &
+                             * (interp_table_dLdT(idx+1) - interp_table_dLdT(idx))  &
+                             / (interp_table_T(idx+1) - interp_table_T(idx))
+          end if
+      end do
+    else
+      ! In this case an analytical cooling curve is used
+      select case(cooling_curve)
+      case('rosner')
+        call get_rosner_cooling(T0, lambda_T, d_lambda_dT)
+
+      case default
+        write(*, *) "Unknown cooling curve '", cooling_curve, "' provided!"
+        error stop
+      end select
+    end if
+
+    ! dL/dT = rho0 * d_lambda_dT where lambda_T equals the cooling curve
     rc_field % d_L_dT = (rho_field % rho0) * d_lambda_dT
-    
-    !! dL/drho = lambda(T)
-    call get_Lambda(T_field % T0, rc_field % d_L_drho)
+    ! dL/drho = lambda(T)
+    rc_field % d_L_drho = lambda_T
+
   end subroutine set_radiative_cooling_values
-    
-
-  !> Interpolates the luminosity based on the given temperatures T0.
-  !! @param[in]  T0       Array with the equilibrium temperatures (normalised)
-  !! @param[out] lambda   Interpolated lambda (value of the cooling curve)
-  !!                      for every temperature in the T0 array
-  subroutine get_Lambda(T0, lambda)
-    use mod_global_variables, only: gauss_gridpts
-    
-    real(dp), intent(in)  :: T0(gauss_gridpts)
-    real(dp), intent(out) :: lambda(gauss_gridpts)
-    integer               :: idx, i
-
-    !! This interpolates on already normalised tables, so no need to
-    !! denormalise input temperatures
-
-    do i = 1, gauss_gridpts
-      if (T0(i) <= min_T) then
-        ! No cooling if T0 below lower limit of cooling curve
-        lambda(i) = 0.0d0
-      else if (T0(i) >= max_T) then
-        ! Bremmstrahlung if T0 above upper limit of cooling curve
-        lambda(i) = interp_table_L(ncool) * sqrt(T0(i) / max_T)
-      else
-        idx = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
-        lambda(i) = interp_table_L(idx) + (T0(i) - interp_table_T(idx)) &
-                    * (interp_table_L(idx + 1) - interp_table_L(idx))   &
-                    / (interp_table_T(idx + 1) - interp_table_T(idx))
-      end if
-    end do
-
-  end subroutine get_Lambda
-
-
-  !> Interpolates the derivative of the cooling curve based on
-  !! the given temperatures T0.
-  !! @param[in]  T0         Array with the equilibrium temperatures (normalised)
-  !! @param[out] dLambdadT  Interpolated derivative of lambda
-  !!                        for every temperature in the T0 array
-  subroutine get_dLambdadT(T0, dLambdadT)
-    use mod_global_variables, only: gauss_gridpts
-    
-    real(dp), intent(in)     :: T0(gauss_gridpts)
-    real(dp), intent(out)    :: dLambdadT(gauss_gridpts)
-    integer                  :: idx, i
-
-    !! This interpolates on already normalised tables, so no need to
-    !! denormalise input temperatures
-
-    do i = 1, gauss_gridpts
-      if (T0(i) <= min_T) then
-        ! No cooling if T0 below lower limit of cooling curve
-        dLambdadT(i) = 0.0d0
-      else if (T0(i) >= max_T) then
-        ! Derivative of Bremmstrahlung sqrt(T0/Tmax)
-        dLambdadT(i) = 0.5d0 * interp_table_L(ncool) / sqrt(T0(i) * max_T)
-      else
-        idx     = int( (log10(T0(i)) - lgmin_T) / lgstep ) + 1
-        dLambdadT(i) = interp_table_dLdT(idx) + (T0(i) - interp_table_T(idx)) &
-                       * (interp_table_dLdT(idx+1) - interp_table_dLdT(idx))  &
-                       / (interp_table_T(idx+1)    - interp_table_T(idx))
-      end if
-    end do
-
-  end subroutine get_dLambdadT
 
 
   !> Interpolates the rudimentary cooling curves using ncool points.
@@ -230,7 +187,7 @@ contains
 
     max_T = table_T(ntable)
     min_T = table_T(1)
-    ratt     = (max_T-min_T) / dble(ncool-1)
+    ratt  = (max_T-min_T) / dble(ncool-1)
 
     interp_table_T(1) = min_T
     interp_table_L(1) = table_L(1)
@@ -321,13 +278,11 @@ contains
 
   !> Deallocates arrays defined in the radiative cooling module.
   subroutine radiative_cooling_clean()
-    deallocate(interp_table_T)
-    deallocate(interp_table_L)
-    deallocate(interp_table_dLdT)
+    if (interpolated_curve) then
+      deallocate(interp_table_T)
+      deallocate(interp_table_L)
+      deallocate(interp_table_dLdT)
+    end if
   end subroutine radiative_cooling_clean
-
-
-
-
 
 end module mod_radiative_cooling
