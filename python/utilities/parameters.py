@@ -190,8 +190,8 @@ PRECODED_MULTIRUNS = {
         'gridpts': 31,
         'nb_runs': 40,
         'parameters': {
-            'k2': np.pi * np.cos(np.linspace(0, np.pi, 40)),
-            'k3': np.pi * np.sin(np.linspace(0, np.pi, 40)),
+            'k2': np.pi * np.sin(np.linspace(0, np.pi, 40)),
+            'k3': np.pi * np.cos(np.linspace(0, np.pi, 40)),
             'lambda': 0.0,
             'cte_p0': 0.25, # so beta = 0.5
             'alpha': 20.0
@@ -202,8 +202,8 @@ PRECODED_MULTIRUNS = {
         'gridpts': 31,
         'nb_runs': 40,
         'parameters': {
-            'k2': np.pi * np.cos(np.linspace(0, np.pi, 40)),
-            'k3': np.pi * np.sin(np.linspace(0, np.pi, 40)),
+            'k2': np.pi * np.sin(np.linspace(0, np.pi, 40)),
+            'k3': np.pi * np.cos(np.linspace(0, np.pi, 40)),
             'lambda': 0.3,
             'cte_p0': 0.25, # so beta = 0.5
             'alpha': 20.0
@@ -212,11 +212,11 @@ PRECODED_MULTIRUNS = {
     'constant_current_m-2': {
         'equilibrium': 'constant_current_tokamak',
         'gridpts': 51,
-        'nb_runs': 37,
+        'nb_runs': 39,
         'parameters': {
             'k2': -2.0,
             'k3': 0.2,
-            'j0': (2.0 * 0.2) / np.linspace(1.9, 2.1, 37)
+            'j0': (2.0 * 0.2) / np.linspace(1.9, 2.1, 39)
         }
     }
 }

@@ -54,9 +54,9 @@ contains
 
     !! Set defaults
     !> Gridlist defaults
-    geometry = "Cartesian"          !< geometry of the problem
-    x_start  = 0.0d0                !< start of the grid
-    x_end    = 1.0d0                !< end of the grid
+    geometry = ""                   !< equilibrium geometry
+    x_start  = NaN                  !< start of the grid
+    x_end    = NaN                  !< end of the grid
     gridpoints = 31                 !< gridpoints for regular grid
 
     !> Meshlist defaults

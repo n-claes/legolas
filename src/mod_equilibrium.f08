@@ -21,12 +21,7 @@ module mod_equilibrium
 
   private
 
-  abstract interface
-    subroutine eq_void()
-    end subroutine eq_void
-  end interface
-
-  procedure (eq_void), pointer :: set_equilibrium_values => null()
+  procedure(), pointer :: set_equilibrium_values => null()
 
   interface
     module subroutine adiabatic_homo_eq; end subroutine
@@ -78,6 +73,7 @@ module mod_equilibrium
 
   public :: initialise_equilibrium
   public :: set_equilibrium
+  public :: allow_geometry_override
   public :: equilibrium_clean
 
 
@@ -208,6 +204,33 @@ contains
       stop
     end select
   end subroutine set_equilibrium_pointer
+
+
+  subroutine allow_geometry_override(default_geometry, default_x_start, default_x_end)
+    use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan
+    use mod_global_variables, only: dp_LIMIT
+
+    character(*), intent(in)  :: default_geometry
+    real(dp), intent(in)      :: default_x_start, default_x_end
+
+    if (geometry /= "" .and. geometry /= default_geometry) then
+      write(*, *) "WARNING: overriding default geometry (", default_geometry, ") with ", geometry
+    else
+      geometry = default_geometry
+    end if
+
+    if ( (.not. ieee_is_nan(x_start)) .and. abs(x_start - default_x_start) >= dp_LIMIT ) then
+      write(*, *) "WARNING: overriding x_start with ", x_start
+    else
+      x_start = default_x_start
+    end if
+
+    if ( (.not. ieee_is_nan(x_end)) .and. abs(x_end - default_x_end) >= dp_LIMIT ) then
+      write(*, *) "WARNING: overriding x_end with ", x_end
+    else
+      x_end = default_x_end
+    end if
+  end subroutine allow_geometry_override
 
 
   !> Cleaning routine, deallocates all arrays in this module.

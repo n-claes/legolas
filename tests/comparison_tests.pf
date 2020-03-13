@@ -35,13 +35,15 @@ contains
 
   @before
   subroutine init_test()
-    use mod_global_variables, only: set_gridpts
+    use mod_global_variables, only: set_gridpts, initialise_globals
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
 
     if (.not. os_is_set) then
       call set_operating_system()
       os_is_set = .true.
     end if
+
+    call initialise_globals()
 
     ! This sets all default values
     call read_parfile("")

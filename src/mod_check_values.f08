@@ -108,8 +108,9 @@ contains
 
   subroutine check_equilibrium_conditions(rho_field, T_field, B_field, v_field, grav_field)
     use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, gravity_type
-    use mod_global_variables, only: geometry
+    use mod_global_variables, only: geometry, dp_LIMIT, x_start
     use mod_grid, only: eps_grid, d_eps_grid_dr
+    use mod_equilibrium_params, only: k2
 
     type(density_type), intent(in)      :: rho_field
     type(temperature_type), intent(in)  :: T_field
@@ -118,10 +119,42 @@ contains
     type(gravity_type), intent(in)      :: grav_field
 
     real(dp)    :: rho, drho, B02, dB02, B03, dB03, T0, dT0, grav, v02, v03
-    real(dp)    :: eps, d_eps, eq_limit
+    real(dp)    :: eps, d_eps, axis_limit
     real(dp)    :: eq_cond(gauss_gridpts)
-    integer     :: i
+    integer     :: i, k2_int
 
+    k2_int = int(k2)
+    axis_limit = 1.0d-2
+
+    if (geometry == 'cylindrical') then
+      ! in cylindrical geometry, m should be an integer
+      if (abs(k2_int - k2) > dp_LIMIT) then
+        write(*, *) "k2 value: ", k2
+        error stop "cylindrical geometry defined but k2 (mode number m) is not an integer!"
+      end if
+
+      ! check if relevant values are zero on-axis, if applicable
+      if (x_start <= 1.0d-5) then
+        if (abs(B_field % B02(1)) > axis_limit) then
+          write(*, *) "B_theta(0) value: ", B_field % B02(1)
+          error stop "B_theta(0) is non-zero on axis!"
+        end if
+        if (abs(B_field % d_B03_dr(1)) > axis_limit) then
+          write(*, *) "dBz/dr(0) value: ", B_field % d_B03_dr(1)
+          error stop "dBz/dr(0) is non-zero on axis!"
+        end if
+        if (abs(v_field % v02(1)) > axis_limit) then
+          write(*, *) "v_theta(0) value: ", v_field % v02(1)
+          error stop "v_theta(0) is non-zero on axis!"
+        end if
+        if (abs(v_field % d_v03_dr(1)) > axis_limit) then
+          write(*, *) "dvz/dr(0) value: ", v_field % d_v03_dr(1)
+          error stop "dvz/dr(0) is non-zero on axis!"
+        end if
+      end if
+    end if
+
+    ! check if equilibrium conditions are met
     do i = 1, gauss_gridpts
       rho = rho_field % rho0(i)
       drho = rho_field % d_rho0_dr(i)
@@ -137,28 +170,11 @@ contains
       eps = eps_grid(i)
       d_eps = d_eps_grid_dr(i)
 
-      eq_cond(i) = drho * T0 + rho * dT0 + B02 * dB02 + B03 * dB03 + rho * grav &
-                   - (d_eps/eps) * (rho * v02**2 - B02**2)
-
+      eq_cond(i) = drho * T0 + rho * dT0 + B02 * dB02 + B03 * dB03 + rho * grav - (d_eps/eps) * (rho * v02**2 - B02**2)
       if (eq_cond(i) > dp_LIMIT) then
-        error stop "WARNING: equilibrium conditions not met!"
+        error stop "equilibrium conditions not met!"
       end if
     end do
-
-    eq_limit = 1.0d-2
-
-    if (geometry == 'cylindrical') then
-      if (abs(B_field % B02(1)) > eq_limit) then
-        error stop "WARNING: B_theta(0) is non-zero!"
-      else if (abs(B_field % d_B03_dr(1)) > eq_limit) then
-        error stop "WARNING: dB_z/dr(0) is non-zero!"
-      else if (abs(v_field % v02(1)) > eq_limit) then
-        error stop "WARNING: v_theta(0) is non-zero!"
-      else if (abs(v_field % d_v03_dr(1)) > eq_limit) then
-        error stop "WARNING: d_v03_dr(0) is non-zero!"
-      end if
-    end if
-
   end subroutine check_equilibrium_conditions
 
 
