@@ -17,16 +17,10 @@ module mod_cooling_curves
   real(dp), protected :: l_jc_corona(45), l_dalgarno(71), l_ml_solar(71), l_spex(110), l_dalgarno2(76)
   real(dp), protected :: n_spex_enh(110)
 
-  ! integer, protected     :: n_JCcorona      , n_DM      , n_MLsolar      , &
-  !                           n_SPEX          , n_DM_2
-  ! real(dp), protected    :: t_JCcorona(1:45), t_DM(1:71), t_MLsolar(1:71), &
-  !                           t_SPEX(1:110)   , t_DM_2(1:76)
-  ! real(dp), protected    :: l_JCcorona(1:45), l_DM(1:71), l_MLsolar(1:71), &
-  !                           l_SPEX(1:110)   , l_DM_2(1:76)
-  ! real(dp), protected    :: nenh_SPEX(1:110)
+  real(dp), protected :: rosner_log10_T(8), rosner_log10_xi(9), rosner_alpha(9)
 
+  ! JC corona cooling table from Colgan et al. (2008)
   data    n_jc_corona / 45 /
-
   data    t_jc_corona / 4.00000, 4.14230, 4.21995, 4.29761, 4.37528, &
                         4.45294, 4.53061, 4.60827, 4.68593, 4.76359, &
                         4.79705, 4.83049, 4.86394, 4.89739, 4.93084, &
@@ -36,7 +30,6 @@ module mod_cooling_curves
                         6.39796, 6.50907, 6.62018, 6.73129, 6.84240, &
                         6.95351, 7.06461, 7.17574, 7.28684, 7.39796, &
                         7.50907, 7.62018, 7.73129, 7.84240, 7.95351  /
-
   data    l_jc_corona / -200.18883, -100.78630, -30.60384, -22.68481, -21.76445, &
                         -21.67936, -21.54218, -21.37958, -21.25172, -21.17584, &
                         -21.15783, -21.14491, -21.13527, -21.12837, -21.12485, &
@@ -47,8 +40,8 @@ module mod_cooling_curves
                         -22.00000, -22.05161, -22.22175, -22.41452, -22.52581, &
                         -22.56914, -22.57486, -22.56151, -22.53969, -22.51490  /
 
+  ! Dalgarno and McCray cooling table (1978)
   data    n_dalgarno / 71 /
-
   data    t_dalgarno / 2.0, 2.1, 2.2, 2.3, 2.4, &
                        2.5, 2.6, 2.7, 2.8, 2.9, &
                        3.0, 3.1, 3.2, 3.3, 3.4, &
@@ -64,7 +57,6 @@ module mod_cooling_curves
                        8.0, 8.1, 8.2, 8.3, 8.4, &
                        8.5, 8.6, 8.7, 8.8, 8.9, &
                        9.0 /
-
   data    l_dalgarno / -26.523, -26.398, -26.301, -26.222, -26.097, &
                        -26.011, -25.936, -25.866, -25.807, -25.754, &
                        -25.708, -25.667, -25.630, -25.595, -25.564, &
@@ -81,8 +73,8 @@ module mod_cooling_curves
                        -22.430, -22.380, -22.330, -22.280, -22.230, &
                        -22.180 /
 
+  ! Mellema and Lundqvist cooling table for solar metallicity (2002)
   data    n_ml_solar / 71 /
-
   data    t_ml_solar / 2.0, 2.1, 2.2, 2.3, 2.4, &
                        2.5, 2.6, 2.7, 2.8, 2.9, &
                        3.0, 3.1, 3.2, 3.3, 3.4, &
@@ -98,7 +90,6 @@ module mod_cooling_curves
                        8.0, 8.1, 8.2, 8.3, 8.4, &
                        8.5, 8.6, 8.7, 8.8, 8.9, &
                        9.0 /
-
   data    l_ml_solar / -26.983, -26.951, -26.941, -26.940, -26.956, &
                        -26.980, -27.011, -27.052, -27.097, -27.145, &
                        -27.195, -27.235, -27.279, -27.327, -27.368, &
@@ -115,8 +106,8 @@ module mod_cooling_curves
                        -22.370, -22.320, -22.270, -22.220, -22.170, &
                        -22.120 /
 
+  ! SPEX cooling table from Schure et al. (2009)
   data    n_spex / 110 /
-
   data    t_spex / 3.80, 3.84, 3.88, 3.92, 3.96, &
                    4.00, 4.04, 4.08, 4.12, 4.16, &
                    4.20, 4.24, 4.28, 4.32, 4.36, &
@@ -139,7 +130,6 @@ module mod_cooling_curves
                    7.60, 7.64, 7.68, 7.72, 7.76, &
                    7.80, 7.84, 7.88, 7.92, 7.96, &
                    8.00, 8.04, 8.08, 8.12, 8.16  /
-
   data    l_spex / -25.7331, -25.0383, -24.4059, -23.8288, -23.3027, &
                    -22.8242, -22.3917, -22.0067, -21.6818, -21.4529, &
                    -21.3246, -21.3459, -21.4305, -21.5293, -21.6138, &
@@ -162,7 +152,6 @@ module mod_cooling_curves
                    -22.6769, -22.6655, -22.6531, -22.6397, -22.6258, &
                    -22.6111, -22.5964, -22.5816, -22.5668, -22.5519, &
                    -22.5367, -22.5216, -22.5062, -22.4912, -22.4753 /
-
   data    n_spex_enh / 0.000013264, 0.000042428, 0.000088276, 0.00017967, &
                        0.00084362, 0.0034295, 0.013283, 0.042008, &
                        0.12138, 0.30481, 0.53386, 0.76622, &
@@ -187,7 +176,6 @@ module mod_cooling_curves
   ! To be used together with the SPEX table for the SPEX_DM option
   ! Assuming an ionization fraction of 10^-3
   data    n_dalgarno2 / 76 /
-
   data    t_dalgarno2 / 1.00, 1.04, 1.08, 1.12, 1.16, &
                         1.20, 1.24, 1.28, 1.32, 1.36, &
                         1.40, 1.44, 1.48, 1.52, 1.56, &
@@ -204,7 +192,6 @@ module mod_cooling_curves
                         3.60, 3.64, 3.68, 3.72, 3.76, &
                         3.80, 3.84, 3.88, 3.92, 3.96, &
                         4.00 /
-
   data    l_dalgarno2 / -30.0377, -29.7062, -29.4055, -29.1331, &
                         -28.8864, -28.6631, -28.4614, -28.2791, &
                         -28.1146, -27.9662, -27.8330, -27.7129, &
@@ -225,28 +212,55 @@ module mod_cooling_curves
                         -25.6811, -25.6733, -25.6641, -25.6525, &
                         -25.6325, -25.6080, -25.5367, -25.4806  /
 
+  ! Analytical (piecewise) cooling curve by Rosner, Tucker and Vaiana (1978),
+  ! extended by Priest (1982)
+  data    rosner_log10_T / 3.89063, 4.30195, 4.575, 4.9, 5.4, 5.77, &
+                           6.315, 7.60457 /
+  ! Note: original values for xi are given in SI, these here are scaled to cgs.
+  !       1 W/m3 = 1e-13 erg/(s*cm3) so since these are in log10 scale
+  !       that means a term -13 difference
+  data    rosner_log10_xi / -69.900, -48.307, -21.850, -31.000, -21.200, &
+                           -10.400, -21.940, -17.730, -26.602           /
+  data    rosner_alpha / 11.7, 6.15, 0.0, 2.0, 0.0, -2.0, 0.0, -0.666666667, 0.5 /
+
 contains
 
   subroutine get_rosner_cooling(T0, lambda_T, d_lambda_dT)
     use mod_global_variables, only: gauss_gridpts
-    use mod_physical_constants, only: unit_temperature, unit_luminosity
+    use mod_physical_constants, only: unit_temperature, unit_luminosity, unit_dldt
 
     real(dp), intent(in)  :: T0(gauss_gridpts)
-    real(dp), intent(in)  :: lambda_T(gauss_gridpts), d_lambda_dT(gauss_gridpts)
-    real(dp)    :: T0_dimfull(gauss_gridpts)
-    real(dp)    :: rosner_log10_T(9), rosner_log10_xi(9)
+    real(dp), intent(out) :: lambda_T(gauss_gridpts), d_lambda_dT(gauss_gridpts)
+    real(dp)    :: rosner_log10_T(8), rosner_log10_xi(9), rosner_alpha(9)
+    real(dp)    :: log10_T0
+    integer     :: i, j, idx
 
-    data    rosner_log10_T / 3.89063, 4.30195, 4.575, 4.9, 5.4, 5.77, &
-                             6.315, 7.60457, 7.60457 /
+    do i = 1, gauss_gridpts
+      log10_T0 = dlog10(T0(i) * unit_temperature)
 
-    data    rosner_log10_xi / -82.9, -61.307, -34.85, -44.0, -34.2, &
-                              -23.4, -34.94, -30.73, -39.602 /
+      ! look up value in tables
+      if (log10_T0 > rosner_log10_T(8)) then
+        idx = 9
+      else
+        do j = 1, size(rosner_log10_T)
+          if (log10_T0 < rosner_log10_T(j)) then
+            idx = j
+            exit
+          end if
+        end do
+      end if
 
-    T0_dimfull = T0 * unit_temperature
+      ! lambda_T = xi * T**alpha, so log(lambda_T) = log(xi) + alpha*log(T)
+      lambda_T(i) = 10.0d0 ** (rosner_log10_xi(idx) + rosner_alpha(idx) * log10_T0)
+      ! dlambda_dT = alpha * xi * T**(alpha - 1) so
+      ! log(d_lambda_dT) = log(alpha) + log(xi) + (alpha-1)*log(T)
+      d_lambda_dT(i) = 10.0d0 ** (dlog10(rosner_alpha(idx)) + rosner_log10_xi(idx) &
+                                  + (rosner_alpha(idx) - 1)*log10_T0)
+    end do
 
-    ! TODO
-    stop "TODO: Rosner cooling not yet implemented!"
-
+    ! renormalise variables
+    lambda_T = lambda_T / unit_luminosity
+    d_lambda_dT = d_lambda_dT / unit_dldt
   end subroutine get_rosner_cooling
 
 end module mod_cooling_curves
