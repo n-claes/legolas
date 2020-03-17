@@ -3,6 +3,7 @@ from utilities.plot_data import plot_eigenfunctions
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class EigenfunctionHandler:
     def __init__(self, data, fig, ax):
         print("")
@@ -14,6 +15,7 @@ class EigenfunctionHandler:
         print("- Up-arrow    : cycle upwards through eigenfunction variables")
         print("- Down-arrow  : cycle downwards through eigenfunction variables")
         print("- d-key       : clears selection and eigenfunction figure")
+        print("- i-key       : switches between real and imaginary parts")
         print("- x-key       : close figures and finish program ")
         print("-" * 50)
         print("")
@@ -32,7 +34,6 @@ class EigenfunctionHandler:
         self.grid = data.grid
         self.eigenfuncs = data.eigenfuncs
 
-
     def connect_interactive_funcs(self):
         def _on_clicking(event):
             toolbar = self.spec_fig.canvas.manager.toolbar
@@ -43,7 +44,9 @@ class EigenfunctionHandler:
                     if event.xdata is None or event.ydata is None:
                         return
                     # Search nearest spectrum point to click, then plot
-                    idx = self._find_spectrum_point(event.xdata, event.ydata)
+                    idx = self._find_spectrum_point_idx(event.xdata, event.ydata)
+                    if idx is None:
+                        return
                     # Check for double plotting of points
                     if idx not in self.w_idx_list:
                         self.w_idx_list.append(idx)
@@ -56,10 +59,13 @@ class EigenfunctionHandler:
             # argument when plotting the point itself (see _on_clicking)
             if event.mouseevent.button == 3:
                 if hasattr(event.artist, 'get_label') and event.artist.get_label() == 'w_point':
+                    # right clicking returns (x, y) as ([x], [y]), so use unpacking here
+                    idx = self._find_spectrum_point_idx(*event.artist.get_xdata(), *event.artist.get_ydata())
+                    if idx is not None:
+                        # remove point from list to draw
+                        self.w_idx_list.remove(idx)
+                    # eventually remove the artist and redraw
                     event.artist.remove()
-                    # remove point from index list as well
-                    idx = self._find_spectrum_point(event.artist.get_xdata(), event.artist.get_ydata())
-                    self.w_idx_list.remove(idx)
             self.spec_fig.canvas.draw()
 
         def _on_typing(event):
@@ -113,13 +119,11 @@ class EigenfunctionHandler:
         self.spec_fig.canvas.mpl_connect('pick_event', _on_picking)
         self.fig.set_visible(False)
 
-
     def _select_next_variable(self):
         self.current_var += 1
         if self.current_var > 7:
             self.current_var = 0
         return self.ef_list[self.current_var]
-
 
     def _select_prev_variable(self):
         self.current_var -= 1
@@ -127,19 +131,28 @@ class EigenfunctionHandler:
             self.current_var = 7
         return self.ef_list[self.current_var]
 
-
     def _get_current_variable(self):
         return self.ef_list[self.current_var]
-
 
     def _switch_real(self):
         self.plot_real = not self.plot_real
 
+    def _find_spectrum_point_idx(self, x, y):
+        # calculate distance from (x, y) to spectrum points
+        distances = np.sqrt((self.omegas.real - x)**2 + (self.omegas.imag - y)**2)
+        # find index of point with closest distance
+        idx = distances.argmin()
+        # find corresponding spectrum point
+        w_found = self.omegas[idx]
 
-    def _find_spectrum_point(self, x, y):
-        w_clicked = x + y*1j
-        idx = (np.abs(self.omegas - w_clicked)).argmin()
-        return idx
+        # calculate x and y coordinate of point in pixels. (0, 0) is bottom-left corner of figure
+        w_x_pixels, w_y_pixels = self.spec_ax.transData.transform((w_found.real, w_found.imag))
+        # get pixels of clicked point
+        click_x_pixels, click_y_pixels = self.spec_ax.transData.transform((x, y))
 
-
-
+        # only select point if within certain distance of click, say 15 pixels
+        pixel_criterion = 15
+        dist_pixels = np.sqrt((w_x_pixels - click_x_pixels)**2 + (w_y_pixels - click_y_pixels)**2)
+        if dist_pixels < pixel_criterion:
+            return idx
+        return None
