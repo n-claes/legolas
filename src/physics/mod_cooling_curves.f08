@@ -227,7 +227,7 @@ contains
 
   subroutine get_rosner_cooling(T0, lambda_T, d_lambda_dT)
     use mod_global_variables, only: gauss_gridpts
-    use mod_physical_constants, only: unit_temperature, unit_luminosity, unit_dldt
+    use mod_units, only: unit_temperature, unit_luminosity, unit_dldt
 
     real(dp), intent(in)  :: T0(gauss_gridpts)
     real(dp), intent(out) :: lambda_T(gauss_gridpts), d_lambda_dT(gauss_gridpts)
