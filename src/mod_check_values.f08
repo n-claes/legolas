@@ -26,30 +26,46 @@ module mod_check_values
 
 contains
 
-  subroutine small_values_real_array(array)
-    real(dp), intent(inout) :: array(:)
-    integer                 :: i
+  subroutine small_values_real_array(array, tol)
+    real(dp), intent(inout)         :: array(:)
+    real(dp), intent(in), optional  :: tol
+    real(dp)    :: limit
+    integer     :: i
+
+    if (present(tol)) then
+      limit = tol
+    else
+      limit = dp_LIMIT
+    end if
 
     do i = 1, size(array)
-      if (abs(array(i)) < dp_LIMIT) then
+      if (abs(array(i)) < limit) then
         array(i) = 0.0d0
       end if
     end do
   end subroutine small_values_real_array
 
-  subroutine small_values_complex_array(array)
-    complex(dp), intent(inout) :: array(:)
-    integer                    :: i
-    real(dp)                   :: a_real, a_imag
+  subroutine small_values_complex_array(array, tol)
+    complex(dp), intent(inout)      :: array(:)
+    real(dp), intent(in), optional  :: tol
+    real(dp)    :: a_real, a_imag
+    real(dp)    :: limit
+    integer     :: i
+
+    if (present(tol)) then
+      limit = tol
+    else
+      limit = dp_LIMIT
+    end if
 
     do i = 1, size(array)
       a_real = real(array(i))
       a_imag = aimag(array(i))
 
-      if (abs(a_real) < dp_LIMIT) then
+      if (abs(a_real) < limit) then
         a_real = 0.0d0
       end if
-      if (abs(a_imag) < dp_LIMIT) then
+      if (abs(a_imag) < limit) then
         a_imag = 0.0d0
       end if
 
@@ -57,33 +73,49 @@ contains
     end do
   end subroutine small_values_complex_array
 
-  subroutine small_values_real_matrix(matrix)
-    real(dp), intent(inout)    :: matrix(:, :)
-    integer                    :: i, j
+  subroutine small_values_real_matrix(matrix, tol)
+    real(dp), intent(inout)         :: matrix(:, :)
+    real(dp), intent(in), optional  :: tol
+    real(dp)    :: limit
+    integer     :: i, j
+
+    if (present(tol)) then
+      limit = tol
+    else
+      limit = dp_LIMIT
+    end if
 
     do j = 1, size(matrix(1, :))
       do i = 1, size(matrix(:, 1))
-        if (abs(matrix(i, j)) < dp_LIMIT) then
+        if (abs(matrix(i, j)) < limit) then
           matrix(i, j) = 0.0d0
         end if
       end do
     end do
   end subroutine small_values_real_matrix
 
-  subroutine small_values_complex_matrix(matrix)
-    complex(dp), intent(inout) :: matrix(:, :)
-    integer                    :: i, j
-    real(dp)                   :: a_real, a_imag
+  subroutine small_values_complex_matrix(matrix, tol)
+    complex(dp), intent(inout)      :: matrix(:, :)
+    real(dp), intent(in), optional  :: tol
+    real(dp)    :: a_real, a_imag
+    real(dp)    :: limit
+    integer     :: i, j
+
+    if (present(tol)) then
+      limit = tol
+    else
+      limit = dp_LIMIT
+    end if
 
     do j = 1, size(matrix(1, :))
       do i = 1, size(matrix(:, 1))
         a_real = real(matrix(i, j))
         a_imag = aimag(matrix(i, j))
 
-        if (abs(a_real) < dp_LIMIT) then
+        if (abs(a_real) < limit) then
           a_real = 0.0d0
         end if
-        if (abs(a_imag) < dp_LIMIT) then
+        if (abs(a_imag) < limit) then
           a_imag = 0.0d0
         end if
 

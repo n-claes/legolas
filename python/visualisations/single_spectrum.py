@@ -53,6 +53,9 @@ class SingleSpectrum(LEGOLASDataContainer):
 
         def on_legend_pick(event):
             artist = event.artist
+            # do nothing if clicking outside of legend
+            if not artist in regions:
+                return
             item = regions[artist]
             visible = not item.get_visible()
             item.set_visible(visible)
