@@ -14,28 +14,28 @@ module mod_resistivity
   implicit none
 
   private
-  
+
   public :: set_resistivity_values
 
 contains
-  
+
   subroutine set_resistivity_values(T_field, eta_field)
     use mod_types, only: temperature_type, resistivity_type
-    
-    type(temperature_type), intent(in)    :: T_field 
+
+    type(temperature_type), intent(in)    :: T_field
     type(resistivity_type), intent(inout) :: eta_field
-    
+
     call get_eta(T_field % T0, eta_field % eta)
     call get_deta_dT(T_field % T0, eta_field % d_eta_dT)
   end subroutine set_resistivity_values
-    
+
 
   !> Calculates the Spitzer resistivity based on the equilibrium temperatures.
   !! @param[in]  T0   Array with the equilibrium temperatures, in K
   !! @param[out] eta  Array containing the Spitzer resistivity as a function of T
   subroutine get_eta(T0, eta)
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
-    use mod_physical_constants, only: unit_temperature, set_unit_resistivity, unit_resistivity
+    use mod_units, only: unit_temperature, set_unit_resistivity, unit_resistivity
 
     real(dp), intent(in)    :: T0(gauss_gridpts)
     real(dp), intent(inout) :: eta(gauss_gridpts)
@@ -75,7 +75,7 @@ contains
   !!                     resistivity with respect to temperature
   subroutine get_deta_dT(T0, deta_dT)
     use mod_global_variables, only: use_fixed_resistivity
-    use mod_physical_constants, only: unit_temperature, unit_deta_dT
+    use mod_units, only: unit_temperature, unit_deta_dT
 
     real(dp), intent(in)    :: T0(gauss_gridpts)
     real(dp), intent(out)   :: deta_dT(gauss_gridpts)

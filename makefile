@@ -21,8 +21,9 @@ OUTDIR   := output
 OUTPUT   := legolas
 
 objects  := $(addprefix $(BINDIR)/, \
-              mod_physical_constants.o \
               mod_global_variables.o \
+              mod_physical_constants.o \
+							mod_units.o	\
 							mod_equilibrium_params.o \
 							mod_grid.o \
               mod_types.o \
