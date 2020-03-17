@@ -177,7 +177,7 @@ contains
   !! @param[in] table_T   Temperature entries of cooling table.
   !! @param[in] table_L   Luminosity entries of cooling table.
   subroutine interpolate_cooling_curve(ntable, table_T, table_L)
-    use mod_physical_constants, only: unit_temperature, unit_luminosity
+    use mod_units, only: unit_temperature, unit_luminosity
 
     integer, intent(in)   :: ntable
     real(dp), intent(in)  :: table_T(:), table_L(:)

@@ -16,15 +16,9 @@ contains
   !> Reads in the supplied parfile and sets all global variables accordingly.
   !! @param[in] parfile   The name of the parfile
   subroutine read_parfile(parfile)
-    use mod_physical_constants, only: set_unit_length, set_unit_numberdensity, &
-                                      set_unit_temperature, set_normalisations
-
     character(len=*), intent(in)  :: parfile
 
     real(dp)    :: mhd_gamma
-    ! integer     :: big      !< incommpressible limit test
-    real(dp)    :: unit_length, unit_numberdensity, unit_temperature, &
-                   unit_velocity
     integer     :: gridpoints
 
     namelist /gridlist/ geometry, x_start, x_end, gridpoints
@@ -33,8 +27,6 @@ contains
                            cooling_curve, external_gravity, &
                            thermal_conduction, resistivity, &
                            use_fixed_resistivity, fixed_eta_value
-    namelist /unitslist/ cgs_units, unit_length, unit_numberdensity, &
-                         unit_temperature, unit_velocity
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
     namelist /savelist/ run_silent, write_matrices, write_eigenvectors, &
                         write_eigenfunctions, write_equilibrium, show_results, &
@@ -79,13 +71,6 @@ contains
     use_fixed_resistivity = .false. !< use fixed resistivity
     fixed_eta_value = 0.0d0         !< value for fixed resistivity
 
-    !> Unitslist defaults
-    cgs_units = .true.              !< use cgs units
-    unit_length = 1.0d9             !< length unit in cm (cgs) or m (mks)
-    unit_numberdensity = 1.0d9      !< cm**-3 (cgs) or m**-3 (mks)
-    unit_temperature = 1.0d6        !< temperature unit in kelvin
-    unit_velocity = 0.0d0           !< velocity unit in cm/s (cgs) or m/s (mks)
-
     !> Equilibriumlist defaults
     equilibrium_type = "adiabatic_homo"         !< precoded equilibrium to use
     boundary_type = 'wall'                      !< type of boundary condition
@@ -129,32 +114,23 @@ contains
             read(unit_par, physicslist, end=1003)
 
       1003  rewind(unit_par)
-            read(unit_par, unitslist, end=1004)
+            read(unit_par, equilibriumlist, end=1004)
 
       1004  rewind(unit_par)
-            read(unit_par, equilibriumlist, end=1005)
+            read(unit_par, savelist, end=1005)
 
       1005  rewind(unit_par)
-            read(unit_par, savelist, end=1006)
+            read(unit_par, filelist, end=1006)
 
       1006  rewind(unit_par)
-            read(unit_par, filelist, end=1007)
+            read(unit_par, paramlist, end=1007)
 
-      1007  rewind(unit_par)
-            read(unit_par, paramlist, end=1008)
-
-      1008  close(unit_par)
+      1007  close(unit_par)
     end if
 
     !> Set up grid and normalisations
     call set_gridpts(gridpoints)
     call set_gamma(mhd_gamma)
-
-    call set_unit_length(unit_length)
-    call set_unit_numberdensity(unit_numberdensity)
-    call set_unit_temperature(unit_temperature)
-    call set_normalisations(cgs_units)
-
   end subroutine read_parfile
 
 

@@ -9,6 +9,7 @@
 !> Module containing all equilibrium arrays.
 !
 module mod_equilibrium
+  use mod_units
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
                        gravity_type, resistivity_type, cooling_type, conduction_type
   use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
@@ -83,7 +84,6 @@ contains
   !! setting them to zero.
   subroutine initialise_equilibrium()
     use mod_types, only: initialise_type
-    use mod_radiative_cooling, only: initialise_radiative_cooling
 
     ! allocate and initialise everything
     call initialise_type(rho_field)
@@ -95,11 +95,6 @@ contains
     call initialise_type(rc_field)
     call initialise_type(kappa_field)
 
-    ! initialise radiative cooling curves
-    if (radiative_cooling) then
-      call initialise_radiative_cooling()
-    end if
-
   end subroutine initialise_equilibrium
 
 
@@ -107,19 +102,24 @@ contains
     use mod_check_values, only: check_negative_array, check_equilibrium_conditions, &
                                 check_nan_values
     use mod_resistivity, only: set_resistivity_values
-    use mod_radiative_cooling, only: set_radiative_cooling_values
+    use mod_radiative_cooling, only: initialise_radiative_cooling, set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
 
     ! Set equilibrium submodule to use
     call set_equilibrium_pointer()
+
     ! Call submodule
     call set_equilibrium_values()
+
+    ! Set normalisations if needed
+    call check_if_normalisations_set()
 
     ! Setup additional physics
     if (resistivity) then
       call set_resistivity_values(T_field, eta_field)
     end if
     if (radiative_cooling) then
+      call initialise_radiative_cooling()
       call set_radiative_cooling_values(rho_field, T_field, rc_field)
     end if
     if (thermal_conduction) then
@@ -135,7 +135,6 @@ contains
     call check_nan_values(B_field)
     call check_nan_values(v_field)
     call check_nan_values(grav_field)
-
   end subroutine set_equilibrium
 
 
