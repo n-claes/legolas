@@ -2,8 +2,9 @@
 ! SUBMODULE: smod_equil_discrete_alfven
 !
 ! DESCRIPTION:
-!> Submodule defining an equilibrium for non-adiabatic discrete Alfvén waves in
-!! a cylindrical geometry.
+!> Submodule defining an equilibrium for non-adiabatic discrete Alfvén waves in cylindrical geometry.
+!! Uses a 'Tokamak current profile' with parameter nu = 2, radiative cooling is enabled using a
+!! piecewise cooling curven by Rosner et al. (1978), and (only) parallel thermal conduction is assumed.
 !! Obtained from Keppens et al., Solar Physics 144, 267 (1993)
 submodule (mod_equilibrium) smod_equil_discrete_alfven
   implicit none
@@ -11,57 +12,58 @@ submodule (mod_equilibrium) smod_equil_discrete_alfven
 contains
 
   module subroutine discrete_alfven_eq()
-    use mod_equilibrium_params, only: nu, j0, r0
+    use mod_equilibrium_params, only: j0, delta
+    use mod_global_variables, only: cooling_curve, use_fixed_tc_perp, fixed_tc_perp_value
 
-    real(dp)      :: r, nu_g, d, c
-    real(dp)      :: p_x(gauss_gridpts), dp_x(gauss_gridpts)
-    integer       :: i
+    real(dp)  :: r, p_r(gauss_gridpts), dp_r(gauss_gridpts)
+    integer   :: i
 
     geometry = 'cylindrical'
     x_start = 0.0d0
-    x_end   = 1.0d0
+    x_end = 1.0d0
     call initialise_grid()
 
+    radiative_cooling = .true.
+    cooling_curve = 'rosner'
     thermal_conduction = .true.
+    ! only parallel thermal conduction with full T dependence
+    use_fixed_tc_perp = .true.
+    fixed_tc_perp_value = 0.0d0
 
     if (use_defaults) then
-      nu    = 2.0d0
-      j0    = 0.125d0
-      d     = 0.2d0
+      j0 = 0.125d0
+      delta = 0.2d0   ! d parameter in density prescription
 
       k2 = 1.0d0
       k3 = 0.05d0
-    else
-      d = r0
     end if
 
-    nu_g  = nu + 1.0d0
-    c     = 47.0d0*j0**2 / 720.0d0    ! implies T = 0 at r = 1
+    ! define normalisations using length, magnetic field and density
+    cgs_units = .true.
+    call define_rho_mag_len(new_unit_density = 1.5d-15, &
+                            new_unit_magneticfield = 50.0d0, &
+                            new_unit_length = 1.0d10)
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
 
-      ! Equilibrium
-      rho_field % rho0(i) = 1.0d0 - (1.0d0-d) * r**2
-      B_field % B02(i)    = j0 * (1.0d0 - (1.0d0-r**2)**nu_g) / (2.0d0*r*nu_g)
-      B_field % B03(i)    = 1.0d0
-      B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      ! This pressure only holds for n = 2
-      ! Obtained from the equilibrium condition (integration constant c)
-      p_x(i)              = c - j0**2 * (r**10/(60.0d0) - (5.0d0/48.0d0)*r**8 &
-                            + (5.0d0/18.0d0)*r**6 - (3.0d0/8.0d0)*r**4 + r**2/4.0d0)
-      T_field % T0(i)     = p_x(i) / (rho_field % rho0(i))
+      rho_field % rho0(i) = 1.0d0 - (1.0d0 - delta) * r**2
+      B_field % B02(i) = j0 * r * (r**4 - 3.0d0 * r**2 + 3.0d0) / 6.0d0
+      B_field % B03(i) = 1.0d0
+      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
+      p_r(i) = (j0**2 / 720.0d0) * (12.0d0 * (x_end**10 - r**10) &
+                                    - 75.0d0 * (x_end**8 - r**8) &
+                                    + 200.0d0 * (x_end**6 - r**6) &
+                                    - 270.0d0 * (x_end**4 - r**4) &
+                                    + 180.0d0 * (x_end**2 - r**2))
+      T_field % T0(i) = p_r(i) / (rho_field % rho0(i))
 
-      ! Derivatives
-      rho_field % d_rho0_dr(i) = 2.0d0 * (d-1.0d0) * r
-      ! Again, only for nu = 2
-      dp_x(i)                  = -j0**2 * (r**9/6.0d0 - (5.0d0/6.0d0)*r**7 &
-                                  + (5.0d0/3.0d0)*r**5 - 1.5d0*r**3 + 0.5d0*r)
-      T_field % d_T0_dr(i)     = (dp_x(i) * (rho_field % rho0(i)) &
-                                  - (rho_field % d_rho0_dr(i)) * p_x(i)) &
-                                  / (rho_field % rho0(i))**2
-      B_field % d_B02_dr(i)    = j0 * (1.0d0-r**2)**nu - j0 * (1.0d0-(1.0d0-r**2)**nu_g) &
-                                / (2.0d0*r**2*nu_g)
+      ! derivatives
+      rho_field % d_rho0_dr(i) = 2.0d0 * r * (delta - 1.0d0)
+      B_field % d_B02_dr(i) = j0 * (5.0d0 * r**4 - 9.0d0 * r**2 + 3.0d0) / 6.0d0
+      dp_r(i) = j0**2 * r * (-r**8 + 5.0d0 * r**6 - 10.0d0 * r**4 + 9.0d0 * r**2 - 3.0d0) / 6.0d0
+      T_field % d_T0_dr(i) = (dp_r(i) * (rho_field % rho0(i)) - (rho_field % d_rho0_dr(i)) * p_r(i)) &
+                              / (rho_field % rho0(i))**2
     end do
 
   end subroutine discrete_alfven_eq
