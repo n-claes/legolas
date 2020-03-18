@@ -22,6 +22,7 @@ contains
 
   subroutine set_conduction_values(rho_field, T_field, B_field, kappa_field)
     use mod_types, only: density_type, temperature_type, bfield_type, conduction_type
+    use mod_global_variables, only: use_fixed_tc_perp
 
     type(density_type), intent(in)        :: rho_field
     type(temperature_type), intent(in)    :: T_field
@@ -31,12 +32,14 @@ contains
     call get_kappa_para(T_field % T0, kappa_field % kappa_para)
     call get_kappa_perp(T_field % T0, rho_field % rho0, B_field % B0, kappa_field % kappa_perp)
 
-    call get_dkappa_perp_drho(T_field % T0, rho_field % rho0, B_field % B0, &
-                              kappa_field % d_kappa_perp_drho)
-    call get_dkappa_perp_dT(T_field % T0, rho_field % rho0, B_field % B0, &
-                            kappa_field % d_kappa_perp_dT)
-    call get_dkappa_perp_dB2(T_field % T0, rho_field % rho0, B_field % B0, &
-                             kappa_field % d_kappa_perp_dB2)
+    if (.not. use_fixed_tc_perp) then
+      call get_dkappa_perp_drho(T_field % T0, rho_field % rho0, B_field % B0, &
+                                kappa_field % d_kappa_perp_drho)
+      call get_dkappa_perp_dT(T_field % T0, rho_field % rho0, B_field % B0, &
+                              kappa_field % d_kappa_perp_dT)
+      call get_dkappa_perp_dB2(T_field % T0, rho_field % rho0, B_field % B0, &
+                               kappa_field % d_kappa_perp_dB2)
+    end if
   end subroutine set_conduction_values
 
 
@@ -45,7 +48,7 @@ contains
   !! @param[in]  T0_eq    Array containing the equilibrium temperatures, in K
   !! @param[out] tc_para  Array containing the parallel conduction coefficients
   subroutine get_kappa_para(T0_eq, tc_para)
-    use mod_global_variables, only: use_fixed_tc, fixed_tc_para_value
+    use mod_global_variables, only: use_fixed_tc_para, fixed_tc_para_value
     use mod_units, only: unit_conduction
 
     real(dp), intent(in)  :: T0_eq(gauss_gridpts)
@@ -54,7 +57,7 @@ contains
     real(dp)              :: prefactor_para
     real(dp)              :: T0_eq_denorm(gauss_gridpts)
 
-    if (use_fixed_tc) then
+    if (use_fixed_tc_para) then
       tc_para = fixed_tc_para_value
       return
     end if
@@ -81,7 +84,7 @@ contains
   !! @param[in]  B0_eq    Array containing the equilibrium magnetic field
   !! @param[out] tc_perp  Array containing the perpendicular conduction coefficients
   subroutine get_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp)
-    use mod_global_variables, only: use_fixed_tc, fixed_tc_perp_value
+    use mod_global_variables, only: use_fixed_tc_perp, fixed_tc_perp_value
     use mod_units, only: unit_magneticfield, unit_conduction, unit_numberdensity
 
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
@@ -93,7 +96,7 @@ contains
     real(dp)              :: tc_para(gauss_gridpts), nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
 
-    if (use_fixed_tc) then
+    if (use_fixed_tc_perp) then
       tc_perp = fixed_tc_perp_value
       return
     end if
@@ -133,7 +136,6 @@ contains
   !!                        perpendicular conduction coefficient
   !!                        with respect to density
   subroutine get_dkappa_perp_drho(T0_eq, rho0_eq, B0_eq, d_tc_drho)
-    use mod_global_variables, only: use_fixed_tc
     use mod_units, only: unit_magneticfield, unit_dtc_drho, unit_numberdensity
 
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
@@ -144,11 +146,6 @@ contains
                              B0_eq_denorm(gauss_gridpts)
     real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
-
-    if (use_fixed_tc) then
-      d_tc_drho = 0.0d0
-      return
-    end if
 
     !! Denormalise variables for calculation
     T0_eq_denorm = T0_eq * unit_temperature
@@ -183,7 +180,6 @@ contains
   !!                      perpendicular conduction coefficient
   !!                      with respect to temperature
   subroutine get_dkappa_perp_dT(T0_eq, rho0_eq, B0_eq, d_tc_dT)
-    use mod_global_variables, only: use_fixed_tc
     use mod_units, only: unit_magneticfield, unit_dtc_dT, unit_numberdensity
 
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
@@ -194,11 +190,6 @@ contains
                              B0_eq_denorm(gauss_gridpts)
     real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
-
-    if (use_fixed_tc) then
-      d_tc_dT = 0.0d0
-      return
-    end if
 
     !! Denormalise variables for calculation
     T0_eq_denorm = T0_eq * unit_temperature
@@ -231,7 +222,6 @@ contains
   !!                       perpendicular conduction coefficient
   !!                       with respect to B^2
   subroutine get_dkappa_perp_dB2(T0_eq, rho0_eq, B0_eq, d_tc_dB2)
-    use mod_global_variables, only: use_fixed_tc
     use mod_units, only: unit_magneticfield, unit_dtc_dB2, unit_numberdensity
 
     real(dp), intent(in)  :: T0_eq(gauss_gridpts), rho0_eq(gauss_gridpts), &
@@ -242,11 +232,6 @@ contains
                              B0_eq_denorm(gauss_gridpts)
     real(dp)              :: nH(gauss_gridpts)
     real(dp)              :: prefactor_perp, mp
-
-    if (use_fixed_tc) then
-      d_tc_dB2 = 0.0d0
-      return
-    end if
 
     !! Denormalise variables for calculation
     T0_eq_denorm = T0_eq * unit_temperature

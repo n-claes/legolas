@@ -35,7 +35,7 @@ module mod_global_variables
   !> Complex real
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
   !> Boolean for cgs units
-  logical, save             :: cgs_units = .true.
+  logical, save             :: cgs_units
   !> Ratio of specific heats gamma
   real(dp), protected       :: gamma
   !> Variable for (gamma - 1)
@@ -52,11 +52,13 @@ module mod_global_variables
   logical, save             :: external_gravity
   !> Boolean to enable thermal conduction
   logical, save             :: thermal_conduction
-  !> Boolean to set a fixed thermal conduction
-  logical, save             :: use_fixed_tc
-  !> Sets the fixed value for the parallel thermal conduction
+  !> Boolean to set a fixed value for parallel thermal conduction
+  logical, save             :: use_fixed_tc_para
+  !> Sets the fixed value for parallel thermal conduction
   real(dp)                  :: fixed_tc_para_value
-  !> Sets the fixed value for the perpendicular thermal conduction
+  !> Boolean to set a fixed value for perpendicular thermal conduction
+  logical, save             :: use_fixed_tc_perp
+  !> Sets the fixed value for perpendicular thermal conduction
   real(dp)                  :: fixed_tc_perp_value
   !> Boolean to enable resistivity
   logical, save             :: resistivity
@@ -68,13 +70,13 @@ module mod_global_variables
   !! Grid-related parameters
   !> Geometry of the problem: 'Cartesian' or 'cylindrical'
   character(len=str_len)    :: geometry
-  !> Starting value for the x-array
+  !> Starting value of the grid
   real(dp)                  :: x_start
-  !> Final value of the x-array
+  !> Final value of the grid
   real(dp)                  :: x_end
-  !> Amount of gridpoints of the initial array
+  !> Amount of gridpoints
   integer, protected        :: gridpts
-  !> Amount of gridpoint of the gaussian array
+  !> Amount of gridpoints in the gaussian array
   integer, protected        :: gauss_gridpts
   !> Gridpoints of matrices A and B, equal to 16 * gridpts
   integer, protected        :: matrix_gridpts
@@ -173,6 +175,62 @@ contains
     use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
 
     NaN = ieee_value(NaN, ieee_quiet_nan)
+
+    !! physics variables
+    cgs_units = .false.
+    gamma = 5.0d0/3.0d0
+    call set_gamma(gamma)
+    flow = .false.
+    radiative_cooling = .false.
+    ncool = 4000
+    cooling_curve = 'jc_corona'
+    external_gravity = .false.
+    thermal_conduction = .false.
+    use_fixed_tc_para = .false.
+    fixed_tc_para_value = 0.0d0
+    use_fixed_tc_perp = .false.
+    fixed_tc_perp_value = 0.0d0
+    resistivity = .false.
+    use_fixed_resistivity = .false.
+    fixed_eta_value = 0.0d0
+
+    !! grid variables
+    ! do not initialise these three so they MUST be set in submodules/parfile
+    geometry = ""
+    x_start = NaN
+    x_end = NaN
+    gridpts = 31
+    call set_gridpts(gridpts)
+    mesh_accumulation = .false.
+    ev_1 = 1.25d0
+    ev_2 = 1.25d0
+    sigma_1 = 1.0d0
+    sigma_2 = 2.0d0
+
+    !! equilibrium variables
+    equilibrium_type = 'adiabatic_homo'
+    boundary_type = 'wall'
+    use_defaults = .true.
+
+    !! post-processing parameters
+    run_silent = .false.
+    write_matrices = .false.
+    write_eigenvectors = .false.
+    write_eigenfunctions = .false.
+    write_equilibrium = .true.
+    show_results = .true.
+    show_matrices = .false.
+    show_eigenfunctions = .false.
+    show_equilibrium = .true.
+
+    !! file-saving variables
+    savename_eigenvalues = "eigenvalues"
+    savename_efgrid = "ef_grid"
+    savename_matrix = "matrix"
+    savename_eigenvectors = "eigenvectors"
+    savename_eigenfunctions = "eigenfunctions"
+    savename_config = "configuration"
+    savename_equil = 'equilibrium'
   end subroutine initialise_globals
 
   !> Subroutine to set gamma and (gamma - 1)
