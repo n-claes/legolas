@@ -11,7 +11,7 @@ submodule (mod_equilibrium) smod_equil_nonuniform_conduction
 contains
 
   module subroutine nonuniform_thermal_cond_eq()
-    use mod_global_variables, only: use_fixed_tc, fixed_tc_para_value, fixed_tc_perp_value
+    use mod_global_variables, only: use_fixed_tc_para, use_fixed_tc_perp, fixed_tc_para_value, fixed_tc_perp_value
     use mod_equilibrium_params, only: beta
 
     real(dp)      :: x, B0
@@ -23,8 +23,9 @@ contains
     call initialise_grid()
 
     thermal_conduction = .true.
-    use_fixed_tc = .true.
+    use_fixed_tc_para = .true.
     fixed_tc_para_value = 0.001d0
+    use_fixed_tc_perp = .true.
     fixed_tc_perp_value = 0.0d0
 
     if (use_defaults) then
