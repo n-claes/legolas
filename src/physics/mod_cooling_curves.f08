@@ -231,7 +231,6 @@ contains
 
     real(dp), intent(in)  :: T0(gauss_gridpts)
     real(dp), intent(out) :: lambda_T(gauss_gridpts), d_lambda_dT(gauss_gridpts)
-    real(dp)    :: rosner_log10_T(8), rosner_log10_xi(9), rosner_alpha(9)
     real(dp)    :: log10_T0
     integer     :: i, j, idx
 
@@ -252,10 +251,9 @@ contains
 
       ! lambda_T = xi * T**alpha, so log(lambda_T) = log(xi) + alpha*log(T)
       lambda_T(i) = 10.0d0 ** (rosner_log10_xi(idx) + rosner_alpha(idx) * log10_T0)
-      ! dlambda_dT = alpha * xi * T**(alpha - 1) so
-      ! log(d_lambda_dT) = log(alpha) + log(xi) + (alpha-1)*log(T)
-      d_lambda_dT(i) = 10.0d0 ** (dlog10(rosner_alpha(idx)) + rosner_log10_xi(idx) &
-                                  + (rosner_alpha(idx) - 1)*log10_T0)
+      ! dlambda_dT = alpha * xi * T**(alpha - 1) hence
+      !            = alpha * 10**(log(xi) + (alpha-1)*log(T))
+      d_lambda_dT(i) = rosner_alpha(idx) * 10.0d0 ** (rosner_log10_xi(idx) + (rosner_alpha(idx)-1) * log10_T0)
     end do
 
     ! renormalise variables
