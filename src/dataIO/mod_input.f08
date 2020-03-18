@@ -6,7 +6,6 @@ module mod_input
   private
 
   integer       :: unit_par = 101
-  logical, save :: parfile_present
 
   public :: read_parfile
   public :: get_parfile
@@ -35,41 +34,46 @@ contains
                             alpha, beta, delta, theta, tau, lambda, nu, &
                             r0, rc, rj, Bth0, Bz0, V, j0, g
 
-    parfile_present = .true.
-    if (parfile == "") then
-      parfile_present = .false.
-    end if
-
     !! Initialise equilibrium parameters to NaN. These are then read in by the paramlist
     !! or set directly in the submodules.
     call init_equilibrium_params()
 
-    !! Read parfile, if supplied
-    if (parfile_present) then
-      open(unit_par, file=trim(parfile), status='old')
-      !! Start reading namelists, rewind so they can appear out of order
-            rewind(unit_par)
-            read(unit_par, gridlist, end=1001)
+    ! if no parfile supplied, return to keep using defaults
+    if (parfile == "") then
+      return
+    end if
 
-      1001  rewind(unit_par)
-            read(unit_par, physicslist, end=1002)
+    ! initialise local gridpoints and gamma variables to zero
+    mhd_gamma = 0.0d0
+    gridpoints = 0
 
-      1002  rewind(unit_par)
-            read(unit_par, equilibriumlist, end=1003)
+    open(unit_par, file=trim(parfile), status='old')
+    !! Start reading namelists, rewind so they can appear out of order
+          rewind(unit_par)
+          read(unit_par, gridlist, end=1001)
 
-      1003  rewind(unit_par)
-            read(unit_par, savelist, end=1004)
+    1001  rewind(unit_par)
+          read(unit_par, physicslist, end=1002)
 
-      1004  rewind(unit_par)
-            read(unit_par, filelist, end=1005)
+    1002  rewind(unit_par)
+          read(unit_par, equilibriumlist, end=1003)
 
-      1005  rewind(unit_par)
-            read(unit_par, paramlist, end=1006)
+    1003  rewind(unit_par)
+          read(unit_par, savelist, end=1004)
 
-      1006  close(unit_par)
+    1004  rewind(unit_par)
+          read(unit_par, filelist, end=1005)
 
-      !> Set gridpoints and gamma
+    1005  rewind(unit_par)
+          read(unit_par, paramlist, end=1006)
+
+    1006  close(unit_par)
+
+    !> Set gridpoints and gamma, if supplied
+    if (.not. gridpoints == 0) then
       call set_gridpts(gridpoints)
+    end if
+    if (abs(mhd_gamma - 0.0d0) > dp_LIMIT) then
       call set_gamma(mhd_gamma)
     end if
 
