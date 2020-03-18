@@ -23,7 +23,7 @@ contains
 
     namelist /gridlist/ geometry, x_start, x_end, gridpoints
     namelist /meshlist/ mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
-    namelist /physicslist/ mhd_gamma, flow, radiative_cooling, ncool, &
+    namelist /physicslist/ mhd_gamma, cgs_units, flow, radiative_cooling, ncool, &
                            cooling_curve, external_gravity, &
                            thermal_conduction, resistivity, &
                            use_fixed_resistivity, fixed_eta_value
@@ -60,7 +60,7 @@ contains
 
     !> Physicslist defaults
     mhd_gamma = 5.0d0 / 3.0d0       !< ratio of specific heats
-    ! mhd_gamma = real(huge(big))     !< incompressible limit test
+    cgs_units = .true.              !< use cgs units or SI
     flow  = .false.                 !< use flow
     radiative_cooling = .false.     !< use radiative cooling
     ncool = 4000                    !< points for cooling curve interpolation

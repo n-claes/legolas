@@ -5,7 +5,7 @@
 !> Module containing all unit normalisations.
 !
 module mod_units
-  use mod_global_variables, only: dp
+  use mod_global_variables, only: dp, cgs_units
   implicit none
 
   private
@@ -73,6 +73,7 @@ contains
     if (normalisations_set) then
       return
     else
+      cgs_units = .true.
       call define_nb_temp_len(new_unit_numberdensity=1.0d9, &
                               new_unit_temperature=1.0d6, &
                               new_unit_length=1.0d6)
@@ -85,14 +86,12 @@ contains
   !! @param[out]  kB  Boltzmann constant
   !! @param[out]  mp  proton mass
   !! @param[out]  mu0 magnetic permeability
-  !! @param[in]   use_cgs   if .true., returns cgs values. Returns SI values otherwise
-  subroutine get_constants(kB, mp, mu0, use_cgs)
+  subroutine get_constants(kB, mp, mu0)
     use mod_physical_constants, only: kB_si, kB_cgs, mp_si, mp_cgs, mu0_si, mu0_cgs
 
     real(dp), intent(out) :: kB, mp, mu0
-    logical, intent(in)   :: use_cgs
 
-    if (use_cgs) then
+    if (cgs_units) then
       kB = kB_cgs
       mp = mp_cgs
       mu0 = mu0_cgs
@@ -108,20 +107,13 @@ contains
   !! @param[in] new_unit_numberdensity  numberdensity
   !! @param[in] new_unit_temperature    temperature
   !! @param[in] new_unit_length         length
-  !! @param[in, optional] use_cgs       values in cgs or not. Defaults to .true. if not given
-  subroutine define_nb_temp_len(new_unit_numberdensity, new_unit_temperature, new_unit_length, use_cgs)
+  subroutine define_nb_temp_len(new_unit_numberdensity, new_unit_temperature, new_unit_length)
     use mod_physical_constants, only: He_abundance
 
     real(dp), intent(in)  :: new_unit_numberdensity, new_unit_temperature, new_unit_length
-    logical, intent(in), optional :: use_cgs
-
     real(dp)  :: kB, mp, mu0
 
-    if (present(use_cgs)) then
-      call get_constants(kB, mp, mu0, use_cgs)
-    else
-      call get_constants(kB, mp, mu0, use_cgs=.true.)
-    end if
+    call get_constants(kB, mp, mu0)
 
     unit_numberdensity = new_unit_numberdensity
     unit_temperature = new_unit_temperature
@@ -140,20 +132,13 @@ contains
   !! @param[in] new_unit_numberdensity  numberdensity
   !! @param[in] new_unit_velocity       velocity
   !! @param[in] new_unit_length         length
-  !! @param[in, optional] use_cgs       values in cgs or not. Defaults to .true. if not given
-  subroutine define_nb_vel_len(new_unit_numberdensity, new_unit_velocity, new_unit_length, use_cgs)
+  subroutine define_nb_vel_len(new_unit_numberdensity, new_unit_velocity, new_unit_length)
     use mod_physical_constants, only: He_abundance
 
     real(dp), intent(in)  :: new_unit_numberdensity, new_unit_velocity, new_unit_length
-    logical, intent(in), optional :: use_cgs
-
     real(dp)  :: kB, mp, mu0
 
-    if (present(use_cgs)) then
-      call get_constants(kB, mp, mu0, use_cgs)
-    else
-      call get_constants(kB, mp, mu0, use_cgs=.true.)
-    end if
+    call get_constants(kB, mp, mu0)
 
     unit_numberdensity = new_unit_numberdensity
     unit_velocity = new_unit_velocity
@@ -172,20 +157,13 @@ contains
   !! @param[in] new_unit_density        density
   !! @param[in] new_unit_temperature    temperature
   !! @param[in] new_unit_length         length
-  !! @param[in, optional] use_cgs       values in cgs or not. Defaults to .true. if not given
-  subroutine define_rho_temp_len(new_unit_density, new_unit_temperature, new_unit_length, use_cgs)
+  subroutine define_rho_temp_len(new_unit_density, new_unit_temperature, new_unit_length)
     use mod_physical_constants, only: He_abundance
 
     real(dp), intent(in)  :: new_unit_density, new_unit_temperature, new_unit_length
-    logical, intent(in), optional :: use_cgs
-
     real(dp)  :: kB, mp, mu0
 
-    if (present(use_cgs)) then
-      call get_constants(kB, mp, mu0, use_cgs)
-    else
-      call get_constants(kB, mp, mu0, use_cgs=.true.)
-    end if
+    call get_constants(kB, mp, mu0)
 
     unit_density = new_unit_density
     unit_temperature = new_unit_temperature
@@ -204,20 +182,13 @@ contains
   !! @param[in] new_unit_density        density
   !! @param[in] new_unit_magneticfield  magnetic field
   !! @param[in] new_unit_length         length
-  !! @param[in, optional] use_cgs       values in cgs or not. Defaults to .true. if not given
-  subroutine define_rho_mag_len(new_unit_density, new_unit_magneticfield, new_unit_length, use_cgs)
+  subroutine define_rho_mag_len(new_unit_density, new_unit_magneticfield, new_unit_length)
     use mod_physical_constants, only: He_abundance
 
     real(dp), intent(in)  :: new_unit_density, new_unit_magneticfield, new_unit_length
-    logical, intent(in), optional :: use_cgs
-
     real(dp)  :: kB, mp, mu0
 
-    if (present(use_cgs)) then
-      call get_constants(kB, mp, mu0, use_cgs)
-    else
-      call get_constants(kB, mp, mu0, use_cgs=.true.)
-    end if
+    call get_constants(kB, mp, mu0)
 
     unit_density = new_unit_density
     unit_magneticfield = new_unit_magneticfield
