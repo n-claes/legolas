@@ -35,7 +35,7 @@ module mod_global_variables
   !> Complex real
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
   !> Boolean for cgs units
-  logical, save             :: cgs_units
+  logical, save             :: cgs_units = .true.
   !> Ratio of specific heats gamma
   real(dp), protected       :: gamma
   !> Variable for (gamma - 1)
