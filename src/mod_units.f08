@@ -56,6 +56,7 @@ module mod_units
   public  :: define_nb_temp_len
   public  :: define_rho_mag_len
   public  :: define_rho_temp_len
+  public  :: define_temp_mag_len
   public  :: set_unit_resistivity
 
   public  :: unit_length, unit_time, unit_density, unit_velocity
@@ -201,6 +202,31 @@ contains
 
     call calculate_remaining_normalisations()
   end subroutine define_rho_mag_len
+
+
+  !> Define normalisations based on a temperature, magnetic field and length unit.
+  !! @param[in] new_unit_temperature    temperature
+  !! @param[in] new_unit_magneticfield  magnetic field
+  !! @param[in] new_unit_length         length
+  subroutine define_temp_mag_len(new_unit_temperature, new_unit_magneticfield, new_unit_length)
+    use mod_physical_constants, only: He_abundance
+
+    real(dp), intent(in)  :: new_unit_temperature, new_unit_magneticfield, new_unit_length
+    real(dp)  :: kB, mp, mu0
+
+    call get_constants(kB, mp, mu0)
+
+    unit_temperature = new_unit_temperature
+    unit_magneticfield = new_unit_magneticfield
+    unit_length = new_unit_length
+
+    unit_pressure = unit_magneticfield**2 / mu0
+    unit_numberdensity = unit_pressure / ((2.0d0 + 3.0d0*He_abundance) * kB * unit_temperature)
+    unit_density = (1.0d0 + 4.0d0*He_abundance) * mp * unit_numberdensity
+    unit_velocity = sqrt(unit_pressure / unit_density)
+
+    call calculate_remaining_normalisations()
+  end subroutine define_temp_mag_len
 
 
   !> Calculates the remaining normalisations which are based on density, magneticfield, length etc.
