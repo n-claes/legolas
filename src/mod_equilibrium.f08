@@ -47,6 +47,7 @@ module mod_equilibrium
     module subroutine interchange_modes_eq; end subroutine
     module subroutine constant_current_eq; end subroutine
     module subroutine resonant_absorption_eq; end subroutine
+    module subroutine magnetothermal_instability_eq; end subroutine
 
     module subroutine user_defined_eq; end subroutine
 
@@ -188,6 +189,8 @@ contains
       set_equilibrium_values => constant_current_eq
     case("resonant_absorption")
       set_equilibrium_values => resonant_absorption_eq
+    case("magnetothermal_instabilities")
+      set_equilibrium_values => magnetothermal_instability_eq
 
     ! User defined
   case("user_defined")

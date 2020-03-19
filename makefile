@@ -58,6 +58,7 @@ objects  := $(addprefix $(BINDIR)/, \
 							smod_equil_suydam_cluster.o \
 							smod_equil_uniform_conduction.o \
 							smod_equil_resonant_absorption.o \
+							smod_equil_magnetothermal_instabilities.o \
 							smod_test_beta0.o \
 							smod_test_hydro.o \
 							smod_user_defined.o \
