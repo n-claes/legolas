@@ -117,7 +117,8 @@ contains
     ! Check equilibrium values, should be done before adding physics
     call check_negative_array(rho_field % rho0, 'density')
     call check_negative_array(T_field % T0, 'temperature')
-    call check_equilibrium_conditions(rho_field, T_field, B_field, v_field, grav_field)
+    call check_equilibrium_conditions(rho_field, T_field, B_field, v_field, &
+                                      grav_field, rc_field, kappa_field)
     call check_nan_values(rho_field)
     call check_nan_values(T_field)
     call check_nan_values(B_field)
