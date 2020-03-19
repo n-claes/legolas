@@ -138,10 +138,12 @@ contains
   end subroutine check_negative_array
 
 
-  subroutine check_equilibrium_conditions(rho_field, T_field, B_field, v_field, grav_field)
-    use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, gravity_type
-    use mod_global_variables, only: geometry, dp_LIMIT, x_start
-    use mod_grid, only: eps_grid, d_eps_grid_dr
+  subroutine check_equilibrium_conditions(rho_field, T_field, B_field, v_field, grav_field, &
+                                          rc_field, kappa_field)
+    use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, gravity_type, &
+                         cooling_type, conduction_type
+    use mod_global_variables, only: geometry, dp_LIMIT, x_start, thermal_conduction, radiative_cooling
+    use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
     use mod_equilibrium_params, only: k2
 
     type(density_type), intent(in)      :: rho_field
@@ -149,8 +151,11 @@ contains
     type(bfield_type), intent(in)       :: B_field
     type(velocity_type), intent(in)     :: v_field
     type(gravity_type), intent(in)      :: grav_field
+    type(cooling_type), intent(in)      :: rc_field
+    type(conduction_type), intent(in)   :: kappa_field
 
     real(dp)    :: rho, drho, B02, dB02, B03, dB03, T0, dT0, grav, v02, v03
+    real(dp)    :: L0, kperp, dkperpdT, ddT0
     real(dp)    :: eps, d_eps, axis_limit
     real(dp)    :: eq_cond(gauss_gridpts)
     integer     :: i, k2_int
@@ -204,9 +209,29 @@ contains
 
       eq_cond(i) = drho * T0 + rho * dT0 + B02 * dB02 + B03 * dB03 + rho * grav - (d_eps/eps) * (rho * v02**2 - B02**2)
       if (eq_cond(i) > dp_LIMIT) then
-        error stop "equilibrium conditions not met!"
+        error stop "standard equilibrium conditions not met!"
       end if
     end do
+
+    ! check if non-adiabatic equilibrium conditions are met
+    if (thermal_conduction .or. radiative_cooling) then
+      do i = 1, gauss_gridpts-1
+        dT0 = T_field % d_T0_dr(i)
+        eps = eps_grid(i)
+        d_eps = d_eps_grid_dr(i)
+        kperp = kappa_field % kappa_perp(i)
+        dkperpdT = kappa_field % d_kappa_perp_dT(i)
+        L0 = rc_field % heat_loss(i)
+        ! Do numerical differentiation for second T0 derivative, as it is only used here.
+        ! This prevents having to calculate it every time in the submodules, 'approximately' equal here is fine.
+        ddT0 = (T_field % d_T0_dr(i + 1) - T_field % d_T0_dr(i)) / (grid_gauss(i + 1) - grid_gauss(i))
+
+        eq_cond(i) = d_eps / eps * kperp * dT0 + dkperpdT * dT0**2 + kperp * ddT0 - rho * L0
+        if (eq_cond(i) > dp_LIMIT) then
+          error stop "non-adiabatic equilibrium conditions not met! (did you set 2nd derivative of T0?)"
+        end if
+      end do
+    end if
   end subroutine check_equilibrium_conditions
 
 
