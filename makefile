@@ -59,6 +59,8 @@ objects  := $(addprefix $(BINDIR)/, \
 							smod_equil_uniform_conduction.o \
 							smod_equil_resonant_absorption.o \
 							smod_equil_magnetothermal_instabilities.o \
+							smod_equil_photospheric_flux_tube.o \
+							smod_equil_coronal_flux_tube.o \
 							smod_test_beta0.o \
 							smod_test_hydro.o \
 							smod_user_defined.o \
