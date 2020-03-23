@@ -48,6 +48,8 @@ module mod_equilibrium
     module subroutine constant_current_eq; end subroutine
     module subroutine resonant_absorption_eq; end subroutine
     module subroutine magnetothermal_instability_eq; end subroutine
+    module subroutine photospheric_flux_tube_eq; end subroutine
+    module subroutine coronal_flux_tube_eq; end subroutine
 
     module subroutine user_defined_eq; end subroutine
 
@@ -191,6 +193,10 @@ contains
       set_equilibrium_values => resonant_absorption_eq
     case("magnetothermal_instabilities")
       set_equilibrium_values => magnetothermal_instability_eq
+    case("photospheric_flux_tube")
+      set_equilibrium_values => photospheric_flux_tube_eq
+    case("coronal_flux_tube")
+      set_equilibrium_values => coronal_flux_tube_eq
 
     ! User defined
   case("user_defined")

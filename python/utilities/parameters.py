@@ -150,6 +150,20 @@ DEFAULT_PARAMS = {
         'k2': 1.0,
         'k3': np.pi,
         'beta': 0.25
+    },
+    'photospheric_flux_tube': {
+        'k2': 0.0,
+        'k3': 2.0,
+        'cte_rho0': 1.0,
+        'cte_p0': 1.0,
+        'r0': 0.5
+    },
+    'coronal_flux_tube': {
+        'k2': 0.0,
+        'k3': 2.0,
+        'cte_rho0': 1.0,
+        'cte_p0': 1.0,
+        'r0': 0.5
     }
 }
 
@@ -217,6 +231,30 @@ PRECODED_MULTIRUNS = {
             'k2': -2.0,
             'k3': 0.2,
             'j0': (2.0 * 0.2) / np.linspace(1.9, 2.1, 39)
+        }
+    },
+    'photospheric_flux_tube': {
+        'equilibrium': 'photospheric_flux_tube',
+        'gridpts': 31,
+        'nb_runs': 50,
+        'parameters': {
+            'k2': 0.0,
+            'k3': np.linspace(0.1, 6.2, 50) / 0.5,
+            'cte_rho0': 1.0,
+            'cte_p0': 1.0,
+            'r0': 0.5
+        }
+    },
+    'coronal_flux_tube': {
+        'equilibrium': 'coronal_flux_tube',
+        'gridpts': 31,
+        'nb_runs': 50,
+        'parameters': {
+            'k2': 0.0,
+            'k3': np.linspace(0.1, 6.2, 50) / 0.5,
+            'cte_rho0': 1.0,
+            'cte_p0': 1.0,
+            'r0': 0.5
         }
     }
 }

@@ -70,6 +70,31 @@ class MultiSpectrum(LEGOLASDataContainer):
             self.ax.set_ylabel(r"$\omega^2$")
             self.ax.set_title(mr_name + self.gridpts_title)
 
+        elif 'photospheric_flux_tube' in mr_name or 'coronal_flux_tube' in mr_name:
+            # for the photospheric/coronal fluxtube we plot w/(cs*kz) vs kz*r0
+            r0 = self.datacontainer[0].params['r0']
+            gamma = self.datacontainer[0].gamma
+            p0 = self.datacontainer[0].params['cte_p0']
+            rho0 = self.datacontainer[0].params['cte_rho0']
+            cs = np.sqrt(gamma * p0 / rho0)
+            kz_values = np.linspace(0.1, 6.2, len(self.datacontainer)) / r0
+            for idx, data in enumerate(self.datacontainer):
+                w_kzcs = np.abs(np.real(data.omegas)) / (cs * r0 * kz_values[idx])
+                kzr0 = r0 * kz_values[idx] * np.ones_like(w_kzcs)
+                self.ax.plot(kzr0, w_kzcs, '.b', markersize=2, alpha=0.8)
+            # soundspeed is used to make everything dimensionless, to this line sits at one
+            self.ax.axhline(y=1.0, label='$c_s$', lw=1, color='red', linestyle='dotted', alpha=0.6)
+            self.ax.set_xlabel(r'$k_z r_0$')
+            self.ax.set_ylabel(r'$\frac{\omega}{k_z c_s}$')
+            self.ax.set_title(mr_name + self.gridpts_title)
+            if 'photospheric_flux_tube' in mr_name:
+                self.ax.set_xlim([0.05, 6.25])
+                self.ax.set_ylim([0.94, 1.02])
+            else:
+                self.ax.set_xlim([0.05, 6.25])
+                self.ax.set_ylim([0.994, 1.002])
+            self.ax.legend(loc="best")
+
         else:
             for data in self.datacontainer:
                 omega2 = np.real(data.omegas**2)
