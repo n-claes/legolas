@@ -107,7 +107,7 @@ contains
     use mod_output, only: eigenvalues_tofile, matrices_tofile, eigenvectors_tofile, &
                           configuration_tofile, equilibrium_tofile
     use mod_eigenfunctions, only: calculate_eigenfunctions
-    use mod_equilibrium, only: rho_field, T_field, B_field, v_field
+    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, kappa_field
     use mod_grid, only: grid_gauss
 
     call eigenvalues_tofile(omega, savename_eigenvalues)
@@ -125,7 +125,8 @@ contains
     end if
 
     if (write_equilibrium) then
-      call equilibrium_tofile(grid_gauss, rho_field, T_field, B_field, v_field, savename_equil)
+      call equilibrium_tofile(grid_gauss, rho_field, T_field, B_field, v_field, &
+                              rc_field, kappa_field, savename_equil)
     end if
 
     ! save running configuration
