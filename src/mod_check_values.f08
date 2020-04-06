@@ -142,7 +142,7 @@ contains
                                           rc_field, kappa_field)
     use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, gravity_type, &
                          cooling_type, conduction_type
-    use mod_global_variables, only: geometry, dp_LIMIT, x_start, thermal_conduction, radiative_cooling
+    use mod_global_variables, only: geometry, dp_LIMIT, x_start, thermal_conduction, radiative_cooling, equilibrium_type
     use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
     use mod_equilibrium_params, only: k2
 
@@ -172,21 +172,26 @@ contains
 
       ! check if relevant values are zero on-axis, if applicable
       if (x_start <= 1.0d-5) then
-        if (abs(B_field % B02(1)) > axis_limit) then
-          write(*, *) "B_theta(0) value: ", B_field % B02(1)
-          error stop "B_theta(0) is non-zero on axis!"
-        end if
-        if (abs(B_field % d_B03_dr(1)) > axis_limit) then
-          write(*, *) "dBz/dr(0) value: ", B_field % d_B03_dr(1)
-          error stop "dBz/dr(0) is non-zero on axis!"
-        end if
-        if (abs(v_field % v02(1)) > axis_limit) then
-          write(*, *) "v_theta(0) value: ", v_field % v02(1)
-          error stop "v_theta(0) is non-zero on axis!"
-        end if
-        if (abs(v_field % d_v03_dr(1)) > axis_limit) then
-          write(*, *) "dvz/dr(0) value: ", v_field % d_v03_dr(1)
-          error stop "dvz/dr(0) is non-zero on axis!"
+        ! this equilibrium is 0 on r=0, but needs huge number of gridpoints to satisfy grid_gauss(1) < 0.01
+        if (equilibrium_type == 'gold_hoyle') then
+          write(*, *) "Skipping on-axis checks"
+        else
+          if (abs(B_field % B02(1)) > axis_limit) then
+            write(*, *) "B_theta(0) value: ", B_field % B02(1)
+            error stop "B_theta(0) is non-zero on axis!"
+          end if
+          if (abs(B_field % d_B03_dr(1)) > axis_limit) then
+            write(*, *) "dBz/dr(0) value: ", B_field % d_B03_dr(1)
+            error stop "dBz/dr(0) is non-zero on axis!"
+          end if
+          if (abs(v_field % v02(1)) > axis_limit) then
+            write(*, *) "v_theta(0) value: ", v_field % v02(1)
+            error stop "v_theta(0) is non-zero on axis!"
+          end if
+          if (abs(v_field % d_v03_dr(1)) > axis_limit) then
+            write(*, *) "dvz/dr(0) value: ", v_field % d_v03_dr(1)
+            error stop "dvz/dr(0) is non-zero on axis!"
+          end if
         end if
       end if
     end if

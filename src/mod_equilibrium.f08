@@ -50,6 +50,7 @@ module mod_equilibrium
     module subroutine magnetothermal_instability_eq; end subroutine
     module subroutine photospheric_flux_tube_eq; end subroutine
     module subroutine coronal_flux_tube_eq; end subroutine
+    module subroutine gold_hoyle_eq; end subroutine
 
     module subroutine user_defined_eq; end subroutine
 
@@ -197,6 +198,8 @@ contains
       set_equilibrium_values => photospheric_flux_tube_eq
     case("coronal_flux_tube")
       set_equilibrium_values => coronal_flux_tube_eq
+    case("gold_hoyle")
+      set_equilibrium_values => gold_hoyle_eq
 
     ! User defined
   case("user_defined")
