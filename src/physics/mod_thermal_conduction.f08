@@ -260,7 +260,6 @@ contains
   !! @param[in]  mp        The proton mass, in cgs or SI units
   !! @param[out] nH        Array containing the equilibrium number density
   subroutine get_nH(rho0_eq, mp, nH)
-    use mod_physical_constants, only: He_abundance
     use mod_units, only: unit_density, unit_numberdensity
 
     real(dp), intent(in)  :: rho0_eq(gauss_gridpts), mp
@@ -269,8 +268,7 @@ contains
 
     !! Denormalise variables for calculation
     rho0_eq_denorm = rho0_eq * unit_density
-
-    nH = rho0_eq_denorm / ((1.0d0 + 4.0d0 * He_abundance) * mp)
+    nH = rho0_eq_denorm / mp
     !! Renormalise
     nH = nH / unit_numberdensity
   end subroutine get_nH

@@ -12,8 +12,6 @@ module mod_physical_constants
 
   !> Value for pi
   real(dp), parameter   :: dpi = 3.141592653589793238462643383279d0
-  !> Helium abundance [He]/[H]
-  real(dp), parameter   :: He_abundance = 0.1d0
   !> Coulomb logarithm
   real(dp), parameter   :: coulomb_log = 22.0d0
   !> Proton mass in g (cgs)
@@ -48,7 +46,5 @@ module mod_physical_constants
   real(dp), parameter   :: R_si = 8.3145d0
   !> Gas constant in erg/deg
   real(dp), parameter   :: R_cgs = 8.3145d7
-  !> Mean molecular weight using He_abundance
-  real(dp), parameter   :: mu = 1.0d0 + 4.0d0*He_abundance
 
 end module mod_physical_constants
