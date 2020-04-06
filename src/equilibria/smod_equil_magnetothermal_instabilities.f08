@@ -5,6 +5,10 @@
 !> Submodule defining magnetothermal instabilities in a cylindrical geometry as they appear in
 !! Van Der Linden et al., Solar Physics 140, 317-342, 1992. Uses the radiative cooling curve defined by
 !! Rosner et al. (1978) and includes (parallel) thermal conduction.
+!! In the paper:
+!! - CASE I : R = 1.00d8 cm, k3 = 1
+!! - CASE II: R = 1.00d8 cm, k3 = 10
+!! - Thermal continuum plot: R = 2.44d9 cm
 submodule(mod_equilibrium) smod_equil_magnetothermal_instabilities
   implicit none
 
@@ -36,9 +40,7 @@ contains
     end if
 
     cgs_units = .true.
-    call define_temp_mag_len(new_unit_temperature = 2.6d6, &
-                             new_unit_magneticfield = 10.0d0, &
-                             new_unit_length = 2.44d9)
+    call set_normalisations(new_unit_temperature=2.6d6, new_unit_magneticfield=10.0d0, new_unit_length=1.00d8)
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
