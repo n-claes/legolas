@@ -14,7 +14,7 @@ module mod_equilibrium
                        gravity_type, resistivity_type, cooling_type, conduction_type
   use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
                                   flow, resistivity, external_gravity, radiative_cooling, &
-                                  thermal_conduction, geometry, use_defaults
+                                  thermal_conduction, geometry, use_defaults, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
@@ -47,6 +47,10 @@ module mod_equilibrium
     module subroutine interchange_modes_eq; end subroutine
     module subroutine constant_current_eq; end subroutine
     module subroutine resonant_absorption_eq; end subroutine
+    module subroutine magnetothermal_instability_eq; end subroutine
+    module subroutine photospheric_flux_tube_eq; end subroutine
+    module subroutine coronal_flux_tube_eq; end subroutine
+    module subroutine gold_hoyle_eq; end subroutine
 
     module subroutine user_defined_eq; end subroutine
 
@@ -114,6 +118,17 @@ contains
     ! Set normalisations if needed
     call check_if_normalisations_set()
 
+    ! Check equilibrium values, should be done before adding physics
+    call check_negative_array(rho_field % rho0, 'density')
+    call check_negative_array(T_field % T0, 'temperature')
+    call check_equilibrium_conditions(rho_field, T_field, B_field, v_field, &
+                                      grav_field, rc_field, kappa_field)
+    call check_nan_values(rho_field)
+    call check_nan_values(T_field)
+    call check_nan_values(B_field)
+    call check_nan_values(v_field)
+    call check_nan_values(grav_field)
+
     ! Setup additional physics
     if (resistivity) then
       call set_resistivity_values(T_field, eta_field)
@@ -126,15 +141,6 @@ contains
       call set_conduction_values(rho_field, T_field, B_field, kappa_field)
     end if
 
-    ! Check equilibrium values
-    call check_negative_array(rho_field % rho0, 'density')
-    call check_negative_array(T_field % T0, 'temperature')
-    call check_equilibrium_conditions(rho_field, T_field, B_field, v_field, grav_field)
-    call check_nan_values(rho_field)
-    call check_nan_values(T_field)
-    call check_nan_values(B_field)
-    call check_nan_values(v_field)
-    call check_nan_values(grav_field)
   end subroutine set_equilibrium
 
 
@@ -186,6 +192,14 @@ contains
       set_equilibrium_values => constant_current_eq
     case("resonant_absorption")
       set_equilibrium_values => resonant_absorption_eq
+    case("magnetothermal_instabilities")
+      set_equilibrium_values => magnetothermal_instability_eq
+    case("photospheric_flux_tube")
+      set_equilibrium_values => photospheric_flux_tube_eq
+    case("coronal_flux_tube")
+      set_equilibrium_values => coronal_flux_tube_eq
+    case("gold_hoyle")
+      set_equilibrium_values => gold_hoyle_eq
 
     ! User defined
   case("user_defined")

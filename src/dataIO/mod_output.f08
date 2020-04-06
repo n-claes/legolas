@@ -206,23 +206,23 @@ contains
   end subroutine eigenfunctions_tofile
 
 
-  subroutine equilibrium_tofile(grid_gauss, rho_field, T_field, B_field, v_field, base_filename)
+  subroutine equilibrium_tofile(grid_gauss, rho_field, T_field, B_field, v_field, &
+                                rc_field, kappa_field, base_filename)
     use mod_global_variables, only: gauss_gridpts
-    use mod_types, only: density_type, temperature_type, bfield_type, velocity_type
+    use mod_types, only: density_type, temperature_type, bfield_type, &
+                         velocity_type, cooling_type, conduction_type
 
     real(dp), intent(in)                :: grid_gauss(gauss_gridpts)
     type(density_type), intent(in)      :: rho_field
     type(temperature_type), intent(in)  :: T_field
     type(bfield_type), intent(in)       :: B_field
     type(velocity_type), intent(in)     :: v_field
+    type(cooling_type), intent(in)      :: rc_field
+    type(conduction_type), intent(in)   :: kappa_field
     character(len=*), intent(in)        :: base_filename
 
     character(str_len)                  :: filename, filename_names
-    character(len=6)                    :: vars_saved(14)
-    real(dp)                            :: equil_vars(14, gauss_gridpts)
-
-    vars_saved = [character(6) :: 'grid', 'rho0', 'drho0', 'T0', 'dT0', 'B02', 'B03', &
-                                  'dB02', 'dB03', 'B0', 'v02', 'dv02', 'v03', 'dv03']
+    real(dp)                            :: equil_vars(18, gauss_gridpts)
 
     call make_filename(base_filename, filename)
     call make_filename(trim(base_filename) // '_names', filename_names)
@@ -241,12 +241,18 @@ contains
     equil_vars(12, :) = v_field % d_v02_dr
     equil_vars(13, :) = v_field % v03
     equil_vars(14, :) = v_field % d_v03_dr
+    equil_vars(15, :) = rc_field % d_L_dT
+    equil_vars(16, :) = rc_field % d_L_drho
+    equil_vars(17, :) = kappa_field % kappa_para
+    equil_vars(18, :) = kappa_field % kappa_perp
 
     call open_file(equil_unit, filename)
     write(equil_unit) equil_vars
     close(equil_unit)
     call open_file(equil_unit + 1, filename_names)
-    write(equil_unit + 1) vars_saved
+    write(equil_unit + 1) "grid ", "rho0 ", "drho0 ", "T0 ", "dT0 ", "B02 ", "B03 ", &
+                          "dB02 ", "dB03 ", "B0 ", "v02 ", "dv02 ", "v03 ", "dv03 ", "dLdT ", &
+                          "dLdrho ", "kappa_para ", "kappa_perp "
     close(equil_unit + 1)
 
   end subroutine equilibrium_tofile
@@ -340,6 +346,8 @@ contains
     write(*, *) "-- Equilibrium settings --"
     write(*, *) "Equilibrium type   : ", equilibrium_type
     write(*, *) "Boundary conditions: ", boundary_type
+    write(char, form_fout) gamma
+    write(*, *) "Gamma              : ", adjustl(char)
     write(char, form_fout) k2
     write(*, *) "Wave number k2     : ", adjustl(char)
     write(char, form_fout) k3

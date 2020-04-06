@@ -6,7 +6,6 @@ module mod_input
   private
 
   integer       :: unit_par = 101
-  logical, save :: parfile_present
 
   public :: read_parfile
   public :: get_parfile
@@ -21,116 +20,63 @@ contains
     real(dp)    :: mhd_gamma
     integer     :: gridpoints
 
-    namelist /gridlist/ geometry, x_start, x_end, gridpoints
-    namelist /meshlist/ mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
-    namelist /physicslist/ mhd_gamma, flow, radiative_cooling, ncool, &
-                           cooling_curve, external_gravity, &
-                           thermal_conduction, resistivity, &
-                           use_fixed_resistivity, fixed_eta_value
+    namelist /physicslist/  cgs_units, mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
+                            external_gravity, thermal_conduction, use_fixed_tc_para, fixed_tc_para_value, &
+                            use_fixed_tc_perp, fixed_tc_perp_value, resistivity, use_fixed_resistivity, fixed_eta_value
+    namelist /gridlist/     geometry, x_start, x_end, gridpoints, mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
-    namelist /savelist/ run_silent, write_matrices, write_eigenvectors, &
-                        write_eigenfunctions, write_equilibrium, show_results, &
-                        show_matrices, show_eigenfunctions, show_equilibrium
-    namelist /filelist/ savename_eigenvalues, savename_efgrid, &
-                        savename_matrix, savename_eigenvectors, &
-                        savename_eigenfunctions, savename_config, savename_equil
-    namelist /paramlist/ k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, &
-                         cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
-                         alpha, beta, delta, theta, tau, lambda, nu, &
-                         r0, rc, rj, Bth0, Bz0, V, j0, g
+    namelist /savelist/     run_silent, write_matrices, write_eigenvectors, write_eigenfunctions, &
+                            write_equilibrium, show_results, show_matrices, show_eigenfunctions, show_equilibrium
+    namelist /filelist/     savename_eigenvalues, savename_efgrid, savename_matrix, savename_eigenvectors, &
+                            savename_eigenfunctions, savename_config, savename_equil
+    namelist /paramlist/    k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, cte_p0, &
+                            p1, p2, p3, p4, p5, p6, p7, p8, &
+                            alpha, beta, delta, theta, tau, lambda, nu, &
+                            r0, rc, rj, Bth0, Bz0, V, j0, g
 
-    parfile_present = .true.
-    if (parfile == "") then
-      parfile_present = .false.
-    end if
-
-    !! Set defaults
-    !> Gridlist defaults
-    geometry = ""                   !< equilibrium geometry
-    x_start  = NaN                  !< start of the grid
-    x_end    = NaN                  !< end of the grid
-    gridpoints = 31                 !< gridpoints for regular grid
-
-    !> Meshlist defaults
-    mesh_accumulation = .false.
-    ev_1 = 1.25d0                   !< expected value gaussian 1
-    ev_2 = 1.25d0                   !< expected value gaussian 2
-    sigma_1 = 1.0d0                 !< standard deviation gaussian 1
-    sigma_2 = 2.0d0                 !< standard deviation gaussian 2
-
-    !> Physicslist defaults
-    mhd_gamma = 5.0d0 / 3.0d0       !< ratio of specific heats
-    ! mhd_gamma = real(huge(big))     !< incompressible limit test
-    flow  = .false.                 !< use flow
-    radiative_cooling = .false.     !< use radiative cooling
-    ncool = 4000                    !< points for cooling curve interpolation
-    cooling_curve = "JCcorona"      !< radiative cooling curve to use
-    external_gravity = .false.      !< use external gravity
-    thermal_conduction = .false.    !< use thermal conduction
-    resistivity = .false.           !< use resistivity
-    use_fixed_resistivity = .false. !< use fixed resistivity
-    fixed_eta_value = 0.0d0         !< value for fixed resistivity
-
-    !> Equilibriumlist defaults
-    equilibrium_type = "adiabatic_homo"         !< precoded equilibrium to use
-    boundary_type = 'wall'                      !< type of boundary condition
-    use_defaults = .true.                       !< use defaults for equilibrium parameters
-
-    !> Savelist defaults
-    run_silent = .false.            !< if true, no console output
-    write_matrices = .false.        !< write matrices A and B when finished
-    write_eigenvectors = .false.    !< writes eigenvectors to file
-    write_eigenfunctions = .false.  !< writes eigenfunctions to file
-    write_equilibrium = .true.      !< writes equilibrium config to file
-    show_results = .true.           !< plot spectrum when finished
-    show_matrices = .false.         !< plot matrices A and B when finished
-    show_eigenfunctions = .false.   !< plots the eigenfunctions when finished
-    show_equilibrium = .false.      !< plots equilibrium configuration when finished
-
-    !> Filelist defaults
-    savename_eigenvalues = "eigenvalues"
-    savename_efgrid = "ef_grid"
-    savename_matrix = "matrix"
-    savename_eigenvectors = "eigenvectors"
-    savename_eigenfunctions = "eigenfunctions"
-    savename_config = "configuration"
-    savename_equil = 'equilibrium'
-
-    !! Initialise equilibrium parameters to nan. These are controlled
-    !! using the par file and/or the equilibrium submodules.
+    !! Initialise equilibrium parameters to NaN. These are then read in by the paramlist
+    !! or set directly in the submodules.
     call init_equilibrium_params()
 
-    !! Read parfile, if supplied
-    if (parfile_present) then
-      open(unit_par, file=trim(parfile), status='old')
-      !! Start reading namelists, rewind so they can appear out of order
-            rewind(unit_par)
-            read(unit_par, gridlist, end=1001)
-
-      1001  rewind(unit_par)
-            read(unit_par, meshlist, end=1002)
-
-      1002  rewind(unit_par)
-            read(unit_par, physicslist, end=1003)
-
-      1003  rewind(unit_par)
-            read(unit_par, equilibriumlist, end=1004)
-
-      1004  rewind(unit_par)
-            read(unit_par, savelist, end=1005)
-
-      1005  rewind(unit_par)
-            read(unit_par, filelist, end=1006)
-
-      1006  rewind(unit_par)
-            read(unit_par, paramlist, end=1007)
-
-      1007  close(unit_par)
+    ! if no parfile supplied, return to keep using defaults
+    if (parfile == "") then
+      return
     end if
 
-    !> Set up grid and normalisations
-    call set_gridpts(gridpoints)
-    call set_gamma(mhd_gamma)
+    ! initialise local gridpoints and gamma variables to zero
+    mhd_gamma = 0.0d0
+    gridpoints = 0
+
+    open(unit_par, file=trim(parfile), status='old')
+    !! Start reading namelists, rewind so they can appear out of order
+          rewind(unit_par)
+          read(unit_par, gridlist, end=1001)
+
+    1001  rewind(unit_par)
+          read(unit_par, physicslist, end=1002)
+
+    1002  rewind(unit_par)
+          read(unit_par, equilibriumlist, end=1003)
+
+    1003  rewind(unit_par)
+          read(unit_par, savelist, end=1004)
+
+    1004  rewind(unit_par)
+          read(unit_par, filelist, end=1005)
+
+    1005  rewind(unit_par)
+          read(unit_par, paramlist, end=1006)
+
+    1006  close(unit_par)
+
+    !> Set gridpoints and gamma, if supplied
+    if (.not. gridpoints == 0) then
+      call set_gridpts(gridpoints)
+    end if
+    if (abs(mhd_gamma - 0.0d0) > dp_LIMIT) then
+      call set_gamma(mhd_gamma)
+    end if
+
   end subroutine read_parfile
 
 
