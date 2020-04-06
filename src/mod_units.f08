@@ -45,39 +45,31 @@ module mod_units
   real(dp), protected   :: unit_resistivity = 1.0d0
   !> Scaling factor for d(eta)/d(T)
   real(dp), protected   :: unit_deta_dT = 1.0d0
-  !> Scaling factor for gravitational acceleration
-  real(dp), protected   :: unit_acceleration = 1.0d0
 
   !> Boolean value to check if normalisations are set
   logical, protected    :: normalisations_set = .false.
 
   public  :: check_if_normalisations_set
-  public  :: define_nb_vel_len
-  public  :: define_nb_temp_len
-  public  :: define_rho_mag_len
-  public  :: define_rho_temp_len
-  public  :: define_temp_mag_len
+  public  :: set_normalisations
   public  :: set_unit_resistivity
 
   public  :: unit_length, unit_time, unit_density, unit_velocity
   public  :: unit_temperature, unit_pressure, unit_magneticfield
   public  :: unit_numberdensity, unit_luminosity, unit_dldt
   public  :: unit_conduction, unit_dtc_drho, unit_dtc_dT, unit_dtc_dB2
-  public  :: unit_resistivity, unit_deta_dT, unit_acceleration
+  public  :: unit_resistivity, unit_deta_dT
 
 contains
 
 
   !> Checks if normalisations were set. If not, define them using default values, taken
-  !! to be unit_numberdensity=1.0d9, unit_temperature=1.0d6 and unit_length=1.0d6 in cgs units.
+  !! to be unit_temperature = 1 MK, unit_magneticfield = 10 G and unit_length = 1e9 cm.
   subroutine check_if_normalisations_set()
     if (normalisations_set) then
       return
     else
       cgs_units = .true.
-      call define_nb_temp_len(new_unit_numberdensity=1.0d9, &
-                              new_unit_temperature=1.0d6, &
-                              new_unit_length=1.0d6)
+      call set_normalisations(new_unit_temperature=1.0d6, new_unit_magneticfield=10.0d0, new_unit_length=1.0d9)
     end if
   end subroutine check_if_normalisations_set
 
@@ -87,167 +79,73 @@ contains
   !! @param[out]  kB  Boltzmann constant
   !! @param[out]  mp  proton mass
   !! @param[out]  mu0 magnetic permeability
-  subroutine get_constants(kB, mp, mu0)
-    use mod_physical_constants, only: kB_si, kB_cgs, mp_si, mp_cgs, mu0_si, mu0_cgs
+  !! @param[out]  Rgas gas constant
+  subroutine get_constants(kB, mp, mu0, Rgas)
+    use mod_physical_constants, only: kB_si, kB_cgs, mp_si, mp_cgs, mu0_si, mu0_cgs, R_si, R_cgs
 
-    real(dp), intent(out) :: kB, mp, mu0
+    real(dp), intent(out) :: kB, mp, mu0, Rgas
 
     if (cgs_units) then
       kB = kB_cgs
       mp = mp_cgs
       mu0 = mu0_cgs
+      Rgas = R_cgs
     else
       kB = kB_si
       mp = mp_si
       mu0 = mu0_si
+      Rgas = R_si
     end if
   end subroutine get_constants
 
 
-  !> Define normalisations based on a numberdensity, temperature and length unit.
-  !! @param[in] new_unit_numberdensity  numberdensity
-  !! @param[in] new_unit_temperature    temperature
-  !! @param[in] new_unit_length         length
-  subroutine define_nb_temp_len(new_unit_numberdensity, new_unit_temperature, new_unit_length)
-    use mod_physical_constants, only: He_abundance
+  !> Defines unit normalisations based on a magnetic field unit, length unit, and a density OR temperature unit.
+  !! When calling this routine you should specify the keyword arguments.
+  !! Normalisations use a reference value of 2 for plasma beta as is common practice, such that we can write
+  !! beta / 2 = mu * p / B**2 = 1. This means that the unit pressure can be written as p = B**2 / 2,
+  !! such that temperature or density can be derived using the ideal gas law.
+  !! @param[in] new_unit_density        unit density value
+  !! @param[in] new_unit_temperature    unit temperature value
+  !! @param[in] new_unit_magneticfield  unit magneticfield value
+  !! @param[in] new_unit_length         unit length value
+  subroutine set_normalisations(new_unit_density, new_unit_temperature, new_unit_magneticfield, new_unit_length)
+    real(dp), intent(in), optional  :: new_unit_density, new_unit_temperature
+    real(dp), intent(in)            :: new_unit_magneticfield, new_unit_length
+    real(dp)  :: kB, mp, mu0, Rgas
 
-    real(dp), intent(in)  :: new_unit_numberdensity, new_unit_temperature, new_unit_length
-    real(dp)  :: kB, mp, mu0
+    call get_constants(kB, mp, mu0, Rgas)
 
-    call get_constants(kB, mp, mu0)
+    if (present(new_unit_density) .and. present(new_unit_temperature)) then
+      error stop "unit density and unit temperature can not both be set."
+    end if
 
-    unit_numberdensity = new_unit_numberdensity
-    unit_temperature = new_unit_temperature
-    unit_length = new_unit_length
-
-    unit_density = (1.0d0 + 4.0d0*He_abundance) * mp * unit_numberdensity
-    unit_pressure = (2.0d0 + 3.0d0*He_abundance) * unit_numberdensity * kB * unit_temperature
-    unit_velocity = sqrt(unit_pressure / unit_density)
-    unit_magneticfield = sqrt(mu0 * unit_pressure)
-
-    call calculate_remaining_normalisations()
-  end subroutine define_nb_temp_len
-
-
-  !> Define normalisations based on a numberdensity, velocity and length unit.
-  !! @param[in] new_unit_numberdensity  numberdensity
-  !! @param[in] new_unit_velocity       velocity
-  !! @param[in] new_unit_length         length
-  subroutine define_nb_vel_len(new_unit_numberdensity, new_unit_velocity, new_unit_length)
-    use mod_physical_constants, only: He_abundance
-
-    real(dp), intent(in)  :: new_unit_numberdensity, new_unit_velocity, new_unit_length
-    real(dp)  :: kB, mp, mu0
-
-    call get_constants(kB, mp, mu0)
-
-    unit_numberdensity = new_unit_numberdensity
-    unit_velocity = new_unit_velocity
-    unit_length = new_unit_length
-
-    unit_density = (1.0d0 + 4.0d0*He_abundance) * mp * unit_numberdensity
-    unit_pressure = unit_density * unit_velocity**2
-    unit_temperature = unit_pressure / ((2.0d0 + 3.0d0*He_abundance) * unit_numberdensity * kB)
-    unit_magneticfield = sqrt(mu0 * unit_pressure)
-
-    call calculate_remaining_normalisations()
-  end subroutine define_nb_vel_len
-
-
-  !> Define normalisations based on a density, temperature and length unit.
-  !! @param[in] new_unit_density        density
-  !! @param[in] new_unit_temperature    temperature
-  !! @param[in] new_unit_length         length
-  subroutine define_rho_temp_len(new_unit_density, new_unit_temperature, new_unit_length)
-    use mod_physical_constants, only: He_abundance
-
-    real(dp), intent(in)  :: new_unit_density, new_unit_temperature, new_unit_length
-    real(dp)  :: kB, mp, mu0
-
-    call get_constants(kB, mp, mu0)
-
-    unit_density = new_unit_density
-    unit_temperature = new_unit_temperature
-    unit_length = new_unit_length
-
-    unit_numberdensity = unit_density / ((1.0d0 + 4.0d0*He_abundance) * mp)
-    unit_pressure = (2.0d0 + 3.0d0*He_abundance) * unit_numberdensity * kB * unit_temperature
-    unit_velocity = sqrt(unit_pressure / unit_density)
-    unit_magneticfield = sqrt(mu0 * unit_pressure)
-
-    call calculate_remaining_normalisations()
-  end subroutine define_rho_temp_len
-
-
-  !> Define normalisations based on a density, magnetic field and length unit.
-  !! @param[in] new_unit_density        density
-  !! @param[in] new_unit_magneticfield  magnetic field
-  !! @param[in] new_unit_length         length
-  subroutine define_rho_mag_len(new_unit_density, new_unit_magneticfield, new_unit_length)
-    use mod_physical_constants, only: He_abundance
-
-    real(dp), intent(in)  :: new_unit_density, new_unit_magneticfield, new_unit_length
-    real(dp)  :: kB, mp, mu0
-
-    call get_constants(kB, mp, mu0)
-
-    unit_density = new_unit_density
     unit_magneticfield = new_unit_magneticfield
     unit_length = new_unit_length
-
-    unit_numberdensity = unit_density / ((1.0d0 + 4.0d0*He_abundance) * mp)
     unit_pressure = unit_magneticfield**2 / mu0
-    unit_temperature = unit_pressure / ((2.0d0 + 3.0d0*He_abundance) * unit_numberdensity * kB)
-    unit_velocity = sqrt(unit_pressure / unit_density)
 
-    call calculate_remaining_normalisations()
-  end subroutine define_rho_mag_len
+    if (present(new_unit_density)) then
+      unit_density = new_unit_density
+      unit_temperature = unit_pressure / (Rgas * unit_density)
+    else if (present(new_unit_temperature)) then
+      unit_temperature = new_unit_temperature
+      unit_density = unit_pressure / (Rgas * unit_temperature)
+    else
+      error stop "no unit density or unit temperature specified."
+    end if
 
-
-  !> Define normalisations based on a temperature, magnetic field and length unit.
-  !! @param[in] new_unit_temperature    temperature
-  !! @param[in] new_unit_magneticfield  magnetic field
-  !! @param[in] new_unit_length         length
-  subroutine define_temp_mag_len(new_unit_temperature, new_unit_magneticfield, new_unit_length)
-    use mod_physical_constants, only: He_abundance
-
-    real(dp), intent(in)  :: new_unit_temperature, new_unit_magneticfield, new_unit_length
-    real(dp)  :: kB, mp, mu0
-
-    call get_constants(kB, mp, mu0)
-
-    unit_temperature = new_unit_temperature
-    unit_magneticfield = new_unit_magneticfield
-    unit_length = new_unit_length
-
-    unit_pressure = unit_magneticfield**2 / mu0
-    unit_numberdensity = unit_pressure / ((2.0d0 + 3.0d0*He_abundance) * kB * unit_temperature)
-    unit_density = (1.0d0 + 4.0d0*He_abundance) * mp * unit_numberdensity
-    unit_velocity = sqrt(unit_pressure / unit_density)
-
-    call calculate_remaining_normalisations()
-  end subroutine define_temp_mag_len
-
-
-  !> Calculates the remaining normalisations which are based on density, magneticfield, length etc.
-  !! These have been set at this point.
-  subroutine calculate_remaining_normalisations()
-    use mod_physical_constants, only: He_abundance
-
-    unit_time          = unit_length / unit_velocity
-
-    unit_luminosity    = unit_pressure / ((1.0d0 + 2.0d0*He_abundance) * (unit_numberdensity**2 * unit_time))
-    unit_dldt          = unit_luminosity / unit_temperature
+    unit_numberdensity = unit_density / mp
+    unit_velocity = unit_magneticfield / sqrt(mu0 * unit_density)
+    unit_time = unit_length / unit_velocity
+    unit_luminosity = unit_pressure / (unit_time * unit_numberdensity**2)
+    unit_dldt = unit_luminosity / unit_temperature
 
     unit_conduction    = unit_density * unit_length * unit_velocity**3 / unit_temperature
     unit_dtc_drho      = unit_conduction / unit_density
     unit_dtc_dT        = unit_conduction / unit_temperature
     unit_dtc_dB2       = unit_conduction / (unit_magneticfield**2)
 
-    unit_acceleration  = unit_length / unit_time**2
-
     normalisations_set = .true.
-  end subroutine calculate_remaining_normalisations
+  end subroutine
 
 
   !> Sets the unit resistivity based on the given value. This is done automatically in the

@@ -40,9 +40,7 @@ contains
 
     ! define normalisations using length, magnetic field and density
     cgs_units = .true.
-    call define_rho_mag_len(new_unit_density = 1.5d-15, &
-                            new_unit_magneticfield = 50.0d0, &
-                            new_unit_length = 1.0d10)
+    call set_normalisations(new_unit_density=1.5d-15, new_unit_magneticfield=50.0d0, new_unit_length=1.0d10)
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
