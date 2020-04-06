@@ -177,7 +177,7 @@ contains
     NaN = ieee_value(NaN, ieee_quiet_nan)
 
     !! physics variables
-    cgs_units = .false.
+    cgs_units = .true.
     gamma = 5.0d0/3.0d0
     call set_gamma(gamma)
     flow = .false.

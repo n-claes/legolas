@@ -15,14 +15,19 @@ contains
   !> Reads in the supplied parfile and sets all global variables accordingly.
   !! @param[in] parfile   The name of the parfile
   subroutine read_parfile(parfile)
+    use mod_check_values, only: value_is_zero, value_is_nan
+    use mod_units, only: set_normalisations
+
     character(len=*), intent(in)  :: parfile
 
     real(dp)    :: mhd_gamma
+    real(dp)    :: unit_density, unit_temperature, unit_magneticfield, unit_length
     integer     :: gridpoints
 
-    namelist /physicslist/  cgs_units, mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
+    namelist /physicslist/  mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
                             external_gravity, thermal_conduction, use_fixed_tc_para, fixed_tc_para_value, &
                             use_fixed_tc_perp, fixed_tc_perp_value, resistivity, use_fixed_resistivity, fixed_eta_value
+    namelist /unitslist/    cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length
     namelist /gridlist/     geometry, x_start, x_end, gridpoints, mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
     namelist /savelist/     run_silent, write_matrices, write_eigenvectors, write_eigenfunctions, &
@@ -43,9 +48,13 @@ contains
       return
     end if
 
-    ! initialise local gridpoints and gamma variables to zero
+    ! initialise local variables
     mhd_gamma = 0.0d0
     gridpoints = 0
+    unit_density = NaN
+    unit_temperature = NaN
+    unit_magneticfield = NaN
+    unit_length = NaN
 
     open(unit_par, file=trim(parfile), status='old')
     !! Start reading namelists, rewind so they can appear out of order
@@ -67,14 +76,35 @@ contains
     1005  rewind(unit_par)
           read(unit_par, paramlist, end=1006)
 
-    1006  close(unit_par)
+    1006  rewind(unit_par)
+          read(unit_par, unitslist, end=1007)
+
+    1007  close(unit_par)
 
     !> Set gridpoints and gamma, if supplied
     if (.not. gridpoints == 0) then
       call set_gridpts(gridpoints)
     end if
-    if (abs(mhd_gamma - 0.0d0) > dp_LIMIT) then
+    if (.not. value_is_zero(mhd_gamma)) then
       call set_gamma(mhd_gamma)
+    end if
+
+    !> Provide normalisations, if supplied
+    if (.not. value_is_nan(unit_density) .and. .not. value_is_nan(unit_temperature)) then
+      error stop "unit density and unit temperature can not both be provided in the par file! (choose one)"
+    end if
+    if (.not. value_is_nan(unit_density)) then
+      if (value_is_nan(unit_magneticfield) .or. value_is_nan(unit_length)) then
+        error stop "Unit_density found, but unit_magneticfield and unit_length are also required."
+      end if
+      call set_normalisations(new_unit_density=unit_density, new_unit_magneticfield=unit_magneticfield, &
+                              new_unit_length=unit_length)
+    else if (.not. value_is_nan(unit_temperature)) then
+      if (value_is_nan(unit_magneticfield) .or. value_is_nan(unit_length)) then
+        error stop "Unit_density found, but unit_magneticfield and unit_length are also required."
+      end if
+      call set_normalisations(new_unit_temperature=unit_temperature, &
+                              new_unit_magneticfield=unit_magneticfield, new_unit_length=unit_length)
     end if
 
   end subroutine read_parfile

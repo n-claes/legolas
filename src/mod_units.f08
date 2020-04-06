@@ -47,7 +47,7 @@ module mod_units
   real(dp), protected   :: unit_deta_dT = 1.0d0
 
   !> Boolean value to check if normalisations are set
-  logical, protected    :: normalisations_set = .false.
+  logical, protected    :: normalisations_are_set = .false.
 
   public  :: check_if_normalisations_set
   public  :: set_normalisations
@@ -65,7 +65,7 @@ contains
   !> Checks if normalisations were set. If not, define them using default values, taken
   !! to be unit_temperature = 1 MK, unit_magneticfield = 10 G and unit_length = 1e9 cm.
   subroutine check_if_normalisations_set()
-    if (normalisations_set) then
+    if (normalisations_are_set) then
       return
     else
       cgs_units = .true.
@@ -144,7 +144,8 @@ contains
     unit_dtc_dT        = unit_conduction / unit_temperature
     unit_dtc_dB2       = unit_conduction / (unit_magneticfield**2)
 
-    normalisations_set = .true.
+    normalisations_are_set = .true.
+
   end subroutine
 
 
