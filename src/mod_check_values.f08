@@ -1,4 +1,5 @@
 module mod_check_values
+  use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan
   use mod_global_variables, only: dp, dp_LIMIT, gauss_gridpts
   implicit none
 
@@ -23,8 +24,47 @@ module mod_check_values
   public :: check_negative_array
   public :: check_equilibrium_conditions
   public :: check_nan_values
+  public :: value_is_zero
+  public :: value_is_equal
+  public :: value_is_nan
 
 contains
+
+  function value_is_zero(value) result(is_zero)
+    real(dp), intent(in)  :: value
+    logical :: is_zero
+
+    if (abs(value - 0.0d0) > dp_LIMIT) then
+      is_zero = .false.
+    else
+      is_zero = .true.
+    end if
+  end function value_is_zero
+
+
+  function value_is_equal(value, value_base)  result(is_equal)
+    real(dp), intent(in)  :: value, value_base
+    logical :: is_equal
+
+    if (abs(value - value_base) > dp_LIMIT) then
+      is_equal = .false.
+    else
+      is_equal = .true.
+    end if
+  end function value_is_equal
+
+
+  function value_is_nan(value)  result(is_nan)
+    real(dp), intent(in)  :: value
+    logical :: is_nan
+
+    if (ieee_is_nan(value)) then
+      is_nan = .true.
+    else
+      is_nan = .false.
+    end if
+  end function value_is_nan
+
 
   subroutine small_values_real_array(array, tol)
     real(dp), intent(inout)         :: array(:)
@@ -241,8 +281,6 @@ contains
 
 
   subroutine stop_if_nan(array, array_name)
-    use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan
-
     real(dp), intent(in)  :: array(gauss_gridpts)
     character(len=*), intent(in)  :: array_name
     integer :: i
