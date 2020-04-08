@@ -16,7 +16,7 @@ contains
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_params, only: p1, p2, r0
 
-    real(dp)  :: x, s, l, rho_left, rho_right
+    real(dp)  :: x, s, r0, rho_left, rho_right, zeta
     integer   :: i
 
     geometry = "Cartesian"
@@ -32,16 +32,16 @@ contains
       k2 = 1.0d0
       k3 = 0.25d0
 
-      rho_left = 9.0d0
-      rho_right = 1.0d0 ! so zeta = rho_left/rho_right = 9
-      l = 0.94d0
+      rho_left = 0.9d0
+      rho_right = 0.1d0
+      r0 = 0.2d0
     else
       rho_left = p1
       rho_right = p2
-      l = r0
     end if
 
-    s = 0.5d0
+    s = 0.5d0 * (x_start + x_end)
+    zeta = rho_left / rho_right
 
     !! Equilibrium
     B_field % B02 = 0.0d0
@@ -52,13 +52,25 @@ contains
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
 
-      if (x >= 0.0d0 .and. x < s - 0.5d0*l) then
+      ! sine profile
+      if (x >= x_start .and. x < s - 0.5d0*r0) then
         rho_field % rho0(i) = rho_left
-      else if (s - 0.5d0*l <= x .and. x <= s + 0.5d0*l) then
-        rho_field % rho0(i) = 0.5d0*rho_left * ( (1 + rho_right/rho_left) - (1 - rho_right/rho_left)*sin(dpi*(x - s)/l) )
+      else if (s - 0.5d0*r0 <= x .and. x <= s + 0.5d0*r0) then
+        rho_field % rho0(i) = 0.5d0 * rho_left * (1.0d0 + 1.0d0 / zeta - (1.0d0 - 1.0d0 / zeta) * sin(dpi * (x - s) / r0))
+        rho_field % d_rho0_dr(i) = dpi * rho_left * (1.0d0 / zeta - 1.0d0) * cos(dpi * (x - s) / r0) / (2.0d0 * r0)
       else
         rho_field % rho0(i) = rho_right
       end if
+
+      ! linear profile:
+      ! if (x < s - 0.5d0*r0) then
+      !   rho_field % rho0(i) = rho_left
+      ! else if (s - 0.5d0*r0 <= x .and. x <= s + 0.5d0*r0) then
+      !   rho_field % rho0(i) = (rho_right - rho_left) * (x - s + 0.5d0*r0) / r0 + rho_left
+      !   rho_field % d_rho0_dr(i) = (rho_right - rho_left) / r0
+      ! else
+      !   rho_field % rho0(i) = rho_right
+      ! end if
     end do
 
   end subroutine resonant_absorption_eq

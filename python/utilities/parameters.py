@@ -164,6 +164,13 @@ DEFAULT_PARAMS = {
         'cte_rho0': 1.0,
         'cte_p0': 1.0,
         'r0': 0.5
+    },
+    'resonant_absorption': {
+        'k2': 1.0,
+        'k3': 0.25,
+        'p1': 0.9,
+        'p2': 0.1,
+        'r0': 0.3
     }
 }
 
@@ -255,6 +262,18 @@ PRECODED_MULTIRUNS = {
             'cte_rho0': 1.0,
             'cte_p0': 1.0,
             'r0': 0.5
+        }
+    },
+    'resonant_absorption': {
+        'equilibrium': 'resonant_absorption',
+        'gridpts': 51,
+        'nb_runs': 20,
+        'parameters': {
+            'k2': 1.0,
+            'k3': 0.25,
+            'p1': 0.9,
+            'p2': 0.1,
+            'r0': np.linspace(0, 1.0, 20)
         }
     }
 }
