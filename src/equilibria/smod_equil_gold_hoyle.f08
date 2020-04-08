@@ -32,14 +32,6 @@ contains
     use_fixed_tc_perp = .true.
     fixed_tc_perp_value = 0.0d0
 
-    cgs_units = .true.
-    ! cool plasma
-    call set_normalisations(new_unit_density=1.6727d-15, new_unit_magneticfield=22.5d0, new_unit_length=1.0d10)
-    ! hot plasma
-    ! call set_normalisations(new_unit_density=1.6727d-15, new_unit_magneticfield=67.0d0, new_unit_length=1.0d11)
-    ! cold plasma
-    ! call set_normalisations(new_unit_density=1.6727d-15, new_unit_magneticfield=10.0d0, new_unit_length=1.0d10)
-
     if (use_defaults) then
       k2 = 1.0d0
       k3 = 1.0d0
@@ -47,6 +39,14 @@ contains
       cte_rho0 = 1.0d0
       cte_T0 = 0.001d0
       alpha = 20.0d0
+
+      cgs_units = .true.
+      ! cool plasma
+      call set_normalisations(new_unit_density=1.6727d-15, new_unit_magneticfield=22.5d0, new_unit_length=1.0d10)
+      ! hot plasma
+      ! call set_normalisations(new_unit_density=1.6727d-15, new_unit_magneticfield=67.0d0, new_unit_length=1.0d11)
+      ! cold plasma
+      ! call set_normalisations(new_unit_density=1.6727d-15, new_unit_magneticfield=10.0d0, new_unit_length=1.0d10)
     end if
 
     do i = 1, gauss_gridpts
