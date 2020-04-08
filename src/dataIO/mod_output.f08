@@ -207,10 +207,10 @@ contains
 
 
   subroutine equilibrium_tofile(grid_gauss, rho_field, T_field, B_field, v_field, &
-                                rc_field, kappa_field, base_filename)
+                                rc_field, kappa_field, eta_field, base_filename)
     use mod_global_variables, only: gauss_gridpts
     use mod_types, only: density_type, temperature_type, bfield_type, &
-                         velocity_type, cooling_type, conduction_type
+                         velocity_type, cooling_type, conduction_type, resistivity_type
 
     real(dp), intent(in)                :: grid_gauss(gauss_gridpts)
     type(density_type), intent(in)      :: rho_field
@@ -219,10 +219,11 @@ contains
     type(velocity_type), intent(in)     :: v_field
     type(cooling_type), intent(in)      :: rc_field
     type(conduction_type), intent(in)   :: kappa_field
+    type(resistivity_type), intent(in)  :: eta_field
     character(len=*), intent(in)        :: base_filename
 
     character(str_len)                  :: filename, filename_names
-    real(dp)                            :: equil_vars(18, gauss_gridpts)
+    real(dp)                            :: equil_vars(20, gauss_gridpts)
 
     call make_filename(base_filename, filename)
     call make_filename(trim(base_filename) // '_names', filename_names)
@@ -245,6 +246,8 @@ contains
     equil_vars(16, :) = rc_field % d_L_drho
     equil_vars(17, :) = kappa_field % kappa_para
     equil_vars(18, :) = kappa_field % kappa_perp
+    equil_vars(19, :) = eta_field % eta
+    equil_vars(20, :) = eta_field % d_eta_dT
 
     call open_file(equil_unit, filename)
     write(equil_unit) equil_vars
@@ -252,7 +255,7 @@ contains
     call open_file(equil_unit + 1, filename_names)
     write(equil_unit + 1) "grid ", "rho0 ", "drho0 ", "T0 ", "dT0 ", "B02 ", "B03 ", &
                           "dB02 ", "dB03 ", "B0 ", "v02 ", "dv02 ", "v03 ", "dv03 ", "dLdT ", &
-                          "dLdrho ", "kappa_para ", "kappa_perp "
+                          "dLdrho ", "kappa_para ", "kappa_perp ", "eta ", "detadT "
     close(equil_unit + 1)
 
   end subroutine equilibrium_tofile

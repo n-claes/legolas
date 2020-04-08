@@ -14,6 +14,9 @@ class SingleSpectrum(LEGOLASDataContainer):
         super().__init__(namelist_array)
 
         self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
+        self.eq_fig, self.eq_ax = plt.subplots(1, figsize=(12, 8))
+        self.co_fig, self.co_ax = plt.subplots(3, 1, figsize=(8, 8), sharex='all')
+
         self.data = self.datacontainer.pop()
 
     def plot(self):
@@ -22,10 +25,14 @@ class SingleSpectrum(LEGOLASDataContainer):
 
         if self.data.equil_data is not None:
             self._annotate_frequencies()
+        else:
+            self.co_fig.close()
         if self.data.show_mats:
             self._plot_matrices()
         if self.data.show_equil:
             self._plot_equilibria()
+        else:
+            self.eq_fig.close()
         if self.data.show_eigenfuncs:
             efh = EigenfunctionHandler(self.data, self.fig, self.ax)
             efh.connect_interactive_funcs()
@@ -36,16 +43,18 @@ class SingleSpectrum(LEGOLASDataContainer):
         plot_matrix(fig, ax, 1, self.data.matB, title='Matrix B')
 
     def _plot_equilibria(self):
-        fig, ax = plt.subplots(1, figsize=(12, 8))
         colors = ['blue', 'red', 'green', 'cyan', 'orange', 'grey']
 
         for idx, var in enumerate(['rho0', 'T0', 'v02', 'v03', 'B02', 'B03']):
-            ax.plot(self.data.grid_gauss, self.data.equil_data[var], 'o', markersize=2, color=colors[idx], label=var)
-            ax.plot(self.data.grid_gauss, self.data.equil_data[var], color=colors[idx], alpha=0.3)
-        ax.set_xlabel('Gaussian grid')
-        ax.set_title('Equilibrium configuration')
-        ax.set_xlim([self.data.grid_gauss[0], self.data.grid_gauss[-1]])
-        ax.legend(loc='best')
+            equil_values = self.data.equil_data[var]
+            if (equil_values == 0).all():
+                continue
+            self.eq_ax.plot(self.data.grid_gauss, equil_values, 'o', markersize=2, color=colors[idx], label=var)
+            self.eq_ax.plot(self.data.grid_gauss, equil_values, color=colors[idx], alpha=0.3)
+        self.eq_ax.set_xlabel('Gaussian grid')
+        self.eq_ax.set_title('Equilibrium configuration')
+        self.eq_ax.set_xlim([self.data.grid_gauss[0], self.data.grid_gauss[-1]])
+        self.eq_ax.legend(loc='best')
 
     def _annotate_frequencies(self):
         legend_items = []
@@ -80,8 +89,23 @@ class SingleSpectrum(LEGOLASDataContainer):
                     legend_item = self.ax.axvspan(np.min(array), np.max(array), facecolor=facecolor,
                                                   alpha=alpha_box, label=legend_lbl)
             else:   # handles the case where continua are collapsed to a single point
-                legend_item, = self.ax.plot([lb], 0, marker='p', markersize=8, color=facecolor,
+                legend_item, = self.ax.plot([lb], 0, marker='p', markersize=8, color=facecolor, linestyle='none',
                                             alpha=alpha_point, label=legend_lbl)
+            legend_items.append(legend_item)
+
+        def draw_quasimodes():
+            rho1 = self.data.equil_data['rho0'][0]
+            rho2 = self.data.equil_data['rho0'][-1]
+            a = 0.5 * self.data.params['r0']  # distance from x0 to l (linear region inbetween)
+            k = np.sqrt(self.data.params['k2']**2 + self.data.params['k3']**2)
+            wR_pos = np.sqrt((rho1 * wA_pos[0]**2 + rho2 * wA_pos[-1]**2) / (rho1 + rho2))
+            wR_neg = np.sqrt((rho1 * wA_neg[0]**2 + rho2 * wA_neg[-1]**2) / (rho1 + rho2))
+            # minus sign here, since imaginary part of the quasimode goes like exp(-wI*t)
+            wI_pos = -(1.0 / 8) * np.pi * k * a * (wA_pos[-1]**2 - wA_pos[0]**2) / wR_pos
+            wI_neg = -(1.0 / 8) * np.pi * k * a * (wA_neg[-1]**2 - wA_neg[0]**2) / wR_neg
+            quasimodes = np.array([wR_pos + wI_pos * 1j, -wR_neg + wI_neg * 1j])
+            legend_item, = self.ax.plot(np.real(quasimodes), np.imag(quasimodes), 'rs', fillstyle='none',
+                                        markersize=10, linestyle='none', label='Predicted quasimodes')
             legend_items.append(legend_item)
 
         # calculate all continuum regions
@@ -93,6 +117,9 @@ class SingleSpectrum(LEGOLASDataContainer):
         draw_region(wA_neg, facecolor='blue', legend_lbl=r'$\Omega_A^-$ Alfvén continuum')
         # thermal continuum is imaginary, so draw horizontally
         draw_region(wTH, facecolor='green', legend_lbl=r'$\Omega_{th}$ thermal continuum', draw_horizontal=True)
+        # if we're plotting quasimodes, annotate those as well
+        if self.data.current_eq == 'resonant_absorption':
+            draw_quasimodes()
         legend = self.ax.legend(loc='best')
 
         # retrieve legend patches and items for interactive enabling of continuum regions
@@ -106,28 +133,25 @@ class SingleSpectrum(LEGOLASDataContainer):
                 l_item = lines.pop(0)
             else:
                 raise ValueError
-            l_item.set_picker(5)
+            l_item.set_picker(10)
             region.set_visible(False)   # make continuum regions invisible by default
             regions[l_item] = region
         self.fig.canvas.mpl_connect('pick_event', on_legend_pick)
         self._plot_continua(wS_pos, wS_neg, wA_pos, wA_neg, wTH)
 
     def _plot_continua(self, wS_pos, wS_neg, wA_pos, wA_neg, wTH):
-        # plot every continuum on a separate figure
-        fig, ax = plt.subplots(3, 1, figsize=(8, 8), sharex='all')
-
-        ax[0].plot(self.data.grid_gauss, wS_pos, color='red', linestyle='solid',
-                   label=r'$\Omega_S^-$ slow continuum')
-        ax[0].plot(self.data.grid_gauss, wS_neg, color='red', linestyle='dashed',
-                   label=r'$\Omega_S^+$ slow continuum')
-        ax[1].plot(self.data.grid_gauss, wA_pos, color='blue', linestyle='solid',
-                   label=r'$\Omega_A^-$ Alfvén continuum')
-        ax[1].plot(self.data.grid_gauss, wA_neg, color='blue', linestyle='dashed',
-                   label=r'$\Omega_A^+$ Alfvén continuum')
-        ax[2].plot(self.data.grid_gauss, wTH, color='green', linestyle='solid',
-                   label=r'Im$(\Omega_{th})$ thermal continuum')
-        ax[2].set_xlabel('Gaussian grid')
-        for ax_panel in ax:
+        self.co_ax[0].plot(self.data.grid_gauss, wS_pos, color='red', linestyle='solid',
+                           label=r'$\Omega_S^-$ slow continuum')
+        self.co_ax[0].plot(self.data.grid_gauss, wS_neg, color='red', linestyle='dashed',
+                           label=r'$\Omega_S^+$ slow continuum')
+        self.co_ax[1].plot(self.data.grid_gauss, wA_pos, color='blue', linestyle='solid',
+                           label=r'$\Omega_A^-$ Alfvén continuum')
+        self.co_ax[1].plot(self.data.grid_gauss, wA_neg, color='blue', linestyle='dashed',
+                           label=r'$\Omega_A^+$ Alfvén continuum')
+        self.co_ax[2].plot(self.data.grid_gauss, wTH, color='green', linestyle='solid',
+                           label=r'Im$(\Omega_{th})$ thermal continuum')
+        self.co_ax[2].set_xlabel('Gaussian grid')
+        for ax_panel in self.co_ax:
             ax_panel.legend(loc='best')
             ax_panel.set_xlim([self.data.grid_gauss[0], self.data.grid_gauss[-1]])
-        fig.subplots_adjust(hspace=0.05)
+        self.co_fig.subplots_adjust(hspace=0.05)
