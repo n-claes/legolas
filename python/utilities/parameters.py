@@ -156,14 +156,14 @@ DEFAULT_PARAMS = {
         'k3': 2.0,
         'cte_rho0': 1.0,
         'cte_p0': 1.0,
-        'r0': 0.5
+        'r0': 1.0
     },
     'coronal_flux_tube': {
         'k2': 0.0,
         'k3': 2.0,
         'cte_rho0': 1.0,
         'cte_p0': 1.0,
-        'r0': 0.5
+        'r0': 1.0
     },
     'resonant_absorption': {
         'k2': 1.0,
@@ -242,26 +242,26 @@ PRECODED_MULTIRUNS = {
     },
     'photospheric_flux_tube': {
         'equilibrium': 'photospheric_flux_tube',
-        'gridpts': 31,
-        'nb_runs': 50,
+        'gridpts': 51,
+        'nb_runs': 20,
         'parameters': {
             'k2': 0.0,
-            'k3': np.linspace(0.1, 6.2, 50) / 0.5,
+            'k3': np.linspace(0.1, 6.2, 20),
             'cte_rho0': 1.0,
             'cte_p0': 1.0,
-            'r0': 0.5
+            'r0': 1.0
         }
     },
     'coronal_flux_tube': {
         'equilibrium': 'coronal_flux_tube',
-        'gridpts': 31,
-        'nb_runs': 50,
+        'gridpts': 51,
+        'nb_runs': 20,
         'parameters': {
             'k2': 0.0,
-            'k3': np.linspace(0.1, 6.2, 50) / 0.5,
+            'k3': np.linspace(0.1, 6.2, 20),
             'cte_rho0': 1.0,
             'cte_p0': 1.0,
-            'r0': 0.5
+            'r0': 1.0
         }
     },
     'resonant_absorption': {
