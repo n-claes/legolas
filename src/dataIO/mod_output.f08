@@ -119,7 +119,7 @@ contains
       write(dat_fh) size(ef_names), ef_names
       write(dat_fh) ef_grid
       do i = 1, nb_eqs
-        write(dat_fh) ef_array(i) % name, ef_array(i) % eigenfunctions
+        write(dat_fh) ef_array(i) % eigenfunctions
       end do
     end if
 
