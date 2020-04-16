@@ -17,7 +17,7 @@ contains
     real(dp)  :: r, rho_e, p_e, B_0, B_e, r0
     integer   :: i
 
-    call allow_geometry_override(default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=5.0d0)
+    call allow_geometry_override(default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=2.0d0)
     call initialise_grid()
 
     if (use_defaults) then
@@ -48,7 +48,7 @@ contains
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
 
-      if (r > r0) then
+      if (r < r0) then
         rho_field % rho0(i) = rho_e
         B_field % B02(i) = 0.0d0
         B_field % B03(i) = B_e
