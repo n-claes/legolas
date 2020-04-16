@@ -20,6 +20,11 @@ module mod_check_values
     module procedure check_nan_values_gravity
   end interface check_nan_values
 
+  interface value_is_zero
+    module procedure real_is_zero
+    module procedure complex_is_zero
+  end interface value_is_zero
+
   public :: check_small_values
   public :: check_negative_array
   public :: check_equilibrium_conditions
@@ -30,7 +35,7 @@ module mod_check_values
 
 contains
 
-  function value_is_zero(value) result(is_zero)
+  function real_is_zero(value) result(is_zero)
     real(dp), intent(in)  :: value
     logical :: is_zero
 
@@ -39,7 +44,19 @@ contains
     else
       is_zero = .true.
     end if
-  end function value_is_zero
+  end function real_is_zero
+
+
+  function complex_is_zero(value) result(is_zero)
+    complex(dp), intent(in) :: value
+    logical :: is_zero
+
+    if (abs(real(value) - 0.0d0) > dp_LIMIT .or. abs(aimag(value) - 0.0d0) > dp_LIMIT) then
+      is_zero = .false.
+    else
+      is_zero = .true.
+    end if
+  end function complex_is_zero
 
 
   function value_is_equal(value, value_base)  result(is_equal)

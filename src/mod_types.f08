@@ -1,5 +1,5 @@
 module mod_types
-  use mod_global_variables, only: dp, str_len, gauss_gridpts
+  use mod_global_variables, only: dp, str_len, str_len_arr, gauss_gridpts
   implicit none
 
   private
@@ -98,9 +98,7 @@ module mod_types
     !> Index of the eigenfunction (1 -> 8)
     integer                  :: index
     !> Name of the eigenfunction
-    character(3)             :: var
-    !> Name to use when saving the eigenfunction
-    character(str_len)       :: savename
+    character(str_len_arr)   :: name
     !> Array containing all eigenfunctions for this index
     complex(dp), allocatable :: eigenfunctions(:, :)
   end type ef_type

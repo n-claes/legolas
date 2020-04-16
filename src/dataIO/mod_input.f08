@@ -30,13 +30,9 @@ contains
     namelist /unitslist/    cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length
     namelist /gridlist/     geometry, x_start, x_end, gridpoints, mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
-    namelist /savelist/     run_silent, write_matrices, write_eigenvectors, write_eigenfunctions, &
-                            write_equilibrium, show_results, show_matrices, show_eigenfunctions, show_equilibrium
-    namelist /filelist/     savename_eigenvalues, savename_efgrid, savename_matrix, savename_eigenvectors, &
-                            savename_eigenfunctions, savename_config, savename_equil
+    namelist /savelist/     run_silent, write_matrices, write_eigenfunctions, show_results, savename_datfile
     namelist /paramlist/    k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, cte_p0, &
-                            p1, p2, p3, p4, p5, p6, p7, p8, &
-                            alpha, beta, delta, theta, tau, lambda, nu, &
+                            p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, lambda, nu, &
                             r0, rc, rj, Bth0, Bz0, V, j0, g
 
     !! Initialise equilibrium parameters to NaN. These are then read in by the paramlist
@@ -71,15 +67,12 @@ contains
           read(unit_par, savelist, end=1004)
 
     1004  rewind(unit_par)
-          read(unit_par, filelist, end=1005)
+          read(unit_par, paramlist, end=1005)
 
     1005  rewind(unit_par)
-          read(unit_par, paramlist, end=1006)
+          read(unit_par, unitslist, end=1006)
 
-    1006  rewind(unit_par)
-          read(unit_par, unitslist, end=1007)
-
-    1007  close(unit_par)
+    1006  close(unit_par)
 
     !> Set gridpoints and gamma, if supplied
     if (.not. gridpoints == 0) then
