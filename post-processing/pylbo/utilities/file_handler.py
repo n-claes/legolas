@@ -135,9 +135,7 @@ def get_header(istream):
         # matrix A offset
         offsets.update({'matrix_A': istream.tell()})
     h['offsets'] = offsets
-
     return h
-
 
 def read_grid(istream, header):
     istream.seek(header['offsets']['grid'])
