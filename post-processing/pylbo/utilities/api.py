@@ -7,3 +7,7 @@ from .file_handler import get_header, \
     read_eigenfunctions, \
     read_matrix_B, \
     read_matrix_A
+
+from .exceptions import InvalidLegolasFile, \
+    EigenfunctionsNotPresent, \
+    MatricesNotPresent

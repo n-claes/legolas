@@ -66,7 +66,7 @@ def get_header(istream):
     # units-related stuff
     units = {}
     fmt = ALIGN + 'i'
-    units['cgs'] = bool(struct.unpack(fmt, istream.read(struct.calcsize(fmt))))
+    h['cgs'] = bool(struct.unpack(fmt, istream.read(struct.calcsize(fmt))))
     fmt = ALIGN + 11 * 'd'  # there are 11 unit normalisations in total
     unit_values = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     unit_names = ['unit_length', 'unit_time', 'unit_density', 'unit_velocity', 'unit_temperature', 'unit_pressure',
@@ -150,8 +150,6 @@ def read_grid_gauss(istream, header):
     return np.asarray(grid_gauss)
 
 def read_ef_grid(istream, header):
-    if not header['eigenfuncs_written']:
-        return None
     istream.seek(header['offsets']['ef_grid'])
     fmt = ALIGN + header['ef_gridpts'] * 'd'
     ef_grid = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
@@ -177,8 +175,6 @@ def read_equilibrium_arrays(istream, header):
     return equil_arrays
 
 def read_eigenfunctions(istream, header):
-    if not header['eigenfuncs_written']:
-        return None
     istream.seek(header['offsets']['ef_arrays'])
     ef_gridpts = header['ef_gridpts']
     matrix_gridpts = header['matrix_gridpts']
@@ -195,8 +191,6 @@ def read_eigenfunctions(istream, header):
     return eigenfunctions
 
 def read_matrix_B(istream, header):
-    if not header['matrices_written']:
-        return None
     istream.seek(header['offsets']['matrix_B'])
     matrix_gridpts = header['matrix_gridpts']
     matrix_B = np.zeros(shape=(matrix_gridpts, matrix_gridpts), dtype=np.float64)
@@ -209,8 +203,6 @@ def read_matrix_B(istream, header):
     return matrix_B
 
 def read_matrix_A(istream, header):
-    if not header['matrices_written']:
-        return None
     istream.seek(header['offsets']['matrix_A'])
     matrix_gridpts = header['matrix_gridpts']
     matrix_A = np.zeros(shape=(matrix_gridpts, matrix_gridpts), dtype=np.complex)
