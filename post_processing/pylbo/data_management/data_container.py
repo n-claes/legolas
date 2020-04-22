@@ -14,21 +14,13 @@ from utilities.api import InvalidLegolasFile, \
 
 
 class LegolasDataContainer:
-    def __init__(self, datfiles):
-        if not isinstance(datfiles, list):
-            datfiles = list(datfiles)
-        self.datacontainer = []
-        for file in datfiles:
-            self.datacontainer.append(_LegolasData(file))
-
-
-class _LegolasData:
     def __init__(self, datfile):
         self.datfile = datfile
         self._check_file_validity()
 
         with open(self.datfile, 'rb') as istream:
             self.header = get_header(istream)
+
         self._set_header_attributes()
         self._load_basic_data()
 
