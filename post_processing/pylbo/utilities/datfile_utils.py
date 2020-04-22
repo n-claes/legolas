@@ -171,7 +171,7 @@ def read_equilibrium_arrays(istream, header):
     for name in header['equil_names']:
         fmt = ALIGN + header['gauss_gridpts'] * 'd'
         equil_array = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
-        equil_arrays.update({name: equil_array})
+        equil_arrays.update({name: np.asarray(equil_array)})
     return equil_arrays
 
 def read_eigenfunctions(istream, header):
