@@ -11,18 +11,19 @@ from utilities.api import get_header, \
 from utilities.api import InvalidLegolasFile, \
     EigenfunctionsNotPresent, \
     MatricesNotPresent
+from utilities.api import get_continuum_regions
 
 
 class LegolasDataContainer:
     def __init__(self, datfile):
-        self.datfile = datfile
+        self.datfile = str(datfile)
         self._check_file_validity()
 
         with open(self.datfile, 'rb') as istream:
             self.header = get_header(istream)
-
         self._set_header_attributes()
         self._load_basic_data()
+        self._calculate_continua()
 
     def _set_header_attributes(self):
         # grid attributes
@@ -48,6 +49,12 @@ class LegolasDataContainer:
             self.equilibria = read_equilibrium_arrays(istream, self.header)
             self.eigenvals = read_eigenvalues(istream, self.header)
 
+    def _calculate_continua(self):
+        # calculate continuum regions
+        wS_pos, wS_neg, wA_pos, wA_neg, wth = get_continuum_regions(self)
+        self.continua = {'wS+': wS_pos, 'wS-': wS_neg, 'wA+': wA_pos,
+                         'wA-': wA_neg, 'wth': wth}
+
     def get_eigenfunctions(self):
         if not self.header['eigenfuncs_written']:
             raise EigenfunctionsNotPresent(self.datfile)
@@ -71,7 +78,8 @@ class LegolasDataContainer:
         return matrix_A
 
     def _check_file_validity(self):
-        if not Path(self.datfile).is_file():
-            raise FileNotFoundError(self.datfile)
+        path_to_file = Path(self.datfile).resolve()
+        if not path_to_file.is_file():
+            raise FileNotFoundError(path_to_file)
         if not self.datfile.endswith('.dat'):
-            raise InvalidLegolasFile(self.datfile)
+            raise InvalidLegolasFile(path_to_file)

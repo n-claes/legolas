@@ -1,4 +1,4 @@
-from .file_handler import get_header, \
+from .datfile_utils import get_header, \
     read_grid, \
     read_grid_gauss, \
     read_ef_grid, \
@@ -11,3 +11,5 @@ from .file_handler import get_header, \
 from .exceptions import InvalidLegolasFile, \
     EigenfunctionsNotPresent, \
     MatricesNotPresent
+
+from .continua import get_continuum_regions
