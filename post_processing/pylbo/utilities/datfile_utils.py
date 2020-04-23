@@ -29,10 +29,12 @@ def get_header(istream):
     h['eq_type'] = b''.join(hdr).strip().decode()
     # read eigenfunctions boolean
     fmt = ALIGN + 'i'   # a fortran logical is a 4 byte integer
-    h['eigenfuncs_written'] = bool(struct.unpack(fmt, istream.read(struct.calcsize(fmt))))
-    # read matrices boolean
+    hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))    # this is either (0,) or (1,) (F or T)
+    h['eigenfuncs_written'] = bool(*hdr)    # bool casts 0 to False, everything else to True
+    # # read matrices boolean
     fmt = ALIGN + 'i'
-    h['matrices_written'] = bool(struct.unpack(fmt, istream.read(struct.calcsize(fmt))))
+    hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+    h['matrices_written'] = bool(*hdr)
 
     # read number of parameters saved
     fmt = ALIGN + 'i'
