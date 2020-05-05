@@ -14,8 +14,9 @@ def _main():
             raise FileNotFoundError(datfile)
 
     ds = pylbo.load(datfile)
-    p = pylbo.PlotSpectrum(ds)
-    p.show()
+    ps = pylbo.PlotSpectrum(ds, plot_continua=False)
+    ps.plot_eigenfunctions(merge_figs=False)
+    ps.show()
 
 
 if __name__ == '__main__':
