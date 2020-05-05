@@ -5,7 +5,7 @@ import numpy as np
 from .eigenfunctions import EigenfunctionHandler
 
 class PlotSpectrum:
-    def __init__(self, ds, annotate_continua=True, plot_continua=True):
+    def __init__(self, ds, annotate_continua=True, plot_continua=True, plot_equilibria=True):
         self.ds = ds
         self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
         self.annotate_continua = annotate_continua
@@ -15,6 +15,8 @@ class PlotSpectrum:
         self.fig.tight_layout()
         if plot_continua:
             self._plot_continua()
+        if plot_equilibria:
+            self._plot_equilibria()
 
     def plot_eigenfunctions(self, merge_figs=True):
         efh = EigenfunctionHandler(self, merge_figs)
@@ -119,3 +121,17 @@ class PlotSpectrum:
             ax_panel.set_xlim([self.ds.grid_gauss[0], self.ds.grid_gauss[-1]])
         fig.subplots_adjust(hspace=0.05)
         fig.tight_layout()
+
+    def _plot_equilibria(self):
+        fig, ax = plt.subplots(1, figsize=(12, 8))
+        for idx, var in enumerate(self.ds.header.get('equil_names')):
+            values = self.ds.equilibria.get(var)
+            if (values == 0).all():
+                continue
+            ax.plot(self.ds.grid_gauss, values, '-o', markersize=2, label=var, alpha=0.8)
+        ax.set_xlabel('grid')
+        ax.set_ylabel('values')
+        ax.set_title('Equilibrium settings')
+        ax.legend(loc='best')
+        fig.canvas.draw()
+
