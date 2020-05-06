@@ -30,3 +30,4 @@ test_legolas
 *.F90
 *.inc
 *.a
+*.egg*

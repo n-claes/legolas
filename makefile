@@ -27,7 +27,6 @@ objects  := $(addprefix $(BINDIR)/, \
 							mod_equilibrium_params.o \
 							mod_grid.o \
               mod_types.o \
-              mod_output.o \
               mod_check_values.o \
               mod_spline_functions.o \
               mod_input.o \
@@ -70,6 +69,7 @@ objects  := $(addprefix $(BINDIR)/, \
               mod_matrix_creation.o \
               mod_solvers.o \
               mod_eigenfunctions.o \
+              mod_output.o \
              )
 
 main_objects := $(addprefix $(BINDIR)/, \

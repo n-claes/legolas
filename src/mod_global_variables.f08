@@ -23,6 +23,8 @@ module mod_global_variables
   integer, parameter :: qp = real128
   !> Default length for strings
   integer, parameter :: str_len = 125
+  !> Default length for strings in arrays
+  integer, parameter :: str_len_arr = 16
 
   !> Values smaller than this are forced to zero
   real(dp), parameter :: dp_LIMIT = 1.0d-12
@@ -138,36 +140,12 @@ module mod_global_variables
   logical, save             :: run_silent
   !> Write matrices A and B to file when finished
   logical, save             :: write_matrices
-  !> Write eigenvectors to file when finished
-  logical, save             :: write_eigenvectors
   !> Write eigenfunctions to file when finished
   logical, save             :: write_eigenfunctions
-  !> Write equilibrium configuration to file when finished
-  logical, save             :: write_equilibrium
   !> Call python script when finishing to plot results
   logical, save             :: show_results
-  !> Plot matrices A and B when finished
-  logical, save             :: show_matrices
-  !> Plot eigenfunctions when finished
-  logical, save             :: show_eigenfunctions
-  !> Show equilibrium configuration when finished
-  logical, save             :: show_equilibrium
-
-  !! Related parameters for filenames (filelist)
-  !> Name for the eigenvalues file
-  character(len=str_len)    :: savename_eigenvalues
-  !> Name for the eigenfunction grid file
-  character(len=str_len)    :: savename_efgrid
-  !> Name for the matrix files
-  character(len=str_len)    :: savename_matrix
-  !> Name for the eigenvector files
-  character(len=str_len)    :: savename_eigenvectors
-  !> Name for the eigenfunction files
-  character(len=str_len)    :: savename_eigenfunctions
-  !> Name for the configuration file
-  character(len=str_len)    :: savename_config
-  !> Name for the equilibrium file
-  character(len=str_len)    :: savename_equil
+  !> Base name for the data file. Output directory and extension will be added
+  character(len=str_len)    :: savename_datfile
 
 contains
 
@@ -215,22 +193,11 @@ contains
     !! post-processing parameters
     run_silent = .false.
     write_matrices = .false.
-    write_eigenvectors = .false.
-    write_eigenfunctions = .false.
-    write_equilibrium = .true.
+    write_eigenfunctions = .true.
     show_results = .true.
-    show_matrices = .false.
-    show_eigenfunctions = .false.
-    show_equilibrium = .true.
 
     !! file-saving variables
-    savename_eigenvalues = "eigenvalues"
-    savename_efgrid = "ef_grid"
-    savename_matrix = "matrix"
-    savename_eigenvectors = "eigenvectors"
-    savename_eigenfunctions = "eigenfunctions"
-    savename_config = "configuration"
-    savename_equil = 'equilibrium'
+    savename_datfile = "datfile"
   end subroutine initialise_globals
 
   !> Subroutine to set gamma and (gamma - 1)
