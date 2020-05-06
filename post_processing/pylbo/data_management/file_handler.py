@@ -20,6 +20,6 @@ def select_files():
     root.withdraw()
     root.lift()
     root.focus_set()
-    datfiles = list(filedialog.askopenfilenames(parent=root, title='Select Legolas datfile(s)'))
+    files = list(filedialog.askopenfilenames(parent=root, title='Select Legolas file(s)'))
     root.destroy()
-    return datfiles
+    return files

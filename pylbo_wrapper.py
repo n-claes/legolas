@@ -15,9 +15,8 @@ def _main():
 
     ds = pylbo.load(datfile)
     ps = pylbo.PlotSpectrum(ds, plot_continua=False)
-    ps.plot_eigenfunctions(merge_figs=False)
-    ps.show()
-
+    ps.plot_eigenfunctions()
+    pylbo.show()
 
 if __name__ == '__main__':
     _main()

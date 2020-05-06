@@ -2,10 +2,13 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as mpl_lines
 import matplotlib.patches as mpl_patches
 import numpy as np
+from utilities.api import InconsistentMultirunFile
 from .eigenfunctions import EigenfunctionHandler
 
 class PlotSpectrum:
     def __init__(self, ds, annotate_continua=True, plot_continua=True, plot_equilibria=True):
+        if isinstance(ds, list):
+            raise TypeError('PlotSpectrum needs a single LegolasDatacontainer instance, not a list.')
         self.ds = ds
         self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
         self.annotate_continua = annotate_continua
@@ -22,16 +25,13 @@ class PlotSpectrum:
         efh = EigenfunctionHandler(self, merge_figs)
         efh.connect_figure_events()
 
-    @staticmethod
-    def show():
-        plt.show()
-
     def _plot(self, fig, ax):
-        ax.plot(self.ds.eigenvals.real, self.ds.eigenvals.imag, '.b', alpha=0.8)
+        ax.plot(self.ds.eigenvalues.real, self.ds.eigenvalues.imag, '.b', alpha=0.8)
         ax.axhline(y=0, linestyle='dotted', color='grey', alpha=0.3)
         ax.axvline(x=0, linestyle='dotted', color='grey', alpha=0.3)
         ax.set_xlabel(r"Re($\omega$)")
         ax.set_ylabel(r"Im($\omega$)")
+        ax.set_title(self.ds.eq_type)
         if self.annotate_continua:
             self._annotate_continua(fig, ax)
 
@@ -135,3 +135,118 @@ class PlotSpectrum:
         ax.legend(loc='best')
         fig.canvas.draw()
 
+
+class MultiSpectrum:
+    def __init__(self, datasets):
+        self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
+        self.datasets = datasets
+
+    def _check_datasets(self, equilibrium):
+        for ds in self.datasets:
+            if not equilibrium == ds.header.get('eq_type'):
+                raise InconsistentMultirunFile(ds.datfile, expected=equilibrium, found=ds.header.get('eq_type'))
+
+    def plot_precoded_run(self):
+        equilibrium = self.datasets[0].header.get('eq_type')
+        self._check_datasets(equilibrium)
+        if equilibrium == 'gravito_acoustic':
+            self._plot_gravito_acoustic()
+        elif equilibrium == 'gravito_mhd':
+            self._plot_gravito_mhd()
+        elif equilibrium == 'interchange_modes':
+            self._plot_interchange_modes()
+        elif equilibrium == 'constant_current':
+            self._plot_constant_current()
+        elif equilibrium in ('photospheric_flux_tube', 'coronal_flux_tube'):
+            self._plot_flux_tube()
+
+    def _plot_gravito_acoustic(self):
+        for ds in self.datasets:
+            cs = ds.get_sound_speed()[0]
+            w_sq = (1 / cs**2) * np.real(ds.eigenvalues**2)
+            k0_sq =  ds.get_k0_squared() * np.ones_like(w_sq)
+            self.ax.plot(k0_sq, w_sq, '.b', markersize=3, alpha=0.8)
+        self.ax.set_ylabel(r'$\dfrac{1}{c^2}\omega^2$')
+        self.ax.set_xlabel('$k_0^2$')
+        self.ax.set_title('Gravito acoustic multirun')
+        self.ax.set_xlim([0, 500])
+        self.ax.set_ylim([0, 500])
+
+    def _plot_gravito_mhd(self):
+        for ds in self.datasets:
+            # alfven speed is equal everywhere
+            vA = ds.get_alfven_speed()[0]
+            w_sq = (1 / vA**2) * np.real(ds.eigenvalues**2)
+            k0_sq = ds.get_k0_squared() * np.ones_like(w_sq)
+            self.ax.plot(k0_sq, w_sq, '.b', markersize=3, alpha=0.8)
+        self.ax.set_ylabel(r'$\dfrac{1}{v_A^2}\omega^2$')
+        self.ax.set_xlabel('$k_0^2$')
+        self.ax.set_title('Gravito mhd multirun')
+
+    def _plot_interchange_modes(self):
+        # here we plot w**2 as a function of theta/pi
+        thetas = np.linspace(0, np.pi, len(self.datasets)) / np.pi
+        for idx, ds in enumerate(self.datasets):
+            vA = ds.get_alfven_speed()[0]
+            w_sq = (1 / vA**2) * np.real(ds.eigenvalues**2)
+            th = thetas[idx] * np.ones_like(w_sq)
+            self.ax.plot(th, w_sq, '.b', markersize=2, alpha=0.8)
+        self.ax.set_ylabel(r'$\dfrac{1}{v_A^2}\omega^2$')
+        self.ax.set_xlabel(r'$\theta$ / $\pi$')
+        self.ax.set_title('Interchange modes multirun')
+        self.ax.set_ylim([-4.1, 14.4])
+        self.ax.set_xlim([-0.01, 1.01])
+        self.ax.set_xticks(np.arange(0, 1.2, 0.2))
+        self.ax.set_yticks(np.arange(-4, 16, 2))
+
+    def _plot_constant_current(self):
+        # here we plot w**2 vs the safety factor q = 2*k3/j0
+        qfactors = np.linspace(1.9, 2.1, len(self.datasets))
+        for idx, ds in enumerate(self.datasets):
+            w_sq = np.real(ds.eigenvalues**2)
+            qfact = qfactors[idx] * np.ones_like(w_sq)
+            self.ax.plot(qfact, w_sq, '.b', markersize=2, alpha=0.8)
+            self.ax.set_yscale('symlog', linthreshy=1e-8)
+        self.ax.set_xlabel(r"Safety factor $q = \frac{2k}{j0}$")
+        self.ax.set_ylabel(r"$\omega^2$")
+        self.ax.set_title('Constant current m=-2 multirun')
+
+    def _plot_flux_tube(self):
+        # these values should be equal for all runs
+        a = self.datasets[0].parameters['r0']
+        gamma = self.datasets[0].gamma
+        rho0 = self.datasets[0].parameters['cte_rho0']
+        p0 = self.datasets[0].parameters['cte_p0']
+        B0 = 2 * np.sqrt(gamma * p0)
+        if self.datasets[0].eq_type == 'photospheric_flux_tube':
+            rhoe = 8 * rho0 * (2 * gamma + 1) / (gamma + 18)
+            pe = 18 * p0 * (2 * gamma + 1) / (gamma + 18)
+            Be = np.sqrt(2 * gamma * p0 * (2 * gamma + 1) / (gamma + 18))
+        else:
+            rhoe = 4 * rho0 * (2 * gamma + 1) / (50 * gamma + 1)
+            pe = p0 * (2 * gamma + 1) / (50 * gamma + 1)
+            Be = 10 * np.sqrt(gamma * p0 * (2 * gamma + 1) / (50 * gamma + 1))
+        cs = np.sqrt(gamma * p0 / rho0)
+        cse = np.sqrt(gamma * pe / rhoe)
+        cA = np.sqrt(B0 ** 2 / rho0)
+        cAe = np.sqrt(Be ** 2 / rhoe)
+        ct = cs * cA / np.sqrt(cs ** 2 + cA ** 2)
+        cte = cse * cAe / np.sqrt(cse ** 2 + cAe ** 2)
+        ck = np.sqrt((rho0 * cA ** 2 + rhoe * cAe ** 2) / (rho0 + rhoe))
+        kz_values = np.linspace(0.1, 6.2, len(self.datasets))
+        for idx, ds in enumerate(self.datasets):
+            # phase speed c = w / kz
+            c = np.abs(ds.eigenvalues.real) / kz_values[idx]
+            kza = kz_values[idx] * a * np.ones_like(c)
+            self.ax.plot(kza, c / cs, '.b', markersize=2)
+        self.ax.axhline(cA / cs, label='$c_A$', lw=1, color='black', alpha=0.6)
+        self.ax.axhline(cAe / cs, label='$c_{Ae}$', lw=1, color='black', linestyle='dotted', alpha=0.6)
+        self.ax.axhline(cs / cs, label='$c_s$', lw=1, color='red', alpha=0.6)
+        self.ax.axhline(cse / cs, label='$c_{se}$', lw=1, color='red', linestyle='dotted', alpha=0.6)
+        self.ax.axhline(ct / cs, label='$c_t$', lw=1, color='green', alpha=0.6)
+        self.ax.axhline(cte / cs, label='$c_{te}$', lw=1, color='green', linestyle='dotted', alpha=0.6)
+        self.ax.axhline(ck / cs, label='$c_k$', lw=1, color='cyan', alpha=0.6)
+        self.ax.legend(loc='best')
+        self.ax.set_xlabel(r"$k_za$")
+        self.ax.set_ylabel(r"$\omega / k_z c_s$")
+        self.ax.set_title(self.datasets[0].eq_type.replace("_", " ") + ' multirun')

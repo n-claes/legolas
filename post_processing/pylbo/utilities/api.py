@@ -10,6 +10,8 @@ from .datfile_utils import get_header, \
 
 from .exceptions import InvalidLegolasFile, \
     EigenfunctionsNotPresent, \
-    MatricesNotPresent
+    MatricesNotPresent, \
+    InconsistentMultirunFile, \
+    DictNotEmpty
 
 from .continua import get_continuum_regions
