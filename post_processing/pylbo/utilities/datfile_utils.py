@@ -194,20 +194,16 @@ def read_eigenfunctions(istream, header):
 
 def read_matrix_B(istream, header):
     istream.seek(header['offsets']['matrix_B'])
-    matrix_gridpts = header['matrix_gridpts']
-    matrix_B = np.zeros(shape=(matrix_gridpts, matrix_gridpts), dtype=np.float64)
     fmt = ALIGN + (2 * 'i' + 'd') * header['nonzero_B_elements']
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     rows = np.asarray(hdr[::3])     # rows are 1, 4, 7, 10 etc (Fortran indexing)
     cols = np.asarray(hdr[1::3])    # columns are 2, 5, 8, 11 etc (Fortran indexing)
     vals = np.asarray(hdr[2::3])    # values are 3, 6, 9, 12 etc (Fortran indexing)
-    matrix_B[rows-1, cols-1] = vals
-    return matrix_B
+    print(rows)
+    return rows, cols, vals
 
 def read_matrix_A(istream, header):
     istream.seek(header['offsets']['matrix_A'])
-    matrix_gridpts = header['matrix_gridpts']
-    matrix_A = np.zeros(shape=(matrix_gridpts, matrix_gridpts), dtype=np.complex)
     fmt = ALIGN + (2 * 'i' + 2 * 'd') * header['nonzero_A_elements']
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     rows = np.asarray(hdr[::4])
@@ -215,5 +211,4 @@ def read_matrix_A(istream, header):
     reals = hdr[2::4]
     imags = hdr[3::4]
     vals = np.asarray([complex(x, y) for x, y in zip(reals, imags)])
-    matrix_A[rows-1, cols-1] = vals
-    return matrix_A
+    return rows, cols, vals
