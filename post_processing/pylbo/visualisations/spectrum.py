@@ -2,13 +2,13 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as mpl_lines
 import matplotlib.patches as mpl_patches
 import numpy as np
-from utilities.api import InconsistentMultirunFile
-from .eigenfunctions import EigenfunctionHandler
+from ..utilities.exceptions import InconsistentMultirunFile
+from ..visualisations.eigenfunctions import EigenfunctionHandler
 
-class PlotSpectrum:
+class SingleSpectrum:
     def __init__(self, ds, annotate_continua=True, plot_continua=True, plot_equilibria=True):
         if isinstance(ds, list):
-            raise TypeError('PlotSpectrum needs a single LegolasDatacontainer instance, not a list.')
+            raise TypeError('SingleSpectrum needs a single LegolasDatacontainer instance, not a list.')
         self.ds = ds
         self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
         self.annotate_continua = annotate_continua

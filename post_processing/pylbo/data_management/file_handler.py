@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog
-from .api import LegolasDataContainer
+from .data_container import LegolasDataContainer
 
 def load(datfiles):
     if isinstance(datfiles, list):

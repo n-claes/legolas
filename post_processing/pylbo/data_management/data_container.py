@@ -1,6 +1,7 @@
 import numpy as np
 from pathlib import Path
-from utilities.api import get_header, \
+from ..utilities.datfile_utils import \
+    get_header, \
     read_grid, \
     read_grid_gauss, \
     read_eigenvalues, \
@@ -9,10 +10,11 @@ from utilities.api import get_header, \
     read_eigenfunctions, \
     read_matrix_B, \
     read_matrix_A
-from utilities.api import InvalidLegolasFile, \
+from ..utilities.exceptions import \
+    InvalidLegolasFile, \
     EigenfunctionsNotPresent, \
     MatricesNotPresent
-from utilities.api import get_continuum_regions
+from ..utilities.continua import get_continuum_regions
 
 
 class LegolasDataContainer:
