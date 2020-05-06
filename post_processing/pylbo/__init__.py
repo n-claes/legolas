@@ -26,6 +26,7 @@ from .utilities.datfile_utils import \
 from .visualisations.spectrum import \
     SingleSpectrum, \
     MultiSpectrum
+from .visualisations.matrices import plot_matrices
 
 def show():
     plt.show()
