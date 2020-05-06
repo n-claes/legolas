@@ -144,7 +144,7 @@ module mod_global_variables
   logical, save             :: write_eigenfunctions
   !> Call python script when finishing to plot results
   logical, save             :: show_results
-  !> Name for the data file
+  !> Base name for the data file. Output directory and extension will be added
   character(len=str_len)    :: savename_datfile
 
 contains

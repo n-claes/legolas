@@ -24,9 +24,12 @@ module mod_output
   character(len=7)    :: output_folder = 'output/'
   !> filename extension
   character(len=4)    :: file_extension = '.dat'
+  !> datfile name
+  character(len=str_len) :: datfile_name
 
   public :: create_datfile
   public :: startup_info_toconsole
+  public :: datfile_name
 
 contains
 
@@ -73,7 +76,6 @@ contains
     complex(dp), intent(in)       :: matrix_A(matrix_gridpts, matrix_gridpts)
     real(dp), intent(in)          :: matrix_B(matrix_gridpts, matrix_gridpts)
 
-    character(str_len)            :: filename
     character(len=16)             :: param_names(32), equil_names(20)
     integer                       :: i, j, nonzero_A_values, nonzero_B_values
 
@@ -85,8 +87,8 @@ contains
                    'B0', 'v02', 'v03', 'dv02', 'dv03', 'dLdT', 'dLdrho', 'kappa_para', 'kappa_perp', &
                    'eta', 'detadT', 'grav']
 
-    call make_filename(base_filename, filename)
-    call open_file(dat_fh, filename)
+    call make_filename(base_filename, datfile_name)
+    call open_file(dat_fh, datfile_name)
 
     ! First we write all header information
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, gauss_gridpts, matrix_gridpts, &
@@ -119,7 +121,7 @@ contains
       write(dat_fh) size(ef_names), ef_names
       write(dat_fh) ef_grid
       do i = 1, nb_eqs
-        write(dat_fh) ef_array(i) % name, ef_array(i) % eigenfunctions
+        write(dat_fh) ef_array(i) % eigenfunctions
       end do
     end if
 
@@ -166,7 +168,7 @@ contains
     end if
 
     if (.not. run_silent) then
-      write(*, *) "Results saved to ", trim(filename)
+      write(*, *) "Results saved to ", trim(datfile_name)
     end if
 
     close(dat_fh)
