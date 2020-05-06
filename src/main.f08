@@ -12,6 +12,7 @@ program legolas
   use mod_global_variables, only: dp, str_len, show_results, run_silent
   use mod_matrix_creation, only: create_matrices
   use mod_solvers, only: solve_QR
+  use mod_output, only: datfile_name
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -24,8 +25,6 @@ program legolas
   complex(dp), allocatable  :: eigenvecs_right(:, :)
   !> Left eigenvectors
   complex(dp), allocatable  :: eigenvecs_left(:, :)
-  !> Name of the configuration file
-  character(str_len)        :: config_file
 
   ! allocate variables, initialise grid and physics, set equilibrium
   call initialisation()
@@ -47,8 +46,7 @@ program legolas
 
   ! call python script and pass configuration file
   if (show_results) then
-    call execute_command_line("python3 python/legolas_analyser.py " // &
-                              "-i " // trim(config_file))
+    call execute_command_line("python3 pylbo_wrapper.py -i " // trim(datfile_name))
   end if
 
 contains
