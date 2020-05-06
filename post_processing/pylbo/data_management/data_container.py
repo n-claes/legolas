@@ -1,3 +1,4 @@
+import numpy as np
 from pathlib import Path
 from utilities.api import get_header, \
     read_grid, \
@@ -47,13 +48,27 @@ class LegolasDataContainer:
             self.grid = read_grid(istream, self.header)
             self.grid_gauss = read_grid_gauss(istream, self.header)
             self.equilibria = read_equilibrium_arrays(istream, self.header)
-            self.eigenvals = read_eigenvalues(istream, self.header)
+            self.eigenvalues = read_eigenvalues(istream, self.header)
 
     def _calculate_continua(self):
         # calculate continuum regions
         wS_pos, wS_neg, wA_pos, wA_neg, wth = get_continuum_regions(self)
         self.continua = {'wS+': wS_pos, 'wS-': wS_neg, 'wA+': wA_pos,
                          'wA-': wA_neg, 'wth': wth}
+
+    def get_sound_speed(self):
+        pressure = self.equilibria['T0'] * self.equilibria['rho0']
+        cs = np.sqrt(self.gamma * pressure / self.equilibria['rho0'])
+        return cs
+
+    def get_alfven_speed(self):
+        B0 = np.sqrt(self.equilibria['B02']**2 + self.equilibria['B03']**2)
+        vA = B0 / np.sqrt(self.equilibria['rho0'])
+        return vA
+
+    def get_k0_squared(self):
+        k0_sq = self.parameters.get('k2')**2 + self.parameters.get('k3')**2
+        return k0_sq
 
     def get_eigenfunctions(self):
         if not self.header['eigenfuncs_written']:

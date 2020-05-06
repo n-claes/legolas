@@ -41,7 +41,7 @@ class EigenfunctionHandler:
                 # only plot if point is not already selected
                 if index not in self.ev_indices:
                     self.ev_indices.append(index)
-                    self.ps_ax.plot(self.ps.ds.eigenvals[index].real, self.ps.ds.eigenvals[index].imag,
+                    self.ps_ax.plot(self.ps.ds.eigenvalues[index].real, self.ps.ds.eigenvalues[index].imag,
                                     'rx', markersize=8, picker=10, label='eigenvalue')
             self.ps_fig.canvas.draw()
 
@@ -94,10 +94,10 @@ class EigenfunctionHandler:
 
     def _find_spectrum_point_index(self, x, y):
         # get distance from (x, y) to all points
-        distances = np.sqrt((self.ps.ds.eigenvals.real - x)**2 + (self.ps.ds.eigenvals.imag - y)**2)
+        distances = np.sqrt((self.ps.ds.eigenvalues.real - x)**2 + (self.ps.ds.eigenvalues.imag - y)**2)
         # index of point with closest distance
         idx = distances.argmin()
-        ev_found = self.ps.ds.eigenvals[idx]
+        ev_found = self.ps.ds.eigenvalues[idx]
         # calculate (x, y) of point in pixels. (0, 0) is bottom-left of figure
         ev_x_pixels, ev_y_pixels = self.ps_ax.transData.transform((ev_found.real, ev_found.imag))
         click_x_pixels, click_y_pixels = self.ps_ax.transData.transform((x, y))
@@ -118,7 +118,7 @@ class EigenfunctionHandler:
                 ef = ef.real
             else:
                 ef = ef.imag
-            label = r'$\omega${} = {:2.5e}'.format(ev_idx, self.ps.ds.eigenvals[ev_idx])
+            label = r'$\omega${} = {:2.5e}'.format(ev_idx, self.ps.ds.eigenvalues[ev_idx])
             self.ax.plot(self.ef_grid, ef, label=label)
         self.ax.axhline(y=0, linestyle='dotted', color='grey')
         self.ax.axvline(x=0, linestyle='dotted', color='grey')
