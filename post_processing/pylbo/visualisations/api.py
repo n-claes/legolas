@@ -1,1 +1,2 @@
-from .spectrum import PlotSpectrum
+from .spectrum import PlotSpectrum, \
+    MultiSpectrum
