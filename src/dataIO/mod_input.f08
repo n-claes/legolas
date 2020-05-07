@@ -29,7 +29,8 @@ contains
                             external_gravity, thermal_conduction, use_fixed_tc_para, fixed_tc_para_value, &
                             use_fixed_tc_perp, fixed_tc_perp_value, resistivity, use_fixed_resistivity, fixed_eta_value
     namelist /unitslist/    cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length
-    namelist /gridlist/     geometry, x_start, x_end, gridpoints, mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
+    namelist /gridlist/     geometry, x_start, x_end, gridpoints, force_r0, &
+                            mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
     namelist /savelist/     write_matrices, write_eigenfunctions, show_results, savename_datfile, logging_level
     namelist /paramlist/    k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, cte_p0, &
