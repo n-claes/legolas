@@ -78,6 +78,8 @@ module mod_global_variables
   real(dp)                  :: x_end
   !> Amount of gridpoints
   integer, protected        :: gridpts
+  !> Force r=0 in cylindrical geometry
+  logical, save             :: force_r0
   !> Amount of gridpoints in the gaussian array
   integer, protected        :: gauss_gridpts
   !> Gridpoints of matrices A and B, equal to 16 * gridpts
@@ -178,6 +180,7 @@ contains
     x_start = NaN
     x_end = NaN
     gridpts = 31
+    force_r0 = .false.
     call set_gridpts(gridpts)
     mesh_accumulation = .false.
     ev_1 = 1.25d0

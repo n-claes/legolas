@@ -38,7 +38,8 @@ contains
   !> Initialises both the regular grid and grid_gauss. Does mesh accumulation
   !! if desired.
   subroutine initialise_grid()
-    use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, gauss_gridpts, dp_LIMIT
+    use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, &
+                                    gauss_gridpts, dp_LIMIT, force_r0
 
     integer                  :: i
     real(dp)                 :: dx
@@ -57,7 +58,13 @@ contains
     grid_gauss = 0.0d0
 
     if (geometry == 'cylindrical' .and. abs(x_start) < dp_LIMIT) then
-      x_start = 2.5d-2
+      if (.not. force_r0) then
+        x_start = 2.5d-2
+      else
+        call log_message("forcing on-axis r in cylindrical geometry. This may lead to spurious &
+                        &real/imaginary eigenvalues.", level='warning')
+        x_start = 0.0d0
+      end if
     end if
 
     ! minus one here to include x_end
