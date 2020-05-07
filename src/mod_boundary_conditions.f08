@@ -52,14 +52,14 @@ contains
 
   subroutine essential_boundaries(quadblock, edge, matrix)
     use mod_global_variables, only: boundary_type, use_fixed_tc_perp, &
-                                    fixed_tc_perp_value, dp_LIMIT
+                                    fixed_tc_perp_value, dp_LIMIT, geometry, x_start
 
     complex(dp), intent(inout)    :: quadblock(dim_quadblock, dim_quadblock)
     character(len=6), intent(in)  :: edge
     character, intent(in)         :: matrix
 
     complex(dp)                   :: diagonal_factor
-    integer                       :: i, j, qua_zeroes(5), wall_idx_left(8), wall_idx_right(4)
+    integer                       :: i, j, qua_zeroes(5), wall_idx_left(4), wall_idx_right(4)
     logical                       :: use_Tbound = .false.
 
     if (matrix == 'B') then
@@ -91,11 +91,8 @@ contains
     ! Wall/regularity conditions: handling of v1, a2 and a3 (and T if conduction).
     ! v1, a2 and a3 are cubic elements, so omit non-zero basis functions (odd rows/columns)
     ! T is a quadratic element, so omit even row/columns
+    wall_idx_left = [3, 13, 15, 9]
     wall_idx_right = [19, 29, 31, 26]
-    ! Note: on the left side we rigourously handle the boundary conditions by setting BOTH
-    ! rows/columns to zero. This does not affect the eigenfunctions, but seems to
-    ! avoid spurious eigenvalues in some cases
-    wall_idx_left = [3, 4, 13, 14, 15, 16, 9, 10]
 
     select case(boundary_type)
     case('wall')
@@ -103,7 +100,7 @@ contains
         ! left regularity/wall conditions
         do i = 1, size(wall_idx_left)
           j = wall_idx_left(i)
-          if ((j == 9 .or. j == 10) .and. .not. use_Tbound) then
+          if (j == 9 .and. .not. use_Tbound) then
             cycle
           end if
           quadblock(j, :) = (0.0d0, 0.0d0)

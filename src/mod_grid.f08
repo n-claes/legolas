@@ -37,7 +37,7 @@ contains
   !> Initialises both the regular grid and grid_gauss. Does mesh accumulation
   !! if desired.
   subroutine initialise_grid()
-    use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, gauss_gridpts
+    use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, gauss_gridpts, dp_LIMIT
 
     integer                  :: i
     real(dp)                 :: dx
@@ -54,6 +54,10 @@ contains
     ! Initialise grids
     grid       = 0.0d0
     grid_gauss = 0.0d0
+
+    if (geometry == 'cylindrical' .and. abs(x_start) < dp_LIMIT) then
+      x_start = 2.5d-2
+    end if
 
     ! minus one here to include x_end
     dx = (x_end - x_start) / (gridpts-1)
