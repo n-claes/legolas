@@ -165,6 +165,7 @@ def read_eigenvalues(istream, header):
     reals = hdr[::2]
     imags = hdr[1::2]
     eigenvalues = np.asarray([complex(x, y) for x, y in zip(reals, imags)])
+    eigenvalues = eigenvalues[np.where(np.absolute(eigenvalues) < 1e15)]
     return eigenvalues
 
 def read_equilibrium_arrays(istream, header):

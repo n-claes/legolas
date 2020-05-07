@@ -53,8 +53,9 @@ def run_legolas(parfiles=None, remove_parfiles=False):
     for run in range(nb_runs):
         progressbar(run, nb_runs, '{}/{}'.format(run, nb_runs))
         subprocess.check_call(['./legolas', '-i', parfiles[run]])
+    progressbar(nb_runs, nb_runs, '{}/{}'.format(nb_runs, nb_runs))
     # change back to original directory
-    print('Done.')
+    print('\nDone.')
     os.chdir(orig_dir)
 
     # remove parfiles if asked
@@ -99,9 +100,10 @@ def generate_parfiles(filename, config_dict):
                                  'gridpoints', 'mesh_accumulation',
                                  'ev_1', 'ev_2', 'sigma_1', 'sigma_2'])
     # handle equilibriumlist
-    update_namelist('equilibriumlist', ['equilibrium_type', 'boundary_type'])
-    # explicitly state to not use defaults
-    namelist['equilibriumlist'].update({'use_defaults': False})
+    update_namelist('equilibriumlist', ['equilibrium_type', 'boundary_type', 'use_defaults'])
+    # if not explicitly overridden don't use defaults
+    if namelist['equilibriumlist'].get('use_defaults', None) is None:
+        namelist['equilibriumlist'].update({'use_defaults': False})
     # handle savelist
     update_namelist('savelist', ['run_silent', 'write_matrices', 'write_eigenfunctions',
                                  'show_results', 'savename_datfile'])
