@@ -9,10 +9,11 @@
 !! and eigenvectors of the complete non-adiabatic MHD spectrum.
 !! Included physics: flow, radiative cooling, thermal conduction, resistivity
 program legolas
-  use mod_global_variables, only: dp, str_len, show_results, run_silent
+  use mod_global_variables, only: dp, str_len, show_results
   use mod_matrix_creation, only: create_matrices
   use mod_solvers, only: solve_QR
   use mod_output, only: datfile_name
+  use mod_logging, only: log_message, print_console_info, print_whitespace
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -32,10 +33,10 @@ program legolas
   ! create matrices A and B
   call create_matrices(matrix_B, matrix_A)
 
+  call print_console_info()
+
   ! solve eigenvalue problem
-  if (.not. run_silent) then
-    write(*, *) "Solving eigenvalue problem..."
-  end if
+  call log_message("solving eigenvalue problem...", level='info')
   call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
 
   ! write spectrum, eigenvectors, matrices etc. to file
@@ -57,7 +58,6 @@ contains
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
-    use mod_output, only: startup_info_toconsole
 
     character(len=str_len)  :: parfile
 
@@ -65,6 +65,7 @@ contains
 
     call get_parfile(parfile)
     call read_parfile(parfile)
+    call print_whitespace(1)
 
     ! Allocate matrices
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
@@ -81,12 +82,6 @@ contains
 
     ! set the equilibrium configuration
     call set_equilibrium()
-
-    ! print configuration to console
-    if (.not. run_silent) then
-      call startup_info_toconsole()
-    end if
-
   end subroutine initialisation
 
 

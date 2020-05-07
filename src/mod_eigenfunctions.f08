@@ -65,6 +65,7 @@ contains
   subroutine get_eigenfunction(name, eigenvector, Y)
     use mod_global_variables, only: dim_subblock, gridpts
     use mod_grid, only: grid
+    use mod_logging, only: log_message
 
     character(len=*), intent(in)  :: name
     complex(dp), intent(in)       :: eigenvector(matrix_gridpts)
@@ -95,9 +96,7 @@ contains
       case('a3')
         idx1 = 15
       case default
-        write(*, *) "Eigenfunction variable not known."
-        write(*, *) "Currently set on: ", name
-        stop
+        call log_message("eigenfunction variable not known: " // trim(name), level='error')
     end select
 
     idx2     = idx1 + 1
@@ -184,6 +183,7 @@ contains
   !! @param[out] fact Transformation factor depending on the variable
   subroutine get_transform_factor(name, r, fact)
     use mod_global_variables, only: geometry, ir, ic
+    use mod_logging, only: log_message
 
     character(len=*), intent(in) :: name
     real(dp), intent(in)         :: r
@@ -215,8 +215,7 @@ contains
       case('a3')
         fact = ir
       case default
-        write(*, *) "Eigenfunction name not defined correctly"
-        stop
+        call log_message("eigenfunction name not defined correctly.", level='error')
     end select
 
   end subroutine get_transform_factor

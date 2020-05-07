@@ -136,8 +136,6 @@ module mod_global_variables
   integer, parameter        :: dim_quadblock = 2*dim_subblock
 
   !! Data IO-related parameters (savelist)
-  !> Suppress console output
-  logical, save             :: run_silent
   !> Write matrices A and B to file when finished
   logical, save             :: write_matrices
   !> Write eigenfunctions to file when finished
@@ -146,6 +144,8 @@ module mod_global_variables
   logical, save             :: show_results
   !> Base name for the data file. Output directory and extension will be added
   character(len=str_len)    :: savename_datfile
+  !> Logging level. 0, 1, 2, 3 means errors, warnings, info, debugging
+  integer                   :: logging_level
 
 contains
 
@@ -191,10 +191,10 @@ contains
     use_defaults = .true.
 
     !! post-processing parameters
-    run_silent = .false.
     write_matrices = .false.
     write_eigenfunctions = .true.
     show_results = .true.
+    logging_level = 2
 
     !! file-saving variables
     savename_datfile = "datfile"

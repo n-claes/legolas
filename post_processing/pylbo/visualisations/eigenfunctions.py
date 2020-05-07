@@ -121,7 +121,7 @@ class EigenfunctionHandler:
             label = r'$\omega${} = {:2.5e}'.format(ev_idx, self.ps.ds.eigenvalues[ev_idx])
             self.ax.plot(self.ef_grid, ef, label=label)
         self.ax.axhline(y=0, linestyle='dotted', color='grey')
-        self.ax.axvline(x=0, linestyle='dotted', color='grey')
+        self.ax.axvline(x=self.ps.ds.x_start, linestyle='dotted', color='grey')
         if self.ef_real_part:
             title = '{} eigenfunction (real part)'.format(ef_name)
         else:

@@ -105,11 +105,11 @@ def generate_parfiles(filename, config_dict):
     if namelist['equilibriumlist'].get('use_defaults', None) is None:
         namelist['equilibriumlist'].update({'use_defaults': False})
     # handle savelist
-    update_namelist('savelist', ['run_silent', 'write_matrices', 'write_eigenfunctions',
-                                 'show_results', 'savename_datfile'])
+    update_namelist('savelist', ['write_matrices', 'write_eigenfunctions',
+                                 'show_results', 'savename_datfile', 'logging_level'])
     # if not explicitly overridden run silent
-    if namelist['savelist'].get('run_silent') is None:
-        namelist['savelist'].update({'run_silent': True})
+    if namelist['savelist'].get('logging_level') is None:
+        namelist['savelist'].update({'logging_level': 0})
     # if not explicitly overriden do not show results
     if namelist['savelist'].get('show_results') is None:
         namelist['savelist'].update({'show_results': False})
