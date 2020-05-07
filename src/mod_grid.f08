@@ -10,6 +10,7 @@
 !
 module mod_grid
   use mod_global_variables, only: dp, gridpts
+  use mod_logging, only: log_message
   implicit none
 
   private
@@ -43,7 +44,7 @@ contains
     real(dp)                 :: dx
 
     if (geometry == "") then
-      error stop "Geometry must be set in the equilibrium submodule!"
+      call log_message("geometry must be set in submodule/parfile", level='error')
     end if
 
     allocate(grid(gridpts))
@@ -114,8 +115,7 @@ contains
       eps_grid = grid_gauss
       d_eps_grid_dr = 1.0d0
     else
-      write(*, *) "Geometry not defined correctly."
-      write(*, *) "Currently set on: ", geometry
+      call log_message("geometry not defined correctly: " // trim(geometry), level='error')
     end if
   end subroutine set_scale_factor
 
@@ -135,7 +135,7 @@ contains
     real(dp)                 :: x_sum, x_sum_prev, x_norm
     real(dp)                 :: xi_weighted
 
-    print*,"Redefining grid with mesh accumulation"
+    call log_message("redefining grid with mesh accumulation", level='info')
 
     integral_gridpts = gridpts - 1
 

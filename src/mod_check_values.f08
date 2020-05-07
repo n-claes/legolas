@@ -1,6 +1,7 @@
 module mod_check_values
   use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan
   use mod_global_variables, only: dp, dp_LIMIT, gauss_gridpts
+  use mod_logging, only: log_message, int_fmt, exp_fmt, char_log
   implicit none
 
   private
@@ -188,8 +189,7 @@ contains
 
     do i = 1, size(array)
       if (array(i) < 0.0d0) then
-        write(*, *) "WARNING: ", trim(variable_name), " is negative somewhere!"
-        error stop
+        call log_message("negative value encountered in " // trim(variable_name), level='error')
       end if
     end do
   end subroutine check_negative_array
@@ -223,31 +223,32 @@ contains
     if (geometry == 'cylindrical') then
       ! in cylindrical geometry, m should be an integer
       if (abs(k2_int - k2) > dp_LIMIT) then
-        write(*, *) "k2 value: ", k2
-        error stop "cylindrical geometry defined but k2 (mode number m) is not an integer!"
+        write(char_log, int_fmt) k2
+        call log_message("cylindrical geometry but k2 is not an integer! &
+                        & Value: " // trim(char_log), level='error')
       end if
 
       ! check if relevant values are zero on-axis, if applicable
       if (x_start <= 1.0d-5) then
         ! this equilibrium is 0 on r=0, but needs huge number of gridpoints to satisfy grid_gauss(1) < 0.01
         if (equilibrium_type == 'gold_hoyle') then
-          write(*, *) "Skipping on-axis checks"
+          call log_message("skipping on-axis checks", level='warning')
         else
           if (abs(B_field % B02(1)) > axis_limit) then
-            write(*, *) "B_theta(0) value: ", B_field % B02(1)
-            error stop "B_theta(0) is non-zero on axis!"
+            write(char_log, exp_fmt) B_field % B02(1)
+            call log_message("B_theta non-zero on axis! Value: " // trim(char_log), level='warning')
           end if
           if (abs(B_field % d_B03_dr(1)) > axis_limit) then
-            write(*, *) "dBz/dr(0) value: ", B_field % d_B03_dr(1)
-            error stop "dBz/dr(0) is non-zero on axis!"
+            write(char_log, exp_fmt) B_field % d_B03_dr(1)
+            call log_message("dBz/dr non-zero on axis! Value: " // trim(char_log), level='warning')
           end if
           if (abs(v_field % v02(1)) > axis_limit) then
-            write(*, *) "v_theta(0) value: ", v_field % v02(1)
-            error stop "v_theta(0) is non-zero on axis!"
+            write(char_log, exp_fmt) v_field % v02(1)
+            call log_message("v_theta non-zero on axis! Value: " // trim(char_log), level='warning')
           end if
           if (abs(v_field % d_v03_dr(1)) > axis_limit) then
-            write(*, *) "dvz/dr(0) value: ", v_field % d_v03_dr(1)
-            error stop "dvz/dr(0) is non-zero on axis!"
+            write(char_log, exp_fmt) v_field % d_v03_dr(1)
+            call log_message("dvz_dr non-zero on axis! Value: " // trim(char_log), level='warning')
           end if
         end if
       end if
@@ -271,7 +272,7 @@ contains
 
       eq_cond(i) = drho * T0 + rho * dT0 + B02 * dB02 + B03 * dB03 + rho * grav - (d_eps/eps) * (rho * v02**2 - B02**2)
       if (eq_cond(i) > dp_LIMIT) then
-        error stop "standard equilibrium conditions not met!"
+        call log_message("standard equilibrium conditions not satisfied!", level='warning')
       end if
     end do
 
@@ -290,7 +291,7 @@ contains
 
         eq_cond(i) = d_eps / eps * kperp * dT0 + dkperpdT * dT0**2 + kperp * ddT0 - rho * L0
         if (eq_cond(i) > dp_LIMIT) then
-          error stop "non-adiabatic equilibrium conditions not met! (did you set 2nd derivative of T0?)"
+          call log_message("non-adiabatic equilibrium conditions not satisfied!", level='warning')
         end if
       end do
     end if
@@ -304,8 +305,7 @@ contains
 
     do i = 1, gauss_gridpts
       if (ieee_is_nan(array(i))) then
-        write(*, *) "Checking ", array_name
-        error stop "NaN encountered!"
+        call log_message("NaN encountered in " // trim(array_name), level='error')
       end if
     end do
   end subroutine stop_if_nan

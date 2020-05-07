@@ -22,9 +22,10 @@ OUTPUT   := legolas
 
 objects  := $(addprefix $(BINDIR)/, \
               mod_global_variables.o \
+							mod_equilibrium_params.o \
+							mod_logging.o \
               mod_physical_constants.o \
 							mod_units.o	\
-							mod_equilibrium_params.o \
 							mod_grid.o \
               mod_types.o \
               mod_check_values.o \

@@ -88,16 +88,6 @@ contains
       ! multiply by dx for integral
       quadblock_B = quadblock_B * (r_hi - r_lo)
       quadblock_A = quadblock_A * (r_hi - r_lo)
-      !
-      ! ! apply boundary conditions on edges
-      ! if (i == 1) then
-      !   call boundaries_B_left_edge(quadblock_B)
-      !   call boundaries_A_left_edge(quadblock_A, eps, d_eps_dr)
-      ! end if
-      ! if (i == gridpts - 1) then
-      !   call boundaries_B_right_edge(quadblock_B)
-      !   call boundaries_A_right_edge(quadblock_A, eps, d_eps_dr)
-      ! end if
 
       ! fill matrices with quadblock entries.
       do k = 1, dim_quadblock

@@ -7,19 +7,6 @@ module mod_output
   !! IO units -- do not use 0/5/6/7, these are system-reserved
   !> Filehandler IO unit for the main data file
   integer, parameter  :: dat_fh = 10
-
-  !! Format settings
-  !> long exponential format
-  character(8), parameter    :: form_e = '(e30.20)'
-  !> long float format
-  character(8), parameter    :: form_f = '(f30.20)'
-  !> shorter exponential format
-  character(8), parameter    :: form_eout = '(e20.10)'
-  !> shorter float format
-  character(8), parameter    :: form_fout = '(f20.10)'
-  !> integer format
-  character(4), parameter    :: form_int  = '(i8)'
-
   !> name of base output folder
   character(len=7)    :: output_folder = 'output/'
   !> filename extension
@@ -28,7 +15,6 @@ module mod_output
   character(len=str_len) :: datfile_name
 
   public :: create_datfile
-  public :: startup_info_toconsole
   public :: datfile_name
 
 contains
@@ -62,8 +48,8 @@ contains
   subroutine create_datfile(base_filename, eigenvalues, matrix_A, matrix_B)
     use mod_global_variables, only: geometry, x_start, x_end, gridpts, gauss_gridpts, &
                                     matrix_gridpts, ef_gridpts, gamma, equilibrium_type, &
-                                    nb_eqs, cgs_units, str_len_arr, run_silent, &
-                                    write_matrices, write_eigenfunctions
+                                    nb_eqs, cgs_units, str_len_arr, write_matrices, write_eigenfunctions
+    use mod_logging, only: log_message
     use mod_grid, only: grid, grid_gauss
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, kappa_field, eta_field, grav_field
     use mod_eigenfunctions, only: ef_grid, ef_names, ef_array
@@ -114,10 +100,7 @@ contains
 
     ! Eigenfunction data [optional]
     if (write_eigenfunctions) then
-      if (.not. run_silent) then
-        write(*, *) "Writing eigenfunctions..."
-      end if
-
+      call log_message("writing eigenfunctions...", level='info')
       write(dat_fh) size(ef_names), ef_names
       write(dat_fh) ef_grid
       do i = 1, nb_eqs
@@ -127,10 +110,7 @@ contains
 
     ! Matrix data [optional]
     if (write_matrices) then
-      if (.not. run_silent) then
-        write(*, *) "Writing matrices..."
-      end if
-
+      call log_message("writing matrices...", level='info')
       ! Write non-zero matrix indices and values. Since this varies every run, we first
       ! loop through without writing and count the non-zero values. This number is needed
       ! to correctly read in the values later on (we have to know how many there are).
@@ -167,83 +147,8 @@ contains
       end do
     end if
 
-    if (.not. run_silent) then
-      write(*, *) "Results saved to ", trim(datfile_name)
-    end if
-
+    call log_message("results saved to " // trim(datfile_name), level='info')
     close(dat_fh)
   end subroutine create_datfile
-
-
-  !> Converts a Fortran logical ('T' or 'F') to a string ('true', 'false').
-  !! @param[in] boolean   Fortran logical to convert
-  !! @param[out] boolean_string   'true' if boolean == True, 'false' otherwise
-  subroutine logical_tostring(boolean, boolean_string)
-    logical, intent(in)             :: boolean
-    character(len=20), intent(out)  :: boolean_string
-
-    if (boolean) then
-      boolean_string = 'true'
-    else
-      boolean_string = 'false'
-    end if
-  end subroutine logical_tostring
-
-
-  !> Prints basic information of the current configuration to the console.
-  subroutine startup_info_toconsole()
-    use mod_global_variables, only: geometry, x_start, x_end, gridpts, gauss_gridpts, matrix_gridpts, &
-                                    equilibrium_type, boundary_type, gamma, write_matrices, write_eigenfunctions
-    use mod_equilibrium_params, only: k2, k3
-
-    character(20)                   :: char
-
-    write(*, *) ""
-    write(*, *) "------------------------------"
-    write(*, *) "----------- LEGOLAS ----------"
-    write(*, *) "------------------------------"
-    write(*, *) ""
-
-    write(*, *) "Running with the following configuration:"
-    write(*, *) ""
-
-    ! Geometry info
-    write(*, *) "-- Geometry settings --"
-    write(*, *) "Coordinate system  : ", geometry
-    write(char, form_fout) x_start
-    write(*, *) "Start              : ", adjustl(char)
-    write(char, form_fout) x_end
-    write(*, *) "End                : ", adjustl(char)
-    write(char, form_int) gridpts
-    write(*, *) "Gridpoints         : ", adjustl(char)
-    write(char, form_int) gauss_gridpts
-    write(*, *) "Gaussian gridpoints: ", adjustl(char)
-    write(char, form_int) matrix_gridpts
-    write(*, *) "Matrix gridpoints  : ", adjustl(char)
-    write(*, *) ""
-
-    ! Equilibrium info
-    write(*, *) "-- Equilibrium settings --"
-    write(*, *) "Equilibrium type   : ", equilibrium_type
-    write(*, *) "Boundary conditions: ", boundary_type
-    write(char, form_fout) gamma
-    write(*, *) "Gamma              : ", adjustl(char)
-    write(char, form_fout) k2
-    write(*, *) "Wave number k2     : ", adjustl(char)
-    write(char, form_fout) k3
-    write(*, *) "Wave number k3     : ", adjustl(char)
-    write(*, *) ""
-
-    ! Save info
-    write(*, *) "-- DataIO settings --"
-    call logical_tostring(write_matrices, char)
-    write(*, *) "Write matrices to file       : ", char
-    call logical_tostring(write_eigenfunctions, char)
-    write(*, *) "Write eigenfunctions to file : ", char
-
-    write(*, *) '----------------------------------------------------'
-    write(*, *) ''
-
-  end subroutine startup_info_toconsole
 
 end module mod_output

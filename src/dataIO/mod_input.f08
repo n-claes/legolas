@@ -1,6 +1,7 @@
 module mod_input
   use mod_global_variables
   use mod_equilibrium_params
+  use mod_logging, only: log_message
   implicit none
 
   private
@@ -30,7 +31,7 @@ contains
     namelist /unitslist/    cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length
     namelist /gridlist/     geometry, x_start, x_end, gridpoints, mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
-    namelist /savelist/     run_silent, write_matrices, write_eigenfunctions, show_results, savename_datfile
+    namelist /savelist/     write_matrices, write_eigenfunctions, show_results, savename_datfile, logging_level
     namelist /paramlist/    k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, cte_p0, &
                             p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, lambda, nu, &
                             r0, rc, rj, Bth0, Bz0, V, j0, g
@@ -84,17 +85,20 @@ contains
 
     !> Provide normalisations, if supplied
     if (.not. value_is_nan(unit_density) .and. .not. value_is_nan(unit_temperature)) then
-      error stop "unit density and unit temperature can not both be provided in the par file! (choose one)"
+      call log_message("unit density and unit temperature can not both be provided in the par file!", &
+                       level="error")
     end if
     if (.not. value_is_nan(unit_density)) then
       if (value_is_nan(unit_magneticfield) .or. value_is_nan(unit_length)) then
-        error stop "Unit_density found, but unit_magneticfield and unit_length are also required."
+        call log_message("Unit_density found, but unit_magneticfield and unit_length are also required.", &
+                         level="error")
       end if
       call set_normalisations(new_unit_density=unit_density, new_unit_magneticfield=unit_magneticfield, &
                               new_unit_length=unit_length)
     else if (.not. value_is_nan(unit_temperature)) then
       if (value_is_nan(unit_magneticfield) .or. value_is_nan(unit_length)) then
-        error stop "Unit_density found, but unit_magneticfield and unit_length are also required."
+        call log_message("Unit_density found, but unit_magneticfield and unit_length are also required.", &
+                         level='error')
       end if
       call set_normalisations(new_unit_temperature=unit_temperature, &
                               new_unit_magneticfield=unit_magneticfield, new_unit_length=unit_length)
@@ -126,21 +130,18 @@ contains
       case('-i')
         filename_par = args(i+1)
       case default
-        write(*, *) "Unable to read in command line arguments."
-        stop
+        call log_message("unable to read in command line arguments", level='error')
       end select
     end do
 
     if (filename_par == "") then
-      write(*, *) "No parfile supplied, using default configuration."
-      return
+      call log_message("no parfile supplied, using default configuration", level='info')
     end if
 
     !! Check if supplied file exists
     inquire(file=trim(filename_par), exist=file_exists)
     if (.not. file_exists) then
-      write(*, *) "Parfile not found: ", trim(filename_par)
-      stop
+      call log_message(("parfile not found: " // trim(filename_par)), level='error')
     end if
   end subroutine get_parfile
 

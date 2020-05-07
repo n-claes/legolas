@@ -52,7 +52,8 @@ contains
 
   subroutine essential_boundaries(quadblock, edge, matrix)
     use mod_global_variables, only: boundary_type, use_fixed_tc_perp, &
-                                    fixed_tc_perp_value, dp_LIMIT, geometry, x_start
+                                    fixed_tc_perp_value, dp_LIMIT
+    use mod_logging, only: log_message
 
     complex(dp), intent(inout)    :: quadblock(dim_quadblock, dim_quadblock)
     character(len=6), intent(in)  :: edge
@@ -67,8 +68,7 @@ contains
     else if (matrix == 'A') then
       diagonal_factor = (1.0d20, 0.0d0)
     else
-      write(*, *) 'Essential boundaries: invalid matrix argument'
-      error stop
+      call log_message("essential boundaries: invalid matrix argument", level='error')
     end if
 
     ! determine if additional boundary conditions on temperature must be applied.
@@ -118,13 +118,11 @@ contains
           quadblock(j, j) = diagonal_factor
         end do
       else
-        write(*, *) "essential boundaries: invalid edge argument"
-        error stop
+        call log_message("essential boundaries: invalid edge argument", level='error')
       end if
 
     case default
-      write(*, *) "essential boundaries: invalid boundary_type"
-      error stop
+      call log_message( "essential boundaries: invalid boundary_type", level='error')
     end select
 
   end subroutine essential_boundaries
@@ -137,6 +135,7 @@ contains
     use mod_grid, only: grid, eps_grid, d_eps_grid_dr
     use mod_equilibrium, only: rho_field, T_field, B_field, kappa_field, eta_field
     use mod_make_subblock, only: reset_factors, reset_positions
+    use mod_logging, only: log_message
 
     complex(dp), intent(inout)    :: quadblock(dim_quadblock, dim_quadblock)
     character(len=6), intent(in)  :: edge
@@ -160,8 +159,7 @@ contains
       r = r_hi
       idx = gauss_gridpts
     else
-      write(*, *) "natural boundaries: invalid edge argument"
-      error stop
+      call log_message("natural boundaries: invalid edge argument", level='error')
     end if
 
     eps = eps_grid(idx)
