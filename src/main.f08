@@ -14,6 +14,7 @@ program legolas
   use mod_solvers, only: solve_QR
   use mod_output, only: datfile_name
   use mod_logging, only: log_message, print_console_info, print_whitespace
+  use mod_inspections, only: handle_spurious_eigenvalues
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -38,6 +39,9 @@ program legolas
   ! solve eigenvalue problem
   call log_message("solving eigenvalue problem...", level='info')
   call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
+
+  ! check for spurious modes
+  call handle_spurious_eigenvalues(omega)
 
   ! write spectrum, eigenvectors, matrices etc. to file
   call finalise_results()
