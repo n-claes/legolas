@@ -28,5 +28,10 @@ from .visualisations.spectrum import \
     MultiSpectrum
 from .visualisations.matrices import plot_matrices
 
+from pathlib import Path
+
+LEGOLAS_SRC = Path(__file__).parents[2].resolve()
+LEGOLAS_OUT = Path(LEGOLAS_SRC / 'output').resolve()
+
 def show():
     plt.show()

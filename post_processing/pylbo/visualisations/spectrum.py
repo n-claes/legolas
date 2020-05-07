@@ -155,10 +155,12 @@ class MultiSpectrum:
             self._plot_gravito_mhd()
         elif equilibrium == 'interchange_modes':
             self._plot_interchange_modes()
-        elif equilibrium == 'constant_current':
+        elif equilibrium == 'constant_current_tokamak':
             self._plot_constant_current()
         elif equilibrium in ('photospheric_flux_tube', 'coronal_flux_tube'):
             self._plot_flux_tube()
+        else:
+            raise ValueError('Automatically plotting the spectrum failed, should be done manually.')
 
     def _plot_gravito_acoustic(self):
         for ds in self.datasets:
