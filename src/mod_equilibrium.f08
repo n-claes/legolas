@@ -104,8 +104,8 @@ contains
 
 
   subroutine set_equilibrium()
-    use mod_check_values, only: check_negative_array, check_equilibrium_conditions, &
-                                check_nan_values
+    use mod_check_values, only: check_negative_array, check_nan_values
+    use mod_inspections, only: perform_sanity_checks
     use mod_resistivity, only: set_resistivity_values
     use mod_radiative_cooling, only: initialise_radiative_cooling, set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
@@ -119,16 +119,16 @@ contains
     ! Set normalisations if needed
     call check_if_normalisations_set()
 
-    ! Check equilibrium values, should be done before adding physics
+    ! Check for negative/NaN values
     call check_negative_array(rho_field % rho0, 'density')
     call check_negative_array(T_field % T0, 'temperature')
-    call check_equilibrium_conditions(rho_field, T_field, B_field, v_field, &
-                                      grav_field, rc_field, kappa_field)
     call check_nan_values(rho_field)
     call check_nan_values(T_field)
     call check_nan_values(B_field)
     call check_nan_values(v_field)
     call check_nan_values(grav_field)
+    ! Do final sanity checks on values
+    call perform_sanity_checks(rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field)
 
     ! Setup additional physics
     if (resistivity) then

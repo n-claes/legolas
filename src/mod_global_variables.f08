@@ -121,6 +121,10 @@ module mod_global_variables
   character(len=str_len)       :: boundary_type
   !> Use defaults for equilibrium parameters
   logical, save                :: use_defaults
+  !> Remove spurious eigenvalues
+  logical, save                :: remove_spurious_eigenvalues
+  !> Amount of spurious eigenvalues to remove
+  integer                      :: nb_spurious_eigenvalues
 
   !! Block-related parameters
   !> Number of equations
@@ -192,6 +196,8 @@ contains
     equilibrium_type = 'adiabatic_homo'
     boundary_type = 'wall'
     use_defaults = .true.
+    remove_spurious_eigenvalues = .false.
+    nb_spurious_eigenvalues = 1
 
     !! post-processing parameters
     write_matrices = .false.

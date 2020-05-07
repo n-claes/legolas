@@ -98,9 +98,10 @@ def generate_parfiles(filename, config_dict):
     # handle gridlist
     update_namelist('gridlist', ['geometry', 'x_start', 'x_end',
                                  'gridpoints', 'mesh_accumulation',
-                                 'ev_1', 'ev_2', 'sigma_1', 'sigma_2'])
+                                 'ev_1', 'ev_2', 'sigma_1', 'sigma_2', 'force_r0'])
     # handle equilibriumlist
-    update_namelist('equilibriumlist', ['equilibrium_type', 'boundary_type', 'use_defaults'])
+    update_namelist('equilibriumlist', ['equilibrium_type', 'boundary_type', 'use_defaults',
+                                        'remove_spurious_eigenvalues', 'nb_spurious_eigenvalues'])
     # if not explicitly overridden don't use defaults
     if namelist['equilibriumlist'].get('use_defaults', None) is None:
         namelist['equilibriumlist'].update({'use_defaults': False})
