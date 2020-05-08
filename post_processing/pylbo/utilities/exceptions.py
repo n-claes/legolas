@@ -39,13 +39,24 @@ class InconsistentMultirunFile(LegolasException):
                "Expected: {}\n" \
                "Found   : {}".format(self.file, self.found, self.expected)
 
+
 class DictNotEmpty(LegolasException):
     def __init__(self, file):
         self.file = file
 
     def __str__(self):
-        return "There are still variables remaining in the supplied dictionary!\n" \
+        return "There are still variables remaining in the supplied dictionary after parfile generation!\n" \
                "Check key names and values given. Remaining variables:\n" \
                "{}".format(self.file)
+
+
+class UnknownPrecodedRun(LegolasException):
+    def __init__(self, given_name, available_names):
+        self.given_name = given_name
+        self.available_names = list(available_names)
+
+    def __str__(self):
+        return "Unknown precoded run: {}\n" \
+               "Choose from {}".format(self.given_name, self.available_names)
 
 

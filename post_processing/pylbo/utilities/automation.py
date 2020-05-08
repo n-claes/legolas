@@ -4,24 +4,25 @@ import subprocess
 import f90nml
 import numpy as np
 from pathlib import Path
-from .defaults import precoded_runs
+from .defaults import precoded_runs, \
+    get_precoded_run, \
+    LEGOLAS_DIR, \
+    LEGOLAS_OUT
 from .exceptions import DictNotEmpty
 from ..data_management.file_handler import select_files
 
-SRC_DIR = Path(__file__).parents[3]
-OUT_DIR = (SRC_DIR / 'output').resolve()
-PAR_DIR = (OUT_DIR / 'parfiles').resolve()
+LEGOLAS_PAR = (LEGOLAS_OUT / 'parfiles').resolve()
 
 def _check_directories():
-    if not Path.is_dir(SRC_DIR):
-        raise NotADirectoryError(SRC_DIR)
-    if not Path.is_dir(OUT_DIR):
-        Path.mkdir(OUT_DIR)
-    if not Path.is_dir(PAR_DIR):
-        Path.mkdir(PAR_DIR)
+    if not Path.is_dir(LEGOLAS_DIR):
+        raise NotADirectoryError(LEGOLAS_DIR)
+    if not Path.is_dir(LEGOLAS_OUT):
+        Path.mkdir(LEGOLAS_OUT)
+    if not Path.is_dir(LEGOLAS_PAR):
+        Path.mkdir(LEGOLAS_PAR)
 
 def _check_executable():
-    legolas_exec = (SRC_DIR / 'legolas').resolve()
+    legolas_exec = (LEGOLAS_DIR / 'legolas').resolve()
     if not Path.is_file(legolas_exec):
         raise FileNotFoundError('Legolas executable not found in {}'.format(legolas_exec))
 
@@ -48,7 +49,7 @@ def run_legolas(parfiles=None, remove_parfiles=False):
     nb_runs = len(parfiles)
     orig_dir = os.getcwd()
     # change to source directory
-    os.chdir(SRC_DIR)
+    os.chdir(LEGOLAS_DIR)
     # run legolas
     for run in range(nb_runs):
         progressbar(run, nb_runs, '{}/{}'.format(run, nb_runs))
@@ -65,8 +66,8 @@ def run_legolas(parfiles=None, remove_parfiles=False):
         print('Parfiles removed.')
         # if parfile directory is empty, also remove that one
         try:
-            Path.rmdir(PAR_DIR)
-            print('{} was empty, so also removed the directory.'.format(PAR_DIR))
+            Path.rmdir(LEGOLAS_PAR)
+            print('{} was empty, so also removed the directory.'.format(LEGOLAS_PAR))
         except OSError:
             # don't remove if director is not empty
             pass
@@ -131,16 +132,16 @@ def generate_parfiles(filename, config_dict):
         parfile_name = '{}_{:04d}.par'.format(filename, run)
         datfile_name = '{}_{:04d}'.format(datfile_basename, run)
         namelist['savelist'].update({'savename_datfile': datfile_name})
-        parfile_path = (PAR_DIR / parfile_name).resolve()
+        parfile_path = (LEGOLAS_PAR / parfile_name).resolve()
         parfiles.append(parfile_path)
 
         # write parfile
         f90nml.write(namelist, parfile_path, force=True)
     return parfiles
 
-def generate_multirun(parfile_name=None, config_dict=None, remove_parfiles=False):
-    print('No dictionary supplied. Available precoded runs:')
+def generate_multirun(config_dict=None, parfile_name=None, remove_parfiles=False, gridpoints=None, datfile_name=None):
     if config_dict is None:
+        print('No dictionary supplied. Available precoded runs:')
         av_runs = iter(precoded_runs.keys())
         for idx, pr in custom_enumerate(av_runs, start=1, step=3):
             print('{:03d} {:<30}{:03d} {:<30}{:03d} {}'.format(idx, pr, idx + 1, next(av_runs, "<empty>"),
@@ -148,6 +149,7 @@ def generate_multirun(parfile_name=None, config_dict=None, remove_parfiles=False
         pr_in = int(input('\nChoose precoded run: '))
         chosen_pr = list(precoded_runs.keys())[pr_in - 1]
         print('Selected run: {}'.format(chosen_pr))
-        config_dict = precoded_runs.get(chosen_pr)
+        config_dict = get_precoded_run(chosen_pr, gridpoints=gridpoints, savename_datfile=datfile_name)
+        print('Running with {} gridpoints'.format(config_dict['gridpoints']))
     parfiles = generate_parfiles(parfile_name, config_dict)
     run_legolas(parfiles, remove_parfiles)
