@@ -1,12 +1,15 @@
 module mod_eigenfunctions
-  use mod_global_variables, only: dp, matrix_gridpts, ef_gridpts
+  use mod_global_variables, only: dp, matrix_gridpts, ef_gridpts, nb_eqs, str_len_arr
+  use mod_types, only: ef_type
   implicit none
 
   private
 
   real(dp), allocatable         :: ef_grid(:)
+  character(str_len_arr)        :: ef_names(nb_eqs)
+  type (ef_type)                :: ef_array(nb_eqs)
 
-  public :: ef_grid
+  public :: ef_grid, ef_names, ef_array
   public :: initialise_eigenfunctions
   public :: calculate_eigenfunctions
   public :: eigenfunctions_clean
@@ -16,55 +19,40 @@ contains
 
   !> Initialises the eigenfunction module, allocates X_grid.
   subroutine initialise_eigenfunctions()
-    allocate(ef_grid(ef_gridpts))
+    use mod_global_variables, only: write_eigenfunctions
+    integer    :: i
 
-    ef_grid = 0.0d0
+    ! if eigenfunctions are not written to file no need to allocate them
+    if (write_eigenfunctions) then
+      allocate(ef_grid(ef_gridpts))
+      ef_grid = 0.0d0
+      do i = 1, nb_eqs
+        allocate(ef_array(i) % eigenfunctions(ef_gridpts, matrix_gridpts))
+      end do
+    end if
+
+    ef_names = [character(len=str_len_arr) :: 'rho', 'v1', 'v2', 'v3', 'T', 'a1', 'a2', 'a3']
   end subroutine initialise_eigenfunctions
 
-  !> Subroutine to calculate all eigenfunctions from the right eigenvectors.
-  !! These are consequently saved to the proper files.
-  !! @param[in] vr    Array of right eigenvectors, where every column
-  !!                  has the eigenvector corresponding to the eigenvalue
-  !!                  in 'omega' at the same column index
+
   subroutine calculate_eigenfunctions(vr)
-    use mod_global_variables, only: savename_efgrid
-    use mod_types, only: ef_type
-    use mod_output, only: eigenfunctions_tofile, ef_grid_tofile
+    complex(dp), intent(in) :: vr(matrix_gridpts, matrix_gridpts)
+    complex(dp)             :: ef_values(ef_gridpts)
+    integer                 :: i, j
 
-    complex(dp), intent(in)     :: vr(matrix_gridpts, matrix_gridpts)
-
-    complex(dp)                 :: Y(ef_gridpts)
-    integer                     :: i, j
-    character(len=3)            :: vars(8)
-    type (ef_type)              :: var_ef
-
-    allocate(var_ef % eigenfunctions(ef_gridpts, matrix_gridpts))
-
-    vars = [character(3) :: 'rho', 'v1', 'v2', 'v3', 'T', 'a1', 'a2', 'a3']
-
-    !! Calculate all eigenfunctions for every variable
-    do j = 1, 8
-      ! Index of the current variable
-      var_ef % index = j
-      ! Name of the current variable
-      var_ef % var = trim(vars(j))
-      ! Filename used for saving (eg. rho_eigenfunction)
-      var_ef % savename = trim(trim(vars(j)) // '_eigenfunction')
+    do j = 1, nb_eqs
+      ! eigenfunction index
+      ef_array(j) % index = j
+      ! eigenfunction name corresponding to the index
+      ef_array(j) % name = ef_names(j)
 
       do i = 1, matrix_gridpts
-        ! The eigenfunction for each omega is stored in the column of
-        ! 'eigenfunctions' with the same index as omega.
-        ! Column indices hence correspond to the eigenvalue at that index.
-        call get_eigenfunction(trim(vars(j)), vr(:, i), Y)
-        var_ef % eigenfunctions(:, i) = Y(:)
+        ! the eigenfunction for each eigenvalue is stored in the column of 'eigenfunctions'
+        ! with the same index as omega, so column indices correspond to the eigenvalue at that index.
+        call get_eigenfunction(trim(ef_array(j) % name), vr(:, i), ef_values)
+        ef_array(j) % eigenfunctions(:, i) = ef_values
       end do
-
-      call eigenfunctions_tofile(var_ef)
     end do
-
-    call ef_grid_tofile(ef_grid, trim(savename_efgrid))
-    deallocate(var_ef % eigenfunctions)
-
   end subroutine calculate_eigenfunctions
 
   !> Subroutine to calculate the eigenfunction of a given variable, taking
@@ -74,11 +62,12 @@ contains
   !!                        eigenfunction. This is one of the columns in 'vr'
   !! @param[out] Y  The eigenfunction corresponding to the requested variable
   !!                and eigenvector
-  subroutine get_eigenfunction(var, eigenvector, Y)
+  subroutine get_eigenfunction(name, eigenvector, Y)
     use mod_global_variables, only: dim_subblock, gridpts
     use mod_grid, only: grid
+    use mod_logging, only: log_message
 
-    character(len=*), intent(in)  :: var
+    character(len=*), intent(in)  :: name
     complex(dp), intent(in)       :: eigenvector(matrix_gridpts)
     complex(dp), intent(out)      :: Y(ef_gridpts)
 
@@ -89,7 +78,7 @@ contains
 
     Y = (0.0d0, 0.0d0)
 
-    select case(var)
+    select case(name)
       case('rho')
         idx1 = 1
       case('v1')
@@ -107,9 +96,7 @@ contains
       case('a3')
         idx1 = 15
       case default
-        write(*, *) "Eigenfunction variable not known."
-        write(*, *) "Currently set on: ", var
-        stop
+        call log_message("eigenfunction variable not known: " // trim(name), level='error')
     end select
 
     idx2     = idx1 + 1
@@ -125,8 +112,8 @@ contains
 
     ef_grid(grid_idx) = r
 
-    call get_transform_factor(var, r, fact)
-    call get_spline(var, r, r_lo, r_hi, spline)
+    call get_transform_factor(name, r, fact)
+    call get_spline(name, r, r_lo, r_hi, spline)
     Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1)*spline(2) &
                               + fact*eigenvector(idx2)*spline(4)
     Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1+dim_subblock)*spline(1) &
@@ -142,8 +129,8 @@ contains
       grid_idx = grid_idx + 1
       ef_grid(grid_idx) = r
 
-      call get_transform_factor(var, r, fact)
-      call get_spline(var, r, r_lo, r_hi, spline)
+      call get_transform_factor(name, r, fact)
+      call get_spline(name, r, r_lo, r_hi, spline)
       Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1)*spline(2) &
                                 + fact*eigenvector(idx2)*spline(4)
       Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1+dim_subblock)*spline(1) &
@@ -154,8 +141,8 @@ contains
       grid_idx = grid_idx + 1
       ef_grid(grid_idx) = r
 
-      call get_transform_factor(var, r, fact)
-      call get_spline(var, r, r_lo, r_hi, spline)
+      call get_transform_factor(name, r, fact)
+      call get_spline(name, r, r_lo, r_hi, spline)
       Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1)*spline(2) &
                                 + fact*eigenvector(idx2)*spline(4)
       Y(grid_idx) = Y(grid_idx) + fact*eigenvector(idx1 + dim_subblock)*spline(1) &
@@ -173,14 +160,14 @@ contains
   !! @param[in] r_lo  Left edge of the current grid interval
   !! @param[in] r_hi  Right edge of the current grid interval
   !! @param[out] spline The finite element basis function, depending on 'var'
-  subroutine get_spline(var, r, r_lo, r_hi, spline)
+  subroutine get_spline(name, r, r_lo, r_hi, spline)
     use mod_spline_functions, only: cubic_factors, quadratic_factors
 
-    character(len=*), intent(in)    :: var
+    character(len=*), intent(in)    :: name
     real(dp), intent(in)            :: r, r_lo, r_hi
     real(dp), intent(out)           :: spline(4)
 
-    if ((var == "v1") .or. (var == "a2") .or. (var == "a3")) then
+    if ((name == "v1") .or. (name == "a2") .or. (name == "a3")) then
       call cubic_factors(r, r_lo, r_hi, spline)
     else
       call quadratic_factors(r, r_lo, r_hi, spline)
@@ -194,27 +181,23 @@ contains
   !! @param[in] var   The variable ('rho', 'v1', etc.)
   !! @param[in] r     The current position in the grid
   !! @param[out] fact Transformation factor depending on the variable
-  subroutine get_transform_factor(var, r, fact)
+  subroutine get_transform_factor(name, r, fact)
     use mod_global_variables, only: geometry, ir, ic
+    use mod_logging, only: log_message
 
-    character(len=*), intent(in) :: var
+    character(len=*), intent(in) :: name
     real(dp), intent(in)         :: r
     complex(dp), intent(out)     :: fact
-
     real(dp)                     :: eps
 
     if (geometry == 'Cartesian') then
       eps = 1.0d0
-    else if (geometry == 'cylindrical') then
-      eps = r
     else
-      write(*, *) "Geometry not defined correctly"
-      write(*, *) "Currently set on: ", geometry
-      stop
+      eps = r
     end if
 
     !! \note: ic = (0.0d0, 1.0d0) and ir = (1.0d0, 0.0d0)
-    select case(var)
+    select case(name)
       case('rho')
         fact = ir / eps
       case('v1')
@@ -232,15 +215,23 @@ contains
       case('a3')
         fact = ir
       case default
-        write(*, *) "Var not defined correctly"
-        stop
+        call log_message("eigenfunction name not defined correctly.", level='error')
     end select
 
   end subroutine get_transform_factor
 
   !> Cleaning routine, deallocates the variables in this module.
   subroutine eigenfunctions_clean()
-    deallocate(ef_grid)
+    use mod_global_variables, only: write_eigenfunctions
+
+    integer   :: i
+
+    if (write_eigenfunctions) then
+      deallocate(ef_grid)
+      do i = 1, nb_eqs
+        deallocate(ef_array(i) % eigenfunctions)
+      end do
+    end if
   end subroutine eigenfunctions_clean
 
 

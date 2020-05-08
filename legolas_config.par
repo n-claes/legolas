@@ -1,8 +1,8 @@
 &gridlist
-  geometry = 'Cartesian'
-  x_start  = 0.0d0
-  x_end    = 1.0d0
-  gridpoints = 31
+  ! geometry = 'Cartesian'
+  ! x_start  = 0.0d0
+  ! x_end    = 1.0d0
+  gridpoints = 51
 /
 
 &equilibriumlist
@@ -10,8 +10,8 @@
   ! equilibrium_type = "resistive_homo"               ! Cartesian
   ! equilibrium_type = "gravito_acoustic"             ! Cartesian
   ! equilibrium_type = "gravito_mhd""                 ! Cartesian
-  ! equilibrium_type = "resistive_tearing"            ! Cartesian
-  equilibrium_type = "resistive_tearing_flow"       ! Cartesian
+  equilibrium_type = "resistive_tearing"            ! Cartesian
+  ! equilibrium_type = "resistive_tearing_flow"       ! Cartesian
   ! equilibrium_type = "flow_driven_instabilities"    ! Cartesian
   ! equilibrium_type = "suydam_cluster"               ! cylindrical
   ! equilibrium_type = "kelvin_helmholtz"             ! Cartesian
@@ -27,6 +27,11 @@
   ! equilibrium_type = "interface_modes"              ! Cartesian
   ! equilibrium_type = "interchange_modes"            ! Cartesian
   ! equilibrium_type = "constant_current_tokamak"      ! cylindrical
+  ! equilibrium_type = "magnetothermal_instabilities"
+  ! equilibrium_type = "photospheric_flux_tube"
+  ! equilibrium_type = "coronal_flux_tube"
+  ! equilibrium_type = "resonant_absorption"
+  ! equilibrium_type = "gold_hoyle"
 
   ! equilibrium_type = "user_defined"
 
@@ -37,12 +42,7 @@
 /
 
 &savelist
-  write_matrices = .false.
-  write_eigenvectors = .true.
+  write_matrices = .true.
   write_eigenfunctions = .true.
-  write_equilibrium = .false.
-  show_results = .true.
-  show_matrices = .false.
-  show_eigenfunctions = .true.
-  show_equilibrium = .false.
+  show_results = .false.
 /

@@ -16,10 +16,7 @@ contains
     real(dp)      :: x, B0, B_e, rho_e, T_e
     integer       :: i
 
-    geometry = 'Cartesian'
-    ! Override values from par file
-    x_start = -0.5d0
-    x_end   = 0.5d0
+    call allow_geometry_override(default_geometry='Cartesian', default_x_start=-0.5d0, default_x_end=0.5d0)
     call initialise_grid()
 
     if (use_defaults) then

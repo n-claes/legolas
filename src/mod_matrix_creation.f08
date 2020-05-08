@@ -33,8 +33,7 @@ contains
     use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
                                     cubic_factors, cubic_factors_deriv
-    use mod_boundary_conditions, only: boundaries_B_left_edge, boundaries_B_right_edge, &
-                                       boundaries_A_left_edge, boundaries_A_right_edge
+    use mod_boundary_conditions, only: apply_boundary_conditions
 
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp), intent(inout)  :: matrix_A(matrix_gridpts, matrix_gridpts)
@@ -90,16 +89,6 @@ contains
       quadblock_B = quadblock_B * (r_hi - r_lo)
       quadblock_A = quadblock_A * (r_hi - r_lo)
 
-      ! apply boundary conditions on edges
-      if (i == 1) then
-        call boundaries_B_left_edge(quadblock_B)
-        call boundaries_A_left_edge(quadblock_A, eps, d_eps_dr)
-      end if
-      if (i == gridpts - 1) then
-        call boundaries_B_right_edge(quadblock_B)
-        call boundaries_A_right_edge(quadblock_A, eps, d_eps_dr)
-      end if
-
       ! fill matrices with quadblock entries.
       do k = 1, dim_quadblock
         do l = 1, dim_quadblock
@@ -114,9 +103,10 @@ contains
         end do
       end do
       quadblock_idx = quadblock_idx + dim_subblock
-
     end do    ! ends iteration over grid points
 
+    ! ! apply boundary conditions on assembled matrices
+    call apply_boundary_conditions(matrix_A, matrix_B)
   end subroutine create_matrices
 
 

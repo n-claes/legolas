@@ -44,6 +44,7 @@ contains
   !! ncool gridpoints.
   subroutine initialise_radiative_cooling()
     use mod_global_variables, only: cooling_curve
+    use mod_logging, only: log_message
     use mod_cooling_curves
 
     real(dp), allocatable :: table_T(:), table_L(:)
@@ -91,8 +92,7 @@ contains
       interpolated_curve = .false.
 
     case default
-      write(*, *) "Unknown cooling curve '", cooling_curve, "' provided!"
-      error stop
+      call log_message("unknown cooling curve: " // cooling_curve, level='error')
     end select
 
     if (interpolated_curve) then
@@ -118,6 +118,7 @@ contains
     use mod_types, only: density_type, temperature_type, cooling_type
     use mod_global_variables, only: gauss_gridpts, cooling_curve
     use mod_cooling_curves, only: get_rosner_cooling
+    use mod_logging, only: log_message
 
     type(density_type), intent(in)      :: rho_field
     type(temperature_type), intent(in)  :: T_field
@@ -158,8 +159,7 @@ contains
         call get_rosner_cooling(T0, lambda_T, d_lambda_dT)
 
       case default
-        write(*, *) "Unknown cooling curve '", cooling_curve, "' provided!"
-        error stop
+        call log_message("unknown cooling curve: " // cooling_curve, level='error')
       end select
     end if
 
