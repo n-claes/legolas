@@ -12,9 +12,9 @@ contains
 
   module subroutine photospheric_flux_tube_eq()
     use mod_global_variables, only: dp_LIMIT, gamma
-    use mod_equilibrium_params, only: cte_rho0, cte_p0
+    use mod_equilibrium_params, only: cte_rho0, cte_p0, r0
 
-    real(dp)  :: r, rho_e, p_e, B_0, B_e, r0
+    real(dp)  :: r, rho_e, p_e, B_0, B_e
     integer   :: i
 
     call allow_geometry_override(default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=2.0d0)
@@ -35,9 +35,9 @@ contains
     B_e = sqrt(2.0d0 * gamma * cte_p0 * (2.0d0 * gamma + 1.0d0) / (gamma + 18.0d0))
 
     if (r0 > x_end) then
-      error stop "equilibrium: inner cylinder radius r0 > x_end"
+      call log_message("equilibrium: inner cylinder radius r0 > x_end", level='error')
     else if (r0 < x_start) then
-      error stop "equilibrium: inner cylinder radius r0 < x_start"
+      call log_message("equilibrium: inner cylinder radius r0 < x_start", level='error')
     end if
 
     ! check pressure balance
@@ -48,7 +48,7 @@ contains
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
 
-      if (r < r0) then
+      if (r > r0) then
         rho_field % rho0(i) = rho_e
         B_field % B02(i) = 0.0d0
         B_field % B03(i) = B_e
