@@ -16,9 +16,7 @@ contains
     real(dp)              :: x
     integer               :: i
 
-    geometry = 'Cartesian'
-    x_start = -0.5d0
-    x_end   = 0.5d0
+    call allow_geometry_override(default_geometry='Cartesian', default_x_start=-0.5d0, default_x_end=0.5d0)
     call initialise_grid()
 
     resistivity = .true.
