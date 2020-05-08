@@ -23,15 +23,13 @@ from .utilities.datfile_utils import \
     read_eigenfunctions, \
     read_matrix_B, \
     read_matrix_A
+from .utilities.defaults import \
+    LEGOLAS_DIR, \
+    LEGOLAS_OUT
 from .visualisations.spectrum import \
     SingleSpectrum, \
     MultiSpectrum
 from .visualisations.matrices import plot_matrices
-
-from pathlib import Path
-
-LEGOLAS_SRC = Path(__file__).parents[2].resolve()
-LEGOLAS_OUT = Path(LEGOLAS_SRC / 'output').resolve()
 
 def show():
     plt.show()
