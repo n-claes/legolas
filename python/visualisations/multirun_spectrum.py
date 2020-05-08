@@ -70,30 +70,44 @@ class MultiSpectrum(LEGOLASDataContainer):
             self.ax.set_ylabel(r"$\omega^2$")
             self.ax.set_title(mr_name + self.gridpts_title)
 
-        elif 'photospheric_flux_tube' in mr_name or 'coronal_flux_tube' in mr_name:
-            # for the photospheric/coronal fluxtube we plot w/(cs*kz) vs kz*r0
-            r0 = self.datacontainer[0].params['r0']
+        elif mr_name in ('photospheric_flux_tube', 'coronal_flux_tube'):
+            a = self.datacontainer[0].params['r0']
             gamma = self.datacontainer[0].gamma
-            p0 = self.datacontainer[0].params['cte_p0']
             rho0 = self.datacontainer[0].params['cte_rho0']
-            cs = np.sqrt(gamma * p0 / rho0)
-            kz_values = np.linspace(0.1, 6.2, len(self.datacontainer)) / r0
-            for idx, data in enumerate(self.datacontainer):
-                w_kzcs = np.abs(np.real(data.omegas)) / (cs * r0 * kz_values[idx])
-                kzr0 = r0 * kz_values[idx] * np.ones_like(w_kzcs)
-                self.ax.plot(kzr0, w_kzcs, '.b', markersize=2, alpha=0.8)
-            # soundspeed is used to make everything dimensionless, to this line sits at one
-            self.ax.axhline(y=1.0, label='$c_s$', lw=1, color='red', linestyle='dotted', alpha=0.6)
-            self.ax.set_xlabel(r'$k_z r_0$')
-            self.ax.set_ylabel(r'$\frac{\omega}{k_z c_s}$')
-            self.ax.set_title(mr_name + self.gridpts_title)
-            if 'photospheric_flux_tube' in mr_name:
-                self.ax.set_xlim([0.05, 6.25])
-                self.ax.set_ylim([0.94, 1.02])
+            p0 = self.datacontainer[0].params['cte_p0']
+            B0 = 2 * np.sqrt(gamma * p0)
+            if mr_name == 'photospheric_flux_tube':
+                rhoe = 8 * rho0 * (2 * gamma + 1) / (gamma + 18)
+                pe = 18 * p0 * (2 * gamma + 1) / (gamma + 18)
+                Be = np.sqrt(2 * gamma * p0 * (2 * gamma + 1) / (gamma + 18))
             else:
-                self.ax.set_xlim([0.05, 6.25])
-                self.ax.set_ylim([0.994, 1.002])
-            self.ax.legend(loc="best")
+                rhoe = 4 * rho0 * (2 * gamma + 1) / (50 * gamma + 1)
+                pe = p0 * (2 * gamma + 1) / (50 * gamma + 1)
+                Be = 10 * np.sqrt(gamma * p0 * (2 * gamma + 1) / (50 * gamma + 1))
+            cs = np.sqrt(gamma * p0 / rho0)
+            cse = np.sqrt(gamma * pe / rhoe)
+            cA = np.sqrt(B0**2 / rho0)
+            cAe = np.sqrt(Be**2 / rhoe)
+            ct = cs*cA / np.sqrt(cs**2 + cA**2)
+            cte = cse*cAe / np.sqrt(cse**2 + cAe**2)
+            ck = np.sqrt((rho0 * cA**2 + rhoe * cAe**2)/(rho0 + rhoe))
+            kz_values = np.linspace(0.1, 6.2, len(self.datacontainer))
+            for idx, data in enumerate(self.datacontainer):
+                # phase speed c = w / kz
+                c = np.abs(data.omegas.real) / kz_values[idx]
+                kza = kz_values[idx] * a * np.ones_like(c)
+                self.ax.plot(kza, c/cs, '.b', markersize=2)
+            self.ax.axhline(cA/cs, label='$c_A$', lw=2, color='black', alpha=0.6)
+            self.ax.axhline(cAe/cs, label='$c_{Ae}$', lw=2, color='black', linestyle='dotted', alpha=0.6)
+            self.ax.axhline(cs/cs, label='$c_s$', lw=2, color='red', alpha=0.6)
+            self.ax.axhline(cse/cs, label='$c_{se}$', lw=2, color='red', linestyle='dotted', alpha=0.6)
+            self.ax.axhline(ct/cs, label='$c_t$', lw=2, color='green', alpha=0.6)
+            self.ax.axhline(cte/cs, label='$c_{te}$', lw=2, color='green', linestyle='dotted', alpha=0.6)
+            self.ax.axhline(ck/cs, label='$c_k$', lw=2, color='cyan', alpha=0.6)
+            self.ax.legend(loc='best')
+            self.ax.set_xlabel(r"$k_za$")
+            self.ax.set_ylabel(r"$\omega / k_z c_s$")
+            self.ax.set_title(mr_name + self.gridpts_title)
 
         else:
             for data in self.datacontainer:

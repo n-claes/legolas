@@ -23,6 +23,8 @@ module mod_global_variables
   integer, parameter :: qp = real128
   !> Default length for strings
   integer, parameter :: str_len = 125
+  !> Default length for strings in arrays
+  integer, parameter :: str_len_arr = 16
 
   !> Values smaller than this are forced to zero
   real(dp), parameter :: dp_LIMIT = 1.0d-12
@@ -76,6 +78,8 @@ module mod_global_variables
   real(dp)                  :: x_end
   !> Amount of gridpoints
   integer, protected        :: gridpts
+  !> Force r=0 in cylindrical geometry
+  logical, save             :: force_r0
   !> Amount of gridpoints in the gaussian array
   integer, protected        :: gauss_gridpts
   !> Gridpoints of matrices A and B, equal to 16 * gridpts
@@ -117,6 +121,10 @@ module mod_global_variables
   character(len=str_len)       :: boundary_type
   !> Use defaults for equilibrium parameters
   logical, save                :: use_defaults
+  !> Remove spurious eigenvalues
+  logical, save                :: remove_spurious_eigenvalues
+  !> Amount of spurious eigenvalues to remove
+  integer                      :: nb_spurious_eigenvalues
 
   !! Block-related parameters
   !> Number of equations
@@ -134,40 +142,16 @@ module mod_global_variables
   integer, parameter        :: dim_quadblock = 2*dim_subblock
 
   !! Data IO-related parameters (savelist)
-  !> Suppress console output
-  logical, save             :: run_silent
   !> Write matrices A and B to file when finished
   logical, save             :: write_matrices
-  !> Write eigenvectors to file when finished
-  logical, save             :: write_eigenvectors
   !> Write eigenfunctions to file when finished
   logical, save             :: write_eigenfunctions
-  !> Write equilibrium configuration to file when finished
-  logical, save             :: write_equilibrium
   !> Call python script when finishing to plot results
   logical, save             :: show_results
-  !> Plot matrices A and B when finished
-  logical, save             :: show_matrices
-  !> Plot eigenfunctions when finished
-  logical, save             :: show_eigenfunctions
-  !> Show equilibrium configuration when finished
-  logical, save             :: show_equilibrium
-
-  !! Related parameters for filenames (filelist)
-  !> Name for the eigenvalues file
-  character(len=str_len)    :: savename_eigenvalues
-  !> Name for the eigenfunction grid file
-  character(len=str_len)    :: savename_efgrid
-  !> Name for the matrix files
-  character(len=str_len)    :: savename_matrix
-  !> Name for the eigenvector files
-  character(len=str_len)    :: savename_eigenvectors
-  !> Name for the eigenfunction files
-  character(len=str_len)    :: savename_eigenfunctions
-  !> Name for the configuration file
-  character(len=str_len)    :: savename_config
-  !> Name for the equilibrium file
-  character(len=str_len)    :: savename_equil
+  !> Base name for the data file. Output directory and extension will be added
+  character(len=str_len)    :: savename_datfile
+  !> Logging level. 0, 1, 2, 3 means errors, warnings, info, debugging
+  integer                   :: logging_level
 
 contains
 
@@ -177,7 +161,7 @@ contains
     NaN = ieee_value(NaN, ieee_quiet_nan)
 
     !! physics variables
-    cgs_units = .false.
+    cgs_units = .true.
     gamma = 5.0d0/3.0d0
     call set_gamma(gamma)
     flow = .false.
@@ -200,6 +184,7 @@ contains
     x_start = NaN
     x_end = NaN
     gridpts = 31
+    force_r0 = .false.
     call set_gridpts(gridpts)
     mesh_accumulation = .false.
     ev_1 = 1.25d0
@@ -211,26 +196,17 @@ contains
     equilibrium_type = 'adiabatic_homo'
     boundary_type = 'wall'
     use_defaults = .true.
+    remove_spurious_eigenvalues = .false.
+    nb_spurious_eigenvalues = 1
 
     !! post-processing parameters
-    run_silent = .false.
     write_matrices = .false.
-    write_eigenvectors = .false.
-    write_eigenfunctions = .false.
-    write_equilibrium = .true.
+    write_eigenfunctions = .true.
     show_results = .true.
-    show_matrices = .false.
-    show_eigenfunctions = .false.
-    show_equilibrium = .true.
+    logging_level = 2
 
     !! file-saving variables
-    savename_eigenvalues = "eigenvalues"
-    savename_efgrid = "ef_grid"
-    savename_matrix = "matrix"
-    savename_eigenvectors = "eigenvectors"
-    savename_eigenfunctions = "eigenfunctions"
-    savename_config = "configuration"
-    savename_equil = 'equilibrium'
+    savename_datfile = "datfile"
   end subroutine initialise_globals
 
   !> Subroutine to set gamma and (gamma - 1)

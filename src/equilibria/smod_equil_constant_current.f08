@@ -16,10 +16,7 @@ contains
     real(dp)  :: p_x(gauss_gridpts), dp_x(gauss_gridpts)
     integer   :: i
 
-    geometry = 'cylindrical'
-    ! Override values from par file
-    x_start = 0.0d0
-    x_end   = 1.0d0
+    call allow_geometry_override(default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=1.0d0)
     call initialise_grid()
 
     if (use_defaults) then

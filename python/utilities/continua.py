@@ -7,7 +7,8 @@ def get_continuum_regions(data):
     B0 = np.sqrt(B02**2 + B03**2)
     v02 = data.equil_data['v02']
     v03 = data.equil_data['v03']
-    p = rho * data.equil_data['T0']
+    T = data.equil_data['T0']
+    p = rho * T
 
     k2 = data.params['k2']
     k3 = data.params['k3']
@@ -31,7 +32,7 @@ def get_continuum_regions(data):
     # additional sanity check: if the slow continuum vanishes (all wS2 values are zero) there
     # is an analytical solution for the thermal continuum. This one should be equal to the solution
     # obtained through solving the polynomial equation.
-    if (wS2 == 0).all():
+    if (wS2 == 0).all() and (T != 0).all():
         LT = data.equil_data['dLdT']
         Lrho = data.equil_data['dLdrho']
         T = data.equil_data['T0']
@@ -54,7 +55,8 @@ def _thermal_continuum(data, eps):
     B02 = data.equil_data['B02']
     B03 = data.equil_data['B03']
     B0 = np.sqrt(B02**2 + B03**2)
-    p = rho * data.equil_data['T0']
+    T = data.equil_data['T0']
+    p = rho * T
     LT = data.equil_data['dLdT']
     Lrho = data.equil_data['dLdrho']
     kappa_para = data.equil_data['kappa_para']
@@ -62,6 +64,9 @@ def _thermal_continuum(data, eps):
 
     # if there is no conduction/cooling, there is no thermal continuum. Set to zero and return
     if (LT == 0).all() and (Lrho == 0).all() and (kappa_para == 0).all() and (kappa_perp == 0).all():
+        return np.zeros_like(data.grid_gauss)
+    # if temperature is zero (no pressure), set to zero and return
+    if (T == 0).all():
         return np.zeros_like(data.grid_gauss)
 
     k2 = data.params['k2']

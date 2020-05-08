@@ -6,6 +6,7 @@
 !
 module mod_units
   use mod_global_variables, only: dp, cgs_units
+  use mod_logging, only: log_message
   implicit none
 
   private
@@ -47,7 +48,7 @@ module mod_units
   real(dp), protected   :: unit_deta_dT = 1.0d0
 
   !> Boolean value to check if normalisations are set
-  logical, protected    :: normalisations_set = .false.
+  logical, protected    :: normalisations_are_set = .false.
 
   public  :: check_if_normalisations_set
   public  :: set_normalisations
@@ -65,7 +66,8 @@ contains
   !> Checks if normalisations were set. If not, define them using default values, taken
   !! to be unit_temperature = 1 MK, unit_magneticfield = 10 G and unit_length = 1e9 cm.
   subroutine check_if_normalisations_set()
-    if (normalisations_set) then
+    if (normalisations_are_set) then
+      call log_message("normalisations are already set", level='debug')
       return
     else
       cgs_units = .true.
@@ -86,11 +88,13 @@ contains
     real(dp), intent(out) :: kB, mp, mu0, Rgas
 
     if (cgs_units) then
+      call log_message("getting constants in cgs units", level='debug')
       kB = kB_cgs
       mp = mp_cgs
       mu0 = mu0_cgs
       Rgas = R_cgs
     else
+      call log_message("getting constants in SI units", level='debug')
       kB = kB_si
       mp = mp_si
       mu0 = mu0_si
@@ -116,7 +120,7 @@ contains
     call get_constants(kB, mp, mu0, Rgas)
 
     if (present(new_unit_density) .and. present(new_unit_temperature)) then
-      error stop "unit density and unit temperature can not both be set."
+      call log_message("unit density and unit temperature can not both be set.", level='error')
     end if
 
     unit_magneticfield = new_unit_magneticfield
@@ -130,7 +134,7 @@ contains
       unit_temperature = new_unit_temperature
       unit_density = unit_pressure / (Rgas * unit_temperature)
     else
-      error stop "no unit density or unit temperature specified."
+      call log_message("no unit density or unit temperature specified.", level='error')
     end if
 
     unit_numberdensity = unit_density / mp
@@ -144,7 +148,8 @@ contains
     unit_dtc_dT        = unit_conduction / unit_temperature
     unit_dtc_dB2       = unit_conduction / (unit_magneticfield**2)
 
-    normalisations_set = .true.
+    normalisations_are_set = .true.
+
   end subroutine
 
 

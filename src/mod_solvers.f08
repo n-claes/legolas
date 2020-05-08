@@ -11,6 +11,7 @@
 !
 module mod_solvers
   use mod_global_variables, only: dp, matrix_gridpts
+  use mod_logging, only: log_message, char_log, int_fmt
   implicit none
 
   private
@@ -114,6 +115,8 @@ contains
     integer, allocatable  :: ipiv(:)
     real(dp), allocatable :: work(:)
 
+    call log_message("inverting B-matrix", level='debug')
+
     !! Copy B into B_inv
     B_inv = B
 
@@ -126,19 +129,19 @@ contains
     allocate(work(lwork))
 
     ! Calculate pivot indices
+    call log_message("LU factorisation of B using dgetrf", level='debug')
     call dgetrf(N, N, B_inv, ldb, ipiv, info)
     if (info /= 0) then
-      write(*, *) 'LU factorisation of matrix B failed'
-      write(*, *) 'Value for info parameter: ', info
-      stop
+      write(char_log, int_fmt) info
+      call log_message("LU factorisation of B failed. Value info: " // trim(char_log), level='warning')
     end if
 
+    call log_message("inverting B using dgetri", level='debug')
     call dgetri(N, B_inv, ldb, ipiv, work, lwork, info)
 
     if (info /= 0) then
-      write(*, *) 'Inversion of matrix B failed'
-      write(*, *) 'Value for info parameter: ', info
-      stop
+      write(char_log, int_fmt) info
+      call log_message("inversion of B failed. Value info: " // trim(char_log), level='warning')
     end if
 
     deallocate(ipiv)
@@ -177,6 +180,7 @@ contains
     !! Hence convert it to a complex matrix, otherwise results are wrong.
     B_inv_cplx = B_inv * (1.0d0, 0.0d0)
 
+    call log_message("multiplying B_inv * A", level='debug')
     call zgemm('N', 'N', K, K, K, alpha, B_inv_cplx, ldB_inv, A, ldA, &
                beta, B_invA, ldB_invA)
 

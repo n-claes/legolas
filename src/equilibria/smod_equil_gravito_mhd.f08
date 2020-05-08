@@ -17,7 +17,7 @@ contains
     integer   :: i
     logical, save :: use_taylor
 
-    geometry = 'Cartesian'
+    call allow_geometry_override(default_geometry='Cartesian', default_x_start=0.0d0, default_x_end=1.0d0)
     external_gravity = .true.
 
     ! For multiruns, this should be false. For single runs you should use the Taylor approximation and
@@ -38,9 +38,6 @@ contains
     B0 = 1.0d0
     beta  = 2.0d0*cte_p0 / B0**2
     cte_rho0 = (alpha / g) * (cte_p0 + 0.5d0 * B0**2)
-
-    x_start = 0.0d0
-    x_end = 1.0d0
 
     if (use_taylor) then
       ! For Taylor approximation the interval should be small since the approximation is linear (2nd order).

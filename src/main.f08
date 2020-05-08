@@ -9,9 +9,12 @@
 !! and eigenvectors of the complete non-adiabatic MHD spectrum.
 !! Included physics: flow, radiative cooling, thermal conduction, resistivity
 program legolas
-  use mod_global_variables, only: dp, str_len, show_results, run_silent
+  use mod_global_variables, only: dp, str_len, show_results
   use mod_matrix_creation, only: create_matrices
   use mod_solvers, only: solve_QR
+  use mod_output, only: datfile_name
+  use mod_logging, only: log_message, print_console_info, print_whitespace
+  use mod_inspections, only: handle_spurious_eigenvalues
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -24,8 +27,6 @@ program legolas
   complex(dp), allocatable  :: eigenvecs_right(:, :)
   !> Left eigenvectors
   complex(dp), allocatable  :: eigenvecs_left(:, :)
-  !> Name of the configuration file
-  character(str_len)        :: config_file
 
   ! allocate variables, initialise grid and physics, set equilibrium
   call initialisation()
@@ -33,11 +34,14 @@ program legolas
   ! create matrices A and B
   call create_matrices(matrix_B, matrix_A)
 
+  call print_console_info()
+
   ! solve eigenvalue problem
-  if (.not. run_silent) then
-    write(*, *) "Solving eigenvalue problem..."
-  end if
+  call log_message("solving eigenvalue problem...", level='info')
   call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
+
+  ! check for spurious modes
+  call handle_spurious_eigenvalues(omega)
 
   ! write spectrum, eigenvectors, matrices etc. to file
   call finalise_results()
@@ -47,10 +51,7 @@ program legolas
 
   ! call python script and pass configuration file
   if (show_results) then
-    write(*, *) ""
-    write(*, *) "Plotting results..."
-    call execute_command_line("python3 python/legolas_analyser.py " // &
-                              "-i " // trim(config_file))
+    call execute_command_line("python3 pylbo_wrapper.py -i " // trim(datfile_name))
   end if
 
 contains
@@ -61,7 +62,6 @@ contains
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
-    use mod_output, only: startup_info_toconsole
 
     character(len=str_len)  :: parfile
 
@@ -69,11 +69,7 @@ contains
 
     call get_parfile(parfile)
     call read_parfile(parfile)
-
-    ! print empty line
-    if (.not. run_silent) then
-      write(*, *) ""
-    end if
+    call print_whitespace(1)
 
     ! Allocate matrices
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
@@ -90,47 +86,21 @@ contains
 
     ! set the equilibrium configuration
     call set_equilibrium()
-
-    ! print configuration to console
-    if (.not. run_silent) then
-      call startup_info_toconsole()
-    end if
-
   end subroutine initialisation
 
 
   !> Saves the solutions
   subroutine finalise_results()
-    use mod_global_variables, only: savename_eigenvalues, write_matrices, savename_matrix, write_eigenvectors, &
-                                    savename_eigenvectors, write_eigenfunctions, write_equilibrium, &
-                                    savename_equil, savename_config
-    use mod_output, only: eigenvalues_tofile, matrices_tofile, eigenvectors_tofile, &
-                          configuration_tofile, equilibrium_tofile
+    use mod_global_variables, only: savename_datfile, write_eigenfunctions
+    use mod_output, only: create_datfile
     use mod_eigenfunctions, only: calculate_eigenfunctions
-    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, kappa_field
-    use mod_grid, only: grid_gauss
 
-    call eigenvalues_tofile(omega, savename_eigenvalues)
-
-    if (write_matrices) then
-      call matrices_tofile(matrix_A, matrix_B, savename_matrix)
-    end if
-
-    if (write_eigenvectors) then
-      call eigenvectors_tofile(eigenvecs_left, eigenvecs_right, savename_eigenvectors)
-    end if
-
+    ! eigenfunctions must be calculated before datfile is written
     if (write_eigenfunctions) then
       call calculate_eigenfunctions(eigenvecs_right)
     end if
+    call create_datfile(savename_datfile, omega, matrix_A, matrix_B)
 
-    if (write_equilibrium) then
-      call equilibrium_tofile(grid_gauss, rho_field, T_field, B_field, v_field, &
-                              rc_field, kappa_field, savename_equil)
-    end if
-
-    ! save running configuration
-    call configuration_tofile(savename_config, config_file)
   end subroutine finalise_results
 
 

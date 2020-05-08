@@ -10,6 +10,7 @@
 !
 module mod_grid
   use mod_global_variables, only: dp, gridpts
+  use mod_logging, only: log_message
   implicit none
 
   private
@@ -37,13 +38,14 @@ contains
   !> Initialises both the regular grid and grid_gauss. Does mesh accumulation
   !! if desired.
   subroutine initialise_grid()
-    use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, gauss_gridpts
+    use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, &
+                                    gauss_gridpts, dp_LIMIT, force_r0
 
     integer                  :: i
     real(dp)                 :: dx
 
     if (geometry == "") then
-      error stop "Geometry must be set in the equilibrium submodule!"
+      call log_message("geometry must be set in submodule/parfile", level='error')
     end if
 
     allocate(grid(gridpts))
@@ -54,6 +56,16 @@ contains
     ! Initialise grids
     grid       = 0.0d0
     grid_gauss = 0.0d0
+
+    if (geometry == 'cylindrical' .and. abs(x_start) < dp_LIMIT) then
+      if (.not. force_r0) then
+        x_start = 2.5d-2
+      else
+        call log_message("forcing on-axis r in cylindrical geometry. This may lead to spurious &
+                        &real/imaginary eigenvalues.", level='warning')
+        x_start = 0.0d0
+      end if
+    end if
 
     ! minus one here to include x_end
     dx = (x_end - x_start) / (gridpts-1)
@@ -110,8 +122,7 @@ contains
       eps_grid = grid_gauss
       d_eps_grid_dr = 1.0d0
     else
-      write(*, *) "Geometry not defined correctly."
-      write(*, *) "Currently set on: ", geometry
+      call log_message("geometry not defined correctly: " // trim(geometry), level='error')
     end if
   end subroutine set_scale_factor
 
@@ -131,7 +142,7 @@ contains
     real(dp)                 :: x_sum, x_sum_prev, x_norm
     real(dp)                 :: xi_weighted
 
-    print*,"Redefining grid with mesh accumulation"
+    call log_message("redefining grid with mesh accumulation", level='info')
 
     integral_gridpts = gridpts - 1
 

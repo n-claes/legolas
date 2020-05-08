@@ -18,6 +18,7 @@ module mod_equilibrium
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
+  use mod_logging, only: log_message, dp_fmt, char_log
   implicit none
 
   private
@@ -103,8 +104,8 @@ contains
 
 
   subroutine set_equilibrium()
-    use mod_check_values, only: check_negative_array, check_equilibrium_conditions, &
-                                check_nan_values
+    use mod_check_values, only: check_negative_array, check_nan_values
+    use mod_inspections, only: perform_sanity_checks
     use mod_resistivity, only: set_resistivity_values
     use mod_radiative_cooling, only: initialise_radiative_cooling, set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
@@ -118,16 +119,16 @@ contains
     ! Set normalisations if needed
     call check_if_normalisations_set()
 
-    ! Check equilibrium values, should be done before adding physics
+    ! Check for negative/NaN values
     call check_negative_array(rho_field % rho0, 'density')
     call check_negative_array(T_field % T0, 'temperature')
-    call check_equilibrium_conditions(rho_field, T_field, B_field, v_field, &
-                                      grav_field, rc_field, kappa_field)
     call check_nan_values(rho_field)
     call check_nan_values(T_field)
     call check_nan_values(B_field)
     call check_nan_values(v_field)
     call check_nan_values(grav_field)
+    ! Do final sanity checks on values
+    call perform_sanity_checks(rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field)
 
     ! Setup additional physics
     if (resistivity) then
@@ -212,9 +213,7 @@ contains
       set_equilibrium_values => hydro_test_eq
 
     case default
-      write(*, *) "Equilibrium not recognised."
-      write(*, *) "currently set on: ", equilibrium_type
-      stop
+      call log_message("equilibrium not recognised: " // trim(equilibrium_type), level='error')
     end select
   end subroutine set_equilibrium_pointer
 
@@ -227,19 +226,21 @@ contains
     real(dp), intent(in)      :: default_x_start, default_x_end
 
     if (geometry /= "" .and. geometry /= default_geometry) then
-      write(*, *) "WARNING: overriding default geometry (", default_geometry, ") with ", geometry
+      call log_message("overriding default geometry with " // trim(geometry), level='warning')
     else
       geometry = default_geometry
     end if
 
     if ( (.not. ieee_is_nan(x_start)) .and. abs(x_start - default_x_start) >= dp_LIMIT ) then
-      write(*, *) "WARNING: overriding x_start with ", x_start
+      write(char_log, dp_fmt) x_start
+      call log_message("overriding x_start with " // trim(char_log), level='warning')
     else
       x_start = default_x_start
     end if
 
     if ( (.not. ieee_is_nan(x_end)) .and. abs(x_end - default_x_end) >= dp_LIMIT ) then
-      write(*, *) "WARNING: overriding x_end with ", x_end
+      write(char_log, dp_fmt) x_end
+      call log_message("overriding x_end with " // trim(char_log), level='warning')
     else
       x_end = default_x_end
     end if

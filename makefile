@@ -22,12 +22,12 @@ OUTPUT   := legolas
 
 objects  := $(addprefix $(BINDIR)/, \
               mod_global_variables.o \
+							mod_equilibrium_params.o \
+							mod_logging.o \
               mod_physical_constants.o \
 							mod_units.o	\
-							mod_equilibrium_params.o \
 							mod_grid.o \
               mod_types.o \
-              mod_output.o \
               mod_check_values.o \
               mod_spline_functions.o \
               mod_input.o \
@@ -35,6 +35,7 @@ objects  := $(addprefix $(BINDIR)/, \
               mod_cooling_curves.o \
               mod_radiative_cooling.o \
               mod_thermal_conduction.o \
+							mod_inspections.o \
               mod_equilibrium.o     \
 							smod_equil_adiabatic_homo.o \
 							smod_equil_constant_current.o \
@@ -70,6 +71,7 @@ objects  := $(addprefix $(BINDIR)/, \
               mod_matrix_creation.o \
               mod_solvers.o \
               mod_eigenfunctions.o \
+              mod_output.o \
              )
 
 main_objects := $(addprefix $(BINDIR)/, \
