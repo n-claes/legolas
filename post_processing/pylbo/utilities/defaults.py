@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 from pathlib import Path
 from .exceptions import UnknownPrecodedRun
 
@@ -138,7 +139,7 @@ precoded_runs = {
 
 def get_precoded_run(name, gridpoints=None, number_of_runs=None, savename_datfile=None):
     try:
-        selected_run = precoded_runs[name]
+        selected_run = copy.deepcopy(precoded_runs[name])
     except KeyError:
         raise UnknownPrecodedRun(name, precoded_runs.keys())
     for key, value in zip(['gridpoints', 'number_of_runs', 'savename_datfile'],
