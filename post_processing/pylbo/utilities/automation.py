@@ -1,9 +1,13 @@
-import sys
 import os
 import subprocess
+import signal
+import multiprocessing
 import f90nml
+import copy
+import psutil
 import numpy as np
 from pathlib import Path
+from tqdm import tqdm
 from .defaults import precoded_runs, \
     get_precoded_run, \
     LEGOLAS_DIR, \
@@ -31,34 +35,61 @@ def custom_enumerate(iterable, start=0, step=1):
         yield start, itr
         start += step
 
-def progressbar(current, total, text=''):
-    bar_length = 40
-    progress = float(current) / float(total)
-    if progress >= 1.:
-        progress, status = 1, "\r\n"
-    block = int(round(bar_length * progress))
-    text = "\r[{}] {:.0f}% {}".format("#" * block + "-" * (bar_length - block), round(progress * 100, 0), text)
-    sys.stdout.write(text)
-    sys.stdout.flush()
+def _init_work():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-def run_legolas(parfiles=None, remove_parfiles=False):
+def _do_work(parfile):
+    cmd = ['./legolas', '-i', str(parfile)]
+    return subprocess.call(cmd)
+
+def run_legolas(parfiles=None, remove_parfiles=False, cpus_to_use=None):
+    def update_pbar(*args):
+        pbar.update()
+
     if parfiles is None:
         parfiles = select_files()
-
-    print('Running Legolas...')
-    nb_runs = len(parfiles)
+    if cpus_to_use is None:
+        cpus_to_use = int(multiprocessing.cpu_count() / 2)
+    # save current working directory
     orig_dir = os.getcwd()
     # change to source directory
     os.chdir(LEGOLAS_DIR)
-    # run legolas
-    for run in range(nb_runs):
-        progressbar(run, nb_runs, '{}/{}'.format(run, nb_runs))
-        subprocess.check_call(['./legolas', '-i', parfiles[run]])
-    progressbar(nb_runs, nb_runs, '{}/{}'.format(nb_runs, nb_runs))
+    # initialise progressbar and multiprocessing pool
+    pbar = tqdm(total=len(parfiles), unit='')
+    pbar.set_description('Running Legolas [CPUs={}]'.format(cpus_to_use))
+    pool = multiprocessing.Pool(processes=cpus_to_use, initializer=_init_work)
+    try:
+        # start multiprocessing pool
+        for parfile in parfiles:
+            pool.apply_async(_do_work, args=(parfile,), callback=update_pbar)
+        pool.close()
+        pool.join()
+        pbar.close()
+    except KeyboardInterrupt:
+        pbar.set_description('INTERRUPTED')
+        pbar.update(len(parfiles))
+        pbar.close()
+        # Note: simply calling pool.terminate() terminates ONLY the python processes,
+        # but still keeps the legolas calls running since those are done using subprocess.
+        # The following code first terminates all child processes (legolas), then the parents (workers)
+        print('\nCaught KeyboardInterrupt:')
+        for process in multiprocessing.active_children():
+            pid = process.pid
+            print('  Terminating ID: {} -- {}'.format(pid, process.name))
+            parent = psutil.Process(pid)
+            children = parent.children(recursive=True)
+            for child in children:
+                print('    Terminating child process {} -- {}'.format(child.pid, child.name()))
+                child.kill()
+            gone, alive = psutil.wait_procs(children, timeout=2)
+            for killed_proc in gone:
+                print('    {}'.format(str(killed_proc)))
+            parent.kill()
+            parent.wait(timeout=2)
+        pool.terminate()
+        print('All processes terminated.\n')
     # change back to original directory
-    print('\nDone.')
     os.chdir(orig_dir)
-
     # remove parfiles if asked
     if remove_parfiles:
         for file in parfiles:
@@ -72,7 +103,7 @@ def run_legolas(parfiles=None, remove_parfiles=False):
             # don't remove if director is not empty
             pass
 
-def generate_parfiles(filename, config_dict):
+def generate_parfiles(config_dict, filename=None):
     def update_namelist(name, items):
         namelist.update({name: {}})
         for item in items:
@@ -80,6 +111,7 @@ def generate_parfiles(filename, config_dict):
             if _value is not None:
                 namelist[name].update({item: _value})
 
+    config_dict = copy.deepcopy(config_dict)
     _check_directories()
     if filename is None:
         filename = config_dict.get('equilibrium_type')
@@ -139,7 +171,8 @@ def generate_parfiles(filename, config_dict):
         f90nml.write(namelist, parfile_path, force=True)
     return parfiles
 
-def generate_multirun(config_dict=None, parfile_name=None, remove_parfiles=False, gridpoints=None, datfile_name=None):
+def generate_multirun(config_dict=None, parfile_name=None, remove_parfiles=False, gridpoints=None, datfile_name=None,
+                      cpus_to_use=None):
     if config_dict is None:
         print('No dictionary supplied. Available precoded runs:')
         av_runs = iter(precoded_runs.keys())
@@ -150,6 +183,6 @@ def generate_multirun(config_dict=None, parfile_name=None, remove_parfiles=False
         chosen_pr = list(precoded_runs.keys())[pr_in - 1]
         print('Selected run: {}'.format(chosen_pr))
         config_dict = get_precoded_run(chosen_pr, gridpoints=gridpoints, savename_datfile=datfile_name)
-        print('Running with {} gridpoints'.format(config_dict['gridpoints']))
-    parfiles = generate_parfiles(parfile_name, config_dict)
-    run_legolas(parfiles, remove_parfiles)
+    print('Running with {} gridpoints'.format(config_dict['gridpoints']))
+    parfiles = generate_parfiles(config_dict=config_dict, filename=parfile_name)
+    run_legolas(parfiles, remove_parfiles, cpus_to_use=cpus_to_use)

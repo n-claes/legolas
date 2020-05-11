@@ -22,4 +22,6 @@ def select_files():
     root.focus_set()
     files = list(filedialog.askopenfilenames(parent=root, title='Select Legolas file(s)'))
     root.destroy()
+    if not files:
+        exit()
     return files
