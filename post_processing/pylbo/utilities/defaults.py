@@ -137,13 +137,9 @@ precoded_runs = {
     }
 }
 
-def get_precoded_run(name, gridpoints=None, number_of_runs=None, savename_datfile=None):
+def get_precoded_run(name):
     try:
-        selected_run = copy.deepcopy(precoded_runs[name])
+        selected_run = precoded_runs[name]
     except KeyError:
         raise UnknownPrecodedRun(name, precoded_runs.keys())
-    for key, value in zip(['gridpoints', 'number_of_runs', 'savename_datfile'],
-                          [gridpoints, number_of_runs, savename_datfile]):
-        if value is not None:
-            selected_run.update({key: value})
-    return selected_run
+    return copy.deepcopy(selected_run)
