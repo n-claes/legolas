@@ -10,9 +10,8 @@ from .data_management.file_handler import \
     load, \
     select_files
 from .utilities.automation import \
-    run_legolas, \
     generate_parfiles, \
-    generate_multirun
+    run_legolas
 from .utilities.datfile_utils import \
     get_header, \
     read_grid, \
