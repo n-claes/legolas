@@ -149,7 +149,11 @@ module mod_global_variables
   !> Call python script when finishing to plot results
   logical, save             :: show_results
   !> Base name for the data file. Output directory and extension will be added
-  character(len=str_len)    :: savename_datfile
+  character(len=str_len)    :: basename_datfile
+  !> Base name for the log file. Used for testing
+  character(len=str_len)    :: basename_logfile
+  !> Folder to save output
+  character(len=str_len)    :: output_folder
   !> Logging level. 0, 1, 2, 3 means errors, warnings, info, debugging
   integer                   :: logging_level
 
@@ -206,7 +210,9 @@ contains
     logging_level = 2
 
     !! file-saving variables
-    savename_datfile = "datfile"
+    basename_datfile = "datfile"
+    basename_logfile = ""
+    output_folder = "output"
   end subroutine initialise_globals
 
   !> Subroutine to set gamma and (gamma - 1)

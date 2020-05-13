@@ -33,7 +33,8 @@ contains
                             mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults, remove_spurious_eigenvalues, &
                                nb_spurious_eigenvalues
-    namelist /savelist/     write_matrices, write_eigenfunctions, show_results, savename_datfile, logging_level
+    namelist /savelist/     write_matrices, write_eigenfunctions, show_results, basename_datfile, &
+                            basename_logfile, output_folder, logging_level
     namelist /paramlist/    k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, cte_p0, &
                             p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, lambda, nu, &
                             r0, rc, rj, Bth0, Bz0, V, j0, g
