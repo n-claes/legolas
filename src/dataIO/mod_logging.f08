@@ -4,13 +4,13 @@ module mod_logging
 
   !! Format settings
   !> exponential format
-  character(8), parameter    :: exp_fmt = '(e12.8)'
+  character(8), parameter    :: exp_fmt = '(e20.8)'
   !> shorter float format
-  character(8), parameter    :: dp_fmt = '(f12.8)'
+  character(8), parameter    :: dp_fmt = '(f20.8)'
   !> integer format
   character(4), parameter    :: int_fmt  = '(i8)'
   !> character used as variable to log non-strings
-  character(12) :: char_log
+  character(20) :: char_log
 
   ! logging level:
   ! 0: nothing logged, only errors are thrown
@@ -116,7 +116,7 @@ contains
   !! @param[out] boolean_string   'true' if boolean == True, 'false' otherwise
   subroutine logical_tostring(boolean, boolean_string)
     logical, intent(in)             :: boolean
-    character(len=12), intent(out)  :: boolean_string
+    character(len=20), intent(out)  :: boolean_string
 
     if (boolean) then
       boolean_string = 'True'
