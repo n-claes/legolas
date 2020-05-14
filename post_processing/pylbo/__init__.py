@@ -8,7 +8,8 @@ from .data_management.data_container import \
     LegolasDataContainer
 from .data_management.file_handler import \
     load, \
-    select_files
+    select_files, \
+    read_log_file
 from .utilities.automation import \
     generate_parfiles, \
     run_legolas
