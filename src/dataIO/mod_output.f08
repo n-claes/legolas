@@ -7,12 +7,12 @@ module mod_output
   !! IO units -- do not use 0/5/6/7, these are system-reserved
   !> Filehandler IO unit for the main data file
   integer, parameter  :: dat_fh = 10
-  !> name of base output folder
-  character(len=7)    :: output_folder = 'output/'
-  !> filename extension
-  character(len=4)    :: file_extension = '.dat'
+  !> Filehandler IO unit for the log file
+  integer, parameter  :: log_fh = 20
   !> datfile name
   character(len=str_len) :: datfile_name
+  !> logfile name
+  character(len=str_len) :: logfile_name
 
   public :: create_datfile
   public :: datfile_name
@@ -37,18 +37,20 @@ contains
   !! @param[out] filename       the resulting filename, of the form
   !!                            output_folder/base_filename.extension
   subroutine make_filename(base_filename, filename)
+    use mod_global_variables, only: output_folder
+
     character(len=*), intent(in)  :: base_filename
     character(len=*), intent(out) :: filename
 
-    filename = trim(trim(output_folder) // trim(base_filename) // &
-                    trim(file_extension))
+    filename = trim(trim(output_folder) // "/" // base_filename)
   end subroutine make_filename
 
 
-  subroutine create_datfile(base_filename, eigenvalues, matrix_A, matrix_B)
+  subroutine create_datfile(eigenvalues, matrix_A, matrix_B)
     use mod_global_variables, only: geometry, x_start, x_end, gridpts, gauss_gridpts, &
                                     matrix_gridpts, ef_gridpts, gamma, equilibrium_type, &
-                                    nb_eqs, cgs_units, str_len_arr, write_matrices, write_eigenfunctions
+                                    nb_eqs, cgs_units, str_len_arr, write_matrices, write_eigenfunctions, &
+                                    basename_datfile
     use mod_logging, only: log_message
     use mod_grid, only: grid, grid_gauss
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, kappa_field, eta_field, grav_field
@@ -57,7 +59,6 @@ contains
     use mod_equilibrium_params
     use mod_units
 
-    character(len=*), intent(in)  :: base_filename
     complex(dp), intent(in)       :: eigenvalues(matrix_gridpts)
     complex(dp), intent(in)       :: matrix_A(matrix_gridpts, matrix_gridpts)
     real(dp), intent(in)          :: matrix_B(matrix_gridpts, matrix_gridpts)
@@ -73,7 +74,7 @@ contains
                    'B0', 'v02', 'v03', 'dv02', 'dv03', 'dLdT', 'dLdrho', 'kappa_para', 'kappa_perp', &
                    'eta', 'detadT', 'grav']
 
-    call make_filename(base_filename, datfile_name)
+    call make_filename(trim(basename_datfile) // ".dat", datfile_name)
     call open_file(dat_fh, datfile_name)
 
     ! First we write all header information
@@ -149,6 +150,34 @@ contains
 
     call log_message("results saved to " // trim(datfile_name), level='info')
     close(dat_fh)
+
+    call create_logfile(eigenvalues)
   end subroutine create_datfile
+
+
+  subroutine create_logfile(eigenvalues)
+    use mod_global_variables, only: matrix_gridpts, basename_logfile
+    use mod_logging, only: log_message, exp_fmt
+
+    complex(dp), intent(in)   :: eigenvalues(matrix_gridpts)
+    character(20)             :: real_part, imag_part
+    integer   :: i
+
+    if (basename_logfile == "") then
+      return
+    end if
+
+    call make_filename(trim(basename_logfile) // ".log", logfile_name)
+    ! open manually since this is not a binary file
+    open(unit=log_fh, file=logfile_name, status='unknown', action='write')
+    do i = 1, matrix_gridpts
+      write(real_part, exp_fmt) real(eigenvalues(i))
+      write(imag_part, exp_fmt) aimag(eigenvalues(i))
+      write(log_fh, *) real_part, ',', imag_part
+    end do
+
+    call log_message("eigenvalues logged to " // trim(logfile_name), level='info')
+    close(log_fh)
+  end subroutine create_logfile
 
 end module mod_output

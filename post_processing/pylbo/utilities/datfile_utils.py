@@ -157,7 +157,7 @@ def read_ef_grid(istream, header):
     ef_grid = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     return np.asarray(ef_grid)
 
-def read_eigenvalues(istream, header):
+def read_eigenvalues(istream, header, omit_large_evs=True):
     istream.seek(header['offsets']['eigenvalues'])
     fmt = ALIGN + 2 * header['matrix_gridpts'] * 'd'
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
@@ -165,7 +165,8 @@ def read_eigenvalues(istream, header):
     reals = hdr[::2]
     imags = hdr[1::2]
     eigenvalues = np.asarray([complex(x, y) for x, y in zip(reals, imags)])
-    eigenvalues = eigenvalues[np.where(np.absolute(eigenvalues) < 1e15)]
+    if omit_large_evs:
+        eigenvalues = eigenvalues[np.where(np.absolute(eigenvalues) < 1e15)]
     return eigenvalues
 
 def read_equilibrium_arrays(istream, header):
