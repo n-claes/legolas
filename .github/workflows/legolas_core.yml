@@ -49,9 +49,9 @@ jobs:
         
     - name: Compilation
       run: |
-        make
+        make FC=gfortran-9
         cd tests/core_tests
-        make
+        make FC=gfortran-9
         
     - name: Test Legolas core
       run: |
