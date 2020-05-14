@@ -60,3 +60,13 @@ class UnknownPrecodedRun(LegolasException):
                "Choose from {}".format(self.given_name, self.available_names)
 
 
+class InconsistentNumberOfRuns(LegolasException):
+    def __init__(self, nb_runs, key, par_dict):
+        self.nb_runs = nb_runs
+        self.key = key
+        self.par_dict = par_dict
+
+    def __str__(self):
+        return "Key 'number_of_runs' is inconsistent with at least one supplied parameter.\n" \
+               "Number of runs: {}\n" \
+               "Length of {}: {}".format(self.nb_runs, self.key, len(self.par_dict[self.key]))

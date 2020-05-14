@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 package_name = "pylbo"
-required_packages = ['numpy', 'matplotlib', 'f90nml']
-version = '0.1'
+required_packages = ['numpy', 'matplotlib', 'f90nml', 'tqdm', 'psutil']
+version = '0.2'
 
 setup(
     name = package_name,

@@ -8,11 +8,11 @@ from .data_management.data_container import \
     LegolasDataContainer
 from .data_management.file_handler import \
     load, \
-    select_files
+    select_files, \
+    read_log_file
 from .utilities.automation import \
-    run_legolas, \
     generate_parfiles, \
-    generate_multirun
+    run_legolas
 from .utilities.datfile_utils import \
     get_header, \
     read_grid, \
