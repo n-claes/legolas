@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 from pathlib import Path
 from .exceptions import UnknownPrecodedRun
 
@@ -20,7 +21,7 @@ precoded_runs = {
             'g': 0.5,
             'alpha': 20.42
         },
-        'savename_datfile': 'gravito_acoustic_NB10'
+        'basename_datfile': 'gravito_acoustic_NB10'
     },
     'gravito_mhd_beta1': {
         'geometry': 'Cartesian',
@@ -36,7 +37,7 @@ precoded_runs = {
             'g': 20,
             'alpha': 20
         },
-        'savename_datfile': 'gravito_mhd_beta1'
+        'basename_datfile': 'gravito_mhd_beta1'
     },
     'gravito_mhd_beta50': {
         'geometry': 'Cartesian',
@@ -52,7 +53,7 @@ precoded_runs = {
             'g': 20,
             'alpha': 20
         },
-        'savename_datfile': 'gravito_mhd_beta50'
+        'basename_datfile': 'gravito_mhd_beta50'
     },
     'interchange_modes_noshear': {
         'geometry': 'Cartesian',
@@ -69,7 +70,7 @@ precoded_runs = {
             'lambda': 0,
             'alpha': 20.0
         },
-        'savename_datfile': 'interchange_modes_noshear'
+        'basename_datfile': 'interchange_modes_noshear'
     },
     'interchange_modes_0.3shear': {
         'geometry': 'Cartesian',
@@ -86,7 +87,7 @@ precoded_runs = {
             'lambda': 0.3,
             'alpha': 20.0
         },
-        'savename_datfile': 'interchange_modes_03shear'
+        'basename_datfile': 'interchange_modes_03shear'
     },
     'constant_current_m-2': {
         'geometry': 'cylindrical',
@@ -100,7 +101,7 @@ precoded_runs = {
             'k3': 0.2,
             'j0': (2.0 * 0.2) / np.linspace(1.9, 2.1, 39)
         },
-        'savename_datfile': 'constant_current_m-2'
+        'basename_datfile': 'constant_current_m-2'
     },
     'photospheric_flux_tube': {
         'geometry': 'cylindrical',
@@ -116,7 +117,7 @@ precoded_runs = {
             'cte_p0': 1.0,
             'r0': 1.0
         },
-        'savename_datfile': 'photospheric_flux_tube'
+        'basename_datfile': 'photospheric_flux_tube'
     },
     'coronal_flux_tube': {
         'geometry': 'cylindrical',
@@ -132,17 +133,13 @@ precoded_runs = {
             'cte_p0': 1.0,
             'r0': 1.0
         },
-        'savename_datfile': 'coronal_flux_tube'
+        'basename_datfile': 'coronal_flux_tube'
     }
 }
 
-def get_precoded_run(name, gridpoints=None, number_of_runs=None, savename_datfile=None):
+def get_precoded_run(name):
     try:
         selected_run = precoded_runs[name]
     except KeyError:
         raise UnknownPrecodedRun(name, precoded_runs.keys())
-    for key, value in zip(['gridpoints', 'number_of_runs', 'savename_datfile'],
-                          [gridpoints, number_of_runs, savename_datfile]):
-        if value is not None:
-            selected_run.update({key: value})
-    return selected_run
+    return copy.deepcopy(selected_run)
