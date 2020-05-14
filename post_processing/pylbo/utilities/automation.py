@@ -3,7 +3,6 @@ import subprocess
 import signal
 import multiprocessing
 import f90nml
-import copy
 import psutil
 import numpy as np
 from pathlib import Path
@@ -18,13 +17,13 @@ from ..data_management.file_handler import select_files
 
 LEGOLAS_PAR = (LEGOLAS_OUT / 'parfiles').resolve()
 
-def _check_directories():
+def _check_directories(output_dir):
     if not Path.is_dir(LEGOLAS_DIR):
         raise NotADirectoryError(LEGOLAS_DIR)
     if not Path.is_dir(LEGOLAS_OUT):
         Path.mkdir(LEGOLAS_OUT)
-    if not Path.is_dir(LEGOLAS_PAR):
-        Path.mkdir(LEGOLAS_PAR)
+    if not Path.is_dir(output_dir):
+        Path.mkdir(output_dir)
 
 def _check_executable():
     legolas_exec = (LEGOLAS_DIR / 'legolas').resolve()
@@ -36,7 +35,7 @@ def custom_enumerate(iterable, start=0, step=1):
         yield start, itr
         start += step
 
-def generate_parfiles(parfile_dict=None, parfile_basename=None):
+def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None):
     def update_namelist(_key, _items):
         namelist.update({_key: {}})
         for _item in _items:
@@ -56,7 +55,9 @@ def generate_parfiles(parfile_dict=None, parfile_basename=None):
         chosen_pr = list(precoded_runs.keys())[pr_in - 1]
         print('Selected run: {}'.format(chosen_pr))
         parfile_dict = get_precoded_run(chosen_pr)
-    _check_directories()
+    if output_dir is None:
+        output_dir = LEGOLAS_PAR
+    _check_directories(output_dir)
     nb_runs = parfile_dict.pop('number_of_runs', 1)
     namelist = {}
     update_namelist('gridlist', ['geometry', 'x_start', 'x_end', 'gridpoints',
@@ -65,7 +66,7 @@ def generate_parfiles(parfile_dict=None, parfile_basename=None):
     update_namelist('equilibriumlist', ['equilibrium_type', 'boundary_type', 'use_defaults',
                                         'remove_spurious_eigenvalues', 'nb_spurious_eigenvalues'])
     update_namelist('savelist', ['write_matrices', 'write_eigenfunctions', 'show_results',
-                                 'savename_datfile', 'logging_level'])
+                                 'basename_datfile', 'basename_logfile', 'output_folder', 'logging_level'])
     if parfile_dict.get('parameters') is not None:
         namelist.update({'paramlist': parfile_dict.pop('parameters')})
     # we should have popped everything from the dictionary so it should be empty.
@@ -86,24 +87,31 @@ def generate_parfiles(parfile_dict=None, parfile_basename=None):
     # generate parfiles
     parfiles = []
     for run in range(nb_runs):
+        run_prepended = "{:04d}".format(run)
+        if nb_runs == 1:
+            run_prepended = ''
         parfile_dict = {'gridlist': {}, 'equilibriumlist': {}, 'paramlist': {}, 'savelist': {}}
         # create dictionary for single run
         for name, nl_dict in namelist.items():
             for key, item in nl_dict.items():
                 parfile_dict[name].update({key: item[run]})
-        if parfile_basename is None:
-            parfile_basename = parfile_dict['equilibriumlist']['equilibrium_type']
-        datfile_basename = parfile_dict.get('savelist', {}).get('savename_datfile')
-        if datfile_basename is None:
-            datfile_basename = parfile_dict['equilibriumlist']['equilibrium_type']
-        parfile_name = "{:04d}_{}.par".format(run, parfile_basename)
-        datfile_name = "{:04d}_{}".format(run, datfile_basename)
-        parfile_dict['savelist'].update({'savename_datfile': datfile_name})
+        if basename_parfile is None:
+            basename_parfile = parfile_dict['equilibriumlist']['equilibrium_type']
+        parfile_name = "{}{}.par".format(run_prepended, basename_parfile)
+        basename_datfile = parfile_dict.get('savelist', {}).get('basename_datfile')
+        if basename_datfile is None:
+            basename_datfile = parfile_dict['equilibriumlist']['equilibrium_type']
+        datfile_name = "{}{}".format(run_prepended, basename_datfile)
+        parfile_dict['savelist'].update({'basename_datfile': datfile_name})
+        basename_logfile = parfile_dict.get('savelist', {}).get('basename_logfile')
+        if basename_logfile is not None:
+            logfile_name = "{}{}".format(run_prepended, basename_logfile)
+            parfile_dict['savelist'].update({'basename_logfile': logfile_name})
         # set paths, write parfile
-        parfile_path = (LEGOLAS_PAR / parfile_name).resolve()
+        parfile_path = (output_dir / parfile_name).resolve()
         parfiles.append(str(parfile_path))
         f90nml.write(parfile_dict, parfile_path, force=True)
-    print('Parfiles generated.')
+    print('Parfiles generated, saved to {}'.format(output_dir))
     return parfiles
 
 def _init_worker():

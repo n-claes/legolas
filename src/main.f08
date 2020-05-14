@@ -91,7 +91,7 @@ contains
 
   !> Saves the solutions
   subroutine finalise_results()
-    use mod_global_variables, only: savename_datfile, write_eigenfunctions
+    use mod_global_variables, only: write_eigenfunctions
     use mod_output, only: create_datfile
     use mod_eigenfunctions, only: calculate_eigenfunctions
 
@@ -99,7 +99,7 @@ contains
     if (write_eigenfunctions) then
       call calculate_eigenfunctions(eigenvecs_right)
     end if
-    call create_datfile(savename_datfile, omega, matrix_A, matrix_B)
+    call create_datfile(omega, matrix_A, matrix_B)
 
   end subroutine finalise_results
 
