@@ -9,21 +9,24 @@ contains
 
   @before
   subroutine init_test()
-    return
+    ! reset variables to their default values
+    call initialise_globals()
+    ! disable logging except for errors
+    logging_level = 0
   end subroutine init_test
 
 
   @after
   subroutine teardown()
     use mod_grid, only: grid, grid_clean
+    use mod_equilibrium, only: rho_field, equilibrium_clean
 
     if (allocated(grid)) then
       call grid_clean()
     end if
-    ! reset variables to their default values
-    call initialise_globals()
-    ! disable logging except for errors
-    logging_level = 0
+    if (allocated(rho_field % rho0)) then
+      call equilibrium_clean()
+    end if
   end subroutine teardown
 
 
@@ -258,5 +261,231 @@ contains
       @assertEqual(quadblock(idx1(i), idx2(i)), val2, tolerance=TOL)
     end do
   end subroutine test_subblock_fill
+
+
+  @test
+  subroutine test_bcs_cart_wall()
+    use mod_boundary_conditions, only: apply_boundary_conditions
+    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
+
+    complex(dp) :: matrix_A(176, 176)
+    real(dp)    :: matrix_B(176, 176), matrix_B_expected(176, 176)
+    real(dp)    :: quadblock(32, 32)
+    integer     :: zero_idxs(5), left_wall(3), right_wall(3)
+    integer     :: i, j, k
+
+    write(*, *) "Testing Cartesian geometry, fixed wall BCs"
+    geometry = 'Cartesian'
+    thermal_conduction = .false.
+    boundary_type = 'wall'
+    equilibrium_type = 'resistive_tearing_flow'
+    call set_gridpts(11)
+    call initialise_equilibrium()
+    call set_equilibrium()
+    @assertEqual(matrix_gridpts, 176)
+    matrix_A = (0.0d0, 0.0d0)
+    matrix_B = 5.0d0
+    matrix_B_expected = 5.0d0
+    call apply_boundary_conditions(matrix_A, matrix_B)
+
+    quadblock = 5.0
+    ! zero contributions from the quadratic basis functions
+    zero_idxs = [1, 5, 7, 9, 11]
+    do i = 1, size(zero_idxs)
+      j = zero_idxs(i)
+      quadblock(j, j) = 1.0d0
+    end do
+    ! left wall boundary conditions
+    left_wall = [3, 13, 15]
+    do i = 1, size(left_wall)
+      j = left_wall(i)
+      quadblock(j, :) = 0.0d0
+      quadblock(:, j) = 0.0d0
+      quadblock(j, j) = 1.0d0
+    end do
+    matrix_B_expected(1:32, 1:32) = quadblock
+
+    ! reset quadblock
+    quadblock = 5.0d0
+    right_wall = [19, 29, 31]
+    do i = 1, size(right_wall)
+      j = right_wall(i)
+      quadblock(j, :) = 0.0d0
+      quadblock(:, j) = 0.0d0
+      quadblock(j, j) = 1.0d0
+    end do
+    matrix_B_expected(145:176, 145:176) = quadblock
+    @assertEqual(matrix_B, matrix_B_expected, tolerance=TOL)
+  end subroutine test_bcs_cart_wall
+
+  @test
+  subroutine test_bcs_cyl_wall()
+    use mod_boundary_conditions, only: apply_boundary_conditions
+    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
+
+    complex(dp) :: matrix_A(176, 176)
+    real(dp)    :: matrix_B(176, 176), matrix_B_expected(176, 176)
+    real(dp)    :: quadblock(32, 32)
+    integer     :: zero_idxs(5), left_wall(3), right_wall(3)
+    integer     :: i, j, k
+
+    write(*, *) "Testing cylindrical geometry, fixed wall BCs"
+    geometry = 'cylindrical'
+    thermal_conduction = .false.
+    boundary_type = 'wall'
+    equilibrium_type = 'suydam_cluster'
+    call set_gridpts(11)
+    call initialise_equilibrium()
+    call set_equilibrium()
+    @assertEqual(matrix_gridpts, 176)
+    matrix_A = (0.0d0, 0.0d0)
+    matrix_B = 5.0d0
+    matrix_B_expected = 5.0d0
+    call apply_boundary_conditions(matrix_A, matrix_B)
+
+    quadblock = 5.0
+    ! zero contributions from the quadratic basis functions
+    zero_idxs = [1, 5, 7, 9, 11]
+    do i = 1, size(zero_idxs)
+      j = zero_idxs(i)
+      quadblock(j, j) = 1.0d0
+    end do
+    ! on-axis regularity conditions
+    left_wall = [3, 13, 15]
+    do i = 1, size(left_wall)
+      j = left_wall(i)
+      quadblock(j, :) = 0.0d0
+      quadblock(:, j) = 0.0d0
+      quadblock(j, j) = 1.0d0
+    end do
+    matrix_B_expected(1:32, 1:32) = quadblock
+
+    ! reset quadblock
+    quadblock = 5.0d0
+    right_wall = [19, 29, 31]
+    do i = 1, size(right_wall)
+      j = right_wall(i)
+      quadblock(j, :) = 0.0d0
+      quadblock(:, j) = 0.0d0
+      quadblock(j, j) = 1.0d0
+    end do
+    matrix_B_expected(145:176, 145:176) = quadblock
+    @assertEqual(matrix_B, matrix_B_expected, tolerance=TOL)
+  end subroutine test_bcs_cyl_wall
+
+  @test
+  subroutine test_bcs_cart_wall_kappa()
+    use mod_boundary_conditions, only: apply_boundary_conditions
+    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
+
+    complex(dp) :: matrix_A(176, 176)
+    real(dp)    :: matrix_B(176, 176), matrix_B_expected(176, 176)
+    real(dp)    :: quadblock(32, 32)
+    integer     :: zero_idxs(5), left_wall(4), right_wall(4)
+    integer     :: i, j
+
+    write(*, *) "Testing Cartesian geometry, fixed wall BCs with conduction"
+    geometry = 'Cartesian'
+    thermal_conduction = .true.
+    use_fixed_tc_perp = .true.
+    fixed_tc_perp_value = 1.0d0
+    boundary_type = 'wall'
+    equilibrium_type = 'resistive_tearing_flow'
+    call set_gridpts(11)
+    call initialise_equilibrium()
+    call set_equilibrium()
+    @assertEqual(matrix_gridpts, 176)
+    matrix_A = (0.0d0, 0.0d0)
+    matrix_B = 5.0d0
+    matrix_B_expected = 5.0d0
+    call apply_boundary_conditions(matrix_A, matrix_B)
+
+    quadblock = 5.0
+    ! zero contributions from the quadratic basis functions
+    zero_idxs = [1, 5, 7, 9, 11]
+    do i = 1, size(zero_idxs)
+      j = zero_idxs(i)
+      quadblock(j, j) = 1.0d0
+    end do
+    ! left wall boundary conditions
+    left_wall = [3, 13, 15, 9]
+    do i = 1, size(left_wall)
+      j = left_wall(i)
+      quadblock(j, :) = 0.0d0
+      quadblock(:, j) = 0.0d0
+      quadblock(j, j) = 1.0d0
+    end do
+    matrix_B_expected(1:32, 1:32) = quadblock
+
+    ! reset quadblock
+    quadblock = 5.0d0
+    right_wall = [19, 29, 31, 26]
+    do i = 1, size(right_wall)
+      j = right_wall(i)
+      quadblock(j, :) = 0.0d0
+      quadblock(:, j) = 0.0d0
+      quadblock(j, j) = 1.0d0
+    end do
+    matrix_B_expected(145:176, 145:176) = quadblock
+    @assertEqual(matrix_B, matrix_B_expected, tolerance=TOL)
+  end subroutine test_bcs_cart_wall_kappa
+
+
+  @test
+  subroutine test_bcs_cyl_wall_kappa()
+    use mod_boundary_conditions, only: apply_boundary_conditions
+    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
+
+    complex(dp) :: matrix_A(176, 176)
+    real(dp)    :: matrix_B(176, 176), matrix_B_expected(176, 176)
+    real(dp)    :: quadblock(32, 32)
+    integer     :: zero_idxs(5), left_wall(4), right_wall(4)
+    integer     :: i, j, k
+
+    write(*, *) "Testing cylindrical geometry, fixed wall BCs with conduction"
+    geometry = 'cylindrical'
+    thermal_conduction = .true.
+    use_fixed_tc_perp = .true.
+    fixed_tc_perp_value = 1.0d0
+    boundary_type = 'wall'
+    equilibrium_type = 'suydam_cluster'
+    call set_gridpts(11)
+    call initialise_equilibrium()
+    call set_equilibrium()
+    @assertEqual(matrix_gridpts, 176)
+    matrix_A = (0.0d0, 0.0d0)
+    matrix_B = 5.0d0
+    matrix_B_expected = 5.0d0
+    call apply_boundary_conditions(matrix_A, matrix_B)
+
+    quadblock = 5.0
+    ! zero contributions from the quadratic basis functions
+    zero_idxs = [1, 5, 7, 9, 11]
+    do i = 1, size(zero_idxs)
+      j = zero_idxs(i)
+      quadblock(j, j) = 1.0d0
+    end do
+    ! on-axis regularity conditions
+    left_wall = [3, 13, 15, 9]
+    do i = 1, size(left_wall)
+      j = left_wall(i)
+      quadblock(j, :) = 0.0d0
+      quadblock(:, j) = 0.0d0
+      quadblock(j, j) = 1.0d0
+    end do
+    matrix_B_expected(1:32, 1:32) = quadblock
+
+    ! reset quadblock
+    quadblock = 5.0d0
+    right_wall = [19, 29, 31, 26]
+    do i = 1, size(right_wall)
+      j = right_wall(i)
+      quadblock(j, :) = 0.0d0
+      quadblock(:, j) = 0.0d0
+      quadblock(j, j) = 1.0d0
+    end do
+    matrix_B_expected(145:176, 145:176) = quadblock
+    @assertEqual(matrix_B, matrix_B_expected, tolerance=TOL)
+  end subroutine test_bcs_cyl_wall_kappa
 
 end module core_tests

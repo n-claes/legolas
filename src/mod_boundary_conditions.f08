@@ -61,7 +61,7 @@ contains
 
     complex(dp)                   :: diagonal_factor
     integer                       :: i, j, qua_zeroes(5), wall_idx_left(4), wall_idx_right(4)
-    logical                       :: use_Tbound = .false.
+    logical                       :: use_Tbound
 
     if (matrix == 'B') then
       diagonal_factor = (1.0d0, 0.0d0)
@@ -73,6 +73,7 @@ contains
 
     ! determine if additional boundary conditions on temperature must be applied.
     ! this is only done if there is perpendicular thermal conduction
+    use_Tbound = .false.
     if (use_fixed_tc_perp .and. abs(fixed_tc_perp_value) > dp_LIMIT) then
       use_Tbound = .true.
     end if
