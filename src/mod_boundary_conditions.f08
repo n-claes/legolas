@@ -92,7 +92,7 @@ contains
     ! Wall/regularity conditions: handling of v1, a2 and a3 (and T if conduction).
     ! v1, a2 and a3 are cubic elements, so omit non-zero basis functions (odd rows/columns)
     ! T is a quadratic element, so omit even row/columns
-    wall_idx_left = [3, 13, 15, 9]
+    wall_idx_left = [3, 13, 15, 10]
     wall_idx_right = [19, 29, 31, 26]
 
     select case(boundary_type)
@@ -101,7 +101,7 @@ contains
         ! left regularity/wall conditions
         do i = 1, size(wall_idx_left)
           j = wall_idx_left(i)
-          if (j == 9 .and. .not. use_Tbound) then
+          if (j == 10 .and. .not. use_Tbound) then
             cycle
           end if
           quadblock(j, :) = (0.0d0, 0.0d0)
