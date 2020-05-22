@@ -408,7 +408,7 @@ contains
       quadblock(j, j) = 1.0d0
     end do
     ! left wall boundary conditions
-    left_wall = [3, 13, 15, 9]
+    left_wall = [3, 13, 15, 10]
     do i = 1, size(left_wall)
       j = left_wall(i)
       quadblock(j, :) = 0.0d0
@@ -466,7 +466,7 @@ contains
       quadblock(j, j) = 1.0d0
     end do
     ! on-axis regularity conditions
-    left_wall = [3, 13, 15, 9]
+    left_wall = [3, 13, 15, 10]
     do i = 1, size(left_wall)
       j = left_wall(i)
       quadblock(j, :) = 0.0d0
