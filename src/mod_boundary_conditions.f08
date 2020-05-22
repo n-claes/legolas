@@ -14,15 +14,26 @@ module mod_boundary_conditions
 
   private
 
+  logical, save   :: kappa_perp_is_zero
+
   public :: apply_boundary_conditions
 
 contains
 
   subroutine apply_boundary_conditions(matrix_A, matrix_B)
+    use mod_global_variables, only: dp_LIMIT
+    use mod_equilibrium, only: kappa_field
+
     complex(dp), intent(inout)  :: matrix_A(matrix_gridpts, matrix_gridpts)
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp)                 :: quadblock(dim_quadblock, dim_quadblock)
     integer                     :: idx_end_left, idx_start_right
+
+    ! check if perpendicular thermal conduction is present
+    kappa_perp_is_zero = .true.
+    if (any(abs(kappa_field % kappa_perp) > dp_LIMIT)) then
+      kappa_perp_is_zero = .false.
+    end if
 
     ! end of index first-gridpoint quadblock
     idx_end_left = dim_quadblock
@@ -40,19 +51,18 @@ contains
 
     ! matrix A left-edge quadblock
     quadblock = matrix_A(1:idx_end_left, 1:idx_end_left)
-    call natural_boundaries(quadblock, edge='l_edge')
     call essential_boundaries(quadblock, edge='l_edge', matrix='A')
+    call natural_boundaries(quadblock, edge='l_edge')
     matrix_A(1:idx_end_left, 1:idx_end_left) = quadblock
     ! matrix A right-edge quadblock
     quadblock = matrix_A(idx_start_right:matrix_gridpts, idx_start_right:matrix_gridpts)
-    call natural_boundaries(quadblock, edge='r_edge')
     call essential_boundaries(quadblock, edge='r_edge', matrix='A')
+    call natural_boundaries(quadblock, edge='r_edge')
     matrix_A(idx_start_right:matrix_gridpts, idx_start_right:matrix_gridpts) = quadblock
   end subroutine apply_boundary_conditions
 
   subroutine essential_boundaries(quadblock, edge, matrix)
-    use mod_global_variables, only: boundary_type, use_fixed_tc_perp, &
-                                    fixed_tc_perp_value, dp_LIMIT
+    use mod_global_variables, only: boundary_type
     use mod_logging, only: log_message
 
     complex(dp), intent(inout)    :: quadblock(dim_quadblock, dim_quadblock)
@@ -61,7 +71,6 @@ contains
 
     complex(dp)                   :: diagonal_factor
     integer                       :: i, j, qua_zeroes(5), wall_idx_left(4), wall_idx_right(4)
-    logical                       :: use_Tbound = .false.
 
     if (matrix == 'B') then
       diagonal_factor = (1.0d0, 0.0d0)
@@ -69,12 +78,6 @@ contains
       diagonal_factor = (1.0d20, 0.0d0)
     else
       call log_message("essential boundaries: invalid matrix argument", level='error')
-    end if
-
-    ! determine if additional boundary conditions on temperature must be applied.
-    ! this is only done if there is perpendicular thermal conduction
-    if (use_fixed_tc_perp .and. abs(fixed_tc_perp_value) > dp_LIMIT) then
-      use_Tbound = .true.
     end if
 
     ! Always: the contribution from the 0 basis function automatically
@@ -91,7 +94,7 @@ contains
     ! Wall/regularity conditions: handling of v1, a2 and a3 (and T if conduction).
     ! v1, a2 and a3 are cubic elements, so omit non-zero basis functions (odd rows/columns)
     ! T is a quadratic element, so omit even row/columns
-    wall_idx_left = [3, 13, 15, 9]
+    wall_idx_left = [3, 13, 15, 10]
     wall_idx_right = [19, 29, 31, 26]
 
     select case(boundary_type)
@@ -100,7 +103,7 @@ contains
         ! left regularity/wall conditions
         do i = 1, size(wall_idx_left)
           j = wall_idx_left(i)
-          if (j == 9 .and. .not. use_Tbound) then
+          if (j == 10 .and. kappa_perp_is_zero) then
             cycle
           end if
           quadblock(j, :) = (0.0d0, 0.0d0)
@@ -110,7 +113,7 @@ contains
       else if (edge == 'r_edge') then
         do i = 1, size(wall_idx_right)
           j = wall_idx_right(i)
-          if ((j == 26) .and. .not. use_Tbound) then
+          if ((j == 26) .and. kappa_perp_is_zero) then
             cycle
           end if
           quadblock(j, :) = (0.0d0, 0.0d0)
@@ -128,215 +131,85 @@ contains
   end subroutine essential_boundaries
 
   subroutine natural_boundaries(quadblock, edge)
-    use mod_global_variables, only: ic, gamma_1, gauss_gridpts, gridpts
-    use mod_equilibrium_params, only: k2, k3
-    use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
-                                    cubic_factors, cubic_factors_deriv
-    use mod_grid, only: grid, eps_grid, d_eps_grid_dr
-    use mod_equilibrium, only: rho_field, T_field, B_field, kappa_field, eta_field
-    use mod_make_subblock, only: reset_factors, reset_positions
+    use mod_global_variables, only: boundary_type, gauss_gridpts, gamma_1, ic, dim_subblock
     use mod_logging, only: log_message
+    use mod_equilibrium, only: B_field, eta_field
+    use mod_grid, only: eps_grid, d_eps_grid_dr
+    use mod_equilibrium_params, only: k2, k3
 
     complex(dp), intent(inout)    :: quadblock(dim_quadblock, dim_quadblock)
     character(len=6), intent(in)  :: edge
 
-    complex(dp), allocatable      :: factors(:)
-    integer, allocatable          :: positions(:, :)
-    real(dp)  :: h_quadratic(4), h_cubic(4), dh_quadratic_dr(4), dh_cubic_dr(4)
-    real(dp)  :: r, r_lo, r_hi, eps_inv, eps, d_eps_dr
-    real(dp)  :: rho0, T0, B02, B03, dB02, dB03, drB02, eta, dT0, &
-                 tc_perp, dtc_perp_dT, dtc_perp_dB2, dtc_perp_drho
-    integer   :: idx
+    complex(dp), allocatable  :: surface_terms(:)
+    real(dp)                  :: eps, d_eps_dr, eta, B02, dB02, B03, dB03, drB02
+    integer, allocatable      :: positions(:, :)
+    integer                   :: idx, i
 
-    if (edge == 'l_edge') then
-      r_lo = grid(1)
-      r_hi = grid(2)
-      r = r_lo
-      idx = 1
-    else if (edge == 'r_edge') then
-      r_lo = grid(gridpts - 1)
-      r_hi = grid(gridpts)
-      r = r_hi
-      idx = gauss_gridpts
-    else
-      call log_message("natural boundaries: invalid edge argument", level='error')
+    if (.not. boundary_type == 'wall') then
+      call log_message('natural boundaries: only wall is implemented!', level='error')
     end if
 
+    ! For now only the terms concerning the solid wall boundary are implemented.
+    ! If free boundary conditions are added (eg. vacuum-wall), then additional
+    ! terms have to be added.
+    ! Hence:
+    !   - v1 momentum equation: currently no terms added (v1 = 0 for a wall)
+    !   - T1 energy equation: resistive and conductive terms
+    !   - a2 induction equation: currently no terms added (a2 = 0 for a wall)
+    !   - a3 induction equation: currently no terms added (a3 = 0 for a wall)
+    ! Note:
+    !   For a wall with perpendicular thermal conduction we also have the condition T1 = 0.
+    !   Hence, in that case there are no surface terms to be added, and we simply return.
+    !   So for now we only have resistive terms in the energy equation.
+    if (.not. kappa_perp_is_zero) then
+      return
+    end if
+
+    if (edge == 'l_edge') then
+      idx = 1
+    else if (edge == 'r_edge') then
+      idx = gauss_gridpts
+    else
+      call log_message('natural boundaries: wrong edge supplied' // edge, level='error')
+    end if
+
+    ! retrieve variables at current edge
     eps = eps_grid(idx)
     d_eps_dr = d_eps_grid_dr(idx)
-    eps_inv = 1.0d0 / eps
-
-    ! Equilibrium quantities at the boundary
-    rho0 = rho_field % rho0(idx)
-    T0 = T_field % T0(idx)
-    dT0 = T_field % d_T0_dr(idx)
     B02 = B_field % B02(idx)
-    B03 = B_field % B03(idx)
     dB02 = B_field % d_B02_dr(idx)
+    B03 = B_field % B03(idx)
     dB03 = B_field % d_B03_dr(idx)
-    eta = eta_field % eta(idx)
-    tc_perp = kappa_field % kappa_perp(idx)
-    dtc_perp_dT = kappa_field % d_kappa_perp_dT(idx)
-    dtc_perp_drho = kappa_field % d_kappa_perp_drho(idx)
-    dtc_perp_dB2 = kappa_field % d_kappa_perp_dB2(idx)
     drB02 = d_eps_dr * B02 + eps * dB02
-    ! Spline functions at the boundaries
-    call quadratic_factors(r, r_lo, r_hi, h_quadratic)
-    call quadratic_factors_deriv(r, r_lo, r_hi, dh_quadratic_dr)
-    call cubic_factors(r, r_lo, r_hi, h_cubic)
-    call cubic_factors_deriv(r, r_lo, r_hi, dh_cubic_dr)
+    eta = eta_field % eta(idx)
 
-    ! Quadratic * Quadratic
-    call reset_factors(factors, 3)
-    call reset_positions(positions, 3)
-    ! A(5, 1)
-    factors(1) = ic * gamma_1 * eps_inv * dT0 * dtc_perp_drho
-    positions(1, :) = [5, 1]
-    ! A(5, 5)
-    factors(2) = ic * gamma_1 * eps_inv * (dT0 * dtc_perp_dT - d_eps_dr * eps_inv * tc_perp)
-    positions(2, :) = [5, 5]
-    ! A(5, 6)
-    factors(3) = 2.0d0 * ic * gamma_1 * eps_inv * ( dT0 * (eps * B02 * k3 - B03 * k2) * dtc_perp_dB2 &
-                                                    - eta * dB03 * k2 + eta * k3 * drB02)
-    positions(3, :) = [5, 6]
-    call add_factors_quadblock(quadblock, factors, positions, h_quadratic, h_quadratic, edge)
+    allocate(positions(3, 2))
+    allocate(surface_terms(3))
 
-    ! Quadratic *  d(Quadratic)/dr
-    call reset_factors(factors, 1)
-    call reset_positions(positions, 1)
-    ! A(5, 5)
-    factors(1) = ic * gamma_1 * eps_inv * tc_perp
-    positions(1, :) = [5, 5]
-    call add_factors_quadblock(quadblock, factors, positions, h_quadratic, dh_quadratic_dr, edge)
+    ! surface term for element (5, 6)
+    surface_terms(1) = 2.0d0 * ic * gamma_1 * (1.0d0 / eps) * eta * (k3 * drB02 - k2 * dB03)
+    positions(1, :) = [5, 6]
+    ! surface term for element (5, 7)
+    surface_terms(2) = 2.0d0 * ic * gamma_1 * (1.0d0 / eps) * eta * dB03
+    positions(2, :) = [5, 7]
+    ! surface term for element (5, 8)
+    surface_terms(3) = -2.0d0 * ic * gamma_1 * (1.0d0 / eps) * eta * drB02
+    positions(3, :) = [5, 8]
 
-    ! Quadratic * d(Cubic)/dr
-    call reset_factors(factors, 2)
-    call reset_positions(positions, 2)
-    ! A(5, 7)
-    factors(1) = 2.0d0 * ic * gamma_1 * eps_inv * (dT0 * B03 * dtc_perp_dB2 + eta * dB03)
-    positions(1, :) = [5, 7]
-    ! A(5, 8)
-    factors(2) = -2.0d0 * ic * gamma_1 * (dT0 * B02 * dtc_perp_dB2 + eta * eps_inv * drB02)
-    positions(2, :) = [5, 8]
-    call add_factors_quadblock(quadblock, factors, positions, h_quadratic, dh_cubic_dr, edge)
+    ! l_edge: add to bottom-right of 2x2 block, for top-left subblock only
+    ! r_edge: add to bottom-right of 2x2 block, for bottom-right subblock only
+    if (edge == 'l_edge') then
+      positions = 2 * positions
+    else if (edge == 'r_edge') then
+      positions = 2 * positions + dim_subblock
+    end if
 
-    ! Cubic * Quadratic
-    call reset_factors(factors, 5)
-    call reset_positions(positions, 5)
-    ! A(2, 1)
-    factors(1) = eps_inv * T0
-    positions(1, :) = [2, 1]
-    ! A(2, 5)
-    factors(2) = eps_inv * rho0
-    positions(2, :) = [2, 5]
-    ! A(2, 6)
-    factors(3) = B02 * k3 - eps_inv * B03 * k2
-    positions(3, :) = [2, 6]
-    ! A(7, 6)
-    factors(4) = -ic * eta * eps_inv * k2
-    positions(4, :) = [7, 6]
-    ! A(8, 6)
-    factors(5) = -ic * eta * k3
-    positions(5, :) = [8, 6]
-    call add_factors_quadblock(quadblock, factors, positions, h_cubic, h_quadratic, edge)
-
-    ! Cubic * d(Cubic)/dr
-    call reset_factors(factors, 4)
-    call reset_positions(positions, 4)
-    ! A(2, 7)
-    factors(1) = eps_inv * B03
-    positions(1, :) = [2, 7]
-    ! A(2, 8)
-    factors(2) = -B02
-    positions(2, :) = [2, 8]
-    ! A(7, 7)
-    factors(3) = ic * eta * eps_inv
-    positions(3, :) = [7, 7]
-    ! A(8, 8)
-    factors(4) = ic * eta
-    positions(4, :) = [8, 8]
-    call add_factors_quadblock(quadblock, factors, positions, h_cubic, dh_cubic_dr, edge)
-
-    deallocate(factors)
-    deallocate(positions)
-  end subroutine natural_boundaries
-
-  !> Adds the factors to the quadblock depending on their positions and the
-  !! value of 'edge'.
-  !! @param[in, out]  quadblock   The 32x32 quadblock. Out: factors added to
-  !!                              their respective blocks
-  !! @param[in] factors   The boundary conditions for each element
-  !! @param[in] positions The positions of each boundary condition
-  !! @param[in] spline1   The left spline to apply, evaluated at the edge
-  !! @param[in] spline2   The right spline to apply, evaluated at the edge
-  !! @param[in] edge  'l_edge' for left boundary, 'r_edge' for right boundary
-  !!                  - left edge : do not fill the bottom-right subblock
-  !!                  - right edge: do not fill the top-left subblock
-  subroutine add_factors_quadblock(quadblock, factors, positions, spline1, spline2, edge)
-    complex(dp), intent(inout)  :: quadblock(dim_quadblock, dim_quadblock)
-    complex(dp), intent(in)     :: factors(:)
-    integer, intent(in)         :: positions(:, :)
-    real(dp), intent(in)        :: spline1(4), spline2(4)
-    character(6), intent(in)    :: edge
-
-    integer                     :: i, len_factors
-    integer                     :: curr_position(2), idx(2)
-
-     idx(:) = 0
-     len_factors = size(factors)
-
-     do i = 1, len_factors
-       curr_position = positions(i, :)
-
-       ! Top-left corner subblock, only for left boundary conditions
-       if (edge == 'l_edge') then
-         idx(:) = 2*curr_position(:)
-
-         quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
-                                         spline1(2) * factors(i) * spline2(2)
-         quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
-                                         spline1(2) * factors(i) * spline2(4)
-         quadblock(idx(1),   idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
-                                         spline1(4) * factors(i) * spline2(2)
-         quadblock(idx(1),   idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
-                                         spline1(4) * factors(i) * spline2(4)
-       end if
-
-       ! Subblock top-right corner, filled both for left and right bounds
-       idx(:) = [2*curr_position(1), 2*curr_position(2) + dim_subblock]
-       quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
-                                       spline1(2) * factors(i) * spline2(1)
-       quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
-                                       spline1(2) * factors(i) * spline2(3)
-       quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
-                                       spline1(4) * factors(i) * spline2(1)
-       quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
-                                       spline1(4) * factors(i) * spline2(3)
-
-       ! Subblock bottom-left corner, filled both for left and right bounds
-       idx(:) = [2*curr_position(1) + dim_subblock, 2*curr_position(2)]
-       quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
-                                       spline1(1) * factors(i) * spline2(2)
-       quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
-                                       spline1(1) * factors(i) * spline2(4)
-       quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
-                                       spline1(3) * factors(i) * spline2(2)
-       quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
-                                       spline1(3) * factors(i) * spline2(4)
-
-       if (edge == 'r_edge') then
-         ! Subblock bottom-right corner, only for right boundary conditions
-         idx(:) = 2*curr_position(:) + dim_subblock
-         quadblock(idx(1)-1, idx(2)-1) = quadblock(idx(1)-1, idx(2)-1) + &
-                                         spline1(1) * factors(i) * spline2(1)
-         quadblock(idx(1)-1, idx(2)  ) = quadblock(idx(1)-1, idx(2)  ) + &
-                                         spline1(1) * factors(i) * spline2(3)
-         quadblock(idx(1)  , idx(2)-1) = quadblock(idx(1)  , idx(2)-1) + &
-                                         spline1(3) * factors(i) * spline2(1)
-         quadblock(idx(1)  , idx(2)  ) = quadblock(idx(1)  , idx(2)  ) + &
-                                         spline1(3) * factors(i) * spline2(3)
-       end if
+    do i = 1, size(surface_terms)
+      quadblock(positions(i, 1), positions(i, 2)) = quadblock(positions(i, 1), positions(i, 2)) + surface_terms(i)
     end do
-  end subroutine add_factors_quadblock
+
+    deallocate(positions)
+    deallocate(surface_terms)
+  end subroutine natural_boundaries
 
 end module mod_boundary_conditions
