@@ -14,7 +14,7 @@ class EigenfunctionHandler:
             self.ps_ax = ax[1]
             self.ps_fig = self.fig
             # replot spectrum, now using the subplot
-            self.ps._plot(self.fig, self.ps_ax)
+            self.ps.plot_spectrum(self.fig, self.ps_ax, self.ps.annotate_continua)
         else:
             self.fig, self.ax = plt.subplots(1, figsize=(12, 6))
             self.ps_ax = self.ps.ax

@@ -6,34 +6,35 @@ from ..utilities.exceptions import InconsistentMultirunFile
 from ..visualisations.eigenfunctions import EigenfunctionHandler
 
 class SingleSpectrum:
-    def __init__(self, ds, annotate_continua=True, plot_continua=True, plot_equilibria=True):
+    def __init__(self, ds):
         if isinstance(ds, list):
             raise TypeError('SingleSpectrum needs a single LegolasDatacontainer instance, not a list.')
         self.ds = ds
         self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
-        self.annotate_continua = annotate_continua
+        self.annotate_continua = True
 
-        self._plot(self.fig, self.ax)
-        self.fig.canvas.draw()
-        self.fig.tight_layout()
-        if plot_continua:
-            self._plot_continua()
-        if plot_equilibria:
-            self._plot_equilibria()
-
-    def plot_eigenfunctions(self, merge_figs=True):
+    def plot_eigenfunctions(self, merge_figs=False, annotate_continua=True):
+        if not annotate_continua == self.annotate_continua:
+            self.annotate_continua = annotate_continua
         efh = EigenfunctionHandler(self, merge_figs)
         efh.connect_figure_events()
 
-    def _plot(self, fig, ax):
-        ax.plot(self.ds.eigenvalues.real, self.ds.eigenvalues.imag, '.b', alpha=0.8)
-        ax.axhline(y=0, linestyle='dotted', color='grey', alpha=0.3)
-        ax.axvline(x=0, linestyle='dotted', color='grey', alpha=0.3)
-        ax.set_xlabel(r"Re($\omega$)")
-        ax.set_ylabel(r"Im($\omega$)")
-        ax.set_title(self.ds.eq_type)
-        if self.annotate_continua:
-            self._annotate_continua(fig, ax)
+    def plot_spectrum(self, fig=None, ax=None, annotate_continua=True):
+        if fig is not None and ax is not None:
+            self.fig = fig
+            self.ax = ax
+        self.annotate_continua = annotate_continua
+        self.ax.plot(self.ds.eigenvalues.real, self.ds.eigenvalues.imag, '.b', alpha=0.8)
+        self.ax.axhline(y=0, linestyle='dotted', color='grey', alpha=0.3)
+        self.ax.axvline(x=0, linestyle='dotted', color='grey', alpha=0.3)
+        self.ax.set_xlabel(r"Re($\omega$)")
+        self.ax.set_ylabel(r"Im($\omega$)")
+        self.ax.set_title(self.ds.eq_type)
+        if annotate_continua:
+            self._annotate_continua(self.fig, self.ax)
+        self.fig.canvas.draw()
+        self.fig.tight_layout()
+        return self.fig, self.ax
 
     def _annotate_continua(self, fig, ax):
         legend_items = []
@@ -103,8 +104,9 @@ class SingleSpectrum:
             regions[l_item] = region
         fig.canvas.mpl_connect('pick_event', on_legend_pick)
 
-    def _plot_continua(self):
-        fig, ax = plt.subplots(3, 1, figsize=(12, 8))
+    def plot_continua(self, fig=None, ax=None):
+        if fig is None or ax is None:
+            fig, ax = plt.subplots(3, 1, figsize=(12, 8))
         ax[0].plot(self.ds.grid_gauss, self.ds.continua['wS-'], color='red',
                    linestyle='solid', label=r'$\Omega_S^-$ slow continuum')
         ax[0].plot(self.ds.grid_gauss, self.ds.continua['wS+'], color='red',
@@ -121,9 +123,11 @@ class SingleSpectrum:
             ax_panel.set_xlim([self.ds.grid_gauss[0], self.ds.grid_gauss[-1]])
         fig.subplots_adjust(hspace=0.05)
         fig.tight_layout()
+        return fig, ax
 
-    def _plot_equilibria(self):
-        fig, ax = plt.subplots(1, figsize=(12, 8))
+    def plot_equilibria(self, fig=None, ax=None):
+        if fig is None or ax is None:
+            fig, ax = plt.subplots(1, figsize=(12, 8))
         for idx, var in enumerate(self.ds.header.get('equil_names')):
             values = self.ds.equilibria.get(var)
             if (values == 0).all():
@@ -134,19 +138,22 @@ class SingleSpectrum:
         ax.set_title('Equilibrium settings')
         ax.legend(loc='best')
         fig.canvas.draw()
+        return fig, ax
 
 
 class MultiSpectrum:
     def __init__(self, datasets):
         self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
         self.datasets = datasets
+        self.slow_cont_line = {'xvals': [], 'min': [], 'max': []}
+        self.alfv_cont_line = {'xvals': [], 'min': [], 'max': []}
 
     def _check_datasets(self, equilibrium):
         for ds in self.datasets:
             if not equilibrium == ds.header.get('eq_type'):
                 raise InconsistentMultirunFile(ds.datfile, expected=equilibrium, found=ds.header.get('eq_type'))
 
-    def plot_precoded_run(self):
+    def plot_precoded_run(self, annotate_continua=False):
         equilibrium = self.datasets[0].header.get('eq_type')
         self._check_datasets(equilibrium)
         if equilibrium == 'gravito_acoustic':
@@ -161,13 +168,42 @@ class MultiSpectrum:
             self._plot_flux_tube()
         else:
             raise ValueError('Automatically plotting the spectrum failed, should be done manually.')
+        if annotate_continua:
+            self._annotate_continua()
+        return self.fig, self.ax
+
+    def _annotate_continua(self):
+        # annotate slow continuum
+        xvals, slowmin, slowmax = self.slow_cont_line.values()
+        self.ax.plot(xvals, slowmin, color='red', alpha=0.8)
+        self.ax.plot(xvals, slowmax, color='red', alpha=0.8)
+        self.ax.fill_between(xvals, slowmin, slowmax, color='red', alpha=0.3, label='slow_continuum')
+        # annotate alfven continuum
+        xvals, alfvmin, alfvmax = self.alfv_cont_line.values()
+        self.ax.plot(xvals, alfvmin, color='cyan', alpha=0.8)
+        self.ax.plot(xvals, alfvmax, color='cyan', alpha=0.8)
+        self.ax.fill_between(xvals, alfvmin, alfvmax, color='cyan', alpha=0.3, label='Alfven continuum')
+        self.ax.legend(loc='best')
+
+    def _set_continua_lines(self, ds, x_value, prefactor=1, squared=True):
+        exp = 2
+        if not squared:
+            exp = 1
+        slow = prefactor * np.real(ds.continua['wS+']**exp)
+        alfv = prefactor * np.real(ds.continua['wA+']**exp)
+        for vals, cont in zip((slow, alfv), (self.slow_cont_line, self.alfv_cont_line)):
+            cont['xvals'].append(x_value)
+            cont['min'].append(np.min(vals))
+            cont['max'].append(np.max(vals))
 
     def _plot_gravito_acoustic(self):
         for ds in self.datasets:
             cs = ds.get_sound_speed()[0]
             w_sq = (1 / cs**2) * np.real(ds.eigenvalues**2)
+            w_sq[np.where(np.abs(w_sq) < 1e-8)] = np.nan
             k0_sq =  ds.get_k0_squared() * np.ones_like(w_sq)
             self.ax.plot(k0_sq, w_sq, '.b', markersize=3, alpha=0.8)
+            self._set_continua_lines(ds, x_value=k0_sq[0], prefactor=(1 / cs**2))
         self.ax.set_ylabel(r'$\dfrac{1}{c^2}\omega^2$')
         self.ax.set_xlabel('$k_0^2$')
         self.ax.set_title('Gravito acoustic multirun')
@@ -179,8 +215,10 @@ class MultiSpectrum:
             # alfven speed is equal everywhere
             vA = ds.get_alfven_speed()[0]
             w_sq = (1 / vA**2) * np.real(ds.eigenvalues**2)
+            w_sq[np.where(np.abs(w_sq) < 1e-8)] = np.nan
             k0_sq = ds.get_k0_squared() * np.ones_like(w_sq)
             self.ax.plot(k0_sq, w_sq, '.b', markersize=3, alpha=0.8)
+            self._set_continua_lines(ds, x_value=k0_sq[0], prefactor=(1 / vA**2))
         self.ax.set_ylabel(r'$\dfrac{1}{v_A^2}\omega^2$')
         self.ax.set_xlabel('$k_0^2$')
         self.ax.set_title('Gravito mhd multirun')
@@ -191,8 +229,10 @@ class MultiSpectrum:
         for idx, ds in enumerate(self.datasets):
             vA = ds.get_alfven_speed()[0]
             w_sq = (1 / vA**2) * np.real(ds.eigenvalues**2)
+            w_sq[np.where(np.abs(w_sq) < 1e-8)] = np.nan
             th = thetas[idx] * np.ones_like(w_sq)
             self.ax.plot(th, w_sq, '.b', markersize=2, alpha=0.8)
+            self._set_continua_lines(ds, x_value=thetas[idx], prefactor=(1 / vA**2))
         self.ax.set_ylabel(r'$\dfrac{1}{v_A^2}\omega^2$')
         self.ax.set_xlabel(r'$\theta$ / $\pi$')
         self.ax.set_title('Interchange modes multirun')
@@ -209,6 +249,7 @@ class MultiSpectrum:
             qfact = qfactors[idx] * np.ones_like(w_sq)
             self.ax.plot(qfact, w_sq, '.b', markersize=2, alpha=0.8)
             self.ax.set_yscale('symlog', linthreshy=1e-8)
+            self._set_continua_lines(ds, x_value=qfactors[idx])
         self.ax.set_xlabel(r"Safety factor $q = \frac{2k}{j0}$")
         self.ax.set_ylabel(r"$\omega^2$")
         self.ax.set_title('Constant current m=-2 multirun')
