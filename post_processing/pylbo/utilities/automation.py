@@ -57,6 +57,8 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
         parfile_dict = get_precoded_run(chosen_pr)
     if output_dir is None:
         output_dir = LEGOLAS_PAR
+    if isinstance(output_dir, str):
+        output_dir = Path(output_dir).resolve()
     _check_directories(output_dir)
     nb_runs = parfile_dict.pop('number_of_runs', 1)
     namelist = {}
@@ -97,15 +99,15 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
                 parfile_dict[name].update({key: item[run]})
         if basename_parfile is None:
             basename_parfile = parfile_dict['equilibriumlist']['equilibrium_type']
-        parfile_name = "{}{}.par".format(run_prepended, basename_parfile)
+        parfile_name = "{}_{}.par".format(run_prepended, basename_parfile)
         basename_datfile = parfile_dict.get('savelist', {}).get('basename_datfile')
         if basename_datfile is None:
             basename_datfile = parfile_dict['equilibriumlist']['equilibrium_type']
-        datfile_name = "{}{}".format(run_prepended, basename_datfile)
+        datfile_name = "{}_{}".format(run_prepended, basename_datfile)
         parfile_dict['savelist'].update({'basename_datfile': datfile_name})
         basename_logfile = parfile_dict.get('savelist', {}).get('basename_logfile')
         if basename_logfile is not None:
-            logfile_name = "{}{}".format(run_prepended, basename_logfile)
+            logfile_name = "{}_{}".format(run_prepended, basename_logfile)
             parfile_dict['savelist'].update({'basename_logfile': logfile_name})
         # set paths, write parfile
         parfile_path = (output_dir / parfile_name).resolve()
