@@ -99,15 +99,15 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
                 parfile_dict[name].update({key: item[run]})
         if basename_parfile is None:
             basename_parfile = parfile_dict['equilibriumlist']['equilibrium_type']
-        parfile_name = "{}_{}.par".format(run_prepended, basename_parfile)
+        parfile_name = "{}{}.par".format(run_prepended, basename_parfile)
         basename_datfile = parfile_dict.get('savelist', {}).get('basename_datfile')
         if basename_datfile is None:
             basename_datfile = parfile_dict['equilibriumlist']['equilibrium_type']
-        datfile_name = "{}_{}".format(run_prepended, basename_datfile)
+        datfile_name = "{}{}".format(run_prepended, basename_datfile)
         parfile_dict['savelist'].update({'basename_datfile': datfile_name})
         basename_logfile = parfile_dict.get('savelist', {}).get('basename_logfile')
         if basename_logfile is not None:
-            logfile_name = "{}_{}".format(run_prepended, basename_logfile)
+            logfile_name = "{}{}".format(run_prepended, basename_logfile)
             parfile_dict['savelist'].update({'basename_logfile': logfile_name})
         # set paths, write parfile
         parfile_path = (output_dir / parfile_name).resolve()
