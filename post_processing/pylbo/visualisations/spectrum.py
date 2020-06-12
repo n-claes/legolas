@@ -142,8 +142,12 @@ class SingleSpectrum:
 
 
 class MultiSpectrum:
-    def __init__(self, datasets):
-        self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
+    def __init__(self, datasets, fig=None, ax=None):
+        if fig is None or ax is None:
+            self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
+        else:
+            self.fig = fig
+            self.ax = ax
         self.datasets = datasets
         self.slow_cont_line = {'xvals': [], 'min': [], 'max': []}
         self.alfv_cont_line = {'xvals': [], 'min': [], 'max': []}
