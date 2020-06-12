@@ -30,7 +30,10 @@ from .utilities.defaults import \
 from .visualisations.spectrum import \
     SingleSpectrum, \
     MultiSpectrum
-from .visualisations.matrices import plot_matrices
+from .visualisations.matrices import \
+    plot_matrices
+from .visualisations.eigenfunctions import \
+    EigenfunctionHandler
 
 def show():
     plt.show()

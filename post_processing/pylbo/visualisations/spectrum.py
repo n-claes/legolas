@@ -6,23 +6,37 @@ from ..utilities.exceptions import InconsistentMultirunFile
 from ..visualisations.eigenfunctions import EigenfunctionHandler
 
 class SingleSpectrum:
-    def __init__(self, ds):
+    def __init__(self, ds, fig=None, ax=None):
         if isinstance(ds, list):
             raise TypeError('SingleSpectrum needs a single LegolasDatacontainer instance, not a list.')
         self.ds = ds
-        self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
+        if fig is not None and ax is not None:
+            self.fig, self.ax = fig, ax
+        else:
+            self.fig, self.ax = plt.subplots(1, figsize=(12, 8))
         self.annotate_continua = True
+        self._fig_is_empty = True
 
     def plot_eigenfunctions(self, merge_figs=False, annotate_continua=True):
         if not annotate_continua == self.annotate_continua:
             self.annotate_continua = annotate_continua
-        efh = EigenfunctionHandler(self, merge_figs)
-        efh.connect_figure_events()
+        if merge_figs:
+            # remove 'old' spectrum figure
+            plt.delaxes(self.ax)
+            plt.close(self.fig)
+            self.fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+            self.ax, ef_ax = axes.flatten()
+            # replot spectrum, now using the subplot
+            self.plot_spectrum(annotate_continua)
+            ef_fig = self.fig
+        else:
+            ef_fig, ef_ax = plt.subplots(1, figsize=(12, 6))
+            if self._fig_is_empty:
+                self.plot_spectrum(annotate_continua)
+        efh = EigenfunctionHandler(self.ds)
+        efh.connect_figure_events(self, ef_fig, ef_ax)
 
-    def plot_spectrum(self, fig=None, ax=None, annotate_continua=True):
-        if fig is not None and ax is not None:
-            self.fig = fig
-            self.ax = ax
+    def plot_spectrum(self, annotate_continua=True):
         self.annotate_continua = annotate_continua
         self.ax.plot(self.ds.eigenvalues.real, self.ds.eigenvalues.imag, '.b', alpha=0.8)
         self.ax.axhline(y=0, linestyle='dotted', color='grey', alpha=0.3)
@@ -34,6 +48,7 @@ class SingleSpectrum:
             self._annotate_continua(self.fig, self.ax)
         self.fig.canvas.draw()
         self.fig.tight_layout()
+        self._fig_is_empty = False
         return self.fig, self.ax
 
     def _annotate_continua(self, fig, ax):
