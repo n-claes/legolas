@@ -69,6 +69,11 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
                                         'remove_spurious_eigenvalues', 'nb_spurious_eigenvalues'])
     update_namelist('savelist', ['write_matrices', 'write_eigenfunctions', 'show_results',
                                  'basename_datfile', 'basename_logfile', 'output_folder', 'logging_level'])
+    update_namelist('physicslist', ['mhd_gamma', 'flow', 'radiative_cooling', 'ncool', 'cooling_curve',
+                                    'external_gravity', 'thermal_conduction', 'use_fixed_tc_para', 'fixed_tc_para_value',
+                                    'use_fixed_tc_perp', 'fixed_tc_perp_value', 'resistivity', 'use_fixed_resistivity',
+                                    'fixed_eta_value'])
+    update_namelist('unitslist', ['cgs_units', 'unit_density', 'unit_temperature', 'unit_magneticfield', 'unit_length'])
     if parfile_dict.get('parameters') is not None:
         namelist.update({'paramlist': parfile_dict.pop('parameters')})
     # we should have popped everything from the dictionary so it should be empty.
@@ -92,7 +97,7 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
         run_prepended = "{:04d}".format(run)
         if nb_runs == 1:
             run_prepended = ''
-        parfile_dict = {'gridlist': {}, 'equilibriumlist': {}, 'paramlist': {}, 'savelist': {}}
+        parfile_dict = {key: {} for key in namelist.keys()}
         # create dictionary for single run
         for name, nl_dict in namelist.items():
             for key, item in nl_dict.items():
@@ -167,7 +172,9 @@ def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
             parent.kill()
             parent.wait(timeout=2)
         pool.terminate()
+        pool.join()
         print('All processes terminated.\n')
+        exit(1)
     # change back to original directory
     os.chdir(owd)
     # remove parfiles if asked
