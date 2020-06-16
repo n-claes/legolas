@@ -72,6 +72,23 @@ class LegolasDataContainer:
         k0_sq = self.parameters.get('k2')**2 + self.parameters.get('k3')**2
         return k0_sq
 
+    def get_nearest_eigenvalues(self, ev_guesses):
+        if not isinstance(ev_guesses, np.ndarray):
+            if isinstance(ev_guesses, (float, int, complex)):
+                ev_guesses = [ev_guesses]
+            ev_guesses = np.array(ev_guesses)
+        idxs = np.empty(shape=len(ev_guesses), dtype=np.int)
+        eigenvals = np.empty(shape=len(ev_guesses), dtype=np.complex)
+        for i, guess in enumerate(ev_guesses):
+            # get distance from guess to all eigenvalues
+            distances = np.sqrt((self.eigenvalues.real - guess.real) ** 2
+                                + (self.eigenvalues.imag - guess.imag) ** 2)
+            # index of point with closest distance
+            idx = distances.argmin()
+            idxs[i] = idx
+            eigenvals[i] = self.eigenvalues[idx]
+        return idxs, eigenvals
+
     def get_eigenfunctions(self):
         if not self.header['eigenfuncs_written']:
             raise EigenfunctionsNotPresent(self.datfile)
