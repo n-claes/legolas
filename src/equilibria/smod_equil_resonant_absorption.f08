@@ -22,13 +22,10 @@ contains
     call allow_geometry_override(default_geometry='Cartesian', default_x_start=0.0d0, default_x_end=1.0d0)
     call initialise_grid()
 
-    resistivity = .true.
-    use_fixed_resistivity = .true.
-    fixed_eta_value = 10.0d0**(-3.2d0)
-
     if (use_defaults) then
-      k2 = 1.0d0
-      k3 = 0.25d0
+      resistivity = .true.
+      use_fixed_resistivity = .true.
+      fixed_eta_value = 10.0d0**(-3.2d0)
 
       rho_left = 0.9d0
       rho_right = 0.1d0
