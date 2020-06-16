@@ -21,24 +21,26 @@ contains
     call allow_geometry_override(default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=1.0d0)
     call initialise_grid()
 
-    radiative_cooling = .true.
-    cooling_curve = 'rosner'
-    thermal_conduction = .true.
-    ! only parallel thermal conduction with full T dependence
-    use_fixed_tc_perp = .true.
-    fixed_tc_perp_value = 0.0d0
-
     if (use_defaults) then
+      ! physics
+      radiative_cooling = .true.
+      cooling_curve = 'rosner'
+      thermal_conduction = .true.
+      ! only parallel thermal conduction with full T dependence
+      use_fixed_tc_perp = .true.
+      fixed_tc_perp_value = 0.0d0
+
+      ! define normalisations using length, magnetic field and density
+      cgs_units = .true.
+      call set_normalisations(new_unit_density=1.5d-15, new_unit_magneticfield=50.0d0, new_unit_length=1.0d10)
+
+      ! parameters
+
       j0 = 0.125d0
       delta = 0.2d0   ! d parameter in density prescription
-
       k2 = 1.0d0
       k3 = 0.05d0
     end if
-
-    ! define normalisations using length, magnetic field and density
-    cgs_units = .true.
-    call set_normalisations(new_unit_density=1.5d-15, new_unit_magneticfield=50.0d0, new_unit_length=1.0d10)
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
