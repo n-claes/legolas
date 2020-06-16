@@ -85,11 +85,9 @@ class EigenfunctionHandler:
         self._ef_fig.canvas.mpl_connect('key_press_event', on_key_press)
 
     def _find_spectrum_point_index(self, spectrum, x, y):
-        # get distance from (x, y) to all points
-        distances = np.sqrt((self.ds.eigenvalues.real - x)**2 + (self.ds.eigenvalues.imag - y)**2)
-        # index of point with closest distance
-        idx = distances.argmin()
-        ev_found = self.ds.eigenvalues[idx]
+        # this will return a single index/eigenvalue, since we supply 1 'guess' (x, y)
+        idx, ev_found = self.ds.get_nearest_eigenvalues(complex(x, y))
+        idx, ev_found = *idx, *ev_found
         # calculate (x, y) of point in pixels. (0, 0) is bottom-left of figure
         ev_x_pixels, ev_y_pixels = spectrum.ax.transData.transform((ev_found.real, ev_found.imag))
         click_x_pixels, click_y_pixels = spectrum.ax.transData.transform((x, y))
@@ -132,20 +130,14 @@ class EigenfunctionHandler:
         if self._selected_ef_idx < 0:
             self._selected_ef_idx = len(self.ef_names) - 1
 
-    def retrieve_eigenfunctions(self, eigenvals):
-        if not isinstance(eigenvals, np.ndarray):
-            if isinstance(eigenvals, (float, int, complex)):
-                eigenvals = [eigenvals]
-            eigenvals = np.array(eigenvals)
+    def retrieve_eigenfunctions(self, ev_guesses):
         result = {ef_name: [] for ef_name in self.ef_names}
         result.update({'eigenvals': []})
-        for ev in eigenvals:
-            # find index of closest eigenvalue
-            ev_idx = np.sqrt((self.ds.eigenvalues.real - ev.real)**2
-                             + (self.ds.eigenvalues.imag - ev.imag)**2).argmin()
-            result['eigenvals'].append(self.ds.eigenvalues[ev_idx])
+        idxs, evs = self.ds.get_nearest_eigenvalues(ev_guesses)
+        for idx, ev in zip(idxs, evs):
+            result['eigenvals'].append(ev)
             for ef_name in self.ef_names:
-                result.get(ef_name).append(self.eigenfunctions.get(ef_name)[:, ev_idx])
+                result.get(ef_name).append(self.eigenfunctions.get(ef_name)[:, idx])
         return result
 
 
