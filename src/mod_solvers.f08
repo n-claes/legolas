@@ -97,8 +97,6 @@ contains
     deallocate(rwork)
 
     call check_small_values(omega)
-    call check_small_values(vl)
-    call check_small_values(vr)
 
   end subroutine solve_QR
 
