@@ -177,19 +177,29 @@ def read_equilibrium_arrays(istream, header):
         equil_arrays.update({name: np.asarray(equil_array)})
     return equil_arrays
 
-def read_eigenfunctions(istream, header):
-    istream.seek(header['offsets']['ef_arrays'])
+def read_eigenfunction(istream, header, ef_index):
+    ef_offset = header['offsets']['ef_arrays']
     ef_gridpts = header['ef_gridpts']
     matrix_gridpts = header['matrix_gridpts']
     eigenfunctions = {}
+
+    # Fortran writes in column-major order, meaning column per column.
+    # This makes it quite convenient to extract a single eigenfunction from the datfile
+    matrix_bytesize = ef_gridpts * matrix_gridpts * SIZE_COMPLEX
+    ef_bytesize = ef_gridpts * SIZE_COMPLEX
     for name in header['ef_names']:
-        fmt = ALIGN + ef_gridpts * matrix_gridpts * 2 * 'd'
+        name_idx = header['ef_names'].index(name)
+        # move pointer to correct place of current name matrix in datfile
+        istream.seek(ef_offset + name_idx * matrix_bytesize)
+        # move pointer to requested eigenfunction
+        # 'ef_index' here is the index of the corresponding eigenvalue in its array
+        istream.seek(istream.tell() + ef_index * ef_bytesize)
+        # read in single eigenfunction
+        fmt = ALIGN + ef_gridpts * 2 * 'd'
         hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         reals = hdr[::2]
         imags = hdr[1::2]
         ef_values = np.asarray([complex(x, y) for x, y in zip(reals, imags)])
-        # reshape into matrix, Fortran ordering is important here
-        ef_values = ef_values.reshape((ef_gridpts, matrix_gridpts), order='F')
         eigenfunctions.update({name: ef_values})
     return eigenfunctions
 
@@ -200,7 +210,6 @@ def read_matrix_B(istream, header):
     rows = np.asarray(hdr[::3])     # rows are 1, 4, 7, 10 etc (Fortran indexing)
     cols = np.asarray(hdr[1::3])    # columns are 2, 5, 8, 11 etc (Fortran indexing)
     vals = np.asarray(hdr[2::3])    # values are 3, 6, 9, 12 etc (Fortran indexing)
-    print(rows)
     return rows, cols, vals
 
 def read_matrix_A(istream, header):
