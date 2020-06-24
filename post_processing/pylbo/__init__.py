@@ -15,7 +15,8 @@ from .utilities.automation import \
     generate_parfiles, \
     run_legolas
 from .utilities.datfile_utils import \
-    get_header
+    get_header, \
+    read_eigenvalues
 from .utilities.defaults import \
     LEGOLAS_DIR, \
     LEGOLAS_OUT
