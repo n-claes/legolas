@@ -14,6 +14,7 @@ from .defaults import precoded_runs, \
 from .exceptions import DictNotEmpty, \
     InconsistentNumberOfRuns
 from ..data_management.file_handler import select_files
+from ..utilities.logger import pylboLogger
 
 LEGOLAS_PAR = (LEGOLAS_OUT / 'parfiles').resolve()
 
@@ -118,7 +119,7 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
         parfile_path = (output_dir / parfile_name).resolve()
         parfiles.append(str(parfile_path))
         f90nml.write(parfile_dict, parfile_path, force=True)
-    print('Parfiles generated, saved to {}'.format(output_dir))
+    pylboLogger.info('Parfiles generated, saved to {}'.format(output_dir))
     return parfiles
 
 def _init_worker():
@@ -157,23 +158,23 @@ def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
         # Note: simply calling pool.terminate() terminates ONLY the python processes,
         # but still keeps the legolas calls running since those are done using subprocess.
         # The following code first terminates all child processes (legolas), then the parents (workers)
-        print('\nCaught KeyboardInterrupt:')
+        pylboLogger.error('Caught KeyboardInterrupt:')
         for process in multiprocessing.active_children():
             pid = process.pid
-            print('  Terminating ID: {} -- {}'.format(pid, process.name))
+            pylboLogger.error('Terminating PID: {} -- {}'.format(pid, process.name))
             parent = psutil.Process(pid)
             children = parent.children(recursive=True)
             for child in children:
-                print('    Terminating child process {} -- {}'.format(child.pid, child.name()))
+                pylboLogger.error('Terminating child process {} -- {}'.format(child.pid, child.name()))
                 child.kill()
             gone, alive = psutil.wait_procs(children, timeout=2)
             for killed_proc in gone:
-                print('    {}'.format(str(killed_proc)))
+                pylboLogger.error('{}'.format(str(killed_proc)))
             parent.kill()
             parent.wait(timeout=2)
+        pylboLogger.critical('All legolas processes terminated.')
         pool.terminate()
         pool.join()
-        print('All processes terminated.\n')
         exit(1)
     # change back to original directory
     os.chdir(owd)
@@ -181,10 +182,10 @@ def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
     if remove_parfiles:
         for file in parfiles:
             os.remove(file)
-        print('Parfiles removed.')
+        pylboLogger.info('Parfiles removed.')
         # if parfile directory is empty, also remove that one
         try:
             Path.rmdir(LEGOLAS_PAR)
-            print('{} was empty, so also removed the directory.'.format(LEGOLAS_PAR))
+            pylboLogger.info('{} was empty, so also removed the directory.'.format(LEGOLAS_PAR))
         except OSError:
             pass

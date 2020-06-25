@@ -13,7 +13,6 @@ def load(datfiles):
         if len(datasets) == 1:
             datasets = datasets.pop()
         return datasets
-
     ds = LegolasDataContainer(datfiles)
     return ds
 
