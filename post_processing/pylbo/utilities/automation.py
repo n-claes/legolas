@@ -162,7 +162,7 @@ def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
     os.chdir(LEGOLAS_DIR)
     # don't use multiprocessing if there is only one job
     if len(parfiles) == 1:
-        parfile = parfiles.pop()
+        parfile = parfiles[0]
         pylboLogger.info("running Legolas...")
         try:
             _activate_worker(parfile)

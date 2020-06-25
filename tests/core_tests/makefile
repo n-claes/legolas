@@ -28,4 +28,4 @@ test_legolas_core_OTHER_LIBRARIES := -L. -lpFUnit -lblas -llapack
 $(eval $(call make_pfunit_test,test_legolas_core))
 
 clean:
-	$(RM) *.o *.mod *.a *.inc *.F90 test_legolas_core
+	@$(RM) *.o *.mod *.a *.inc *.F90 test_legolas_core
