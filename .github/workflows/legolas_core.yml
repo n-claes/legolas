@@ -1,4 +1,4 @@
-name: Legolas core tests
+name: legolas-core
 
 on:
   push:
@@ -27,14 +27,14 @@ jobs:
         sudo apt-get install liblapack-dev
         gfortran-9 --version
         cmake --version
-        
+
     - name: Cache pFUnit
       id: pfunit-cache
       uses: actions/cache@v1
       with:
         path: tests/core_tests/pFUnit/
         key: ${{ runner.os }}-pfunit
-        
+
     - name: Build pFUnit
       if: steps.pfunit-cache.outputs.cache-hit != 'true'
       run: |
@@ -46,17 +46,14 @@ jobs:
         cmake .. -DSKIP_MPI=YES -DSKIP_OPENMP=YES -DSKIP_FHAMCREST=YES
         make -j 2 tests
         make -j 2 install
-        
+
     - name: Compilation
       run: |
         make FC=gfortran-9
         cd tests/core_tests
         make FC=gfortran-9
-        
+
     - name: Test Legolas core
       run: |
         cd tests/core_tests
         ./test_legolas_core
-    
-
-      
