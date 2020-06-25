@@ -27,6 +27,11 @@ from .visualisations.matrices import \
     plot_matrices
 from .visualisations.eigenfunctions import \
     EigenfunctionHandler
+from .utilities.logger import \
+    set_loglevel, \
+    disable_logging
+
+utilities.logger.init_logger()
 
 def show():
     plt.show()

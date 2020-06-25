@@ -12,6 +12,7 @@ from ..utilities.exceptions import \
     InvalidLegolasFile, \
     MatricesNotPresent
 from ..utilities.continua import get_continuum_regions
+from ..utilities.logger import pylboLogger
 
 
 class LegolasDataContainer:
@@ -41,6 +42,11 @@ class LegolasDataContainer:
         self.cgs = self.header['cgs']
         self.units = self.header['units']
         self.eq_names = self.header['equil_names']
+
+        pylboLogger.info('gridpoints = {}'.format(self.gridpts))
+        pylboLogger.info('geometry   = {}'.format(self.geometry))
+        pylboLogger.info('grid start = {}'.format(self.x_start))
+        pylboLogger.info('grid end   = {}'.format(self.x_end))
 
     def _load_basic_data(self):
         with open(self.datfile, 'rb') as istream:
