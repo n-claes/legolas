@@ -6,13 +6,10 @@ from ..utilities.datfile_utils import \
     read_grid_gauss, \
     read_eigenvalues, \
     read_equilibrium_arrays, \
-    read_ef_grid, \
-    read_eigenfunctions, \
     read_matrix_B, \
     read_matrix_A
 from ..utilities.exceptions import \
     InvalidLegolasFile, \
-    EigenfunctionsNotPresent, \
     MatricesNotPresent
 from ..utilities.continua import get_continuum_regions
 
@@ -88,14 +85,6 @@ class LegolasDataContainer:
             idxs[i] = idx
             eigenvals[i] = self.eigenvalues[idx]
         return idxs, eigenvals
-
-    def get_eigenfunctions(self):
-        if not self.header['eigenfuncs_written']:
-            raise EigenfunctionsNotPresent(self.datfile)
-        with open(self.datfile, 'rb') as istream:
-            ef_grid = read_ef_grid(istream, self.header)
-            eigenfunctions = read_eigenfunctions(istream, self.header)
-        return ef_grid, eigenfunctions
 
     def get_matrix_B(self):
         if not self.header['matrices_written']:
