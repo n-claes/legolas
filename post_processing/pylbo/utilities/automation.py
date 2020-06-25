@@ -119,7 +119,7 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
         parfile_path = (output_dir / parfile_name).resolve()
         parfiles.append(str(parfile_path))
         f90nml.write(parfile_dict, parfile_path, force=True)
-    pylboLogger.info('Parfiles generated, saved to {}'.format(output_dir))
+    pylboLogger.info('parfiles generated, saved to {}'.format(output_dir))
     return parfiles
 
 def _init_worker():
@@ -128,6 +128,26 @@ def _init_worker():
 def _activate_worker(parfile):
     cmd = ['./legolas', '-i', str(parfile)]
     return subprocess.call(cmd)
+
+def _terminate_workers():
+    # Note: simply giving an interrupt terminates ONLY the python processes,
+    # but still keeps the legolas calls running since those are done using subprocess.
+    # The following code first terminates all child processes (legolas), then the parents (workers)
+    pylboLogger.error('interrupting processes...')
+    for process in multiprocessing.active_children():
+        pid = process.pid
+        pylboLogger.error('terminating PID: {} -- {}'.format(pid, process.name))
+        parent = psutil.Process(pid)
+        children = parent.children(recursive=True)
+        for child in children:
+            pylboLogger.error('terminating child process {} -- {}'.format(child.pid, child.name()))
+            child.kill()
+        gone, alive = psutil.wait_procs(children, timeout=2)
+        for killed_proc in gone:
+            pylboLogger.error('{}'.format(str(killed_proc)))
+        parent.kill()
+        parent.wait(timeout=2)
+    pylboLogger.critical('all Legolas processes terminated.')
 
 def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
     def update_pbar(*args):
@@ -140,42 +160,36 @@ def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
     owd = os.getcwd()
     # change to source directory
     os.chdir(LEGOLAS_DIR)
-    # initialise progressbar and multiprocessing pool
-    pbar = tqdm(total=len(parfiles), unit='')
-    pbar.set_description('Running Legolas [CPUs={}]'.format(nb_cpus))
-    pool = multiprocessing.Pool(processes=nb_cpus, initializer=_init_worker)
-    try:
-        # start multiprocessing pool
-        for parfile in parfiles:
-            pool.apply_async(_activate_worker, args=(parfile,), callback=update_pbar)
-        pool.close()
-        pool.join()
-        pbar.close()
-    except KeyboardInterrupt:
-        pbar.set_description('INTERRUPTED')
-        pbar.update(len(parfiles))
-        pbar.close()
-        # Note: simply calling pool.terminate() terminates ONLY the python processes,
-        # but still keeps the legolas calls running since those are done using subprocess.
-        # The following code first terminates all child processes (legolas), then the parents (workers)
-        pylboLogger.error('Caught KeyboardInterrupt:')
-        for process in multiprocessing.active_children():
-            pid = process.pid
-            pylboLogger.error('Terminating PID: {} -- {}'.format(pid, process.name))
-            parent = psutil.Process(pid)
-            children = parent.children(recursive=True)
-            for child in children:
-                pylboLogger.error('Terminating child process {} -- {}'.format(child.pid, child.name()))
-                child.kill()
-            gone, alive = psutil.wait_procs(children, timeout=2)
-            for killed_proc in gone:
-                pylboLogger.error('{}'.format(str(killed_proc)))
-            parent.kill()
-            parent.wait(timeout=2)
-        pylboLogger.critical('All legolas processes terminated.')
-        pool.terminate()
-        pool.join()
-        exit(1)
+    # don't use multiprocessing if there is only one job
+    if len(parfiles) == 1:
+        parfile = parfiles.pop()
+        pylboLogger.info("running Legolas...")
+        try:
+            _activate_worker(parfile)
+        except KeyboardInterrupt:
+            _terminate_workers()
+            exit(1)
+    else:
+        # initialise progressbar and multiprocessing pool
+        pbar = tqdm(total=len(parfiles), unit='')
+        pbar.set_description('Running Legolas [CPUs={}]'.format(nb_cpus))
+        pool = multiprocessing.Pool(processes=nb_cpus, initializer=_init_worker)
+        try:
+            # start multiprocessing pool
+            for parfile in parfiles:
+                pool.apply_async(_activate_worker, args=(parfile,), callback=update_pbar)
+            pool.close()
+            pool.join()
+            pbar.close()
+        except KeyboardInterrupt:
+            pbar.set_description('INTERRUPTED')
+            pbar.update(len(parfiles))
+            pbar.close()
+            _terminate_workers()
+            pool.terminate()
+            pool.join()
+            exit(1)
+    pylboLogger.info("all runs completed")
     # change back to original directory
     os.chdir(owd)
     # remove parfiles if asked
