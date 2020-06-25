@@ -45,7 +45,7 @@ contains
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
 
-      rho_field % rho0(i) = 1.0d0 - (1.0d0 - delta) * r**2
+      rho_field % rho0(i) = 1.0d0 - (1.0d0 - delta) * (r / x_end)**2
       B_field % B02(i) = j0 * r * (r**4 - 3.0d0 * r**2 + 3.0d0) / 6.0d0
       B_field % B03(i) = 1.0d0
       B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
@@ -57,7 +57,7 @@ contains
       T_field % T0(i) = p_r(i) / (rho_field % rho0(i))
 
       ! derivatives
-      rho_field % d_rho0_dr(i) = 2.0d0 * r * (delta - 1.0d0)
+      rho_field % d_rho0_dr(i) = 2.0d0 * r * (delta - 1.0d0) / x_end**2
       B_field % d_B02_dr(i) = j0 * (5.0d0 * r**4 - 9.0d0 * r**2 + 3.0d0) / 6.0d0
       dp_r(i) = j0**2 * r * (-r**8 + 5.0d0 * r**6 - 10.0d0 * r**4 + 9.0d0 * r**2 - 3.0d0) / 6.0d0
       T_field % d_T0_dr(i) = (dp_r(i) * (rho_field % rho0(i)) - (rho_field % d_rho0_dr(i)) * p_r(i)) &
