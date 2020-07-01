@@ -1,3 +1,7 @@
+! =============================================================================
+!> @brief   Module to handle parfile reading.
+!! @details Contains subroutines to retrieve the parfile based on the commandline arguments
+!!          and to read the parfile, setting the global variables.
 module mod_input
   use mod_global_variables
   use mod_equilibrium_params
@@ -6,6 +10,7 @@ module mod_input
 
   private
 
+  !> IO unit for the parfile
   integer       :: unit_par = 101
 
   public :: read_parfile
@@ -13,8 +18,15 @@ module mod_input
 
 contains
 
-  !> Reads in the supplied parfile and sets all global variables accordingly.
-  !! @param[in] parfile   The name of the parfile
+
+  !> @brief   Reads in the supplied parfile.
+  !! @details Reads in the parfile and sets the equilibrium parameters and
+  !!          global variables to their specified values.
+  !! @note    The order of the different namelists in the parfile does not matter, this
+  !!          is automatically handled.
+  !! @exception Error if density and temperature normalisations are both provided.
+  !! @exception Error if some normalisations are not passed.
+  !! @param[in] parfile   the name of the parfile
   subroutine read_parfile(parfile)
     use mod_check_values, only: value_is_zero, value_is_nan
     use mod_units, only: set_normalisations
@@ -39,10 +51,7 @@ contains
                             p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, lambda, nu, &
                             r0, rc, rj, Bth0, Bz0, V, j0, g
 
-    !! Initialise equilibrium parameters to NaN. These are then read in by the paramlist
-    !! or set directly in the submodules.
     call init_equilibrium_params()
-
     ! if no parfile supplied, return to keep using defaults
     if (parfile == "") then
       return
@@ -106,12 +115,13 @@ contains
       call set_normalisations(new_unit_temperature=unit_temperature, &
                               new_unit_magneticfield=unit_magneticfield, new_unit_length=unit_length)
     end if
-
   end subroutine read_parfile
 
 
-  !> Retrieves the parfile passed as command line argument.
-  !! @param[out] filename_par   The name of the parfile
+  !> @brief   Retrieves the parfile
+  !! @details Parses the command line arguments and retrieves the parfile passes.
+  !! @exception   Error if the parfile is not found.
+  !! @param[out]  filename_par   the name of the parfile
   subroutine get_parfile(filename_par)
     character(len=str_len), intent(out) :: filename_par
 

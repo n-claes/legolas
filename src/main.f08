@@ -1,13 +1,16 @@
-!
-! PROGRAM: legolas
-!
-!> @author: Niels Claes
-!> niels.claes@kuleuven.be
-!
-! DESCRIPTION:
-!> Main program. Finite element code to calculate eigenvalues
-!! and eigenvectors of the complete non-adiabatic MHD spectrum.
-!! Included physics: flow, radiative cooling, thermal conduction, resistivity
+! =============================================================================
+!> The Legolas code
+!!
+!! @author Niels Claes      (niels.claes@kuleuven.be)
+!! @author Jordi De Jonghe  (jordi.dejonghe@kuleuven.be)
+!! @author Rony Keppens     (rony.keppens@kuleuven.be)
+!!
+!! Centre for mathematical Plasma-Astrophysics, KU Leuven, Belgium.
+!!
+!! @brief   Finite element MHD code for 1D equilibria
+!! @details Legolas solves for the eigenvalues and eigenvectors of 1D (M)HD equilibria.
+!!          Physical effects included are flow, optically thin radiative losses,
+!!          anisotropic thermal conduction, resistivity, external gravity.
 program legolas
   use mod_global_variables, only: dp, str_len, show_results
   use mod_matrix_creation, only: create_matrices
@@ -21,47 +24,42 @@ program legolas
   complex(dp), allocatable  :: matrix_A(:, :)
   !> B matrix in eigenvalue problem wBX = AX
   real(dp), allocatable     :: matrix_B(:, :)
-  !> Solutions to the eigenvalue problem
+  !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
-  !> Right eigenvectors
+  !> matrix with right eigenvectors, column indices correspond to omega indices
   complex(dp), allocatable  :: eigenvecs_right(:, :)
-  !> Left eigenvectors
+  !> matrix with left eigenvectors, column indices correspond to omega indices
   complex(dp), allocatable  :: eigenvecs_left(:, :)
 
-  ! allocate variables, initialise grid and physics, set equilibrium
   call initialisation()
-
-  ! create matrices A and B
   call create_matrices(matrix_B, matrix_A)
 
   call print_console_info()
 
-  ! solve eigenvalue problem
   call log_message("solving eigenvalue problem...", level='info')
   call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
 
-  ! check for spurious modes
   call handle_spurious_eigenvalues(omega)
 
-  ! write spectrum, eigenvectors, matrices etc. to file
   call finalise_results()
-
-  ! deallocate everything
   call cleanup()
 
-  ! call python script and pass configuration file
   if (show_results) then
     call execute_command_line("python3 pylbo_wrapper.py -i " // trim(datfile_name))
   end if
 
 contains
 
-  !> Initialises the grid and equilibrium configuration.
+  !> @brief   Main initialisations
+  !! @details Initialises global variables and reads parfile. Allocates
+  !!          main and global variables, initialises equilibrium state and eigenfunctions,
+  !!          and sets the equilibrium
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, matrix_gridpts
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
+    use mod_logging, only: print_logo
 
     character(len=str_len)  :: parfile
 
@@ -69,42 +67,40 @@ contains
 
     call get_parfile(parfile)
     call read_parfile(parfile)
-    call print_whitespace(1)
 
-    ! Allocate matrices
+    call print_logo()
+
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
     allocate(omega(matrix_gridpts))
     allocate(eigenvecs_right(matrix_gridpts, matrix_gridpts))
     allocate(eigenvecs_left(matrix_gridpts, matrix_gridpts))
 
-    ! Initialise equilibrium
     call initialise_equilibrium()
-
-    ! Initialise eigenfunction arrays
     call initialise_eigenfunctions()
-
-    ! set the equilibrium configuration
     call set_equilibrium()
   end subroutine initialisation
 
 
-  !> Saves the solutions
+  !> @brief   Wraps up results and writes output.
+  !! @details Makes a call to the eigenfunctions subroutine if
+  !!          specified in the parfile, and eventually calls the routine
+  !!          to write the datfile.
   subroutine finalise_results()
     use mod_global_variables, only: write_eigenfunctions
     use mod_output, only: create_datfile
     use mod_eigenfunctions, only: calculate_eigenfunctions
 
-    ! eigenfunctions must be calculated before datfile is written
     if (write_eigenfunctions) then
       call calculate_eigenfunctions(eigenvecs_right)
     end if
     call create_datfile(omega, matrix_A, matrix_B)
-
   end subroutine finalise_results
 
 
-  !> Performs cleanup, deallocates variables.
+  !> @brief   Main cleanup routine.
+  !> @details Deallocates all main variables, then calls the cleanup
+  !!          routines of all relevant subroutines to do the same thing.
   subroutine cleanup()
     use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid_clean
@@ -125,7 +121,6 @@ contains
       call radiative_cooling_clean()
     end if
     call eigenfunctions_clean()
-
   end subroutine cleanup
 
 end program legolas

@@ -1,13 +1,13 @@
-!
-! MODULE: mod_equilibrium
-!
-!> @author
-!> Niels Claes
-!> niels.claes@kuleuven.be
-!
-! DESCRIPTION:
-!> Module containing all equilibrium arrays.
-!
+! =============================================================================
+!> @brief   Parent module governing all equilibrium types and submodules.
+!! @details Module which contains all equilibrium types and the initial
+!!          declarations of the module subroutines. Every equilibrium submodule
+!!          extends this module, implementing one of the module subroutines declared here.
+!!          All 'main' equilibrium configurations are set in the submodules. The ones that
+!!          depend on 'main' arrays, like radiative cooling, are set here through calls to their
+!!          respective modules.
+!! @note    All use statements specified here at the main module scope
+!!          are automatically accessible in every submodule that extends this one.
 module mod_equilibrium
   use mod_units
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
@@ -23,6 +23,7 @@ module mod_equilibrium
 
   private
 
+  !> pointer for the submodule, initialised to null
   procedure(), pointer :: set_equilibrium_values => null()
 
   interface
@@ -59,13 +60,21 @@ module mod_equilibrium
     module subroutine hydro_test_eq; end subroutine
   end interface
 
+  !> type containing all density-related equilibrium variables
   type (density_type)     :: rho_field
+  !> type containing all temperature-related equilibrium variables
   type (temperature_type) :: T_field
+  !> type containing all magnetic field-related equilibrium variables
   type (bfield_type)      :: B_field
+  !> type containing all velocity-related equilibrium variables
   type (velocity_type)    :: v_field
+  !> type containing all gravity-related equilibrium variables
   type (gravity_type)     :: grav_field
+  !> type containing all resistivity-related equilibrium variables
   type (resistivity_type) :: eta_field
+  !> type containig all radiative cooling-related equilibrium variables
   type (cooling_type)     :: rc_field
+  !> type containing all thermal conduction-related equilibrium variables
   type (conduction_type)  :: kappa_field
 
   public :: rho_field
@@ -82,15 +91,15 @@ module mod_equilibrium
   public :: allow_geometry_override
   public :: equilibrium_clean
 
-
 contains
 
-  !> Initialises the equilibrium by allocating all equilibrium arrays and
-  !! setting them to zero.
+
+  !> @brief   Initialisation of the different types.
+  !! @details Initialises the equilibrium types by calling the corresponding
+  !!          subroutine, which allocates all necessary attributes.
   subroutine initialise_equilibrium()
     use mod_types, only: initialise_type
 
-    ! allocate and initialise everything
     call initialise_type(rho_field)
     call initialise_type(T_field)
     call initialise_type(B_field)
@@ -99,10 +108,13 @@ contains
     call initialise_type(eta_field)
     call initialise_type(rc_field)
     call initialise_type(kappa_field)
-
   end subroutine initialise_equilibrium
 
 
+  !> @brief   Calls the submodule and sets additional physics.
+  !! @details Makes a call to set the equilibrium pointer, then calls the correct
+  !!          submodule. Performs some sanity checks (negative values, NaNs etc.) first,
+  !!          then calls additional physics modules if needed.
   subroutine set_equilibrium()
     use mod_check_values, only: check_negative_array, check_nan_values
     use mod_inspections, only: perform_sanity_checks
@@ -112,10 +124,8 @@ contains
 
     ! Set equilibrium submodule to use
     call set_equilibrium_pointer()
-
     ! Call submodule
     call set_equilibrium_values()
-
     ! Set normalisations if needed
     call check_if_normalisations_set()
 
@@ -141,10 +151,13 @@ contains
     if (thermal_conduction) then
       call set_conduction_values(rho_field, T_field, B_field, kappa_field)
     end if
-
   end subroutine set_equilibrium
 
 
+  !> @brief   Sets the pointer to the correct submodule
+  !! @details Selects the submodule based on the specified equilibrium
+  !!          in the parfile. Works on a case-select basis.
+  !! @exception Error   If the equilibrium type is not recognised.
   subroutine set_equilibrium_pointer()
     use mod_global_variables, only: equilibrium_type
 
@@ -218,6 +231,14 @@ contains
   end subroutine set_equilibrium_pointer
 
 
+  !> @brief   Allows overriding geometry and grid-related parameters.
+  !! @details Sets default values for the geometry and grid start/end. If this subroutine is
+  !!          used to set geometry/grid values in the submodule it becomes possible to override
+  !!          them through the parfile. Warnings will always be printed if this happens.
+  !! @exception Warning   If the geometry specified in the submodule is overridden.
+  !! @exception Warning   If the starting value of the grid specified in the submodule is overridden.
+  !! @exception Warning   If the end value of the grid specified in the submodule is overridden.
+  !! @note  If values specified in the parfile are equal to the default values, nothing happens.
   subroutine allow_geometry_override(default_geometry, default_x_start, default_x_end)
     use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan
     use mod_global_variables, only: dp_LIMIT
@@ -247,7 +268,8 @@ contains
   end subroutine allow_geometry_override
 
 
-  !> Cleaning routine, deallocates all arrays in this module.
+  !> @brief   Module cleaning routine.
+  !! @details Cleaning routine, makes calls to deallocate the equilibrium types.
   subroutine equilibrium_clean()
     use mod_types, only: deallocate_type
 
