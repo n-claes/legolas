@@ -19,11 +19,11 @@ contains
     call allow_geometry_override(default_geometry='Cartesian', default_x_start=-0.5d0, default_x_end=0.5d0)
     call initialise_grid()
 
-    resistivity = .true.
-    use_fixed_resistivity = .true.
-    fixed_eta_value = 0.0001d0
-
     if (use_defaults) then
+      resistivity = .true.
+      use_fixed_resistivity = .true.
+      fixed_eta_value = 0.0001d0
+
       k2 = 0.49d0
       k3 = 0.0d0
 

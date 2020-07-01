@@ -6,15 +6,13 @@ from ..utilities.datfile_utils import \
     read_grid_gauss, \
     read_eigenvalues, \
     read_equilibrium_arrays, \
-    read_ef_grid, \
-    read_eigenfunctions, \
     read_matrix_B, \
     read_matrix_A
 from ..utilities.exceptions import \
     InvalidLegolasFile, \
-    EigenfunctionsNotPresent, \
     MatricesNotPresent
 from ..utilities.continua import get_continuum_regions
+from ..utilities.logger import pylboLogger
 
 
 class LegolasDataContainer:
@@ -45,6 +43,11 @@ class LegolasDataContainer:
         self.units = self.header['units']
         self.eq_names = self.header['equil_names']
 
+        pylboLogger.info('gridpoints = {}'.format(self.gridpts))
+        pylboLogger.info('geometry   = {}'.format(self.geometry))
+        pylboLogger.info('grid start = {}'.format(self.x_start))
+        pylboLogger.info('grid end   = {}'.format(self.x_end))
+
     def _load_basic_data(self):
         with open(self.datfile, 'rb') as istream:
             self.grid = read_grid(istream, self.header)
@@ -72,13 +75,22 @@ class LegolasDataContainer:
         k0_sq = self.parameters.get('k2')**2 + self.parameters.get('k3')**2
         return k0_sq
 
-    def get_eigenfunctions(self):
-        if not self.header['eigenfuncs_written']:
-            raise EigenfunctionsNotPresent(self.datfile)
-        with open(self.datfile, 'rb') as istream:
-            ef_grid = read_ef_grid(istream, self.header)
-            eigenfunctions = read_eigenfunctions(istream, self.header)
-        return ef_grid, eigenfunctions
+    def get_nearest_eigenvalues(self, ev_guesses):
+        if not isinstance(ev_guesses, np.ndarray):
+            if isinstance(ev_guesses, (float, int, complex)):
+                ev_guesses = [ev_guesses]
+            ev_guesses = np.array(ev_guesses)
+        idxs = np.empty(shape=len(ev_guesses), dtype=np.int)
+        eigenvals = np.empty(shape=len(ev_guesses), dtype=np.complex)
+        for i, guess in enumerate(ev_guesses):
+            # get distance from guess to all eigenvalues
+            distances = np.sqrt((self.eigenvalues.real - guess.real) ** 2
+                                + (self.eigenvalues.imag - guess.imag) ** 2)
+            # index of point with closest distance
+            idx = distances.argmin()
+            idxs[i] = idx
+            eigenvals[i] = self.eigenvalues[idx]
+        return idxs, eigenvals
 
     def get_matrix_B(self):
         if not self.header['matrices_written']:

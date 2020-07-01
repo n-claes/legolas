@@ -24,20 +24,22 @@ contains
     call allow_geometry_override(default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=1.0d0)
     call initialise_grid()
 
-    radiative_cooling = .true.
-    cooling_curve = "rosner"
-    thermal_conduction = .true.
-    use_fixed_tc_perp = .true.
-    fixed_tc_perp_value = 0.0d0
-
     if (use_defaults) then
+      ! physics
+      radiative_cooling = .true.
+      cooling_curve = "rosner"
+      thermal_conduction = .true.
+      use_fixed_tc_perp = .true.
+      fixed_tc_perp_value = 0.0d0
+
+      ! parameters
       k2 = 1.0d0
       k3 = 1.0d0
-
       cte_rho0 = 1.0d0
       cte_T0 = 0.001d0
       alpha = 20.0d0
 
+      ! units
       cgs_units = .true.
       ! cool plasma
       call set_normalisations(new_unit_density=1.6727d-15, new_unit_magneticfield=22.5d0, new_unit_length=1.0d10)

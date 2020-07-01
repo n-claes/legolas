@@ -31,81 +31,68 @@ contains
 
 
   !> Calculates the Spitzer resistivity based on the equilibrium temperatures.
-  !! @param[in]  T0   Array with the equilibrium temperatures, in K
-  !! @param[out] eta  Array containing the Spitzer resistivity as a function of T
-  subroutine get_eta(T0, eta)
+  !! @param[in]  T0   normalised equilibrium temperature
+  !! @param[out] eta  normalised resistivity
+  subroutine get_eta(T0_eq, eta)
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_units, only: unit_temperature, set_unit_resistivity, unit_resistivity
 
-    real(dp), intent(in)    :: T0(gauss_gridpts)
+    real(dp), intent(in)    :: T0_eq(gauss_gridpts)
     real(dp), intent(inout) :: eta(gauss_gridpts)
 
     real(dp)                :: ec, me, e0, kB, eta_1MK
-    real(dp)                :: T0_denorm(gauss_gridpts)
+    real(dp)                :: T0_dimfull(gauss_gridpts)
 
     if (use_fixed_resistivity) then
       eta = fixed_eta_value
       return
     end if
 
-    !! Denormalise variables for calculation
-    T0_denorm = T0 * unit_temperature
-
     call get_constants(ec, me, e0, kB)
-
-    eta = dpi * Z_ion * ec**2 * sqrt(me) * log(coulomb_log) / &
-          ((4 * dpi * e0)**2 * (kB * T0_denorm)**1.5d0)
-
+    T0_dimfull = T0_eq * unit_temperature
+    eta = (4.0d0 / 3.0d0) * sqrt(2.0d0 * dpi) * Z_ion * ec**2 * sqrt(me) * coulomb_log &
+          / ((4 * dpi * e0)**2 * (kB * T0_dimfull)**(3.0d0 / 2.0d0))
     !! Set the unit resistivity, such that the normalised resistivity
     !! at 1 MK equals approximately 0.1. This can be done, as a unit current
     !! can be chosen at random.
-    eta_1MK = dpi * Z_ion * ec**2 * sqrt(me) * log(coulomb_log) / &
-              ((4 * dpi * e0)**2 * (kB * 1.0d6)**1.5d0)
+    eta_1MK = (4.0d0 / 3.0d0) * sqrt(2.0d0 * dpi) * Z_ion * ec**2 * sqrt(me) * coulomb_log &
+          / ((4 * dpi * e0)**2 * (kB * 1.0d6)**(3.0d0 / 2.0d0))
     call set_unit_resistivity(eta_1MK / 0.1d0)
-
     !! Renormalise
     eta = eta / unit_resistivity
-
   end subroutine get_eta
 
-  !> Calculates the derivative of the Spitzer resistivity with respect to
-  !! temperature.
-  !! @param[in]  T0      Array with the equilibrium temperatures, in K
-  !! @param[out] deta_dT Array containing the derivative of the Spitzer
-  !!                     resistivity with respect to temperature
-  subroutine get_deta_dT(T0, deta_dT)
+  !> Calculates the derivative of the Spitzer resistivity with respect to temperature.
+  !! @param[in]  T0      normalised equilibrium temperature
+  !! @param[out] deta_dT normalised derivative of resistivity with respect to temperature
+  subroutine get_deta_dT(T0_eq, deta_dT)
     use mod_global_variables, only: use_fixed_resistivity
     use mod_units, only: unit_temperature, unit_deta_dT
 
-    real(dp), intent(in)    :: T0(gauss_gridpts)
+    real(dp), intent(in)    :: T0_eq(gauss_gridpts)
     real(dp), intent(out)   :: deta_dT(gauss_gridpts)
 
     real(dp)                :: ec, me, e0, kB
-    real(dp)                :: T0_denorm(gauss_gridpts)
+    real(dp)                :: T0_dimfull(gauss_gridpts)
 
     if (use_fixed_resistivity) then
       deta_dT = 0.0d0
       return
     end if
 
-    !! Denormalise variables for calculation
-    T0_denorm = T0 * unit_temperature
-
     call get_constants(ec, me, e0, kB)
-
-    deta_dT = -1.5d0 * dpi * Z_ion * ec**2 * sqrt(me) * log(coulomb_log) / &
-              ((4 * dpi * e0)**2 * kB**1.5d0 * T0_denorm**2.5d0)
-    !! Renormalise
+    T0_dimfull = T0_eq * unit_temperature
+    deta_dT = -2.0d0 * sqrt(2.0d0 * dpi) * Z_ion * ec**2 * sqrt(me) * coulomb_log &
+              / ((4 * dpi * e0)**2 * kB**(3.0d0 / 2.0d0) * T0_dimfull**(5.0d0 / 2.0d0))
     deta_dT = deta_dT / unit_deta_dT
-
   end subroutine get_deta_dT
 
   !> Gets the physical constants relevant for the Spitzer resistivity.
   !! Retrieves the values in SI or cgs units.
-  !! @param[out] ec   The electric charge in SI or cgs units
-  !! @param[out] me   The electron mass in SI or cgs units
-  !! @param[out] e0   The permittivity of free space in SI or cgs units
-  !! @param[out] kB   The Boltzmann constant in SI or cgs units
+  !! @param[out] ec   electric charge in SI or cgs units
+  !! @param[out] me   electron mass in SI or cgs units
+  !! @param[out] e0   permittivity of free space in SI or cgs units
+  !! @param[out] kB   Boltzmann constant in SI or cgs units
   subroutine get_constants(ec, me, e0, kB)
     use mod_global_variables, only: cgs_units
     use mod_physical_constants, only: ec_cgs, me_cgs, kB_cgs, ec_si, me_si, e0_si, kB_si
@@ -123,7 +110,6 @@ contains
       e0 = e0_si
       kB = kB_si
     end if
-
   end subroutine get_constants
 
 end module mod_resistivity

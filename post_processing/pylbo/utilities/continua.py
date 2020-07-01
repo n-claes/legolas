@@ -24,7 +24,7 @@ def get_continuum_regions(ds):
     wA2 = (1 / rho) * ((k2 * B02 / eps) + k3 * B03)**2
     wS2 = (gamma * p / (gamma * p + B0**2)) * wA2
     # doppler shift equals dot product of k and v
-    doppler = k2 * v02 + k3 * v03
+    doppler = k2 * v02 /eps + k3 * v03
 
     # retrieve thermal continuum
     wTH = _thermal_continuum(ds, eps)

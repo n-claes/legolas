@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from ._version import __version__
 from . import \
     data_management, \
     testing, \
@@ -15,21 +16,22 @@ from .utilities.automation import \
     run_legolas
 from .utilities.datfile_utils import \
     get_header, \
-    read_grid, \
-    read_grid_gauss, \
-    read_eigenvalues, \
-    read_equilibrium_arrays, \
-    read_ef_grid, \
-    read_eigenfunctions, \
-    read_matrix_B, \
-    read_matrix_A
+    read_eigenvalues
 from .utilities.defaults import \
     LEGOLAS_DIR, \
     LEGOLAS_OUT
 from .visualisations.spectrum import \
     SingleSpectrum, \
     MultiSpectrum
-from .visualisations.matrices import plot_matrices
+from .visualisations.matrices import \
+    plot_matrices
+from .visualisations.eigenfunctions import \
+    EigenfunctionHandler
+from .utilities.logger import \
+    set_loglevel, \
+    disable_logging
+
+utilities.logger.init_logger()
 
 def show():
     plt.show()
