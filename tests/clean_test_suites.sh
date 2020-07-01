@@ -1,6 +1,5 @@
 rm -rf .pytest_cache
-rm -f regression_tests/*.dat
-rm -f regression_tests/*.log
+rm -rf regression_tests/results
 rm -rf regression_tests/.pytest_cache
 echo ">> regression tests cleaned"
 rm -f pylbo_tests/*.dat

@@ -18,9 +18,6 @@ contains
       k3 = dpi
     end if
 
-    write(*, *) k2
-    write(*, *) k3
-
     rho_field % rho0 = 1.0d0
     T_field % T0     = 1.0d0
     B_field % B02    = 0.0d0

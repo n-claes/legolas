@@ -1,12 +1,15 @@
 import pytest
 import pylbo
+import copy
 from pathlib import Path
 from .suite_utils import get_filepaths, \
     get_answer_filepaths, \
-    output
+    output, \
+    compare_eigenvalues
 
-datfile, logfile = get_filepaths('magnetothermal')
-answer_datfile, answer_logfile = get_answer_filepaths('magnetothermal')
+name = 'magnetothermal'
+datfile, logfile = get_filepaths(name)
+answer_datfile, answer_logfile = get_answer_filepaths(name)
 
 config = {
     'geometry': 'cylindrical',
@@ -75,6 +78,30 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
+def test_params(ds_test):
+    params = copy.deepcopy(ds_test.parameters)
+    assert params.pop('k2') == pytest.approx(0)
+    assert params.pop('k3') == pytest.approx(1)
+    assert params.pop('cte_T0') == pytest.approx(1)
+    assert len(params) == 0
+
+
+def test_eq_type(ds_test):
+    assert ds_test.eq_type == 'magnetothermal_instabilities'
+
+
+def test_conduction(ds_test):
+    for kappa_perp_val in ds_test.equilibria.get('kappa_perp'):
+        assert kappa_perp_val == pytest.approx(0)
+
+
 def test_compare_evs(log_test, log_answer):
-    for i in range(len(log_test)):
-        assert log_test[i] == log_answer[i]
+    compare_eigenvalues(log_test, log_answer, ds_name=name)
+
+
+def test_units(ds_test):
+    units = ds_test.units
+    assert ds_test.cgs
+    assert units.get('unit_temperature') == pytest.approx(2.6e6)
+    assert units.get('unit_magneticfield') == pytest.approx(10)
+    assert units.get('unit_length') == pytest.approx(1e8)

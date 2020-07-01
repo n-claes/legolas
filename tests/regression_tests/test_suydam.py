@@ -1,12 +1,15 @@
 import pytest
 import pylbo
+import copy
 from pathlib import Path
 from .suite_utils import get_filepaths, \
     get_answer_filepaths, \
-    output
+    output, \
+    compare_eigenvalues
 
-datfile, logfile = get_filepaths('suydam')
-answer_datfile, answer_logfile = get_answer_filepaths('suydam')
+name = 'suydam'
+datfile, logfile = get_filepaths(name)
+answer_datfile, answer_logfile = get_answer_filepaths(name)
 
 config = {
     'geometry': 'cylindrical',
@@ -69,6 +72,20 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
+def test_params(ds_test):
+    params = copy.deepcopy(ds_test.parameters)
+    assert params.pop('k2') == pytest.approx(1)
+    assert params.pop('k3') == pytest.approx(-1.2)
+    assert params.pop('cte_v03') == pytest.approx(0.14)
+    assert params.pop('cte_p0') == pytest.approx(0.05)
+    assert params.pop('p1') == pytest.approx(0.1)
+    assert params.pop('alpha') == pytest.approx(2)
+    assert len(params) == 0
+
+
+def test_eq_type(ds_test):
+    assert ds_test.eq_type == 'suydam_cluster'
+
+
 def test_compare_evs(log_test, log_answer):
-    for i in range(len(log_test)):
-        assert log_test[i] == log_answer[i]
+    compare_eigenvalues(log_test, log_answer, ds_name=name)

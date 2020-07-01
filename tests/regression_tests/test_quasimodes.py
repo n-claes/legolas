@@ -1,12 +1,15 @@
 import pytest
 import pylbo
+import copy
 from pathlib import Path
 from .suite_utils import get_filepaths, \
     get_answer_filepaths, \
-    output
+    output, \
+    compare_eigenvalues
 
-datfile, logfile = get_filepaths('quasimodes')
-answer_datfile, answer_logfile = get_answer_filepaths('quasimodes')
+name = 'quasimodes'
+datfile, logfile = get_filepaths(name)
+answer_datfile, answer_logfile = get_answer_filepaths(name)
 
 config = {
     'geometry': 'Cartesian',
@@ -71,6 +74,24 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
+def test_params(ds_test):
+    params = copy.deepcopy(ds_test.parameters)
+    assert params.pop('k2') == pytest.approx(1)
+    assert params.pop('k3') == pytest.approx(0.05)
+    assert params.pop('p1') == pytest.approx(0.9)
+    assert params.pop('p2') == pytest.approx(0.1)
+    assert params.pop('r0') == pytest.approx(0.1)
+    assert len(params) == 0
+
+
+def test_eq_type(ds_test):
+    assert ds_test.eq_type == 'resonant_absorption'
+
+
+def test_eta_value(ds_test):
+    for eta_val in ds_test.equilibria.get('eta'):
+        assert eta_val == pytest.approx(1e-4)
+
+
 def test_compare_evs(log_test, log_answer):
-    for i in range(len(log_test)):
-        assert log_test[i] == log_answer[i]
+    compare_eigenvalues(log_test, log_answer, ds_name=name)

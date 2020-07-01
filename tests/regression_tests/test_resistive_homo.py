@@ -1,13 +1,16 @@
 import pytest
 import pylbo
+import copy
 from pathlib import Path
 from .suite_utils import get_filepaths, \
     get_answer_filepaths, \
     output, \
-    FP_LIMIT
+    compare_eigenvalues, \
+    compare_eigenfunctions
 
-datfile, logfile = get_filepaths('resistive_homo')
-answer_datfile, answer_logfile = get_answer_filepaths('resistive_homo')
+name = 'resistive_homo'
+datfile, logfile = get_filepaths(name)
+answer_datfile, answer_logfile = get_answer_filepaths(name)
 
 config = {
     'geometry': 'Cartesian',
@@ -33,7 +36,6 @@ config = {
 }
 
 pylbo.set_loglevel('warning')
-
 ev_guesses = [-0.4180167-0.0008883j,
               -0.4159505-0.0034422j,
               -0.4154890-0.0076967j,
@@ -92,55 +94,86 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
+def test_params(ds_test):
+    params = copy.deepcopy(ds_test.parameters)
+    assert params.pop('k2') == pytest.approx(0)
+    assert params.pop('k3') == pytest.approx(1)
+    assert params.pop('beta') == pytest.approx(0.25)
+    assert len(params) == 0
+
+
+def test_eq_type(ds_test):
+    assert ds_test.eq_type == 'resistive_homo'
+
+
+def test_eta_value(ds_test):
+    for eta_val in ds_test.equilibria.get('eta'):
+        assert eta_val == pytest.approx(1e-3)
+
+
 def test_compare_evs(log_test, log_answer):
-    for i in range(len(log_test)):
-        assert log_test[i] == log_answer[i]
+    compare_eigenvalues(log_test, log_answer, ds_name=name)
 
 
 def test_rho_eigenfunctions(efs_test, efs_answer):
     for ef_test, ef_answer in zip(efs_test, efs_answer):
-        assert ef_test.get('rho') == pytest.approx(ef_answer.get('rho'), 1e-6)
+        compare_eigenfunctions(ef_test.get('rho'), ef_answer.get('rho'), use_abs=True)
 
 
 def test_v1_eigenfunctions(efs_test, efs_answer):
     for ef_test, ef_answer in zip(efs_test, efs_answer):
-        assert ef_test.get('v1') == pytest.approx(ef_answer.get('v1'), 1e-6)
+        compare_eigenfunctions(ef_test.get('v1'), ef_answer.get('v1'), use_abs=True)
+
+
+def test_v1_eigenfunction_ends(efs_test, efs_answer):
+    for ef_test, ef_answer in zip(efs_test, efs_answer):
         # v1 nodes should be zero for wall conditions on edges
         for edge in (0, -1):
-            assert ef_test.get('v1')[edge] == pytest.approx(0, FP_LIMIT)
+            assert ef_test.get('v1').real[edge] == pytest.approx(0)
+            assert ef_test.get('v1').imag[edge] == pytest.approx(0)
 
 
 def test_v2_eigenfunctions(efs_test, efs_answer):
     for ef_test, ef_answer in zip(efs_test, efs_answer):
-        assert ef_test.get('v2') == pytest.approx(ef_answer.get('v2'), 1e-6)
+        compare_eigenfunctions(ef_test.get('v2'), ef_answer.get('v2'), use_abs=True)
 
 
 def test_v3_eigenfunctions(efs_test, efs_answer):
     for ef_test, ef_answer in zip(efs_test, efs_answer):
-        assert ef_test.get('v3') == pytest.approx(ef_answer.get('v3'), 1e-6)
+        compare_eigenfunctions(ef_test.get('v3'), ef_answer.get('v3'), use_abs=True)
 
 
 def test_T_eigenfunctions(efs_test, efs_answer):
     for ef_test, ef_answer in zip(efs_test, efs_answer):
-        assert ef_test.get('T') == pytest.approx(ef_answer.get('T'), 1e-6)
+        compare_eigenfunctions(ef_test.get('T'), ef_answer.get('T'), use_abs=True)
 
 
 def test_a1_eigenfunctions(efs_test, efs_answer):
     for ef_test, ef_answer in zip(efs_test, efs_answer):
-        assert ef_test.get('a1') == pytest.approx(ef_answer.get('a1'), 1e-6)
+        compare_eigenfunctions(ef_test.get('a1'), ef_answer.get('a1'), use_abs=True)
 
 
 def test_a2_eigenfunctions(efs_test, efs_answer):
     for ef_test, ef_answer in zip(efs_test, efs_answer):
-        assert ef_test.get('a2') == pytest.approx(ef_answer.get('a2'), 1e-6)
-        # v1 nodes should be zero for wall conditions on edges
+        compare_eigenfunctions(ef_test.get('a2'), ef_answer.get('a2'), use_abs=True)
+
+
+def test_a2_eigenfunction_ends(efs_test, efs_answer):
+    for ef_test, ef_answer in zip(efs_test, efs_answer):
+        # a2 nodes should be zero for wall conditions on edges
         for edge in (0, -1):
-            assert ef_test.get('a2')[edge] == pytest.approx(0, FP_LIMIT)
+            assert ef_test.get('a2').real[edge] == pytest.approx(0)
+            assert ef_test.get('a2').imag[edge] == pytest.approx(0)
 
 
 def test_a3_eigenfunctions(efs_test, efs_answer):
     for ef_test, ef_answer in zip(efs_test, efs_answer):
-        assert ef_test.get('a3') == pytest.approx(ef_answer.get('a3'), 1e-6)
-        # v1 nodes should be zero for wall conditions on edges
+        compare_eigenfunctions(ef_test.get('a3'), ef_answer.get('a3'), use_abs=True)
+
+
+def test_a3_eigenfunction_ends(efs_test, efs_answer):
+    for ef_test, ef_answer in zip(efs_test, efs_answer):
+        # a3 nodes should be zero for wall conditions on edges
         for edge in (0, -1):
-            assert ef_test.get('a3')[edge] == pytest.approx(0, FP_LIMIT)
+            assert ef_test.get('a3').real[edge] == pytest.approx(0)
+            assert ef_test.get('a3').imag[edge] == pytest.approx(0)
