@@ -1,12 +1,15 @@
 import pytest
 import pylbo
+import copy
 from pathlib import Path
 from .suite_utils import get_filepaths, \
     get_answer_filepaths, \
-    output
+    output, \
+    compare_eigenvalues
 
-datfile, logfile = get_filepaths('tokamak')
-answer_datfile, answer_logfile = get_answer_filepaths('tokamak')
+name = 'tokamak'
+datfile, logfile = get_filepaths(name)
+answer_datfile, answer_logfile = get_answer_filepaths(name)
 
 config = {
     'geometry': 'cylindrical',
@@ -66,6 +69,17 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
+def test_params(ds_test):
+    params = copy.deepcopy(ds_test.parameters)
+    assert params.pop('k2') == pytest.approx(-2)
+    assert params.pop('k3') == pytest.approx(0.2)
+    assert params.pop('j0') == pytest.approx(2 * 0.2 / 1.95)
+    assert len(params) == 0
+
+
+def test_eq_type(ds_test):
+    assert ds_test.eq_type == 'constant_current_tokamak'
+
+
 def test_compare_evs(log_test, log_answer):
-    for i in range(len(log_test)):
-        assert log_test[i] == log_answer[i]
+    compare_eigenvalues(log_test, log_answer, ds_name=name)

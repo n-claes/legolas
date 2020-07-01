@@ -1,13 +1,16 @@
 import pytest
 import numpy as np
 import pylbo
+import copy
 from pathlib import Path
 from .suite_utils import get_filepaths, \
     get_answer_filepaths, \
-    output
+    output, \
+    compare_eigenvalues
 
-datfile, logfile = get_filepaths('interchange_modes')
-answer_datfile, answer_logfile = get_answer_filepaths('interchange_modes')
+name = 'interchange_modes'
+datfile, logfile = get_filepaths(name)
+answer_datfile, answer_logfile = get_answer_filepaths(name)
 
 config = {
     'geometry': 'Cartesian',
@@ -70,6 +73,27 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
+def test_params(ds_test):
+    params = copy.deepcopy(ds_test.parameters)
+    assert params.pop('k2') == pytest.approx(np.pi)
+    assert params.pop('k3') == pytest.approx(np.pi)
+    assert params.pop('g') == pytest.approx(0.5)
+    assert params.pop('cte_p0') == pytest.approx(0.25)
+    assert params.pop('cte_rho0') == pytest.approx(30)
+    assert params.pop('lambda') == pytest.approx(0)
+    assert params.pop('alpha') == pytest.approx(20)
+    assert params.pop('beta') == 0.5
+    assert len(params) == 0
+
+
+def test_eq_type(ds_test):
+    assert ds_test.eq_type == 'interchange_modes'
+
+
+def test_gravity_value(ds_test):
+    for g_val in ds_test.equilibria.get('grav'):
+        assert g_val == pytest.approx(0.5)
+
+
 def test_compare_evs(log_test, log_answer):
-    for i in range(len(log_test)):
-        assert log_test[i] == log_answer[i]
+    compare_eigenvalues(log_test, log_answer, ds_name=name)
