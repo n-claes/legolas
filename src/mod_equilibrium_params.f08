@@ -1,31 +1,91 @@
+! =============================================================================
+!> @brief   Module containing all equilibrium parameters.
+!! @details All parameters used in the equilibrium submodules are defined here
+!!          for convenience, including the wave numbers \p k2 and \p k3.
+!!          All of these values are \p NaN initially, such that variables that are
+!!          not properly set propagate their value and are easy to spot in follow-up checks.
+!!          If values are not used they remain equal to \p NaN throughout program execution.
+!!          All these variables are defined here so they allow for easy setting through the
+!!          parfile, and hence mean more flexible control of the different submodules.
 module mod_equilibrium_params
   use mod_global_variables, only: dp
   implicit none
 
   public
 
-  !> Wavenumber in y-direction (Cartesian) or theta-direction (cylindrical)
+  !> wavenumber in y-direction (Cartesian) or theta-direction (cylindrical)
   real(dp)  :: k2
-  !> Wavenumber in z-direction
+  !> wavenumber in z-direction
   real(dp)  :: k3
 
-  !! General equilibrium values, either values themselves or prefactors
+  !> general constant usually used for density
   real(dp)  :: cte_rho0
+  !> general constant usually used for temperature
   real(dp)  :: cte_T0
+  !> general constant usually used for the 02 magnetic field component
   real(dp)  :: cte_B02
+  !> general constant usually used for the 03 magnetic field component
   real(dp)  :: cte_B03
+  !> general constant usually used for the 02 velocity component
   real(dp)  :: cte_v02
+  !> general constant usually used for the 03 velocity component
   real(dp)  :: cte_v03
+  !> general constant usually used for pressure
   real(dp)  :: cte_p0
-
-  !! General constants, used in various equilibrium configurations
-  real(dp)  :: p1, p2, p3, p4, p5, p6, p7, p8
-  real(dp)  :: alpha, beta, delta, theta, tau, lambda, nu
-  real(dp)  :: r0, rc, rj
-  real(dp)  :: Bth0, Bz0, V, j0, g
+  !> general constant usually used in polynomials
+  real(dp)  :: p1
+  !> general constant usually used in polynomials
+  real(dp)  :: p2
+  !> general constant usually used in polynomials
+  real(dp)  :: p3
+  !> general constant usually used in polynomials
+  real(dp)  :: p4
+  !> general constant usually used in polynomials
+  real(dp)  :: p5
+  !> general constant usually used in polynomials
+  real(dp)  :: p6
+  !> general constant usually used in polynomials
+  real(dp)  :: p7
+  !> general constant usually used in polynomials
+  real(dp)  :: p8
+  !> general constant used in various expressions
+  real(dp)  :: alpha
+  !> general constant used in various expressions
+  real(dp)  :: beta
+  !> general constant used in various expressions
+  real(dp)  :: delta
+  !> general constant used in various expressions
+  real(dp)  :: theta
+  !> general constant used in various expressions
+  real(dp)  :: tau
+  !> general constant used in various expressions
+  real(dp)  :: lambda
+  !> general constant used in various expressions
+  real(dp)  :: nu
+  !> general constant usually used for radius
+  real(dp)  :: r0
+  !> general constant usually used for radius
+  real(dp)  :: rc
+  !> general constant usually used for radius
+  real(dp)  :: rj
+  !> general constant usually used in cylindrical geometry
+  real(dp)  :: Bth0
+  !> general constant usually used in cylindrical geometry
+  real(dp)  :: Bz0
+  !> general constant usually used in shear-related setups
+  real(dp)  :: V
+  !> general constant usually used for current
+  real(dp)  :: j0
+  !> general constant usually used for gravity
+  real(dp)  :: g
 
 contains
 
+
+  !> @brief   Initialises all equilibrium parameters.
+  !! @details Initialises all variables defined at module scope to NaN,
+  !!          including the wave numbers. This ensures that these have to
+  !!          be explicitly set.
   subroutine init_equilibrium_params()
     use mod_global_variables, only: NaN
 

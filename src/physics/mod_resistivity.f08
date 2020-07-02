@@ -1,13 +1,7 @@
-!
-! MODULE: mod_resistivity
-!
-!> @author
-!> Niels Claes
-!> niels.claes@kuleuven.be
-!
-! DESCRIPTION:
-!> Module to calculate the resistivity contributions.
-!
+! =============================================================================
+!> @brief   Module containing resistivity-related routines.
+!! @details This module is responsible for calculating and setting the resistivity
+!!          values based on the equilibrium configuration.
 module mod_resistivity
   use mod_global_variables, only: dp, gauss_gridpts
   use mod_physical_constants, only: dpi, Z_ion, coulomb_log
@@ -19,6 +13,12 @@ module mod_resistivity
 
 contains
 
+
+  !> @brief   Main routine to set the resistivity.
+  !! @brief   This routines sets all resistivity values in \p eta_field,
+  !!          and calls all other relevant subroutines defined in this module.
+  !! @param[in] T_field   the type containing the temperature attributes
+  !! @param[in, out] eta_field  the type containing the resistivity attributes
   subroutine set_resistivity_values(T_field, eta_field)
     use mod_types, only: temperature_type, resistivity_type
 
@@ -30,9 +30,16 @@ contains
   end subroutine set_resistivity_values
 
 
-  !> Calculates the Spitzer resistivity based on the equilibrium temperatures.
-  !! @param[in]  T0   normalised equilibrium temperature
-  !! @param[out] eta  normalised resistivity
+  !> @brief   Calculates the resistivity.
+  !! @details Returns either the full Spitzer resistivity based on the equilibrium
+  !!          parameters, or a fixed resistivity value if specified in the global
+  !!          variables module. The unit resistivity is also set in this routine.
+  !!          If a fixed resistivity is used, eta is assumed to be normalised and
+  !!          the unit resistivity remains unity.
+  !! @note    The temperature should be normalised when calling this routine,
+  !!          the resistivity is normalised on exit.
+  !! @param[in]  T0_eq  equilibrium temperature
+  !! @param[out] eta    resistivity values
   subroutine get_eta(T0_eq, eta)
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_units, only: unit_temperature, set_unit_resistivity, unit_resistivity
@@ -62,9 +69,15 @@ contains
     eta = eta / unit_resistivity
   end subroutine get_eta
 
-  !> Calculates the derivative of the Spitzer resistivity with respect to temperature.
-  !! @param[in]  T0      normalised equilibrium temperature
-  !! @param[out] deta_dT normalised derivative of resistivity with respect to temperature
+
+  !> @brief   Calculates the derivative of the resistivity.
+  !! @details Returns the derivative of the full Spitzer resistivity with respect
+  !!          to the equilibrium temperature. If a fixed resistivity was set instead
+  !!          this routine returns zero.
+  !! @note    The temperature should be normalised when calling this routine,
+  !!          the derivative of the resistivity is normalised on exit.
+  !! @param[in]  T0_eq    normalised equilibrium temperature
+  !! @param[out] deta_dT  normalised derivative of resistivity with respect to temperature
   subroutine get_deta_dT(T0_eq, deta_dT)
     use mod_global_variables, only: use_fixed_resistivity
     use mod_units, only: unit_temperature, unit_deta_dT
@@ -87,12 +100,14 @@ contains
     deta_dT = deta_dT / unit_deta_dT
   end subroutine get_deta_dT
 
-  !> Gets the physical constants relevant for the Spitzer resistivity.
-  !! Retrieves the values in SI or cgs units.
-  !! @param[out] ec   electric charge in SI or cgs units
-  !! @param[out] me   electron mass in SI or cgs units
-  !! @param[out] e0   permittivity of free space in SI or cgs units
-  !! @param[out] kB   Boltzmann constant in SI or cgs units
+
+  !> @brief   Retrieves resistivity constants.
+  !! @details Returns all physical constants used to calculate the Spitzer resistivity,
+  !!          either in cgs (default) or SI depending on the unit system chosen.
+  !! @param[out] ec   electric charge
+  !! @param[out] me   electron mass
+  !! @param[out] e0   permittivity of free space
+  !! @param[out] kB   Boltzmann constant
   subroutine get_constants(ec, me, e0, kB)
     use mod_global_variables, only: cgs_units
     use mod_physical_constants, only: ec_cgs, me_cgs, kB_cgs, ec_si, me_si, e0_si, kB_si

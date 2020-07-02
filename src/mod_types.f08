@@ -1,109 +1,110 @@
+! =============================================================================
+!> @brief   Module containing the different types used in the code.
+!! @details All types are defined here, this includes all types where the
+!!          equilibrium arrays are set as attributes, as well as a type
+!!          to handle eigenfunctions.
 module mod_types
   use mod_global_variables, only: dp, str_len, str_len_arr, gauss_gridpts
   implicit none
 
   private
 
-  !> Type containing all density related equilibrium variables
+  !> type containing all density related equilibrium variables
   type density_type
-    !> Equilibrium density
+    !> equilibrium density
     real(dp), allocatable   :: rho0(:)
-    !> Derivative rho0
+    !> derivative of the equilibrium density
     real(dp), allocatable   :: d_rho0_dr(:)
   end type density_type
 
-  !> Type containing all temperature related equilibrium variables
+  !> type containing all temperature related equilibrium variables
   type temperature_type
-    !> Equilibrium temperature
+    !> equilibrium temperature
     real(dp), allocatable   :: T0(:)
-    !> Derivative T0
+    !> derivative of the equilibrium temperature
     real(dp), allocatable   :: d_T0_dr(:)
   end type temperature_type
 
-  !> Type containing all magnetic field related equilibrium
-  !! variables
+  !> type containing all magnetic field related equilibrium variables
   type bfield_type
-    !> Equilibrium magnetic field in y or theta-direction
+    !> equilibrium magnetic field in y or theta-direction
     real(dp), allocatable   :: B02(:)
-    !> Equilibrium magnetic field in z direction
+    !> equilibrium magnetic field in z direction
     real(dp), allocatable   :: B03(:)
-    !> Equilibrium magnetic field (total)
+    !> equilibrium magnetic field (total)
     real(dp), allocatable   :: B0(:)
-    !> Derivative B02
+    !> derivative of equilibrium B02
     real(dp), allocatable   :: d_B02_dr(:)
-    !> Derivative B03
+    !> derivative of equilibrium B03
     real(dp), allocatable   :: d_B03_dr(:)
   end type bfield_type
 
-  !> Type containing all flow related equilibrium variables
+  !> type containing all flow related equilibrium variables
   type velocity_type
-    !> Equilibrium velocity in the y or theta-direction
+    !> equilibrium velocity in the y or theta-direction
     real(dp), allocatable   :: v02(:)
-    !> Equilibrium velocity in the z direction
+    !> equilibrium velocity in the z direction
     real(dp), allocatable   :: v03(:)
-    !> Derivative v02
+    !> derivative of equilibrium v02
     real(dp), allocatable   :: d_v02_dr(:)
-    !> Derivative v03
+    !> derivative of equilibrium v03
     real(dp), allocatable   :: d_v03_dr(:)
   end type velocity_type
 
-  !> Type containing all gravity related equilibrium
-  !! variables
+  !> type containing all gravity related equilibrium variables
   type gravity_type
-    !> Equilibrium gravity
+    !> equilibrium gravity
     real(dp), allocatable   :: grav(:)
   end type gravity_type
 
-  !> Type containing all resistivity related equilibrium
-  !! variables
+  !> type containing all resistivity related equilibrium variables
   type resistivity_type
-    !> Equilibrium resistivity
+    !> equilibrium resistivity
     real(dp), allocatable   :: eta(:)
-    !> Derivative of eta with respect to temperature
+    !> derivative of eta with respect to temperature
     real(dp), allocatable   :: d_eta_dT(:)
-    !> Second derivative B02
+    !> second derivative equilibrium B02
     real(dp), allocatable   :: dd_B02_dr(:)
-    !> Second derivative B03
+    !> second derivative equilibrium B03
     real(dp), allocatable   :: dd_B03_dr(:)
   end type resistivity_type
 
-  !> Type containing all radiative cooling related
-  !! equilibrium variables
+  !> type containing all radiative cooling related equilibrium variables
   type cooling_type
-    !> Equilibrium heat-loss function (losses - gains)
+    !> equilibrium heat-loss function L0 (losses - gains)
     real(dp), allocatable   :: heat_loss(:)
-    !> Derivative dL/dT
+    !> derivative dL/dT
     real(dp), allocatable   :: d_L_dT(:)
-    !> Derivative dL/drho
+    !> derivative dL/drho
     real(dp), allocatable   :: d_L_drho(:)
   end type cooling_type
 
-  !> Type containing all conduction related equilibrium
-  !! variables
+  !> Type containing all conduction related equilibrium variables
   type conduction_type
-    !> Equilibrium parallel thermal conduction
+    !> equilibrium parallel thermal conduction
     real(dp), allocatable   :: kappa_para(:)
-    !> Equilibrium perpendicular thermal conduction
+    !> equilibrium perpendicular thermal conduction
     real(dp), allocatable   :: kappa_perp(:)
-    !> Derivative d(kappa_perp)/drho
+    !> derivative d(kappa_perp)/drho
     real(dp), allocatable   :: d_kappa_perp_drho(:)
-    !> Derivative d(kappa_perp)/dT
+    !> derivative d(kappa_perp)/dT
     real(dp), allocatable   :: d_kappa_perp_dT(:)
-    !> Derivative d(kappa_perp)/d(B**2)
+    !> derivative d(kappa_perp)/d(B**2)
     real(dp), allocatable   :: d_kappa_perp_dB2(:)
   end type conduction_type
 
-  !> Type containing all eigenfuction related variables
+  !> type containing all eigenfuction related variables
   type ef_type
-    !> Index of the eigenfunction (1 -> 8)
+    !> index of the variable in the state vector
     integer                  :: index
-    !> Name of the eigenfunction
+    !> name of the eigenfunction (rho, v1, etc.)
     character(str_len_arr)   :: name
-    !> Array containing all eigenfunctions for this index
+    !> array containing all eigenfunctions for this index
     complex(dp), allocatable :: eigenfunctions(:, :)
   end type ef_type
 
 
+  !> interface to initialise all the different types
   interface initialise_type
     module procedure initialise_density_type
     module procedure initialise_temperature_type
@@ -115,6 +116,7 @@ module mod_types
     module procedure initialise_conduction_type
   end interface initialise_type
 
+  !> interface to deallocate all the different types
   interface deallocate_type
     module procedure deallocate_density_type
     module procedure deallocate_temperature_type
@@ -141,6 +143,11 @@ module mod_types
 
 contains
 
+
+  !> @brief   Initialises the density type.
+  !! @details Allocates the density type and initialises
+  !!          all values to zero.
+  !! @param[in, out] type_rho the type containing the density attributes
   subroutine initialise_density_type(type_rho)
     type (density_type), intent(inout)  :: type_rho
 
@@ -152,6 +159,10 @@ contains
   end subroutine initialise_density_type
 
 
+  !> @brief   Initialises the temperature type.
+  !! @details Allocates the temperature type and initialises
+  !!          all values to zero.
+  !! @param[in, out] type_T the type containing the temperature attributes
   subroutine initialise_temperature_type(type_T)
     type (temperature_type), intent(inout) :: type_T
 
@@ -163,6 +174,10 @@ contains
   end subroutine initialise_temperature_type
 
 
+  !> @brief   Initialises the magnetic field type.
+  !! @details Allocates the magnetic field type and initialises
+  !!          all values to zero.
+  !! @param[in, out] type_B the type containing the magnetic field attributes
   subroutine initialise_bfield_type(type_B)
     type (bfield_type), intent(inout) :: type_B
 
@@ -180,6 +195,10 @@ contains
   end subroutine initialise_bfield_type
 
 
+  !> @brief   Initialises the velocity type.
+  !! @details Allocates the velocity type and initialises
+  !!          all values to zero.
+  !! @param[in, out] type_v the type containing the velocity attributes
   subroutine initialise_velocity_type(type_v)
     type (velocity_type), intent(inout) :: type_v
 
@@ -195,6 +214,10 @@ contains
   end subroutine initialise_velocity_type
 
 
+  !> @brief   Initialises the gravity type.
+  !! @details Allocates the gravity type and initialises
+  !!          all values to zero.
+  !! @param[in, out] type_grav the type containing the gravity attributes
   subroutine initialise_gravity_type(type_grav)
     type (gravity_type), intent(inout)  :: type_grav
 
@@ -204,6 +227,13 @@ contains
   end subroutine initialise_gravity_type
 
 
+  !> @brief   Initialises the resistivity type.
+  !! @details Allocates the resistivity type and initialises
+  !!          all values to zero.
+  !! @note The second derivatives of the magnetic field components
+  !!       are also included in this type, since they are only used
+  !!       when resistivity is included.
+  !! @param[in, out] type_eta the type containing the resistivity attributes
   subroutine initialise_resistivity_type(type_eta)
     type (resistivity_type), intent(inout)  :: type_eta
 
@@ -219,6 +249,10 @@ contains
   end subroutine initialise_resistivity_type
 
 
+  !> @brief   Initialises the radiative cooling type.
+  !! @details Allocates the radiative cooling type and initialises
+  !!          all values to zero.
+  !! @param[in, out] type_rc the type containing the radiative cooling attributes
   subroutine initialise_cooling_type(type_rc)
     type (cooling_type), intent(inout)  :: type_rc
 
@@ -232,6 +266,10 @@ contains
   end subroutine initialise_cooling_type
 
 
+  !> @brief   Initialises the thermal conduction type.
+  !! @details Allocates the thermal conduction type and initialises
+  !!          all values to zero.
+  !! @param[in, out] type_kappa the type containing the thermal conduction attributes
   subroutine initialise_conduction_type(type_kappa)
     type (conduction_type), intent(inout) :: type_kappa
 
@@ -249,6 +287,10 @@ contains
   end subroutine initialise_conduction_type
 
 
+  !> @brief   Deallocates the density type
+  !! @details Deallocates all attributes contained in the
+  !!          density type
+  !! @param[in, out]  type_rho  the type containing the density attributes
   subroutine deallocate_density_type(type_rho)
     type (density_type), intent(inout)  :: type_rho
 
@@ -257,6 +299,10 @@ contains
   end subroutine deallocate_density_type
 
 
+  !> @brief   Deallocates the temperature type
+  !! @details Deallocates all attributes contained in the
+  !!          temperature type
+  !! @param[in, out]  type_T  the type containing the temperature attributes
   subroutine deallocate_temperature_type(type_T)
     type (temperature_type), intent(inout)  :: type_T
 
@@ -265,6 +311,10 @@ contains
   end subroutine deallocate_temperature_type
 
 
+  !> @brief   Deallocates the magnetic field type
+  !! @details Deallocates all attributes contained in the
+  !!          magnetic field type
+  !! @param[in, out]  type_B  the type containing the magnetic field attributes
   subroutine deallocate_bfield_type(type_B)
     type (bfield_type), intent(inout) :: type_B
 
@@ -276,6 +326,10 @@ contains
   end subroutine deallocate_bfield_type
 
 
+  !> @brief   Deallocates the velocity type
+  !! @details Deallocates all attributes contained in the
+  !!          velocity type
+  !! @param[in, out]  type_v  the type containing the velocity attributes
   subroutine deallocate_velocity_type(type_v)
     type (velocity_type), intent(inout) :: type_v
 
@@ -286,6 +340,10 @@ contains
   end subroutine deallocate_velocity_type
 
 
+  !> @brief   Deallocates the gravity type
+  !! @details Deallocates all attributes contained in the
+  !!          gravity type
+  !! @param[in, out]  type_grav  the type containing the gravity attributes
   subroutine deallocate_gravity_type(type_grav)
     type (gravity_type), intent(inout) :: type_grav
 
@@ -293,6 +351,10 @@ contains
   end subroutine deallocate_gravity_type
 
 
+  !> @brief   Deallocates the resistivity type
+  !! @details Deallocates all attributes contained in the
+  !!          resistivity type
+  !! @param[in, out]  type_eta  the type containing the resistivity attributes
   subroutine deallocate_resistivity_type(type_eta)
     type (resistivity_type), intent(inout) :: type_eta
 
@@ -303,6 +365,10 @@ contains
   end subroutine deallocate_resistivity_type
 
 
+  !> @brief   Deallocates the radiative cooling type
+  !! @details Deallocates all attributes contained in the
+  !!          radiative cooling type
+  !! @param[in, out]  type_rc  the type containing the radiative cooling attributes
   subroutine deallocate_cooling_type(type_rc)
     type (cooling_type), intent(inout) :: type_rc
 
@@ -312,6 +378,10 @@ contains
   end subroutine deallocate_cooling_type
 
 
+  !> @brief   Deallocates the thermal conduction type
+  !! @details Deallocates all attributes contained in the
+  !!          thermal conduction type
+  !! @param[in, out]  type_kappa  the type containing the thermal conduction attributes
   subroutine deallocate_conduction_type(type_kappa)
     type (conduction_type), intent(inout)  :: type_kappa
 

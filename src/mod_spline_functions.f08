@@ -1,32 +1,16 @@
-!
-! MODULE: mod_spline_functions
-!
-!> @author
-!> Niels Claes
-!> niels.claes@kuleuven.be
-!
-!> @note
-!> We don't use rj_low (= r_{j-1}), rj_center (= r_j) or rj_high (= r_{j+1}),
-!! because in every grid block [i, i+1] there is a contribution from both
-!! the current functions in this interval as from the functions in the grid
-!! block [i-1, i]. See page 193 of advanded MHD by Keppens and Poedts, this
-!! holds both for cubic and quadratic functions.
-!! Hence we use rj_lo for r_j and rj_hi for r_{j+1}, which in the interval
-!! [i, i+1] (2 and 4) corresponds to the current quadratic/cubic functions,
-!! while in the interval [i-1, i] (1 and 3) this corresponds to the previous
-!! quadratic/cubic functions.
-!
-! DESCRIPTION:
-!> Module to calculate the quadratic and cubic spline functions and their
-!! derivatives.
-!
+! =============================================================================
+!> @brief   Module that calculates the finite element basis functions.
+!! @details The different basis functions and their derivatives
+!!          used throughout the code are calculated here. All routines defined in
+!!          this module simply return the basis functions for a specific point /p r
+!!          in the interval <tt>(rj_lo, rj_hi)</tt>.
 module mod_spline_functions
   use mod_global_variables, only: dp
   use mod_check_values, only: check_small_values
   implicit none
 
   private
-  
+
   public :: quadratic_factors
   public :: quadratic_factors_deriv
   public :: cubic_factors
@@ -34,12 +18,12 @@ module mod_spline_functions
 
 contains
 
-  !> Calculates the quadratic basis functions.
-  !! @param[in] r       The current value for r in grid_gauss
-  !! @param[in] rj_lo   Left value of r in grid
-  !! @param[in] rj_hi   Right value of r in grid (so r has 4 values between
-  !!                    rj_hi and rj_lo)
-  !! @param[out] h_quadratic  Array containing the 4 quadratic basis functions
+
+  !> @brief Calculates the quadratic basis functions.
+  !! @param[in] r     current value for r in the interval
+  !! @param[in] rj_lo left edge of the grid interval
+  !! @param[in] rj_hi right edge of the grid interval
+  !! @param[out] h_quadratic array containing the four quadratic basis functions in this interval
   subroutine quadratic_factors(r, rj_lo, rj_hi, h_quadratic)
     real(dp), intent(in)  ::  r, rj_lo, rj_hi
     real(dp), intent(out) ::  h_quadratic(4)
@@ -50,16 +34,15 @@ contains
     h_quadratic(4) = (2.0d0*r - rj_hi - rj_lo) * (r - rj_hi) / (rj_hi - rj_lo)**2
 
     call check_small_values(h_quadratic)
-
   end subroutine quadratic_factors
 
-  !> Calculates the derivatives of the quadratic basis functions.
-  !! @param[in] r       The current value for r in grid_gauss
-  !! @param[in] rj_lo   Left value of r in grid
-  !! @param[in] rj_hi   Right value of r in grid (so r has 4 values between
-  !!                    rj_hi and rj_lo)
-  !! @param[out] dh_quadratic_dr  Array containing the derivatives of the
-  !!                              4 quadratic basis functions
+
+  !> @brief Calculates the derivative of the quadratic basis functions.
+  !! @param[in] r     current value for r in the interval
+  !! @param[in] rj_lo left edge of the grid interval
+  !! @param[in] rj_hi right edge of the grid interval
+  !! @param[out] dh_quadratic_dr array containing the four derivatives of the
+  !!                             quadratic basis functions in this interval
   subroutine quadratic_factors_deriv(r, rj_lo, rj_hi, dh_quadratic_dr)
     real(dp), intent(in)  ::  r, rj_lo, rj_hi
     real(dp), intent(out) ::  dh_quadratic_dr(4)
@@ -70,15 +53,14 @@ contains
     dh_quadratic_dr(4) = (4.0d0*r - rj_lo - 3.0d0*rj_hi) / (rj_hi - rj_lo)**2
 
     call check_small_values(dh_quadratic_dr)
-
   end subroutine quadratic_factors_deriv
 
-  !> Calculates the cubic basis functions.
-  !! @param[in] r       The current value for r in grid_gauss
-  !! @param[in] rj_lo   Left value of r in grid
-  !! @param[in] rj_hi   Right value of r in grid (so r has 4 values between
-  !!                    rj_hi and rj_lo)
-  !! @param[out] h_cubic  Array containing the 4 cubic basis functions
+
+  !> @brief Calculates the cubic basis functions.
+  !! @param[in] r     current value for r in the interval
+  !! @param[in] rj_lo left edge of the grid interval
+  !! @param[in] rj_hi right edge of the grid interval
+  !! @param[out] h_cubic array containing the four cubic basis functions in this interval
   subroutine cubic_factors(r, rj_lo, rj_hi, h_cubic)
     real(dp), intent(in)  :: r, rj_lo, rj_hi
     real(dp), intent(out) :: h_cubic(4)
@@ -91,16 +73,15 @@ contains
     h_cubic(4) = (r - rj_lo) * ( (rj_hi - r) / (rj_hi - rj_lo) )**2
 
     call check_small_values(h_cubic)
-
   end subroutine cubic_factors
 
-  !> Calculates the derivatives of the cubic basis functions.
-  !! @param[in] r       The current value for r in grid_gauss
-  !! @param[in] rj_lo   Left value of r in grid
-  !! @param[in] rj_hi   Right value of r in grid (so r has 4 values between
-  !!                    rj_hi and rj_lo)
-  !! @param[out] dh_cubic_dr  Array containing the derivatives of the
-  !!                          4 cubic basis functions
+
+  !> @brief Calculates the derivative of the cubic basis functions.
+  !! @param[in] r     current value for r in the interval
+  !! @param[in] rj_lo left edge of the grid interval
+  !! @param[in] rj_hi right edge of the grid interval
+  !! @param[out] dh_cubic_dr array containing the four derivatives of the
+  !!                         cubic basis functions in this interval
   subroutine cubic_factors_deriv(r, rj_lo, rj_hi, dh_cubic_dr)
     real(dp), intent(in)  :: r, rj_lo, rj_hi
     real(dp), intent(out) :: dh_cubic_dr(4)
@@ -115,11 +96,6 @@ contains
                      / (rj_hi - rj_lo)**2
 
     call check_small_values(dh_cubic_dr)
-
   end subroutine cubic_factors_deriv
-
-
-
-
 
 end module mod_spline_functions

@@ -23,7 +23,7 @@ module mod_global_variables
 
   !> values smaller than this are forced to zero
   real(dp), parameter :: dp_LIMIT = 1.0d-12
-  !> NaN value
+  !> NaN value (ieee_quiet_nan)
   real(dp), protected :: NaN
 
   !> complex number i

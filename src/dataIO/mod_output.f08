@@ -1,3 +1,7 @@
+! =============================================================================
+!> @brief   Module handling all data output.
+!! @details This module contains all routines for file opening and
+!!          file writing.
 module mod_output
   use mod_global_variables, only: dp, str_len
   implicit none
@@ -5,9 +9,9 @@ module mod_output
   private
 
   !! IO units -- do not use 0/5/6/7, these are system-reserved
-  !> Filehandler IO unit for the main data file
+  !> filehandler IO unit for the main data file
   integer, parameter  :: dat_fh = 10
-  !> Filehandler IO unit for the log file
+  !> filehandler IO unit for the log file
   integer, parameter  :: log_fh = 20
   !> datfile name
   character(len=str_len) :: datfile_name
@@ -19,9 +23,12 @@ module mod_output
 
 contains
 
-  !> Opens a file with given unit and filename.
-  !! @param[in] file_unit   IO unit for opening the file
-  !! @param[in] filename    filename to open
+  !> @brief   Opens a given file.
+  !! @details Opens a file with a given IO unit and filename.
+  !!          All files are opened using <tt>access='stream'</tt>,
+  !!          <tt>status='unknown'</tt> and <tt>action='write'</tt>.
+  !! @param[in] file_unit   the IO unit of the file to open
+  !! @param[in] filename    the filename of the file to open
   subroutine open_file(file_unit, filename)
     integer, intent(in)           :: file_unit
     character(len=*), intent(in)  :: filename
@@ -31,11 +38,13 @@ contains
   end subroutine open_file
 
 
-  !> Creates a filename, prepending the output directory and appending the
-  !! file extension
+  !> @brief   Creates a filename.
+  !! @details Builds a filename based on a given base filename and the
+  !!          output folder defined in the global variables module.
+  !!          The output folder is prepended to the base filename.
+  !! @note    At this point filenames are not yet given extensions.
   !! @param[in] base_filename   the base filename to use
-  !! @param[out] filename       the resulting filename, of the form
-  !!                            output_folder/base_filename.extension
+  !! @param[out] filename       the filename that is created
   subroutine make_filename(base_filename, filename)
     use mod_global_variables, only: output_folder
 
@@ -46,6 +55,19 @@ contains
   end subroutine make_filename
 
 
+  !> @brief   Creates the datfile.
+  !! @details Writes the datfile, where eigenfunctions and matrices are optionally
+  !!          included. First a header is written containing default information
+  !!          on the configuration, then the actual data.
+  !! @note    Eigenfunctions are only written if this is enabled in the global variables.
+  !! @note    Matrices are only written if this is enabled in the global variables.
+  !!          The matrices are not written entirely to save diskspace: a first pass is performed
+  !!          locating the non-zero values, and then the values are saved to file in the format
+  !!          <tt>(row_idx, column_idx, value)</tt>.
+  !! @note    The extension \p ".dat" is appended to the filename.
+  !! @param[in] eigenvalues   the eigenvalues
+  !! @param[in] matrix_A      the A-matrix
+  !! @param[in] matrix_B      the B-matrix
   subroutine create_datfile(eigenvalues, matrix_A, matrix_B)
     use mod_global_variables, only: geometry, x_start, x_end, gridpts, gauss_gridpts, &
                                     matrix_gridpts, ef_gridpts, gamma, equilibrium_type, &
@@ -155,6 +177,15 @@ contains
   end subroutine create_datfile
 
 
+  !> @brief   Creates a logfile.
+  !! @details If \p basename_logfile is specified in the datfile, a logfile is written.
+  !!          This is a pure textfile containing the real and imaginary parts of the
+  !!          eigenvalues, written in an exponential format. This is mainly used
+  !!          for testing purposes, but may come in handy to do some quick inspections
+  !!          on the data.
+  !! @note    If \p basename_logfile is unspecified in the parfile, no logfile is written.
+  !! @note    The extension \p ".log" is appended to the filename.
+  !! @param[in] eigenvalues   the eigenvalues
   subroutine create_logfile(eigenvalues)
     use mod_global_variables, only: matrix_gridpts, basename_logfile
     use mod_logging, only: log_message, exp_fmt

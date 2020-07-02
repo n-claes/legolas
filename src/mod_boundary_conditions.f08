@@ -1,25 +1,28 @@
-!
-! MODULE: mod_boundary_conditions
-!
-!> @author
-!> Niels Claes
-!> niels.claes@kuleuven.be
-!
-! DESCRIPTION:
-!> Module to calculate the boundary conditions for the eigenvalue problem.
-!
+! =============================================================================
+!> @brief   Module to handle the boundary conditions.
+!! @details Imposes boundary conditions on the finite element matrices after assembly.
+!!          Both natural and essential conditions are handled.
 module mod_boundary_conditions
   use mod_global_variables, only: dp, matrix_gridpts, dim_quadblock, dim_subblock
   implicit none
 
   private
 
+  !> boolean to check presence of perpendicular thermal conduction
   logical, save   :: kappa_perp_is_zero
 
   public :: apply_boundary_conditions
 
 contains
 
+
+  !> @brief   Main routine to handle the boundary conditions
+  !! @details Public subroutine in this module that first performs some checks
+  !!          and then handles the natural and essential boundary conditions.
+  !! @note    Perpendicular thermal conduction is hard-checked, that is, not just the
+  !!          global logical. There must be a value in the corresponding array that is non-zero.
+  !! @param[in, out]  matrix_A  the A-matrix with boundary conditions imposed on exit
+  !! @param[in, out]  matrix_B  the B-matrix with boundary conditions imposed on exit
   subroutine apply_boundary_conditions(matrix_A, matrix_B)
     use mod_global_variables, only: dp_LIMIT
     use mod_equilibrium, only: kappa_field
@@ -61,6 +64,20 @@ contains
     matrix_A(idx_start_right:matrix_gridpts, idx_start_right:matrix_gridpts) = quadblock
   end subroutine apply_boundary_conditions
 
+
+  !> @brief   Handles essential boundary conditions.
+  !! @details Imposes essential boundary conditions on a given matrix, that is,
+  !!          the ones that have to be implemented explicitly.
+  !!          For a wall, that means handling \p v1, \p a2 and \p a3 (and \p T1 if there is
+  !!          perpendicular thermal conduction).
+  !! @note    The contribution from the 0 quadratic basis function automatically
+  !!          zeroes out the odd rows/columns for the quadratic variables on the left edge.
+  !!          These are explicitly handled.
+  !! @exception Error   If \p boundary_type is not known.
+  !! @exception Error   If \p edge is not known.
+  !! @param[in, out]  quadblock the quadblock corresponding to the left/right edge
+  !! @param[in]       edge      the edge, either \p "l_edge" or \p "r_edge"
+  !! @param[in]       matrix    the matrix, either \p "A" or \p "B"
   subroutine essential_boundaries(quadblock, edge, matrix)
     use mod_global_variables, only: boundary_type
     use mod_logging, only: log_message
@@ -80,9 +97,7 @@ contains
       call log_message("essential boundaries: invalid matrix argument", level='error')
     end if
 
-    ! Always: the contribution from the 0 basis function automatically
-    ! zeroes out the odd rows/columns for the quadratic variables on the left edge
-    ! so we handle those indices explicitly
+    ! explicitly handle zeroed out rows/cols due to 0 term quadratic basis function
     qua_zeroes = [1, 5, 7, 9, 11]
     if (edge == 'l_edge') then
       do i = 1, size(qua_zeroes)
@@ -91,7 +106,7 @@ contains
       end do
     end if
 
-    ! Wall/regularity conditions: handling of v1, a2 and a3 (and T if conduction).
+    ! wall/regularity conditions: handling of v1, a2 and a3 (and T if conduction).
     ! v1, a2 and a3 are cubic elements, so omit non-zero basis functions (odd rows/columns)
     ! T is a quadratic element, so omit even row/columns
     wall_idx_left = [3, 13, 15, 10]
@@ -127,9 +142,21 @@ contains
     case default
       call log_message( "essential boundaries: invalid boundary_type", level='error')
     end select
-
   end subroutine essential_boundaries
 
+
+  !> @brief   Handles the natural boundary conditions.
+  !! @details Imposes the natural boundary conditions, that is, the ones originating
+  !!          from the weak formulation. This is only applicable for the A-matrix.
+  !! @note    For now only the terms of a solid wall boundary are implemented, hence
+  !!          we only have additional resistive and conductive terms in the energy equation.
+  !!          If perpendicular thermal conduction is included we have \p T1 = 0, such that
+  !!          then there are no surface terms to be added and we simply return.
+  !!          If free boundary conditions are considered (e.g. vacuum-wall) additional terms
+  !!          have to be added
+  !! @exception Error   If \p edge is unknown.
+  !! @param[in, out]  quadblock   the quadblock corresponding to the current \p edge
+  !! @param[in]       edge        the edge, either \p "l_edge" or \p "r_edge"
   subroutine natural_boundaries(quadblock, edge)
     use mod_global_variables, only: boundary_type, gauss_gridpts, gamma_1, ic, dim_subblock
     use mod_logging, only: log_message
@@ -149,18 +176,9 @@ contains
       call log_message('natural boundaries: only wall is implemented!', level='error')
     end if
 
-    ! For now only the terms concerning the solid wall boundary are implemented.
-    ! If free boundary conditions are added (eg. vacuum-wall), then additional
-    ! terms have to be added.
-    ! Hence:
-    !   - v1 momentum equation: currently no terms added (v1 = 0 for a wall)
-    !   - T1 energy equation: resistive and conductive terms
-    !   - a2 induction equation: currently no terms added (a2 = 0 for a wall)
-    !   - a3 induction equation: currently no terms added (a3 = 0 for a wall)
-    ! Note:
-    !   For a wall with perpendicular thermal conduction we also have the condition T1 = 0.
-    !   Hence, in that case there are no surface terms to be added, and we simply return.
-    !   So for now we only have resistive terms in the energy equation.
+    ! For a wall with perpendicular thermal conduction we also have the condition T1 = 0.
+    ! Hence, in that case there are no surface terms to be added, and we simply return.
+    ! So for now we only have resistive terms in the energy equation.
     if (.not. kappa_perp_is_zero) then
       return
     end if
