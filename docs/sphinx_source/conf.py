@@ -15,9 +15,13 @@ release = '1.0'
 
 # -- General configuration ---------------------------------------------------
 extensions = ['sphinx.ext.autodoc',
+              'sphinx.ext.autosummary',
               'sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
-              'sphinx.ext.napoleon']
+              'sphinx.ext.napoleon',
+              'numpydoc']
+napoleon_include_private_with_doc = True
+autosummary_generate = True
 
 #templates_path = ['_templates']
 exclude_patterns = []

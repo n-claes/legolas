@@ -94,7 +94,7 @@ contains
     use mod_global_variables
     use mod_equilibrium_params, only: k2, k3
 
-    if (logging_level <= 2) then
+    if (logging_level <= 1) then
       return
     end if
 
