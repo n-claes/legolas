@@ -6,3 +6,9 @@ vendor
 content/src-docs/ford
 Gemfile
 Gemfile.lock
+content/src-docs/sphinx
+sphinx_source/_rst_files
+sphinx_source/_static
+sphinx_source/_templates
+
+
