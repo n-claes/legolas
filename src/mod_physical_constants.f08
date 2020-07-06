@@ -1,7 +1,6 @@
 ! =============================================================================
-!> @brief   Module containing all physical constants
-!! @details All physical constants used in the code are defined in this module.
-!!          We include values both in SI units and in cgs units for convenience.
+!> All physical constants used in the code are defined in this module.
+!! We include values both in SI units and in cgs units for convenience.
 module mod_physical_constants
   use mod_global_variables, only: dp
   implicit none

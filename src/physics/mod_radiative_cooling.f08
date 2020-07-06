@@ -1,9 +1,9 @@
 ! =============================================================================
-!> @brief   Module containing radiative cooling-related routines.
-!! @details This module is responsible for initialising the radiative cooling
-!!          variables and a correct handling of the cooling curves.
-!!          Interpolation of the curves is also done in this module, based on
-!!          routines found in the MPI-AMRVAC code (amrvac.org).
+!> Module containing radiative cooling-related routines.
+!! This module is responsible for initialising the radiative cooling
+!! variables and a correct handling of the cooling curves.
+!! Interpolation of the curves is also done in this module, based on
+!! routines found in the MPI-AMRVAC code (amrvac.org).
 module mod_radiative_cooling
   use mod_global_variables, only: dp, ncool
   implicit none
@@ -26,7 +26,7 @@ module mod_radiative_cooling
   real(dp)              :: max_T
   !> minimum temperature of interpolated cooling curve
   real(dp)              :: min_T
-  !> boolean to use an interpolated curve or not (if \p False, piecewise is used)
+  !> boolean to use an interpolated curve or not (if <tt>False</tt>, piecewise is used)
   logical, save         :: interpolated_curve = .true.
 
   public  :: initialise_radiative_cooling
@@ -36,11 +36,11 @@ module mod_radiative_cooling
 contains
 
 
-  !> @brief   Initialises the radiative cooling variables.
-  !! @details This routine first selects and allocates the correct cooling
-  !!          tables, depending on the desired curve. These tables are used
-  !!          to interpolate the final cooling curve using \p ncool points.
-  !! @exception Error If the cooling curve specified is unknown.
+  !> Initialises the radiative cooling variables.
+  !! This routine first selects and allocates the correct cooling
+  !! tables, depending on the desired curve. These tables are used
+  !! to interpolate the final cooling curve using \p ncool points.
+  !! @warning Throws an error if the cooling curve is unknown.
   subroutine initialise_radiative_cooling()
     use mod_global_variables, only: cooling_curve
     use mod_logging, only: log_message
@@ -113,25 +113,23 @@ contains
   end subroutine initialise_radiative_cooling
 
 
-  !> @brief   Sets the radiative cooling values
-  !! @details This routine sets the radiative cooling attributes
-  !!          of the corresponding types. This is called \e after the
-  !!          equilibrium is initialised in the submodule.
+  !> Sets the radiative cooling attributes of the corresponding types.
+  !! This is called _after_ the equilibrium is initialised in the submodule.
   !! @note    No cooling is applied when T0 is below the lower limit of the
   !!          cooling curve. If T0 is above the upper limit of the cooling curve,
-  !!          pure Bremmstrahlung is assumed.
-  !! @exception Error If the cooling curve specified is not known.
-  !! @param[in] rho_field the type containing the density attributes
-  !! @param[in] T_field   the type containing the temperature attributes
-  !! @param[in, out] rc_field the type containing the radiative cooling attributes
+  !!          pure Bremmstrahlung is assumed. @endnote
+  !! @warning Throws an error if the cooling curve is unknown.
   subroutine set_radiative_cooling_values(rho_field, T_field, rc_field)
     use mod_types, only: density_type, temperature_type, cooling_type
     use mod_global_variables, only: gauss_gridpts, cooling_curve
     use mod_cooling_curves, only: get_rosner_cooling
     use mod_logging, only: log_message
 
+    !> the type containing the density attributes
     type(density_type), intent(in)      :: rho_field
+    !> the type containing the temperature attributes
     type(temperature_type), intent(in)  :: T_field
+    !> the type containing the radiative cooling attributes
     type(cooling_type), intent(inout)   :: rc_field
 
     real(dp)    :: lambda_T(gauss_gridpts)
@@ -181,19 +179,18 @@ contains
   end subroutine set_radiative_cooling_values
 
 
-  !> @brief   Interpolates the cooling tables.
-  !! @details Interpolates the rudimentary cooling curves using \p ncool points.
-  !!          A second-order polynomial interpolation is used except near
-  !!          sharp jumps.
+  !> Interpolates the rudimentary cooling curves using <tt>ncool</tt> points.
+  !! A second-order polynomial interpolation is used except near sharp jumps.
   !! @note    The interpolated cooling curves are normalised on exit.
-  !! @param[in] ntable    number of values in the cooling table
-  !! @param[in] table_T   temperature values in the cooling table
-  !! @param[in] table_L   luminosity values in the cooling table
   subroutine interpolate_cooling_curve(ntable, table_T, table_L)
     use mod_units, only: unit_temperature, unit_luminosity
 
+    !> number of values in the cooling table
     integer, intent(in)   :: ntable
-    real(dp), intent(in)  :: table_T(:), table_L(:)
+    !> temperature values in the cooling table
+    real(dp), intent(in)  :: table_T(:)
+    !> luminosity values in the cooling table
+    real(dp), intent(in)  :: table_L(:)
     real(dp)              :: fact1, fact2, fact3, dL1, dL2, ratt
     integer               :: i, j
     logical               :: jump
@@ -289,8 +286,7 @@ contains
   end subroutine interpolate_cooling_curve
 
 
-  !> @brief   Cleanup routine.
-  !! @details Deallocates all variables allocated at module-scope.
+  !> Cleanup routine, deallocates all variables allocated at module-scope.
   subroutine radiative_cooling_clean()
     if (interpolated_curve) then
       deallocate(interp_table_T)

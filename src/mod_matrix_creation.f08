@@ -1,10 +1,9 @@
 ! =============================================================================
-!> @brief   Module that handles matrix assembly.
-!! @details Assembly of the finite element matrices \f$\mathcal{A}\f$ and \f$\mathcal{B}\f$ in the matrix
-!!          eigenvalue problem \f$\mathcal{A}\textbf{X} = \omega\mathcal{B}\textbf{X}\f$.
-!!          Matrix creation proceeds by first assembling a quadblock at every grid interval
-!!          using the integrals and finite element basis functions, after which this quadblock
-!!          is shifted along the main diagonal.
+!> Assembly of the finite element matrices \(\mathcal{A}\) and \(\mathcal{B}\) in the matrix
+!! eigenvalue problem \(\mathcal{A}\textbf{X} = \omega\mathcal{B}\textbf{X}\).
+!! Matrix creation proceeds by first assembling a quadblock at every grid interval
+!! using the integrals and finite element basis functions, after which this quadblock
+!! is shifted along the main diagonal.
 !! @note    Boundary conditions are imposed after matrix assembly is completed.
 module mod_matrix_creation
   use mod_global_variables, only: dp, gridpts, matrix_gridpts, dim_quadblock, &
@@ -27,13 +26,11 @@ module mod_matrix_creation
 contains
 
 
-  !> @brief   Main subroutine to assemble the matrices A and B.
-  !> @details Matrices A and B are allocated when entering this subroutine.
-  !!          The quadblock is calculated for every grid interval and used to assemble
-  !!          both matrices. On exit, both matrices are fully assembled and
-  !!          boundary conditions are imposed.
-  !! @param[in, out]  matrix_B  the B-matrix
-  !! @param[in, out]  matrix_A  the A-matrix
+  !> Main subroutine to assemble the matrices A and B, which are
+  !! already allocated when entering this subroutine but not yet initialised.
+  !! The quadblock is calculated for every grid interval and used to assemble
+  !! both matrices. On exit, both matrices are fully assembled and
+  !! boundary conditions are imposed.
   subroutine create_matrices(matrix_B, matrix_A)
     use mod_global_variables, only: gaussian_weights, n_gauss
     use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
@@ -41,7 +38,9 @@ contains
                                     cubic_factors, cubic_factors_deriv
     use mod_boundary_conditions, only: apply_boundary_conditions
 
+    !> the B-matrix
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
+    !> the A-matrix
     complex(dp), intent(inout)  :: matrix_A(matrix_gridpts, matrix_gridpts)
     complex(dp)                 :: quadblock_B(dim_quadblock, dim_quadblock)
     complex(dp)                 :: quadblock_A(dim_quadblock, dim_quadblock)
@@ -114,28 +113,26 @@ contains
   end subroutine create_matrices
 
 
-  !> @brief   Calculates the different elements for the B-matrix.
-  !! @details Retrieves the B-matrix elements for a given quadblock corresponding
-  !!          to a particular point in the grid and a particular Gaussian weight.
-  !!          This routine is called \p n_gauss times for every grid interval.
+  !> Retrieves the B-matrix elements for a given quadblock corresponding
+  !! to a particular point in the grid and a particular Gaussian weight.
+  !! This routine is called <tt>n_gauss</tt> times for every grid interval.
   !! @note    When this subroutine gets called the basis functions defined at module scope
   !!          have already been recalculated and correspond to this particular value
   !!          in the grid.
-  !! @param[in] gauss_idx   current index in the Gaussian grid
-  !! @param[in] eps         current value for the scale factor epsilon
-  !! @param[in] curr_weight current weight in the Gaussian quadrature
-  !! @param[in, out] quadblock_B the B-quadblock for a particular grid interval
   subroutine get_B_elements(gauss_idx, eps, curr_weight, quadblock_B)
     use mod_equilibrium, only: rho_field
     use mod_make_subblock, only: subblock, reset_positions, reset_factors
 
+    !> current index in the Gaussian grid
     integer, intent(in)          :: gauss_idx
-    real(dp), intent(in)         :: eps, curr_weight
+    !> current value for the scale factor epsilon
+    real(dp), intent(in)         :: eps
+    !> current weight in the Gaussian quadrature
+    real(dp), intent(in)         :: curr_weight
+    !> the B-quadblock for a particular grid interval
     complex(dp), intent(inout)   :: quadblock_B(dim_quadblock, dim_quadblock)
 
-    !> array containing the integral expressions for the B-matrix
     complex(dp), allocatable     :: factors(:)
-    !> array containing the position of each integral, eg. [1, 3] for B(1, 3)
     integer, allocatable         :: positions(:, :)
 
     real(dp)                     :: rho
@@ -182,18 +179,12 @@ contains
 
 
 
-  !> @brief   Calculates the different elements for the A-matrix.
-  !! @details Retrieves the A-matrix elements for a given quadblock corresponding
-  !!          to a particular point in the grid and a particular Gaussian weight.
-  !!          This routine is called \p n_gauss times for every grid interval.
+  !> Retrieves the A-matrix elements for a given quadblock corresponding
+  !! to a particular point in the grid and a particular Gaussian weight.
+  !! This routine is called <tt>n_gauss</tt> times for every grid interval.
   !! @note    When this subroutine gets called the basis functions defined at module scope
   !!          have already been recalculated and correspond to this particular value
   !!          in the grid.
-  !! @param[in] gauss_idx   current index in the Gaussian grid
-  !! @param[in] eps         current value for the scale factor epsilon
-  !! @param[in] d_eps_dr    current value for the derivative of epsilon
-  !! @param[in] curr_weight current weight in the Gaussian quadrature
-  !! @param[in, out] quadblock_A the A-quadblock for a particular grid interval
   subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_A)
     use mod_global_variables, only: ic, gamma_1
     use mod_equilibrium_params, only: k2, k3
@@ -201,13 +192,18 @@ contains
                                rc_field, kappa_field
     use mod_make_subblock, only: subblock, reset_factors, reset_positions
 
+    !> current index in the Gaussian grid
     integer, intent(in)       :: gauss_idx
-    real(dp), intent(in)      :: eps, d_eps_dr, curr_weight
+    !> current value for the scale factor epsilon
+    real(dp), intent(in)      :: eps
+    !> current value for the derivative of epsilon
+    real(dp), intent(in)      :: d_eps_dr
+    !> current weight in the Gaussian quadrature
+    real(dp), intent(in)      :: curr_weight
+    !> the A-quadblock for a particular grid interval
     complex(dp), intent(out)  :: quadblock_A(dim_quadblock, dim_quadblock)
 
-    !> array containing the integral expressions for the A-matrix
     complex(dp), allocatable  :: factors(:)
-    !> array containing the position of each integral, eg. [5, 2] for A(5, 2)
     integer, allocatable      :: positions(:, :)
 
     real(dp)                  :: eps_inv

@@ -1,7 +1,6 @@
 ! =============================================================================
-!> @brief   Module to handle the boundary conditions.
-!! @details Imposes boundary conditions on the finite element matrices after assembly.
-!!          Both natural and essential conditions are handled.
+!> Imposes boundary conditions on the finite element matrices after assembly.
+!! Both natural and essential conditions are handled.
 module mod_boundary_conditions
   use mod_global_variables, only: dp, matrix_gridpts, dim_quadblock, dim_subblock
   implicit none
@@ -16,18 +15,17 @@ module mod_boundary_conditions
 contains
 
 
-  !> @brief   Main routine to handle the boundary conditions
-  !! @details Public subroutine in this module that first performs some checks
-  !!          and then handles the natural and essential boundary conditions.
-  !! @note    Perpendicular thermal conduction is hard-checked, that is, not just the
-  !!          global logical. There must be a value in the corresponding array that is non-zero.
-  !! @param[in, out]  matrix_A  the A-matrix with boundary conditions imposed on exit
-  !! @param[in, out]  matrix_B  the B-matrix with boundary conditions imposed on exit
+  !> Main routine to handle the boundary conditions. This subroutine first performs some checks
+  !! and then handles the natural and essential boundary conditions.
+  !! @note  Perpendicular thermal conduction is hard-checked, that is, not just the
+  !!        global logical. There must be a value in the corresponding array that is non-zero.
   subroutine apply_boundary_conditions(matrix_A, matrix_B)
     use mod_global_variables, only: dp_LIMIT
     use mod_equilibrium, only: kappa_field
 
+    !> the A-matrix with boundary conditions imposed on exit
     complex(dp), intent(inout)  :: matrix_A(matrix_gridpts, matrix_gridpts)
+    !> the B-matrix with boundary conditions imposed on exit
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp)                 :: quadblock(dim_quadblock, dim_quadblock)
     integer                     :: idx_end_left, idx_start_right
@@ -65,25 +63,24 @@ contains
   end subroutine apply_boundary_conditions
 
 
-  !> @brief   Handles essential boundary conditions.
-  !! @details Imposes essential boundary conditions on a given matrix, that is,
-  !!          the ones that have to be implemented explicitly.
-  !!          For a wall, that means handling \p v1, \p a2 and \p a3 (and \p T1 if there is
-  !!          perpendicular thermal conduction).
+  !> Imposes essential boundary conditions on a given matrix, that is,
+  !! the ones that have to be implemented explicitly.
+  !! For a wall, that means handling \(v1, a2\) and \(a3\) (and \(T1\) if there is
+  !! perpendicular thermal conduction).
   !! @note    The contribution from the 0 quadratic basis function automatically
   !!          zeroes out the odd rows/columns for the quadratic variables on the left edge.
-  !!          These are explicitly handled.
-  !! @exception Error   If \p boundary_type is not known.
-  !! @exception Error   If \p edge is not known.
-  !! @param[in, out]  quadblock the quadblock corresponding to the left/right edge
-  !! @param[in]       edge      the edge, either \p "l_edge" or \p "r_edge"
-  !! @param[in]       matrix    the matrix, either \p "A" or \p "B"
+  !!          These are explicitly handled. @endnote
+  !! @warning Throws an error if <tt>boundary_type</tt> is not known,
+  !!          or if <tt>edge</tt> is not known.
   subroutine essential_boundaries(quadblock, edge, matrix)
     use mod_global_variables, only: boundary_type
     use mod_logging, only: log_message
 
+    !> the quadblock corresponding to the left/right edge
     complex(dp), intent(inout)    :: quadblock(dim_quadblock, dim_quadblock)
+    !> the edge, either "l_edge" or "r_edge"
     character(len=6), intent(in)  :: edge
+    !> the matrix, either "A" or "B"
     character, intent(in)         :: matrix
 
     complex(dp)                   :: diagonal_factor
@@ -145,18 +142,15 @@ contains
   end subroutine essential_boundaries
 
 
-  !> @brief   Handles the natural boundary conditions.
-  !! @details Imposes the natural boundary conditions, that is, the ones originating
-  !!          from the weak formulation. This is only applicable for the A-matrix.
+  !> Imposes the natural boundary conditions, that is, the ones originating
+  !! from the weak formulation. This is only applicable for the A-matrix.
   !! @note    For now only the terms of a solid wall boundary are implemented, hence
   !!          we only have additional resistive and conductive terms in the energy equation.
-  !!          If perpendicular thermal conduction is included we have \p T1 = 0, such that
+  !!          If perpendicular thermal conduction is included we have \(T1 = 0\), such that
   !!          then there are no surface terms to be added and we simply return.
   !!          If free boundary conditions are considered (e.g. vacuum-wall) additional terms
-  !!          have to be added
-  !! @exception Error   If \p edge is unknown.
-  !! @param[in, out]  quadblock   the quadblock corresponding to the current \p edge
-  !! @param[in]       edge        the edge, either \p "l_edge" or \p "r_edge"
+  !!          have to be added. @endnote
+  !! @warning Throws an error if <tt>edge</tt> is unknown.
   subroutine natural_boundaries(quadblock, edge)
     use mod_global_variables, only: boundary_type, gauss_gridpts, gamma_1, ic, dim_subblock
     use mod_logging, only: log_message
@@ -164,7 +158,9 @@ contains
     use mod_grid, only: eps_grid, d_eps_grid_dr
     use mod_equilibrium_params, only: k2, k3
 
+    !> the quadblock corresponding to the left/right edge
     complex(dp), intent(inout)    :: quadblock(dim_quadblock, dim_quadblock)
+    !> the edge, either "l_edge" or "r_edge"
     character(len=6), intent(in)  :: edge
 
     complex(dp), allocatable  :: surface_terms(:)

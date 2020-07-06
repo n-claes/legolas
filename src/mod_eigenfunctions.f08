@@ -1,11 +1,10 @@
 ! =============================================================================
-!> @brief   Module containing everything eigenfunction-related.
-!! @details This module composes the eigenfunctions based on the eigenvectors
-!!          coming out of the solver routines. Assembling the eigenfunctions is needed
-!!          because of the finite element matrix representation.
-!!          In every interval of the base grid (i, i+1) eigenfunctions are saved at the
-!!          left and right edges, as well as in the centre of the interval.
-!!          This results in eigenfunction arrays with a size <em> 2*gridpts - 1 </em>.
+!> This module composes the eigenfunctions based on the eigenvectors
+!! coming out of the solver routines. Assembling the eigenfunctions is needed
+!! because of the finite element matrix representation.
+!! In every interval of the base grid \((i, i+1)\) eigenfunctions are saved at the
+!! left and right edges, as well as in the centre of the interval.
+!! This results in eigenfunction arrays with a size \(2*gridpts - 1\).
 module mod_eigenfunctions
   use mod_global_variables, only: dp, matrix_gridpts, ef_gridpts, nb_eqs, str_len_arr
   use mod_types, only: ef_type
@@ -28,10 +27,10 @@ module mod_eigenfunctions
 contains
 
 
-  !> @brief   Main initialisations of this module.
-  !! @details Allocates and initialises the eigenfunction grid, types and names.
-  !! @note    This is only done if the global variable for eigenfunction assembly is \p True.
-  !!          If eigenfunctions are not saved anyway it makes no sense to assemble them.
+  !> Main initialisations of this module.
+  !! Allocates and initialises the eigenfunction grid, types and names.
+  !! @note    This is only done if the global variable for eigenfunction assembly is <tt>True</tt>.
+  !!          If eigenfunctions are not saved it makes no sense to assemble them.
   subroutine initialise_eigenfunctions()
     use mod_global_variables, only: write_eigenfunctions
     integer    :: i
@@ -48,17 +47,17 @@ contains
   end subroutine initialise_eigenfunctions
 
 
-  !> @brief   Calculates the eigenfunctions.
-  !! @details Assembles the eigenfunctions for every eigenvalue and variable,
-  !!          based on the right eigenvectors. The eigenfunctions are transformed
-  !!          back to their 'actual' values
+  !> Calculates the eigenfunctions for every eigenvalue and variable,
+  !! based on the right eigenvectors. The eigenfunctions are transformed
+  !! back to their 'actual' values
   !! @note    All eigenfunctions with a value smaller than <tt>1e-10</tt> are set to zero.
   !!          This is separately checked for the real and imaginary parts.
-  !! @param[in] vr  the matrix of right eigenvectors
   subroutine calculate_eigenfunctions(vr)
     use mod_check_values, only: check_small_values
 
+    !> the matrix of right eigenvectors
     complex(dp), intent(in) :: vr(matrix_gridpts, matrix_gridpts)
+    !> eigenfunctio values
     complex(dp)             :: ef_values(ef_gridpts)
     integer                 :: i, j
 
@@ -81,20 +80,20 @@ contains
   end subroutine calculate_eigenfunctions
 
 
-  !> @brief   Calculates a single eigenfunction based on an eigenvector.
-  !! @details Assembles the eigenfunction corresponding to \p ef_idx and the
-  !!          given eigenvector. The eigenvector supplied is the one
-  !!          corresponding to one particular eigenvalue.
-  !! @param[in] ef_idx        the index of the variable in the state vector
-  !! @param[in] eigenvector   the eigenvector for this particular eigenvalue
-  !! @param[out] Y            the assembled eigenfunction
+  !> Calculates a single eigenfunction based on an eigenvector.
+  !! Assembles the eigenfunction corresponding to <tt>ef_idx</tt> and the
+  !! given eigenvector. The eigenvector supplied is the one
+  !! corresponding to one particular eigenvalue.
   subroutine get_eigenfunction(ef_idx, eigenvector, Y)
     use mod_global_variables, only: dim_subblock, gridpts
     use mod_grid, only: grid
     use mod_logging, only: log_message
 
+    !> the index of the variable in the state vector
     integer, intent(in)           :: ef_idx
+    !> the eigenvector for this particular eigenvalue
     complex(dp), intent(in)       :: eigenvector(matrix_gridpts)
+    !> the assembled eigenfunction
     complex(dp), intent(out)      :: Y(ef_gridpts)
 
     integer                       :: idx1, idx2, grid_idx, i
@@ -152,19 +151,21 @@ contains
   end subroutine get_eigenfunction
 
 
-  !> @brief   Retrieves the spline for a particular variable.
-  !! @details Calls the correct finite element basis function depending on the
-  !!          variable passed.
-  !! @param[in] ef_idx  the index of the variable in the state vector
-  !! @param[in] r       the current position in the grid
-  !! @param[in] r_lo    left edge of the current grid interval
-  !! @param[in] r_hi    right edge of the current grid interval
-  !! @param[out] spline the finite element basis function, depending on \p ef_idx
+  !> Retrieves the spline for a particular variable by
+  !! calling the correct finite element basis function depending on the
+  !! variable passed.
   subroutine get_spline(ef_idx, r, r_lo, r_hi, spline)
     use mod_spline_functions, only: cubic_factors, quadratic_factors
 
+    !> the index of the variable in the state vector
     integer, intent(in)             :: ef_idx
-    real(dp), intent(in)            :: r, r_lo, r_hi
+    !> the current position in the grid
+    real(dp), intent(in)            :: r
+    !> left edge of the current grid interval
+    real(dp), intent(in)            :: r_lo
+    !> right edge of the current grid interval
+    real(dp), intent(in)            :: r_hi
+    !> the finite element basis functions for this grid position
     real(dp), intent(out)           :: spline(4)
 
     if (ef_idx == 2 .or. ef_idx == 7 .or. ef_idx == 8) then
@@ -175,18 +176,18 @@ contains
   end subroutine get_spline
 
 
-  !! @brief   Re-transformation of the eigenfunction.
-  !! @details Transforms the eigenfunction back to its 'actual' value.
-  !!          For example, \p rho is defined as <tt>eps*rho</tt> in the equations,
-  !!          in this case the eigenfunction is divided by the scale factor.
-  !! @exception  Error  If an unknown ef_idx is supplied.
-  !! @param[in] ef_idx  index of the variable in the state vector
-  !! @param[in, out] ef_values   eigenfunction values, transformed on return
+  !> Re-transformation of the eigenfunction.
+  !! Transforms the eigenfunction back to its 'actual' value.
+  !! For example, \(\rho\) is defined as \(\varepsilon\rho\) in the equations,
+  !! in this case the eigenfunction is divided by the scale factor.
+  !! @warning Throws an error if an unknown <tt>ef_idx</tt> is supplied.
   subroutine transform_eigenfunction(ef_idx, ef_values)
     use mod_global_variables, only: ic, geometry
     use mod_logging, only: log_message
 
+    !> index of the variable in the state vector
     integer, intent(in)         :: ef_idx
+    !> eigenfunction values, transformed on exit
     complex(dp), intent(inout)  :: ef_values(ef_gridpts)
     real(dp)     :: ef_eps(ef_gridpts)
 
@@ -221,8 +222,7 @@ contains
   end subroutine transform_eigenfunction
 
 
-  !> @brief   Module cleaning routine.
-  !! @details Deallocates the eigenfunction arrays.
+  !> Cleaning routine, deallocates the eigenfunction arrays.
   subroutine eigenfunctions_clean()
     use mod_global_variables, only: write_eigenfunctions
 

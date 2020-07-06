@@ -1,8 +1,8 @@
 ! =============================================================================
-!> @brief   Module containing the different types used in the code.
-!! @details All types are defined here, this includes all types where the
-!!          equilibrium arrays are set as attributes, as well as a type
-!!          to handle eigenfunctions.
+!> Module containing the different types used in the code.
+!! All types are defined here, this includes all types where the
+!! equilibrium arrays are set as attributes, as well as a type
+!! to handle eigenfunctions.
 module mod_types
   use mod_global_variables, only: dp, str_len, str_len_arr, gauss_gridpts
   implicit none
@@ -144,11 +144,9 @@ module mod_types
 contains
 
 
-  !> @brief   Initialises the density type.
-  !! @details Allocates the density type and initialises
-  !!          all values to zero.
-  !! @param[in, out] type_rho the type containing the density attributes
+  !> Allocates the density type and initialises all values to zero.
   subroutine initialise_density_type(type_rho)
+    !> the type containing the density attributes
     type (density_type), intent(inout)  :: type_rho
 
     allocate(type_rho % rho0(gauss_gridpts))
@@ -159,11 +157,9 @@ contains
   end subroutine initialise_density_type
 
 
-  !> @brief   Initialises the temperature type.
-  !! @details Allocates the temperature type and initialises
-  !!          all values to zero.
-  !! @param[in, out] type_T the type containing the temperature attributes
+  !> Allocates the temperature type and initialises all values to zero.
   subroutine initialise_temperature_type(type_T)
+    !> the type containing the temperature attributes
     type (temperature_type), intent(inout) :: type_T
 
     allocate(type_T % T0(gauss_gridpts))
@@ -174,11 +170,9 @@ contains
   end subroutine initialise_temperature_type
 
 
-  !> @brief   Initialises the magnetic field type.
-  !! @details Allocates the magnetic field type and initialises
-  !!          all values to zero.
-  !! @param[in, out] type_B the type containing the magnetic field attributes
+  !> Allocates the magnetic field type and initialises all values to zero.
   subroutine initialise_bfield_type(type_B)
+    !> the type containing the magnetic field attributes
     type (bfield_type), intent(inout) :: type_B
 
     allocate(type_B % B02(gauss_gridpts))
@@ -195,11 +189,9 @@ contains
   end subroutine initialise_bfield_type
 
 
-  !> @brief   Initialises the velocity type.
-  !! @details Allocates the velocity type and initialises
-  !!          all values to zero.
-  !! @param[in, out] type_v the type containing the velocity attributes
+  !> Allocates the velocity type and initialises all values to zero.
   subroutine initialise_velocity_type(type_v)
+    !> the type containing the velocity attributes
     type (velocity_type), intent(inout) :: type_v
 
     allocate(type_v % v02(gauss_gridpts))
@@ -214,11 +206,9 @@ contains
   end subroutine initialise_velocity_type
 
 
-  !> @brief   Initialises the gravity type.
-  !! @details Allocates the gravity type and initialises
-  !!          all values to zero.
-  !! @param[in, out] type_grav the type containing the gravity attributes
+  !> Allocates the gravity type and initialises all values to zero.
   subroutine initialise_gravity_type(type_grav)
+    !> the type containing the gravity attributes
     type (gravity_type), intent(inout)  :: type_grav
 
     allocate(type_grav % grav(gauss_gridpts))
@@ -227,14 +217,12 @@ contains
   end subroutine initialise_gravity_type
 
 
-  !> @brief   Initialises the resistivity type.
-  !! @details Allocates the resistivity type and initialises
-  !!          all values to zero.
+  !> Allocates the resistivity type and initialises all values to zero.
   !! @note The second derivatives of the magnetic field components
   !!       are also included in this type, since they are only used
   !!       when resistivity is included.
-  !! @param[in, out] type_eta the type containing the resistivity attributes
   subroutine initialise_resistivity_type(type_eta)
+    !> the type containing the resistivity attributes
     type (resistivity_type), intent(inout)  :: type_eta
 
     allocate(type_eta % eta(gauss_gridpts))
@@ -249,11 +237,9 @@ contains
   end subroutine initialise_resistivity_type
 
 
-  !> @brief   Initialises the radiative cooling type.
-  !! @details Allocates the radiative cooling type and initialises
-  !!          all values to zero.
-  !! @param[in, out] type_rc the type containing the radiative cooling attributes
+  !> Allocates the radiative cooling type and initialises all values to zero.
   subroutine initialise_cooling_type(type_rc)
+    !> the type containing the radiative cooling attributes
     type (cooling_type), intent(inout)  :: type_rc
 
     allocate(type_rc % heat_loss(gauss_gridpts))
@@ -266,11 +252,9 @@ contains
   end subroutine initialise_cooling_type
 
 
-  !> @brief   Initialises the thermal conduction type.
-  !! @details Allocates the thermal conduction type and initialises
-  !!          all values to zero.
-  !! @param[in, out] type_kappa the type containing the thermal conduction attributes
+  !> Allocates the thermal conduction type and initialises all values to zero.
   subroutine initialise_conduction_type(type_kappa)
+    !> the type containing the thermal conduction attributes
     type (conduction_type), intent(inout) :: type_kappa
 
     allocate(type_kappa % kappa_para(gauss_gridpts))
@@ -287,11 +271,9 @@ contains
   end subroutine initialise_conduction_type
 
 
-  !> @brief   Deallocates the density type
-  !! @details Deallocates all attributes contained in the
-  !!          density type
-  !! @param[in, out]  type_rho  the type containing the density attributes
+  !> Deallocates all attributes contained in the  density type.
   subroutine deallocate_density_type(type_rho)
+    !> the type containing the density attributes
     type (density_type), intent(inout)  :: type_rho
 
     deallocate(type_rho % rho0)
@@ -299,11 +281,9 @@ contains
   end subroutine deallocate_density_type
 
 
-  !> @brief   Deallocates the temperature type
-  !! @details Deallocates all attributes contained in the
-  !!          temperature type
-  !! @param[in, out]  type_T  the type containing the temperature attributes
+  !> Deallocates all attributes contained in the temperature type.
   subroutine deallocate_temperature_type(type_T)
+    !> the type containing the temperature attributes
     type (temperature_type), intent(inout)  :: type_T
 
     deallocate(type_T % T0)
@@ -311,11 +291,9 @@ contains
   end subroutine deallocate_temperature_type
 
 
-  !> @brief   Deallocates the magnetic field type
-  !! @details Deallocates all attributes contained in the
-  !!          magnetic field type
-  !! @param[in, out]  type_B  the type containing the magnetic field attributes
+  !> Deallocates all attributes contained in the magnetic field type.
   subroutine deallocate_bfield_type(type_B)
+    !> the type containing the magnetic field attributes
     type (bfield_type), intent(inout) :: type_B
 
     deallocate(type_B % B02)
@@ -326,11 +304,9 @@ contains
   end subroutine deallocate_bfield_type
 
 
-  !> @brief   Deallocates the velocity type
-  !! @details Deallocates all attributes contained in the
-  !!          velocity type
-  !! @param[in, out]  type_v  the type containing the velocity attributes
+  !> Deallocates all attributes contained in the velocity type.
   subroutine deallocate_velocity_type(type_v)
+    !> the type containing the velocity attributes
     type (velocity_type), intent(inout) :: type_v
 
     deallocate(type_v % v02)
@@ -340,22 +316,18 @@ contains
   end subroutine deallocate_velocity_type
 
 
-  !> @brief   Deallocates the gravity type
-  !! @details Deallocates all attributes contained in the
-  !!          gravity type
-  !! @param[in, out]  type_grav  the type containing the gravity attributes
+  !> Deallocates all attributes contained in the gravity type.
   subroutine deallocate_gravity_type(type_grav)
+    !> the type containing the gravity attributes
     type (gravity_type), intent(inout) :: type_grav
 
     deallocate(type_grav % grav)
   end subroutine deallocate_gravity_type
 
 
-  !> @brief   Deallocates the resistivity type
-  !! @details Deallocates all attributes contained in the
-  !!          resistivity type
-  !! @param[in, out]  type_eta  the type containing the resistivity attributes
+  !> Deallocates all attributes contained in the resistivity type.
   subroutine deallocate_resistivity_type(type_eta)
+    !> the type containing the resistivity attributes
     type (resistivity_type), intent(inout) :: type_eta
 
     deallocate(type_eta % eta)
@@ -365,11 +337,9 @@ contains
   end subroutine deallocate_resistivity_type
 
 
-  !> @brief   Deallocates the radiative cooling type
-  !! @details Deallocates all attributes contained in the
-  !!          radiative cooling type
-  !! @param[in, out]  type_rc  the type containing the radiative cooling attributes
+  !> Deallocates all attributes contained in the radiative cooling type.
   subroutine deallocate_cooling_type(type_rc)
+    !> the type containing the radiative cooling attributes
     type (cooling_type), intent(inout) :: type_rc
 
     deallocate(type_rc % heat_loss)
@@ -378,11 +348,9 @@ contains
   end subroutine deallocate_cooling_type
 
 
-  !> @brief   Deallocates the thermal conduction type
-  !! @details Deallocates all attributes contained in the
-  !!          thermal conduction type
-  !! @param[in, out]  type_kappa  the type containing the thermal conduction attributes
+  !> Deallocates all attributes contained in the thermal conduction type.
   subroutine deallocate_conduction_type(type_kappa)
+    !> the type containing the thermal conduction attributes
     type (conduction_type), intent(inout)  :: type_kappa
 
     deallocate(type_kappa % kappa_para)
