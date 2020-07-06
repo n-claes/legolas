@@ -9,7 +9,21 @@ SIZE_COMPLEX = struct.calcsize(2 * 'd') # complex is 2 times double-byte
 
 ALIGN = '='
 
+
 def get_header(istream):
+    """
+    Retrieves the header from a given datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+
+    Returns
+    -------
+    h : dict
+        Dictionary containing all header information.
+    """
     istream.seek(0)
     h = {}
 
@@ -138,25 +152,92 @@ def get_header(istream):
     h['offsets'] = offsets
     return h
 
+
 def read_grid(istream, header):
+    """
+    Retrieves the base grid from the datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+
+    Returns
+    -------
+    grid : numpy.ndarray(dtype=float, ndim=1)
+        The base grid from the datfile.
+    """
     istream.seek(header['offsets']['grid'])
     fmt = ALIGN + header['gridpts'] * 'd'
     grid = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     return np.asarray(grid)
 
+
 def read_grid_gauss(istream, header):
+    """
+    Retrieves the Gaussian grid from the datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+
+    Returns
+    -------
+    grid_gauss : numpy.ndarray(dtype=float, ndim=1)
+        The Gaussian grid from the datfile.
+    """
     istream.seek(header['offsets']['grid_gauss'])
     fmt = ALIGN + header['gauss_gridpts'] * 'd'
     grid_gauss = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     return np.asarray(grid_gauss)
 
+
 def read_ef_grid(istream, header):
+    """
+    Retrieves the eigenfunction grid from the datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+
+    Returns
+    -------
+    ef_grid : numpy.ndarray(dtype=float, ndim=1)
+        The eigenfunction grid from the datfile.
+    """
     istream.seek(header['offsets']['ef_grid'])
     fmt = ALIGN + header['ef_gridpts'] * 'd'
     ef_grid = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     return np.asarray(ef_grid)
 
+
 def read_eigenvalues(istream, header, omit_large_evs=True):
+    """
+    Reads the eigenvalues from the datfile, and optionally omits
+    the large (larger than `1e15`) values.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+    omit_large_evs : bool
+        If `True`, all eigenvalues with a modulus larger than `1e15` are omitted.
+
+    Returns
+    -------
+    eigenvalues : numpy.ndarray(dtype=complex, ndim=1)
+        The eigenvalues from the datfile, with optionally omitted large values.
+    """
     istream.seek(header['offsets']['eigenvalues'])
     fmt = ALIGN + 2 * header['matrix_gridpts'] * 'd'
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
@@ -168,7 +249,24 @@ def read_eigenvalues(istream, header, omit_large_evs=True):
         eigenvalues = eigenvalues[np.where(np.absolute(eigenvalues) < 1e15)]
     return eigenvalues
 
+
 def read_equilibrium_arrays(istream, header):
+    """
+    Reads the equilibrium arrays from the datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+
+    Returns
+    -------
+    equil_arrays : dict
+        Dictionary containing the equilibrium arrays, with keys given by
+        `header['equil_names']`.
+    """
     istream.seek(header['offsets']['equil_arrays'])
     equil_arrays = {}
     for name in header['equil_names']:
@@ -177,7 +275,33 @@ def read_equilibrium_arrays(istream, header):
         equil_arrays.update({name: np.asarray(equil_array)})
     return equil_arrays
 
+
 def read_eigenfunction(istream, header, ef_index):
+    """
+    Reads a single eigenfunction from the datfile. Eigenfunctions are read in on-the-fly,
+    to prevent having to load the entire array into memory (which can quickly be a few
+    100 Mb for larger datasets).
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+    ef_index : int
+        The index of the eigenfunction in the matrix. This value corresponds to the
+        index of the accompanying eigenvalue in the
+        :attr:`~pylbo.data_management.data_container.LegolasDataContainer.eigenvalues` attribute.
+        These indices can be retrieved through
+        :func:`~pylbo.data_management.data_container.LegolasDataContainer.get_nearest_eigenvalues`.
+
+    Returns
+    -------
+    eigenfunctions : dict
+        A dictionary containing the eigenfunctions for all variables with keys given
+        by the names of `header['ef_names']`. The eigenfunctions correspond to a specific
+        eigenvalue, associated with the same `ef_index`.
+    """
     ef_offset = header['offsets']['ef_arrays']
     ef_gridpts = header['ef_gridpts']
     matrix_gridpts = header['matrix_gridpts']
@@ -203,7 +327,28 @@ def read_eigenfunction(istream, header, ef_index):
         eigenfunctions.update({name: ef_values})
     return eigenfunctions
 
+
 def read_matrix_B(istream, header):
+    """
+    Reads the B-matrix from the datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+
+    Returns
+    -------
+    rows : numpy.ndarray(dtype=int, ndim=1)
+        Array containing the row indices of the non-zero matrix entries.
+    cols : numpy.ndarray(dtype=int, ndim=1)
+        Array containing the column indices of the non-zero matrix entries.
+    vals : numpy.ndarray(dtype=float, ndim=1)
+        Array containing the non-zero B-matrix values corresponding to
+        the rows and column indices.
+    """
     istream.seek(header['offsets']['matrix_B'])
     fmt = ALIGN + (2 * 'i' + 'd') * header['nonzero_B_elements']
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
@@ -212,7 +357,28 @@ def read_matrix_B(istream, header):
     vals = np.asarray(hdr[2::3])    # values are 3, 6, 9, 12 etc (Fortran indexing)
     return rows, cols, vals
 
+
 def read_matrix_A(istream, header):
+    """
+    Reads the A-matrix from the datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+
+    Returns
+    -------
+    rows : numpy.ndarray(dtype=int, ndim=1)
+        Array containing the row indices of the non-zero matrix entries.
+    cols : numpy.ndarray(dtype=int, ndim=1)
+        Array containing the column indices of the non-zero matrix entries.
+    vals : numpy.ndarray(dtype=complex, ndim=1)
+        Array containing the non-zero A-matrix values corresponding to
+        the row and column indices.
+    """
     istream.seek(header['offsets']['matrix_A'])
     fmt = ALIGN + (2 * 'i' + 2 * 'd') * header['nonzero_A_elements']
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))

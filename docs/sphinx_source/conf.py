@@ -19,14 +19,28 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
               'sphinx.ext.napoleon',
-              'numpydoc']
+              'sphinx.ext.intersphinx',
+              'numpydoc',
+              'sphinx_rtd_theme',]
+autodoc_default_options = {
+     'members': True,
+     'undoc-members': True,
+ }
+numpydoc_show_inherited_class_members = True
 napoleon_include_private_with_doc = True
-autosummary_generate = True
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('http://docs.scipy.org/doc/numpy/', None),
+    'matplotlib': ('http://matplotlib.sourceforge.net/', None)
+}
+autosummary_generate = False
+autosummary_imported_members = False
 
 #templates_path = ['_templates']
 exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
-html_theme = 'classic'
+html_theme = 'sphinx_rtd_theme'
+github_url = 'https://github.com/n-claes/legolas/tree/master/post_processing/pylbo'
 #html_static_path = ['_static']

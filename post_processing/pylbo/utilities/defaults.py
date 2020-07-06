@@ -138,6 +138,26 @@ precoded_runs = {
 }
 
 def get_precoded_run(name):
+    """
+    Retrieves the configuration dictionary for a precoded run based on
+    its name. These are the keys of `precoded_runs`.
+
+    Parameters
+    ----------
+    name : str
+        The name of the precoded run, as a key of `precoded_runs`.
+
+    Returns
+    -------
+    selected_run : dict
+        A :func:`~copy.deepcopy` of the configuration dictionary for the selected
+        precoded run, to avoid conflicts with multiple runs in the same script.
+
+    Raises
+    ------
+    UnknownPrecodedRun
+        If `name` is not a key of `precoded_runs`, and is hence unknown.
+    """
     try:
         selected_run = precoded_runs[name]
     except KeyError:

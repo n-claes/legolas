@@ -18,7 +18,22 @@ from ..utilities.logger import pylboLogger
 
 LEGOLAS_PAR = (LEGOLAS_OUT / 'parfiles').resolve()
 
+
 def _check_directories(output_dir):
+    """
+    Does checks on the existence of specified directories.
+    If `output_dir` is not found, it is created.
+
+    Parameters
+    ----------
+    output_dir : ~os.PathLike
+        The output directory to save files.
+
+    Raises
+    ------
+    NotADirectoryError
+        If the Legolas directory could not be found.
+    """
     if not Path.is_dir(LEGOLAS_DIR):
         raise NotADirectoryError(LEGOLAS_DIR)
     if not Path.is_dir(LEGOLAS_OUT):
@@ -27,16 +42,73 @@ def _check_directories(output_dir):
         Path.mkdir(output_dir)
 
 def _check_executable():
+    """
+    Checks the Legolas executable.
+
+    Raises
+    -------
+    FileNotFoundError
+        If the Legolas executable could not be found.
+    """
     legolas_exec = (LEGOLAS_DIR / 'legolas').resolve()
     if not Path.is_file(legolas_exec):
         raise FileNotFoundError('Legolas executable not found in {}'.format(legolas_exec))
 
 def custom_enumerate(iterable, start=0, step=1):
+    """
+    Does a custom enumeration with a given stepsize.
+
+    Parameters
+    ----------
+    iterable : ~typing.Iterable
+        The iterable to iterate over.
+    start : int
+        The starting value for enumerate.
+    step : int
+        The stepsize between enumerate values.
+
+    Yields
+    ------
+    start : :class:`int`
+        The current index in `iterable`, incremented with `step`.
+    itr : :class:`~typing.Iterable`
+        The corresponding entry of `iterable`.
+    """
     for itr in iterable:
         yield start, itr
         start += step
 
+
 def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None):
+    """
+    Generates (series of) parfiles based on a given configuration dictionary. The files are saved
+    using `basename_parfile` as a base name, and are written to the directory `output_dir`.
+    If `output_dir` does not exist yet, it is created.
+    Simply provide a dictionary with as keys the namelist items you want in the parfile, and
+    this routine takes care of the rest.
+
+    Parameters
+    ----------
+    parfile_dict : dict
+        Dictionary containing the keys to be placed in the parfile.
+    basename_parfile : str
+        Base name for the parfile.
+    output_dir : str or Pathlike object
+        The path to the output directory.
+
+    Returns
+    -------
+    parfiles : list
+        A list with the paths to the generated parfiles.
+
+    Raises
+    ------
+    DictNotEmpty
+        If there are still keys remaining in the given dictionary. If parfile generation is
+        successful, we pop everything from a copy of the given dict.
+    InconsistentNumberOfRuns
+        When the `number_of_runs` key is inconsistent with array sizes in the parfile.
+    """
     def update_namelist(_key, _items):
         namelist.update({_key: {}})
         for _item in _items:
@@ -122,17 +194,41 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
     pylboLogger.info('parfiles generated, saved to {}'.format(output_dir))
     return parfiles
 
+
 def _init_worker():
+    """
+    Worker initialisation for the multiprocessing module.
+    """
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
+
 def _activate_worker(parfile):
+    """
+    Worker activation for the multiprocessing module.
+    Calls the Legolas executable as a subprocess, with the parfile
+    as argument.
+
+    Parameters
+    ----------
+    parfile : str or ~os.PathLike
+        The path to the parfile.
+
+    Returns
+    -------
+    call : :func:`subprocess.call`
+        A call to a subprocess to run Legolas.
+    """
     cmd = ['./legolas', '-i', str(parfile)]
     return subprocess.call(cmd)
 
+
 def _terminate_workers():
-    # Note: simply giving an interrupt terminates ONLY the python processes,
-    # but still keeps the legolas calls running since those are done using subprocess.
-    # The following code first terminates all child processes (legolas), then the parents (workers)
+    """
+    Terminates the multiprocessing workers after a forced interruption.
+    Simply giving an interrupt terminates only the Python processes, but still
+    keeps the Legolas calls running since those are subprocesses. This method first
+    terminates all child processes (legolas), then the parents (workers).
+    """
     pylboLogger.error('interrupting processes...')
     for process in multiprocessing.active_children():
         pid = process.pid
@@ -149,7 +245,26 @@ def _terminate_workers():
         parent.wait(timeout=2)
     pylboLogger.critical('all Legolas processes terminated.')
 
+
 def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
+    """
+    Runs the legolas executable for a given list of parfiles. If more than
+    one parfile is passed, the runs are done using the multiprocessing module.
+    This can be further controlled by the `nb_cpus` kwarg. If multiprocessing
+    is done, a progressbar is printed. Every CPU will have a single Legolas
+    instance associated with it.
+
+    Parameters
+    ----------
+    parfiles : list or numpy.ndarray
+        A list or array containing the paths to the parfiles.
+    remove_parfiles : bool
+        If `True`, removes the parfile after running Legolas. Will also remove
+        the containing folder if it turns out to be empty after parfile removal.
+    nb_cpus : int
+        The amount of CPUs to use when running Legolas. If equal to 1, no
+        multiprocessing is done.
+    """
     def update_pbar(*args):
         pbar.update()
 
@@ -161,7 +276,7 @@ def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
     # change to source directory
     os.chdir(LEGOLAS_DIR)
     # don't use multiprocessing if there is only one job
-    if len(parfiles) == 1:
+    if len(parfiles) == 1 or nb_cpus == 1:
         parfile = parfiles[0]
         pylboLogger.info("running Legolas...")
         try:

@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 from ._version import __version__
 from . import \
     data_management, \
-    testing, \
     utilities, \
     visualisations
 from .data_management.data_container import \

@@ -2,7 +2,7 @@ Welcome to Pylbo's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    _rst_files/modules
