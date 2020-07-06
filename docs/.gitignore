@@ -4,3 +4,5 @@ _site
 .jekyll-metadata
 vendor
 content/src-docs/ford
+Gemfile
+Gemfile.lock
