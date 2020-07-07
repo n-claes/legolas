@@ -17,8 +17,8 @@ def load(datfiles):
 
     Returns
     -------
-    ds : :class:`~.data_container.LegolasDataContainer`, list of :class:`~.data_container.LegolasDataContainer`
-        A (list of) :class:`~.data_container.LegolasDataContainer` instance(s),
+    ds : :class:`~pylbo.LegolasDataContainer`, list of :class:`~.pylbo.LegolasDataContainer`
+        A (list of) :class:`~pylbo.LegolasDataContainer` instance(s),
         corresponding to the datfile(s) provided.
     """
     if isinstance(datfiles, list):

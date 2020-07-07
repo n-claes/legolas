@@ -3,44 +3,71 @@
 # -- Path setup --------------------------------------------------------------
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../post-processing/pylbo'))
+from pathlib import Path
+sys.path.insert(0, os.path.abspath('../../post_processing/pylbo'))
 
+# -- Version setup -----------------------------------------------------------
+version_filepath = Path('../../post_processing/pylbo/_version.py').resolve()
+VERSION = None
+with open(version_filepath) as f:
+    for line in f.readlines():
+        if line.strip().startswith('__version__'):
+            VERSION = line.split("=")[-1].strip().strip('"')
 
 # -- Project information -----------------------------------------------------
 project = 'Pylbo'
 copyright = 'Niels Claes, Jordi De Jonghe and Rony Keppens (2020)'
 author = 'Niels Claes, Jordi De Jonghe and Rony Keppens'
-release = '1.0'
+version = VERSION
+release = version
 
 
 # -- General configuration ---------------------------------------------------
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.autosummary',
-              'sphinx.ext.mathjax',
-              'sphinx.ext.viewcode',
-              'sphinx.ext.napoleon',
-              'sphinx.ext.intersphinx',
-              'numpydoc',
-              'sphinx_rtd_theme',]
-autodoc_default_options = {
-     'members': True,
-     'undoc-members': True,
- }
+extensions = [
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.intersphinx',
+    'numpydoc',
+    'sphinx_rtd_theme'
+]
 numpydoc_show_inherited_class_members = True
 napoleon_include_private_with_doc = True
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
-    'numpy': ('http://docs.scipy.org/doc/numpy/', None),
-    'matplotlib': ('http://matplotlib.sourceforge.net/', None)
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'matplotlib': ('https://matplotlib.org/', None)
 }
-autosummary_generate = False
-autosummary_imported_members = False
 
-#templates_path = ['_templates']
+# autoAPI settings
+extensions.append('autoapi.extension')
+autoapi_type = 'python'
+autoapi_dirs = ['../../post_processing/pylbo/']
+autoapi_options = [
+    'members',                   # children of objects
+    'undoc-members',             # include no-docstring members
+    'private-members',           # include _
+    'special-members',           # include __
+    'show-inheritance',          # list of classes below base class
+    'show-inheritance-diagram',  # needs graphviz
+    'show-module-summary',       # passes to autosummary
+    'imported-members'           # objects from top-level package
+]
+
 exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = 'sphinx_rtd_theme'
+html_theme_options = {
+    'logo_only': False,
+    'display_version': True,
+    'prev_next_buttons_location': 'bottom',
+    'style_external_links': False,
+    'collapse_navigation': True,
+    'sticky_navigation': True,
+    'navigation_depth': 4,
+    'includehidden': True,
+    'titles_only': True
+}
 github_url = 'https://github.com/n-claes/legolas/tree/master/post_processing/pylbo'
-#html_static_path = ['_static']

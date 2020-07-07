@@ -13,8 +13,8 @@ class SingleSpectrum:
 
     Parameters
     ----------
-    ds : LegolasDataContainer
-        A :class:`~.data_container.LegolasDataContainer` instance.
+    ds : ~pylbo.LegolasDataContainer
+        A :class:`~pylbo.LegolasDataContainer` instance.
     fig : matplotlib.figure.Figure, optional
         The main figure on which to draw the spectrum. If `None`, one is created.
     ax : matplotlib.axes.Axes, optional
@@ -22,8 +22,8 @@ class SingleSpectrum:
 
     Attributes
     ----------
-    ds : LegolasDataContainer
-        The :class:`~.data_container.LegolasDataContainer` instance.
+    ds : ~pylbo.LegolasDataContainer
+        The :class:`pylbo.LegolasDataContainer` instance.
     fig : matplotlib.figure.Figure
         The main figure on which to draw the spectrum.
     ax : matplotlib.axes.Axes
@@ -36,7 +36,7 @@ class SingleSpectrum:
     Raises
     ------
     TypeError
-        if `ds` is not a :class:`~.data_container.LegolasDataContainer` instance.
+        if `ds` is not a :class:`~pylbo.LegolasDataContainer` instance.
     """
     def __init__(self, ds, fig=None, ax=None):
         if isinstance(ds, list):
@@ -296,7 +296,7 @@ class MultiSpectrum:
     ----------
     datasets : ~typing.Iterable
         A list or array containing the loaded
-        :class:`~.data_container.LegolasDataContainer` instances to plot.
+        :class:`~pylbo.LegolasDataContainer` instances to plot.
     fig : matplotlib.figure.Figure, optional
         The figure to plot the multispectrum on. If not given, one is created.
     ax : matplotlib.axes.Axes, optional
@@ -346,7 +346,7 @@ class MultiSpectrum:
         ------
         InconsistentMultirunFile
             If a dataset is encountered with a different equilibrium type
-            (:attr:`~pylbo.data_management.data_container.LegolasDataContainer.eq_type`)
+            (:attr:`~pylbo.LegolasDataContainer.eq_type`)
             than `equilibrium`.
         """
         for ds in self.datasets:
@@ -356,7 +356,7 @@ class MultiSpectrum:
     def plot_precoded_run(self, annotate_continua=False):
         """
         Creates a multispectrum for a precoded run. The attribute
-        :attr:`~pylbo.data_management.data_container.LegolasDataContainer.eq_type`
+        :attr:`~pylbo.LegolasDataContainer.eq_type`
         is used (which is the same for all items in :attr:`datasets`) to select
         which multispectrum to plot.
 
@@ -380,7 +380,7 @@ class MultiSpectrum:
         Raises
         ------
         ValueError
-            If :attr:`~pylbo.data_management.data_container.LegolasDataContainer.eq_type`
+            If :attr:`~pylbo.LegolasDataContainer.eq_type`
             is not in the list of implemented runs.
         """
         equilibrium = self.datasets[0].header.get('eq_type')
@@ -426,7 +426,7 @@ class MultiSpectrum:
 
         Parameters
         ----------
-        ds : LegolasDataContainer
+        ds : ~pylbo.LegolasDataContainer
             The dataset instance.
         x_value : float
             The current value on the x-axis on the figure on which this

@@ -7,8 +7,8 @@ def get_continuum_regions(ds):
 
     Parameters
     ----------
-    ds : LegolasDataContainer
-        A :class:`~.data_container.LegolasDataContainer` instance,
+    ds : ~pylbo.LegolasDataContainer
+        A :class:`~.pylbo.LegolasDataContainer` instance,
         associated with a given datfile.
 
     Returns
@@ -82,8 +82,8 @@ def _thermal_continuum(ds, eps):
 
     Parameters
     ----------
-    ds : LegolasDataContainer
-        A :class:`~.data_container.LegolasDataContainer`
+    ds : ~pylbo.LegolasDataContainer
+        A :class:`~pylbo.LegolasDataContainer`
         instance, corresponding to a given datfile.
     eps : numpy.ndarray(dtype=float, ndim=1)
         Array containing the scale factor over the grid.

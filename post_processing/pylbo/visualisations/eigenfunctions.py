@@ -11,8 +11,8 @@ class EigenfunctionHandler:
 
     Parameters
     ----------
-    ds : LegolasDataContainer
-        The :class:`~.data_container.LegolasDataContainer` instance currently loaded.
+    ds : ~pylbo.LegolasDataContainer
+        The :class:`~pylbo.LegolasDataContainer` instance currently loaded.
 
     Attributes
     ----------
@@ -42,8 +42,8 @@ class EigenfunctionHandler:
 
         Parameters
         ----------
-        spectrum : SingleSpectrum
-            A :class:`~.spectrum.SingleSpectrum` instance.
+        spectrum : ~pylbo.SingleSpectrum
+            A :class:`~pylbo.SingleSpectrum` instance.
         ef_fig : matplotlib.figure.Figure
             A :class:`matplotlib.figure.Figure` instance to draw the eigenfunctions on.
         ef_ax : matplotlib.axes.Axes
@@ -132,8 +132,8 @@ class EigenfunctionHandler:
 
         Parameters
         ----------
-        spectrum : SingleSpectrum
-            A :class:`~.spectrum.SingleSpectrum` instance.
+        spectrum : ~pylbo.SingleSpectrum
+            A :class:`~pylbo.SingleSpectrum` instance.
         x : float
             x-point in the data-coordinate system, corresponds to the real
             part of the eigenvalue.
@@ -210,14 +210,14 @@ class EigenfunctionHandler:
         """
         Returns the eigenfunctions based on their indices. These indices
         are those of the corresponding eigenvalues, and can be obtained by calling
-        :func:`~pylbo.data_management.data_container.LegolasDataContainer.get_nearest_eigenvalues`.
+        :func:`~pylbo.LegolasDataContainer.get_nearest_eigenvalues`.
 
         Parameters
         ----------
         ef_indices : int, list of int
             Indices corresponding to the eigenvalues that need to be retrieved.
             These are the same as the indices of the corresponding eigenvalues in the
-            :attr:`~pylbo.data_management.data_container.LegolasDataContainer.eigenvalues` attribute.
+            :attr:`~pylbo.LegolasDataContainer.eigenvalues` attribute.
 
         Returns
         -------

@@ -18,8 +18,8 @@ def plot_matrices(ds):
 
     Parameters
     ----------
-    ds : LegolasDataContainer
-        The :class:`~.data_container.LegolasDataContainer` instance currently loaded.
+    ds : ~pylbo.LegolasDataContainer
+        The :class:`~pylbo.LegolasDataContainer` instance currently loaded.
 
     Returns
     -------

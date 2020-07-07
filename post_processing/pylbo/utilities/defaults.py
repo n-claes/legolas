@@ -3,7 +3,10 @@ import copy
 from pathlib import Path
 from .exceptions import UnknownPrecodedRun
 
+
+#: Path to the Legolas directory.
 LEGOLAS_DIR = Path(__file__).parents[3]
+#: Path to the Legolas output directory.
 LEGOLAS_OUT = (LEGOLAS_DIR / 'output').resolve()
 
 precoded_runs = {

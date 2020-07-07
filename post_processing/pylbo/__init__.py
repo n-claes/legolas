@@ -32,5 +32,10 @@ from .utilities.logger import \
 
 utilities.logger.init_logger()
 
+
 def show():
+    """
+    Link to :func:`matplotlib.pyplot.show()`, so importing matplotlib
+    just to show the figures is not necessary.
+    """
     plt.show()

@@ -4,8 +4,8 @@ class LegolasException(Exception):
 
     Parameters
     ----------
-    ds : LegolasDataContainer
-        The :class:`~.data_container.LegolasDataContainer` instance currently loaded.
+    ds : ~pylbo.LegolasDataContainer
+        The :class:`~pylbo.LegolasDataContainer` instance currently loaded.
     message : str
         The message to pass as error message.
     """

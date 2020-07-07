@@ -27,3 +27,8 @@ plugins:
 exclude:
   - Gemfile
   - Gemfile.lock
+
+# this is needed because sphinx creates directories with _ prepended, which
+# are not copied by Jekyll.
+keep_files:
+  - content/src-docs/sphinx
