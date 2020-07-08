@@ -20,7 +20,10 @@ config = {
     'parameters': {
         'k2': 0.0,
         'k3': 1.0,
-        'beta': 0.25
+        'beta': 0.25,
+        'cte_rho0': 1.0,
+        'cte_B02': 0.0,
+        'cte_B03': 1.0
     },
     'equilibrium_type': 'resistive_homo',
     'resistivity': True,
@@ -99,6 +102,9 @@ def test_params(ds_test):
     assert params.pop('k2') == pytest.approx(0)
     assert params.pop('k3') == pytest.approx(1)
     assert params.pop('beta') == pytest.approx(0.25)
+    assert params.pop('cte_rho0') == pytest.approx(1)
+    assert params.pop('cte_B02') == pytest.approx(0)
+    assert params.pop('cte_B03') == pytest.approx(1)
     assert len(params) == 0
 
 

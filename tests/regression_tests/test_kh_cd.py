@@ -18,10 +18,13 @@ config = {
     'parameters': {
         'k2': -1.0,
         'V': 1.63,
+        'cte_rho0': 1.0,
         'cte_p0': 1.0,
         'Bz0': 0.25,
         'rc': 0.5,
+        'rj': 1.0
     },
+    'flow': True,
     'equilibrium_type': 'kelvin_helmholtz_cd',
     'logging_level': 0,
     'show_results': False,
@@ -75,6 +78,7 @@ def test_params(ds_test):
     assert params.pop('k2') == pytest.approx(-1)
     assert params.pop('k3') == pytest.approx(np.pi)
     assert params.pop('V') == pytest.approx(1.63)
+    assert params.pop('cte_rho0') == pytest.approx(1)
     assert params.pop('cte_p0') == pytest.approx(1)
     assert params.pop('Bth0') == pytest.approx(1)
     assert params.pop('Bz0') == pytest.approx(0.25)

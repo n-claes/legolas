@@ -20,7 +20,8 @@ config = {
         'k2': 0.49,
         'k3': 0.0,
         'alpha': 4.73884,
-        'beta': 0.15
+        'beta': 0.15,
+        'cte_rho0': 1.0
     },
     'equilibrium_type': 'resistive_tearing',
     'resistivity': True,
@@ -79,6 +80,7 @@ def test_params(ds_test):
     assert params.pop('k3') == pytest.approx(0)
     assert params.pop('alpha') == pytest.approx(4.73884)
     assert params.pop('beta') == pytest.approx(0.15)
+    assert params.pop('cte_rho0') == pytest.approx(1)
     assert len(params) == 0
 
 

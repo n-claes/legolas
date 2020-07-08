@@ -19,6 +19,8 @@ config = {
     'parameters': {
         'k2': 1.0,
         'k3': -1.2,
+        'cte_rho0': 1,
+        'cte_v02': 0,
         'cte_v03': 0.14,
         'cte_p0': 0.05,
         'p1': 0.1,
@@ -76,6 +78,8 @@ def test_params(ds_test):
     params = copy.deepcopy(ds_test.parameters)
     assert params.pop('k2') == pytest.approx(1)
     assert params.pop('k3') == pytest.approx(-1.2)
+    assert params.pop('cte_rho0') == pytest.approx(1)
+    assert params.pop('cte_v02') == pytest.approx(0)
     assert params.pop('cte_v03') == pytest.approx(0.14)
     assert params.pop('cte_p0') == pytest.approx(0.05)
     assert params.pop('p1') == pytest.approx(0.1)

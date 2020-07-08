@@ -21,7 +21,10 @@ config = {
         'k3': 0.05,
         'p1': 0.9,
         'p2': 0.1,
-        'r0': 0.1
+        'r0': 0.1,
+        'cte_T0': 0.0,
+        'cte_B02': 0.0,
+        'cte_B03': 1.0
     },
     'equilibrium_type': 'resonant_absorption',
     'resistivity': True,
@@ -81,6 +84,9 @@ def test_params(ds_test):
     assert params.pop('p1') == pytest.approx(0.9)
     assert params.pop('p2') == pytest.approx(0.1)
     assert params.pop('r0') == pytest.approx(0.1)
+    assert params.pop('cte_T0') == pytest.approx(0)
+    assert params.pop('cte_B02') == pytest.approx(0)
+    assert params.pop('cte_B03') == pytest.approx(1)
     assert len(params) == 0
 
 

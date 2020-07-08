@@ -19,7 +19,9 @@ config = {
     'parameters': {
         'k2': -2.0,
         'k3': 0.2,
-        'j0': (2.0 * 0.2) / 1.95
+        'j0': (2.0 * 0.2) / 1.95,
+        'cte_rho0': 1.0,
+        'cte_B03': 1.0
     },
     'equilibrium_type': 'constant_current_tokamak',
     'logging_level': 0,
@@ -74,6 +76,8 @@ def test_params(ds_test):
     assert params.pop('k2') == pytest.approx(-2)
     assert params.pop('k3') == pytest.approx(0.2)
     assert params.pop('j0') == pytest.approx(2 * 0.2 / 1.95)
+    assert params.pop('cte_rho0') == pytest.approx(1)
+    assert params.pop('cte_B03') == pytest.approx(1)
     assert len(params) == 0
 
 

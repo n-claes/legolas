@@ -20,7 +20,11 @@ config = {
     'gridpoints': 51,
     'parameters': {
         'k2': 0,
-        'k3': np.pi
+        'k3': np.pi,
+        'cte_rho0': 1.0,
+        'cte_T0': 1.0,
+        'cte_B02': 0.0,
+        'cte_B03': 1.0
     },
     'equilibrium_type': 'adiabatic_homo',
     'logging_level': 0,
@@ -91,6 +95,10 @@ def test_params(ds_test):
     params = copy.deepcopy(ds_test.parameters)
     assert params.pop('k2') == pytest.approx(0)
     assert params.pop('k3') == pytest.approx(np.pi)
+    assert params.pop('cte_rho0') == pytest.approx(1)
+    assert params.pop('cte_T0') == pytest.approx(1)
+    assert params.pop('cte_B02') == pytest.approx(0)
+    assert params.pop('cte_B03') == pytest.approx(1)
     assert len(params) == 0
 
 

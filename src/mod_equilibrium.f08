@@ -111,7 +111,7 @@ contains
   end subroutine initialise_equilibrium
 
 
-  !> Makes the routine to set the equilibrium pointer, then calls the correct
+  !> Calls the routine to set the equilibrium pointer, then calls the correct
   !! submodule. Performs some sanity checks (negative values, NaNs etc.) when
   !! the equilibrium is set, then calls additional physics modules if needed.
   !! @warning Throws appropriate errors if the equilibrium configuration is

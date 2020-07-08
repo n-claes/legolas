@@ -25,7 +25,8 @@ config = {
         'p4': 1.0,
         'p5': 0.0,
         'p6': 0.0,
-        'cte_p0': 0.1
+        'cte_p0': 0.1,
+        'cte_rho0': 1
     },
     'equilibrium_type': 'rotating_plasma_cylinder',
     'logging_level': 0,
@@ -80,6 +81,7 @@ def test_params(ds_test):
     assert params.pop('k2') == pytest.approx(1)
     assert params.pop('k3') == pytest.approx(0)
     assert params.pop('cte_p0') == pytest.approx(0.1)
+    assert params.pop('cte_rho0') == pytest.approx(1)
     assert params.pop('p1') == pytest.approx(8)
     assert params.pop('p2') == pytest.approx(0)
     assert params.pop('p3') == pytest.approx(0)
