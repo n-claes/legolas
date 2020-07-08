@@ -1,12 +1,12 @@
 ! =============================================================================
-!> @brief   Module containing all equilibrium parameters.
-!! @details All parameters used in the equilibrium submodules are defined here
-!!          for convenience, including the wave numbers \p k2 and \p k3.
-!!          All of these values are \p NaN initially, such that variables that are
-!!          not properly set propagate their value and are easy to spot in follow-up checks.
-!!          If values are not used they remain equal to \p NaN throughout program execution.
-!!          All these variables are defined here so they allow for easy setting through the
-!!          parfile, and hence mean more flexible control of the different submodules.
+!> Module containing all equilibrium parameters.
+!! All parameters used in the equilibrium submodules are defined here
+!! for convenience, including the wave numbers \(k_2\) and \(k_3\).
+!! All of these values are NaN initially, such that variables that are
+!! not properly set propagate their value and are easy to spot in follow-up checks.
+!! @note  Variables that are not used remain equal to NaN throughout program execution.
+!!        We define all of these in one module so they allow for easy setting through
+!!        the parfile, and hence allow for more flexible control in the submodules.
 module mod_equilibrium_params
   use mod_global_variables, only: dp
   implicit none
@@ -82,10 +82,9 @@ module mod_equilibrium_params
 contains
 
 
-  !> @brief   Initialises all equilibrium parameters.
-  !! @details Initialises all variables defined at module scope to NaN,
-  !!          including the wave numbers. This ensures that these have to
-  !!          be explicitly set.
+  !> Initialises all variables defined at module scope to NaN,
+  !! including the wave numbers. This ensures that these have to
+  !! be explicitly set.
   subroutine init_equilibrium_params()
     use mod_global_variables, only: NaN
 

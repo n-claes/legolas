@@ -1,29 +1,60 @@
 ! =============================================================================
-!> @brief   Module containing all cooling curve tables.
-!! @details All data of the different cooling curves is contained in this module,
-!!          along with handling piecewise cooling curves.
-!!          Included cooling curves are: \n
-!!          \p jc_corona: Colgan et al. (2008)  \n
-!!          \p dalgarno: Dalgarno and McCray (1978) \n
-!!          \p ml_solar: Mellema and Lundqvist (2002), solar metallicity \n
-!!          \p spex: Schure et al. (2009) \n
-!!          \p spex_dalgarno: spex curve extended by the dalgarno one at low temperatures. \n
-!!          \p rosner: piecewise analytical cooling curve by Rosner, Tucker and Vaiana (1978),
-!!                     extended by Priest (1982)
+!> All data of the different cooling curves is contained in this module,
+!! along with handling piecewise cooling curves.
+!! @note The currently implemented cooling curves are
+!!
+!! - _"jc_corona"_: Colgan et al. (2008)
+!! - _"dalgarno"_: Dalgarno and McCray (1978)
+!! - _"ml_solar"_: Mellema and Lundqvist (2002), solar metallicity
+!! - _"spex"_: Schure et al. (2009)
+!! - _"spex_dalgarno"_: spex curve extended by the dalgarno one at low temperatures.
+!! - _"rosner"_: piecewise analytical cooling curve by Rosner, Tucker and Vaiana (1978),
+!!               extended by Priest (1982)  @endnote
 module mod_cooling_curves
   use mod_global_variables, only: dp
   implicit none
 
-  integer, protected  :: n_jc_corona, n_dalgarno, n_ml_solar, n_spex, n_dalgarno2
-  real(dp), protected :: t_jc_corona(45), t_dalgarno(71), t_ml_solar(71), t_spex(110), t_dalgarno2(76)
-  real(dp), protected :: l_jc_corona(45), l_dalgarno(71), l_ml_solar(71), l_spex(110), l_dalgarno2(76)
+  !> amount of points in the jc_corona curve
+  integer, protected  :: n_jc_corona
+  !> amount of points in the dalgarno curve
+  integer, protected  :: n_dalgarno
+  !> amount of points in the ml_solar curve
+  integer, protected  :: n_ml_solar
+  !> amount of points in the spex curve
+  integer, protected  :: n_spex
+  !> amount of points to enhance the spex_dalgarno curve
+  integer, protected  :: n_dalgarno2
+  !> log temperature datapoints in the jc_corona curve
+  real(dp), protected :: t_jc_corona(45)
+  !> log temperature datapoints in the dalgarno curve
+  real(dp), protected :: t_dalgarno(71)
+  !> log temperature datapoints in the ml_solar curve
+  real(dp), protected :: t_ml_solar(71)
+  !> log temperature datapoints in the spex curve
+  real(dp), protected :: t_spex(110)
+  !> log temperature datapoints to enhance the spex_dalgarno curve
+  real(dp), protected :: t_dalgarno2(76)
+  !> log luminosity datapoints in the jc_corona curve
+  real(dp), protected :: l_jc_corona(45)
+  !> log luminosity datapoints in the dalgarno curve
+  real(dp), protected :: l_dalgarno(71)
+  !> log luminosity datapoints in the ml_solar curve
+  real(dp), protected :: l_ml_solar(71)
+  !> log luminosity datapoints in the spex curve
+  real(dp), protected :: l_spex(110)
+  !> log luminosity datapoints to enhance the spex_dalgarno curve
+  real(dp), protected :: l_dalgarno2(76)
+  !> log luminosity datapoints in the spex_dalgarno curve
   real(dp), protected :: n_spex_enh(110)
 
-  real(dp), protected :: rosner_log10_T(8), rosner_log10_xi(9), rosner_alpha(9)
+  !> datapoints for the piecewise rosner curve
+  real(dp), protected :: rosner_log10_T(8)
+  !> log xi values for the rosner cooling curve
+  real(dp), protected :: rosner_log10_xi(9)
+  !> alpha values for the rosner cooling curve
+  real(dp), protected :: rosner_alpha(9)
 
-  ! amount of points in the jc_corona curve
   data    n_jc_corona / 45 /
-  ! log temperature datapoints in the jc_corona curve
   data    t_jc_corona / 4.00000, 4.14230, 4.21995, 4.29761, 4.37528, &
                         4.45294, 4.53061, 4.60827, 4.68593, 4.76359, &
                         4.79705, 4.83049, 4.86394, 4.89739, 4.93084, &
@@ -33,7 +64,6 @@ module mod_cooling_curves
                         6.39796, 6.50907, 6.62018, 6.73129, 6.84240, &
                         6.95351, 7.06461, 7.17574, 7.28684, 7.39796, &
                         7.50907, 7.62018, 7.73129, 7.84240, 7.95351  /
-  ! log luminosity datapoints in the jc_corona curve
   data    l_jc_corona / -200.18883, -100.78630, -30.60384, -22.68481, -21.76445, &
                         -21.67936, -21.54218, -21.37958, -21.25172, -21.17584, &
                         -21.15783, -21.14491, -21.13527, -21.12837, -21.12485, &
@@ -44,9 +74,7 @@ module mod_cooling_curves
                         -22.00000, -22.05161, -22.22175, -22.41452, -22.52581, &
                         -22.56914, -22.57486, -22.56151, -22.53969, -22.51490  /
 
-  ! amount of points in the dalgarno curve
   data    n_dalgarno / 71 /
-  ! log temperature datapoints in the dalgarno curve
   data    t_dalgarno / 2.0, 2.1, 2.2, 2.3, 2.4, &
                        2.5, 2.6, 2.7, 2.8, 2.9, &
                        3.0, 3.1, 3.2, 3.3, 3.4, &
@@ -62,7 +90,6 @@ module mod_cooling_curves
                        8.0, 8.1, 8.2, 8.3, 8.4, &
                        8.5, 8.6, 8.7, 8.8, 8.9, &
                        9.0 /
-  ! log luminosity datapoints in the dalgarno curve
   data    l_dalgarno / -26.523, -26.398, -26.301, -26.222, -26.097, &
                        -26.011, -25.936, -25.866, -25.807, -25.754, &
                        -25.708, -25.667, -25.630, -25.595, -25.564, &
@@ -79,9 +106,7 @@ module mod_cooling_curves
                        -22.430, -22.380, -22.330, -22.280, -22.230, &
                        -22.180 /
 
-  ! amount of points in the ml_solar curve
   data    n_ml_solar / 71 /
-  ! log temperature datapoints in the ml_solar curve
   data    t_ml_solar / 2.0, 2.1, 2.2, 2.3, 2.4, &
                        2.5, 2.6, 2.7, 2.8, 2.9, &
                        3.0, 3.1, 3.2, 3.3, 3.4, &
@@ -97,7 +122,6 @@ module mod_cooling_curves
                        8.0, 8.1, 8.2, 8.3, 8.4, &
                        8.5, 8.6, 8.7, 8.8, 8.9, &
                        9.0 /
-  ! log luminosity datapoints in the ml_solar curve
   data    l_ml_solar / -26.983, -26.951, -26.941, -26.940, -26.956, &
                        -26.980, -27.011, -27.052, -27.097, -27.145, &
                        -27.195, -27.235, -27.279, -27.327, -27.368, &
@@ -114,9 +138,7 @@ module mod_cooling_curves
                        -22.370, -22.320, -22.270, -22.220, -22.170, &
                        -22.120 /
 
-  ! amount of points in the spex curve
   data    n_spex / 110 /
-  ! log temperature datapoints in the spex curve
   data    t_spex / 3.80, 3.84, 3.88, 3.92, 3.96, &
                    4.00, 4.04, 4.08, 4.12, 4.16, &
                    4.20, 4.24, 4.28, 4.32, 4.36, &
@@ -139,7 +161,6 @@ module mod_cooling_curves
                    7.60, 7.64, 7.68, 7.72, 7.76, &
                    7.80, 7.84, 7.88, 7.92, 7.96, &
                    8.00, 8.04, 8.08, 8.12, 8.16  /
-  ! log luminosity datapoints in the spex curve
   data    l_spex / -25.7331, -25.0383, -24.4059, -23.8288, -23.3027, &
                    -22.8242, -22.3917, -22.0067, -21.6818, -21.4529, &
                    -21.3246, -21.3459, -21.4305, -21.5293, -21.6138, &
@@ -162,7 +183,6 @@ module mod_cooling_curves
                    -22.6769, -22.6655, -22.6531, -22.6397, -22.6258, &
                    -22.6111, -22.5964, -22.5816, -22.5668, -22.5519, &
                    -22.5367, -22.5216, -22.5062, -22.4912, -22.4753 /
-  ! log luminosity datapoints, used to extend the spex curve
   data    n_spex_enh / 0.000013264, 0.000042428, 0.000088276, 0.00017967, &
                        0.00084362, 0.0034295, 0.013283, 0.042008, &
                        0.12138, 0.30481, 0.53386, 0.76622, &
@@ -184,9 +204,7 @@ module mod_cooling_curves
                        1.2090, 1.2090, 1.2090, 1.2090, 1.2090, 1.2090, &
                        1.2090, 1.2090, 1.2090, 1.2090, 1.2090    /
 
-  ! amount of points in the spex_dalgarno curve
   data    n_dalgarno2 / 76 /
-  ! log temperature datapoints in the spex_dalgarno curve
   data    t_dalgarno2 / 1.00, 1.04, 1.08, 1.12, 1.16, &
                         1.20, 1.24, 1.28, 1.32, 1.36, &
                         1.40, 1.44, 1.48, 1.52, 1.56, &
@@ -203,8 +221,7 @@ module mod_cooling_curves
                         3.60, 3.64, 3.68, 3.72, 3.76, &
                         3.80, 3.84, 3.88, 3.92, 3.96, &
                         4.00 /
-  ! log luminosity datapoints in the spex_dalgarno curve
-  ! note: Assumes an ionisation fraction of 1e-3
+  !! @note The spex_dalgarno curve assumes an ionisation fraction of <tt>1e-3</tt>. @endnote
   data    l_dalgarno2 / -30.0377, -29.7062, -29.4055, -29.1331, &
                         -28.8864, -28.6631, -28.4614, -28.2791, &
                         -28.1146, -27.9662, -27.8330, -27.7129, &
@@ -225,39 +242,35 @@ module mod_cooling_curves
                         -25.6811, -25.6733, -25.6641, -25.6525, &
                         -25.6325, -25.6080, -25.5367, -25.4806  /
 
-  ! datapoints for the piecewise rosner cooling curve
   data    rosner_log10_T / 3.89063, 4.30195, 4.575, 4.9, 5.4, 5.77, &
                            6.315, 7.60457 /
-  ! log xi values for the rosner cooling curve
-  ! note: Original values for xi are given in SI, these here are scaled to cgs.
-  !       1 Wm-3 = 1e-13 erg/(s*cm^3), and since these are in a log10 scale
-  !       that means a -13 difference.
+  !! @note Original values for xi in the rosner curve are given in SI, these here are scaled to cgs.
+  !!       \( 1 Wm^{-3} = 10^{-13} erg/(s*cm^3) \), and since these are in a log10 scale
+  !!       that means a -13 difference. @endnote
   data    rosner_log10_xi / -69.900, -48.307, -21.850, -31.000, -21.200, &
                            -10.400, -21.940, -17.730, -26.602           /
-  ! alpha values for the rosner cooling curve
+  !
   data    rosner_alpha / 11.7, 6.15, 0.0, 2.0, 0.0, -2.0, 0.0, -0.666666667, 0.5 /
 
 contains
 
 
-  !> @brief   Calculates the rosner cooling value for a given temperature.
-  !! @details Uses the piecewise rosner cooling curve to calculate
-  !!          the radiative cooling values bases on the equilibrium
-  !!          temperature.
-  !! @note    The temperature array T0 has to be normalised when calling this routine.
-  !! @note    Both \p lambda_T and \p d_lambda_dT are normalised on exit.
+  !> Uses the piecewise rosner cooling curve to calculate the radiative cooling values
+  !! based on the equilibrium temperature.
+  !! @note    The temperature array T0 has to be normalised when calling this routine. @endnote
+  !! @note    Both <tt>lambda_T</tt> and <tt>d_lambda_dT</tt> are normalised on exit. @endnote
   !! @warning To ensure a correct calculation the temperature normalisation must be set
-  !!          to the desired value.
-  !! @param[in] T0  the equilibrium temperature, normalised
-  !! @param[out] lambda_T     the cooling values corresponding to the temperatures in T0
-  !! @param[out] d_lambda_dT  the derivative of the cooling values
-  !!                          corresponding to the temperatures in T0
+  !!          to the desired value. @endwarning
   subroutine get_rosner_cooling(T0, lambda_T, d_lambda_dT)
     use mod_global_variables, only: gauss_gridpts
     use mod_units, only: unit_temperature, unit_luminosity, unit_dldt
 
+    !> the equilibrium temperature, normalised
     real(dp), intent(in)  :: T0(gauss_gridpts)
-    real(dp), intent(out) :: lambda_T(gauss_gridpts), d_lambda_dT(gauss_gridpts)
+    !> the cooling values corresponding to T0
+    real(dp), intent(out) :: lambda_T(gauss_gridpts)
+    !> the derivative of the cooling values corresponding to T0
+    real(dp), intent(out) :: d_lambda_dT(gauss_gridpts)
     real(dp)    :: log10_T0
     integer     :: i, j, idx
 

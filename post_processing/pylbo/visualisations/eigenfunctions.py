@@ -6,6 +6,21 @@ from ..utilities.datfile_utils import \
     read_eigenfunction
 
 class EigenfunctionHandler:
+    """
+    Main handler for the eigenfunctions.
+
+    Parameters
+    ----------
+    ds : ~pylbo.LegolasDataContainer
+        The :class:`~pylbo.LegolasDataContainer` instance currently loaded.
+
+    Attributes
+    ----------
+    ef_names : list
+        List of eigenfunction names.
+    ef_container : dict
+        Dictionary containing the currently loaded eigenfunctions.
+    """
     def __init__(self, ds):
         self.ds = ds
         if not self.ds.header['eigenfuncs_written']:
@@ -22,6 +37,18 @@ class EigenfunctionHandler:
         self._changes_applied = False
 
     def connect_figure_events(self, spectrum, ef_fig, ef_ax):
+        """
+        Connects interactive events to the spectrum figure.
+
+        Parameters
+        ----------
+        spectrum : ~pylbo.SingleSpectrum
+            A :class:`~pylbo.SingleSpectrum` instance.
+        ef_fig : matplotlib.figure.Figure
+            A :class:`matplotlib.figure.Figure` instance to draw the eigenfunctions on.
+        ef_ax : matplotlib.axes.Axes
+            A :class:`matplotlib.axes.Axes` instance to draw the eigenfunctions on.
+        """
         toolbar = spectrum.fig.canvas.manager.toolbar
         self._ef_fig = ef_fig
         self._ef_ax = ef_ax
@@ -96,6 +123,31 @@ class EigenfunctionHandler:
         self._ef_fig.canvas.mpl_connect('key_press_event', on_key_press)
 
     def _find_spectrum_point_index(self, spectrum, x, y):
+        """
+        Used in the interactive routines, locates the index of the
+        eigenvalue point that is closest to the `(x, y)` coordinate
+        of the mouse click. This is based on a pixel criterion, selection
+        only happens if the mouse click is within 15 pixels of the actual data point.
+        This ensures a same "level of accuracy" for varying axis limits.
+
+        Parameters
+        ----------
+        spectrum : ~pylbo.SingleSpectrum
+            A :class:`~pylbo.SingleSpectrum` instance.
+        x : float
+            x-point in the data-coordinate system, corresponds to the real
+            part of the eigenvalue.
+        y : float
+            y-point in the data-coordinate system, corresponds to the imaginary
+            part of the eigenvalue.
+
+        Returns
+        -------
+        idx : int, None
+            If the selected point is within 15 pixels of an actual data point,
+            return the index of that data point (hence the index of the
+            corresponding eigenvalue). Otherwise return None.
+        """
         # this will return a single index/eigenvalue, since we supply 1 'guess' (x, y)
         idx, ev_found = self.ds.get_nearest_eigenvalues(complex(x, y))
         idx, ev_found = *idx, *ev_found
@@ -110,6 +162,9 @@ class EigenfunctionHandler:
         return None
 
     def _plot_eigenfunctions(self):
+        """
+        Plots the eigenfunctions currently selected.
+        """
         self._ef_ax.clear()
         ef_name = self.ef_names[self._selected_ef_name_idx]
         if self.ef_container is None or self._changes_applied:
@@ -134,16 +189,55 @@ class EigenfunctionHandler:
         self._changes_applied = False
 
     def _select_next_ef_name_idx(self):
+        """
+        Selects the next variable index in the list :attr:`ef_names`.
+        If the end of the list is reached, the first index is selected.
+        """
         self._selected_ef_name_idx += 1
         if self._selected_ef_name_idx > len(self.ef_names) - 1:
             self._selected_ef_name_idx = 0
 
     def _select_prev_ef_name_idx(self):
+        """
+        Selects the previous variable index in the list :attr:`ef_names`.
+        If the beginning of the list is reached, the last index is selected.
+        """
         self._selected_ef_name_idx -= 1
         if self._selected_ef_name_idx < 0:
             self._selected_ef_name_idx = len(self.ef_names) - 1
 
     def get_eigenfunctions(self, ef_indices):
+        """
+        Returns the eigenfunctions based on their indices. These indices
+        are those of the corresponding eigenvalues, and can be obtained by calling
+        :func:`~pylbo.LegolasDataContainer.get_nearest_eigenvalues`.
+
+        Parameters
+        ----------
+        ef_indices : int, list of int
+            Indices corresponding to the eigenvalues that need to be retrieved.
+            These are the same as the indices of the corresponding eigenvalues in the
+            :attr:`~pylbo.LegolasDataContainer.eigenvalues` attribute.
+
+        Returns
+        -------
+        eigenfuncs : numpy.ndarray(dtype=dict, ndim=1)
+            Array containing the eigenfunctions and eigenvalues corresponding to the
+            supplied indices. Every index in this array contains a dictionary with the
+            eigenfunctions and corresponding eigenvalue. The keys of each dictionary are the
+            eigenfunction names given by :attr:`ef_names`, and `'eigenvalue'`.
+
+        Examples
+        --------
+        >>> import pylbo
+        >>> # load dataset
+        >>> ds = pylbo.load('datfile.dat')
+        >>> # get eigenvalue indices for eigenvalues 2+3j and 1-2j
+        >>> idxs, evs = ds.get_nearest_eigenvalues([2+3j, 1-2j])
+        >>> # get eigenfunctions
+        >>> efh = pylbo.EigenfunctionHandler(ds)
+        >>> eigenfuncs = efh.get_eigenfunctions(idxs)
+        """
         if not isinstance(ef_indices, (np.ndarray, list)):
             ef_indices = [ef_indices]
         ef_indices = np.array(ef_indices, dtype=int)
@@ -155,4 +249,3 @@ class EigenfunctionHandler:
                 eigenfuncs[dict_idx] = efs
         self.ef_container = eigenfuncs
         return eigenfuncs
-

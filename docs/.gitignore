@@ -1,0 +1,12 @@
+_site
+.sass-cache
+.jekyll-cache
+.jekyll-metadata
+vendor
+content/src-docs/ford
+Gemfile
+Gemfile.lock
+content/src-docs/sphinx
+sphinx_source/rst_files
+
+

@@ -1,9 +1,8 @@
 ! =============================================================================
-!> @brief   Module containing the eigenvalue problem solvers.
-!! @details This module handles everything related to solving the eigenvalue problem
-!!          \f$\mathcal{A}\textbf{X} = \omega\mathcal{B}\textbf{X}\f$,
-!!          that is, matrix inversion, matrix multiplication and the QR-algorithm.
-!!          Calls to LAPACK and BLAS are done in this module.
+!> This module handles everything related to solving the eigenvalue problem
+!! $$ \mathcal{A}\textbf{X} = \omega\mathcal{B}\textbf{X}\ $$
+!! that is, matrix inversion, matrix multiplication and the QR-algorithm.
+!! Calls to LAPACK and BLAS are done in this module.
 module mod_solvers
   use mod_global_variables, only: dp, matrix_gridpts
   use mod_logging, only: log_message, char_log, int_fmt
@@ -18,54 +17,51 @@ module mod_solvers
 contains
 
 
-  !> @brief   QR-solver for the eigenvalue problem.
-  !! @details Solves a complex non-Hermitian general eigenvalue problem using
-  !!          the QR-algorithm. The matrix B is inverted in doing so.
-  !!          Also calculates the eigenvectors if requested.
-  !!          Uses the \p zgeev routine from LAPACK.
-  !! @exception Warning If the \p zgeev routine fails.
-  !! @note  All eigenvalues below \p DP_LIMIT are set to zero. The real and imaginary
-  !!        parts are handled separately.
-  !! @note  The eigenvectors are only calculated if \p write_eigenfunctions is \p True.
-  !!        Otherwise an array of zeroes is returned.
-  !! @param[in] A     matrix A
-  !! @param[in] B     matrix B
-  !! @param[out] omega  array containing the calculated eigenvalues
-  !! @param[out] vl     array containing the left eigenvectors
-  !! @param[out] vr     array containing the right eigenvectors
+  !> QR-solver for the eigenvalue problem. Solves a complex non-Hermitian
+  !! general eigenvalue problem using the QR-algorithm.
+  !! The matrix B is inverted in doing so. Also calculates the eigenvectors if requested.
+  !! Uses the <tt>zgeev</tt> routine from LAPACK.
+  !! @warning   Throws a warning if the <tt>zgeev</tt> routine fails. @endwarning
+  !! @note  All eigenvalues below <tt>DP_LIMIT</tt> are set to zero. The real and imaginary
+  !!        parts are handled separately. @endnote
+  !! @note  The eigenvectors are only calculated if <tt>write_eigenfunctions</tt>
+  !!        is <tt>True</tt>. Otherwise an array of zeroes is returned. @endnote
   subroutine solve_QR(A, B, omega, vl, vr)
     use mod_global_variables, only: write_eigenfunctions
     use mod_check_values, only: check_small_values
     use mod_logging, only: log_message, int_fmt, char_log
 
+    !> matrix A
     complex(dp), intent(in)  :: A(matrix_gridpts, matrix_gridpts)
+    !> matrix B
     real(dp), intent(in)     :: B(matrix_gridpts, matrix_gridpts)
-    real(dp)                 :: B_inv(matrix_gridpts, matrix_gridpts)
-
-    !! Left eigenvector variables
-    character                :: jobvl
+    !> array containing the calculated eigenvalues
+    complex(dp), intent(out) :: omega(matrix_gridpts)
+    !> array containing the left eigenvectors
     complex(dp), intent(out) :: vl(matrix_gridpts, matrix_gridpts)
-    integer                  :: ldvl
-    !! Right eigenvector variables
-    character                :: jobvr
+    !> array containing the right eigenvectors
     complex(dp), intent(out) :: vr(matrix_gridpts, matrix_gridpts)
+
+    real(dp)                 :: B_inv(matrix_gridpts, matrix_gridpts)
+    ! left eigenvector variables
+    character                :: jobvl
+    integer                  :: ldvl
+    ! right eigenvector variables
+    character                :: jobvr
     integer                  :: ldvr
-    !! Matrix variables
+    ! matrix variables
     integer                  :: N, ldB_invA
     complex(dp)              :: B_invA(matrix_gridpts, matrix_gridpts)
-    !! Eigenvalue variables
-    complex(dp), intent(out) :: omega(matrix_gridpts)
-    !! Work variables
+    ! <ork variables
     integer                  :: lwork, info
     complex(dp), allocatable :: work(:)
     real(dp), allocatable    :: rwork(:)
 
-    !! Invert matrix B
     call invert_B(B, B_inv)
-    !! Matrix multiplication B^{-1} * A
+    ! Matrix multiplication B^{-1} * A
     call get_B_invA(B_inv, A, B_invA)
 
-    !! Calculate eigenvectors or not ('N' is no, 'V' is yes)
+    ! Calculate eigenvectors or not ('N' is no, 'V' is yes)
     if (write_eigenfunctions) then
       jobvl = 'V'
       jobvr = 'V'
@@ -74,13 +70,13 @@ contains
       jobvr = 'N'
     end if
 
-    !! Array dimensions
+    ! Array dimensions
     N       = matrix_gridpts
     ldB_invA = N
     ldvl    = N
     ldvr    = N
 
-    !! Size or work array
+    ! Size or work array
     lwork = 4*N
     allocate(work(lwork))
     allocate(rwork(2*N))
@@ -101,15 +97,14 @@ contains
   end subroutine solve_QR
 
 
-  !> @brief   Handles the inversion of the B-matrix.
-  !! @details Inverts the B-matrix using LAPACK routines. First a LU-factorisation is performed using
-  !!          \p dgetrf, after which inversion is done through the routine \p dgetri.
-  !! @exception Warning   If the \p dgetri routine fails.
-  !! @exception Warning   If the \p dgetrf routine fails.
-  !! @param[in]  B      the B-matrix
-  !! @param[out] B_inv  the inverted B-matrix
+  !> Handles the inversion of the B-matrix. Inverts the B-matrix using LAPACK routines.
+  !! First a LU-factorisation is performed using <tt>dgetrf</tt>, after which
+  !! inversion is done through the routine <tt>dgetri</tt>.
+  !! @warning Throws a warning if <tt>dgetri</tt> or <tt>dgetrf</tt> fails.
   subroutine invert_B(B, B_inv)
+    !> the B-matrix
     real(dp), intent(in)  :: B(matrix_gridpts, matrix_gridpts)
+    !> the inverted B-matrix
     real(dp), intent(out) :: B_inv(matrix_gridpts, matrix_gridpts)
     integer               :: N, ldb, lwork, info
     integer, allocatable  :: ipiv(:)
@@ -117,7 +112,7 @@ contains
 
     call log_message("inverting B-matrix", level='debug')
 
-    !! Copy B into B_inv
+    ! Copy B into B_inv
     B_inv = B
 
     N   = matrix_gridpts
@@ -148,24 +143,23 @@ contains
   end subroutine invert_B
 
 
-  !> @brief   Handles matrix multiplication of B inverse with A.
-  !! @details Does the matrix multiplication \f$\mathcal{B}^{-1}\mathcal{A}\f$ using LAPACK.
-  !!          The routine \p zgemm is used instead of the Fortran builtin \p matmul for efficiency.
-  !! @param[in]   B_inv   the inverse of B
-  !! @param[in]   A       the matrix A
-  !! @param[out]  B_invA  the result of the matrix multiplication <tt>B_inv*A</tt>
+  !> Handles the matrix multiplication \(\mathcal{B}^{-1}\mathcal{A}\) using LAPACK.
+  !! The routine <tt>zgemm</tt> is used instead of the Fortran builtin <tt>matmul</tt> for efficiency.
   subroutine get_B_invA(B_inv, A, B_invA)
+    !> the inverse of the B-matrix
     real(dp), intent(in)      :: B_inv(matrix_gridpts, matrix_gridpts)
+    !> the A-matrix
     complex(dp), intent(in)   :: A(matrix_gridpts, matrix_gridpts)
+    !> the result of the matrix multiplication
     complex(dp), intent(out)  :: B_invA(matrix_gridpts, matrix_gridpts)
 
     integer                   :: K, ldB_inv, ldA, ldB_invA
     complex(dp)               :: alpha, beta
     complex(dp)               :: B_inv_cplx(matrix_gridpts, matrix_gridpts)
 
-    !! 'zgemm' performs one of the matrix-matrix operations
-    !! C := alpha*op(A)*op(B) + beta*C
-    !! In this case, alpha = 1, beta = 0, op = 'N' (so no transp. or conj.)
+    !> @note <tt>zgemm</tt> performs one of the matrix-matrix operations
+    !! $$ C := \alpha*op(A)*op(B) + \beta*C $$
+    !! In this case, \(\alpha = 1\), \(\beta = 0\), op = 'N' (so no transpose or conjugate).
     K   = matrix_gridpts
     ldB_inv  = K
     ldA      = K
@@ -174,8 +168,8 @@ contains
     alpha = (1.0d0, 0.0d0)
     beta  = (0.0d0, 0.0d0)
 
-    !! The input matrix B HAS TO BE COMPLEX (in our case it is real).
-    !! Hence convert it to a complex matrix, otherwise results are wrong.
+    ! The input matrix B HAS TO BE COMPLEX (in our case it is real).
+    ! Hence convert it to a complex matrix, otherwise results are wrong.
     B_inv_cplx = B_inv * (1.0d0, 0.0d0)
 
     call log_message("multiplying B_inv * A", level='debug')

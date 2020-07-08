@@ -1,11 +1,11 @@
 ! =============================================================================
-!> @brief   Parent module governing all equilibrium types and submodules.
-!! @details Module which contains all equilibrium types and the initial
-!!          declarations of the module subroutines. Every equilibrium submodule
-!!          extends this module, implementing one of the module subroutines declared here.
-!!          All 'main' equilibrium configurations are set in the submodules. The ones that
-!!          depend on 'main' arrays, like radiative cooling, are set here through calls to their
-!!          respective modules.
+!> Parent module governing all equilibrium types and submodules.
+!! This module contains all equilibrium types and the initial
+!! declarations of the module subroutines. Every equilibrium submodule
+!! extends this module, implementing one of the module subroutines declared here.
+!! All 'main' equilibrium configurations are set in the submodules. The ones that
+!! depend on 'main' arrays, like radiative cooling, are set here through calls to their
+!! respective modules.
 !! @note    All use statements specified here at the main module scope
 !!          are automatically accessible in every submodule that extends this one.
 module mod_equilibrium
@@ -26,6 +26,7 @@ module mod_equilibrium
   !> pointer for the submodule, initialised to null
   procedure(), pointer :: set_equilibrium_values => null()
 
+  !> interface to the different equilibrium submodules
   interface
     module subroutine adiabatic_homo_eq; end subroutine
     module subroutine resistive_homo_eq; end subroutine
@@ -94,9 +95,8 @@ module mod_equilibrium
 contains
 
 
-  !> @brief   Initialisation of the different types.
-  !! @details Initialises the equilibrium types by calling the corresponding
-  !!          subroutine, which allocates all necessary attributes.
+  !> Initialises the equilibrium types by calling the corresponding
+  !! subroutine, which allocates all necessary attributes.
   subroutine initialise_equilibrium()
     use mod_types, only: initialise_type
 
@@ -111,10 +111,12 @@ contains
   end subroutine initialise_equilibrium
 
 
-  !> @brief   Calls the submodule and sets additional physics.
-  !! @details Makes a call to set the equilibrium pointer, then calls the correct
-  !!          submodule. Performs some sanity checks (negative values, NaNs etc.) first,
-  !!          then calls additional physics modules if needed.
+  !> Makes the routine to set the equilibrium pointer, then calls the correct
+  !! submodule. Performs some sanity checks (negative values, NaNs etc.) when
+  !! the equilibrium is set, then calls additional physics modules if needed.
+  !! @warning Throws appropriate errors if the equilibrium configuration is
+  !!          not balanced, contains NaN or if density/temperature contains
+  !!          negative values.
   subroutine set_equilibrium()
     use mod_check_values, only: check_negative_array, check_nan_values
     use mod_inspections, only: perform_sanity_checks
@@ -154,10 +156,9 @@ contains
   end subroutine set_equilibrium
 
 
-  !> @brief   Sets the pointer to the correct submodule
-  !! @details Selects the submodule based on the specified equilibrium
-  !!          in the parfile. Works on a case-select basis.
-  !! @exception Error   If the equilibrium type is not recognised.
+  !> Selects the submodule based on the specified equilibrium
+  !! in the parfile. Works on a case-select basis.
+  !! @warning   Throws an error if the equilibrium type is not recognised.
   subroutine set_equilibrium_pointer()
     use mod_global_variables, only: equilibrium_type
 
@@ -231,20 +232,27 @@ contains
   end subroutine set_equilibrium_pointer
 
 
-  !> @brief   Allows overriding geometry and grid-related parameters.
-  !! @details Sets default values for the geometry and grid start/end. If this subroutine is
-  !!          used to set geometry/grid values in the submodule it becomes possible to override
-  !!          them through the parfile. Warnings will always be printed if this happens.
-  !! @exception Warning   If the geometry specified in the submodule is overridden.
-  !! @exception Warning   If the starting value of the grid specified in the submodule is overridden.
-  !! @exception Warning   If the end value of the grid specified in the submodule is overridden.
-  !! @note  If values specified in the parfile are equal to the default values, nothing happens.
+  !> Allows overriding geometry and grid-related parameters.
+  !! Sets default values for the geometry and grid start/end. If this subroutine is
+  !! used to set geometry/grid values in the submodule it becomes possible to override
+  !! them through the parfile. Warnings will always be printed if this happens.
+  !! @note  If values specified in the parfile are equal to the default values,
+  !!        nothing happens. @endnote
+  !! @warning A warning is thrown if:
+  !!
+  !! - the geometry specified in the submodule is overridden.
+  !! - the starting value of the grid specified in the submodule is overridden.
+  !! - the end value of the grid specified in the submodule is overridden. @endwarning
   subroutine allow_geometry_override(default_geometry, default_x_start, default_x_end)
     use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan
     use mod_global_variables, only: dp_LIMIT
 
+    !> default geometry to set
     character(*), intent(in)  :: default_geometry
-    real(dp), intent(in)      :: default_x_start, default_x_end
+    !> default start of the grid
+    real(dp), intent(in)      :: default_x_start
+    !> default end of the grid
+    real(dp), intent(in)      :: default_x_end
 
     if (geometry /= "" .and. geometry /= default_geometry) then
       call log_message("overriding default geometry with " // trim(geometry), level='warning')
@@ -268,8 +276,7 @@ contains
   end subroutine allow_geometry_override
 
 
-  !> @brief   Module cleaning routine.
-  !! @details Cleaning routine, makes calls to deallocate the equilibrium types.
+  !> Cleaning routine, deallocates the equilibrium types.
   subroutine equilibrium_clean()
     use mod_types, only: deallocate_type
 

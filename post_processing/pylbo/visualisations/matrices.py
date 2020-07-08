@@ -3,7 +3,32 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+
 def plot_matrices(ds):
+    """
+    Plots the matrices for a given dataset. Creates one single figure with the
+    A-matrix on the left and the B-matrix on the right.
+
+    Warnings
+    --------
+    This method can take a long time for large datasets due to the amount of points
+    that are being plotted. This method is meant solely for inspections and should
+    not be used for visualisation purposes. Visualising the matrices of large datasets
+    will not be clear anyway due to the sheer amount of blocks present.
+
+    Parameters
+    ----------
+    ds : ~pylbo.LegolasDataContainer
+        The :class:`~pylbo.LegolasDataContainer` instance currently loaded.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The figure on which the matrixes are drawn
+    axes : numpy.ndarray(dtype=matplotlib.axes.Axes, ndim=1)
+        The axes on which the matrices are drawn. Index 0 corresponds to the A-matrix,
+        index 1 to the B-matrix.
+    """
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
     # Major ticks every 32, minor ticks every 16
@@ -42,3 +67,5 @@ def plot_matrices(ds):
     cax = divider.append_axes("right", size="5%", pad=0.05)
     plt.colorbar(im, cax=cax)
     fig.canvas.draw()
+
+    return fig, axes

@@ -1,12 +1,14 @@
 ! =============================================================================
-!> @brief   Module to handle logging statements to the console.
-!! @details Main handler for console print statements. The level of information
-!!          printed to the console depends on the corresponding global variable
-!!          defined in the parfile.
-!!          If logging_level = 0, only critical errors are printed, everything else is suppressed.
-!!          If logging_level = 1, only errors and warnings are printed.
-!!          If logging_level = 2, errors, warnings and info messages are printed.
-!!          If logging_level = 3 or higher, also print debug messages.
+!> Main handler for console print statements. The level of information
+!! printed to the console depends on the corresponding global variable
+!! called <tt>logging_level</tt> defined in the parfile.
+!! @note Values for <tt>logging_level</tt> can be set to
+!!
+!! - If <tt>logging_level = 0</tt>: only critical errors are printed, everything else is suppressed.
+!! - If <tt>logging_level = 1</tt>: only errors and warnings are printed.
+!! - If <tt>logging_level = 2</tt>: errors, warnings and info messages are printed. This
+!!                                  is the default value
+!! - If <tt>logging_level = 3+</tt>: prints all of the above, including debug messages. @endnote
 module mod_logging
   use mod_global_variables, only: logging_level
   implicit none
@@ -31,15 +33,16 @@ module mod_logging
 contains
 
 
-  !> @brief   Logs a message to the console.
-  !! @details Routine to handle console messages. Every message
-  !!          will be prepended by [  LEVEL  ] to indicate its type.
-  !! @exception Error if a wrong level is passed.
-  !! @note Supplying the 'error' level throws a critical error and stops code execution.
-  !! @param[in] msg   the message to print to the console
-  !! @param[in] level the level of the message, either 'error', 'warning', 'info' or 'debug'
+  !> Logs messages to the console. Every message will be prepended by
+  !! [  LEVEL  ] to indicate its type.
+  !! @warning An error is thrown if a wrong level is passed. @endwarning
+  !! @note The argument <tt>level</tt> can be 'error', 'warning', 'info' or 'debug'.
+  !!       The 'error' level corresponds to throwing a critical error and stops code execution.
   subroutine log_message(msg, level)
-    character(len=*), intent(in)  :: msg, level
+    !> the message to print to the console
+    character(len=*), intent(in)  :: msg
+    !> the level (severity) of the message
+    character(len=*), intent(in)  :: level
 
     select case(level)
     case('error')
@@ -64,9 +67,9 @@ contains
   end subroutine log_message
 
 
-  !> @brief   Prints the Legolas logo to the console.
-  !! @details The Legolas logo is printed wrapped in 1 whitespace at the top and
-  !!          two at the bottom. Only for logging level 'warning' (1) and above
+  !> Prints the Legolas logo to the console.
+  !! The logo is wrapped in 1 whitespace at the top and
+  !! two at the bottom. Only for logging level 'warning' (1) and above
   subroutine print_logo()
     if (logging_level <= 1) then
       return
@@ -85,14 +88,13 @@ contains
   end subroutine print_logo
 
 
-  !> @brief   Prints running configuation to the console.
-  !! @details Prints various console messages showing geometry, grid parameters,
-  !!          equilibrium parameters etc. Only for logging level "info" or above.
+  !> Prints various console messages showing geometry, grid parameters,
+  !! equilibrium parameters etc. Only for logging level "info" or above.
   subroutine print_console_info()
     use mod_global_variables
     use mod_equilibrium_params, only: k2, k3
 
-    if (logging_level <= 2) then
+    if (logging_level <= 1) then
       return
     end if
 
@@ -136,12 +138,11 @@ contains
   end subroutine print_console_info
 
 
-  !> @brief   Fortran logical conversion to string.
-  !! @details Converts a given Fortran logical to a string "true" or "false".
-  !! @param[in]   boolean         logical to convert
-  !! @param[out]  boolean_string  'true' if boolean == True, 'false' otherwise
+  !> Converts a given Fortran logical to a string "true" or "false".
   subroutine logical_tostring(boolean, boolean_string)
+    !> logical to convert
     logical, intent(in)             :: boolean
+    !> <tt>True</tt> if boolean == True, <tt>False</tt> otherwise
     character(len=20), intent(out)  :: boolean_string
 
     if (boolean) then
@@ -152,11 +153,10 @@ contains
   end subroutine logical_tostring
 
 
-  !> @brief   Prints an empty line to the console.
-  !> @details Subroutine to print an empty line to the console.
-  !!          Only if logging level is 'warning' or above.
-  !! @param[in] lines   the amount of empty lines to print
+  !> Prints an empty line to the console.
+  !! Only if logging level is 'warning' or above.
   subroutine print_whitespace(lines)
+    !> amount of empty lines to print
     integer, intent(in) :: lines
     integer :: i
 

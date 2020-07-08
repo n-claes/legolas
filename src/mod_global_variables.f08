@@ -1,9 +1,8 @@
 ! =============================================================================
-!> @brief   Module containing all global variables.
-!! @details All global variables are defined in this module, and can be accessed
-!!          throughout the entire code. Most variables are first initialised
-!!          to a default value, and are properly set either in the datfile
-!!          or in an equilibrium submodule.
+!> All global variables are defined in this module, and can be accessed
+!! throughout the entire code. Most variables are first initialised
+!! to a default value, and are properly set either in the parfile
+!! or in an equilibrium submodule.
 module mod_global_variables
   use, intrinsic :: iso_fortran_env
   implicit none
@@ -30,35 +29,35 @@ module mod_global_variables
   complex(dp), parameter    :: ic = (0.0d0, 1.0d0)
   !> complex real
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
-  !> boolean for cgs units, defaults to \p True
+  !> boolean for cgs units, defaults to <tt>True</tt>
   logical, save             :: cgs_units
   !> ratio of specific heats gamma, defaults to 5/3
   real(dp), protected       :: gamma
   !> variable for (gamma - 1)
   real(dp), protected       :: gamma_1
-  !> boolean for flow, defaults to \p False
+  !> boolean for flow, defaults to <tt>False</tt>
   logical, save             :: flow
-  !> boolean for radiative cooling, defaults to \p False
+  !> boolean for radiative cooling, defaults to <tt>False</tt>
   logical, save             :: radiative_cooling
   !> number of points to interpolate the radiative cooling curve, defaults to 4000
   integer                   :: ncool
   !> name of the cooling curve to use, defaults to \p jc_corona
   character(len=str_len)    :: cooling_curve
-  !> boolean for external gravity, defaults to \p False
+  !> boolean for external gravity, defaults to <tt>False</tt>
   logical, save             :: external_gravity
-  !> boolean for thermal conduction, defaults to \p False
+  !> boolean for thermal conduction, defaults to <tt>False</tt>
   logical, save             :: thermal_conduction
-  !> boolean to set a fixed value for parallel conduction, defaults to \p False
+  !> boolean to set a fixed value for parallel conduction, defaults to <tt>False</tt>
   logical, save             :: use_fixed_tc_para
   !> defines the fixed value for parallel conduction, defaults to 0
   real(dp)                  :: fixed_tc_para_value
-  !> boolean to set a fixed value for perpendicular conduction, defaults to \p False
+  !> boolean to set a fixed value for perpendicular conduction, defaults to <tt>False</tt>
   logical, save             :: use_fixed_tc_perp
   !> defines the fixed value for perpendicular conduction, defaults to 0
   real(dp)                  :: fixed_tc_perp_value
-  !> boolean for resistivity, defaults to \p False
+  !> boolean for resistivity, defaults to <tt>False</tt>
   logical, save             :: resistivity
-  !> boolean to set a fixed value for the resistivity, defaults to \p False
+  !> boolean to set a fixed value for the resistivity, defaults to <tt>False</tt>
   logical, save             :: use_fixed_resistivity
   !> defines the fixed value for the resistivity, defaults to 0
   real(dp)                  :: fixed_eta_value
@@ -71,7 +70,7 @@ module mod_global_variables
   real(dp)                  :: x_end
   !> number of gridpoints in the base grid, defaults to 31
   integer, protected        :: gridpts
-  !> boolean to force r=0 in cylindrical geometry, defaults to \p False
+  !> boolean to force r=0 in cylindrical geometry, defaults to <tt>False</tt>
   logical, save             :: force_r0
   !> number of gridpoints in the gaussian grid, automatically set by \p gridpts
   integer, protected        :: gauss_gridpts
@@ -80,7 +79,7 @@ module mod_global_variables
   !> size of a single eigenfunction array, automatically set by \p gridpts
   integer, protected        :: ef_gridpts
 
-  !> boolean for mesh accumulation, defaults to \p False
+  !> boolean for mesh accumulation, defaults to <tt>False</tt>
   logical, save             :: mesh_accumulation
   !> expected value for the 1st Gaussian function used in accumulation, defaults to 1.25
   real(dp)                  :: ev_1
@@ -110,9 +109,9 @@ module mod_global_variables
   character(len=str_len)       :: equilibrium_type
   !> type of boundary conditions, defaults to \p "wall"
   character(len=str_len)       :: boundary_type
-  !> use default values for parameters in the chosen submodule, defaults to \p True
+  !> use default values for parameters in the chosen submodule, defaults to <tt>True</tt>
   logical, save                :: use_defaults
-  !> boolean for spurious eigenvalue removal, defaults to \p False
+  !> boolean for spurious eigenvalue removal, defaults to <tt>False</tt>
   logical, save                :: remove_spurious_eigenvalues
   !> amount of eigenvalues to remove on each side of the imaginary axis, defaults to 1
   integer                      :: nb_spurious_eigenvalues
@@ -126,11 +125,11 @@ module mod_global_variables
   !> dimension of one quadblock, this is the block shifted along the main diagonal
   integer, parameter        :: dim_quadblock = 2*dim_subblock
 
-  !> boolean to write both matrices to the datfile, defaults to \p False
+  !> boolean to write both matrices to the datfile, defaults to <tt>False</tt>
   logical, save             :: write_matrices
-  !> boolean to write the eigenfunctions to the datfile, defaults to \p True
+  !> boolean to write the eigenfunctions to the datfile, defaults to <tt>True</tt>
   logical, save             :: write_eigenfunctions
-  !> boolean to call the Python wrapper and plot the results, defaults to \p True
+  !> boolean to call the Python wrapper and plot the results, defaults to <tt>True</tt>
   logical, save             :: show_results
   !> base name for the datfile, defaults to \p "datfile"
   character(len=str_len)    :: basename_datfile
@@ -144,10 +143,12 @@ module mod_global_variables
 contains
 
 
-  !> @brief   Initialises the global variables in this module.
-  !> @details All variables in this module are first set to their default values.
-  !!          These are either regular values or \p NaN, the latter in case variables
-  !!          must be explicitly set in the parfile or equilibrium submodule.
+  !> Initialises the global variables in this module.
+  !! All variables in this module are first set to their default values.
+  !! These are either regular values or NaN, the latter in case variables
+  !! must be explicitly set in the parfile or equilibrium submodule.
+  !! @note  The variables <tt>geometry</tt>, <tt>x_start</tt> and
+  !!        <tt>x_end</tt> are explicitly set to NaN.
   subroutine initialise_globals()
     use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
 
@@ -205,11 +206,10 @@ contains
   end subroutine initialise_globals
 
 
-  !> @brief   Sets the value for gamma.
-  !! @details Sets the ratio of specific heats gamma and its corresponding
-  !!          value gamma - 1.
-  !! @param[in] gamma_in  value for gamma
+  !> Sets the ratio of specific heats gamma and its corresponding
+  !! value gamma - 1.
   subroutine set_gamma(gamma_in)
+    !> the value for gamma
     real(dp), intent(in)    :: gamma_in
 
     gamma   = gamma_in
@@ -217,12 +217,11 @@ contains
   end subroutine set_gamma
 
 
-  !> @brief   Sets all gridpoint-related variables.
-  !! @details Sets the base number of gridpoints on the given value.
-  !!          Also sets the gridpoints of the Gaussian grid, matrix sizes and
-  !!          size of the eigenfunction arrays.
-  !! @param[in] gridpts_in  value for the base gridpoints
+  !> Sets all gridpoint-related variables: sets the base number of gridpoints,
+  !! the gridpoints of the Gaussian grid, matrix sizes and size of the
+  !! eigenfunction arrays.
   subroutine set_gridpts(gridpts_in)
+    !> amount of gridpoints for the base grid
     integer, intent(in) :: gridpts_in
 
     gridpts        = gridpts_in
@@ -232,13 +231,13 @@ contains
   end subroutine set_gridpts
 
 
-  !> @brief   Sets the size of the matrix.
-  !> @details Manually forces the size of the matrices to the given value.
-  !!          This is only used for testing purposes, as the matrix sizes are
-  !!          dependent on the base number of gridpoints.
-  !> @warning Should \b ONLY be used for testing purposes!
-  !! @param[in] matrix_size_in  value for the matrix size
+  !> Sets the size of the matrix.
+  !> Manually forces the size of the matrices to the given value.
+  !! This is only used for testing purposes, as the matrix sizes are
+  !! dependent on the base number of gridpoints.
+  !> @warning Should **ONLY** be used for testing purposes!
   subroutine set_matrix_gridpts(matrix_size_in)
+    !> value for the matrix size
     integer, intent(in) :: matrix_size_in
 
     matrix_gridpts = matrix_size_in

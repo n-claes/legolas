@@ -1,6 +1,29 @@
 import numpy as np
 
+
 def get_continuum_regions(ds):
+    """
+    Calculates the continuum regions for a given dataset.
+
+    Parameters
+    ----------
+    ds : ~pylbo.LegolasDataContainer
+        A :class:`~.pylbo.LegolasDataContainer` instance,
+        associated with a given datfile.
+
+    Returns
+    -------
+    wS_pos : numpy.ndarray(dtype=float, ndim=1)
+        The positive slow continuum as a function of the grid.
+    wS_neg : numpy.ndarray(dtype=float, ndim=1)
+        The negative slow continuum as a function of the grid.
+    wA_pos : numpy.ndarray(dtype=float, ndim=1)
+        The positive Alfvén continuum as a function of the grid.
+    wA_neg : numpy.ndarray(dtype=float, ndim=1)
+        The negative Alfvén continuum as a function of the grid.
+    w_TH : numpy.ndarray(dtype=float, ndim=1)
+        The thermal continuum as a function of the grid.
+    """
     rho = ds.equilibria['rho0']
     B02 = ds.equilibria['B02']
     B03 = ds.equilibria['B03']
@@ -50,7 +73,31 @@ def get_continuum_regions(ds):
     wA_neg = doppler - np.sqrt(wA2)
     return wS_pos, wS_neg, wA_pos, wA_neg, wTH
 
+
 def _thermal_continuum(ds, eps):
+    """
+    Calculates the thermal continuum. The thermal and slow continua are coupled
+    as a third-degree polynomial in omega. The thermal continuum corresponds to the
+    imaginary solution, the slow continua correspond to the two real solutions.
+
+    Parameters
+    ----------
+    ds : ~pylbo.LegolasDataContainer
+        A :class:`~pylbo.LegolasDataContainer`
+        instance, corresponding to a given datfile.
+    eps : numpy.ndarray(dtype=float, ndim=1)
+        Array containing the scale factor over the grid.
+
+    Returns
+    -------
+    wTH : numpy.ndarray(dtype=float, ndim=1)
+        The thermal continuum as a function of the grid.
+
+    Raises
+    ------
+    ValueError
+        If there is more than one solution found for the thermal continuum.
+    """
     rho = ds.equilibria['rho0']
     B02 = ds.equilibria['B02']
     B03 = ds.equilibria['B03']

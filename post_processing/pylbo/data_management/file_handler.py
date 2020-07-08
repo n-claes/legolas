@@ -4,7 +4,23 @@ from pathlib import Path
 from tkinter import filedialog
 from .data_container import LegolasDataContainer
 
+
 def load(datfiles):
+    """
+    Loader for Legolas datfiles.
+
+    Parameters
+    ----------
+    datfiles : str, ~os.PathLike, list of str, list of PathLike
+        The path to the datfile, either as a :class:`str` or :class:`~os.PathLike` object,
+        or as a list of :class:`str` or :class:`~os.PathLike` objects.
+
+    Returns
+    -------
+    ds : :class:`~pylbo.LegolasDataContainer`, list of :class:`~.pylbo.LegolasDataContainer`
+        A (list of) :class:`~pylbo.LegolasDataContainer` instance(s),
+        corresponding to the datfile(s) provided.
+    """
     if isinstance(datfiles, list):
         datasets = []
         for datfile in datfiles:
@@ -16,7 +32,31 @@ def load(datfiles):
     ds = LegolasDataContainer(datfiles)
     return ds
 
+
 def read_log_file(file, sort=False):
+    """
+    Reads a Legolas log file.
+
+    Parameters
+    ----------
+    file : str or ~os.PathLike
+        The path to the logfile.
+    sort : bool
+        If `True`, sorts the eigenvalues in the logfile. Sorting is done first
+        on the real part, then on the imaginary part.
+
+    Returns
+    -------
+    eigenvalues : np.ndarray(dtype=complex, ndim=1)
+        Array containing the eigenvalues from the logfile.
+
+    Raises
+    ------
+    ValueError
+        If the file is not a .log file.
+    FileNotFoundError
+        If the file could not be found.
+    """
     if not ".log" in str(file):
         raise ValueError('This is not a .log file: {}'.format(file))
     filepath = Path(file).resolve()
@@ -33,7 +73,17 @@ def read_log_file(file, sort=False):
         eigenvalues = np.sort(eigenvalues)
     return eigenvalues
 
+
 def select_files():
+    """
+    Opens an interactive window to select files to open.
+    Requires a visual interface.
+
+    Returns
+    -------
+    files : list
+        A list containing the paths to the files selected.
+    """
     root = tk.Tk()
     root.withdraw()
     root.lift()

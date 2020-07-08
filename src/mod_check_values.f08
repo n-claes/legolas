@@ -1,8 +1,7 @@
 ! =============================================================================
-!> @brief   Module for sanity checks on values.
-!! @details Performs sanity checks on given values. Methods are implemented to check for
-!!          small, NaN or negative values in arrays. We also have single-value checks against
-!!          zero or NaN, along with a double-precision equality check.
+!> This module performs sanity checks on given values. Methods are implemented to check for
+!! small, NaN or negative values in arrays. We also have single-value checks against
+!! zero or NaN, along with a double-precision equality check.
 module mod_check_values
   use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan
   use mod_global_variables, only: dp, dp_LIMIT, gauss_gridpts
@@ -11,7 +10,7 @@ module mod_check_values
 
   private
 
-  !> Interface to check small values in a real/complex array/matrix.
+  !> Interface to check small values in a real or complex array/matrix.
   interface check_small_values
     module procedure small_values_real_array
     module procedure small_values_complex_array
@@ -28,7 +27,7 @@ module mod_check_values
     module procedure check_nan_values_gravity
   end interface check_nan_values
 
-  !> Interface to check if a real/complex value is zero.
+  !> Interface to check if a real or complex value is zero.
   interface value_is_zero
     module procedure real_is_zero
     module procedure complex_is_zero
@@ -44,12 +43,12 @@ module mod_check_values
 contains
 
 
-  !> @brief   Double-precision check for zero.
-  !! @details Checks if a given double-precision real value equals zero
-  !!          within a \p 1e-12 (value for \p DP_LIMIT).
-  !! @param[in] value   the real value to check
-  !! @return  \p True if \p value is zero, \p False otherwise
+  !> Double-precision check for zero.
+  !! Checks if a given double-precision real value equals zero
+  !! within a <tt>DP_LIMIT</tt> margin.
+  !! Returns <tt>True</tt> if value equals zero, <tt>False</tt> otherwise.
   function real_is_zero(value) result(is_zero)
+    !> the real value to check
     real(dp), intent(in)  :: value
     logical :: is_zero
 
@@ -61,13 +60,14 @@ contains
   end function real_is_zero
 
 
-  !> @brief   Double-precision complex check for zero.
-  !! @details Checks if a given double-precision complex value equals zero
-  !!          within \p 1e-12 (value for \p DP_LIMIT). For this to be true, both the real
-  !!          and imaginary parts have to be zero.
-  !! @param[in] value   the complex value to check
-  !! @returns \p True if real and imaginary parts are zero, \p False otherwise
+  !> Double-precision complex check for zero.
+  !! Checks if a given double-precision complex value equals zero
+  !! within a <tt>DP_LIMIT</tt> margin.
+  !! Returns <tt>True</tt> if value equals zero, <tt>False</tt> otherwise.
+  !! @note  Both the real and imaginary parts have to
+  !!        equal zero for this function to return <tt>True</tt>.
   function complex_is_zero(value) result(is_zero)
+    !> the complex value to check
     complex(dp), intent(in) :: value
     logical :: is_zero
 
@@ -79,14 +79,15 @@ contains
   end function complex_is_zero
 
 
-  !> @brief   Equality check between variables.
-  !! @details Checks if two real double-precision values are equal to
-  !!          each other within \p 1e-12 (value for \p DP_LIMIT).
-  !! @param[in] value   the first real value
-  !! @param[in] value_base  the base value against which to check \p value
-  !! @returns \p True if \p value == \p value_base, \p False otherwise
+  !> Equality check between variables.
+  !! Checks if two real double-precision values are equal to
+  !! each other within <tt>DP_LIMIT</tt>.
+  !! Returns <tt>True</tt> if _value == value_base_, <tt>False</tt> otherwise.
   function value_is_equal(value, value_base)  result(is_equal)
-    real(dp), intent(in)  :: value, value_base
+    !> the first real value
+    real(dp), intent(in)  :: value
+    !> the base value to check against
+    real(dp), intent(in)  :: value_base
     logical :: is_equal
 
     if (abs(value - value_base) > dp_LIMIT) then
@@ -97,11 +98,11 @@ contains
   end function value_is_equal
 
 
-  !> @brief   NaN check for real values.
-  !! @details Checks if a real double-precision value is equal to NaN.
-  !! @param[in] value   the real value to check
-  !! @returns \p True if \p value equals \p NaN, \p False otherwise
+  !> NaN check for real values.
+  !! Checks if a real double-precision value is equal to NaN.
+  !! Returns <tt>True</tt> if value equals NaN, <tt>False</tt> otherwise.
   function value_is_nan(value)  result(is_nan)
+    !> the real value to check
     real(dp), intent(in)  :: value
     logical :: is_nan
 
@@ -113,14 +114,14 @@ contains
   end function value_is_nan
 
 
-  !> @brief   Small value checks on a real array.
-  !! @details Checks a real double-precision array for small values.
-  !!          Values that are smaller than the specified tolerance \p tol are set to zero.
-  !!          If \p tol is not present, \p DP_LIMIT is used as tolerance.
-  !! @param[in] array   the real array to check
-  !! @param[in] tol     [optional] the tolerance to check against
+  !> Small value checks on a real array.
+  !! Checks a real double-precision array for small values.
+  !! Values that are smaller than the specified tolerance <tt>tol</tt> are set to zero.
+  !! If <tt>tol</tt> is not present, <tt>DP_LIMIT</tt> is used as tolerance.
   subroutine small_values_real_array(array, tol)
+    !> the real array to check
     real(dp), intent(inout)         :: array(:)
+    !> the tolerance to check against
     real(dp), intent(in), optional  :: tol
     real(dp)    :: limit
     integer     :: i
@@ -139,15 +140,15 @@ contains
   end subroutine small_values_real_array
 
 
-  !> @brief   Small value checks on a complex array.
-  !! @details Checks a complex double-precision array for small values.
-  !!          Values that are smaller than the specified tolerance \p tol are set to zero.
-  !!          The real and imaginary parts are checked (and set) separately.
-  !!          If \p tol is not present, \p DP_LIMIT is used as tolerance.
-  !! @param[in] array   the complex array to check
-  !! @param[in] tol     [optional] the tolerance to check against
+  !> Small value checks on a complex array.
+  !! Checks a complex double-precision array for small values.
+  !! Values that are smaller than the specified tolerance <tt>tol</tt> are set to zero.
+  !! The real and imaginary parts are checked (and set) separately.
+  !! If <tt>tol</tt> is not present, <tt>DP_LIMIT</tt> is used as tolerance.
   subroutine small_values_complex_array(array, tol)
+    !> the complex array to check
     complex(dp), intent(inout)      :: array(:)
+    !> the tolerance to check against
     real(dp), intent(in), optional  :: tol
     real(dp)    :: a_real, a_imag
     real(dp)    :: limit
@@ -175,14 +176,14 @@ contains
   end subroutine small_values_complex_array
 
 
-  !> @brief   Small value checks on a real matrix.
-  !! @details Checks a real double-precision matrix for small values.
-  !!          Values that are smaller than the specified tolerance \p tol are set to zero.
-  !!          If \p tol is not present, \p DP_LIMIT is used as tolerance.
-  !! @param[in] matrix  the real matrix to check
-  !! @param[in] tol     [optional] the tolerance to check against
+  !> Small value checks on a real matrix.
+  !! Checks a real double-precision matrix for small values.
+  !! Values that are smaller than the specified tolerance <tt>tol</tt> are set to zero.
+  !! If <tt>tol</tt> is not present, <tt>DP_LIMIT</tt> is used as tolerance.
   subroutine small_values_real_matrix(matrix, tol)
+    !> the real matrix to check
     real(dp), intent(inout)         :: matrix(:, :)
+    !> the tolerance to check against
     real(dp), intent(in), optional  :: tol
     real(dp)    :: limit
     integer     :: i, j
@@ -203,15 +204,15 @@ contains
   end subroutine small_values_real_matrix
 
 
-  !> @brief   Small value checks on a complex matrix.
-  !! @details Checks a complex double-precision matrix for small values.
-  !!          Values that are smaller than the specified tolerance \p tol are set to zero.
-  !!          The real and imaginary parts are checked (and set) separately.
-  !!          If \p tol is not present, \p DP_LIMIT is used as tolerance.
-  !! @param[in] matrix  the complex matrix to check
-  !! @param[in] tol     [optional] the tolerance to check against
+  !> Small value checks on a complex matrix.
+  !! Checks a complex double-precision matrix for small values.
+  !! Values that are smaller than the specified tolerance <tt>tol</tt> are set to zero.
+  !! The real and imaginary parts are checked (and set) separately.
+  !! If <tt>tol</tt> is not present, <tt>DP_LIMIT</tt> is used as tolerance.
   subroutine small_values_complex_matrix(matrix, tol)
+    !> the complex matrix to check
     complex(dp), intent(inout)      :: matrix(:, :)
+    !> the tolerance to check against
     real(dp), intent(in), optional  :: tol
     real(dp)    :: a_real, a_imag
     real(dp)    :: limit
@@ -241,15 +242,14 @@ contains
   end subroutine small_values_complex_matrix
 
 
-  !> @brief   Negative value checks on a real array.
-  !! @details Checks a real double-precision array for negative values.
-  !!          If a negative value is encountered an error is thrown.
-  !!          This is meant to check density, temperature, etc.
-  !! @exception Error   If \p array contains a negative value.
-  !! @param[in] array   the real array to check
-  !! @param[in] variable_name   the name to include in the error message
+  !> Negative value checks on a real array.
+  !! Checks a real double-precision array for negative values.
+  !! This is meant to check density, temperature, etc.
+  !! @warning Throws an error if <tt>array</tt> contains a negative value.
   subroutine check_negative_array(array, variable_name)
+    !> the real array to check
     real(dp), intent(in)          :: array(:)
+    !> the name to include in the error message
     character(len=*), intent(in)  :: variable_name
     integer                       :: i
 
@@ -261,14 +261,12 @@ contains
   end subroutine check_negative_array
 
 
-  !> @brief   Throws an error if NaN is encountered in an array.
-  !! @details Checks a real double-precision array for NaN values,
-  !!          and throws an error if one is encountered.
-  !! @exception Error If \p array contains a \p NaN value.
-  !! @param[in] array   the real array to check
-  !! @param[in] array_name  the name to include in the error message
+  !> Stops program if NaN is encountered in a real double-precision array.
+  !! @warning If <tt>array</tt> contains a NaN value an error is thrown.
   subroutine stop_if_nan(array, array_name)
+    !> the real array to check
     real(dp), intent(in)  :: array(gauss_gridpts)
+    !> the name to include in the error message
     character(len=*), intent(in)  :: array_name
     integer :: i
 
@@ -280,14 +278,12 @@ contains
   end subroutine stop_if_nan
 
 
-  !> @brief   NaN checks for the density.
-  !! @details Checks if one of the array attributes of the density type
-  !!          contains a NaN value.
-  !! @exception Error   If a \p NaN value is encountered.
-  !! @param[in] rho_field   the type containing the density attributes
+  !> Checks if one of the array attributes of the density type contains NaN.
+  !! @warning If NaN is encountered an error is thrown.
   subroutine check_nan_values_density(rho_field)
     use mod_types, only: density_type
 
+    !> the type containing the density attributes
     type(density_type), intent(in)  :: rho_field
 
     call stop_if_nan(rho_field % rho0, "rho0")
@@ -295,14 +291,12 @@ contains
   end subroutine check_nan_values_density
 
 
-  !> @brief   NaN checks for the temperature.
-  !! @details Checks if one of the array attributes of
-  !!          the temperature type contains a NaN value.
-  !! @exception Error   If a \p NaN value is encountered.
-  !! @param[in] T_field   the type containing the temperature attributes
+  !> Checks if one of the array attributes of the temperature type contains NaN.
+  !! @warning If NaN is encountered an error is thrown.
   subroutine check_nan_values_temperature(T_field)
     use mod_types, only: temperature_type
 
+    !> the type containing the temperature attributes
     type(temperature_type), intent(in)  :: T_field
 
     call stop_if_nan(T_field % T0, "T0")
@@ -310,14 +304,12 @@ contains
   end subroutine check_nan_values_temperature
 
 
-  !> @brief   NaN checks for the magnetic field.
-  !! @details Checks if one of the array attributes of
-  !!          the magnetic field type contains a NaN value.
-  !! @exception Error   If a \p NaN value is encountered.
-  !! @param[in] B_field   the type containing the magnetic field attributes
+  !> Checks if one of the array attributes of the magnetic field type contains NaN.
+  !! @warning If NaN is encountered an error is thrown.
   subroutine check_nan_values_bfield(B_field)
     use mod_types, only: bfield_type
 
+    !> the type containing the magnetic field attributes
     type(bfield_type), intent(in) :: B_field
 
     call stop_if_nan(B_field % B02, "B02")
@@ -328,14 +320,12 @@ contains
   end subroutine check_nan_values_bfield
 
 
-  !> @brief   NaN checks for the velocity.
-  !! @details Checks if one of the array attributes of
-  !!          the velocity type contains a NaN value.
-  !! @exception Error   If a \p NaN value is encountered.
-  !! @param[in] v_field   the type containing the velocity attributes
+  !> Checks if one of the array attributes of the velocity type contains NaN.
+  !! @warning If NaN is encountered an error is thrown.
   subroutine check_nan_values_velocity(v_field)
     use mod_types, only: velocity_type
 
+    !> the type containing the velocity attributes
     type(velocity_type), intent(in) :: v_field
 
     call stop_if_nan(v_field % v02, "v02")
@@ -345,14 +335,12 @@ contains
   end subroutine check_nan_values_velocity
 
 
-  !> @brief   NaN checks for gravity.
-  !! @details Checks if one of the array attributes of
-  !!          the gravity type contains a NaN value.
-  !! @exception Error   If a \p NaN value is encountered.
-  !! @param[in] grav_field   the type containing the gravity attributes
+  !> Checks if one of the array attributes of the gravity type contains NaN.
+  !! @warning If NaN is encountered an error is thrown.
   subroutine check_nan_values_gravity(grav_field)
     use mod_types, only: gravity_type
 
+    !> the type containing the gravity attributes
     type(gravity_type), intent(in)  :: grav_field
 
     call stop_if_nan(grav_field % grav, "g")

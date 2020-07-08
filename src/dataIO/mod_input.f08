@@ -1,7 +1,7 @@
 ! =============================================================================
-!> @brief   Module to handle parfile reading.
-!! @details Contains subroutines to retrieve the parfile based on the commandline arguments
-!!          and to read the parfile, setting the global variables.
+!> Module to handle parfile reading.
+!! Contains subroutines to retrieve the parfile based on the commandline arguments
+!! and to read the parfile, setting the global variables.
 module mod_input
   use mod_global_variables
   use mod_equilibrium_params
@@ -19,18 +19,20 @@ module mod_input
 contains
 
 
-  !> @brief   Reads in the supplied parfile.
-  !! @details Reads in the parfile and sets the equilibrium parameters and
-  !!          global variables to their specified values.
+  !> Reads in the supplied parfile and sets the equilibrium parameters and
+  !! global variables to their specified values.
   !! @note    The order of the different namelists in the parfile does not matter, this
-  !!          is automatically handled.
-  !! @exception Error if density and temperature normalisations are both provided.
-  !! @exception Error if some normalisations are not passed.
-  !! @param[in] parfile   the name of the parfile
+  !!          is automatically handled. @endnote
+  !! @warning Throws an error if:
+  !!
+  !! - both a density and temperature unit are present in the parfile.
+  !! - a <tt>unit_density</tt> is supplied, but no length or magnetic field unit.
+  !! - a <tt>unit_temprature</tt> is supplied, but no length or magnetic field unit. @endwarning
   subroutine read_parfile(parfile)
     use mod_check_values, only: value_is_zero, value_is_nan
     use mod_units, only: set_normalisations
 
+    !> the name of the parfile
     character(len=*), intent(in)  :: parfile
 
     real(dp)    :: mhd_gamma
@@ -118,17 +120,19 @@ contains
   end subroutine read_parfile
 
 
-  !> @brief   Retrieves the parfile
-  !! @details Parses the command line arguments and retrieves the parfile passes.
-  !! @exception   Error if the parfile is not found.
-  !! @param[out]  filename_par   the name of the parfile
+  !> Parses the command line arguments and retrieves the parfile passed.
+  !! @warning Throws an error if
+  !!
+  !! - command line arguments can not be parsed.
+  !! - the parfile is not found. @endwarning
+  !! @note If no parfile is passed, the code uses a default configuration. @endnote
   subroutine get_parfile(filename_par)
+    !> the name of the parfile
     character(len=str_len), intent(out) :: filename_par
 
     integer                             :: num_args, i
     character(len=str_len), allocatable :: args(:)
     logical                             :: file_exists
-
 
     num_args = command_argument_count()
     allocate(args(num_args))
