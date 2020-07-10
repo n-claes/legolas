@@ -139,6 +139,8 @@ module mod_global_variables
   character(len=str_len)    :: output_folder
   !> sets the logging level, defaults to 2 (errors, warnings and info)
   integer                   :: logging_level
+  !> boolean for doing a dry run, defaults to <tt>False</tt>
+  logical, save             :: dry_run
 
 contains
 
@@ -198,6 +200,7 @@ contains
     write_eigenfunctions = .true.
     show_results = .true.
     logging_level = 2
+    dry_run = .false.
 
     !! file-saving variables
     basename_datfile = "datfile"

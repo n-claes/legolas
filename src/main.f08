@@ -12,7 +12,7 @@
 !!          Physical effects included are flow, optically thin radiative losses,
 !!          anisotropic thermal conduction, resistivity, external gravity.
 program legolas
-  use mod_global_variables, only: dp, str_len, show_results
+  use mod_global_variables, only: dp, str_len, show_results, dry_run
   use mod_matrix_creation, only: create_matrices
   use mod_solvers, only: solve_QR
   use mod_output, only: datfile_name
@@ -36,8 +36,14 @@ program legolas
 
   call print_console_info()
 
-  call log_message("solving eigenvalue problem...", level='info')
-  call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
+  if (.not. dry_run) then
+    call log_message("solving eigenvalue problem...", level='info')
+    call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
+  else
+    call log_message("running dry, overriding parfile and setting &
+                      &eigenvalues to zero", level='info')
+    omega = (0.0d0, 0.0d0)
+  end if
 
   call handle_spurious_eigenvalues(omega)
 

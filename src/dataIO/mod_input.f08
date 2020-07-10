@@ -28,6 +28,8 @@ contains
   !! - both a density and temperature unit are present in the parfile.
   !! - a <tt>unit_density</tt> is supplied, but no length or magnetic field unit.
   !! - a <tt>unit_temprature</tt> is supplied, but no length or magnetic field unit. @endwarning
+  !! @warning If <tt>dry_run</tt> is <tt>True</tt>, this automatically sets eigenfunction
+  !!          and matrix saving to <tt>False</tt>, independent of the settings in the parfile! @endwarning
   subroutine read_parfile(parfile)
     use mod_check_values, only: value_is_zero, value_is_nan
     use mod_units, only: set_normalisations
@@ -48,7 +50,7 @@ contains
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults, remove_spurious_eigenvalues, &
                                nb_spurious_eigenvalues
     namelist /savelist/     write_matrices, write_eigenfunctions, show_results, basename_datfile, &
-                            basename_logfile, output_folder, logging_level
+                            basename_logfile, output_folder, logging_level, dry_run
     namelist /paramlist/    k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, cte_p0, &
                             p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, lambda, nu, &
                             r0, rc, rj, Bth0, Bz0, V, j0, g
@@ -89,7 +91,7 @@ contains
 
     1006  close(unit_par)
 
-    !> Set gridpoints and gamma, if supplied
+    ! Set gridpoints and gamma, if supplied
     if (.not. gridpoints == 0) then
       call set_gridpts(gridpoints)
     end if
@@ -97,7 +99,13 @@ contains
       call set_gamma(mhd_gamma)
     end if
 
-    !> Provide normalisations, if supplied
+    ! Check dry run settings
+    if (dry_run) then
+      write_eigenfunctions = .false.
+      write_matrices = .false.
+    end if
+
+    ! Provide normalisations, if supplied
     if (.not. value_is_nan(unit_density) .and. .not. value_is_nan(unit_temperature)) then
       call log_message("unit density and unit temperature can not both be provided in the par file!", &
                        level="error")
