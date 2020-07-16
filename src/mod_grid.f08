@@ -50,7 +50,7 @@ contains
   !! @warning   Throws a warning if <tt>r = 0</tt> is forced in cylindrical geometry.
   subroutine initialise_grid()
     use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, &
-                                    gauss_gridpts, dp_LIMIT, force_r0
+                                    gauss_gridpts, dp_LIMIT, force_r0, equilibrium_type
 
     integer                  :: i
     real(dp)                 :: dx
@@ -84,7 +84,11 @@ contains
     end do
 
     if (mesh_accumulation) then
-      call accumulate_mesh()
+      if (equilibrium_type == 'photospheric_flux_tube' .or. equilibrium_type == 'coronal_flux_tube') then
+        call accumulate_mesh_special_fluxtube()
+      else
+        call accumulate_mesh()
+      end if
     end if
 
     call set_grid_gauss()
@@ -134,6 +138,51 @@ contains
       call log_message("geometry not defined correctly: " // trim(geometry), level='error')
     end if
   end subroutine set_scale_factor
+
+
+  subroutine accumulate_mesh_special_fluxtube()
+    use mod_global_variables, only: x_start, x_end
+    use mod_equilibrium_params, only: r0
+
+    real(dp)  :: width, a_l, a_r
+    real(dp)  :: pct1, pct2, pct3
+    real(dp)  :: dx, dx1, dx2, dx3
+    integer   :: i, N1, N2, N3
+
+    ! reset the grid
+    grid = 0.0d0
+    ! width of transition region
+    width = 0.1d0
+    ! start of transition region
+    a_l = r0 - width / 2.0d0
+    ! end of transition region
+    a_r = a_l + width
+
+    pct1 = 0.6d0  ! percentage of points in inner tube
+    pct2 = 0.3d0  ! percentage of points in transition region
+    pct3 = 0.1d0  ! percentage of points in outer tube
+
+    N1 = int(pct1 * gridpts)
+    dx1 = (a_l - x_start) / (N1 - 1)  ! -1 since first point is x0
+    N2 = int(pct2 * gridpts)
+    dx2 = (a_r - a_l) / N2
+    N3 = int(pct3 * gridpts)
+    dx3 = (x_end - a_r) / N3
+
+    ! fill the grid
+    grid(1) = x_start
+    do i = 2, gridpts
+      if (i <= N1) then
+        dx = dx1
+      else if (N1 < i .and. i <= N1 + N2) then
+        dx = dx2
+      else
+        dx = dx3
+      end if
+      grid(i) = grid(i - 1) + dx
+    end do
+    call log_message("special mesh refinement for flux tubes, 60%-30%-10%", level='info')
+  end subroutine accumulate_mesh_special_fluxtube
 
 
   !> Re-grids the mesh to a non-uniform spacing using mesh accumulation.

@@ -17,8 +17,7 @@ contains
     real(dp)  :: r, rho_e, p_e, B_0, B_e
     integer   :: i
 
-    call allow_geometry_override(default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=2.0d0)
-    call initialise_grid()
+    call allow_geometry_override(default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=10.0d0)
 
     if (use_defaults) then
       cte_rho0 = 1.0d0
@@ -28,6 +27,8 @@ contains
       k2 = 0.0d0
       k3 = 2.0d0
     end if
+
+    call initialise_grid()
 
     rho_e = 8.0d0 * (2.0d0 * gamma + 1.0d0) * cte_rho0 / (gamma + 18.0d0)
     p_e = 18.0d0 * (2.0d0 * gamma + 1.0d0) * cte_p0 / (gamma + 18.0d0)
