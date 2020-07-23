@@ -5,6 +5,7 @@ from ..utilities.datfile_utils import \
     read_ef_grid, \
     read_eigenfunction
 
+
 class EigenfunctionHandler:
     """
     Main handler for the eigenfunctions.

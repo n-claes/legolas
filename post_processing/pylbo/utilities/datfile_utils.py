@@ -3,9 +3,9 @@ import numpy as np
 
 SIZE_CHAR = struct.calcsize('c')
 SIZE_INT = struct.calcsize('i')
-SIZE_BOOL = struct.calcsize('i') # fortran logical is 4-byte integer
+SIZE_BOOL = struct.calcsize('i')  # fortran logical is 4-byte integer
 SIZE_DOUBLE = struct.calcsize('d')
-SIZE_COMPLEX = struct.calcsize(2 * 'd') # complex is 2 times double-byte
+SIZE_COMPLEX = struct.calcsize(2 * 'd')  # complex is 2 times double-byte
 
 ALIGN = '='
 

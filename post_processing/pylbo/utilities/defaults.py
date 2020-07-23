@@ -1,7 +1,5 @@
 import numpy as np
-import copy
 from pathlib import Path
-from .exceptions import UnknownPrecodedRun
 
 
 #: Path to the Legolas directory.
@@ -140,29 +138,56 @@ precoded_runs = {
     }
 }
 
-def get_precoded_run(name):
-    """
-    Retrieves the configuration dictionary for a precoded run based on
-    its name. These are the keys of `precoded_runs`.
-
-    Parameters
-    ----------
-    name : str
-        The name of the precoded run, as a key of `precoded_runs`.
-
-    Returns
-    -------
-    selected_run : dict
-        A :func:`~copy.deepcopy` of the configuration dictionary for the selected
-        precoded run, to avoid conflicts with multiple runs in the same script.
-
-    Raises
-    ------
-    UnknownPrecodedRun
-        If `name` is not a key of `precoded_runs`, and is hence unknown.
-    """
-    try:
-        selected_run = precoded_runs[name]
-    except KeyError:
-        raise UnknownPrecodedRun(name, precoded_runs.keys())
-    return copy.deepcopy(selected_run)
+namelist_items = {
+    'gridlist': [
+        'geometry',
+        'x_start',
+        'x_end',
+        'gridpoints',
+        'mesh_accumulation',
+        'ev_1',
+        'ev_2',
+        'sigma_1',
+        'sigma_2',
+        'force_r0'
+    ],
+    'equilibriumlist': [
+        'equilibrium_type',
+        'boundary_type',
+        'use_defaults',
+        'remove_spurious_eigenvalues',
+        'nb_spurious_eigenvalues'
+    ],
+    'savelist': [
+        'write_matrices',
+        'write_eigenfunctions',
+        'show_results',
+        'basename_datfile',
+        'basename_logfile',
+        'output_folder',
+        'logging_level'
+    ],
+    'physicslist': [
+        'mhd_gamma',
+        'flow',
+        'radiative_cooling',
+        'ncool',
+        'cooling_curve',
+        'external_gravity',
+        'thermal_conduction',
+        'use_fixed_tc_para',
+        'fixed_tc_para_value',
+        'use_fixed_tc_perp',
+        'fixed_tc_perp_value',
+        'resistivity',
+        'use_fixed_resistivity',
+        'fixed_eta_value'
+    ],
+    'unitslist': [
+        'cgs_units',
+        'unit_density',
+        'unit_temperature',
+        'unit_magneticfield',
+        'unit_length'
+    ]
+}

@@ -13,6 +13,7 @@ from ..utilities.exceptions import \
     MatricesNotPresent
 from ..utilities.continua import get_continuum_regions
 from ..utilities.logger import pylboLogger
+from ..utilities.toolbox import transform_to_numpy
 
 
 class LegolasDataContainer:
@@ -91,10 +92,12 @@ class LegolasDataContainer:
         self.cgs = self.header['cgs']
         self.units = self.header['units']
         self.eq_names = self.header['equil_names']
-        pylboLogger.info('gridpoints = {}'.format(self.gridpts))
-        pylboLogger.info('geometry   = {}'.format(self.geometry))
-        pylboLogger.info('grid start = {}'.format(self.x_start))
-        pylboLogger.info('grid end   = {}'.format(self.x_end))
+        pylboLogger.info(f'gridpoints = {self.gridpts}')
+        pylboLogger.info(f'geometry   = {self.geometry}')
+        pylboLogger.info(f'grid start = {self.x_start}')
+        pylboLogger.info(f'grid end   = {self.x_end}')
+        pylboLogger.info(f'matrices present       : {self.header["matrices_written"]}')
+        pylboLogger.info(f'eigenfunctions present : {self.header["eigenfuncs_written"]}')
 
     def _load_basic_data(self):
         """
@@ -177,10 +180,7 @@ class LegolasDataContainer:
             The nearest eigenvalues to the provided guesses, corresponding with the
             indices `idxs`.
         """
-        if not isinstance(ev_guesses, np.ndarray):
-            if isinstance(ev_guesses, (float, int, complex)):
-                ev_guesses = [ev_guesses]
-            ev_guesses = np.array(ev_guesses)
+        ev_guesses = transform_to_numpy(ev_guesses)
         idxs = np.empty(shape=len(ev_guesses), dtype=np.int)
         eigenvals = np.empty(shape=len(ev_guesses), dtype=np.complex)
         for i, guess in enumerate(ev_guesses):

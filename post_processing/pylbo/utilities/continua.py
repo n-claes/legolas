@@ -120,7 +120,7 @@ def _thermal_continuum(ds, eps):
     k3 = ds.parameters['k3']
     # k parallel and perpendicular to B, uses vector projection and scale factor eps
     kpara = (k2 * B02 / eps + k3 * B03) / B0
-    kperp = (k2 * B03 / eps - k2 * B02) / B0
+    # kperp = (k2 * B03 / eps - k2 * B02) / B0
     gamma = ds.gamma
 
     cs2 = gamma * p / rho       # sound speed
