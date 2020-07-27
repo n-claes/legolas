@@ -1,31 +1,37 @@
 import pytest
-import numpy as np
 import pylbo
 import copy
+import numpy as np
 from pathlib import Path
 from .suite_utils import get_filepaths, \
     get_answer_filepaths, \
     output, \
     compare_eigenvalues
 
-name = 'interchange_modes'
+name = 'kelvin_helmholtz'
 datfile, logfile = get_filepaths(name)
 answer_datfile, answer_logfile = get_answer_filepaths(name)
 
 config = {
-    'geometry': 'Cartesian',
-    'x_start': 0,
-    'x_end': 1,
     'gridpoints': 51,
     'parameters': {
-        'k2': np.pi,
-        'k3': np.pi,
-        'g': 0.5,
-        'cte_p0': 0.25,
-        'lambda': 0,
-        'alpha': 20.0
+        'k2': 0.0,
+        'k3': 1.0,
+        'cte_rho0': 1.0,
+        'cte_p0': 10.0,
+        'delta': 0.0,
+        'g': 0.0,
+        'alpha': 0.0,
+        'theta': 0.0,
+        'p1': 0.0,
+        'p2': 0.0,
+        'p3': 1.0,
+        'p4': 0.0,
+        'tau': 11.0
     },
-    'equilibrium_type': 'interchange_modes',
+    'flow': True,
+    'external_gravity': False,
+    'equilibrium_type': 'kelvin_helmholtz',
     'logging_level': 0,
     'show_results': False,
     'write_eigenfunctions': False,
@@ -76,25 +82,25 @@ def test_filenames(ds_test, ds_answer):
 def test_params(ds_test, ds_answer):
     params = copy.deepcopy(ds_test.parameters)
     answ_params = copy.deepcopy(ds_answer.parameters)
-    assert params.pop('k2') == pytest.approx(np.pi) == answ_params.pop('k2')
-    assert params.pop('k3') == pytest.approx(np.pi) == answ_params.pop('k3')
-    assert params.pop('g') == pytest.approx(0.5) == answ_params.pop('g')
-    assert params.pop('cte_p0') == pytest.approx(0.25) == answ_params.pop('cte_p0')
-    assert params.pop('cte_rho0') == pytest.approx(30) == answ_params.pop('cte_rho0')
-    assert params.pop('lambda') == pytest.approx(0) == answ_params.pop('lambda')
-    assert params.pop('alpha') == pytest.approx(20) == answ_params.pop('alpha')
-    assert params.pop('beta') == 0.5 == answ_params.pop('beta')
+    assert params.pop('k2') == pytest.approx(0.0) == answ_params.pop('k2')
+    assert params.pop('k3') == pytest.approx(1.0) == answ_params.pop('k3')
+    assert params.pop('cte_rho0') == pytest.approx(1.0) == answ_params.pop('cte_rho0')
+    assert params.pop('cte_p0') == pytest.approx(10.0) == answ_params.pop('cte_p0')
+    assert params.pop('delta') == pytest.approx(0.0) == answ_params.pop('delta')
+    assert params.pop('g') == pytest.approx(0.0) == answ_params.pop('g')
+    assert params.pop('alpha') == pytest.approx(0.0) == answ_params.pop('alpha')
+    assert params.pop('theta') == pytest.approx(0.0) == answ_params.pop('theta')
+    assert params.pop('p1') == pytest.approx(0.0) == answ_params.pop('p1')
+    assert params.pop('p2') == pytest.approx(0.0) == answ_params.pop('p2')
+    assert params.pop('p3') == pytest.approx(1.0) == answ_params.pop('p3')
+    assert params.pop('p4') == pytest.approx(0.0) == answ_params.pop('p4')
+    assert params.pop('tau') == pytest.approx(11.0) == answ_params.pop('tau')
     assert len(params) == 0
     assert len(answ_params) == 0
 
 
 def test_eq_type(ds_test):
-    assert ds_test.eq_type == 'interchange_modes'
-
-
-def test_gravity_value(ds_test):
-    for g_val in ds_test.equilibria.get('grav'):
-        assert g_val == pytest.approx(0.5)
+    assert ds_test.eq_type == 'kelvin_helmholtz'
 
 
 def test_compare_evs(log_test, log_answer):

@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 import pylbo
 import copy
 from pathlib import Path
@@ -8,24 +7,31 @@ from .suite_utils import get_filepaths, \
     output, \
     compare_eigenvalues
 
-name = 'interchange_modes'
+name = 'discrete_alfven'
 datfile, logfile = get_filepaths(name)
 answer_datfile, answer_logfile = get_answer_filepaths(name)
 
 config = {
-    'geometry': 'Cartesian',
+    'geometry': 'cylindrical',
     'x_start': 0,
     'x_end': 1,
     'gridpoints': 51,
     'parameters': {
-        'k2': np.pi,
-        'k3': np.pi,
-        'g': 0.5,
-        'cte_p0': 0.25,
-        'lambda': 0,
-        'alpha': 20.0
+        'k2': 1.0,
+        'k3': 0.05,
+        'j0': 0.125,
+        'delta': 0.2
     },
-    'equilibrium_type': 'interchange_modes',
+    'equilibrium_type': 'discrete_alfven',
+    'radiative_cooling': True,
+    'cooling_curve': 'rosner',
+    'thermal_conduction': True,
+    'use_fixed_tc_perp': True,
+    'fixed_tc_perp_value': 0,
+    'cgs_units': True,
+    'unit_density': 1.5e-15,
+    'unit_magneticfield': 50.0,
+    'unit_length': 1.0e10,
     'logging_level': 0,
     'show_results': False,
     'write_eigenfunctions': False,
@@ -76,26 +82,30 @@ def test_filenames(ds_test, ds_answer):
 def test_params(ds_test, ds_answer):
     params = copy.deepcopy(ds_test.parameters)
     answ_params = copy.deepcopy(ds_answer.parameters)
-    assert params.pop('k2') == pytest.approx(np.pi) == answ_params.pop('k2')
-    assert params.pop('k3') == pytest.approx(np.pi) == answ_params.pop('k3')
-    assert params.pop('g') == pytest.approx(0.5) == answ_params.pop('g')
-    assert params.pop('cte_p0') == pytest.approx(0.25) == answ_params.pop('cte_p0')
-    assert params.pop('cte_rho0') == pytest.approx(30) == answ_params.pop('cte_rho0')
-    assert params.pop('lambda') == pytest.approx(0) == answ_params.pop('lambda')
-    assert params.pop('alpha') == pytest.approx(20) == answ_params.pop('alpha')
-    assert params.pop('beta') == 0.5 == answ_params.pop('beta')
+    assert params.pop('k2') == pytest.approx(1) == answ_params.pop('k2')
+    assert params.pop('k3') == pytest.approx(0.05) == answ_params.pop('k3')
+    assert params.pop('delta') == pytest.approx(0.2) == answ_params.pop('delta')
+    assert params.pop('j0') == pytest.approx(0.125) == answ_params.pop('j0')
     assert len(params) == 0
     assert len(answ_params) == 0
 
 
 def test_eq_type(ds_test):
-    assert ds_test.eq_type == 'interchange_modes'
+    assert ds_test.eq_type == 'discrete_alfven'
 
 
-def test_gravity_value(ds_test):
-    for g_val in ds_test.equilibria.get('grav'):
-        assert g_val == pytest.approx(0.5)
+def test_conduction(ds_test):
+    for kappa_perp_val in ds_test.equilibria.get('kappa_perp'):
+        assert kappa_perp_val == pytest.approx(0)
 
 
 def test_compare_evs(log_test, log_answer):
     compare_eigenvalues(log_test, log_answer, ds_name=name)
+
+
+def test_units(ds_test):
+    units = ds_test.units
+    assert ds_test.cgs
+    assert units.get('unit_density') == pytest.approx(1.5e-15)
+    assert units.get('unit_magneticfield') == pytest.approx(50)
+    assert units.get('unit_length') == pytest.approx(1e10)

@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 import pylbo
 import copy
 from pathlib import Path
@@ -9,24 +8,25 @@ from .suite_utils import get_filepaths, \
     compare_eigenvalues, \
     compare_eigenfunctions
 
-name = 'adiabatic_homo'
+name = 'internal_kink'
 datfile, logfile = get_filepaths(name)
 answer_datfile, answer_logfile = get_answer_filepaths(name)
 
 config = {
-    'geometry': 'Cartesian',
+    'geometry': 'cylindrical',
     'x_start': 0,
     'x_end': 1,
     'gridpoints': 51,
     'parameters': {
-        'k2': 0,
-        'k3': np.pi,
+        'k2': 1.0,
+        'k3': 0.16 * 5,
         'cte_rho0': 1.0,
-        'cte_T0': 1.0,
-        'cte_B02': 0.0,
-        'cte_B03': 1.0
+        'cte_v03': 1.0,
+        'cte_p0': 3.0,
+        'alpha': 5.0
     },
-    'equilibrium_type': 'adiabatic_homo',
+    'equilibrium_type': 'internal_kink',
+    'flow': True,
     'logging_level': 0,
     'show_results': False,
     'write_eigenfunctions': True,
@@ -37,7 +37,7 @@ config = {
 }
 
 pylbo.set_loglevel('warning')
-ev_guesses = [2.67131, 2.54724, 2.51402, 2.50119, 2.49502]
+ev_guesses = [0.470629 + 0.00607j, 0.470629 + 0.00607j]
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -93,29 +93,23 @@ def test_filenames(ds_test, ds_answer):
 
 def test_params(ds_test, ds_answer):
     params = copy.deepcopy(ds_test.parameters)
-    params_answ = ds_answer.parameters
-    print(params_answ)
-    assert params.pop('k2') == pytest.approx(0) == params_answ.pop('k2')
-    assert params.pop('k3') == pytest.approx(np.pi) == params_answ.pop('k3')
-    assert params.pop('cte_rho0') == pytest.approx(1) == params_answ.pop('cte_rho0')
-    assert params.pop('cte_T0') == pytest.approx(1) == params_answ.pop('cte_T0')
-    assert params.pop('cte_B02') == pytest.approx(0) == params_answ.pop('cte_B02')
-    assert params.pop('cte_B03') == pytest.approx(1) == params_answ.pop('cte_B03')
+    answ_params = copy.deepcopy(ds_answer.parameters)
+    assert params.pop('k2') == pytest.approx(1) == answ_params.pop('k2')
+    assert params.pop('k3') == pytest.approx(0.8) == answ_params.pop('k3')
+    assert params.pop('cte_rho0') == pytest.approx(1) == answ_params.pop('cte_rho0')
+    assert params.pop('cte_v03') == pytest.approx(1) == answ_params.pop('cte_v03')
+    assert params.pop('cte_p0') == pytest.approx(3) == answ_params.pop('cte_p0')
+    assert params.pop('alpha') == pytest.approx(5) == answ_params.pop('alpha')
     assert len(params) == 0
-    assert len(params_answ) == 0
+    assert len(answ_params) == 0
 
 
 def test_eq_type(ds_test):
-    assert ds_test.eq_type == 'adiabatic_homo'
+    assert ds_test.eq_type == 'internal_kink'
 
 
 def test_compare_evs(log_test, log_answer):
     compare_eigenvalues(log_test, log_answer, ds_name=name)
-
-
-def test_real_evs(ds_test):
-    for ev in ds_test.eigenvalues:
-        assert ev.imag == pytest.approx(0)
 
 
 def test_rho_eigenfunctions(efs_test, efs_answer):
