@@ -1,11 +1,29 @@
-!
-! SUBMODULE: smod_equil_discrete_alfven
-!
-! DESCRIPTION:
-! Submodule defining an equilibrium for non-adiabatic discrete Alfvén waves in cylindrical geometry.
-! Uses a 'Tokamak current profile' with parameter nu = 2, radiative cooling is enabled using a
-! piecewise cooling curven by Rosner et al. (1978), and (only) parallel thermal conduction is assumed.
-! Obtained from Keppens et al., Solar Physics 144, 267 (1993)
+! =============================================================================
+!> This submodule defines an equilibrium in cylindrical geometry with
+!! an axial current profile (\(\nu = 2\)), modelling a solar coronal loop
+!! in which discrete Alfvén waves are present. The geometry can be overridden in the parfile.
+!!
+!! This equilibrium is taken from
+!! _Keppens, Rony, Ronald AM Van Der Linden, and Marcel Goossens.
+!! "Non-adiabatic discrete Alfven waves in coronal loops and prominences.",
+!! Solar physics 144.2 (1993): 267-281_.
+!!
+!! @note Default values are given by
+!!
+!! - <tt>k2</tt> = 1
+!! - <tt>k3</tt> = 0.05
+!! - <tt>j0</tt> = 0.125 : used to set the current.
+!! - <tt>delta</tt> = 0.2 : used in the density profile.
+!! - cooling_curve = 'rosner'
+!! - parallel thermal conduction, no perpendicular conduction
+!!
+!! and normalisations given by
+!!
+!! - <tt>unit_density</tt> = 1.5e-15 gcm-3
+!! - <tt>unit_magneticfield</tt> = 50 Gauss
+!! - <tt>unit_length</tt> = 1e10 cm
+!!
+!! and can all be changed in the parfile. @endnote
 submodule (mod_equilibrium) smod_equil_discrete_alfven
   implicit none
 
@@ -22,19 +40,13 @@ contains
     call initialise_grid()
 
     if (use_defaults) then
-      ! physics
       radiative_cooling = .true.
       cooling_curve = 'rosner'
       thermal_conduction = .true.
-      ! only parallel thermal conduction with full T dependence
       use_fixed_tc_perp = .true.
       fixed_tc_perp_value = 0.0d0
-
-      ! define normalisations using length, magnetic field and density
       cgs_units = .true.
       call set_normalisations(new_unit_density=1.5d-15, new_unit_magneticfield=50.0d0, new_unit_length=1.0d10)
-
-      ! parameters
 
       j0 = 0.125d0
       delta = 0.2d0   ! d parameter in density prescription
@@ -56,14 +68,12 @@ contains
                                     + 180.0d0 * (x_end**2 - r**2))
       T_field % T0(i) = p_r(i) / (rho_field % rho0(i))
 
-      ! derivatives
       rho_field % d_rho0_dr(i) = 2.0d0 * r * (delta - 1.0d0) / x_end**2
       B_field % d_B02_dr(i) = j0 * (5.0d0 * r**4 - 9.0d0 * r**2 + 3.0d0) / 6.0d0
       dp_r(i) = j0**2 * r * (-r**8 + 5.0d0 * r**6 - 10.0d0 * r**4 + 9.0d0 * r**2 - 3.0d0) / 6.0d0
       T_field % d_T0_dr(i) = (dp_r(i) * (rho_field % rho0(i)) - (rho_field % d_rho0_dr(i)) * p_r(i)) &
                               / (rho_field % rho0(i))**2
     end do
-
   end subroutine discrete_alfven_eq
 
 end submodule smod_equil_discrete_alfven

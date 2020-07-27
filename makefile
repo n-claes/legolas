@@ -43,12 +43,9 @@ objects  := $(addprefix $(BINDIR)/, \
 							smod_equil_flow_driven_instabilities.o \
 							smod_equil_gravito_acoustic.o \
 							smod_equil_gravito_mhd.o \
-							smod_equil_ideal_quasimodes.o \
 							smod_equil_interchange_modes.o \
-							smod_equil_interface_modes.o \
 							smod_equil_internal_kink_instability.o \
 							smod_equil_kelvin_helmholtz_cd.o \
-							smod_equil_kelvin_helmholtz.o \
 							smod_equil_magneto_rotational_instability.o \
 							smod_equil_nonuniform_conduction.o \
 							smod_equil_resistive_homo.o \
@@ -63,6 +60,9 @@ objects  := $(addprefix $(BINDIR)/, \
 							smod_equil_photospheric_flux_tube.o \
 							smod_equil_coronal_flux_tube.o \
 							smod_equil_gold_hoyle.o \
+							smod_equil_RTI.o \
+							smod_equil_KHI.o \
+							smod_equil_RTI_KHI.o \
 							smod_test_beta0.o \
 							smod_test_hydro.o \
 							smod_user_defined.o \
