@@ -2,8 +2,8 @@
 ! SUBMODULE: smod_equil_flow_driven_instabilities
 !
 ! DESCRIPTION:
-!> Submodule defining flow-driven instabilities in Cartesian geometry.
-!! From Magnetohydrodynamics by Goedbloed, Keppens and Poedts, sec. 13.2 (p. 486).
+! Submodule defining flow-driven instabilities in Cartesian geometry.
+! From Magnetohydrodynamics by Goedbloed, Keppens and Poedts, sec. 13.2 (p. 486).
 submodule (mod_equilibrium) smod_equil_flow_driven_instabilities
   implicit none
 

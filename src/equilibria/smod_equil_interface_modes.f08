@@ -2,8 +2,8 @@
 ! SUBMODULE: smod_equil_interface_modes
 !
 ! DESCRIPTION:
-!> Submodule defining an equilibrium of a two-layer plasma.
-!! Obtained from B. Roberts, MHD Waves in the Solar Atmosphere (2019), Ch. 4
+! Submodule defining an equilibrium of a two-layer plasma.
+! Obtained from B. Roberts, MHD Waves in the Solar Atmosphere (2019), Ch. 4
 submodule (mod_equilibrium) smod_equil_interface_modes
   implicit none
 

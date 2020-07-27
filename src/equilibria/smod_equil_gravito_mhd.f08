@@ -1,10 +1,21 @@
-!
-! SUBMODULE: smod_equil_gravito_mhd
-!
-! DESCRIPTION:
-!> Submodule defining an exponentially stratified medium in Cartesian geometry
-!! with a constant gravity term included.
-!! From Magnetohydrodynamics (2019) by Goedbloed, Keppens and Poedts, sec. 7.3.3 (p258-261)
+! =============================================================================
+!> This submodule defines an equilibrium in Cartesian geometry with a
+!! stratified equilibrium profile, giving rise to gravito-MHD waves.
+!! The geometry can be overridden using the parfile.
+!!
+!! This equilibrium is taken from section 7.3.3, p. 258 in
+!! _Goedbloed, H., Keppens, R., & Poedts, S. (2019). Magnetohydrodynamics of Laboratory
+!!  and Astrophysical Plasmas. Cambridge University Press._ [DOI](http://doi.org/10.1017/9781316403679).
+!! @note Default values are given by
+!!
+!! - <tt>k2</tt> = \(\pi\)
+!! - <tt>k3</tt> = \(\pi\)
+!! - <tt>cte_p0</tt> = 0.5 : used to set the pressure value.
+!! - <tt>alpha</tt> = 20 : used to constrain the density.
+!! - <tt>g</tt> = 0.5 : used to set the gravity constant.
+!!
+!! and can all be changed in the parfile. @endnote
+!! @warning This equilibrium has no regression test yet! @endwarning
 submodule (mod_equilibrium) smod_equil_gravito_mhd
   implicit none
 

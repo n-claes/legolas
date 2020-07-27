@@ -2,9 +2,9 @@
 ! SUBMODULE: smod_equil_photospheric_flux_tube
 !
 ! DESCRIPTION:
-!> Submodule defining an equilibrium of a two-layer plasma.
-!! Obtained from B. Roberts, MHD Waves in the Solar Atmosphere (2019).
-!! Uses photospheric conditions and should reproduce figure 6.5 (p. 170) in multiruns.
+! Submodule defining an equilibrium of a two-layer plasma.
+! Obtained from B. Roberts, MHD Waves in the Solar Atmosphere (2019).
+! Uses photospheric conditions and should reproduce figure 6.5 (p. 170) in multiruns.
 submodule(mod_equilibrium) smod_equil_photospheric_flux_tube
   implicit none
 

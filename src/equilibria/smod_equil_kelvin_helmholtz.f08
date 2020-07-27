@@ -2,8 +2,8 @@
 ! SUBMODULE: smod_equil_kelvin_helmholtz
 !
 ! DESCRIPTION:
-!> Submodule defining a Kelvin-Helmholtz instability in Cartesian geometry.
-!! From Miura et al., J. Geophys. Res. 87 (1982)
+! Submodule defining a Kelvin-Helmholtz instability in Cartesian geometry.
+! From Miura et al., J. Geophys. Res. 87 (1982)
 submodule (mod_equilibrium) smod_equil_kelvin_helmholtz
   implicit none
 

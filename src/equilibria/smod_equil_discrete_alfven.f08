@@ -2,10 +2,10 @@
 ! SUBMODULE: smod_equil_discrete_alfven
 !
 ! DESCRIPTION:
-!> Submodule defining an equilibrium for non-adiabatic discrete Alfvén waves in cylindrical geometry.
-!! Uses a 'Tokamak current profile' with parameter nu = 2, radiative cooling is enabled using a
-!! piecewise cooling curven by Rosner et al. (1978), and (only) parallel thermal conduction is assumed.
-!! Obtained from Keppens et al., Solar Physics 144, 267 (1993)
+! Submodule defining an equilibrium for non-adiabatic discrete Alfvén waves in cylindrical geometry.
+! Uses a 'Tokamak current profile' with parameter nu = 2, radiative cooling is enabled using a
+! piecewise cooling curven by Rosner et al. (1978), and (only) parallel thermal conduction is assumed.
+! Obtained from Keppens et al., Solar Physics 144, 267 (1993)
 submodule (mod_equilibrium) smod_equil_discrete_alfven
   implicit none
 

@@ -2,13 +2,13 @@
 ! SUBMODULE: smod_equil_gold_hoyle
 !
 ! DESCRIPTION:
-!> Submodule defining a Gold-Hoyle equilibrium in cylindrical geometry. This equilibrium configuration
-!! models a filament with a uniform twist, such that all fieldlines perform an equal amount of turns around
-!! the cylinder axis. Obtained from Van Der Linden, Goossens and Hood, SoPh, 140, 317V (1992).
-!! Three profiles:
-!! - cold: B = 10.0 G, rho = 1.6726e-12 kg/m3, R = 1e8 m, T = 5.7e4 K
-!! - cool: B = 22.5 G, rho = 1.6726e-12 kg/m3, R = 1e8 m, T = 2.9e5 K
-!! - hot : B = 67.0 G, rho = 1.6726e-12 kg/m3, R = 1e9 m, T = 2.6e6 K
+! Submodule defining a Gold-Hoyle equilibrium in cylindrical geometry. This equilibrium configuration
+! models a filament with a uniform twist, such that all fieldlines perform an equal amount of turns around
+! the cylinder axis. Obtained from Van Der Linden, Goossens and Hood, SoPh, 140, 317V (1992).
+! Three profiles:
+! - cold: B = 10.0 G, rho = 1.6726e-12 kg/m3, R = 1e8 m, T = 5.7e4 K
+! - cool: B = 22.5 G, rho = 1.6726e-12 kg/m3, R = 1e8 m, T = 2.9e5 K
+! - hot : B = 67.0 G, rho = 1.6726e-12 kg/m3, R = 1e9 m, T = 2.6e6 K
 submodule (mod_equilibrium) smod_equil_gold_hoyle
   implicit none
 

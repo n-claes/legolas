@@ -2,8 +2,8 @@
 ! SUBMODULE: smod_equil_internal_kink_instability
 !
 ! DESCRIPTION:
-!> Submodule defining current-driven internal kink instability in cylindrical geometry.
-!! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 3, 5.
+! Submodule defining current-driven internal kink instability in cylindrical geometry.
+! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 3, 5.
 submodule (mod_equilibrium) smod_equil_internal_kink_instability
   implicit none
 

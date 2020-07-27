@@ -2,8 +2,8 @@
 ! SUBMODULE: smod_equil_ideal_quasimodes
 !
 ! DESCRIPTION:
-!> Submodule defining ideal quasimodes in a cylindrical geometry.
-!! Obtained from Poedts & Kerner, Physical Review Letters 66 (22), (1991)
+! Submodule defining ideal quasimodes in a cylindrical geometry.
+! Obtained from Poedts & Kerner, Physical Review Letters 66 (22), (1991)
 submodule (mod_equilibrium) smod_equil_ideal_quasimodes
   implicit none
 
