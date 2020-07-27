@@ -2,9 +2,9 @@
 ! SUBMODULE: smod_equil_nonuniform_conduction
 !
 ! DESCRIPTION:
-!> Submodule defining an equilibrium for a non-uniform case, with finite thermal_conduction
-!! conduction in cylindrical geometry.
-!! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.19
+! Submodule defining an equilibrium for a non-uniform case, with finite thermal_conduction
+! conduction in cylindrical geometry.
+! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.19
 submodule (mod_equilibrium) smod_equil_nonuniform_conduction
   implicit none
 

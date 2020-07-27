@@ -74,17 +74,19 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
-def test_params(ds_test):
+def test_params(ds_test, ds_answer):
     params = copy.deepcopy(ds_test.parameters)
-    assert params.pop('k2') == pytest.approx(1)
-    assert params.pop('k3') == pytest.approx(-1.2)
-    assert params.pop('cte_rho0') == pytest.approx(1)
-    assert params.pop('cte_v02') == pytest.approx(0)
-    assert params.pop('cte_v03') == pytest.approx(0.14)
-    assert params.pop('cte_p0') == pytest.approx(0.05)
-    assert params.pop('p1') == pytest.approx(0.1)
-    assert params.pop('alpha') == pytest.approx(2)
+    answ_params = copy.deepcopy(ds_answer.parameters)
+    assert params.pop('k2') == pytest.approx(1) == answ_params.pop('k2')
+    assert params.pop('k3') == pytest.approx(-1.2) == answ_params.pop('k3')
+    assert params.pop('cte_rho0') == pytest.approx(1) == answ_params.pop('cte_rho0')
+    assert params.pop('cte_v02') == pytest.approx(0) == answ_params.pop('cte_v02')
+    assert params.pop('cte_v03') == pytest.approx(0.14) == answ_params.pop('cte_v03')
+    assert params.pop('cte_p0') == pytest.approx(0.05) == answ_params.pop('cte_p0')
+    assert params.pop('p1') == pytest.approx(0.1) == answ_params.pop('p1')
+    assert params.pop('alpha') == pytest.approx(2) == answ_params.pop('alpha')
     assert len(params) == 0
+    assert len(answ_params) == 0
 
 
 def test_eq_type(ds_test):

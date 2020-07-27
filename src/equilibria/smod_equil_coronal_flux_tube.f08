@@ -2,9 +2,9 @@
 ! SUBMODULE: smod_equil_coronal_flux_tube
 !
 ! DESCRIPTION:
-!> Submodule defining an equilibrium of a two-layer plasma.
-!! Obtained from B. Roberts, MHD Waves in the Solar Atmosphere (2019).
-!! Uses coronal conditions and should reproduce figure 6.7 (p. 173) in multiruns.
+! Submodule defining an equilibrium of a two-layer plasma.
+! Obtained from B. Roberts, MHD Waves in the Solar Atmosphere (2019).
+! Uses coronal conditions and should reproduce figure 6.7 (p. 173) in multiruns.
 submodule(mod_equilibrium) smod_equil_coronal_flux_tube
   implicit none
 

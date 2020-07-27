@@ -2,9 +2,9 @@
 ! SUBMODULE: smod_equil_rotating_theta_pinch
 !
 ! DESCRIPTION:
-!> Submodule defining Rayleigh-Taylor instabilities in a cylindrical geometry.
-!! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 9, 11
-!! Also appears in Magnetohydrodynamics (2019), Fig. 13.12, 13.14
+! Submodule defining Rayleigh-Taylor instabilities in a cylindrical geometry.
+! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 9, 11
+! Also appears in Magnetohydrodynamics (2019), Fig. 13.12, 13.14
 submodule (mod_equilibrium) smod_equil_rotating_theta_pinch
   implicit none
 

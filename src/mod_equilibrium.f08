@@ -36,16 +36,13 @@ module mod_equilibrium
     module subroutine resistive_tearing_modes_flow_eq; end subroutine
     module subroutine flow_driven_instabilities_eq; end subroutine
     module subroutine suydam_cluster_eq; end subroutine
-    module subroutine kh_instability_eq; end subroutine
     module subroutine rotating_plasma_cyl_eq; end subroutine
     module subroutine kh_cd_instability_eq; end subroutine
     module subroutine internal_kink_eq; end subroutine
     module subroutine rotating_theta_pinch_eq; end subroutine
-    module subroutine ideal_quasimodes_eq; end subroutine
     module subroutine uniform_thermal_cond_eq; end subroutine
     module subroutine nonuniform_thermal_cond_eq; end subroutine
     module subroutine magneto_rotational_eq; end subroutine
-    module subroutine interface_modes_eq; end subroutine
     module subroutine discrete_alfven_eq; end subroutine
     module subroutine interchange_modes_eq; end subroutine
     module subroutine constant_current_eq; end subroutine
@@ -54,6 +51,9 @@ module mod_equilibrium
     module subroutine photospheric_flux_tube_eq; end subroutine
     module subroutine coronal_flux_tube_eq; end subroutine
     module subroutine gold_hoyle_eq; end subroutine
+    module subroutine RTI_eq; end subroutine
+    module subroutine KHI_eq; end subroutine
+    module subroutine RTI_KHI_eq; end subroutine
 
     module subroutine user_defined_eq; end subroutine
 
@@ -175,12 +175,10 @@ contains
       set_equilibrium_values => resistive_tearing_modes_eq
     case("resistive_tearing_flow")
       set_equilibrium_values => resistive_tearing_modes_flow_eq
-    case("flow_driven_instabilities")
-      set_equilibrium_values => flow_driven_instabilities_eq
     case("suydam_cluster")
       set_equilibrium_values => suydam_cluster_eq
     case("kelvin_helmholtz")
-      set_equilibrium_values => kh_instability_eq
+      set_equilibrium_values => KHI_eq
     case("rotating_plasma_cylinder")
       set_equilibrium_values => rotating_plasma_cyl_eq
     case("kelvin_helmholtz_cd")
@@ -189,16 +187,12 @@ contains
       set_equilibrium_values => internal_kink_eq
     case("rotating_theta_pinch")
       set_equilibrium_values => rotating_theta_pinch_eq
-    case("ideal_quasimodes")
-      set_equilibrium_values => ideal_quasimodes_eq
     case("uniform_conduction")
       set_equilibrium_values => uniform_thermal_cond_eq
     case("nonuniform_conduction")
       set_equilibrium_values => nonuniform_thermal_cond_eq
     case("magneto_rotational")
       set_equilibrium_values => magneto_rotational_eq
-    case("interface_modes")
-      set_equilibrium_values => interface_modes_eq
     case("discrete_alfven")
       set_equilibrium_values => discrete_alfven_eq
     case("interchange_modes")
@@ -215,6 +209,10 @@ contains
       set_equilibrium_values => coronal_flux_tube_eq
     case("gold_hoyle")
       set_equilibrium_values => gold_hoyle_eq
+    case("rayleigh_taylor")
+      set_equilibrium_values => RTI_eq
+    case("RTI_KHI")
+      set_equilibrium_values => RTI_KHI_eq
 
     ! User defined
   case("user_defined")

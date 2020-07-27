@@ -73,17 +73,19 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
-def test_params(ds_test):
+def test_params(ds_test, ds_answer):
     params = copy.deepcopy(ds_test.parameters)
-    assert params.pop('k2') == pytest.approx(np.pi)
-    assert params.pop('k3') == pytest.approx(np.pi)
-    assert params.pop('g') == pytest.approx(0.5)
-    assert params.pop('cte_p0') == pytest.approx(0.25)
-    assert params.pop('cte_rho0') == pytest.approx(30)
-    assert params.pop('lambda') == pytest.approx(0)
-    assert params.pop('alpha') == pytest.approx(20)
-    assert params.pop('beta') == 0.5
+    answ_params = copy.deepcopy(ds_answer.parameters)
+    assert params.pop('k2') == pytest.approx(np.pi) == answ_params.pop('k2')
+    assert params.pop('k3') == pytest.approx(np.pi) == answ_params.pop('k3')
+    assert params.pop('g') == pytest.approx(0.5) == answ_params.pop('g')
+    assert params.pop('cte_p0') == pytest.approx(0.25) == answ_params.pop('cte_p0')
+    assert params.pop('cte_rho0') == pytest.approx(30) == answ_params.pop('cte_rho0')
+    assert params.pop('lambda') == pytest.approx(0) == answ_params.pop('lambda')
+    assert params.pop('alpha') == pytest.approx(20) == answ_params.pop('alpha')
+    assert params.pop('beta') == 0.5 == answ_params.pop('beta')
     assert len(params) == 0
+    assert len(answ_params) == 0
 
 
 def test_eq_type(ds_test):

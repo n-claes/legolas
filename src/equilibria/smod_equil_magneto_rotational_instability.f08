@@ -2,10 +2,10 @@
 ! SUBMODULE: smod_equil_magneto_rotational_instability
 !
 ! DESCRIPTION:
-!> Submodule defining an equilibrium for a magneto-rotational instability in
-!! cylindrical geometry.
-!! Obtained from Magnetohydrodynamics (2019), Fig. 13.17
-!! Also appears in Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 13
+! Submodule defining an equilibrium for a magneto-rotational instability in
+! cylindrical geometry.
+! Obtained from Magnetohydrodynamics (2019), Fig. 13.17
+! Also appears in Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 13
 submodule (mod_equilibrium) smod_equil_magneto_rotational_instability
   implicit none
 

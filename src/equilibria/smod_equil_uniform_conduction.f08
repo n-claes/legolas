@@ -2,9 +2,9 @@
 ! SUBMODULE: smod_equil_uniform_conduction
 !
 ! DESCRIPTION:
-!> Submodule defining an equilibrium for a uniform case, with finite thermal conduction
-!! in cylindrical geometry.
-!! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.18
+! Submodule defining an equilibrium for a uniform case, with finite thermal conduction
+! in cylindrical geometry.
+! Obtained from Kerner, J. Comput. Phys. 85, 1-85 (1989), Fig. 14.18
 submodule (mod_equilibrium) smod_equil_uniform_conduction
   implicit none
 
