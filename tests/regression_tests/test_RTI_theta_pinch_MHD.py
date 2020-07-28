@@ -7,30 +7,22 @@ from .suite_utils import get_filepaths, \
     output, \
     compare_eigenvalues
 
-name = 'kelvin_helmholtz'
+name = 'RTI_theta_pinch_MHD'
 datfile, logfile = get_filepaths(name)
 answer_datfile, answer_logfile = get_answer_filepaths(name)
 
 config = {
     'gridpoints': 51,
     'parameters': {
-        'k2': 0.0,
-        'k3': 1.0,
+        'k2': 1.0,
+        'k3': 0.1,
         'cte_rho0': 1.0,
-        'cte_p0': 10.0,
-        'delta': 0.0,
-        'g': 0.0,
-        'alpha': 0.0,
-        'theta': 0.0,
-        'p1': 0.0,
-        'p2': 0.0,
-        'p3': 1.0,
-        'p4': 0.0,
-        'tau': 11.0
+        'alpha': 2.0,
+        'delta': 1/6,
+        'r0': 0.0
     },
     'flow': True,
-    'external_gravity': False,
-    'equilibrium_type': 'kelvin_helmholtz',
+    'equilibrium_type': 'RTI_theta_pinch',
     'logging_level': 0,
     'show_results': False,
     'write_eigenfunctions': False,
@@ -81,25 +73,18 @@ def test_filenames(ds_test, ds_answer):
 def test_params(ds_test, ds_answer):
     params = copy.deepcopy(ds_test.parameters)
     answ_params = copy.deepcopy(ds_answer.parameters)
-    assert params.pop('k2') == pytest.approx(0.0) == answ_params.pop('k2')
-    assert params.pop('k3') == pytest.approx(1.0) == answ_params.pop('k3')
+    assert params.pop('k2') == pytest.approx(1.0) == answ_params.pop('k2')
+    assert params.pop('k3') == pytest.approx(0.1) == answ_params.pop('k3')
     assert params.pop('cte_rho0') == pytest.approx(1.0) == answ_params.pop('cte_rho0')
-    assert params.pop('cte_p0') == pytest.approx(10.0) == answ_params.pop('cte_p0')
-    assert params.pop('delta') == pytest.approx(0.0) == answ_params.pop('delta')
-    assert params.pop('g') == pytest.approx(0.0) == answ_params.pop('g')
-    assert params.pop('alpha') == pytest.approx(0.0) == answ_params.pop('alpha')
-    assert params.pop('theta') == pytest.approx(0.0) == answ_params.pop('theta')
-    assert params.pop('p1') == pytest.approx(0.0) == answ_params.pop('p1')
-    assert params.pop('p2') == pytest.approx(0.0) == answ_params.pop('p2')
-    assert params.pop('p3') == pytest.approx(1.0) == answ_params.pop('p3')
-    assert params.pop('p4') == pytest.approx(0.0) == answ_params.pop('p4')
-    assert params.pop('tau') == pytest.approx(11.0) == answ_params.pop('tau')
+    assert params.pop('alpha') == pytest.approx(2.0) == answ_params.pop('alpha')
+    assert params.pop('delta') == pytest.approx(1/6) == answ_params.pop('delta')
+    assert params.pop('r0') == pytest.approx(0.0) == answ_params.pop('r0')
     assert len(params) == 0
     assert len(answ_params) == 0
 
 
 def test_eq_type(ds_test):
-    assert ds_test.eq_type == 'kelvin_helmholtz'
+    assert ds_test.eq_type == 'RTI_theta_pinch'
 
 
 def test_compare_evs(log_test, log_answer):
