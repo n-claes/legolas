@@ -46,13 +46,13 @@ objects  := $(addprefix $(BINDIR)/, \
 							smod_equil_interchange_modes.o \
 							smod_equil_internal_kink_instability.o \
 							smod_equil_kelvin_helmholtz_cd.o \
-							smod_equil_magneto_rotational_instability.o \
+							smod_equil_MRI_accretion.o \
 							smod_equil_nonuniform_conduction.o \
 							smod_equil_resistive_homo.o \
 							smod_equil_resistive_tearing_flow.o \
 							smod_equil_resistive_tearing.o \
 							smod_equil_rotating_plasma_cylinder.o \
-							smod_equil_rotating_theta_pinch.o \
+							smod_equil_RTI_theta_pinch.o \
 							smod_equil_suydam_cluster.o \
 							smod_equil_uniform_conduction.o \
 							smod_equil_resonant_absorption.o \

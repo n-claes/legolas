@@ -39,10 +39,10 @@ module mod_equilibrium
     module subroutine rotating_plasma_cyl_eq; end subroutine
     module subroutine kh_cd_instability_eq; end subroutine
     module subroutine internal_kink_eq; end subroutine
-    module subroutine rotating_theta_pinch_eq; end subroutine
+    module subroutine RTI_theta_pinch_eq; end subroutine
     module subroutine uniform_thermal_cond_eq; end subroutine
     module subroutine nonuniform_thermal_cond_eq; end subroutine
-    module subroutine magneto_rotational_eq; end subroutine
+    module subroutine MRI_accretion_eq; end subroutine
     module subroutine discrete_alfven_eq; end subroutine
     module subroutine interchange_modes_eq; end subroutine
     module subroutine constant_current_eq; end subroutine
@@ -185,14 +185,14 @@ contains
       set_equilibrium_values => kh_cd_instability_eq
     case("internal_kink")
       set_equilibrium_values => internal_kink_eq
-    case("rotating_theta_pinch")
-      set_equilibrium_values => rotating_theta_pinch_eq
+    case("RTI_theta_pinch")
+      set_equilibrium_values => RTI_theta_pinch_eq
     case("uniform_conduction")
       set_equilibrium_values => uniform_thermal_cond_eq
     case("nonuniform_conduction")
       set_equilibrium_values => nonuniform_thermal_cond_eq
-    case("magneto_rotational")
-      set_equilibrium_values => magneto_rotational_eq
+    case("MRI_accretion")
+      set_equilibrium_values => MRI_accretion_eq
     case("discrete_alfven")
       set_equilibrium_values => discrete_alfven_eq
     case("interchange_modes")
@@ -246,30 +246,36 @@ contains
     use mod_global_variables, only: dp_LIMIT
 
     !> default geometry to set
-    character(*), intent(in)  :: default_geometry
+    character(*), intent(in), optional  :: default_geometry
     !> default start of the grid
-    real(dp), intent(in)      :: default_x_start
+    real(dp), intent(in), optional  :: default_x_start
     !> default end of the grid
-    real(dp), intent(in)      :: default_x_end
+    real(dp), intent(in), optional  :: default_x_end
 
-    if (geometry /= "" .and. geometry /= default_geometry) then
-      call log_message("overriding default geometry with " // trim(geometry), level='warning')
-    else
-      geometry = default_geometry
+    if (present(default_geometry)) then
+      if (geometry /= "" .and. geometry /= default_geometry) then
+        call log_message("overriding default geometry with " // trim(geometry), level='warning')
+      else
+        geometry = default_geometry
+      end if
     end if
 
-    if ( (.not. ieee_is_nan(x_start)) .and. abs(x_start - default_x_start) >= dp_LIMIT ) then
-      write(char_log, dp_fmt) x_start
-      call log_message("overriding x_start with " // trim(char_log), level='warning')
-    else
-      x_start = default_x_start
+    if (present(default_x_start)) then
+      if ( (.not. ieee_is_nan(x_start)) .and. abs(x_start - default_x_start) >= dp_LIMIT ) then
+        write(char_log, dp_fmt) x_start
+        call log_message("overriding x_start with " // trim(char_log), level='warning')
+      else
+        x_start = default_x_start
+      end if
     end if
 
-    if ( (.not. ieee_is_nan(x_end)) .and. abs(x_end - default_x_end) >= dp_LIMIT ) then
-      write(char_log, dp_fmt) x_end
-      call log_message("overriding x_end with " // trim(char_log), level='warning')
-    else
-      x_end = default_x_end
+    if (present(default_x_end)) then
+      if ( (.not. ieee_is_nan(x_end)) .and. abs(x_end - default_x_end) >= dp_LIMIT ) then
+        write(char_log, dp_fmt) x_end
+        call log_message("overriding x_end with " // trim(char_log), level='warning')
+      else
+        x_end = default_x_end
+      end if
     end if
   end subroutine allow_geometry_override
 
