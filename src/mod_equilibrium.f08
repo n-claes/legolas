@@ -40,8 +40,6 @@ module mod_equilibrium
     module subroutine kh_cd_instability_eq; end subroutine
     module subroutine internal_kink_eq; end subroutine
     module subroutine RTI_theta_pinch_eq; end subroutine
-    module subroutine uniform_thermal_cond_eq; end subroutine
-    module subroutine nonuniform_thermal_cond_eq; end subroutine
     module subroutine MRI_accretion_eq; end subroutine
     module subroutine discrete_alfven_eq; end subroutine
     module subroutine interchange_modes_eq; end subroutine
@@ -56,9 +54,6 @@ module mod_equilibrium
     module subroutine RTI_KHI_eq; end subroutine
 
     module subroutine user_defined_eq; end subroutine
-
-    module subroutine beta0_test_eq; end subroutine
-    module subroutine hydro_test_eq; end subroutine
   end interface
 
   !> type containing all density-related equilibrium variables
@@ -187,10 +182,6 @@ contains
       set_equilibrium_values => internal_kink_eq
     case("RTI_theta_pinch")
       set_equilibrium_values => RTI_theta_pinch_eq
-    case("uniform_conduction")
-      set_equilibrium_values => uniform_thermal_cond_eq
-    case("nonuniform_conduction")
-      set_equilibrium_values => nonuniform_thermal_cond_eq
     case("MRI_accretion")
       set_equilibrium_values => MRI_accretion_eq
     case("discrete_alfven")
@@ -213,17 +204,8 @@ contains
       set_equilibrium_values => RTI_eq
     case("RTI_KHI")
       set_equilibrium_values => RTI_KHI_eq
-
-    ! User defined
-  case("user_defined")
-      set_equilibrium_values => user_defined_eq
-
-    ! Tests
-  case("beta0_test")
-      set_equilibrium_values => beta0_test_eq
-    case("hydro_test")
-      set_equilibrium_values => hydro_test_eq
-
+    case("user_defined")
+        set_equilibrium_values => user_defined_eq
     case default
       call log_message("equilibrium not recognised: " // trim(equilibrium_type), level='error')
     end select
