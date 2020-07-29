@@ -3,6 +3,8 @@ import copy
 from pathlib import Path
 from regression_tests.test_adiabatic_homo import config as adiabatic_config
 from regression_tests.test_discrete_alfven import config as discrete_alfven_config
+from regression_tests.test_fluxtube_coronal import config as fluxtube_coronal_config
+from regression_tests.test_fluxtube_photospheric import config as fluxtube_photo_config
 from regression_tests.test_gold_hoyle import config as gold_hoyle_config
 from regression_tests.test_interchange_modes import config as interchange_config
 from regression_tests.test_internal_kink import config as internal_kink_config
@@ -28,6 +30,8 @@ output_dir = (pylbo.LEGOLAS_DIR / 'tests/regression_tests/answers').resolve()
 tests = [
     adiabatic_config,
     discrete_alfven_config,
+    fluxtube_coronal_config,
+    fluxtube_photo_config,
     gold_hoyle_config,
     interchange_config,
     internal_kink_config,

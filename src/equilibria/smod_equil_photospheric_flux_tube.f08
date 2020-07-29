@@ -1,10 +1,25 @@
-!
-! SUBMODULE: smod_equil_photospheric_flux_tube
-!
-! DESCRIPTION:
-! Submodule defining an equilibrium of a two-layer plasma.
-! Obtained from B. Roberts, MHD Waves in the Solar Atmosphere (2019).
-! Uses photospheric conditions and should reproduce figure 6.5 (p. 170) in multiruns.
+! =============================================================================
+!> This submodule defines a magnetic flux tube embedded in a uniform magnetic
+!! environment. In this case the flux tube is under photospheric conditions
+!! \( c_{Ae} < c_s < c_{se} < c_A \) where the subscript e denotes the outer region.
+!! More specifically the equilibrium is defined as
+!! \( c_{Ae} = c_s/2, c_{se} = 3c_s/2, c_A = 2c_s \). The geometry can be overridden
+!! in the parfile, and is cylindrical by default for \( r \in [0, 10] \).
+!!
+!! This equilibrium is taken from chapter 6, fig. 6.5 in
+!! _Roberts, Bernard (2019). MHD Waves in the Solar Atmosphere.
+!! Cambridge University Press._ [DOI](https://doi.org/10.1017/9781108613774).
+!! @note For best results, it is recommended to enable mesh accumulation. @endnote
+!! @note Default values are given by
+!!
+!! - <tt>k2</tt> = 0
+!! - <tt>k3</tt> = 2
+!! - <tt>cte_rho0</tt> = 1 : density value for the inner tube.
+!! - <tt>cte_p0</tt> = 1 : pressure value for the inner tube.
+!! - <tt>r0</tt> = 1 : radius of the inner tube.
+!!
+!! and can all be changed in the parfile. @endnote
+! SUBMODULE: smod_equil_coronal_flux_tube
 submodule(mod_equilibrium) smod_equil_photospheric_flux_tube
   implicit none
 

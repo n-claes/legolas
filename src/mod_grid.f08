@@ -140,6 +140,11 @@ contains
   end subroutine set_scale_factor
 
 
+  !> Special mesh accumulation routine for flux tubes. Instead of a Gaussian
+  !! a 60-30-10 percentage-distribution is used, meaning that 60% of the gridpoints
+  !! are located between the axis and \((a - width/2)\), 30% of the gridpoints are
+  !! located at a \(width=0.1\) centered at the inner fluxtube radius \(a\),
+  !! and the remaining 10% is located in the outside region.
   subroutine accumulate_mesh_special_fluxtube()
     use mod_global_variables, only: x_start, x_end
     use mod_equilibrium_params, only: r0
