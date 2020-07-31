@@ -4,6 +4,7 @@ from ..utilities.exceptions import EigenfunctionsNotPresent
 from ..utilities.datfile_utils import \
     read_ef_grid, \
     read_eigenfunction
+from ..utilities.logger import pylboLogger
 
 
 class EigenfunctionHandler:
@@ -121,7 +122,13 @@ class EigenfunctionHandler:
                 self._retransform_efs = not self._retransform_efs
             if event.key in ('enter', 'up', 'down', 'i', 't'):
                 self._plot_eigenfunctions()
-
+            # 'w' prints the currently selected eigenvalues
+            if event.key == 'w':
+                if len(self._ev_indices) == 0:
+                    return
+                evs = self.ds.eigenvalues[self._ev_indices]
+                pylboLogger.info(f'selected indices: {[idx for idx in self._ev_indices]}')
+                pylboLogger.info(f'selected eigenvalues: {[ev for ev in evs]}')
         spectrum.fig.canvas.mpl_connect('button_press_event', on_left_click)
         spectrum.fig.canvas.mpl_connect('pick_event', on_right_click)
         spectrum.fig.canvas.mpl_connect('key_press_event', on_key_press)

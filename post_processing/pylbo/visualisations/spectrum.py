@@ -71,6 +71,7 @@ class SingleSpectrum:
         The keyword argument `annotate_continua` here overrides the
         default value (`True`) if provided.
         """
+        efh = EigenfunctionHandler(self.ds)
         if not annotate_continua == self.annotate_continua:
             self.annotate_continua = annotate_continua
         if merge_figs:
@@ -86,7 +87,6 @@ class SingleSpectrum:
             ef_fig, ef_ax = plt.subplots(1, figsize=(12, 6))
             if self._fig_is_empty:
                 self.plot_spectrum(annotate_continua)
-        efh = EigenfunctionHandler(self.ds)
         efh.connect_figure_events(self, ef_fig, ef_ax)
 
     def plot_spectrum(self, annotate_continua=True):
