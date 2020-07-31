@@ -76,6 +76,7 @@ def test_params(ds_test, ds_answer):
     assert params.pop('k2') == pytest.approx(1.0) == answ_params.pop('k2')
     assert params.pop('k3') == pytest.approx(0.0) == answ_params.pop('k3')
     assert params.pop('cte_rho0') == pytest.approx(1.0) == answ_params.pop('cte_rho0')
+    assert params.pop('cte_p0') == pytest.approx(25/72) == answ_params.pop('cte_p0')
     assert params.pop('alpha') == pytest.approx(2.0) == answ_params.pop('alpha')
     assert params.pop('delta') == pytest.approx(1/6) == answ_params.pop('delta')
     assert params.pop('r0') == pytest.approx(0.0) == answ_params.pop('r0')
