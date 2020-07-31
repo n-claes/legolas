@@ -3,7 +3,7 @@
 !! The geometry is cylindrical with parabolic density and velocity profiles,
 !! The geometry can be overridden in the parfile.
 !!
-!! This equilibrium is taken from section 12.1.3 in
+!! This equilibrium is taken from section III.B in
 !! _Goedbloed, J. P. "The Spectral Web of stationary plasma equilibria.
 !! II. Internal modes." Physics of Plasmas 25.3 (2018): 032110_.
 !! @note Default values are given by

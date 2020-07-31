@@ -1,7 +1,6 @@
 import pytest
 import pylbo
 import copy
-import numpy as np
 from pathlib import Path
 from .suite_utils import get_filepaths, \
     get_answer_filepaths, \
