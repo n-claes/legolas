@@ -63,6 +63,8 @@ module mod_types
     real(dp), allocatable   :: eta(:)
     !> derivative of eta with respect to temperature
     real(dp), allocatable   :: d_eta_dT(:)
+    !> derivative of eta with respect to radius
+    real(dp), allocatable   :: d_eta_dr(:)
     !> second derivative equilibrium B02
     real(dp), allocatable   :: dd_B02_dr(:)
     !> second derivative equilibrium B03
@@ -227,11 +229,13 @@ contains
 
     allocate(type_eta % eta(gauss_gridpts))
     allocate(type_eta % d_eta_dT(gauss_gridpts))
+    allocate(type_eta % d_eta_dr(gauss_gridpts))
     allocate(type_eta % dd_B02_dr(gauss_gridpts))
     allocate(type_eta % dd_B03_dr(gauss_gridpts))
 
     type_eta % eta = 0.0d0
     type_eta % d_eta_dT = 0.0d0
+    type_eta % d_eta_dr = 0.0d0
     type_eta % dd_B02_dr = 0.0d0
     type_eta % dd_B03_dr = 0.0d0
   end subroutine initialise_resistivity_type
