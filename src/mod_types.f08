@@ -336,6 +336,7 @@ contains
 
     deallocate(type_eta % eta)
     deallocate(type_eta % d_eta_dT)
+    deallocate(type_eta % d_eta_dr)
     deallocate(type_eta % dd_B02_dr)
     deallocate(type_eta % dd_B03_dr)
   end subroutine deallocate_resistivity_type

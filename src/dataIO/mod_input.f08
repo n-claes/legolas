@@ -43,7 +43,8 @@ contains
 
     namelist /physicslist/  mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
                             external_gravity, thermal_conduction, use_fixed_tc_para, fixed_tc_para_value, &
-                            use_fixed_tc_perp, fixed_tc_perp_value, resistivity, use_fixed_resistivity, fixed_eta_value
+                            use_fixed_tc_perp, fixed_tc_perp_value, resistivity, use_fixed_resistivity, &
+                            fixed_eta_value, use_eta_dropoff, dropoff_edge_dist, dropoff_width
     namelist /unitslist/    cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length
     namelist /gridlist/     geometry, x_start, x_end, gridpoints, force_r0, &
                             mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2

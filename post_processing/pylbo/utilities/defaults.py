@@ -181,7 +181,10 @@ namelist_items = {
         'fixed_tc_perp_value',
         'resistivity',
         'use_fixed_resistivity',
-        'fixed_eta_value'
+        'fixed_eta_value',
+        'use_eta_dropoff',
+        'dropoff_edge_dist',
+        'dropoff_width'
     ],
     'unitslist': [
         'cgs_units',

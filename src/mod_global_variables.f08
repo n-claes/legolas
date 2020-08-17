@@ -61,6 +61,12 @@ module mod_global_variables
   logical, save             :: use_fixed_resistivity
   !> defines the fixed value for the resistivity, defaults to 0
   real(dp)                  :: fixed_eta_value
+  !> boolean for a resistivity profile that goes to zero on edges, defaults to <tt>False</tt>
+  logical, save             :: use_eta_dropoff
+  !> distance between the grid edge and start of dropoff, defaults to <tt>0.05</tt>
+  real(dp)                  :: dropoff_edge_dist
+  !> width of the dropoff region, defaults to <tt>0.1</tt>
+  real(dp)                  :: dropoff_width
 
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
@@ -173,6 +179,9 @@ contains
     resistivity = .false.
     use_fixed_resistivity = .false.
     fixed_eta_value = 0.0d0
+    use_eta_dropoff = .false.
+    dropoff_edge_dist = 0.05d0
+    dropoff_width = 0.1d0
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile
