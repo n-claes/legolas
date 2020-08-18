@@ -37,7 +37,7 @@ contains
       k2 = 0.0d0
       k3 = 1.0d0
       cte_rho0 = 1.0d0
-      cte_p0 = 10.0d0
+      cte_p0 = 1000d0
       delta = 0.0d0
       g = 0.0d0
       alpha = 0.0d0
@@ -54,6 +54,7 @@ contains
     ! of parameters still yield a B03 component)
     B_field % B02 = 0.0d0
     B_field % B03 = 0.0d0
+    B_field % B0 = 0.0d0
     B_field % d_B02_dr = 0.0d0
     B_field % d_B03_dr = 0.0d0
   end subroutine KHI_eq

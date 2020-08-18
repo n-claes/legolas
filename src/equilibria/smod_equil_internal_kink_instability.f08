@@ -35,7 +35,7 @@ contains
       flow = .true.
       cte_rho0 = 1.0d0
       cte_v03  = 1.0d0
-      cte_p0 = 3.0d0
+      cte_p0 = 9.0d0
       alpha = 5.0d0 / x_end
 
       k2 = 1.0d0
