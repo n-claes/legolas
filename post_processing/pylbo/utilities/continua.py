@@ -23,6 +23,8 @@ def get_continuum_regions(ds):
         The negative Alfvén continuum as a function of the grid.
     w_TH : numpy.ndarray(dtype=float, ndim=1)
         The thermal continuum as a function of the grid.
+    doppler : numpy.ndarray(dtype=float, ndim=1)
+        The Doppler shift as a function of the grid.
     """
     rho = ds.equilibria['rho0']
     B02 = ds.equilibria['B02']
@@ -47,7 +49,7 @@ def get_continuum_regions(ds):
     wA2 = (1 / rho) * ((k2 * B02 / eps) + k3 * B03)**2
     wS2 = (gamma * p / (gamma * p + B0**2)) * wA2
     # doppler shift equals dot product of k and v
-    doppler = k2 * v02 /eps + k3 * v03
+    doppler = k2 * v02 / eps + k3 * v03
 
     # retrieve thermal continuum
     wTH = _thermal_continuum(ds, eps)
@@ -71,7 +73,7 @@ def get_continuum_regions(ds):
     wS_neg = doppler - np.sqrt(wS2)
     wA_pos = doppler + np.sqrt(wA2)
     wA_neg = doppler - np.sqrt(wA2)
-    return wS_pos, wS_neg, wA_pos, wA_neg, wTH
+    return wS_pos, wS_neg, wA_pos, wA_neg, wTH, doppler
 
 
 def _thermal_continuum(ds, eps):

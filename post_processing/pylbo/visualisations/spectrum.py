@@ -188,6 +188,8 @@ class SingleSpectrum:
         # thermal continuum is imaginary, so draw horizontally
         draw_region(self.ds.continua['wth'], facecolor='green',
                     legend_lbl=r'$\Omega_{th}$ thermal continuum', draw_horizontal=True)
+        draw_region(self.ds.continua['dopp'], facecolor='grey',
+                    legend_lbl=r'$\Omega_0$ Doppler shift')
         legend = ax.legend(loc='best')
 
         # retrieve legend patches and items for interactive enabling of continuum regions

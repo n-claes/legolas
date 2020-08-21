@@ -116,9 +116,9 @@ class LegolasDataContainer:
         as an instance attribute (:attr:`continua`), which contains the different regions
         as a dictionary.
         """
-        wS_pos, wS_neg, wA_pos, wA_neg, wth = get_continuum_regions(self)
+        wS_pos, wS_neg, wA_pos, wA_neg, wth, doppler = get_continuum_regions(self)
         self.continua = {'wS+': wS_pos, 'wS-': wS_neg, 'wA+': wA_pos,
-                         'wA-': wA_neg, 'wth': wth}
+                         'wA-': wA_neg, 'wth': wth, 'dopp': doppler}
 
     def get_sound_speed(self):
         """
