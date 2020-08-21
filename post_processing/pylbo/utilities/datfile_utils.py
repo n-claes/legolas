@@ -27,6 +27,19 @@ def get_header(istream):
     istream.seek(0)
     h = {}
 
+    # version information was added afterwards, check for this
+    try:
+        version_name = "datfile_version"
+        fmt = ALIGN + len(version_name) * 'c'
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        assert b''.join(hdr).strip().decode() == version_name
+        fmt = ALIGN + 'i'
+        VERSION, = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+    except AssertionError:
+        istream.seek(0)
+        VERSION = 0
+    h['datfile_version'] = VERSION
+
     # read maximal string length and length of strings in arrays
     fmt = ALIGN + 2 * 'i'
     str_len, str_len_arr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
