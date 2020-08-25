@@ -2,25 +2,56 @@ import pylbo
 import copy
 from pathlib import Path
 from regression_tests.test_adiabatic_homo import config as adiabatic_config
+from regression_tests.test_discrete_alfven import config as discrete_alfven_config
+from regression_tests.test_fluxtube_coronal import config as fluxtube_coronal_config
+from regression_tests.test_fluxtube_photospheric import config as fluxtube_photo_config
+from regression_tests.test_gold_hoyle import config as gold_hoyle_config
 from regression_tests.test_interchange_modes import config as interchange_config
-from regression_tests.test_quasimodes import config as quasi_config
-from regression_tests.test_tokamak import config as tokamak_config
+from regression_tests.test_internal_kink import config as internal_kink_config
 from regression_tests.test_kh_cd import config as kh_cd_config
-from regression_tests.test_rotating_cylinder import config as plasma_cylinder_config
-from regression_tests.test_suydam import config as suydam_config
+from regression_tests.test_KHI import config as KHI_config
+from regression_tests.test_magnetothermal import config as magnetothermal_config
+from regression_tests.test_MRI import config as MRI_config
+from regression_tests.test_quasimodes import config as quasi_config
 from regression_tests.test_resistive_homo import config as resistive_homo_config
 from regression_tests.test_resistive_tearing import config as resistive_tearing_config
 from regression_tests.test_resistive_tearing_flow import config as resistive_tearing_flow_config
-from regression_tests.test_magnetothermal import config as magnetothermal_config
-
+from regression_tests.test_rotating_cylinder import config as plasma_cylinder_config
+from regression_tests.test_RTI import config as RTI_config
+from regression_tests.test_RTI_KHI import config as RTI_KHI_config
+from regression_tests.test_RTI_theta_pinch_HD import config as RTI_pinch_HD_config
+from regression_tests.test_RTI_theta_pinch_MHD import config as RTI_pinch_MHD_config
+from regression_tests.test_suydam import config as suydam_config
+from regression_tests.test_tokamak import config as tokamak_config
 
 pylbo.set_loglevel('info')
 output_dir = (pylbo.LEGOLAS_DIR / 'tests/regression_tests/answers').resolve()
 
-tests = [adiabatic_config, interchange_config, quasi_config, tokamak_config,
-         kh_cd_config, plasma_cylinder_config, suydam_config,
-         resistive_homo_config, resistive_tearing_config, resistive_tearing_flow_config,
-         magnetothermal_config]
+tests = [
+    adiabatic_config,
+    discrete_alfven_config,
+    fluxtube_coronal_config,
+    fluxtube_photo_config,
+    gold_hoyle_config,
+    interchange_config,
+    internal_kink_config,
+    kh_cd_config,
+    KHI_config,
+    magnetothermal_config,
+    MRI_config,
+    quasi_config,
+    resistive_homo_config,
+    resistive_tearing_config,
+    resistive_tearing_flow_config,
+    plasma_cylinder_config,
+    RTI_config,
+    RTI_KHI_config,
+    RTI_pinch_HD_config,
+    RTI_pinch_MHD_config,
+    suydam_config,
+    tokamak_config
+]
+
 
 def overwrite_files(base_filename):
     datfile = (output_dir / (base_filename + '.dat')).resolve()
@@ -32,6 +63,7 @@ def overwrite_files(base_filename):
         else:
             return False
     return True
+
 
 def main():
     parfiles = []
@@ -54,6 +86,7 @@ def main():
             print('Skipping {}'.format(name))
     if parfiles:
         pylbo.run_legolas(parfiles, remove_parfiles=True, nb_cpus=4)
+
 
 if __name__ == '__main__':
     main()

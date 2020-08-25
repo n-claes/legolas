@@ -70,7 +70,9 @@ def compare_eigenvalues(values_test, values_answer, ds_name):
 
         filename = (output / 'FAILED_{}.png'.format(ds_name)).resolve()
         fig.savefig(filename, dpi=400)
+        plt.close(fig)
         raise AssertionError
+    plt.close(fig)
 
 
 def compare_eigenfunctions(values_test, values_answer, use_abs=True):

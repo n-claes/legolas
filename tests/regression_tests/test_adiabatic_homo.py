@@ -20,7 +20,11 @@ config = {
     'gridpoints': 51,
     'parameters': {
         'k2': 0,
-        'k3': np.pi
+        'k3': np.pi,
+        'cte_rho0': 1.0,
+        'cte_T0': 1.0,
+        'cte_B02': 0.0,
+        'cte_B03': 1.0
     },
     'equilibrium_type': 'adiabatic_homo',
     'logging_level': 0,
@@ -87,11 +91,18 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
-def test_params(ds_test):
+def test_params(ds_test, ds_answer):
     params = copy.deepcopy(ds_test.parameters)
-    assert params.pop('k2') == pytest.approx(0)
-    assert params.pop('k3') == pytest.approx(np.pi)
+    params_answ = ds_answer.parameters
+    print(params_answ)
+    assert params.pop('k2') == pytest.approx(0) == params_answ.pop('k2')
+    assert params.pop('k3') == pytest.approx(np.pi) == params_answ.pop('k3')
+    assert params.pop('cte_rho0') == pytest.approx(1) == params_answ.pop('cte_rho0')
+    assert params.pop('cte_T0') == pytest.approx(1) == params_answ.pop('cte_T0')
+    assert params.pop('cte_B02') == pytest.approx(0) == params_answ.pop('cte_B02')
+    assert params.pop('cte_B03') == pytest.approx(1) == params_answ.pop('cte_B03')
     assert len(params) == 0
+    assert len(params_answ) == 0
 
 
 def test_eq_type(ds_test):

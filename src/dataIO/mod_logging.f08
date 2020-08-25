@@ -98,43 +98,38 @@ contains
       return
     end if
 
-    write(*, *) "Running with the following configuration:"
-    call print_whitespace(1)
+    call log_message("--------------- Configuration ---------------", level='info')
 
-    ! Geometry info
-    write(*, *) "-- Geometry settings --"
-    write(*, *) "Geometry           : ", geometry
+    call log_message("                Grid settings", level='info')
+    call log_message("geometry             : " // adjustl(trim(geometry)), level='info')
     write(char_log, dp_fmt) x_start
-    write(*, *) "Grid start         : ", adjustl(char_log)
+    call log_message("grid start           : " // adjustl(char_log), level='info')
     write(char_log, dp_fmt) x_end
-    write(*, *) "Grid end           : ", adjustl(char_log)
+    call log_message("grid end             : " // adjustl(char_log), level='info')
     write(char_log, int_fmt) gridpts
-    write(*, *) "Gridpoints         : ", adjustl(char_log)
+    call log_message("gridpoints (base)    : " // adjustl(char_log), level='info')
     write(char_log, int_fmt) gauss_gridpts
-    write(*, *) "Gaussian gridpoints: ", adjustl(char_log)
+    call log_message("gridpoints (Gauss)   : " // adjustl(char_log), level='info')
     write(char_log, int_fmt) matrix_gridpts
-    write(*, *) "Matrix gridpoints  : ", adjustl(char_log)
-    call print_whitespace(1)
+    call log_message("gridpoints (matrix)  : " // adjustl(char_log), level='info')
 
-    ! Equilibrium info
-    write(*, *) "-- Equilibrium settings --"
-    write(*, *) "Equilibrium type   : ", equilibrium_type
-    write(*, *) "Boundary conditions: ", boundary_type
-    write(char_log, dp_fmt) gamma
-    write(*, *) "Gamma              : ", adjustl(char_log)
+    call log_message("             Equilibrium settings", level='info')
+    call log_message("selected equilibrium : " // adjustl(trim(equilibrium_type)), level='info')
+    call log_message("boundary conditions  : " // adjustl(trim(boundary_type)), level='info')
     write(char_log, dp_fmt) k2
-    write(*, *) "Wave number k2     : ", adjustl(char_log)
+    call log_message("wave number k2       : " // adjustl(char_log), level='info')
     write(char_log, dp_fmt) k3
-    write(*, *) "Wave number k3     : ", adjustl(char_log)
-    call print_whitespace(1)
+    call log_message("wave number k3       : " // adjustl(char_log), level='info')
 
-    ! Save info
-    write(*, *) "-- DataIO settings --"
+    call log_message("               DataIO settings", level='info')
+    call log_message("datfile name         : " // adjustl(trim(basename_datfile)), level='info')
+    call log_message("output folder        : " // adjustl(trim(output_folder)), level='info')
     call logical_tostring(write_matrices, char_log)
-    write(*, *) "Write matrices to file       : ", char_log
+    call log_message("write matrices       : " // adjustl(char_log), level='info')
     call logical_tostring(write_eigenfunctions, char_log)
-    write(*, *) "Write eigenfunctions to file : ", char_log
-    call print_whitespace(2)
+    call log_message("write eigenfunctions : " // adjustl(char_log), level='info')
+    call log_message("---------------------------------------------", level='info')
+    call print_whitespace(1)
   end subroutine print_console_info
 
 

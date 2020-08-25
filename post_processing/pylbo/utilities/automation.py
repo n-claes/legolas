@@ -7,8 +7,8 @@ import psutil
 import numpy as np
 from pathlib import Path
 from tqdm import tqdm
-from .defaults import precoded_runs, \
-    get_precoded_run, \
+from .toolbox import transform_to_list
+from .defaults import namelist_items, \
     LEGOLAS_DIR, \
     LEGOLAS_OUT
 from .exceptions import DictNotEmpty, \
@@ -41,6 +41,7 @@ def _check_directories(output_dir):
     if not Path.is_dir(output_dir):
         Path.mkdir(output_dir)
 
+
 def _check_executable():
     """
     Checks the Legolas executable.
@@ -53,30 +54,6 @@ def _check_executable():
     legolas_exec = (LEGOLAS_DIR / 'legolas').resolve()
     if not Path.is_file(legolas_exec):
         raise FileNotFoundError('Legolas executable not found in {}'.format(legolas_exec))
-
-def custom_enumerate(iterable, start=0, step=1):
-    """
-    Does a custom enumeration with a given stepsize.
-
-    Parameters
-    ----------
-    iterable : ~typing.Iterable
-        The iterable to iterate over.
-    start : int
-        The starting value for enumerate.
-    step : int
-        The stepsize between enumerate values.
-
-    Yields
-    ------
-    start : :class:`int`
-        The current index in `iterable`, incremented with `step`.
-    itr : :class:`~typing.Iterable`
-        The corresponding entry of `iterable`.
-    """
-    for itr in iterable:
-        yield start, itr
-        start += step
 
 
 def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None):
@@ -93,8 +70,30 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
         Dictionary containing the keys to be placed in the parfile.
     basename_parfile : str
         Base name for the parfile.
-    output_dir : str or Pathlike object
+    output_dir : ~os.PathLike
         The path to the output directory.
+
+    Notes
+    -----
+    This routine is quite flexible, meaning that you can specify both single-values and lists
+    as dictionary entries. When there are lists present multiple parfiles will be generated.
+    The only requirement is that list sizes are consistent across dictionary keys.
+
+    Examples
+    --------
+    The example below will generate three parfiles, all three with an adiabatic homogeneous
+    equilibrium state. The first one has 50 gridpoints and a wall at position 1, the second
+    one has 100 gridpoints with a wall at position 5, and so on.
+
+    >>> import pylbo
+    >>> config = dict(equilibrium_type='adiabatic_homo',
+    >>>               gridpoints=[50, 100, 150],
+    >>>               x_end=[1, 5, 10])
+    >>> output = 'path_to_my_folder'
+    >>> myname = 'my_name'
+    >>> parfiles = pylbo.generate_parfiles(parfile_dict=config,
+    >>>                                    output_dir=output,
+    >>>                                    basename_parfile=myname)
 
     Returns
     -------
@@ -109,88 +108,86 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
     InconsistentNumberOfRuns
         When the `number_of_runs` key is inconsistent with array sizes in the parfile.
     """
-    def update_namelist(_key, _items):
-        namelist.update({_key: {}})
-        for _item in _items:
-            _value = parfile_dict.pop(_item, None)
-            if _value is not None:
-                namelist[_key].update({_item: _value})
-        if namelist[_key] == {}:
-            namelist.pop(_key)
-
     if parfile_dict is None:
-        print('No dictionary supplied. Available precoded runs:')
-        av_runs = iter(precoded_runs.keys())
-        for idx, pr in custom_enumerate(av_runs, start=1, step=3):
-            print('{:03d} {:<30}{:03d} {:<30}{:03d} {}'.format(idx, pr, idx + 1, next(av_runs, "<empty>"),
-                                                               idx + 2, next(av_runs, '<empty>')))
-        pr_in = int(input('\nChoose precoded run: '))
-        chosen_pr = list(precoded_runs.keys())[pr_in - 1]
-        print('Selected run: {}'.format(chosen_pr))
-        parfile_dict = get_precoded_run(chosen_pr)
+        pylboLogger.error('no dictionary supplied, unable to generate parfile(s)!')
+    if basename_parfile is None:
+        basename_parfile = parfile_dict.get('equilibrium_type')
     if output_dir is None:
         output_dir = LEGOLAS_PAR
-    if isinstance(output_dir, str):
-        output_dir = Path(output_dir).resolve()
+    output_dir = Path(output_dir).resolve()
     _check_directories(output_dir)
     nb_runs = parfile_dict.pop('number_of_runs', 1)
+
+    # create namelist format
     namelist = {}
-    update_namelist('gridlist', ['geometry', 'x_start', 'x_end', 'gridpoints',
-                                 'mesh_accumulation', 'ev_1', 'ev_2', 'sigma_1',
-                                 'sigma_2', 'force_r0'])
-    update_namelist('equilibriumlist', ['equilibrium_type', 'boundary_type', 'use_defaults',
-                                        'remove_spurious_eigenvalues', 'nb_spurious_eigenvalues'])
-    update_namelist('savelist', ['write_matrices', 'write_eigenfunctions', 'show_results',
-                                 'basename_datfile', 'basename_logfile', 'output_folder', 'logging_level'])
-    update_namelist('physicslist', ['mhd_gamma', 'flow', 'radiative_cooling', 'ncool', 'cooling_curve',
-                                    'external_gravity', 'thermal_conduction', 'use_fixed_tc_para', 'fixed_tc_para_value',
-                                    'use_fixed_tc_perp', 'fixed_tc_perp_value', 'resistivity', 'use_fixed_resistivity',
-                                    'fixed_eta_value'])
-    update_namelist('unitslist', ['cgs_units', 'unit_density', 'unit_temperature', 'unit_magneticfield', 'unit_length'])
-    if parfile_dict.get('parameters') is not None:
-        namelist.update({'paramlist': parfile_dict.pop('parameters')})
-    # we should have popped everything from the dictionary so it should be empty.
-    # if it's not, something is wrong
-    if not parfile_dict == {}:
+    for key, names in namelist_items.items():
+        # create dictionary entry
+        namelist.update({key: {}})
+        # loop over items in this specific namelist item
+        for name in names:
+            obj = parfile_dict.pop(name, None)
+            if obj is not None:
+                obj = transform_to_list(obj)
+                namelist[key].update({name: obj})
+        # if it's still an empty dictionary, remove it
+        if namelist[key] == {}:
+            namelist.pop(key)
+    # add parameters if present
+    param_dict = parfile_dict.pop('parameters', {})
+    if len(param_dict) != 0:
+        namelist['equilibriumlist'].update({'use_defaults': [False]})
+        for name, param in param_dict.items():
+            obj = transform_to_list(param)
+            param_dict.update({name: obj})
+    namelist.update({'paramlist': param_dict})
+    # at this point the original dictionary should be empty, if it's not
+    # there is a problem
+    if not len(parfile_dict) == 0:
         raise DictNotEmpty(parfile_dict)
-    # explicitly turn off defaults if paramlist is supplied
-    if namelist.get('paramlist') is not None:
-        namelist['equilibriumlist'].update({'use_defaults': False})
-    # create specific dictionary so multiple keys can be varied at the same time
-    for major_key in namelist.keys():
-        for key, item in namelist[major_key].items():
-            if not isinstance(item, np.ndarray):
-                namelist[major_key].update({key: [item] * nb_runs})
+
+    # now update namelist for number of runs consistency,
+    # at this point all items in the namelist are lists
+    for listkey, name in namelist.items():
+        for key, item in name.items():
+            if len(item) == 1:
+                itemlist = item * nb_runs
+            elif len(item) == nb_runs:
+                itemlist = item
             else:
-                if len(item) != nb_runs:
-                    raise InconsistentNumberOfRuns(nb_runs, key, namelist[major_key])
+                raise InconsistentNumberOfRuns(nb_runs, key, namelist[listkey])
+            namelist[listkey].update({key: itemlist})
+
     # generate parfiles
     parfiles = []
     for run in range(nb_runs):
-        run_prepended = "{:04d}".format(run)
+        number = '{:04d}'.format(run)
         if nb_runs == 1:
-            run_prepended = ''
-        parfile_dict = {key: {} for key in namelist.keys()}
-        # create dictionary for single run
-        for name, nl_dict in namelist.items():
-            for key, item in nl_dict.items():
-                parfile_dict[name].update({key: item[run]})
-        if basename_parfile is None:
-            basename_parfile = parfile_dict['equilibriumlist']['equilibrium_type']
-        parfile_name = "{}{}.par".format(run_prepended, basename_parfile)
-        basename_datfile = parfile_dict.get('savelist', {}).get('basename_datfile')
-        if basename_datfile is None:
-            basename_datfile = parfile_dict['equilibriumlist']['equilibrium_type']
-        datfile_name = "{}{}".format(run_prepended, basename_datfile)
-        parfile_dict['savelist'].update({'basename_datfile': datfile_name})
-        basename_logfile = parfile_dict.get('savelist', {}).get('basename_logfile')
+            number = ''
+        # dictionary for this run
+        run_dict = {key: {} for key in namelist.keys()}
+        for listkey, name in namelist.items():
+            for key, item in name.items():
+                run_dict[listkey].update({key: item[run]})
+        # make sure savelist is present
+        try:
+            run_dict['savelist']
+        except KeyError:
+            run_dict.update({'savelist': {}})
+        # parfile name
+        parfile_name = f'{number}{basename_parfile}.par'
+        # datfile name
+        basename_datfile = run_dict.get('savelist').get('basename_datfile', basename_parfile)
+        datfile_name = f'{number}{basename_datfile}'    # no .dat extension here
+        run_dict['savelist'].update({'basename_datfile': datfile_name})
+        # logfile name
+        basename_logfile = run_dict.get('savelist').get('basename_logfile', None)
         if basename_logfile is not None:
-            logfile_name = "{}{}".format(run_prepended, basename_logfile)
-            parfile_dict['savelist'].update({'basename_logfile': logfile_name})
+            logfile_name = f'{number}{basename_logfile}'    # no .log extension here
+            run_dict['savelist'].update({'basename_logfile': logfile_name})
         # set paths, write parfile
         parfile_path = (output_dir / parfile_name).resolve()
         parfiles.append(str(parfile_path))
-        f90nml.write(parfile_dict, parfile_path, force=True)
+        f90nml.write(run_dict, parfile_path, force=True)
     pylboLogger.info('parfiles generated, saved to {}'.format(output_dir))
     return parfiles
 
@@ -244,6 +241,7 @@ def _terminate_workers():
         parent.kill()
         parent.wait(timeout=2)
     pylboLogger.critical('all Legolas processes terminated.')
+    exit(1)
 
 
 def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):

@@ -5,6 +5,7 @@ import numpy as np
 from ..utilities.exceptions import InconsistentMultirunFile
 from ..visualisations.eigenfunctions import EigenfunctionHandler
 
+
 class SingleSpectrum:
     """
     Class to handle single-spectrum visualisations for a dataset. These include plotting
@@ -70,6 +71,7 @@ class SingleSpectrum:
         The keyword argument `annotate_continua` here overrides the
         default value (`True`) if provided.
         """
+        efh = EigenfunctionHandler(self.ds)
         if not annotate_continua == self.annotate_continua:
             self.annotate_continua = annotate_continua
         if merge_figs:
@@ -85,7 +87,6 @@ class SingleSpectrum:
             ef_fig, ef_ax = plt.subplots(1, figsize=(12, 6))
             if self._fig_is_empty:
                 self.plot_spectrum(annotate_continua)
-        efh = EigenfunctionHandler(self.ds)
         efh.connect_figure_events(self, ef_fig, ef_ax)
 
     def plot_spectrum(self, annotate_continua=True):
@@ -146,7 +147,7 @@ class SingleSpectrum:
         def on_legend_pick(event):
             artist = event.artist
             # do nothing if clicking outside of legend
-            if not artist in regions:
+            if artist not in regions:
                 return
             item = regions[artist]
             visible = not item.get_visible()
@@ -187,6 +188,8 @@ class SingleSpectrum:
         # thermal continuum is imaginary, so draw horizontally
         draw_region(self.ds.continua['wth'], facecolor='green',
                     legend_lbl=r'$\Omega_{th}$ thermal continuum', draw_horizontal=True)
+        draw_region(self.ds.continua['dopp'], facecolor='grey',
+                    legend_lbl=r'$\Omega_0$ Doppler shift')
         legend = ax.legend(loc='best')
 
         # retrieve legend patches and items for interactive enabling of continuum regions
@@ -458,7 +461,7 @@ class MultiSpectrum:
             cs = ds.get_sound_speed()[0]
             w_sq = (1 / cs**2) * np.real(ds.eigenvalues**2)
             w_sq[np.where(np.abs(w_sq) < 1e-8)] = np.nan
-            k0_sq =  ds.get_k0_squared() * np.ones_like(w_sq)
+            k0_sq = ds.get_k0_squared() * np.ones_like(w_sq)
             self.ax.plot(k0_sq, w_sq, '.b', markersize=3, alpha=0.8)
             self._set_continua_lines(ds, x_value=k0_sq[0], prefactor=(1 / cs**2))
         self.ax.set_ylabel(r'$\dfrac{1}{c^2}\omega^2$')

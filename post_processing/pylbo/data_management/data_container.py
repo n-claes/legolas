@@ -13,6 +13,7 @@ from ..utilities.exceptions import \
     MatricesNotPresent
 from ..utilities.continua import get_continuum_regions
 from ..utilities.logger import pylboLogger
+from ..utilities.toolbox import transform_to_numpy
 
 
 class LegolasDataContainer:
@@ -91,10 +92,12 @@ class LegolasDataContainer:
         self.cgs = self.header['cgs']
         self.units = self.header['units']
         self.eq_names = self.header['equil_names']
-        pylboLogger.info('gridpoints = {}'.format(self.gridpts))
-        pylboLogger.info('geometry   = {}'.format(self.geometry))
-        pylboLogger.info('grid start = {}'.format(self.x_start))
-        pylboLogger.info('grid end   = {}'.format(self.x_end))
+        pylboLogger.info(f'gridpoints = {self.gridpts}')
+        pylboLogger.info(f'geometry   = {self.geometry}')
+        pylboLogger.info(f'grid start = {self.x_start}')
+        pylboLogger.info(f'grid end   = {self.x_end}')
+        pylboLogger.info(f'matrices present       : {self.header["matrices_written"]}')
+        pylboLogger.info(f'eigenfunctions present : {self.header["eigenfuncs_written"]}')
 
     def _load_basic_data(self):
         """
@@ -113,9 +116,9 @@ class LegolasDataContainer:
         as an instance attribute (:attr:`continua`), which contains the different regions
         as a dictionary.
         """
-        wS_pos, wS_neg, wA_pos, wA_neg, wth = get_continuum_regions(self)
+        wS_pos, wS_neg, wA_pos, wA_neg, wth, doppler = get_continuum_regions(self)
         self.continua = {'wS+': wS_pos, 'wS-': wS_neg, 'wA+': wA_pos,
-                         'wA-': wA_neg, 'wth': wth}
+                         'wA-': wA_neg, 'wth': wth, 'dopp': doppler}
 
     def get_sound_speed(self):
         """
@@ -133,30 +136,97 @@ class LegolasDataContainer:
 
     def get_alfven_speed(self):
         """
-        Calculates the Alfvén speed based on the equilibrium arrays.
+        Calculates the Alfvén speed based on the equilibrium arrays,
+        given by :math:`c_A = \\sqrt{\\frac{B_0^2}{\\rho_0}}`.
 
         Returns
         -------
-        vA : numpy.ndarray(dtype=float, ndim=1)
-            Alfvén speed at every grid point, defined as
-            :math:`v_A = \\sqrt{\\frac{B_0^2}{\\rho_0}}`.
+        cA : numpy.ndarray(dtype=float, ndim=1)
+            The Alfvén speed at every gridpoint.
         """
         B0 = np.sqrt(self.equilibria['B02']**2 + self.equilibria['B03']**2)
-        vA = B0 / np.sqrt(self.equilibria['rho0'])
-        return vA
+        cA = B0 / np.sqrt(self.equilibria['rho0'])
+        return cA
+
+    def get_tube_speed(self):
+        """
+        Calculates the tube speed for a cylinder, given by
+        :math:`c_t = \\frac{c_s c_A}{\\sqrt{c_s^2 + c_A^2}}`
+
+        Returns
+        -------
+        ct = numpy.ndarray(dtype=float, ndim=1)
+            The tube speed at every gridpoint.
+            Returns `None` if the geometry is not cylindrical.
+        """
+        if not self.geometry == 'cylindrical':
+            pylboLogger.warn('geometry is not cylindrical, unable to calculate tube speed')
+            ct = None
+        else:
+            cA = self.get_alfven_speed()
+            cs = self.get_sound_speed()
+            ct = cs * cA / np.sqrt(cs**2 + cA**2)
+        return ct
 
     def get_k0_squared(self):
         """
-        Calculates the squared wave number.
+        Calculates the squared wave number, defined as
+        :math:`k_0^2 = k_2^2 + k_3^2`.
 
         Returns
         -------
         k0_sq : float
-            The wave number squared, defined as
-            :math:`k_0^2 = k_2^2 + k_3^2`.
+            The wave number squared.
+
         """
         k0_sq = self.parameters.get('k2')**2 + self.parameters.get('k3')**2
         return k0_sq
+
+    def get_reynolds(self):
+        """
+        Calculates the Reynolds number, defined as
+        :math:`R_e = \\frac{ac_s}{\\eta}` where the slabsize is given by
+        :math:`a = x_{end} - x_{start}`.
+
+        Returns
+        -------
+        Re : numpy.ndarray(dtype=float, ndim=1)
+            The Reynolds number at every grid point.
+            Returns `None` if the resistivity is zero.
+        """
+        cs = self.get_sound_speed()
+        a = self.x_end - self.x_start
+        eta = self.equilibria['eta']
+        if (eta == 0).any():
+            pylboLogger.warn('resistivity is zero somewhere on the domain, unable to '
+                             'calculate the Reynolds number')
+            Re = None
+        else:
+            Re = a * cs / eta
+        return Re
+
+    def get_reynolds_magnetic(self):
+        """
+        Calculates the magnetic Reynolds number, defined as
+        :math:`R_m = \\frac{ac_A}{\\eta}` where the slabsize is given by
+        :math:`a = x_{end} - x_{start}`.
+
+        Returns
+        -------
+        Rm : numpy.ndarray(dtype=float, ndim=1)
+            The magnetic Reynolds number at every grid point.
+            Returns `None` if the resistivity is zero.
+        """
+        cA = self.get_alfven_speed()
+        a = self.x_end - self.x_start
+        eta = self.equilibria['eta']
+        if (eta == 0).any():
+            pylboLogger.warn('resistivity is zero somewhere on the domain, unable to '
+                             'calculate the magnetic Reynolds number')
+            Rm = None
+        else:
+            Rm = a * cA / eta
+        return Rm
 
     def get_nearest_eigenvalues(self, ev_guesses):
         """
@@ -177,10 +247,7 @@ class LegolasDataContainer:
             The nearest eigenvalues to the provided guesses, corresponding with the
             indices `idxs`.
         """
-        if not isinstance(ev_guesses, np.ndarray):
-            if isinstance(ev_guesses, (float, int, complex)):
-                ev_guesses = [ev_guesses]
-            ev_guesses = np.array(ev_guesses)
+        ev_guesses = transform_to_numpy(ev_guesses)
         idxs = np.empty(shape=len(ev_guesses), dtype=np.int)
         eigenvals = np.empty(shape=len(ev_guesses), dtype=np.complex)
         for i, guess in enumerate(ev_guesses):

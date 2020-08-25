@@ -25,7 +25,8 @@ config = {
         'p4': 1.0,
         'p5': 0.0,
         'p6': 0.0,
-        'cte_p0': 0.1
+        'cte_p0': 0.1,
+        'cte_rho0': 1
     },
     'equilibrium_type': 'rotating_plasma_cylinder',
     'logging_level': 0,
@@ -75,18 +76,21 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
-def test_params(ds_test):
+def test_params(ds_test, ds_answer):
     params = copy.deepcopy(ds_test.parameters)
-    assert params.pop('k2') == pytest.approx(1)
-    assert params.pop('k3') == pytest.approx(0)
-    assert params.pop('cte_p0') == pytest.approx(0.1)
-    assert params.pop('p1') == pytest.approx(8)
-    assert params.pop('p2') == pytest.approx(0)
-    assert params.pop('p3') == pytest.approx(0)
-    assert params.pop('p4') == pytest.approx(1)
-    assert params.pop('p5') == pytest.approx(0)
-    assert params.pop('p6') == pytest.approx(0)
+    answ_params = copy.deepcopy(ds_answer.parameters)
+    assert params.pop('k2') == pytest.approx(1) == answ_params.pop('k2')
+    assert params.pop('k3') == pytest.approx(0) == answ_params.pop('k3')
+    assert params.pop('cte_p0') == pytest.approx(0.1) == answ_params.pop('cte_p0')
+    assert params.pop('cte_rho0') == pytest.approx(1) == answ_params.pop('cte_rho0')
+    assert params.pop('p1') == pytest.approx(8) == answ_params.pop('p1')
+    assert params.pop('p2') == pytest.approx(0) == answ_params.pop('p2')
+    assert params.pop('p3') == pytest.approx(0) == answ_params.pop('p3')
+    assert params.pop('p4') == pytest.approx(1) == answ_params.pop('p4')
+    assert params.pop('p5') == pytest.approx(0) == answ_params.pop('p5')
+    assert params.pop('p6') == pytest.approx(0) == answ_params.pop('p6')
     assert len(params) == 0
+    assert len(answ_params) == 0
 
 
 def test_eq_type(ds_test):

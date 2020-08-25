@@ -19,7 +19,9 @@ config = {
     'parameters': {
         'k2': -2.0,
         'k3': 0.2,
-        'j0': (2.0 * 0.2) / 1.95
+        'j0': (2.0 * 0.2) / 1.95,
+        'cte_rho0': 1.0,
+        'cte_B03': 1.0
     },
     'equilibrium_type': 'constant_current_tokamak',
     'logging_level': 0,
@@ -69,12 +71,16 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
-def test_params(ds_test):
+def test_params(ds_test, ds_answer):
     params = copy.deepcopy(ds_test.parameters)
-    assert params.pop('k2') == pytest.approx(-2)
-    assert params.pop('k3') == pytest.approx(0.2)
-    assert params.pop('j0') == pytest.approx(2 * 0.2 / 1.95)
+    answ_params = copy.deepcopy(ds_answer.parameters)
+    assert params.pop('k2') == pytest.approx(-2) == answ_params.pop('k2')
+    assert params.pop('k3') == pytest.approx(0.2) == answ_params.pop('k3')
+    assert params.pop('j0') == pytest.approx(2 * 0.2 / 1.95) == answ_params.pop('j0')
+    assert params.pop('cte_rho0') == pytest.approx(1) == answ_params.pop('cte_rho0')
+    assert params.pop('cte_B03') == pytest.approx(1) == answ_params.pop('cte_B03')
     assert len(params) == 0
+    assert len(answ_params) == 0
 
 
 def test_eq_type(ds_test):

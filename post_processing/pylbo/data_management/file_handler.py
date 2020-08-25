@@ -57,7 +57,7 @@ def read_log_file(file, sort=False):
     FileNotFoundError
         If the file could not be found.
     """
-    if not ".log" in str(file):
+    if ".log" not in str(file):
         raise ValueError('This is not a .log file: {}'.format(file))
     filepath = Path(file).resolve()
     if not filepath.is_file():

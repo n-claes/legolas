@@ -86,7 +86,8 @@ def test_hdr_bools(header):
     assert header['matrices_written']
 
 def test_params(ds):
-    expected_params = {'k2': 0, 'k3': 1, 'beta': 0.25}
+    expected_params = {'k2': 0, 'k3': 1, 'beta': 0.25,
+                       'cte_rho0': 1.0, 'cte_B02': 0.0, 'cte_B03': 1.0}
     assert ds.parameters == expected_params
 
 def test_density(ds):

@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
 from pathlib import Path
 from post_processing import pylbo
+from post_processing.pylbo.utilities.exceptions import EigenfunctionsNotPresent, MatricesNotPresent
+
 
 def _main():
     parser = ArgumentParser()
@@ -16,8 +18,18 @@ def _main():
     ds = pylbo.load(datfile)
     ps = pylbo.SingleSpectrum(ds)
     ps.plot_spectrum(annotate_continua=True)
-    ps.plot_eigenfunctions(merge_figs=True)
+    try:
+        ps.plot_eigenfunctions(merge_figs=True)
+    except EigenfunctionsNotPresent:
+        pass
+    if ds.gridpts < 20:
+        try:
+            pylbo.plot_matrices(ds)
+        except MatricesNotPresent:
+            pass
+    ps.plot_equilibria()
     pylbo.show()
+
 
 if __name__ == '__main__':
     _main()

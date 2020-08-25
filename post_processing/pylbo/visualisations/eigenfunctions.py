@@ -4,6 +4,8 @@ from ..utilities.exceptions import EigenfunctionsNotPresent
 from ..utilities.datfile_utils import \
     read_ef_grid, \
     read_eigenfunction
+from ..utilities.logger import pylboLogger
+
 
 class EigenfunctionHandler:
     """
@@ -35,6 +37,7 @@ class EigenfunctionHandler:
         self._ef_fig = None
         self._ef_ax = None
         self._changes_applied = False
+        self._retransform_efs = True
 
     def connect_figure_events(self, spectrum, ef_fig, ef_ax):
         """
@@ -114,9 +117,18 @@ class EigenfunctionHandler:
                 self._select_next_ef_name_idx()
             if event.key == 'down':
                 self._select_prev_ef_name_idx()
-            if event.key in ('enter', 'up', 'down', 'i'):
+            # 't' transforms the eigenfunctions
+            if event.key == 't':
+                self._retransform_efs = not self._retransform_efs
+            if event.key in ('enter', 'up', 'down', 'i', 't'):
                 self._plot_eigenfunctions()
-
+            # 'w' prints the currently selected eigenvalues
+            if event.key == 'w':
+                if len(self._ev_indices) == 0:
+                    return
+                evs = self.ds.eigenvalues[self._ev_indices]
+                pylboLogger.info(f'selected indices: {[idx for idx in self._ev_indices]}')
+                pylboLogger.info(f'selected eigenvalues: {[ev for ev in evs]}')
         spectrum.fig.canvas.mpl_connect('button_press_event', on_left_click)
         spectrum.fig.canvas.mpl_connect('pick_event', on_right_click)
         spectrum.fig.canvas.mpl_connect('key_press_event', on_key_press)
@@ -175,18 +187,49 @@ class EigenfunctionHandler:
                 ef = ef.real
             else:
                 ef = ef.imag
+            # check if transform is needed
+            if self._retransform_efs and ef_name in ('rho', 'v1', 'v3', 'T', 'a2') and self.ds.geometry == 'cylindrical':
+                ef = ef * self.ef_grid
             label = r'$\omega${} = {:2.5e}'.format(ev_idx, efs.get('eigenvalue'))
             self._ef_ax.plot(self.ef_grid, ef, label=label)
         self._ef_ax.axhline(y=0, linestyle='dotted', color='grey')
         self._ef_ax.axvline(x=self.ds.x_start, linestyle='dotted', color='grey')
-        if self._ef_real_part:
-            title = '{} eigenfunction (real part)'.format(ef_name)
-        else:
-            title = '{} eigenfunction (imag part)'.format(ef_name)
-        self._ef_ax.set_title(title)
+        self._ef_ax.set_title(self._get_title(ef_name))
         self._ef_ax.legend(loc='best')
         self._ef_fig.canvas.draw()
         self._changes_applied = False
+
+    def _get_title(self, ef_name):
+        """
+        Creates the title of the eigenfunction plot.
+        If the eigenfunction is not transformed an 'r' is prepended if appropriate,
+        along with Re/Im depending on the real/imaginary part shown.
+        Additionally, LaTeX formatting is used and numbers are replaced with the
+        corresponding suffix: :math:`(1, 2, 3)` becomes :math:`(x, y, z)` or :math:(r, \theta, z)`.
+
+        Parameters
+        ----------
+        ef_name : str
+            The name of the eigenfunction as present in the datfile.
+
+        Returns
+        -------
+        name : str
+            The 'new' name for the eigenfunction, used as title.
+        """
+        part = 'Re'
+        if not self._ef_real_part:
+            part = 'Im'
+        suffix = ('_x', '_y', '_z')
+        if self.ds.geometry == 'cylindrical':
+            suffix = ('_r', r'_\theta', '_z')
+            if ef_name in ('rho', 'v1', 'v3', 'T', 'a2') and self._retransform_efs:
+                ef_name = f'r{ef_name}'
+        for i, idx in enumerate('123'):
+            ef_name = ef_name.replace(idx, suffix[i])
+        ef_name = ef_name.replace('rho', r'\rho')
+        name = f'{part}(${ef_name}$) eigenfunction'
+        return name
 
     def _select_next_ef_name_idx(self):
         """

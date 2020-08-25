@@ -18,10 +18,13 @@ config = {
     'parameters': {
         'k2': -1.0,
         'V': 1.63,
+        'cte_rho0': 1.0,
         'cte_p0': 1.0,
         'Bz0': 0.25,
         'rc': 0.5,
+        'rj': 1.0
     },
+    'flow': True,
     'equilibrium_type': 'kelvin_helmholtz_cd',
     'logging_level': 0,
     'show_results': False,
@@ -70,17 +73,20 @@ def test_filenames(ds_test, ds_answer):
     assert ds_answer.datfile == str(answer_datfile)
 
 
-def test_params(ds_test):
+def test_params(ds_test, ds_answer):
     params = copy.deepcopy(ds_test.parameters)
-    assert params.pop('k2') == pytest.approx(-1)
-    assert params.pop('k3') == pytest.approx(np.pi)
-    assert params.pop('V') == pytest.approx(1.63)
-    assert params.pop('cte_p0') == pytest.approx(1)
-    assert params.pop('Bth0') == pytest.approx(1)
-    assert params.pop('Bz0') == pytest.approx(0.25)
-    assert params.pop('rc') == pytest.approx(0.5)
-    assert params.pop('rj') == pytest.approx(1)
+    answ_params = copy.deepcopy(ds_answer.parameters)
+    assert params.pop('k2') == pytest.approx(-1) == answ_params.pop('k2')
+    assert params.pop('k3') == pytest.approx(np.pi) == answ_params.pop('k3')
+    assert params.pop('V') == pytest.approx(1.63) == answ_params.pop('V')
+    assert params.pop('cte_rho0') == pytest.approx(1) == answ_params.pop('cte_rho0')
+    assert params.pop('cte_p0') == pytest.approx(1) == answ_params.pop('cte_p0')
+    assert params.pop('Bth0') == pytest.approx(1) == answ_params.pop('Bth0')
+    assert params.pop('Bz0') == pytest.approx(0.25) == answ_params.pop('Bz0')
+    assert params.pop('rc') == pytest.approx(0.5) == answ_params.pop('rc')
+    assert params.pop('rj') == pytest.approx(1) == answ_params.pop('rj')
     assert len(params) == 0
+    assert len(answ_params) == 0
 
 
 def test_eq_type(ds_test):

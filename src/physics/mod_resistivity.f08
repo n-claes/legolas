@@ -17,6 +17,7 @@ contains
   !! and calls all other relevant subroutines defined in this module.
   subroutine set_resistivity_values(T_field, eta_field)
     use mod_types, only: temperature_type, resistivity_type
+    use mod_global_variables, only: use_eta_dropoff
 
     !> the type containing the temperature attributes
     type(temperature_type), intent(in)    :: T_field
@@ -25,6 +26,9 @@ contains
 
     call get_eta(T_field % T0, eta_field % eta)
     call get_deta_dT(T_field % T0, eta_field % d_eta_dT)
+    if (use_eta_dropoff) then
+      call set_eta_dropoff(eta_field)
+    end if
   end subroutine set_resistivity_values
 
 
@@ -96,6 +100,64 @@ contains
               / ((4 * dpi * e0)**2 * kB**(3.0d0 / 2.0d0) * T0_dimfull**(5.0d0 / 2.0d0))
     deta_dT = deta_dT / unit_deta_dT
   end subroutine get_deta_dT
+
+
+  !> Sets a hyperbolic tangent profile for the resistivity so it goes smoothly to zero
+  !! near the edges. The location and width of the dropoff profile can be controlled
+  !! through <tt>dropoff_edge_dist</tt> and <tt>dropoff_width</tt>.
+  !! @warning Throws an error if:
+  !!
+  !! - a dropoff profile is requested but the resistivity is not constant. @endwarning
+  subroutine set_eta_dropoff(eta_field)
+    use mod_types, only: resistivity_type
+    use mod_logging, only: log_message, char_log
+    use mod_grid, only: grid_gauss
+    use mod_physical_constants, only: dpi
+    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value, &
+                                    dropoff_edge_dist, dropoff_width
+
+    !> the type containing the resistivity attributes
+    type(resistivity_type), intent(inout) :: eta_field
+
+    real(dp)  :: sleft, sright, width, etaval
+    real(dp)  :: x, shift, stretch
+    integer   :: i
+
+    if (.not. use_fixed_resistivity) then
+      call log_message('eta dropoff only possible with a fixed resistivity value', level='error')
+    end if
+
+    width = dropoff_width
+    etaval = fixed_eta_value
+    sleft = grid_gauss(1) + 0.5d0 * width + dropoff_edge_dist
+    sright = grid_gauss(gauss_gridpts) - dropoff_edge_dist - 0.5d0 * width
+
+    shift = etaval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
+    stretch = etaval / (tanh(dpi) - tanh(-dpi))
+
+    call log_message('setting eta-dropoff profile', level='info')
+    write(char_log, '(f20.2)') dropoff_width
+    call log_message('dropoff width = ' // adjustl(trim(char_log)), level='info')
+    write(char_log, '(f20.2)') dropoff_edge_dist
+    call log_message('distance from edge = ' // adjustl(trim(char_log)), level='info')
+
+    do i = 1, gauss_gridpts
+      x = grid_gauss(i)
+      if (sleft - 0.5d0*width <= x .and. x <= sleft + 0.5d0*width) then
+        eta_field % eta(i) = shift + stretch * tanh(2.0d0 * dpi * (x - sleft) / width)
+        eta_field % d_eta_dr(i) = (2.0d0 * dpi * stretch / width) / cosh(2.0d0 * dpi * (x - sleft) / width)**2
+      else if (sleft + 0.5d0*width < x .and. x < sright - 0.5d0*width) then
+        eta_field % eta(i) = etaval
+        eta_field % d_eta_dT(i) = 0.0d0
+      else if (sright - 0.5d0*width <= x .and. x <= sright + 0.5d0*width) then
+        eta_field % eta(i) = shift + stretch * tanh(2.0d0 * dpi * (sright - x) / width)
+        eta_field % d_eta_dr(i) = (-2.0d0 * dpi * stretch / width) / cosh(2.0d0 * dpi * (sright - x) / width)**2
+      else
+        eta_field % eta(i) = 0.0d0
+        eta_field % d_eta_dr(i) = 0.0d0
+      end if
+    end do
+  end subroutine set_eta_dropoff
 
 
   !> Retrieves resistivity constants.

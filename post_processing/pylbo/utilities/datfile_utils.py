@@ -3,9 +3,9 @@ import numpy as np
 
 SIZE_CHAR = struct.calcsize('c')
 SIZE_INT = struct.calcsize('i')
-SIZE_BOOL = struct.calcsize('i') # fortran logical is 4-byte integer
+SIZE_BOOL = struct.calcsize('i')  # fortran logical is 4-byte integer
 SIZE_DOUBLE = struct.calcsize('d')
-SIZE_COMPLEX = struct.calcsize(2 * 'd') # complex is 2 times double-byte
+SIZE_COMPLEX = struct.calcsize(2 * 'd')  # complex is 2 times double-byte
 
 ALIGN = '='
 
@@ -26,6 +26,19 @@ def get_header(istream):
     """
     istream.seek(0)
     h = {}
+
+    # version information was added afterwards, check for this
+    try:
+        version_name = "datfile_version"
+        fmt = ALIGN + len(version_name) * 'c'
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        assert b''.join(hdr).strip().decode() == version_name
+        fmt = ALIGN + 'i'
+        VERSION, = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+    except AssertionError:
+        istream.seek(0)
+        VERSION = 0
+    h['datfile_version'] = VERSION
 
     # read maximal string length and length of strings in arrays
     fmt = ALIGN + 2 * 'i'
