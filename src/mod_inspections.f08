@@ -181,11 +181,12 @@ contains
     real(dp)  :: rho, drho, B02, dB02, B03, dB03, T0, dT0, grav, v02, v03
     real(dp)  :: eps, d_eps, r, discrepancy
     real(dp)  :: eq_cond(gauss_gridpts)
-    integer   :: i
+    integer   :: i, counter
     logical   :: satisfied
 
     satisfied = .true.
     discrepancy = 0.0d0
+    counter = 0
     do i = 1, gauss_gridpts
       rho = rho_field % rho0(i)
       drho = rho_field % d_rho0_dr(i)
@@ -203,9 +204,10 @@ contains
 
       eq_cond(i) = drho * T0 + rho * dT0 + B02 * dB02 + B03 * dB03 + rho * grav - (d_eps/eps) * (rho * v02**2 - B02**2)
       if (abs(eq_cond(i)) > dp_LIMIT) then
+        counter = counter + 1
         satisfied = .false.
         if (abs(eq_cond(i)) > discrepancy) then
-          discrepancy = eq_cond(i)
+          discrepancy = abs(eq_cond(i))
           r = grid_gauss(i)
         end if
       end if
@@ -217,6 +219,8 @@ contains
       call log_message("location of largest discrepancy: x = " // adjustl(trim(char_log)), level='warning')
       write(char_log, exp_fmt) discrepancy
       call log_message("value of largest discrepancy: " // adjustl(trim(char_log)), level='warning')
+      write(char_log, int_fmt) counter
+      call log_message("amount of nodes not satisfying criterion: " // adjustl(trim(char_log)), level='warning')
     end if
   end subroutine standard_equil_conditions
 
@@ -244,11 +248,12 @@ contains
     real(dp)  :: rho, dT0, ddT0, L0, kperp, dkperpdT
     real(dp)  :: eps, d_eps, r, discrepancy
     real(dp)  :: eq_cond(gauss_gridpts)
-    integer   :: i
+    integer   :: i, counter
     logical   :: satisfied
 
     satisfied = .true.
     discrepancy = 0.0d0
+    counter = 0
     do i = 1, gauss_gridpts-1
       rho = rho_field % rho0(i)
       dT0 = T_field % d_T0_dr(i)
@@ -264,9 +269,10 @@ contains
 
       eq_cond(i) = d_eps / eps * kperp * dT0 + dkperpdT * dT0**2 + kperp * ddT0 - rho * L0
       if (abs(eq_cond(i)) > dp_LIMIT) then
+        counter = counter + 1
         satisfied = .false.
         if (abs(eq_cond(i)) > discrepancy) then
-          discrepancy = eq_cond(i)
+          discrepancy = abs(eq_cond(i))
           r = grid_gauss(i)
         end if
       end if
@@ -278,6 +284,8 @@ contains
       call log_message("location of largest discrepancy: x = " // adjustl(trim(char_log)), level='warning')
       write(char_log, exp_fmt) discrepancy
       call log_message("value of largest discrepancy: " // adjustl(trim(char_log)), level='warning')
+      write(char_log, int_fmt) counter
+      call log_message("amount of nodes not satisfying criterion: " // adjustl(trim(char_log)), level='warning')
     end if
   end subroutine nonadiab_equil_conditions
 

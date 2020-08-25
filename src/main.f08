@@ -1,16 +1,11 @@
 ! =============================================================================
-!> The Legolas code
+!> Main program for the Legolas finite element code.
+!! Matrices, eigenvalues and left/right eigenvectors are defined here and passed
+!! on to the different modules and submodules.
 !!
-!! @author Niels Claes      (niels.claes@kuleuven.be)
-!! @author Jordi De Jonghe  (jordi.dejonghe@kuleuven.be)
-!! @author Rony Keppens     (rony.keppens@kuleuven.be)
-!!
-!! Centre for mathematical Plasma-Astrophysics, KU Leuven, Belgium.
-!!
-!! @brief   Finite element MHD code for 1D equilibria
-!! @details Legolas solves for the eigenvalues and eigenvectors of 1D (M)HD equilibria.
-!!          Physical effects included are flow, optically thin radiative losses,
-!!          anisotropic thermal conduction, resistivity, external gravity.
+!! <tt>Legolas</tt> is currently being developed by Niels Claes, Jordi De Jonghe
+!! and Rony Keppens, at the Centre for mathematical Plasma-Astrophysics (CmPA),
+!! KU Leuven, Belgium.
 program legolas
   use mod_global_variables, only: dp, str_len, show_results, dry_run
   use mod_matrix_creation, only: create_matrices
@@ -33,7 +28,6 @@ program legolas
 
   call initialisation()
   call create_matrices(matrix_B, matrix_A)
-
   call print_console_info()
 
   if (.not. dry_run) then
@@ -56,10 +50,9 @@ program legolas
 
 contains
 
-  !> @brief   Main initialisations
-  !! @details Initialises global variables and reads parfile. Allocates
-  !!          main and global variables, initialises equilibrium state and eigenfunctions,
-  !!          and sets the equilibrium
+  !> Subroutine responsible for all initialisations.
+  !! Allocates and initialises main and global variables, then the equilibrium state
+  !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, matrix_gridpts
     use mod_input, only: read_parfile, get_parfile
@@ -70,7 +63,6 @@ contains
     character(len=str_len)  :: parfile
 
     call initialise_globals()
-
     call get_parfile(parfile)
     call read_parfile(parfile)
 
@@ -88,10 +80,9 @@ contains
   end subroutine initialisation
 
 
-  !> @brief   Wraps up results and writes output.
-  !! @details Makes a call to the eigenfunctions subroutine if
-  !!          specified in the parfile, and eventually calls the routine
-  !!          to write the datfile.
+  !> Wraps up results and writes output.
+  !! Makes a call to the eigenfunctions subroutine if specified in the parfile,
+  !! then calls the output routines to write the datfile.
   subroutine finalise_results()
     use mod_global_variables, only: write_eigenfunctions
     use mod_output, only: create_datfile
@@ -104,9 +95,8 @@ contains
   end subroutine finalise_results
 
 
-  !> @brief   Main cleanup routine.
-  !> @details Deallocates all main variables, then calls the cleanup
-  !!          routines of all relevant subroutines to do the same thing.
+  !> Deallocates all main variables, then calls the cleanup
+  !! routines of all relevant subroutines to do the same thing.
   subroutine cleanup()
     use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid_clean
