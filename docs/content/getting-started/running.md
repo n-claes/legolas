@@ -1,5 +1,5 @@
 ---
-title: Setup files
+title: Running the code
 layout: single
 sidebar:
   nav: "leftcontents"

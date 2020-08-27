@@ -15,8 +15,8 @@ leftcontents:
     children:
       - title: "Installation"
         url: /content/getting-started/installation/
-      - title: "Setup Files"
-        url: /content/getting-started/setup_files/
+      - title: "Running the code"
+        url: /content/getting-started/running/
       - title: "Examples"
         url: /content/getting-started/examples/
   - title: General
