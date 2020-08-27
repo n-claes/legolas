@@ -1,11 +1,11 @@
 FC := gfortran
 SRCDIR := ../../src
-BINDIR := ../../bin
-MODDIR := ../../mod
+BINDIR := ../../build/bin/
+ODIR := $(BINDIR)/CMakeFiles/legolas.dir/
 
 all:	test_legolas_core
 
-libpFUnit.a: $(BINDIR)/*.o
+libpFUnit.a: $(wildcard $(ODIR)/*.o) $(wildcard $(ODIR)/**/*.o)
 	$(AR) -r $@ $?
 
 ifeq (nagfor,$(findstring nagfor,$(FC)))
@@ -14,7 +14,8 @@ endif
 FFLAGS += -cpp
 
 %.o : %.F90
-	$(FC) -c $(FFLAGS) -I$(MODDIR) -I$(BINDIR) -I$(SRCDIR) $<
+	$(FC) -c $(FFLAGS) -I$(BINDIR) -I$(SRCDIR) $<
+
 
 LATEST_PFUNIT_DIR := $(lastword $(shell echo $(wildcard $(PFUNIT_DIR)/PFUNIT-4.*) | xargs -n1 | sort -V))
 include $(LATEST_PFUNIT_DIR)/include/PFUNIT.mk

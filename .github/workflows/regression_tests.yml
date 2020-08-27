@@ -9,6 +9,7 @@ on:
 env:
   CC: /usr/bin/gcc-9
   FC: /usr/bin/gfortran-9
+  LEGOLASDIR: /home/runner/work/legolas/legolas
 
 jobs:
   build:
@@ -33,6 +34,7 @@ jobs:
       run: |
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test
         sudo apt update
+        sudo apt-get -y install cmake
         sudo apt-get install gfortran-9
         sudo apt-get install libblas-dev
         sudo apt-get install liblapack-dev
@@ -47,8 +49,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Compile Legolas
-      run: |
-        make FC=gfortran-9
+      run: sh setup_tools/buildlegolas.sh
 
     - name: Run regression tests
       run: |
