@@ -1,0 +1,47 @@
+main:
+  - title: "Home"
+    url: /index
+  - title: "About"
+    url: /content/about/
+  - title: "Code paper"
+    url: "https://arxiv.org"
+  - title: "Getting Started"
+    url: /content/getting-started/installation/
+  - title: "Source docs"
+    url: /content/src-docs/source_docs/
+
+leftcontents:
+  - title: Getting started
+    children:
+      - title: "Installation"
+        url: /content/getting-started/installation/
+      - title: "Setup Files"
+        url: /content/getting-started/setup_files/
+      - title: "Examples"
+        url: /content/getting-started/examples/
+  - title: General
+    children:
+      - title: "Equations & Physics"
+        url: /content/general/equations_physics/
+      - title: "Parameter file"
+        url: /content/general/parameter_file/
+      - title: "Equilibria"
+        url: /content/general/equilibria/
+      - title: "Data-analysis with Pylbo"
+        url: /content/general/data_analysis/
+      - title: "Running your own setup"
+        url: /content/general/own_setup/
+  - title: Testing
+    children:
+      - title: "Core routines"
+        url: /content/testing/test_core/
+      - title: "Regression"
+        url: /content/testing/test_regression/
+      - title: "Pylbo"
+        url: /content/testing/test_pylbo/
+  - title: Misc
+    children:
+      - title: "History"
+        url: /content/misc/history/
+      - title: "Contributing"
+        url: /content/misc/contributing/
