@@ -10,6 +10,7 @@ env:
   CC: /usr/bin/gcc-9
   FC: /usr/bin/gfortran-9
   PFUNIT_DIR: /home/runner/work/legolas/legolas/tests/core_tests/pFUnit/build/installed
+  LEGOLASDIR: /home/runner/work/legolas/legolas
 
 jobs:
   build:
@@ -49,7 +50,7 @@ jobs:
 
     - name: Compilation
       run: |
-        make FC=gfortran-9
+        sh setup_tools/buildlegolas.sh
         cd tests/core_tests
         make FC=gfortran-9
 
