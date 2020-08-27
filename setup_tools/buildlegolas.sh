@@ -19,4 +19,8 @@ cd build || exit
 cmake ..
 make -j 2
 cd ..
-rm -rf build
+# only remove build directory if we're NOT in the legolas folder
+if [ ! "${LEGOLASDIR}" == "$(pwd)" ]; then
+  echo "Local build directory removed"
+  rm -rf build
+fi
