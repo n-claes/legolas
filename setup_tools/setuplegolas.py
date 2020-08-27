@@ -35,15 +35,24 @@ def ask_to_copy_file(filename, msg, location=None):
         return
     answer = input(f"{msg} [y/n] ").lower()
     if answer in ('yes', 'y'):
-        copy_file(filename, location)
+        copy_file(filename, location=location)
+
+
+def complete_setup():
+    print("\n>> Setup complete. \nYou can start the build process by calling 'buildlegolas.sh' directly "
+          "or do a manual CMake install.")
+    exit()
 
 
 def main():
+    if len(os.listdir(os.getcwd())) == 0:
+        answer = input(f"Starting Legolas setup process in directory'{os.getcwd()}'. "
+                       f"Is this ok? [y/n] ").lower()
+        if answer not in ("yes", "y"):
+            print("Cancelling setup process.")
+            exit()
     # copy over CMake file
     copy_file("CMakeLists.txt")
-    # ask to copy quick-build file
-    ask_to_copy_file(filename="buildlegolas.sh",
-                     msg=">> Copy over quick-build shell script?")
     # ask to copy wrapper
     ask_to_copy_file(filename="pylbo_wrapper.py",
                      msg=">> You'll need the Python wrapper to plot results after running. Copy over?")
@@ -60,12 +69,12 @@ def main():
         usr_mod_present = False
         answer = input(">> No user-defined submodule found, copy default template? [y/n] ").lower()
         if answer in ('yes', 'y'):
-            copy_file("smod_user_defined.f08", location='src/equilibria')
+            copy_file("smod_user_defined.f08", location="src/equilibria")
             usr_mod_present = True
         else:
-            print(">> Submodule not copied, using default in legolas src directory.")
+            print(">> Submodule not copied, using default in Legolas src directory.")
             # at this point we're done, and won't use the submodule
-            exit()
+            complete_setup()
 
     # if user-defined submodule is present, we have to tell CMake to use THIS one
     cmakefile = "CMakeLists.txt"
@@ -85,6 +94,8 @@ def main():
     os.remove(cmakefile)
     # save new file
     shutil.move(abspath, cmakefile)
+    # we're done
+    complete_setup()
 
 
 if __name__ == '__main__':
