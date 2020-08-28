@@ -5,7 +5,7 @@ main:
     url: /content/about/
   - title: "Code paper"
     url: "https://arxiv.org"
-  - title: "Getting Started"
+  - title: "Detailed guide"
     url: /content/getting-started/installation/
   - title: "Source docs"
     url: /content/src-docs/source_docs/
@@ -27,10 +27,14 @@ leftcontents:
         url: /content/general/parameter_file/
       - title: "Equilibria"
         url: /content/general/equilibria/
-      - title: "Data-analysis with Pylbo"
-        url: /content/general/data_analysis/
       - title: "Running your own setup"
         url: /content/general/own_setup/
+  - title: Data-analysis with Pylbo
+    children:
+      - title: "Installing Pylbo"
+        url: /content/pylbo/installing_pylbo/
+      - title: "Generating parfiles"
+        url: /content/pylbo/generate_parfiles/
   - title: Testing
     children:
       - title: "Core routines"

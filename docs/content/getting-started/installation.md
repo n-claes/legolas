@@ -11,7 +11,7 @@ toc_icon: "cogs"
 
 # Requirements
 Due to the heavy use of object-oriented features (Fortran 2003) and submodules (Fortran 2008), Legolas
-requires relatively recent Fortran compilers. CMake is used for the build process.
+requires relatively recent Fortran compilers.
 Below is a list of prerequisites needed to successfully build and run both Legolas and the post-processing
 framework [Pylbo](../../general/data_analysis/). Please note that lower compiler versions have not been
 tested, but _might_ work.
@@ -23,6 +23,24 @@ tested, but _might_ work.
 - Python v3.6+
 - make
 - BLAS and LAPACK libraries v3.5+
+
+## Linear algebra tools BLAS and LAPACK
+CMake is configured in such a way that the BLAS and LAPACK libraries should be found and linked automatically.
+In general, it is sufficient if you have them installed through
+```bash
+sudo apt-get install libblas-dev
+sudo apt-get install liblapack-dev
+```
+if you're on Linux, or through
+```bash
+brew install openblas
+brew install lapack
+```
+using [HomeBrew](https://brew.sh) on macOS. Note that macOS ships with a default BLAS/LAPACK installation
+as part of the [vecLib](https://developer.apple.com/documentation/accelerate/veclib) framework.
+If you did a manual compilation of the BLAS and LAPACK libraries (if you don't have sudo rights, for example),
+CMake may not find the libraries by default. In that case it will throw a warning, and you may have to set the 
+`$BLAS_LIBRARIES` and `$LAPACK_LIBRARIES` variables which link to the compiled libraries. 
 
 # Pre-build
 Below we explain the stuff you _should_ do before attempting to compile Legolas.
