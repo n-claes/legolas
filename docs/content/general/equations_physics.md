@@ -67,3 +67,44 @@ in Cartesian slabs. The prime denotes the derivative with respect to $u_1$.
  
 Legolas explicitly checks these conditions at runtime and will raise a warning if these are not fulfilled, 
 giving you additional information on how large the discrepancies are and where they occur with respect to the grid.
+
+## Units
+All equations in Legolas are in dimensionless form, as is common practice when dealing with (M)HD.
+We adopt a standard reference value of 2 for plasma beta, such that we can write $\beta/2 = \mu p / B^2 = 1$ with
+$\mu$ the magnetic constant, equal to $4\pi$ in cgs units.
+A unit magnetic field $B_{unit}$ and unit length $L_{unit}$ should _always_ be specified, yielding a unit pressure of
+
+$$
+p_{unit} = \frac{B_{unit}^2}{\mu}
+$$ 
+
+Then, specifying a unit density $\rho_{unit}$ fixes the unit temperature $T_{unit}$ (or vice-versa) 
+through the ideal gas law
+
+$$ 
+p_{unit} = \mathcal{R}T_{unit}\rho_{unit}
+$$ 
+
+Hence we only have **three** degrees of freedom: the unit magnetic field $B_{unit}$ and unit length $L_{unit}$ 
+should be set, together with _either_ the unit density $\rho_{unit}$ OR unit temperature $T_{unit}$.
+All other unit normalisations follow from the three degrees of freedom and are given by
+
+$$
+\begin{align}
+    n_{unit} &= \frac{\rho_{unit}}{m_p} \qquad\qquad v_{unit} = \frac{B_{unit}}{\sqrt{\mu\rho_{unit}}}    \\
+    t_{unit} &= \frac{L_{unit}}{v_{unit}} \qquad\qquad    \mathscr{L}_{unit} = \frac{p_{unit}}{t_{unit}n_{unit}^2}    \\
+    \kappa_{unit} &= \frac{\rho_{unit}L_{unit}v_{unit}^3}{T_{unit}}
+\end{align}
+$$
+
+which, from left to right, read as unit numberdensity, unit velocity, unit time, unit luminosity and unit
+conduction.
+
+**Note:** The unit normalisations are only used when radiative cooling, thermal conduction or temperature-dependent
+resistivity is included. We always set base values though (as one should), which are given in cgs units by
+$B_{unit} = 10$ Gauss, $L_{unit} = 10^9$ cm and $T_{unit} = 10^6$ K.
+{: .notice--info}
+
+**Note:** Since one can always specify a unit current, the unit resistivity is defined in such a way that the
+normalised resistivity equals 0.1 at 1 MK.
+{: .notice--info}
