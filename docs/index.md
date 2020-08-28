@@ -2,13 +2,13 @@
 title: Legolas
 layout: splash
 header:
-  image: /assets/logo_legolas_1280_trans.png
+  image: /assets/images/logo_legolas_1280_trans.png
 intro: 
   - excerpt: "Legolas, short for **L**arge **E**igensystem **G**enerator for **O**ne-dimensional p**LAS**mas, is a novel
               finite element code tailored to MHD spectroscopy of 1D Cartesian/cylindrical 
               equilibria with flow that balance pressure gradients, enriched with various non-adiabatic effects."
 suydam_example:
-  - image_path: /assets/example_suydam.png
+  - image_path: /assets/images/example_suydam.png
     excerpt: Legolas can do a multitude of things, ranging from full spectrum calculations to eigenfunctions 
              of specific modes, to full-on parametric studies of various equilibrium configurations in different
              geometries. Take a look at the examples to see what the code is capable of.
@@ -17,7 +17,7 @@ suydam_example:
     btn_label: "Read More"
     btn_class: "btn--primary"
 code_paper:
-  - image_path: /assets/code_paper_fig.png
+  - image_path: /assets/images/code_paper_fig.png
     excerpt: We've written a method paper, published in the Astrophysical Journal Supplement Series,
              showcasing Legolas to the scientific community. If you use Legolas for a publication,
              we kindly ask you to cite it.
@@ -26,7 +26,7 @@ code_paper:
     btn_label: "Paper pdf"
     btn_class: "btn--primary"
 contact:
-  - image_path: /assets/get_in_touch.png
+  - image_path: /assets/images/get_in_touch.png
     excerpt: If you run into issues installing/using the code, or encounter bugs, please get in touch with us!
              For bugs or ideas for improvements, log an issue or submit a pull request on the 
              [GitHub repository](https://github.com/n-claes/legolas). Simply chatting with the developers is
@@ -36,7 +36,7 @@ contact:
     btn_label: "Join Legolas Slack channel"
     btn_class: "btn--primary"
 funding:
-  - image_path: /assets/prominent_logo.png
+  - image_path: /assets/images/prominent_logo.png
     excerpt: Legolas is supported by funding from the European Research Council (ERC) under the European 
              Unions Horizon 2020 research and innovation programme, 
              Grant agreement No. 833251 PROMINENT ERC-ADG 2018; from the VSC (Flemish Supercomputer Center), 
