@@ -1,6 +1,7 @@
 ---
 title: Legolas
 layout: splash
+last_modified_at: 2020-08-28
 header:
   image: /assets/images/logo_legolas_1280_trans.png
 intro: 
@@ -46,7 +47,6 @@ funding:
     url: "https://cordis.europa.eu/project/id/833251"
     btn_label: "Read more"
     btn_class: "btn--primary"
-  
 ---
 
 {% include feature_row id="intro" type="center" %}

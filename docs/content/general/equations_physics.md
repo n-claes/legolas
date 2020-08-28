@@ -5,6 +5,7 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "calculator"
+last_modified_at: 2020-08-28
 ---
 
 In general, Legolas solves the linearised MHD equations using a Fourier analysis in the ignorable

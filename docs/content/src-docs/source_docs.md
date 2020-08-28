@@ -3,6 +3,7 @@ title: Source code documentation
 layout: single
 sidebar:
   nav: "leftcontents"
+last_modified_at: 2020-08-28
 ---
 
 Since everyone loves a properly documented code (we sure do!), we added extensive docstrings

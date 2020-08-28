@@ -4,6 +4,7 @@ layout: single
 sidebar:
   nav: "leftcontents"
 toc: true
+last_modified_at: 2020-08-28
 ---
 
 Once you have compiled Legolas it will have placed an executable in your current working directory (or in the

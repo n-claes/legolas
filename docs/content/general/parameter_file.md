@@ -7,6 +7,7 @@ sidebar:
 toc: true
 toc_label: "Namelists"
 toc_icon: "code"
+last_modified_at: 2020-08-28
 ---
 
 The parameter file allows for a full customisation of all Legolas variables. Lots of these variables
