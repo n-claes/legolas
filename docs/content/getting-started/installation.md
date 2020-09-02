@@ -7,7 +7,7 @@ sidebar:
 toc: true
 toc_label: "Installing"
 toc_icon: "cogs"
-last_modified_at: 2020-08-28
+last_modified_at: 2020-09-02
 ---
 
 # Requirements
@@ -62,12 +62,19 @@ as follows
 export LEGOLASDIR='path_to_the_legolas_directory'
 PATH="$PATH:$LEGOLASDIR/setup_tools"
 ```
-The last line allows for easy access to the `buildlegolas.sh` and `setuplegolas.py` scripts, such that
-they can be called from any directory.
+The last line allows for easy access to the `buildlegolas.sh` and `setuplegolas.py` scripts in the `setup_tools`
+folder, such that they can be called from any directory.
 
 # Compiling the code
 Compiling the code is quite straightforward, and for your convenience we have provided a simple shell script
-to do everything at once. Compiling the code can be done in two ways:
+to do everything at once. Compiling the code can either be done in the repository itself (which is not recommended),
+or in a dedicated folder somewhere.
+
+**Note:** whichever of the two options you choose, `Legolas` is _always_ compiled in a directory called `build`
+_inside_ the main repository, which is ignored by git. Because we make heavy use of submodules (which prevent
+compilation cascades when changes are made), you don't have to recompile the code every time you set up a new problem.
+Only the modified user-defined submodule is recompiled, and the "new" executable is placed in the same directory. 
+{: .notice--info}
 
 ## 1. In-repository build
 The first option is building inside the repository. To do so, navigate to the legolas source directory and do
@@ -85,10 +92,10 @@ make
 Note that an in-repository build means that you'll have to edit source files, which could give rise
 to merge conflicts when you're updating the code (and we all hate those!) so we don't recommend doing it like this.
 
-## 2. Out-of-repository build
+## 2. Out-of-repository build (recommended)
 This is the recommended way to build Legolas. This requires you to have set the environment variable and PATH
 modification described above. To setup a folder for a Legolas build, call `setuplegolas.py` from the command line and
-follow the instructions, which looks like this
+follow the instructions, which look like this
 ```
 Starting Legolas setup process in directory 'your_directory'. Is this ok? [y/n] y
 >> Copying CMakeLists.txt to present directory.
@@ -115,3 +122,15 @@ make
 In both cases the executable is placed in the same directory as the parfile and user submodule.
 Note that the automatic buildscript removes the build directory afterwards, leaving only the executable.
 If you don't want this, build manually.
+
+# Equivalent of "make clean"
+Since we use CMake for compilation there is no `make clean` equivalent as there is with GNU Make.
+Instead, you can simply remove the `build` directory inside the repository, which contains the compiled object files.
+You can do this automatically from any directory by supplying an additional argument to `buildlegolas.sh`.
+Say you just compiled in a local directory and you want to do a fresh compilation, simply call
+```bash
+buildlegolas.sh clean
+```
+This will remove the `build` folder in the main legolas directory and the local executable (if one is found).
+This requires you to have set the `$LEGOLASDIR` environment variable, if you did not do this you have to remove
+the `build` folder manually.
