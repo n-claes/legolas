@@ -1,5 +1,5 @@
 ---
-title: Data analysis with Pylbo
+title: Legolas history & changelog
 layout: single
 sidebar:
   nav: "leftcontents"
