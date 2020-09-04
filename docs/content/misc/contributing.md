@@ -29,8 +29,10 @@ For contributions to the Legolas source code we have the following guidelines:
 - Variable names should be self-explanatory but consistent (with the exception of parameters)
 - When printing information to the console, make use of the dedicated [logging module](../../src-docs/ford/module/mod_logging.html),
 in particular the [`log_message()`](../../src-docs/ford/proc/log_message.html) subroutine.
-- New features should go in dedicated (sub)modules.
+- New features should go in dedicated (sub)modules if possible.
 - Consistent indentation across the entire code and free-format syntax.
+- In the case of new subroutines: add a test to the [core tests](../../testing/test_core)
+- In the case of new equilibria: add a test to the [regression tests](../../testing/test_regression)
 
 <i class="fas fa-exclamation-triangle"></i> **Important:**  
 Every new bit of code _has_ to be supplemented by corresponding documentation, which should be clear
@@ -43,6 +45,8 @@ For contributions to the Pylbo source code there are no "real" guidelines, besid
 This means that all new or modified code should follow the [PEP8 guidelines](https://www.python.org/dev/peps/pep-0008/),
 with the exception of maximum line length. We find 79 a bit on the low side, so we usually wrap around 100.
 Method names are also quite flexible, if they are concise and clear it's fine.
+
+Additionally, whenever you add code you should also add a dedicated unit test to the [pylbo tests](../../testing/test_pylbo).
 
 <i class="fas fa-exclamation-triangle"></i> **Important:**  
 Every new bit of code _has_ to be supplemented by corresponding documentation, which should be clear
