@@ -44,5 +44,16 @@ is in most cases enough to fail the tests, since there will be at least one poin
 such that it lies outside the 1 pixel circle.
 
 Points that are flagged as failed are added to the list, and in the end they will be plotted together with the base answers
-for a visual comparison. A .png file for every failed test will be present in the `regression_tests/results` folder,
+for a visual comparison. A .png file for every failed test will be present in the `testing/regression_tests/results` folder,
 with `FAILED_` prepended to the name.
+
+## Locally running regression tests
+Similar as to the [pylbo tests](../test_pylbo) you'll need pytest for this. Navigate to the `testing/regression_tests`
+folder and execute
+```bash
+pytest
+```
+This will automatically find all testfiles in the directory and execute them, you can track the progress during
+runtime.
+
+Regression tests are run automatically for each commit and pull request to the `master` and `develop` branches.
