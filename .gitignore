@@ -23,7 +23,6 @@ test_legolas
 *.xlsm
 *.xlsx
 *.ods
-*.png
 *.dat
 *.pyc
 *.idea
