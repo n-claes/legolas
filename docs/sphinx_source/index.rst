@@ -9,7 +9,7 @@ These pages are automatically generated from in-line source code documentation
 on the `master` branch of the `GitHub repository <https://github.com/n-claes/legolas>`_,
 and are built after every commit.
 
-You can return to the main site `here <../index.html>`_.
+You can return to the main site `here <../../../index.html>`_.
 
 .. toctree::
    :maxdepth: 4

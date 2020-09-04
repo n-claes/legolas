@@ -30,3 +30,4 @@ exclude:
 # are not copied by Jekyll.
 keep_files:
   - content/src-docs/sphinx
+  - content/src-docs/ford
