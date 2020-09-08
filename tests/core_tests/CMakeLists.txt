@@ -38,8 +38,12 @@ target_link_libraries(suite ${LEGOLASLIB})
 set( test_sources
         mod_test_variables.pf
         mod_test_grid.pf
+        mod_test_input.pf
 )
 add_pfunit_ctest (test_legolas
         TEST_SOURCES ${test_sources}
+        OTHER_SOURCES mod_pfunit_exceptions.f90
         LINK_LIBRARIES suite
+        EXTRA_USE mod_pfunit_exceptions
+        EXTRA_INITIALIZE init_pfunit_raise
 )

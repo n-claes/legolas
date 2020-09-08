@@ -1,0 +1,5 @@
+&unitslist
+  unit_temperature = 1.0d7
+  unit_length = 1.0d9
+  unit_magneticfield = 10.0d0
+/
