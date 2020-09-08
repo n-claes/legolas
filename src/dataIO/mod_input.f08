@@ -110,17 +110,16 @@ contains
     if (.not. value_is_nan(unit_density) .and. .not. value_is_nan(unit_temperature)) then
       call log_message("unit density and unit temperature can not both be provided in the par file!", &
                        level="error")
-    end if
-    if (.not. value_is_nan(unit_density)) then
+    else if (.not. value_is_nan(unit_density)) then
       if (value_is_nan(unit_magneticfield) .or. value_is_nan(unit_length)) then
-        call log_message("Unit_density found, but unit_magneticfield and unit_length are also required.", &
+        call log_message("unit_density found, but unit_magneticfield and unit_length are also required.", &
                          level="error")
       end if
       call set_normalisations(new_unit_density=unit_density, new_unit_magneticfield=unit_magneticfield, &
                               new_unit_length=unit_length)
     else if (.not. value_is_nan(unit_temperature)) then
       if (value_is_nan(unit_magneticfield) .or. value_is_nan(unit_length)) then
-        call log_message("Unit_density found, but unit_magneticfield and unit_length are also required.", &
+        call log_message("unit_temperature found, but unit_magneticfield and unit_length are also required.", &
                          level='error')
       end if
       call set_normalisations(new_unit_temperature=unit_temperature, &
