@@ -1,5 +1,5 @@
 module mod_suite_utils
-  use mod_global_variables
+  use mod_global_variables, only: dp
   implicit none
 
   real(dp), parameter :: TOL = 1.0d-12
@@ -7,6 +7,8 @@ module mod_suite_utils
 contains
 
   subroutine reset_globals()
+    use mod_global_variables
+
     call initialise_globals()
     logging_level = 0
   end subroutine reset_globals
@@ -43,6 +45,7 @@ contains
 
 
   subroutine clean_up()
+    use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid, grid_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
 
@@ -58,6 +61,7 @@ contains
 
 
   subroutine create_test_grid(pts, geom, start, end)
+    use mod_global_variables, only: x_start, x_end, geometry, set_gridpts
     use mod_grid, only: initialise_grid
 
     integer, intent(in)             :: pts
