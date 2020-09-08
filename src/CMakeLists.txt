@@ -1,6 +1,7 @@
 set (sources
         mod_global_variables.f08
         mod_equilibrium_params.f08
+        dataIO/mod_exceptions.f08
         dataIO/mod_logging.f08
         mod_physical_constants.f08
         mod_units.f08

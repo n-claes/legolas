@@ -39,6 +39,8 @@ contains
   !! @note The argument <tt>level</tt> can be 'error', 'warning', 'info' or 'debug'.
   !!       The 'error' level corresponds to throwing a critical error and stops code execution.
   subroutine log_message(msg, level)
+    use mod_exceptions, only: raise_exception
+
     !> the message to print to the console
     character(len=*), intent(in)  :: msg
     !> the level (severity) of the message
@@ -46,8 +48,7 @@ contains
 
     select case(level)
     case('error')
-      write(*, *) "[   ERROR   ] ", msg
-      error stop
+      call raise_exception(msg)
     case('warning')
       if (logging_level >= 1) then
         write(*, *) "[  WARNING  ] ", msg
