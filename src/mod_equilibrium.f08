@@ -29,30 +29,29 @@ module mod_equilibrium
   !> interface to the different equilibrium submodules
   interface
     module subroutine adiabatic_homo_eq; end subroutine
-    module subroutine resistive_homo_eq; end subroutine
+    module subroutine constant_current_eq; end subroutine
+    module subroutine coronal_flux_tube_eq; end subroutine
+    module subroutine discrete_alfven_eq; end subroutine
+    module subroutine flow_driven_instabilities_eq; end subroutine
+    module subroutine gold_hoyle_eq; end subroutine
     module subroutine gravito_acoustic_eq; end subroutine
     module subroutine gravito_mhd_eq; end subroutine
+    module subroutine interchange_modes_eq; end subroutine
+    module subroutine internal_kink_eq; end subroutine
+    module subroutine KHI_eq; end subroutine
+    module subroutine kh_cd_instability_eq; end subroutine
+    module subroutine magnetothermal_instability_eq; end subroutine
+    module subroutine MRI_accretion_eq; end subroutine
+    module subroutine photospheric_flux_tube_eq; end subroutine
+    module subroutine resistive_homo_eq; end subroutine
     module subroutine resistive_tearing_modes_eq; end subroutine
     module subroutine resistive_tearing_modes_flow_eq; end subroutine
-    module subroutine flow_driven_instabilities_eq; end subroutine
-    module subroutine suydam_cluster_eq; end subroutine
-    module subroutine rotating_plasma_cyl_eq; end subroutine
-    module subroutine kh_cd_instability_eq; end subroutine
-    module subroutine internal_kink_eq; end subroutine
-    module subroutine RTI_theta_pinch_eq; end subroutine
-    module subroutine MRI_accretion_eq; end subroutine
-    module subroutine discrete_alfven_eq; end subroutine
-    module subroutine interchange_modes_eq; end subroutine
-    module subroutine constant_current_eq; end subroutine
     module subroutine resonant_absorption_eq; end subroutine
-    module subroutine magnetothermal_instability_eq; end subroutine
-    module subroutine photospheric_flux_tube_eq; end subroutine
-    module subroutine coronal_flux_tube_eq; end subroutine
-    module subroutine gold_hoyle_eq; end subroutine
+    module subroutine rotating_plasma_cyl_eq; end subroutine
     module subroutine RTI_eq; end subroutine
-    module subroutine KHI_eq; end subroutine
     module subroutine RTI_KHI_eq; end subroutine
-
+    module subroutine RTI_theta_pinch_eq; end subroutine
+    module subroutine suydam_cluster_eq; end subroutine
     module subroutine user_defined_eq; end subroutine
   end interface
 
@@ -160,52 +159,52 @@ contains
     select case(equilibrium_type)
     case('adiabatic_homo')
       set_equilibrium_values => adiabatic_homo_eq
-    case('resistive_homo')
-      set_equilibrium_values => resistive_homo_eq
+    case("constant_current_tokamak")
+      set_equilibrium_values => constant_current_eq
+    case("coronal_flux_tube")
+      set_equilibrium_values => coronal_flux_tube_eq
+    case("discrete_alfven")
+      set_equilibrium_values => discrete_alfven_eq
+    case("gold_hoyle")
+      set_equilibrium_values => gold_hoyle_eq
     case("gravito_acoustic")
       set_equilibrium_values => gravito_acoustic_eq
     case("gravito_mhd")
       set_equilibrium_values => gravito_mhd_eq
+    case("interchange_modes")
+      set_equilibrium_values => interchange_modes_eq
+    case("internal_kink")
+      set_equilibrium_values => internal_kink_eq
+    case("kelvin_helmholtz")
+      set_equilibrium_values => KHI_eq
+    case("kelvin_helmholtz_cd")
+      set_equilibrium_values => kh_cd_instability_eq
+    case("magnetothermal_instabilities")
+      set_equilibrium_values => magnetothermal_instability_eq
+    case("MRI_accretion")
+      set_equilibrium_values => MRI_accretion_eq
+    case("photospheric_flux_tube")
+      set_equilibrium_values => photospheric_flux_tube_eq
+    case("rayleigh_taylor")
+      set_equilibrium_values => RTI_eq
+    case('resistive_homo')
+      set_equilibrium_values => resistive_homo_eq
     case("resistive_tearing")
       set_equilibrium_values => resistive_tearing_modes_eq
     case("resistive_tearing_flow")
       set_equilibrium_values => resistive_tearing_modes_flow_eq
-    case("suydam_cluster")
-      set_equilibrium_values => suydam_cluster_eq
-    case("kelvin_helmholtz")
-      set_equilibrium_values => KHI_eq
-    case("rotating_plasma_cylinder")
-      set_equilibrium_values => rotating_plasma_cyl_eq
-    case("kelvin_helmholtz_cd")
-      set_equilibrium_values => kh_cd_instability_eq
-    case("internal_kink")
-      set_equilibrium_values => internal_kink_eq
-    case("RTI_theta_pinch")
-      set_equilibrium_values => RTI_theta_pinch_eq
-    case("MRI_accretion")
-      set_equilibrium_values => MRI_accretion_eq
-    case("discrete_alfven")
-      set_equilibrium_values => discrete_alfven_eq
-    case("interchange_modes")
-      set_equilibrium_values => interchange_modes_eq
-    case("constant_current_tokamak")
-      set_equilibrium_values => constant_current_eq
     case("resonant_absorption")
       set_equilibrium_values => resonant_absorption_eq
-    case("magnetothermal_instabilities")
-      set_equilibrium_values => magnetothermal_instability_eq
-    case("photospheric_flux_tube")
-      set_equilibrium_values => photospheric_flux_tube_eq
-    case("coronal_flux_tube")
-      set_equilibrium_values => coronal_flux_tube_eq
-    case("gold_hoyle")
-      set_equilibrium_values => gold_hoyle_eq
-    case("rayleigh_taylor")
-      set_equilibrium_values => RTI_eq
+    case("rotating_plasma_cylinder")
+      set_equilibrium_values => rotating_plasma_cyl_eq
     case("RTI_KHI")
       set_equilibrium_values => RTI_KHI_eq
+    case("RTI_theta_pinch")
+      set_equilibrium_values => RTI_theta_pinch_eq
+    case("suydam_cluster")
+      set_equilibrium_values => suydam_cluster_eq
     case("user_defined")
-        set_equilibrium_values => user_defined_eq
+      set_equilibrium_values => user_defined_eq
     case default
       call log_message("equilibrium not recognised: " // trim(equilibrium_type), level='error')
     end select
