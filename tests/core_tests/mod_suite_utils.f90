@@ -83,4 +83,15 @@ contains
     call initialise_grid()
   end subroutine create_test_grid
 
+
+  subroutine set_default_units()
+    use mod_global_variables, only: cgs_units
+    use mod_units, only: set_normalisations
+
+    cgs_units = .true.
+    call set_normalisations(new_unit_temperature=1.0d6, &
+                            new_unit_magneticfield=5.0d0, &
+                            new_unit_length=1.0d10)
+  end subroutine set_default_units
+
 end module mod_suite_utils

@@ -10,6 +10,7 @@ contains
     call reset_globals()
     call reset_fields(init_fields=.true.)
     call reset_eigenfunctions(init_efs=.false.)
+    call set_default_units()
   end subroutine init_test
 
 
@@ -17,16 +18,6 @@ contains
   subroutine teardown_test()
     call clean_up()
   end subroutine teardown_test
-
-
-  subroutine set_default_units()
-    use mod_global_variables, only: cgs_units
-
-    cgs_units = .true.
-    call set_normalisations(new_unit_temperature=1.0d6, &
-                            new_unit_magneticfield=5.0d0, &
-                            new_unit_length=1.0d10)
-  end subroutine set_default_units
 
 
   @test
@@ -54,7 +45,6 @@ contains
     use mod_units, only: unit_magneticfield
 
     write(*, *) "Testing unit magnetic field"
-    call set_default_units()
     @assertEqual(5.0d0, unit_magneticfield, tolerance=TOL)
   end subroutine test_unit_magneticfield
 
@@ -64,7 +54,6 @@ contains
     use mod_units, only: unit_length
 
     write(*, *) "Testing unit length"
-    call set_default_units()
     @assertEqual(1.0d10, unit_length, tolerance=TOL)
   end subroutine test_unit_length
 
@@ -74,7 +63,6 @@ contains
     use mod_units, only: unit_pressure
 
     write(*, *) "Testing unit pressure"
-    call set_default_units()
     @assertEqual(1.9894367886486917d0, unit_pressure, tolerance=TOL)
   end subroutine test_unit_pressure
 
@@ -84,7 +72,6 @@ contains
     use mod_units, only: unit_temperature
 
     write(*, *) "Testing unit temperature"
-    call set_default_units()
     @assertEqual(1.0d6, unit_temperature, tolerance=TOL)
   end subroutine test_unit_temperature
 
@@ -94,7 +81,6 @@ contains
     use mod_units, only: unit_density
 
     write(*, *) "Testing unit density"
-    call set_default_units()
     @assertEqual(2.3927317200657786d0, unit_density * 1.0d14, tolerance=TOL)
   end subroutine test_unit_density
 
@@ -104,7 +90,6 @@ contains
     use mod_units, only: unit_numberdensity
 
     write(*, *) "Testing unit numberdensity"
-    call set_default_units()
     @assertEqual(14305276620.02202d0, unit_numberdensity, tolerance=TOL)
   end subroutine test_unit_numberdensity
 
@@ -114,7 +99,6 @@ contains
     use mod_units, only: unit_velocity
 
     write(*, *) "Testing unit velocity"
-    call set_default_units()
     @assertEqual(9118388.015433429d0, unit_velocity, tolerance=TOL)
   end subroutine test_unit_velocity
 
@@ -124,7 +108,6 @@ contains
     use mod_units, only: unit_time
 
     write(*, *) "Testing unit time"
-    call set_default_units()
     @assertEqual(1096.6850701104613d0, unit_time, tolerance=TOL)
   end subroutine test_unit_time
 
@@ -134,7 +117,6 @@ contains
     use mod_units, only: unit_luminosity
 
     write(*, *) "Testing unit luminosity"
-    call set_default_units()
     @assertEqual(8.864529572713094d0, unit_luminosity * 1.0d24, tolerance=TOL)
   end subroutine test_unit_luminosity
 
@@ -144,7 +126,6 @@ contains
     use mod_units, only: unit_dldt
 
     write(*, *) "Testing unit dldt"
-    call set_default_units()
     @assertEqual(8.864529572713094d0, unit_dldt * 1.0d30, tolerance=TOL)
   end subroutine test_unit_dldt
 
@@ -154,7 +135,6 @@ contains
     use mod_units, only: unit_conduction
 
     write(*, *) "Testing unit conduction"
-    call set_default_units()
     @assertEqual(181404565710.76596d0, unit_conduction, tolerance=TOL)
   end subroutine test_unit_conduction
 
@@ -165,7 +145,6 @@ contains
     use mod_resistivity, only: set_resistivity_values
 
     write(*, *) "Testing unit resistivity"
-    call set_default_units()
     T_field % T0 = 1.0d0
     ! at 1 MK normalised resistivity should be 0.1
     call set_resistivity_values(T_field, eta_field)
