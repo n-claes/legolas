@@ -154,7 +154,7 @@ contains
                / (B0_dimfull**4 * sqrt(T0_dimfull))
     ! temperature derivative
     d_tc_dT = -0.5d0 * pf_kappa_para * pf_kappa_perp * coulomb_log * nH_dimfull**2 &
-              / (B0_dimfull**2 * T0_dimfull**(-3.0d0/2.0d0))
+              / (B0_dimfull**2 * T0_dimfull**(3.0d0/2.0d0))
     d_tc_drho = d_tc_drho / unit_dtc_drho
     d_tc_dB2 = d_tc_dB2 / unit_dtc_dB2
     d_tc_dT = d_tc_dT / unit_dtc_dT
