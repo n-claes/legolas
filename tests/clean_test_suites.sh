@@ -7,7 +7,6 @@ rm -f pylbo_tests/*.log
 rm -rf pylbo_tests/.pytest_cache
 echo ">> pylbo tests cleaned"
 cd core_tests || exit
-make clean
+rm -rf build
+rm -f test_legolas
 echo ">> core tests cleaned"
-
-
