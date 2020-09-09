@@ -38,6 +38,7 @@ module mod_equilibrium
     module subroutine gravito_mhd_eq; end subroutine
     module subroutine interchange_modes_eq; end subroutine
     module subroutine internal_kink_eq; end subroutine
+    module subroutine isothermal_atmosphere_eq; end subroutine
     module subroutine KHI_eq; end subroutine
     module subroutine kh_cd_instability_eq; end subroutine
     module subroutine magnetothermal_instability_eq; end subroutine
@@ -175,6 +176,8 @@ contains
       set_equilibrium_values => interchange_modes_eq
     case("internal_kink")
       set_equilibrium_values => internal_kink_eq
+    case("isothermal_atmosphere")
+      set_equilibrium_values => isothermal_atmosphere_eq
     case("kelvin_helmholtz")
       set_equilibrium_values => KHI_eq
     case("kelvin_helmholtz_cd")

@@ -20,13 +20,13 @@ set (sources
         equilibria/smod_equil_constant_current.f08
         equilibria/smod_equil_coronal_flux_tube.f08
         equilibria/smod_equil_discrete_alfven.f08
-        equilibria/smod_equil_discrete_alfven.f08
         equilibria/smod_equil_flow_driven_instabilities.f08
         equilibria/smod_equil_gold_hoyle.f08
         equilibria/smod_equil_gravito_acoustic.f08
         equilibria/smod_equil_gravito_mhd.f08
         equilibria/smod_equil_interchange_modes.f08
         equilibria/smod_equil_internal_kink_instability.f08
+        equilibria/smod_equil_isothermal_atmosphere.f08
         equilibria/smod_equil_kelvin_helmholtz_cd.f08
         equilibria/smod_equil_KHI.f08
         equilibria/smod_equil_magnetothermal_instabilities.f08
