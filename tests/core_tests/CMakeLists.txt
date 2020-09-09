@@ -41,6 +41,7 @@ set( test_sources
         mod_test_input.pf
         mod_test_valuechecks.pf
         mod_test_units.pf
+        mod_test_cooling.pf
 )
 add_pfunit_ctest (test_legolas
         TEST_SOURCES ${test_sources}
