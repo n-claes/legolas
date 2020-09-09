@@ -37,7 +37,7 @@ target_include_directories(suite PUBLIC ${BUILD}/bin)
 target_include_directories(suite PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 # link compiled library as well
 FILE(GLOB LEGOLASLIB ${BUILD}/lib/*.a)
-target_link_libraries(suite ${LEGOLASLIB})
+target_link_libraries(suite ${LEGOLASLIB} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
 set( test_sources
         mod_test_variables.pf
