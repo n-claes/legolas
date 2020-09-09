@@ -256,6 +256,7 @@ contains
     do i = 1, size(array)
       if (array(i) < 0.0d0) then
         call log_message("negative value encountered in " // trim(variable_name), level='error')
+        exit
       end if
     end do
   end subroutine check_negative_array

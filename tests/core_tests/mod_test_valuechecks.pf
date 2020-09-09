@@ -156,4 +156,38 @@ contains
     call check_nan_values(rho_field)
   end subroutine test_isnan_array_false
 
+
+  @test
+  subroutine test_array_negative_false()
+    use mod_check_values, only: check_negative_array
+
+    real(dp) :: array(20)
+    integer  :: i
+
+    write(*, *) "Testing array is_negative: false case"
+
+    do i = 1, size(array)
+      array(i) = i**2
+    end do
+    call check_negative_array(array, variable_name="array")
+  end subroutine test_array_negative_false
+
+
+  @test
+  subroutine test_array_negative_true()
+    use mod_check_values, only: check_negative_array
+    use mod_physical_constants, only: dpi
+
+    real(dp) :: array(20)
+    integer  :: i
+
+    write(*, *) "Testing array is_negative: true case"
+    do i = 1, size(array)
+      array(i) = cos(i * dpi / 2.0d0)
+    end do
+    call check_negative_array(array, variable_name="array")
+
+    @assertExceptionRaised("negative value encountered in array")
+  end subroutine test_array_negative_true
+
 end module mod_test_valuechecks
