@@ -242,15 +242,15 @@ module mod_cooling_curves
                         -25.6811, -25.6733, -25.6641, -25.6525, &
                         -25.6325, -25.6080, -25.5367, -25.4806  /
 
-  data    rosner_log10_T / 3.89063, 4.30195, 4.575, 4.9, 5.4, 5.77, &
-                           6.315, 7.60457 /
+  data    rosner_log10_T / 3.89063d0, 4.30195d0, 4.575d0, 4.9d0, 5.4d0, 5.77d0, &
+                           6.315d0, 7.60457d0 /
   !! @note Original values for xi in the rosner curve are given in SI, these here are scaled to cgs.
   !!       \( 1 Wm^{-3} = 10^{-13} erg/(s*cm^3) \), and since these are in a log10 scale
   !!       that means a -13 difference. @endnote
-  data    rosner_log10_xi / -69.900, -48.307, -21.850, -31.000, -21.200, &
-                           -10.400, -21.940, -17.730, -26.602           /
+  data    rosner_log10_xi / -69.900d0, -48.307d0, -21.850d0, -31.000d0, -21.200d0, &
+                           -10.400d0, -21.940d0, -17.730d0, -26.602d0           /
   !
-  data    rosner_alpha / 11.7, 6.15, 0.0, 2.0, 0.0, -2.0, 0.0, -0.666666667, 0.5 /
+  data    rosner_alpha / 11.7d0, 6.15d0, 0.0d0, 2.0d0, 0.0d0, -2.0d0, 0.0d0, -0.666666667d0, 0.5d0 /
 
 contains
 
