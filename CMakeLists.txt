@@ -26,12 +26,16 @@ set(OUTPUT ${CMAKE_SOURCE_DIR}/output)
 set (CMAKE_Fortran_MODULE_DIRECTORY ${BIN})
 # place executable in top directory
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+# place library in lib directory
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BUILD}/lib)
 # create directories
 file(MAKE_DIRECTORY ${OUTPUT})
 
 include(${setup_tools}/findBLAS.cmake)
 include(${setup_tools}/findLAPACK.cmake)
 
+# name of library
+set(LEGOLASLIB lego)
 # name of executable
 set(LEGOLASEXEC legolas)
 # location of default user-defined submodule

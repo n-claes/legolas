@@ -1,0 +1,5 @@
+&unitslist
+  unit_density = 1.0d-15
+  unit_length = 1.0d9
+  unit_magneticfield = 10.0d0
+/

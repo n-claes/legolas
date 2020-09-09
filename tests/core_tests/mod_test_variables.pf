@@ -1,0 +1,51 @@
+module mod_test_variables
+  use mod_global_variables, only: dp
+  use mod_suite_utils
+  use funit
+  implicit none
+
+contains
+
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+    call reset_eigenfunctions(init_efs=.false.)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_gamma()
+    use mod_global_variables, only: gamma, gamma_1, set_gamma
+
+    real(dp), parameter :: gamma_test = 5.0d0 / 3.0d0
+    real(dp), parameter :: gamma_test_1 = gamma_test - 1.0d0
+
+    write(*, *) "Testing gamma setters"
+    call set_gamma(gamma_test)
+    @assertEqual(gamma_test, gamma, tolerance=TOL)
+    @assertEqual(gamma_test_1, gamma_1, tolerance=TOL)
+  end subroutine test_gamma
+
+
+  @test
+  subroutine test_gridpts()
+    use mod_global_variables, only: gridpts, gauss_gridpts, &
+                                    matrix_gridpts, ef_gridpts, set_gridpts
+    integer, parameter :: gridpts_test = 11
+
+    write(*, *) "Testing gridpoints"
+    call set_gridpts(gridpts_test)
+    @assertEqual(gridpts_test, gridpts)
+    @assertEqual(40, gauss_gridpts)
+    @assertEqual(176, matrix_gridpts)
+    @assertEqual(21, ef_gridpts)
+  end subroutine test_gridpts
+end module mod_test_variables

@@ -26,7 +26,6 @@ test_legolas
 *.dat
 *.pyc
 *.idea
-*.F90
 *.inc
 *.a
 *.egg*

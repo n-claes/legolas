@@ -1,7 +1,7 @@
 set (sources
-        main.f08
         mod_global_variables.f08
         mod_equilibrium_params.f08
+        dataIO/mod_exceptions.f08
         dataIO/mod_logging.f08
         mod_physical_constants.f08
         mod_units.f08
@@ -51,6 +51,8 @@ set (sources
 )
 
 set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)
+set_source_files_properties(main.f08 PROPERTIES LANGUAGE Fortran)
 
-add_executable(${LEGOLASEXEC} ${sources})
-target_link_libraries(${LEGOLASEXEC} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+add_library(${LEGOLASLIB} ${sources})
+add_executable(${LEGOLASEXEC} main.f08)
+target_link_libraries(${LEGOLASEXEC} ${LEGOLASLIB} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})

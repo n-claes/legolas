@@ -1,0 +1,113 @@
+module mod_test_solvers
+  use mod_suite_utils
+  use funit
+  use mod_global_variables, only: ic, ir, set_matrix_gridpts
+  implicit none
+
+contains
+
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+    call reset_eigenfunctions(init_efs=.false.)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_matrix_inversion()
+    use mod_solvers, only: invert_B
+
+    real(dp)  :: matrix(4, 4), matrix_inverse(4, 4), expected(4, 4)
+
+    write(*, *) "Testing solvers: matrix inversion"
+    call set_matrix_gridpts(4)
+    matrix    = reshape((/ 7,  0, -3,  2,   &   ! column 1
+                           2,  3,  4,  2,   &   ! column 2
+                           1, -1, -2, -1,   &
+                          -2,  2,  1,  4 /), shape(matrix))
+    expected  = reshape((/ 1.0d0/7.0d0,   0.0d0,        -2.0d0/7.0d0,   -1.0d0/7.0d0,    &
+                          -4.0d0/7.0d0,   1.0d0,        22.0d0/7.0d0,    4.0d0/7.0d0,    &
+                          10.0d0/49.0d0, -2.0d0/7.0d0, -76.0d0/49.0d0, -17.0d0/49.0d0,   &
+                          15.0d0/49.0d0, -3.0d0/7.0d0, -65.0d0/49.0d0, -1.0d0/49.0d0 /), &
+                          shape(expected))
+    call invert_B(matrix, matrix_inverse)
+    @assertEqual(matrix_inverse, expected, tolerance=TOL)
+  end subroutine test_matrix_inversion
+
+
+  @test
+  subroutine test_matrix_multiplication()
+    use mod_solvers, only: get_B_invA
+
+    real(dp)     :: matrixB(4, 4)
+    complex(dp)  :: matrixA(4, 4), multiplication_result(4, 4), expected(4, 4)
+
+    write(*, *) "Testing solvers: matrix multiplication"
+    call set_matrix_gridpts(4)
+    matrixB = reshape((/ 7.0d0,  0.0d0, -3.0d0,  2.0d0,   &  ! column 1
+                         2.0d0,  3.0d0,  4.0d0,  2.0d0,   &  ! column 2
+                         1.0d0, -1.0d0, -2.0d0, -1.0d0,   &
+                        -2.0d0,  2.0d0,  1.0d0,  4.0d0 /), shape(matrixB))
+    matrixA = reshape((/ 2.0d0*ir,  0.0d0*ir,  1.0d0*ic, -3.0d0*ir, &
+                         3.0d0*ir,  0.0d0*ir,  2.0d0*ic,  1.0d0*ir, &
+                         4.0d0*ic,  3.0d0*ir, -7.0d0*ir,  5.0d0*ic, &
+                        -1.0d0*ir, -2.0d0*ir,  3.0d0*ir,  2.0d0*ir /), shape(matrixA))
+    expected = reshape((/ ( 20.0d0, 1.0d0), (-6.0d0,-1.0d0), (-9.0d0,-2.0d0), (-8.0d0,-1.0d0),   &
+                          ( 19.0d0, 2.0d0), ( 2.0d0,-2.0d0), (-8.0d0,-4.0d0), (10.0d0,-2.0d0),   &
+                          ( -1.0d0,18.0d0), (16.0d0,10.0d0), (26.0d0,-7.0d0), (13.0d0,28.0d0),   &
+                          (-12.0d0, 0.0d0), (-5.0d0, 0.0d0), (-9.0d0, 0.0d0), (-1.0d0, 0.0d0)/), &
+                       shape(expected))
+    call get_B_invA(matrixB, matrixA, multiplication_result)
+    @assertEqual(multiplication_result, expected, tolerance=TOL)
+  end subroutine test_matrix_multiplication
+
+
+  @test
+  subroutine test_matrix_qr_solver()
+    use mod_solvers, only: solve_QR
+
+    real(dp)    :: matrixB(4, 4)
+    complex(dp) :: matrixA(4, 4), eigenvals(4), eigenvals_solution(4)
+    complex(dp) :: vl(4, 4), vr(4, 4), temp
+    integer     :: i, j, minidx
+
+    write(*, *) "Testing solvers: QR algorithm"
+    call set_matrix_gridpts(4)
+    ! define identity matrix for convenience, inversion is already tested here
+    do i = 1, 4
+      do j = 1, 4
+        if (i == j) then
+          matrixB(j, i) = 1.0d0
+        else
+          matrixB(j, i) = 0.0d0
+        end if
+      end do
+    end do
+    matrixA = reshape((/  2.0d0*ir, -1.0d0*ir, 0.0d0*ir,  0.0d0*ir, &
+                          9.0d0*ir,  2.0d0*ir, 0.0d0*ir,  0.0d0*ir, &
+                          0.0d0*ir,  1.0d0*ir, 3.0d0*ir,  1.0d0*ir, &
+                          2.0d0*ir,  0.0d0*ir, 0.0d0*ir, -1.0d0*ir/), shape(matrixA))
+    call solve_QR(matrixA, matrixB, eigenvals, vl, vr)
+    !! sort eigenvalues (using selection sort, based on real part)
+    do i = 1, size(eigenvals)-1
+      minidx = minloc(real(eigenvals(i:)), 1) + i - 1
+      if (real(eigenvals(i)) > real(eigenvals(minidx))) then
+        temp = eigenvals(i)
+        eigenvals(i) = eigenvals(minidx)
+        eigenvals(minidx) = temp
+      end if
+    end do
+    eigenvals_solution =  (/ (-1.0d0, 0.0d0), (2.0d0, -3.0d0), &
+                          ( 2.0d0, 3.0d0), (3.0d0,  0.0d0) /)
+    @assertEqual(eigenvals, eigenvals_solution, tolerance=TOL)
+  end subroutine test_matrix_qr_solver
+
+end module mod_test_solvers

@@ -14,8 +14,17 @@ To run these locally you need to have pFUnit installed, which has some
 [prerequisites](https://github.com/Goddard-Fortran-Ecosystem/pFUnit#prerequisites). Make sure the legolas code is
 compiled, and then navigate to the `tests/core_tests` folder and run
 ```bash 
-make
+mkdir build
+cd build
+cmake ..
+make 
+```
+to compile them. To speed things up you can always compile using `make -j 8` (or any amount of cpus you can spare). 
+The executable to run the tests will be placed in the `core_tests` folder, run it through
+```bash
 ./test_legolas
 ```
+The legolas core tests will run in less than a second, since these are simply calls to the various subroutines
+themselves.
 
 These tests are run automatically for each commit and pull request to the `master` and `develop` branches.
