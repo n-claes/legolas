@@ -52,9 +52,12 @@ jobs:
       run: |
         sh setup_tools/buildlegolas.sh
         cd tests/core_tests
-        make FC=gfortran-9
+        mkdir build
+        cd build
+        cmake ..
+        make -j 2
 
     - name: Test Legolas core
       run: |
         cd tests/core_tests
-        ./test_legolas_core
+        ./test_legolas
