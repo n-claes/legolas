@@ -7,10 +7,14 @@ module mod_suite_utils
 contains
 
   subroutine reset_globals()
-    use mod_global_variables
+    use mod_global_variables, only: initialise_globals, logging_level
+    use mod_equilibrium_params, only: init_equilibrium_params, k2, k3
 
     call initialise_globals()
+    call init_equilibrium_params()
     logging_level = 0
+    k2 = 1.0d0
+    k3 = 2.5d0
   end subroutine reset_globals
 
 

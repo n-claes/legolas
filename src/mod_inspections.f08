@@ -105,7 +105,7 @@ contains
       ! in cylindrical geometry k2 should be an integer
       if (abs(k2_int - k2) > dp_LIMIT) then
         write(char_log, dp_fmt) k2
-        call log_message("cylindrical geometry but k2 is not an integer! Value: " // trim(char_log), level='error')
+        call log_message("cylindrical geometry but k2 is not an integer! Value: " // adjustl(trim(char_log)), level='error')
       end if
     end if
   end subroutine check_wavenumbers

@@ -190,4 +190,39 @@ contains
     @assertExceptionRaised("negative value encountered in array")
   end subroutine test_array_negative_true
 
+
+  @test
+  subroutine test_cyl_k2_ok()
+    use mod_inspections, only: perform_sanity_checks
+    use mod_equilibrium_params, only: k2, k3
+    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, grav_field, &
+                               rc_field, kappa_field
+    use mod_global_variables, only: geometry
+
+    write(*, *) "Testing k2 integer cylindrical geometry"
+    geometry = "cylindrical"
+    call create_test_grid(pts=31, geom=geometry)
+    k2 = 1.0d0
+    k3 = 0.5d0
+    call perform_sanity_checks(rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field)
+  end subroutine test_cyl_k2_ok
+
+
+  @test
+  subroutine test_cyl_k2_nonint()
+    use mod_inspections, only: perform_sanity_checks
+    use mod_equilibrium_params, only: k2, k3
+    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, grav_field, &
+                               rc_field, kappa_field
+    use mod_global_variables, only: geometry
+
+    write(*, *) "Testing k2 non-integer fail cylindrical geometry"
+    geometry = "cylindrical"
+    call create_test_grid(pts=31, geom=geometry)
+    k2 = 1.5d0
+    k3 = 0.5d0
+    call perform_sanity_checks(rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field)
+    @assertExceptionRaised("cylindrical geometry but k2 is not an integer! Value: 1.50000000")
+  end subroutine test_cyl_k2_nonint
+
 end module mod_test_valuechecks
