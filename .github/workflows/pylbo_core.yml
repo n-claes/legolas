@@ -33,6 +33,12 @@ jobs:
           flake8 --count --exclude=__init__.py --extend-ignore=E203,W503 --max-line-length=125 --show-source --statistics tests/pylbo_tests/
           flake8 --count --exclude=__init__.py --extend-ignore=E203,W503 --max-line-length=125 --show-source --statistics tests/regression_tests/
 
+      - name: Run black
+        run: |
+          black --diff --check post_processing/
+          black --diff --check tests/regression_tests/
+          black --diff --check tests/pylbo_tests/
+
   tests:
     runs-on: ubuntu-latest
     needs: style
