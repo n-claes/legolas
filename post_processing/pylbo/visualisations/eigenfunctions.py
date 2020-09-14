@@ -296,7 +296,8 @@ class EigenfunctionHandler:
         eigenfuncs : numpy.ndarray(dtype=dict, ndim=1)
             Array containing the eigenfunctions and eigenvalues corresponding to the
             supplied indices. Every index in this array contains a dictionary with the
-            eigenfunctions and corresponding eigenvalue. The keys of each dictionary are the
+            eigenfunctions and corresponding eigenvalue.
+            The keys of each dictionary are the
             eigenfunction names given by :attr:`ef_names`, and `'eigenvalue'`.
 
         Examples

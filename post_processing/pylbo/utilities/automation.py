@@ -61,11 +61,12 @@ def _check_executable():
 
 def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None):
     """
-    Generates (series of) parfiles based on a given configuration dictionary. The files are saved
-    using `basename_parfile` as a base name, and are written to the directory `output_dir`.
+    Generates (series of) parfiles based on a given configuration dictionary.
+    The files are saved using `basename_parfile` as a base name,
+    and are written to the directory `output_dir`.
     If `output_dir` does not exist yet, it is created.
-    Simply provide a dictionary with as keys the namelist items you want in the parfile, and
-    this routine takes care of the rest.
+    Simply provide a dictionary with as keys the namelist items you want
+    in the parfile and this routine takes care of the rest.
 
     Parameters
     ----------
@@ -78,15 +79,17 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
 
     Notes
     -----
-    This routine is quite flexible, meaning that you can specify both single-values and lists
-    as dictionary entries. When there are lists present multiple parfiles will be generated.
+    This routine is quite flexible, meaning that you can specify both
+    single-values and lists as dictionary entries. When there are lists present
+    ultiple parfiles will be generated.
     The only requirement is that list sizes are consistent across dictionary keys.
 
     Examples
     --------
-    The example below will generate three parfiles, all three with an adiabatic homogeneous
-    equilibrium state. The first one has 50 gridpoints and a wall at position 1, the second
-    one has 100 gridpoints with a wall at position 5, and so on.
+    The example below will generate three parfiles, all three with an
+    adiabatic homogeneous equilibrium state. The first one has 50 gridpoints
+    and a wall at position 1, the second one has 100 gridpoints with a wall
+    at position 5, and so on.
 
     >>> import pylbo
     >>> config = dict(equilibrium_type='adiabatic_homo',
@@ -106,8 +109,9 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
     Raises
     ------
     DictNotEmpty
-        If there are still keys remaining in the given dictionary. If parfile generation is
-        successful, we pop everything from a copy of the given dict.
+        If there are still keys remaining in the given dictionary.
+        If parfile generation is successful,
+        we pop everything from a copy of the given dict.
     InconsistentNumberOfRuns
         When the `number_of_runs` key is inconsistent with array sizes in the parfile.
     """

@@ -342,7 +342,8 @@ def read_eigenfunction(istream, header, ef_index):
     -------
     eigenfunctions : dict
         A dictionary containing the eigenfunctions for all variables with keys given
-        by the names of `header['ef_names']`. The eigenfunctions correspond to a specific
+        by the names of `header['ef_names']`.
+        The eigenfunctions correspond to a specific
         eigenvalue, associated with the same `ef_index`.
     """
     ef_offset = header["offsets"]["ef_arrays"]

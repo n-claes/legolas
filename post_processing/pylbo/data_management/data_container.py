@@ -118,8 +118,8 @@ class LegolasDataContainer:
     def _calculate_continua(self):
         """
         Calculates the various continua for this dataset and sets them
-        as an instance attribute (:attr:`continua`), which contains the different regions
-        as a dictionary.
+        as an instance attribute (:attr:`continua`), which contains the
+        different regions as a dictionary.
         """
         wS_pos, wS_neg, wA_pos, wA_neg, wth, doppler = get_continuum_regions(self)
         self.continua = {

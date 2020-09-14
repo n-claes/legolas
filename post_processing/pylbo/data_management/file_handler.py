@@ -12,12 +12,13 @@ def load(datfiles):
     Parameters
     ----------
     datfiles : str, ~os.PathLike, list of str, list of PathLike
-        The path to the datfile, either as a :class:`str` or :class:`~os.PathLike` object,
+        The path to the datfile, either as a :class:`str`
+        or :class:`~os.PathLike` object,
         or as a list of :class:`str` or :class:`~os.PathLike` objects.
 
     Returns
     -------
-    ds : :class:`~pylbo.LegolasDataContainer`, list of :class:`~.pylbo.LegolasDataContainer`
+    ds : (list of) :class:`~.pylbo.LegolasDataContainer`
         A (list of) :class:`~pylbo.LegolasDataContainer` instance(s),
         corresponding to the datfile(s) provided.
     """

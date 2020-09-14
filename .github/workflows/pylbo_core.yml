@@ -29,9 +29,9 @@ jobs:
 
       - name: Run flake8
         run: |
-          flake8 --count --exclude=__init__.py --extend-ignore=E203,W503 --max-line-length=125 --show-source --statistics post_processing/
-          flake8 --count --exclude=__init__.py --extend-ignore=E203,W503 --max-line-length=125 --show-source --statistics tests/pylbo_tests/
-          flake8 --count --exclude=__init__.py --extend-ignore=E203,W503 --max-line-length=125 --show-source --statistics tests/regression_tests/
+          flake8 --count --exclude=__init__.py --extend-ignore=E203,W503 --max-line-length=88 --show-source --statistics post_processing/
+          flake8 --count --exclude=__init__.py --extend-ignore=E203,W503 --max-line-length=88 --show-source --statistics tests/pylbo_tests/
+          flake8 --count --exclude=__init__.py --extend-ignore=E203,W503 --max-line-length=88 --show-source --statistics tests/regression_tests/
 
       - name: Run black
         run: |
@@ -82,4 +82,3 @@ jobs:
       with:
         name: failed_logs
         path: tests/pylbo_tests/results
-
