@@ -2,7 +2,7 @@ name: regression
 
 on:
   push:
-    branches: [master]
+    branches: [master, develop]
   pull_request:
     branches: [master, develop]
 
@@ -12,7 +12,7 @@ env:
   LEGOLASDIR: /home/runner/work/legolas/legolas
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -45,7 +45,7 @@ jobs:
     - name: Run regression tests
       run: |
         cd tests/regression_tests
-        pytest --verbose
+        pytest
 
     - name: Archive failed logs
       uses: actions/upload-artifact@v1

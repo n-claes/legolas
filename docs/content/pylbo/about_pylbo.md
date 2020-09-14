@@ -47,5 +47,10 @@ a few Mb of memory, tops.
 The entire Pylbo source code is formatted using [Black](https://github.com/psf/black), which automatically takes
 care of trailing whitespaces, improper indents etc. We explicitly check the formatting during our
 [automated tests](../../testing/test_pylbo/). Hence, if you want to make changes to the Pylbo source code, 
-make sure that everything is properly formatted. You can either run Black yourself after you have finished editing,
+make sure that everything is properly formatted or the automated tests will fail.
+You can either run Black yourself after you have finished editing,
 or you can do this automatically using [pre-commit](https://pre-commit.com) hooks. Up to you.
+
+We also run [flake8](https://flake8.pycqa.org/en/latest/) as style enforcement.
+
+More information on how these style and formatting tools are configured can be found [here](../../testing/test_pylbo/#running-the-style-checks).
