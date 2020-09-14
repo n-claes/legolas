@@ -487,6 +487,8 @@ class MultiSpectrum:
         self.ax.set_ylabel(r'$\dfrac{1}{v_A^2}\omega^2$')
         self.ax.set_xlabel('$k_0^2$')
         self.ax.set_title('Gravito mhd multirun')
+        self.ax.set_xlim(0, 500)
+        self.ax.set_ylim(-10, 500)
 
     def _plot_interchange_modes(self):
         """
@@ -500,7 +502,7 @@ class MultiSpectrum:
             w_sq = (1 / vA**2) * np.real(ds.eigenvalues**2)
             w_sq[np.where(np.abs(w_sq) < 1e-8)] = np.nan
             th = thetas[idx] * np.ones_like(w_sq)
-            self.ax.plot(th, w_sq, '.b', markersize=2, alpha=0.8)
+            self.ax.plot(th, w_sq, '.b', markersize=3, alpha=0.8)
             self._set_continua_lines(ds, x_value=thetas[idx], prefactor=(1 / vA**2))
         self.ax.set_ylabel(r'$\dfrac{1}{v_A^2}\omega^2$')
         self.ax.set_xlabel(r'$\theta$ / $\pi$')
@@ -520,7 +522,7 @@ class MultiSpectrum:
         for idx, ds in enumerate(self.datasets):
             w_sq = np.real(ds.eigenvalues**2)
             qfact = qfactors[idx] * np.ones_like(w_sq)
-            self.ax.plot(qfact, w_sq, '.b', markersize=2, alpha=0.8)
+            self.ax.plot(qfact, w_sq, '.b', markersize=3, alpha=0.8)
             self.ax.set_yscale('symlog', linthreshy=1e-8)
             self._set_continua_lines(ds, x_value=qfactors[idx])
         self.ax.set_xlabel(r"Safety factor $q = \frac{2k}{j0}$")
@@ -545,10 +547,12 @@ class MultiSpectrum:
             rhoe = 8 * rho0 * (2 * gamma + 1) / (gamma + 18)
             pe = 18 * p0 * (2 * gamma + 1) / (gamma + 18)
             Be = np.sqrt(2 * gamma * p0 * (2 * gamma + 1) / (gamma + 18))
+            ylims = (0.84, 1.55)
         else:
             rhoe = 4 * rho0 * (2 * gamma + 1) / (50 * gamma + 1)
             pe = p0 * (2 * gamma + 1) / (50 * gamma + 1)
             Be = 10 * np.sqrt(gamma * p0 * (2 * gamma + 1) / (50 * gamma + 1))
+            ylims = (0.84, 5.1)
         cs = np.sqrt(gamma * p0 / rho0)
         cse = np.sqrt(gamma * pe / rhoe)
         cA = np.sqrt(B0 ** 2 / rho0)
@@ -561,7 +565,7 @@ class MultiSpectrum:
             # phase speed c = w / kz
             c = np.abs(ds.eigenvalues.real) / kz_values[idx]
             kza = kz_values[idx] * a * np.ones_like(c)
-            self.ax.plot(kza, c / cs, '.b', markersize=2)
+            self.ax.plot(kza, c / cs, '.b', markersize=3)
         self.ax.axhline(cA / cs, label='$c_A$', lw=1, color='black', alpha=0.6)
         self.ax.axhline(cAe / cs, label='$c_{Ae}$', lw=1, color='black', linestyle='dotted', alpha=0.6)
         self.ax.axhline(cs / cs, label='$c_s$', lw=1, color='red', alpha=0.6)
@@ -573,3 +577,4 @@ class MultiSpectrum:
         self.ax.set_xlabel(r"$k_za$")
         self.ax.set_ylabel(r"$\omega / k_z c_s$")
         self.ax.set_title(self.datasets[0].eq_type.replace("_", " ") + ' multirun')
+        self.ax.set_ylim(ylims)

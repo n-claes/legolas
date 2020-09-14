@@ -160,7 +160,7 @@ class LegolasDataContainer:
             Returns `None` if the geometry is not cylindrical.
         """
         if not self.geometry == 'cylindrical':
-            pylboLogger.warn('geometry is not cylindrical, unable to calculate tube speed')
+            pylboLogger.warning('geometry is not cylindrical, unable to calculate tube speed')
             ct = None
         else:
             cA = self.get_alfven_speed()
@@ -198,8 +198,8 @@ class LegolasDataContainer:
         a = self.x_end - self.x_start
         eta = self.equilibria['eta']
         if (eta == 0).any():
-            pylboLogger.warn('resistivity is zero somewhere on the domain, unable to '
-                             'calculate the Reynolds number')
+            pylboLogger.warning('resistivity is zero somewhere on the domain, unable to '
+                                'calculate the Reynolds number')
             Re = None
         else:
             Re = a * cs / eta
@@ -221,8 +221,8 @@ class LegolasDataContainer:
         a = self.x_end - self.x_start
         eta = self.equilibria['eta']
         if (eta == 0).any():
-            pylboLogger.warn('resistivity is zero somewhere on the domain, unable to '
-                             'calculate the magnetic Reynolds number')
+            pylboLogger.warning('resistivity is zero somewhere on the domain, unable to '
+                                'calculate the magnetic Reynolds number')
             Rm = None
         else:
             Rm = a * cA / eta

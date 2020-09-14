@@ -76,9 +76,12 @@ def plot_matrices(ds, force_draw=False):
         visualticks = np.arange(0, ds.matrix_gridpts + 0.1, 32)
         ax.set_xticks(visualticks)
         ax.set_yticks(visualticks)
+        ax.set_xlim(0, ds.matrix_gridpts + 1)
+        ax.set_ylim(0, ds.matrix_gridpts + 1)
         ax.tick_params(which='both', labelsize=13)
         ax.set_aspect('equal')
         ax.invert_yaxis()
+
     pylboLogger.info('done!')
 
     return fig, axes
