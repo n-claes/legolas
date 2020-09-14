@@ -1,7 +1,7 @@
 import logging
 import sys
 
-pylboLogger = logging.getLogger('pylbo')
+pylboLogger = logging.getLogger("pylbo")
 
 
 def init_logger():
@@ -9,7 +9,7 @@ def init_logger():
     Initialises the pylbo logger.
     """
     sh = logging.StreamHandler(stream=sys.stdout)
-    fmt = logging.Formatter('%(asctime)s - |%(levelname)-8s| %(message)s')
+    fmt = logging.Formatter("%(asctime)s - |%(levelname)-8s| %(message)s")
     sh.setFormatter(fmt)
     pylboLogger.addHandler(hdlr=sh)
     set_loglevel("info")

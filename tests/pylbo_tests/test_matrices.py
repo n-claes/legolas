@@ -59,7 +59,7 @@ def test_matrixA():
 
 @pytest.mark.mpl_image_compare(
     baseline_dir=BASELINE_DIR,
-    filename="matrices.png",
+    filename="matrices_adiab.png",
     savefig_kwargs={"dpi": FIG_DPI},
 )
 def test_matrix_plot(ds):

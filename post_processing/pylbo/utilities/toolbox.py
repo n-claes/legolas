@@ -117,12 +117,20 @@ def select_precoded_run():
 
     """
     av_runs = iter(precoded_runs.keys())
-    pylboLogger.info('select one of the following precoded runs:')
+    pylboLogger.info("select one of the following precoded runs:")
     for idx, pr in custom_enumerate(av_runs, start=1, step=3):
-        print('{:03d} {:<30}{:03d} {:<30}{:03d} {}'.format(idx, pr, idx + 1, next(av_runs, "<empty>"),
-                                                           idx + 2, next(av_runs, '<empty>')))
-    pr_in = int(input('\nChoose precoded run: '))
+        print(
+            "{:03d} {:<30}{:03d} {:<30}{:03d} {}".format(
+                idx,
+                pr,
+                idx + 1,
+                next(av_runs, "<empty>"),
+                idx + 2,
+                next(av_runs, "<empty>"),
+            )
+        )
+    pr_in = int(input("\nChoose precoded run: "))
     chosen_pr = list(precoded_runs.keys())[pr_in - 1]
-    pylboLogger.info(f'selected run: {chosen_pr}')
+    pylboLogger.info(f"selected run: {chosen_pr}")
     parfile_dict = get_precoded_run(chosen_pr)
     return parfile_dict

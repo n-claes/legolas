@@ -58,14 +58,14 @@ def read_log_file(file, sort=False):
         If the file could not be found.
     """
     if ".log" not in str(file):
-        raise ValueError('This is not a .log file: {}'.format(file))
+        raise ValueError(f"This is not a .log file: {file}")
     filepath = Path(file).resolve()
     if not filepath.is_file():
         raise FileNotFoundError(filepath)
     eigenvalues = []
-    with open(filepath, 'r') as logfile:
+    with open(filepath, "r") as logfile:
         for line in logfile:
-            line = line.strip().split(',')
+            line = line.strip().split(",")
             x, y = line
             eigenvalues.append(complex(float(x), float(y)))
     eigenvalues = np.asarray(eigenvalues)
@@ -88,7 +88,9 @@ def select_files():
     root.withdraw()
     root.lift()
     root.focus_set()
-    files = list(filedialog.askopenfilenames(parent=root, title='Select Legolas file(s)'))
+    files = list(
+        filedialog.askopenfilenames(parent=root, title="Select Legolas file(s)")
+    )
     root.destroy()
     if not files:
         exit()

@@ -16,8 +16,8 @@ def plot_matrices(ds, force_draw=False):
     that are being plotted. This method is meant solely for inspections and should
     not be used for visualisation purposes. Visualising the matrices of large datasets
     will not be clear anyway due to the sheer amount of blocks present. By default,
-    a warning message will be printed when the amount of gridpoints is higher than 20 and
-    plotting will be skipped.
+    a warning message will be printed when the amount of gridpoints is higher than 20
+    and plotting will be skipped.
     Supply the kwarg `force_draw=True` if you want to draw the figure anyway.
 
     Parameters
@@ -36,10 +36,12 @@ def plot_matrices(ds, force_draw=False):
         index 1 to the B-matrix.
     """
     if ds.gridpts > 20 and not force_draw:
-        pylboLogger.warning('plotting the matrices is disabled if gridpoints > 20, '
-                            'use force_draw=True to override.')
+        pylboLogger.warning(
+            "plotting the matrices is disabled if gridpoints > 20, "
+            "use force_draw=True to override."
+        )
         return None, None
-    pylboLogger.info('drawing matrix figure...')
+    pylboLogger.info("drawing matrix figure...")
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))
     axl, axr = axes.flatten()
@@ -48,16 +50,16 @@ def plot_matrices(ds, force_draw=False):
     rows, cols, vals = ds.get_matrix_A()
     # take modulus of values
     vals = np.absolute(vals)
-    im = axl.scatter(cols, rows, c=vals, s=6, cmap='plasma', norm=LogNorm())
-    axl.set_title('Matrix A (modulus)')
+    im = axl.scatter(cols, rows, c=vals, s=6, cmap="plasma", norm=LogNorm())
+    axl.set_title("Matrix A (modulus)")
     divider = make_axes_locatable(axl)
     cax = divider.append_axes("right", size="5%", pad=0.05)
     plt.colorbar(im, cax=cax)
 
     # matrix B
     rows, cols, vals = ds.get_matrix_B()
-    im = axr.scatter(cols, rows, c=vals, s=6, cmap='plasma', norm=LogNorm())
-    axr.set_title('Matrix B')
+    im = axr.scatter(cols, rows, c=vals, s=6, cmap="plasma", norm=LogNorm())
+    axr.set_title("Matrix B")
     divider = make_axes_locatable(axr)
     cax = divider.append_axes("right", size="5%", pad=0.05)
     plt.colorbar(im, cax=cax)
@@ -66,22 +68,30 @@ def plot_matrices(ds, force_draw=False):
     for ax in (axl, axr):
         maingrid_ticks = np.arange(0.5, ds.matrix_gridpts + 16.5, 16)
         for i in maingrid_ticks:
-            ax.vlines(x=i, color='grey', alpha=0.6, ymin=0.5, ymax=ds.matrix_gridpts+0.5)
-            ax.hlines(y=i, color='grey', alpha=0.6, xmin=0.5, xmax=ds.matrix_gridpts+0.5)
+            ax.vlines(
+                x=i, color="grey", alpha=0.6, ymin=0.5, ymax=ds.matrix_gridpts + 0.5
+            )
+            ax.hlines(
+                y=i, color="grey", alpha=0.6, xmin=0.5, xmax=ds.matrix_gridpts + 0.5
+            )
         minorgrid_ticks = np.arange(0.5, ds.matrix_gridpts + 0.5, 2)
         for i in minorgrid_ticks:
-            ax.vlines(x=i, color='grey', alpha=0.1, ymin=0.5, ymax=ds.matrix_gridpts+0.5)
-            ax.hlines(y=i, color='grey', alpha=0.1, xmin=0.5, xmax=ds.matrix_gridpts+0.5)
+            ax.vlines(
+                x=i, color="grey", alpha=0.1, ymin=0.5, ymax=ds.matrix_gridpts + 0.5
+            )
+            ax.hlines(
+                y=i, color="grey", alpha=0.1, xmin=0.5, xmax=ds.matrix_gridpts + 0.5
+            )
 
         visualticks = np.arange(0, ds.matrix_gridpts + 0.1, 32)
         ax.set_xticks(visualticks)
         ax.set_yticks(visualticks)
         ax.set_xlim(0, ds.matrix_gridpts + 1)
         ax.set_ylim(0, ds.matrix_gridpts + 1)
-        ax.tick_params(which='both', labelsize=13)
-        ax.set_aspect('equal')
+        ax.tick_params(which="both", labelsize=13)
+        ax.set_aspect("equal")
         ax.invert_yaxis()
 
-    pylboLogger.info('done!')
+    pylboLogger.info("done!")
 
     return fig, axes
