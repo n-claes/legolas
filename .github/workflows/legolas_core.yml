@@ -13,7 +13,7 @@ env:
   LEGOLASDIR: /home/runner/work/legolas/legolas
 
 jobs:
-  build:
+  tests:
     runs-on: [ubuntu-latest]
 
     steps:

@@ -56,6 +56,3 @@ def test_walfven(ds_thermal):
 def test_doppler(ds_thermal):
     doppler = ds_thermal.continua.get("dopp")
     assert np.all(doppler == pytest.approx(0))
-
-
-

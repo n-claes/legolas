@@ -4,7 +4,6 @@ import signal
 import multiprocessing
 import f90nml
 import psutil
-import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 from .toolbox import transform_to_list

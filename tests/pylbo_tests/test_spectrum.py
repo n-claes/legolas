@@ -69,7 +69,7 @@ def test_inconsistent_run(ds):
     with pytest.raises(InconsistentMultirunFile):
         ms.plot_precoded_run()
 
-        
+
 def test_noprecoded_run(ds):
     ms = pylbo.MultiSpectrum([ds, ds])
     with pytest.raises(ValueError):

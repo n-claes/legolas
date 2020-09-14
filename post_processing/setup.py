@@ -12,13 +12,13 @@ with open(version_filepath) as f:
             VERSION = line.split("=")[-1].strip().strip('"')
 
 setup(
-    name = package_name,
-    version = VERSION,
-    description = 'Post-processing framework for the Legolas code',
-    author = ['Niels Claes', 'Jordi De Jonghe'],
-    author_email = ['niels.claes@kuleuven.be', 'jordi.dejonghe@kuleuven.be'],
-    keywords = 'interface data-analysis',
-    python_requires = '>=3.6',
-    install_requires = required_packages,
-    packages = find_packages()
+    name=package_name,
+    version=VERSION,
+    description='Post-processing framework for the Legolas code',
+    author=['Niels Claes', 'Jordi De Jonghe'],
+    author_email=['niels.claes@kuleuven.be', 'jordi.dejonghe@kuleuven.be'],
+    keywords='interface data-analysis',
+    python_requires='>=3.6',
+    install_requires=required_packages,
+    packages=find_packages()
 )
