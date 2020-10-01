@@ -1,6 +1,8 @@
 ! =============================================================================
 !> All physical constants used in the code are defined in this module.
 !! We include values both in SI units and in cgs units for convenience.
+!! All values are taken from the
+!! [NRL Plasma Formulary](https://www.nrl.navy.mil/ppd/content/nrl-plasma-formulary).
 module mod_physical_constants
   use mod_global_variables, only: dp
   implicit none
@@ -11,37 +13,55 @@ module mod_physical_constants
   real(dp), parameter   :: dpi = 3.141592653589793238462643383279d0
   !> coulomb logarithm
   real(dp), parameter   :: coulomb_log = 22.0d0
-  !> proton mass in g (cgs)
+  !> proton mass in g
   real(dp), parameter   :: mp_cgs = 1.672621777d-24
-  !> proton mass in kg (SI)
+  !> proton mass in kg
   real(dp), parameter   :: mp_si  = 1.672621777d-27
-  !> hydrogen mass in g (cgs)
+  !> hydrogen mass in g
   real(dp), parameter   :: mH_cgs = 1.6733d-24
-  !> hydrogen mass in kg (SI)
+  !> hydrogen mass in kg
   real(dp), parameter   :: mH_si  = 1.6733d-27
-  !> electron mass in g (cgs)
+  !> electron mass in g
   real(dp), parameter   :: me_cgs = 9.1094d-28
-  !> electron mass in kg (SI)
+  !> electron mass in kg
   real(dp), parameter   :: me_si  = 9.1094d-31
-  !> elementary charge in statcoul (cgs)
+  !> elementary charge in statcoul
   real(dp), parameter   :: ec_cgs = 4.8032d-10
-  !> elementary charge in C (SI)
+  !> elementary charge in C
   real(dp), parameter   :: ec_si  = 1.6022d-19
-  !> Boltzmann constant in erg/K (cgs)
+  !> Boltzmann constant in erg/K
   real(dp), parameter   :: kB_cgs = 1.3806488d-16
-  !> Boltzmann constant in J/K (SI)
+  !> Boltzmann constant in J/K
   real(dp), parameter   :: kB_si  = 1.3806488d-23
-  !> magnetic constant in H/m (SI)
+  !> magnetic constant in H/m
   real(dp), parameter   :: mu0_si = 1.2566370614d-6
-  !> magnetic constant (cgs)
+  !> magnetic constant
   real(dp), parameter   :: mu0_cgs = 4.0d0*dpi
-  !> permittivity of free space in F/m (SI)
+  !> permittivity of free space in F/m
   real(dp), parameter   :: e0_si  = 8.8542d-12
   !> degree of ionization (assumed fully ionized)
   real(dp), parameter   :: Z_ion = 1.0d0
-  !> gas constant in J/K (SI)
+  !> gas constant in J/K
   real(dp), parameter   :: R_si = 8.3145d0
   !> gas constant in erg/deg
   real(dp), parameter   :: R_cgs = 8.3145d7
+
+  !! Solar physics parameters
+  !> solar mass in g
+  real(dp), parameter   :: msun_cgs = 1.99d33
+  !> solar radius in cm
+  real(dp), parameter   :: Rsun_cgs = 6.96d10
+  !> solar gravity in cm/s^2
+  real(dp), parameter   :: gsun_cgs = 2.74d4
+  !> solar escape velocity in cm/s
+  real(dp), parameter   :: Vesc_sun = 6.18d7
+  !> solar effective temperature in K
+  real(dp), parameter   :: Teff_sun = 5770.0d0
+  !> solar luminosity in erg/s
+  real(dp), parameter   :: Lsun_cgs = 3.83d33
+  !> astronomical unit in cm
+  real(dp), parameter   :: AU_cgs = 1.50d13
+  !> solar constant (intensity at 1 AU) in erg/cm^2/s
+  real(dp), parameter   :: fsun_cgs = 1.36d6
 
 end module mod_physical_constants
