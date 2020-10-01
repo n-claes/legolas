@@ -43,10 +43,10 @@ module mod_units
   real(dp), protected   :: unit_magneticfield = 1.0d0
   !> numberdensity normalisation
   real(dp), protected   :: unit_numberdensity = 1.0d0
-  !> luminosity normalisation
-  real(dp), protected   :: unit_luminosity = 1.0d0
+  !> cooling function normalisation
+  real(dp), protected   :: unit_lambdaT = 1.0d0
   !> normalisation for derivative of cooling function with respect to temperature
-  real(dp), protected   :: unit_dldt = 1.0d0
+  real(dp), protected   :: unit_dlambdaT_dT = 1.0d0
   !> thermal conduction normalisation
   real(dp), protected   :: unit_conduction = 1.0d0
   !> normalisation for d(kappa_perp)/d(rho)
@@ -69,7 +69,7 @@ module mod_units
 
   public  :: unit_length, unit_time, unit_density, unit_velocity
   public  :: unit_temperature, unit_pressure, unit_magneticfield
-  public  :: unit_numberdensity, unit_luminosity, unit_dldt
+  public  :: unit_numberdensity, unit_lambdaT, unit_dlambdaT_dT
   public  :: unit_conduction, unit_dtc_drho, unit_dtc_dT, unit_dtc_dB2
   public  :: unit_resistivity, unit_deta_dT
 
@@ -165,8 +165,8 @@ contains
     unit_numberdensity = unit_density / mp
     unit_velocity = unit_magneticfield / sqrt(mu0 * unit_density)
     unit_time = unit_length / unit_velocity
-    unit_luminosity = unit_pressure / (unit_time * unit_numberdensity**2)
-    unit_dldt = unit_luminosity / unit_temperature
+    unit_lambdaT = unit_pressure / (unit_time * unit_numberdensity**2)
+    unit_dlambdaT_dT = unit_lambdaT / unit_temperature
 
     unit_conduction    = unit_density * unit_length * unit_velocity**3 / unit_temperature
     unit_dtc_drho      = unit_conduction / unit_density

@@ -183,7 +183,7 @@ contains
   !! A second-order polynomial interpolation is used except near sharp jumps.
   !! @note    The interpolated cooling curves are normalised on exit.
   subroutine interpolate_cooling_curve(ntable, table_T, table_L)
-    use mod_units, only: unit_temperature, unit_luminosity
+    use mod_units, only: unit_temperature, unit_lambdaT
 
     !> number of values in the cooling table
     integer, intent(in)   :: ntable
@@ -265,7 +265,7 @@ contains
 
     ! Normalise values
     interp_table_T(1:ncool) = interp_table_T(1:ncool) / unit_temperature
-    interp_table_L(1:ncool) = interp_table_L(1:ncool) / unit_luminosity
+    interp_table_L(1:ncool) = interp_table_L(1:ncool) / unit_lambdaT
 
     min_T = interp_table_T(1)
     max_T = interp_table_T(ncool)

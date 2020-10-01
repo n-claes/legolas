@@ -108,7 +108,7 @@ contains
     write(dat_fh) size(equil_names), equil_names
     write(dat_fh) cgs_units
     write(dat_fh) unit_length, unit_time, unit_density, unit_velocity, unit_temperature, &
-                  unit_pressure, unit_magneticfield, unit_numberdensity, unit_luminosity, &
+                  unit_pressure, unit_magneticfield, unit_numberdensity, unit_lambdaT, &
                   unit_conduction, unit_resistivity
 
     ! Next write the data itself

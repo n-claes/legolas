@@ -113,21 +113,21 @@ contains
 
 
   @test
-  subroutine test_unit_luminosity()
-    use mod_units, only: unit_luminosity
+  subroutine test_unit_lambdaT()
+    use mod_units, only: unit_lambdaT
 
-    write(*, *) "Testing unit luminosity"
-    @assertEqual(8.864529572713094d0, unit_luminosity * 1.0d24, tolerance=TOL)
-  end subroutine test_unit_luminosity
+    write(*, *) "Testing unit lambda(T)"
+    @assertEqual(8.864529572713094d0, unit_lambdaT * 1.0d24, tolerance=TOL)
+  end subroutine test_unit_lambdaT
 
 
   @test
-  subroutine test_unit_dldt()
-    use mod_units, only: unit_dldt
+  subroutine test_unit_dlambdaT_dT()
+    use mod_units, only: unit_dlambdaT_dT
 
-    write(*, *) "Testing unit dldt"
-    @assertEqual(8.864529572713094d0, unit_dldt * 1.0d30, tolerance=TOL)
-  end subroutine test_unit_dldt
+    write(*, *) "Testing unit dlambda(T)/dT"
+    @assertEqual(8.864529572713094d0, unit_dlambdaT_dT * 1.0d30, tolerance=TOL)
+  end subroutine test_unit_dlambdaT_dT
 
 
   @test

@@ -130,7 +130,7 @@ def get_header(istream):
         "unit_pressure",
         "unit_magneticfield",
         "unit_numberdensity",
-        "unit_luminosity",
+        "unit_lambdaT",
         "unit_conduction",
         "unit_resistivity",
     ]

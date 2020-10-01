@@ -261,16 +261,16 @@ contains
   !! @note    Both <tt>lambda_T</tt> and <tt>d_lambda_dT</tt> are normalised on exit. @endnote
   !! @warning To ensure a correct calculation the temperature normalisation must be set
   !!          to the desired value. @endwarning
-  subroutine get_rosner_cooling(T0, lambda_T, d_lambda_dT)
+  subroutine get_rosner_cooling(T0, lambda_T, dlambda_dT)
     use mod_global_variables, only: gauss_gridpts
-    use mod_units, only: unit_temperature, unit_luminosity, unit_dldt
+    use mod_units, only: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
 
     !> the equilibrium temperature, normalised
     real(dp), intent(in)  :: T0(gauss_gridpts)
     !> the cooling values corresponding to T0
     real(dp), intent(out) :: lambda_T(gauss_gridpts)
     !> the derivative of the cooling values corresponding to T0
-    real(dp), intent(out) :: d_lambda_dT(gauss_gridpts)
+    real(dp), intent(out) :: dlambda_dT(gauss_gridpts)
     real(dp)    :: log10_T0
     integer     :: i, j, idx
 
@@ -293,12 +293,12 @@ contains
       lambda_T(i) = 10.0d0 ** (rosner_log10_xi(idx) + rosner_alpha(idx) * log10_T0)
       ! dlambda_dT = alpha * xi * T**(alpha - 1) hence
       !            = alpha * 10**(log(xi) + (alpha-1)*log(T))
-      d_lambda_dT(i) = rosner_alpha(idx) * 10.0d0 ** (rosner_log10_xi(idx) + (rosner_alpha(idx)-1) * log10_T0)
+      dlambda_dT(i) = rosner_alpha(idx) * 10.0d0 ** (rosner_log10_xi(idx) + (rosner_alpha(idx)-1) * log10_T0)
     end do
 
     ! renormalise variables
-    lambda_T = lambda_T / unit_luminosity
-    d_lambda_dT = d_lambda_dT / unit_dldt
+    lambda_T = lambda_T / unit_lambdaT
+    dlambda_dT = dlambda_dT / unit_dlambdaT_dT
   end subroutine get_rosner_cooling
 
 end module mod_cooling_curves
