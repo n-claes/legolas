@@ -100,19 +100,28 @@ contains
   !! The logo is wrapped in 1 whitespace at the top and
   !! two at the bottom. Only for logging level 'warning' (1) and above
   subroutine print_logo()
+    !> array containing the different logo lines
+    character(len=str_len) :: logo(10)
+    integer :: i
+
     if (logging_level <= 1) then
       return
     end if
 
     call print_whitespace(1)
-    write(*, *) " _        _______  _______  _______  _        _______  _______ "
-    write(*, *) "( \      (  ____ \(  ____ \(  ___  )( \      (  ___  )(  ____ \"
-    write(*, *) "| (      | (    \/| (    \/| (   ) || (      | (   ) || (    \/"
-    write(*, *) "| |      | (__    | |      | |   | || |      | (___) || (_____ "
-    write(*, *) "| |      |  __)   | | ____ | |   | || |      |  ___  |(_____  )"
-    write(*, *) "| |      | (      | | \_  )| |   | || |      | (   ) |      ) |"
-    write(*, *) "| (____/\| (____/\| (___) || (___) || (____/\| )   ( |/\____) |"
-    write(*, *) "(_______/(_______/(_______)(_______)(_______/|/     \|\_______)"
+    call paint_string("    __       ________  ________   _______   __          ___     __________ ", "blue", logo(1))
+    call paint_string("   |  |     |   ____ \|   ____ \ /   _   \ |  |        /   \   |   ______ \", "blue", logo(2))
+    call paint_string("   |  |     |  |    \/|  |    \/|   / \   ||  |       /  _  \  |  |      \/", "blue", logo(3))
+    call paint_string("   |  |     |  |__    |  |      |  |   |  ||  |      /  / \  \ |  \_______ ", "blue", logo(4))
+    call paint_string("   |  |     |   __/   |  | ____ |  |   |  ||  |     /  /   \  \\_______   \", "blue", logo(5))
+    call paint_string("   |  |     |  |      |  | \_  ||  |   |  ||  |    /  /     \  \       |  |", "blue", logo(6))
+    call paint_string("   |  |_____|  |____/\|  |___| ||   \_/   ||  |___/  /  /\___\  \      |  |", "blue", logo(7))
+    call paint_string("   |_______/|________/|________| \_______/ |________/   \_______/      |  |", "blue", logo(8))
+    call paint_string("                                                           /\__________/  |", "blue", logo(9))
+    call paint_string("   Large Eigensystem Generator for One-dimensional pLASmas \_____________/ ", "blue", logo(10))
+    do i = 1, size(logo)
+      write(*, *) logo(i)
+    end do
     call print_whitespace(2)
   end subroutine print_logo
 
