@@ -247,7 +247,7 @@ contains
     if (present(default_x_start)) then
       if ( (.not. ieee_is_nan(x_start)) .and. abs(x_start - default_x_start) >= dp_LIMIT ) then
         write(char_log, dp_fmt) x_start
-        call log_message("overriding x_start with " // trim(char_log), level='warning')
+        call log_message("overriding x_start with " // adjustl(trim(char_log)), level='warning')
       else
         x_start = default_x_start
       end if
@@ -256,7 +256,7 @@ contains
     if (present(default_x_end)) then
       if ( (.not. ieee_is_nan(x_end)) .and. abs(x_end - default_x_end) >= dp_LIMIT ) then
         write(char_log, dp_fmt) x_end
-        call log_message("overriding x_end with " // trim(char_log), level='warning')
+        call log_message("overriding x_end with " // adjustl(trim(char_log)), level='warning')
       else
         x_end = default_x_end
       end if
