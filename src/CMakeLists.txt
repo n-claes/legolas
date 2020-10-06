@@ -12,6 +12,7 @@ set (sources
         dataIO/mod_input.f08
         physics/mod_resistivity.f08
         physics/mod_cooling_curves.f08
+        physics/mod_atmosphere_curves.f08
         physics/mod_radiative_cooling.f08
         physics/mod_thermal_conduction.f08
         mod_inspections.f08
