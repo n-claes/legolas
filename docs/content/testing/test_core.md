@@ -1,6 +1,7 @@
 ---
 title: Testing the core routines
 layout: single
+classes: wide
 sidebar:
   nav: "leftcontents"
 ---
