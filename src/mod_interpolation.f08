@@ -37,6 +37,7 @@ contains
 
     integer   :: i, j
     real(dp)  :: fact1, fact2, fact3
+    real(dp)  :: xmin, xmax
     real(dp)  :: dx, dy1, dy2
     logical   :: jump
 
@@ -49,13 +50,15 @@ contains
       end if
     end do
 
+    xmin = x_table(1)
+    xmax = x_table(n_table)
     ! outer edges remain the same
-    x_interp(1) = x_table(1)
-    x_interp(ncool) = x_table(n_table)
+    x_interp(1) = xmin
+    x_interp(ncool) = xmax
     y_interp(1) = y_table(1)
     y_interp(ncool) = y_table(n_table)
 
-    dx = (x_table(n_table) - x_table(1)) / (ncool - 1)
+    dx = (xmax - xmin) / (ncool - 1)
     do i = 2, ncool
       x_interp(i) = x_interp(i - 1) + dx
       do j = 1, n_table - 1
@@ -77,7 +80,7 @@ contains
 
           fact1 = ((x_interp(i) - x_table(j + 1)) * (x_interp(i) - x_table(j + 2))) &
                 / ((x_table(j) - x_table(j + 1)) * (x_table(j) - x_table(j + 2)))
-          fact2 = ((x_interp(i) - x_table(j)) / (x_interp(i) - x_table(j + 2))) &
+          fact2 = ((x_interp(i) - x_table(j)) * (x_interp(i) - x_table(j + 2))) &
                 / ((x_table(j + 1) - x_table(j)) * (x_table(j + 1) - x_table(j + 2)))
           fact3 = ((x_interp(i) - x_table(j)) * (x_interp(i) - x_table(j + 1))) &
                 / ((x_table(j + 2) - x_table(j)) * (x_table(j + 2) - x_table(j + 1)))
