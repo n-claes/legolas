@@ -41,6 +41,8 @@ leftcontents:
         url: /content/pylbo/generate_parfiles/
   - title: Testing
     children:
+      - title: "Code coverage"
+        url: /content/testing/coverage/
       - title: "Core routines"
         url: /content/testing/test_core/
       - title: "Regression"
