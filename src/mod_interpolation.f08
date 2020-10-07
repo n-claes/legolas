@@ -138,7 +138,7 @@ contains
     real(dp), intent(in)  :: y_values(:)
 
     integer   :: i, j, nvals
-    real(dp)  :: step, x_min, x_max
+    real(dp)  :: lg_xmin, lg_xmax, lg_step
     !> corresponding y-value based on \(x0\)
     real(dp)  :: y_found
 
@@ -148,14 +148,14 @@ contains
       if (x_values(i + 1) < x_values(i)) then
         call log_message( &
           "find_y: x-values are not monotonically increasing!", level="error" &
-          )
+        )
       end if
     end do
-    x_min = x_values(1)
-    x_max = x_values(nvals)
+    lg_xmin = dlog10(minval(x_values))
+    lg_xmax = dlog10(maxval(x_values))
+    lg_step = (lg_xmax - lg_xmin) / (nvals - 1)
 
-    step = (x_max - x_min) / (nvals - 1)
-    j = int((x0 - x_min) / step) + 1
+    j = int((dlog10(x0) - lg_xmin) / lg_step) + 1
     y_found = y_values(j) + (x0 - x_values(j)) * (y_values(j + 1) - y_values(j)) &
             / (x_values(j + 1) - x_values(j))
   end function lookup_table_value
