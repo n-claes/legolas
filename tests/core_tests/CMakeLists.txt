@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.12)
 project(Legolas_testing)
 enable_language(Fortran)
 
+option(Coverage "Coverage" OFF)
+
 get_filename_component(Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 set(CMAKE_Fortran_FLAGS "-fcheck=all -fbounds-check -Wall \
                          -Wextra -Wconversion -pedantic -fbacktrace")
@@ -60,3 +62,6 @@ add_pfunit_ctest (test_legolas
         EXTRA_USE mod_pfunit_exceptions
         EXTRA_INITIALIZE init_pfunit_raise
 )
+if (${Coverage})
+    target_link_options(test_legolas PUBLIC "--coverage")
+endif()

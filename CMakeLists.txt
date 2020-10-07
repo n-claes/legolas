@@ -3,9 +3,19 @@ project(Legolas)
 set(VERSION 1.0)
 enable_language(Fortran)
 
+option(Coverage "Coverage" OFF)
+
 get_filename_component(Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
-set(CMAKE_Fortran_FLAGS "-fcheck=all -fbounds-check -Wall \
-                         -Wextra -Wconversion -pedantic -fbacktrace")
+if (${Coverage})
+    message(STATUS "====================")
+    message(STATUS "Building with code coverage enabled.")
+    message(STATUS "Default Fortran flags are disabled, optimisation disabled.")
+    message(STATUS "====================")
+    set (CMAKE_Fortran_FLAGS "--coverage -o0 -g")
+else()
+    set(CMAKE_Fortran_FLAGS "-fcheck=all -fbounds-check -Wall \
+                             -Wextra -Wconversion -pedantic -fbacktrace")
+endif()
 
 if (DEFINED ENV{LEGOLASDIR})
     set(SRC $ENV{LEGOLASDIR}/src)
