@@ -1,0 +1,311 @@
+module mod_test_interpolation
+  use funit
+  use mod_suite_utils
+  implicit none
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+    call reset_eigenfunctions(init_efs=.false.)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_interp_invalidx()
+    use mod_interpolation, only: interpolate_table
+    use mod_global_variables, only: ncool
+
+    real(dp)  :: x_values(5), y_values(5)
+    real(dp)  :: x_interp(5), y_interp(5)
+
+    write(*, *) "Testing interpolation: invalid x_values"
+    ncool = 5
+    x_values = [1.0d0, 3.0d0, 4.0d0, 2.0d0, 7.0d0]
+    y_values = [1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0]
+    call interpolate_table(5, x_values, y_values, x_interp, y_interp)
+
+    @assertExceptionRaised("interpolation: x-values are not monotonically increasing!")
+  end subroutine test_interp_invalidx
+
+
+  @test
+  subroutine test_interp_bounds()
+    use mod_interpolation, only: interpolate_table
+    use mod_global_variables, only: ncool
+
+    integer, parameter  :: nbvals = 50
+    real(dp)  :: x_values(nbvals), y_values(nbvals)
+    real(dp)  :: x_interp(ncool), y_interp(ncool)
+
+    write(*, *) "Testing interpolation: outer boundaries"
+    x_values = linspace(1.0d0, 10.0d0, nbvals)
+    y_values = x_values**3
+    call interpolate_table(nbvals, x_values, y_values, x_interp, y_interp)
+
+    ! boundaries should remain unchanged
+    @assertEqual(x_interp(1), x_values(1), tolerance=TOL)
+    @assertEqual(x_interp(ncool), x_values(nbvals), tolerance=TOL)
+  end subroutine test_interp_bounds
+
+
+  @test
+  subroutine test_interp_quad()
+    use mod_interpolation, only: interpolate_table, lookup_table_value
+    use mod_global_variables, only: ncool
+
+    integer, parameter  :: nbvals = 50
+    real(dp)  :: x_values(nbvals), y_values(nbvals)
+    real(dp)  :: x_interp(ncool), y_interp(ncool)
+    real(dp)  :: xval, yval, yexp
+    integer   :: i
+
+    write(*, *) "Testing interpolation + lookup: dependency y=x**2, x=[1,10]"
+    x_values = linspace(1.0d0, 10.0d0, nbvals)
+    y_values = x_values**2
+    call interpolate_table(nbvals, x_values, y_values, x_interp, y_interp)
+
+    do i = 1, ncool
+      xval = x_interp(i)
+      yval = lookup_table_value(xval, x_interp, y_interp)
+
+      yexp = xval**2
+      @assertEqual(yexp, yval, tolerance=0.01d0)
+    end do
+  end subroutine test_interp_quad
+
+
+  @test
+  subroutine test_interp_sine()
+    use mod_interpolation, only: interpolate_table, lookup_table_value
+    use mod_global_variables, only: ncool
+
+    integer, parameter  :: nbvals = 50
+    real(dp)  :: x_values(nbvals), y_values(nbvals)
+    real(dp)  :: x_interp(ncool), y_interp(ncool)
+    real(dp)  :: xval, yval, yexp
+    integer   :: i
+
+    write(*, *) "Testing interpolation + lookup: dependency y=sin(x), x=[0,4]"
+    x_values = linspace(0.0d0, 4.0d0, nbvals)
+    y_values = sin(x_values)
+    call interpolate_table(nbvals, x_values, y_values, x_interp, y_interp)
+
+    do i = 1, ncool
+      xval = x_interp(i)
+      yval = lookup_table_value(xval, x_interp, y_interp)
+
+      yexp = sin(xval)
+      @assertEqual(yexp, yval, tolerance=0.01d0)
+    end do
+  end subroutine test_interp_sine
+
+
+  @test
+  subroutine test_interp_negx_poly()
+    use mod_interpolation, only: interpolate_table, lookup_table_value
+    use mod_global_variables, only: ncool
+
+    integer, parameter  :: nbvals = 50
+    real(dp)  :: x_values(nbvals), y_values(nbvals)
+    real(dp)  :: x_interp(ncool), y_interp(ncool)
+    real(dp)  :: xval, yval, yexp
+    integer   :: i
+
+    write(*, *) "Testing interpolation + lookup: dependency y=x**4-2x**2, x=[-1.5,1.5]"
+    x_values = linspace(-1.5d0, 1.5d0, nbvals)
+    y_values = x_values**4 - 2.0d0 * x_values**2
+    call interpolate_table(nbvals, x_values, y_values, x_interp, y_interp)
+
+    do i = 1, ncool
+      xval = x_interp(i)
+      yval = lookup_table_value(xval, x_interp, y_interp)
+
+      yexp = xval**4 - 2.0d0 * xval**2
+      @assertEqual(yexp, yval, tolerance=0.1d0)
+    end do
+  end subroutine test_interp_negx_poly
+
+
+  @test
+  subroutine test_derivative_edges()
+    use mod_interpolation, only: get_numerical_derivative
+
+    integer, parameter  :: nbvals = 21
+    real(dp)  :: x_values(nbvals), y_values(nbvals), dy_values(nbvals)
+    real(dp)  :: dyval, dyexp
+
+    write(*, *) "Testing numerical derivative: edges"
+    x_values = linspace(-2.0d0, 2.0d0, nbvals)
+    y_values = x_values**2
+    call get_numerical_derivative(x_values, y_values, dy_values)
+
+    ! edges are defined as y' = (y2 - y1) / (x2 - x1)
+    ! check left edge (equal dx)
+    dyexp = (y_values(2) - y_values(1)) / 0.2d0
+    dyval = dy_values(1)
+    @assertEqual(dyexp, dyval, tolerance=TOL)
+    ! check right edge
+    dyexp = (y_values(21) - y_values(20)) / 0.2d0
+    dyval = dy_values(21)
+    @assertEqual(dyexp, dyval, tolerance=TOL)
+  end subroutine test_derivative_edges
+
+
+  @test
+  subroutine test_derivative_poly()
+    use mod_interpolation, only: get_numerical_derivative
+
+    integer, parameter  :: nbvals = 50
+    real(dp)  :: x_values(nbvals), y_values(nbvals), dy_values(nbvals)
+    real(dp)  :: xval, dyval, dyexp
+    integer   :: i
+
+    write(*, *) "Testing numerical derivative: dependency y=x**2, x=[-2,2]"
+    x_values = linspace(-2.0d0, 2.0d0, nbvals)
+    y_values = x_values**2
+    call get_numerical_derivative(x_values, y_values, dy_values)
+
+    do i = 2, nbvals-1
+      xval = x_values(i)
+      dyval = dy_values(i)
+
+      dyexp = 2.0d0 * xval
+      @assertEqual(dyexp, dyval, tolerance=TOL)
+    end do
+  end subroutine test_derivative_poly
+
+
+  @test
+  subroutine test_derivative_cosine()
+    use mod_interpolation, only: get_numerical_derivative
+    use mod_physical_constants, only: dpi
+
+    integer, parameter  :: nbvals = 500
+    real(dp)  :: x_values(nbvals), y_values(nbvals), dy_values(nbvals)
+    real(dp)  :: xval, dyval, dyexp
+    integer   :: i
+
+    write(*, *) "Testing numerical derivative: dependency y=cos(x), x=[-2pi, 2pi]"
+    x_values = linspace(-2.0d0 * dpi, 2.0d0 * dpi, nbvals)
+    y_values = cos(x_values)
+    call get_numerical_derivative(x_values, y_values, dy_values)
+
+    do i = 2, nbvals-1
+      xval = x_values(i)
+      dyval = dy_values(i)
+
+      dyexp = -sin(xval)
+      @assertEqual(dyexp, dyval, tolerance=1.0d-3)
+    end do
+  end subroutine test_derivative_cosine
+
+
+  @test
+  subroutine test_derivative_fail()
+    use mod_interpolation, only: get_numerical_derivative
+
+    real(dp)  :: x_values(25), y_values(30), dy_values(25)
+
+    write(*, *) "Testing numerical derivative: invalid sizes"
+    x_values = linspace(0.0d0, 1.0d0, 25)
+    y_values = 0.0d0
+    call get_numerical_derivative(x_values, y_values, dy_values)
+
+    @assertExceptionRaised("numerical derivative: x_values and y_values should have the same size!")
+  end subroutine test_derivative_fail
+
+
+  @test
+  subroutine test_lookup_invalid_xrange()
+    use mod_interpolation, only: lookup_table_value
+
+    real(dp)  :: x_values(5), y_values(5)
+    real(dp)  :: yval
+
+    write(*, *) "Testing table lookup: non-monotonically x_values fail"
+    x_values = [1.0d0, 3.0d0, 4.0d0, 2.0d0, 7.0d0]
+    y_values = [1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0]
+    yval = lookup_table_value(1.0d0, x_values, y_values)
+
+    @assertExceptionRaised("lookup_value: x_values are not monotonically increasing!")
+  end subroutine test_lookup_invalid_xrange
+
+
+  @test
+  subroutine test_lookup_xtoosmall()
+    use mod_interpolation, only: lookup_table_value
+
+    real(dp)  :: x_values(10), y_values(10)
+    real(dp)  :: yval
+
+    write(*, *) "Testing table lookup: small x0 fail"
+    x_values = linspace(5.0d0, 10.0d0, 10)
+    y_values = x_values
+    yval = lookup_table_value(2.0d0, x_values, y_values)
+
+    @assertExceptionRaised("lookup_value: x outside x_values (too small)")
+  end subroutine test_lookup_xtoosmall
+
+
+  @test
+  subroutine test_lookup_xtoolarge()
+    use mod_interpolation, only: lookup_table_value
+
+    real(dp)  :: x_values(10), y_values(10)
+    real(dp)  :: yval
+
+    write(*, *) "Testing table lookup: large x0 fail"
+    x_values = linspace(5.0d0, 10.0d0, 10)
+    y_values = x_values
+    yval = lookup_table_value(12.0d0, x_values, y_values)
+
+    @assertExceptionRaised("lookup_value: x outside x_values (too large)")
+  end subroutine test_lookup_xtoolarge
+
+
+  @test
+  subroutine test_lookup_edges()
+    use mod_interpolation, only: lookup_table_value
+
+    real(dp)  :: x_values(25), y_values(25)
+    real(dp)  :: yval
+
+    write(*, *) "Testing table lookup: edges"
+    x_values = linspace(1.0d0, 10.0d0, 25)
+    y_values = x_values
+
+    ! left edge
+    yval = lookup_table_value(1.0d0, x_values, y_values)
+    @assertEqual(yval, 1.0d0, tolerance=TOL)
+    ! right edge
+    yval = lookup_table_value(10.0d0, x_values, y_values)
+    @assertEqual(yval, 10.0d0, tolerance=TOL)
+  end subroutine test_lookup_edges
+
+
+  @test
+  subroutine test_lookup_near()
+    use mod_interpolation, only: lookup_table_value
+
+    real(dp)  :: x_values(21), y_values(21)
+    real(dp)  :: yval
+
+    write(*, *) "Testing table lookup: edge case near x0"
+    x_values = linspace(0.0d0, 10.0d0, 21)
+    y_values = x_values
+
+    yval = lookup_table_value(2.48d0, x_values, y_values)
+    ! should be the same due to linear interpolation
+    @assertEqual(yval, 2.48d0, tolerance=TOL)
+  end subroutine test_lookup_near
+
+end module mod_test_interpolation

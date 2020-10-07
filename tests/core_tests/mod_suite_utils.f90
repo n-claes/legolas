@@ -98,4 +98,17 @@ contains
                             new_unit_length=1.0d10)
   end subroutine set_default_units
 
+
+  function linspace(x0, x1, xvals) result(xarray)
+    real(dp), intent(in)  :: x0, x1
+    integer, intent(in)   :: xvals
+    real(dp)  :: dx, xarray(xvals)
+    integer   :: i
+
+    dx = (x1 - x0) / (xvals - 1)
+    do i = 1, xvals
+      xarray(i) = x0 + (i - 1) * dx
+    end do
+  end function linspace
+
 end module mod_suite_utils
