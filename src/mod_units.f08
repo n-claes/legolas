@@ -148,6 +148,15 @@ contains
       call log_message("unit density and unit temperature can not both be set.", level='error')
     end if
 
+    ! TODO (niels):
+    ! remove this error once SI is properly checked. I suspect there is an
+    ! inconsistency in the radiative cooling module: all tables are given in
+    ! cgs units, so I think if SI units are specified we first have to scale
+    ! the tables to SI and THEN normalise using SI normalisations.
+    if (.not. cgs_units) then
+      call log_message("possible inconsistency in SI units, use cgs for now!", level="error")
+    end if
+
     unit_magneticfield = new_unit_magneticfield
     unit_length = new_unit_length
     unit_pressure = unit_magneticfield**2 / mu0
