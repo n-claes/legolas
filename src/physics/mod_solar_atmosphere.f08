@@ -23,7 +23,7 @@ module mod_solar_atmosphere
 contains
 
 
-  subroutine set_solar_atmosphere(rho_field, T_field, grav_field, ninterp)
+  subroutine set_solar_atmosphere(rho_field, T_field, grav_field, n_interp)
     use mod_types, only: density_type, temperature_type, gravity_type
     use mod_global_variables, only: ncool
     use mod_grid, only: grid_gauss
@@ -38,14 +38,14 @@ contains
     !> type containing the gravity-related attributes
     type(gravity_type), intent(inout)     :: grav_field
     !> points used for interpolation, defaults to <tt>ncool</tt> if not present
-    integer, intent(in), optional         :: ninterp
+    integer, intent(in), optional         :: n_interp
 
     real(dp)  :: x
     integer   :: i
 
     nbpoints = ncool
-    if (present(ninterp)) then
-      nbpoints = ninterp
+    if (present(n_interp)) then
+      nbpoints = n_interp
     end if
 
     allocate(h_interp(nbpoints))
@@ -56,11 +56,12 @@ contains
 
     write(char_log, int_fmt) nbpoints
     call log_message( &
-      "interpolating atmosphere using " // adjustl(trim(char_log)) // "points.", &
-      level="info"&
+      "interpolating atmosphere using " // trim(adjustl(char_log)) // " points", &
+      level="info" &
     )
     call create_atmosphere_curves()
 
+    ! TODO: this is not in equilibrium!
     do i = 1, gauss_gridpts
       x = grid_gauss(i)
       ! in normalised units numberdensity = density
@@ -69,10 +70,11 @@ contains
       T_field % T0(i) = lookup_table_value(x, h_interp, T_interp)
       T_field % d_T0_dr(i) = lookup_table_value(x, h_interp, dT_interp)
     end do
+    ! constant gravity field
     grav_field % grav = gsun_cgs / (unit_length / unit_time**2)
 
     call log_message( &
-      "solar atmosphere: rho, T and gravity attributes have been set.", level="info" &
+      "solar atmosphere: rho, T and gravity attributes have been set", level="info" &
     )
 
     deallocate(h_interp)
@@ -88,21 +90,15 @@ contains
     use mod_interpolation, only: interpolate_table, get_numerical_derivative
     use mod_units, only: unit_length, unit_temperature, unit_numberdensity
 
-    integer, parameter  :: ntable = size(h_alc7)
-    real(dp)  :: log10_height(ntable)
-
-    ! we interpolate on a log10 scale to reduce order of magnitude differences
-    log10_height = dlog10(h_alc7)
-    ! interpolate log(T) vs log(height)
-    call interpolate_table(ntable, log10_height, dlog10(T_alc7), h_interp, T_interp)
-    ! interpolate log(nh) vs log(height)
-    call interpolate_table(ntable, log10_height, dlog10(nh_alc7), h_interp, nh_interp)
+    ! interpolate T vs height
+    call interpolate_table(nbpoints, h_alc7, T_alc7, h_interp, T_interp)
+    ! interpolate nh vs height
+    call interpolate_table(nbpoints, h_alc7, nh_alc7, h_interp, nh_interp)
 
     ! rescale interpolated tables to actual values and normalise
-    h_interp = 10.0d0**h_interp * 1.0d5 / unit_length   ! h given in km, scale to cm
-    ! rescale other arrays
-    T_interp = 10.0d0**T_interp / unit_temperature
-    nh_interp = 10.0d0**nh_interp / unit_numberdensity
+    h_interp = h_interp * 1.0d5 / unit_length ! height is in km, so scale to cm first
+    T_interp = T_interp / unit_temperature
+    nh_interp = nh_interp / unit_numberdensity
 
     ! fill derivatives
     call get_numerical_derivative(h_interp, T_interp, dT_interp)
