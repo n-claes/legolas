@@ -10,11 +10,11 @@ module mod_radiative_cooling
 
   private
 
-  !> radiative cooling table containing temperatures
+  !> interpolated temperatures from radiative cooling table
   real(dp), allocatable :: interp_table_T(:)
-  !> radiative cooling table containing luminosities
+  !> interpolated lambda(T) from radiative cooling table
   real(dp), allocatable :: interp_table_L(:)
-  !> radiative cooling table containing derivative luminosity to temperature
+  !> interpolated dlambda(T)/dT from radiative cooling table
   real(dp), allocatable :: interp_table_dLdT(:)
   !> boolean to use an interpolated curve or not (if <tt>False</tt>, piecewise is used)
   logical, save         :: interpolated_curve = .true.
