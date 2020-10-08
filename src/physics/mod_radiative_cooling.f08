@@ -94,7 +94,7 @@ contains
       interp_table_L    = 0.0d0
       interp_table_dLdT = 0.0d0
 
-      call create_cooling_curve(ntable, table_T, table_L)
+      call create_cooling_curve(table_T, table_L)
 
       deallocate(table_T)
       deallocate(table_L)
@@ -174,18 +174,16 @@ contains
   !! Calls a second-order polynomial interpolation routine and takes
   !! care of normalisations.
   !! @note    The interpolated cooling curves are normalised on exit.
-  subroutine create_cooling_curve(ntable, table_T, table_L)
+  subroutine create_cooling_curve(table_T, table_L)
     use mod_units, only: unit_temperature, unit_lambdaT
     use mod_interpolation, only: interpolate_table, get_numerical_derivative
 
-    !> number of values in the cooling table
-    integer, intent(in)   :: ntable
     !> temperature values in the cooling table
     real(dp), intent(in)  :: table_T(:)
     !> luminosity values in the cooling table
     real(dp), intent(in)  :: table_L(:)
 
-    call interpolate_table(ntable, table_T, table_L, interp_table_T, interp_table_L)
+    call interpolate_table(ncool, table_T, table_L, interp_table_T, interp_table_L)
 
     ! cooling tables contain dimensionful values on a logarithmic scale, go to
     ! actual values and normalise

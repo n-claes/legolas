@@ -49,7 +49,7 @@ contains
     write(*, *) "Testing interpolation: outer boundaries"
     x_values = linspace(1.0d0, 10.0d0, nbvals)
     y_values = x_values**3
-    call interpolate_table(nbvals, x_values, y_values, x_interp, y_interp)
+    call interpolate_table(ncool, x_values, y_values, x_interp, y_interp)
 
     ! boundaries should remain unchanged
     @assertEqual(x_interp(1), x_values(1), tolerance=TOL)
@@ -71,7 +71,7 @@ contains
     write(*, *) "Testing interpolation + lookup: dependency y=x**2, x=[1,10]"
     x_values = linspace(1.0d0, 10.0d0, nbvals)
     y_values = x_values**2
-    call interpolate_table(nbvals, x_values, y_values, x_interp, y_interp)
+    call interpolate_table(ncool, x_values, y_values, x_interp, y_interp)
 
     do i = 1, ncool
       xval = x_interp(i)
@@ -97,7 +97,7 @@ contains
     write(*, *) "Testing interpolation + lookup: dependency y=sin(x), x=[0,4]"
     x_values = linspace(0.0d0, 4.0d0, nbvals)
     y_values = sin(x_values)
-    call interpolate_table(nbvals, x_values, y_values, x_interp, y_interp)
+    call interpolate_table(ncool, x_values, y_values, x_interp, y_interp)
 
     do i = 1, ncool
       xval = x_interp(i)
@@ -123,7 +123,7 @@ contains
     write(*, *) "Testing interpolation + lookup: dependency y=x**4-2x**2, x=[-1.5,1.5]"
     x_values = linspace(-1.5d0, 1.5d0, nbvals)
     y_values = x_values**4 - 2.0d0 * x_values**2
-    call interpolate_table(nbvals, x_values, y_values, x_interp, y_interp)
+    call interpolate_table(ncool, x_values, y_values, x_interp, y_interp)
 
     do i = 1, ncool
       xval = x_interp(i)

@@ -5,7 +5,7 @@
 !! Subroutines are loosely based on routines implemented in the
 !! [MPI-AMRVAC](amrvac.org) code.
 module mod_interpolation
-  use mod_global_variables, only: dp, ncool
+  use mod_global_variables, only: dp
   use mod_logging, only: log_message
   implicit none
 
@@ -20,29 +20,30 @@ contains
 
   !> Interpolates a given set of tables (x, y(x)) into a smooth curve.
   !! Assumes that x_table is an array with a monotone increase in values.
-  !! Interpolation is done using <tt>ncool</tt> points, in general a second
+  !! Interpolation is done using <tt>n_interp</tt> points, in general a second
   !! order polynomial approximation is used except near sharp jumps.
   !! @warning Throws an error if <tt>x_table</tt> is not monotone. @endwarning
-  subroutine interpolate_table(n_table, x_table, y_table, x_interp, y_interp)
-    !> number of points in the tables
-    integer, intent(in)   :: n_table
+  subroutine interpolate_table(n_interp, x_table, y_table, x_interp, y_interp)
+    !> number of points used for interpolation
+    integer, intent(in)   :: n_interp
     !> x-values in the table
     real(dp), intent(in)  :: x_table(:)
     !> y-values in the table
     real(dp), intent(in)  :: y_table(:)
     !> interpolated x-values
-    real(dp), intent(out) :: x_interp(ncool)
+    real(dp), intent(out) :: x_interp(n_interp)
     !> interpolated y-values
-    real(dp), intent(out) :: y_interp(ncool)
+    real(dp), intent(out) :: y_interp(n_interp)
 
-    integer   :: i, j
+    integer   :: i, j, n_table
     real(dp)  :: fact1, fact2, fact3
     real(dp)  :: xmin, xmax
     real(dp)  :: dx, dy1, dy2
     logical   :: jump
 
+    n_table = size(x_table)
     ! check if x_table is a monotonically increasing array
-    do i = 1, size(x_table) - 1
+    do i = 1, n_table - 1
       if (x_table(i + 1) < x_table(i)) then
         call log_message( &
           "interpolation: x-values are not monotonically increasing!", level="error" &
@@ -54,12 +55,12 @@ contains
     xmax = x_table(n_table)
     ! outer edges remain the same
     x_interp(1) = xmin
-    x_interp(ncool) = xmax
+    x_interp(n_interp) = xmax
     y_interp(1) = y_table(1)
-    y_interp(ncool) = y_table(n_table)
+    y_interp(n_interp) = y_table(n_table)
 
-    dx = (xmax - xmin) / (ncool - 1)
-    do i = 2, ncool
+    dx = (xmax - xmin) / (n_interp - 1)
+    do i = 2, n_interp
       x_interp(i) = x_interp(i - 1) + dx
       do j = 1, n_table - 1
         jump = .false.
