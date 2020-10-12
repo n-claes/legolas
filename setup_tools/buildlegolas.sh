@@ -1,6 +1,8 @@
+#!/bin/bash
+
 if [ "$1" == "clean" ]; then
   # to clean, $LEGOLASDIR must be set in order to find compiled files
-  if [[ -z "${LEGOLASDIR}" ]]; then
+  if [ -z "${LEGOLASDIR}" ]; then
     echo "Environment variable \$LEGOLASDIR is not defined, can't clean."
     exit
   fi
@@ -10,6 +12,12 @@ if [ "$1" == "clean" ]; then
     echo "Local legolas executable removed."
   else
     echo "No local executable found, skipping."
+  fi
+  if [ -d build ] && [ ! "${LEGOLASDIR}" == "$(pwd)" ]; then
+    rm -r build
+    echo "Local build directory removed."
+  else
+    echo "No local build directory found, skipping."
   fi
   # clean build directory
   rm -rf "$LEGOLASDIR/build"
@@ -28,8 +36,3 @@ cd build || exit
 cmake ..
 make -j 2
 cd ..
-# only remove build directory if we're NOT in the legolas folder
-if [ ! "${LEGOLASDIR}" == "$(pwd)" ]; then
-  echo "Local build directory removed"
-  rm -rf build
-fi
