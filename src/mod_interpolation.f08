@@ -60,7 +60,7 @@ contains
     y_interp(n_interp) = y_table(n_table)
 
     dx = (xmax - xmin) / (n_interp - 1)
-    do i = 2, n_interp
+    do i = 2, n_interp - 1
       x_interp(i) = x_interp(i - 1) + dx
       do j = 1, n_table - 1
         jump = .false.
@@ -132,13 +132,15 @@ contains
 
 
   !> Function for fast table-lookup, returns the corresponding y-value
-  !! in <tt>y_values</t>> based on a given based on a given \(x0\).
+  !! in <tt>y_values</tt> based on a given based on a given \(x0\).
   !! Uses simple linear interpolation.
   !! @warning Throws an error if
   !!
   !! - <tt>x_values</tt> is not monotonically increasing.
   !! - x is outside of <tt>x_values</tt> range. @endwarning
   function lookup_table_value(x, x_values, y_values) result(y_found)
+    use mod_global_variables, only: NaN
+
     !> value to look up
     real(dp), intent(in)  :: x
     !> array of x-values
@@ -164,24 +166,19 @@ contains
     ! check if we are outside of the table
     if (x < x_values(1)) then
       call log_message("lookup_value: x outside x_values (too small)", level="error")
+      y_found = NaN
+      return
     else if (x > x_values(nvals)) then
       call log_message("lookup_value: x outside x_values (too large)", level="error")
+      y_found = NaN
+      return
     end if
 
     ! index of nearest value to x (dim=1 to return a scalar)
     idx = minloc(abs(x_values - x), dim=1)
 
-    ! check edges
-    if (idx == 1) then
-      y_found = y_values(1)
-      return
-    else if (idx == nvals) then
-      y_found = y_values(nvals)
-      return
-    end if
-
-    ! check if we're on left of right side of nearest point
-    if (x < x_values(idx)) then
+    ! check if we are on left or right side of nearest point, or on-edge
+    if (x < x_values(idx) .or. idx == nvals) then
       x0 = x_values(idx - 1)
       x1 = x_values(idx)
       y0 = y_values(idx - 1)
