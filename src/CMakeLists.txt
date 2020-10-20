@@ -10,6 +10,7 @@ set (sources
         mod_check_values.f08
         mod_spline_functions.f08
         mod_interpolation.f08
+        mod_integration.f08
         dataIO/mod_input.f08
         physics/mod_resistivity.f08
         physics/mod_cooling_curves.f08
