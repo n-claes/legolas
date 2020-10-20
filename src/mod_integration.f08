@@ -36,11 +36,12 @@ contains
   !! method. Both \(A(x), B(x)\) and <tt>xvalues</tt> are interpolated at high
   !! (<tt>nbpoints</tt>) resolution. The equation is then integrated at this
   !! resolution, after which the high-res solution is downsampled to be of the
-  !! same size as the input arrays <tt>xvalues</tt>.
-  subroutine integrate_ode_rk(xvalues, axvalues, bxvalues, yvalues, yinit, nbpoints)
-    use mod_interpolation, only: interpolate_table, lookup_table_value
+  !! same size as the input arrays <tt>xvalues</tt>. If desired the optional argument
+  !! <tt>dyvalues</tt> can be provided, which contains the downsampled derivative of y.
+  subroutine integrate_ode_rk(xvalues, axvalues, bxvalues, yvalues, yinit, nbpoints, dyvalues)
+    use mod_interpolation, only: interpolate_table, lookup_table_value, &
+                                 get_numerical_derivative
     use mod_logging, only: log_message
-
 
     !> array of x-values
     real(dp), intent(in)  :: xvalues(:)
@@ -48,16 +49,18 @@ contains
     real(dp), intent(in)  :: axvalues(:)
     !> term \(B(x)\)
     real(dp), intent(in)  :: bxvalues(:)
-    !> array of (integrated) y-values, same size as <tt>xvalues</tt>
+    !> array of y-values, same size as <tt>xvalues</tt>
     real(dp), intent(out) :: yvalues(size(xvalues))
     !> initial value for \(y\) at left edge (<tt>xvalues(1)</tt>)
     real(dp), intent(in)  :: yinit
     !> number of points to do the integration
     integer, intent(in)   :: nbpoints
+    !> array of dy/dx-values, derivative at high resolution and then downsampled
+    real(dp), intent(out), optional :: dyvalues(size(xvalues))
 
     integer   :: i
     real(dp)  :: ax_interp(nbpoints), bx_interp(nbpoints), x_interp(nbpoints)
-    real(dp)  :: yvalues_hr(nbpoints)
+    real(dp)  :: yvalues_hr(nbpoints), dyvalues_hr(nbpoints)
     real(dp)  :: xi, yi, axi, bxi, yvalrk
 
     if (nbpoints < size(xvalues)) then
@@ -128,5 +131,13 @@ contains
     do i = 1, size(yvalues)
       yvalues(i) = lookup_table_value(xvalues(i), x_interp, yvalues_hr)
     end do
+
+    ! fill optional return array
+    if (present(dyvalues)) then
+      call get_numerical_derivative(x_interp, yvalues_hr, dyvalues_hr)
+      do i = 1, size(dyvalues)
+        dyvalues(i) = lookup_table_value(xvalues(i), x_interp, dyvalues_hr)
+      end do
+    end if
   end subroutine integrate_ode_rk
 end module mod_integration
