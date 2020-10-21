@@ -1,0 +1,7 @@
+IF(BLAS_LIBRARIES)
+    SET(BLAS_FOUND TRUE)
+    RETURN()
+ENDIF()
+
+message(STATUS "Finding BLAS")
+find_package(BLAS REQUIRED)

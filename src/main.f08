@@ -45,6 +45,7 @@ program legolas
   call cleanup()
 
   if (show_results) then
+    call print_whitespace(1)
     call execute_command_line("python3 pylbo_wrapper.py -i " // trim(datfile_name))
   end if
 

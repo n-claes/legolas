@@ -1,0 +1,56 @@
+module mod_test_cooling
+  use mod_suite_utils
+  use funit
+  implicit none
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+    call reset_eigenfunctions(init_efs=.false.)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_rosner_curve()
+    use mod_global_variables, only: set_gridpts
+    use mod_cooling_curves, only: get_rosner_cooling
+    use mod_units, only: unit_lambdaT, unit_dlambdaT_dT, &
+                         unit_temperature, check_if_normalisations_set
+
+    real(dp)  :: logT0(8), T0(8), lambda(8), dlambda(8)
+    real(dp)  :: results_l(8), results_dl(8)
+    real(dp)  :: alphavals(8), logxivals(8)
+    integer   :: i
+
+    write(*, *) "Testing rosner cooling curve"
+    call check_if_normalisations_set()
+
+    logT0 = [4.0d0, 5.0d0, 6.2d0, 4.4d0, 7.5d0, 4.7d0, 3.8d0, 5.6d0]
+    T0 = 10.0d0 ** logT0 / unit_temperature
+    alphavals = [6.15d0, 0.0d0, 0.0d0, 0.0d0, -2.0d0/3.0d0, 2.0d0, 11.7d0, -2.0d0]
+    logxivals = [-48.307d0, -21.2d0, -21.94d0, -21.85d0, -17.73d0, -31.0d0, -69.9d0, -10.4d0]
+    ! so we have 8 Gaussian points
+    call set_gridpts(3)
+    do i = 1, 8
+      results_l(i) = 10.0d0 ** (logxivals(i) + alphavals(i) * logT0(i))
+      results_dl(i) = alphavals(i) * 10.0d0 ** (logxivals(i) + (alphavals(i) - 1.0d0) * logT0(i))
+    end do
+    call get_rosner_cooling(T0, lambda, dlambda)
+
+    results_l = results_l / unit_lambdaT
+    results_dl = results_dl / unit_dlambdaT_dT
+
+    @assertEqual(results_l, lambda, tolerance=1.0d-6)
+    @assertEqual(results_dl, dlambda, tolerance=1.0d-6)
+  end subroutine test_rosner_curve
+
+end module mod_test_cooling

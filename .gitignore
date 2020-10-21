@@ -1,5 +1,6 @@
 docs/html/
 output/
+build/
 legolas
 test_legolas
 
@@ -22,12 +23,9 @@ test_legolas
 *.xlsm
 *.xlsx
 *.ods
-*.png
-*.txt
 *.dat
 *.pyc
 *.idea
-*.F90
 *.inc
 *.a
 *.egg*

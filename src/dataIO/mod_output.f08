@@ -15,8 +15,6 @@ module mod_output
   character(len=str_len) :: datfile_name
   !> logfile name
   character(len=str_len) :: logfile_name
-  !> datfile version
-  integer, parameter  :: DATFILE_VERSION = 1
 
 
   public :: create_datfile
@@ -68,6 +66,7 @@ contains
                                     matrix_gridpts, ef_gridpts, gamma, equilibrium_type, &
                                     nb_eqs, cgs_units, str_len_arr, write_matrices, write_eigenfunctions, &
                                     basename_datfile
+    use mod_version, only: LEGOLAS_VERSION
     use mod_logging, only: log_message
     use mod_grid, only: grid, grid_gauss
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, kappa_field, eta_field, grav_field
@@ -98,7 +97,7 @@ contains
     call open_file(dat_fh, datfile_name)
 
     ! First we write all header information
-    write(dat_fh) "datfile_version", DATFILE_VERSION
+    write(dat_fh) "legolas_version", LEGOLAS_VERSION
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, gauss_gridpts, matrix_gridpts, &
                   ef_gridpts, gamma, equilibrium_type, write_eigenfunctions, write_matrices
     write(dat_fh) size(param_names), param_names
@@ -108,7 +107,7 @@ contains
     write(dat_fh) size(equil_names), equil_names
     write(dat_fh) cgs_units
     write(dat_fh) unit_length, unit_time, unit_density, unit_velocity, unit_temperature, &
-                  unit_pressure, unit_magneticfield, unit_numberdensity, unit_luminosity, &
+                  unit_pressure, unit_magneticfield, unit_numberdensity, unit_lambdaT, &
                   unit_conduction, unit_resistivity
 
     ! Next write the data itself

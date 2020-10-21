@@ -12,12 +12,13 @@ def load(datfiles):
     Parameters
     ----------
     datfiles : str, ~os.PathLike, list of str, list of PathLike
-        The path to the datfile, either as a :class:`str` or :class:`~os.PathLike` object,
+        The path to the datfile, either as a :class:`str`
+        or :class:`~os.PathLike` object,
         or as a list of :class:`str` or :class:`~os.PathLike` objects.
 
     Returns
     -------
-    ds : :class:`~pylbo.LegolasDataContainer`, list of :class:`~.pylbo.LegolasDataContainer`
+    ds : (list of) :class:`~.pylbo.LegolasDataContainer`
         A (list of) :class:`~pylbo.LegolasDataContainer` instance(s),
         corresponding to the datfile(s) provided.
     """
@@ -58,14 +59,14 @@ def read_log_file(file, sort=False):
         If the file could not be found.
     """
     if ".log" not in str(file):
-        raise ValueError('This is not a .log file: {}'.format(file))
+        raise ValueError(f"This is not a .log file: {file}")
     filepath = Path(file).resolve()
     if not filepath.is_file():
         raise FileNotFoundError(filepath)
     eigenvalues = []
-    with open(filepath, 'r') as logfile:
+    with open(filepath, "r") as logfile:
         for line in logfile:
-            line = line.strip().split(',')
+            line = line.strip().split(",")
             x, y = line
             eigenvalues.append(complex(float(x), float(y)))
     eigenvalues = np.asarray(eigenvalues)
@@ -88,7 +89,9 @@ def select_files():
     root.withdraw()
     root.lift()
     root.focus_set()
-    files = list(filedialog.askopenfilenames(parent=root, title='Select Legolas file(s)'))
+    files = list(
+        filedialog.askopenfilenames(parent=root, title="Select Legolas file(s)")
+    )
     root.destroy()
     if not files:
         exit()

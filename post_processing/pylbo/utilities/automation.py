@@ -4,19 +4,22 @@ import signal
 import multiprocessing
 import f90nml
 import psutil
-import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 from .toolbox import transform_to_list
-from .defaults import namelist_items, \
-    LEGOLAS_DIR, \
-    LEGOLAS_OUT
-from .exceptions import DictNotEmpty, \
-    InconsistentNumberOfRuns
+from .defaults import (
+    namelist_items,
+    LEGOLAS_DIR,
+    LEGOLAS_OUT,
+)
+from .exceptions import (
+    DictNotEmpty,
+    InconsistentNumberOfRuns,
+)
 from ..data_management.file_handler import select_files
 from ..utilities.logger import pylboLogger
 
-LEGOLAS_PAR = (LEGOLAS_OUT / 'parfiles').resolve()
+LEGOLAS_PAR = (LEGOLAS_OUT / "parfiles").resolve()
 
 
 def _check_directories(output_dir):
@@ -51,18 +54,19 @@ def _check_executable():
     FileNotFoundError
         If the Legolas executable could not be found.
     """
-    legolas_exec = (LEGOLAS_DIR / 'legolas').resolve()
+    legolas_exec = (LEGOLAS_DIR / "legolas").resolve()
     if not Path.is_file(legolas_exec):
-        raise FileNotFoundError('Legolas executable not found in {}'.format(legolas_exec))
+        raise FileNotFoundError(f"Legolas executable not found in {legolas_exec}")
 
 
 def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None):
     """
-    Generates (series of) parfiles based on a given configuration dictionary. The files are saved
-    using `basename_parfile` as a base name, and are written to the directory `output_dir`.
+    Generates (series of) parfiles based on a given configuration dictionary.
+    The files are saved using `basename_parfile` as a base name,
+    and are written to the directory `output_dir`.
     If `output_dir` does not exist yet, it is created.
-    Simply provide a dictionary with as keys the namelist items you want in the parfile, and
-    this routine takes care of the rest.
+    Simply provide a dictionary with as keys the namelist items you want
+    in the parfile and this routine takes care of the rest.
 
     Parameters
     ----------
@@ -75,15 +79,17 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
 
     Notes
     -----
-    This routine is quite flexible, meaning that you can specify both single-values and lists
-    as dictionary entries. When there are lists present multiple parfiles will be generated.
+    This routine is quite flexible, meaning that you can specify both
+    single-values and lists as dictionary entries. When there are lists present
+    ultiple parfiles will be generated.
     The only requirement is that list sizes are consistent across dictionary keys.
 
     Examples
     --------
-    The example below will generate three parfiles, all three with an adiabatic homogeneous
-    equilibrium state. The first one has 50 gridpoints and a wall at position 1, the second
-    one has 100 gridpoints with a wall at position 5, and so on.
+    The example below will generate three parfiles, all three with an
+    adiabatic homogeneous equilibrium state. The first one has 50 gridpoints
+    and a wall at position 1, the second one has 100 gridpoints with a wall
+    at position 5, and so on.
 
     >>> import pylbo
     >>> config = dict(equilibrium_type='adiabatic_homo',
@@ -103,20 +109,21 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
     Raises
     ------
     DictNotEmpty
-        If there are still keys remaining in the given dictionary. If parfile generation is
-        successful, we pop everything from a copy of the given dict.
+        If there are still keys remaining in the given dictionary.
+        If parfile generation is successful,
+        we pop everything from a copy of the given dict.
     InconsistentNumberOfRuns
         When the `number_of_runs` key is inconsistent with array sizes in the parfile.
     """
     if parfile_dict is None:
-        pylboLogger.error('no dictionary supplied, unable to generate parfile(s)!')
+        pylboLogger.error("no dictionary supplied, unable to generate parfile(s)!")
     if basename_parfile is None:
-        basename_parfile = parfile_dict.get('equilibrium_type')
+        basename_parfile = parfile_dict.get("equilibrium_type")
     if output_dir is None:
         output_dir = LEGOLAS_PAR
     output_dir = Path(output_dir).resolve()
     _check_directories(output_dir)
-    nb_runs = parfile_dict.pop('number_of_runs', 1)
+    nb_runs = parfile_dict.pop("number_of_runs", 1)
 
     # create namelist format
     namelist = {}
@@ -133,13 +140,13 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
         if namelist[key] == {}:
             namelist.pop(key)
     # add parameters if present
-    param_dict = parfile_dict.pop('parameters', {})
+    param_dict = parfile_dict.pop("parameters", {})
     if len(param_dict) != 0:
-        namelist['equilibriumlist'].update({'use_defaults': [False]})
+        namelist["equilibriumlist"].update({"use_defaults": [False]})
         for name, param in param_dict.items():
             obj = transform_to_list(param)
             param_dict.update({name: obj})
-    namelist.update({'paramlist': param_dict})
+    namelist.update({"paramlist": param_dict})
     # at this point the original dictionary should be empty, if it's not
     # there is a problem
     if not len(parfile_dict) == 0:
@@ -160,9 +167,9 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
     # generate parfiles
     parfiles = []
     for run in range(nb_runs):
-        number = '{:04d}'.format(run)
+        number = "{:04d}".format(run)
         if nb_runs == 1:
-            number = ''
+            number = ""
         # dictionary for this run
         run_dict = {key: {} for key in namelist.keys()}
         for listkey, name in namelist.items():
@@ -170,25 +177,27 @@ def generate_parfiles(parfile_dict=None, basename_parfile=None, output_dir=None)
                 run_dict[listkey].update({key: item[run]})
         # make sure savelist is present
         try:
-            run_dict['savelist']
+            run_dict["savelist"]
         except KeyError:
-            run_dict.update({'savelist': {}})
+            run_dict.update({"savelist": {}})
         # parfile name
-        parfile_name = f'{number}{basename_parfile}.par'
+        parfile_name = f"{number}{basename_parfile}.par"
         # datfile name
-        basename_datfile = run_dict.get('savelist').get('basename_datfile', basename_parfile)
-        datfile_name = f'{number}{basename_datfile}'    # no .dat extension here
-        run_dict['savelist'].update({'basename_datfile': datfile_name})
+        basename_datfile = run_dict.get("savelist").get(
+            "basename_datfile", basename_parfile
+        )
+        datfile_name = f"{number}{basename_datfile}"  # no .dat extension here
+        run_dict["savelist"].update({"basename_datfile": datfile_name})
         # logfile name
-        basename_logfile = run_dict.get('savelist').get('basename_logfile', None)
+        basename_logfile = run_dict.get("savelist").get("basename_logfile", None)
         if basename_logfile is not None:
-            logfile_name = f'{number}{basename_logfile}'    # no .log extension here
-            run_dict['savelist'].update({'basename_logfile': logfile_name})
+            logfile_name = f"{number}{basename_logfile}"  # no .log extension here
+            run_dict["savelist"].update({"basename_logfile": logfile_name})
         # set paths, write parfile
         parfile_path = (output_dir / parfile_name).resolve()
         parfiles.append(str(parfile_path))
         f90nml.write(run_dict, parfile_path, force=True)
-    pylboLogger.info('parfiles generated, saved to {}'.format(output_dir))
+    pylboLogger.info("parfiles generated, saved to {}".format(output_dir))
     return parfiles
 
 
@@ -215,7 +224,7 @@ def _activate_worker(parfile):
     call : :func:`subprocess.call`
         A call to a subprocess to run Legolas.
     """
-    cmd = ['./legolas', '-i', str(parfile)]
+    cmd = ["./legolas", "-i", str(parfile)]
     return subprocess.call(cmd)
 
 
@@ -226,21 +235,21 @@ def _terminate_workers():
     keeps the Legolas calls running since those are subprocesses. This method first
     terminates all child processes (legolas), then the parents (workers).
     """
-    pylboLogger.error('interrupting processes...')
+    pylboLogger.error("interrupting processes...")
     for process in multiprocessing.active_children():
         pid = process.pid
-        pylboLogger.error('terminating PID: {} -- {}'.format(pid, process.name))
+        pylboLogger.error(f"terminating PID: {pid} -- {process.name}")
         parent = psutil.Process(pid)
         children = parent.children(recursive=True)
         for child in children:
-            pylboLogger.error('terminating child process {} -- {}'.format(child.pid, child.name()))
+            pylboLogger.error(f"terminating child process {child.pid} -- {child.name}")
             child.kill()
         gone, alive = psutil.wait_procs(children, timeout=2)
         for killed_proc in gone:
-            pylboLogger.error('{}'.format(str(killed_proc)))
+            pylboLogger.error(f"{str(killed_proc)}")
         parent.kill()
         parent.wait(timeout=2)
-    pylboLogger.critical('all Legolas processes terminated.')
+    pylboLogger.critical("all Legolas processes terminated.")
     exit(1)
 
 
@@ -263,6 +272,7 @@ def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
         The amount of CPUs to use when running Legolas. If equal to 1, no
         multiprocessing is done.
     """
+
     def update_pbar(*args):
         pbar.update()
 
@@ -284,18 +294,20 @@ def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
             exit(1)
     else:
         # initialise progressbar and multiprocessing pool
-        pbar = tqdm(total=len(parfiles), unit='')
-        pbar.set_description('Running Legolas [CPUs={}]'.format(nb_cpus))
+        pbar = tqdm(total=len(parfiles), unit="")
+        pbar.set_description(f"Running Legolas [CPUs={nb_cpus}]")
         pool = multiprocessing.Pool(processes=nb_cpus, initializer=_init_worker)
         try:
             # start multiprocessing pool
             for parfile in parfiles:
-                pool.apply_async(_activate_worker, args=(parfile,), callback=update_pbar)
+                pool.apply_async(
+                    _activate_worker, args=(parfile,), callback=update_pbar
+                )
             pool.close()
             pool.join()
             pbar.close()
         except KeyboardInterrupt:
-            pbar.set_description('INTERRUPTED')
+            pbar.set_description("INTERRUPTED")
             pbar.update(len(parfiles))
             pbar.close()
             _terminate_workers()
@@ -309,10 +321,10 @@ def run_legolas(parfiles=None, remove_parfiles=False, nb_cpus=1):
     if remove_parfiles:
         for file in parfiles:
             os.remove(file)
-        pylboLogger.info('Parfiles removed.')
+        pylboLogger.info("Parfiles removed.")
         # if parfile directory is empty, also remove that one
         try:
             Path.rmdir(LEGOLAS_PAR)
-            pylboLogger.info('{} was empty, so also removed the directory.'.format(LEGOLAS_PAR))
+            pylboLogger.info(f"{LEGOLAS_PAR} was empty, so also removed the directory.")
         except OSError:
             pass

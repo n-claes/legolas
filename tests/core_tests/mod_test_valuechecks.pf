@@ -1,0 +1,228 @@
+module mod_test_valuechecks
+  use mod_suite_utils
+  use funit
+  implicit none
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+    call reset_eigenfunctions(init_efs=.false.)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_iszero_real()
+    use mod_check_values, only: value_is_zero
+
+    real(dp), parameter :: var_zero_exact = 0.0d0
+    real(dp), parameter :: var_zero_near = 1.0d-14
+    real(dp), parameter :: var_zero_false = 1.0d-6
+
+    write(*, *) "Testing is_zero real"
+
+    @assertTrue(value_is_zero(var_zero_exact))
+    @assertTrue(value_is_zero(var_zero_near))
+    @assertFalse(value_is_zero(var_zero_false))
+  end subroutine test_iszero_real
+
+
+  @test
+  subroutine test_iszero_cmplx_real()
+    use mod_check_values, only: value_is_zero
+
+    complex(dp), parameter :: var_zero_real_exact = (0.0d0, 1.0d0)
+    complex(dp), parameter :: var_zero_real_near = (1.0d-14, 1.0d0)
+    complex(dp), parameter :: var_zero_real_false = (1.0d0, 1.0d0)
+
+    write(*, *) "Testing is_zero complex: real part"
+
+    @assertFalse(value_is_zero(var_zero_real_exact))
+    @assertFalse(value_is_zero(var_zero_real_near))
+    @assertFalse(value_is_zero(var_zero_real_false))
+  end subroutine test_iszero_cmplx_real
+
+
+  @test
+  subroutine test_iszero_cmplx_imag()
+    use mod_check_values, only: value_is_zero
+
+    complex(dp), parameter :: var_zero_imag_exact = (1.0d0, 0.0d0)
+    complex(dp), parameter :: var_zero_imag_near = (1.0d0, 1.0d-14)
+    complex(dp), parameter :: var_zero_imag_false = (1.0d0, 1.0d0)
+
+    write(*, *) "Testing is_zero complex: imaginary part"
+
+    @assertFalse(value_is_zero(var_zero_imag_exact))
+    @assertFalse(value_is_zero(var_zero_imag_near))
+    @assertFalse(value_is_zero(var_zero_imag_false))
+  end subroutine test_iszero_cmplx_imag
+
+
+  @test
+  subroutine test_iszero_cmplx_full()
+    use mod_check_values, only: value_is_zero
+
+    complex(dp), parameter :: var_zero_both_true = (0.0d0, 0.0d0)
+    complex(dp), parameter :: var_zero_real_near = (1.0d-14, 0.0d0)
+    complex(dp), parameter :: var_zero_imag_near = (0.0d0, 1.0d-14)
+    complex(dp), parameter :: var_zero_both_near = (1.0d-14, 1.0d-14)
+    complex(dp), parameter :: var_zero_both_false = (1.0d0, 1.0d0)
+
+    write(*, *) "Testing is_zero complex: both parts"
+
+    @assertTrue(value_is_zero(var_zero_both_true))
+    @assertTrue(value_is_zero(var_zero_real_near))
+    @assertTrue(value_is_zero(var_zero_imag_near))
+    @assertTrue(value_is_zero(var_zero_both_near))
+    @assertFalse(value_is_zero(var_zero_both_false))
+  end subroutine test_iszero_cmplx_full
+
+
+  @test
+  subroutine test_isequal_true()
+    use mod_check_values, only: value_is_equal
+
+    real(dp), parameter :: value1 = 1.0d0
+    real(dp), parameter :: value2 = 1.0d0
+
+    write(*, *) "Testing is_equal: true case"
+
+    @assertTrue(value_is_equal(value1, value2))
+  end subroutine test_isequal_true
+
+
+  @test
+  subroutine test_isequal_false()
+    use mod_check_values, only: value_is_equal
+
+    real(dp), parameter :: value1 = 2.0d0
+    real(dp), parameter :: value2_near = 2.0d0 + 1.0d-9
+    real(dp), parameter :: value2_far = 5.0d0
+
+    write(*, *) "Testing is_equal: false case"
+
+    @assertFalse(value_is_equal(value1, value2_near))
+    @assertFalse(value_is_equal(value1, value2_far))
+  end subroutine test_isequal_false
+
+
+  @test
+  subroutine test_isnan_value_true()
+    use mod_check_values, only: value_is_nan
+    use mod_global_variables, only: NaN
+
+    write(*, *) "Testing value is_nan: true case"
+    @assertTrue(value_is_nan(NaN))
+  end subroutine test_isnan_value_true
+
+
+  @test
+  subroutine test_isnan_value_false()
+    use mod_check_values, only: value_is_nan
+
+    write(*, *) "Testing value is_nan: false case"
+    @assertFalse(value_is_nan(1.0d0))
+  end subroutine test_isnan_value_false
+
+
+  @test
+  subroutine test_isnan_array_true()
+    use mod_check_values, only: check_nan_values
+    use mod_equilibrium, only: rho_field
+    use mod_global_variables, only: NaN
+
+    write(*, *) "Testing array is_nan: true case"
+    rho_field % rho0(5) = NaN
+    call check_nan_values(rho_field)
+    @assertExceptionRaised("NaN encountered in rho0")
+  end subroutine test_isnan_array_true
+
+
+  @test
+  subroutine test_isnan_array_false()
+    use mod_check_values, only: check_nan_values
+    use mod_equilibrium, only: rho_field
+
+    write(*, *) "Testing array is_nan: false case"
+    call check_nan_values(rho_field)
+  end subroutine test_isnan_array_false
+
+
+  @test
+  subroutine test_array_negative_false()
+    use mod_check_values, only: check_negative_array
+
+    real(dp) :: array(20)
+    integer  :: i
+
+    write(*, *) "Testing array is_negative: false case"
+
+    do i = 1, size(array)
+      array(i) = i**2
+    end do
+    call check_negative_array(array, variable_name="array")
+  end subroutine test_array_negative_false
+
+
+  @test
+  subroutine test_array_negative_true()
+    use mod_check_values, only: check_negative_array
+    use mod_physical_constants, only: dpi
+
+    real(dp) :: array(20)
+    integer  :: i
+
+    write(*, *) "Testing array is_negative: true case"
+    do i = 1, size(array)
+      array(i) = cos(i * dpi / 2.0d0)
+    end do
+    call check_negative_array(array, variable_name="array")
+
+    @assertExceptionRaised("negative value encountered in array")
+  end subroutine test_array_negative_true
+
+
+  @test
+  subroutine test_cyl_k2_ok()
+    use mod_inspections, only: perform_sanity_checks
+    use mod_equilibrium_params, only: k2, k3
+    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, grav_field, &
+                               rc_field, kappa_field
+    use mod_global_variables, only: geometry
+
+    write(*, *) "Testing k2 integer cylindrical geometry"
+    geometry = "cylindrical"
+    call create_test_grid(pts=31, geom=geometry)
+    k2 = 1.0d0
+    k3 = 0.5d0
+    call perform_sanity_checks(rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field)
+  end subroutine test_cyl_k2_ok
+
+
+  @test
+  subroutine test_cyl_k2_nonint()
+    use mod_inspections, only: perform_sanity_checks
+    use mod_equilibrium_params, only: k2, k3
+    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, grav_field, &
+                               rc_field, kappa_field
+    use mod_global_variables, only: geometry
+
+    write(*, *) "Testing k2 non-integer fail cylindrical geometry"
+    geometry = "cylindrical"
+    call create_test_grid(pts=31, geom=geometry)
+    k2 = 1.5d0
+    k3 = 0.5d0
+    call perform_sanity_checks(rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field)
+    @assertExceptionRaised("cylindrical geometry but k2 is not an integer! Value: 1.50000000")
+  end subroutine test_cyl_k2_nonint
+
+end module mod_test_valuechecks

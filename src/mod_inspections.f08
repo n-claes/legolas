@@ -85,7 +85,10 @@ contains
     end do
 
     write(char_log, int_fmt) nb_spurious_eigenvalues
-    call log_message("spurious eigenvalues removed on every side: " // adjustl(char_log), level='warning')
+    call log_message( &
+      "spurious eigenvalues removed on every side: " // adjustl(char_log), &
+      level='warning' &
+    )
   end subroutine handle_spurious_eigenvalues
 
 
@@ -105,7 +108,11 @@ contains
       ! in cylindrical geometry k2 should be an integer
       if (abs(k2_int - k2) > dp_LIMIT) then
         write(char_log, dp_fmt) k2
-        call log_message("cylindrical geometry but k2 is not an integer! Value: " // trim(char_log), level='error')
+        call log_message( &
+          "cylindrical geometry but k2 is not an integer! Value: " &
+            // adjustl(trim(char_log)), &
+          level='error' &
+        )
       end if
     end if
   end subroutine check_wavenumbers
@@ -141,19 +148,31 @@ contains
 
     if (abs(B_field % B02(1)) > on_axis_limit) then
       write(char_log, exp_fmt) B_field % B02(1)
-      call log_message("B_theta non-zero on axis! Value: " // trim(char_log), level='warning')
+      call log_message( &
+        "B_theta non-zero on axis! Value: " // trim(char_log), &
+        level='warning' &
+      )
     end if
     if (abs(B_field % d_B03_dr(1)) > on_axis_limit) then
       write(char_log, exp_fmt) B_field % d_B03_dr(1)
-      call log_message("dBz/dr non-zero on axis! Value: " // trim(char_log), level='warning')
+      call log_message( &
+        "dBz/dr non-zero on axis! Value: " // trim(char_log), &
+        level='warning' &
+      )
     end if
     if (abs(v_field % v02(1)) > on_axis_limit) then
       write(char_log, exp_fmt) v_field % v02(1)
-      call log_message("v_theta non-zero on axis! Value: " // trim(char_log), level='warning')
+      call log_message( &
+        "v_theta non-zero on axis! Value: " // trim(char_log), &
+        level='warning' &
+      )
     end if
     if (abs(v_field % d_v03_dr(1)) > on_axis_limit) then
       write(char_log, exp_fmt) v_field % d_v03_dr(1)
-      call log_message("dvz_dr non-zero on axis! Value: " // trim(char_log), level='warning')
+      call log_message( &
+        "dvz_dr non-zero on axis! Value: " // trim(char_log), &
+        level='warning' &
+      )
     end if
   end subroutine check_on_axis_values
 
@@ -202,7 +221,8 @@ contains
       eps = eps_grid(i)
       d_eps = d_eps_grid_dr(i)
 
-      eq_cond(i) = drho * T0 + rho * dT0 + B02 * dB02 + B03 * dB03 + rho * grav - (d_eps/eps) * (rho * v02**2 - B02**2)
+      eq_cond(i) = drho * T0 + rho * dT0 + B02 * dB02 + B03 * dB03 &
+                   + rho * grav - (d_eps/eps) * (rho * v02**2 - B02**2)
       if (abs(eq_cond(i)) > dp_LIMIT) then
         counter = counter + 1
         satisfied = .false.
@@ -214,13 +234,28 @@ contains
     end do
 
     if (.not. satisfied) then
-      call log_message("standard equilibrium conditions not satisfied!", level='warning')
+      call log_message( &
+        "standard equilibrium conditions not satisfied!", &
+        level="warning" &
+      )
       write(char_log, dp_fmt) r
-      call log_message("location of largest discrepancy: x = " // adjustl(trim(char_log)), level='warning')
+      call log_message( &
+        "location of largest discrepancy: x = " // adjustl(trim(char_log)), &
+        level='warning', &
+        use_prefix=.false. &
+      )
       write(char_log, exp_fmt) discrepancy
-      call log_message("value of largest discrepancy: " // adjustl(trim(char_log)), level='warning')
+      call log_message( &
+        "value of largest discrepancy: " // adjustl(trim(char_log)), &
+        level='warning', &
+        use_prefix=.false. &
+      )
       write(char_log, int_fmt) counter
-      call log_message("amount of nodes not satisfying criterion: " // adjustl(trim(char_log)), level='warning')
+      call log_message( &
+        "amount of nodes not satisfying criterion: " // adjustl(trim(char_log)), &
+        level='warning', &
+        use_prefix=.false. &
+      )
     end if
   end subroutine standard_equil_conditions
 
@@ -279,13 +314,28 @@ contains
     end do
 
     if (.not. satisfied) then
-      call log_message("non-adiabatic equilibrium conditions not satisfied!", level='warning')
+      call log_message( &
+        "non-adiabatic equilibrium conditions not satisfied!", &
+        level='warning' &
+      )
       write(char_log, dp_fmt) r
-      call log_message("location of largest discrepancy: x = " // adjustl(trim(char_log)), level='warning')
+      call log_message( &
+        "location of largest discrepancy: x = " // adjustl(trim(char_log)), &
+        level='warning', &
+        use_prefix=.false. &
+      )
       write(char_log, exp_fmt) discrepancy
-      call log_message("value of largest discrepancy: " // adjustl(trim(char_log)), level='warning')
+      call log_message( &
+        "value of largest discrepancy: " // adjustl(trim(char_log)), &
+        level='warning', &
+        use_prefix=.false. &
+      )
       write(char_log, int_fmt) counter
-      call log_message("amount of nodes not satisfying criterion: " // adjustl(trim(char_log)), level='warning')
+      call log_message( &
+        "amount of nodes not satisfying criterion: " // adjustl(trim(char_log)), &
+        level='warning', &
+        use_prefix=.false. &
+      )
     end if
   end subroutine nonadiab_equil_conditions
 

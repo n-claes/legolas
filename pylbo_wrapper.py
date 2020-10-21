@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
-from post_processing import pylbo
-from post_processing.pylbo.utilities.exceptions import EigenfunctionsNotPresent, MatricesNotPresent
+import pylbo
+from pylbo.utilities.exceptions import EigenfunctionsNotPresent, MatricesNotPresent
 
 
 def _main():

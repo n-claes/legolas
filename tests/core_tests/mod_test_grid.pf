@@ -1,0 +1,88 @@
+module mod_test_grid
+  use mod_suite_utils
+  use funit
+  implicit none
+
+contains
+
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+    call reset_eigenfunctions(init_efs=.false.)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_cart_grid()
+    use mod_grid, only: grid
+
+    write(*, *) "Testing Cartesian grid edges"
+    call create_test_grid(pts=31, geom='Cartesian', &
+                          start=0.0d0, end=1.0d0)
+    @assertEqual(grid(1), 0.0d0, tolerance=TOL)
+    @assertEqual(grid(31), 1.0d0, tolerance=TOL)
+  end subroutine test_cart_grid
+
+
+  @test
+  subroutine test_cyl_grid()
+    use mod_grid, only: grid
+
+    write(*, *) "Testing cylindrical grid edges"
+    call create_test_grid(pts=31, geom='cylindrical', &
+                          start=0.0d0, end=1.0d0)
+    @assertGreaterThan(grid(1), 2.0d-2)
+    @assertEqual(grid(31), 1.0d0, tolerance=TOL)
+  end subroutine test_cyl_grid
+
+
+  @test
+  subroutine test_cyl_grid_force()
+    use mod_global_variables, only: force_r0
+    use mod_grid, only: grid
+
+    write(*, *) "Testing cylindrical grid edges (forced)"
+    force_r0 = .true.
+    call create_test_grid(pts=31, geom='cylindrical', &
+                          start=0.0d0, end=1.0d0)
+    @assertEqual(grid(1), 0.0d0, tolerance=TOL)
+    @assertEqual(grid(31), 1.0d0, tolerance=TOL)
+  end subroutine test_cyl_grid_force
+
+
+  @test
+  subroutine test_grid_mono()
+    use mod_grid, only: grid
+
+    integer   :: idx
+
+    write(*, *) "Testing grid monotonicity"
+    call create_test_grid(pts=31, geom='Cartesian')
+    do idx = 1, 30
+      @assertLessThan(grid(idx), grid(idx+1))
+    end do
+  end subroutine test_grid_mono
+
+
+  @test
+  subroutine test_grid_gauss_mono()
+    use mod_global_variables, only: gauss_gridpts
+    use mod_grid, only: grid_gauss
+
+    integer   :: idx
+
+    write(*, *) "Testing grid_gauss monotonicity"
+    call create_test_grid(pts=31, geom='Cartesian')
+    do idx = 1, gauss_gridpts-1
+      @assertLessThan(grid_gauss(idx), grid_gauss(idx+1))
+    end do
+  end subroutine test_grid_gauss_mono
+end module mod_test_grid

@@ -9,6 +9,7 @@ class LegolasException(Exception):
     message : str
         The message to pass as error message.
     """
+
     def __init__(self, ds=None, message=None):
         super().__init__(self, message)
         self.ds = ds
@@ -23,11 +24,12 @@ class InvalidLegolasFile(LegolasException):
     file : str or ~os.PathLike
         The path to the file.
     """
+
     def __init__(self, file):
         self.file = file
 
     def __str__(self):
-        return "{} is not a valid Legolas file".format(self.file)
+        return f"{self.file} is not a valid Legolas file"
 
 
 class EigenfunctionsNotPresent(LegolasException):
@@ -40,11 +42,12 @@ class EigenfunctionsNotPresent(LegolasException):
     file : str or ~os.PathLike
         The path to the file.
     """
+
     def __init__(self, file):
         self.file = file
 
     def __str__(self):
-        return "No eigenfunctions present in {}".format(self.file)
+        return f"No eigenfunctions present in {self.file}"
 
 
 class MatricesNotPresent(LegolasException):
@@ -57,11 +60,12 @@ class MatricesNotPresent(LegolasException):
     file : str or ~os.PathLike
         The path to the file.
     """
+
     def __init__(self, file):
         self.file = file
 
     def __str__(self):
-        return "No matrices present in {}".format(self.file)
+        return f"No matrices present in {self.file}"
 
 
 class InconsistentMultirunFile(LegolasException):
@@ -78,15 +82,18 @@ class InconsistentMultirunFile(LegolasException):
     expected : str
         The name of the expected equilibrium type.
     """
+
     def __init__(self, file, found, expected):
         self.file = file
         self.found = found
         self.expected = expected
 
     def __str__(self):
-        return "Different equilibrium encountered in {}. \n" \
-               "Expected: {}\n" \
-               "Found   : {}".format(self.file, self.found, self.expected)
+        return (
+            f"Different equilibrium encountered in {self.file}. \n"
+            f"Expected: {self.found}\n"
+            f"Found   : {self.expected}"
+        )
 
 
 class DictNotEmpty(LegolasException):
@@ -100,13 +107,17 @@ class DictNotEmpty(LegolasException):
     file : str or ~os.PathLike
         The path to the file.
     """
+
     def __init__(self, file):
         self.file = file
 
     def __str__(self):
-        return "There are still variables remaining in the supplied dictionary after parfile generation!\n" \
-               "Check key names and values given. Remaining variables:\n" \
-               "{}".format(self.file)
+        return (
+            f"There are still variables remaining in the supplied dictionary "
+            f"after parfile generation!\n"
+            f"Check key names and values given. Remaining variables:\n"
+            f"{self.file}"
+        )
 
 
 class UnknownPrecodedRun(LegolasException):
@@ -121,13 +132,16 @@ class UnknownPrecodedRun(LegolasException):
     available_names : list
         A list of available keys to choose from.
     """
+
     def __init__(self, given_name, available_names):
         self.given_name = given_name
         self.available_names = list(available_names)
 
     def __str__(self):
-        return "Unknown precoded run: {}\n" \
-               "Choose from {}".format(self.given_name, self.available_names)
+        return (
+            f"Unknown precoded run: {self.given_name}\n"
+            "Choose from {self.available_names}"
+        )
 
 
 class InconsistentNumberOfRuns(LegolasException):
@@ -145,12 +159,15 @@ class InconsistentNumberOfRuns(LegolasException):
     par_dict : dict
         The configuration dictionary supplied.
     """
+
     def __init__(self, nb_runs, key, par_dict):
         self.nb_runs = nb_runs
         self.key = key
         self.par_dict = par_dict
 
     def __str__(self):
-        return "Key 'number_of_runs' is inconsistent with at least one supplied parameter.\n" \
-               "Number of runs: {}\n" \
-               "Length of {}: {}".format(self.nb_runs, self.key, len(self.par_dict[self.key]))
+        return (
+            f"Key 'number_of_runs' is inconsistent with at least one "
+            f"supplied parameter.\nNumber of runs: {self.nb_runs}\n"
+            f"Length of {self.key}: {self.par_dict[self.key]}"
+        )
