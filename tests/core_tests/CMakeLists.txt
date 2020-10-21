@@ -54,6 +54,8 @@ set( test_sources
         mod_test_splines.pf
         mod_test_subblock.pf
         mod_test_solvers.pf
+        mod_test_interpolation.pf
+        mod_test_integration.pf
 )
 add_pfunit_ctest (test_legolas
         TEST_SOURCES ${test_sources}

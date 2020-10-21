@@ -9,9 +9,13 @@ set (sources
         mod_types.f08
         mod_check_values.f08
         mod_spline_functions.f08
+        mod_interpolation.f08
+        mod_integration.f08
         dataIO/mod_input.f08
         physics/mod_resistivity.f08
         physics/mod_cooling_curves.f08
+        physics/mod_atmosphere_curves.f08
+        physics/mod_solar_atmosphere.f08
         physics/mod_radiative_cooling.f08
         physics/mod_thermal_conduction.f08
         mod_inspections.f08
