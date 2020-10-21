@@ -51,15 +51,15 @@ contains
   !> Raises an exception with a given message.
   !! By default, exceptions terminate program execution.
   !! Calls the initialisation routine if not already done.
-  subroutine raise_exception(message)
+  subroutine raise_exception(msg)
     !> message to be used when an exception is raised
-    character(len=*), intent(in) :: message
+    character(len=*), intent(in) :: msg
 
     if (.not. initialised) then
        call initialise_exceptions()
     end if
 
-    call raise_method(message)
+    call raise_method(msg)
   end subroutine raise_exception
 
 
@@ -67,10 +67,16 @@ contains
   !! an exception is raised. The argument <tt>message</tt>
   !! is printed to the console and program execution
   !! is terminated.
-  subroutine on_exception_raised(message)
-    character(*), intent(in) :: message
+  subroutine on_exception_raised(msg)
+    use mod_global_variables, only: str_len
+    use mod_painting, only: paint_string
 
-    write(*, *) "[   ERROR   ] ", message
+    !> message to print to the console when exception is raised
+    character(len=*), intent(in) :: msg
+    character(len=str_len) :: msg_painted
+
+    call paint_string(" ERROR   | " // msg, "red", msg_painted)
+    write(*, *) msg_painted
     error stop
   end subroutine on_exception_raised
 end module mod_exceptions

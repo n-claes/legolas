@@ -10,7 +10,8 @@
 !!                                  is the default value
 !! - If <tt>logging_level = 3+</tt>: prints all of the above, including debug messages. @endnote
 module mod_logging
-  use mod_global_variables, only: logging_level
+  use mod_global_variables, only: logging_level, str_len
+  use mod_painting, only: paint_string
   implicit none
 
   !> exponential format
@@ -34,35 +35,62 @@ contains
 
 
   !> Logs messages to the console. Every message will be prepended by
-  !! [  LEVEL  ] to indicate its type.
+  !! [  LEVEL  ] to indicate its type. If this is not desired, set
+  !! <tt>use_prefix = .false.</tt>.
   !! @warning An error is thrown if a wrong level is passed. @endwarning
   !! @note The argument <tt>level</tt> can be 'error', 'warning', 'info' or 'debug'.
   !!       The 'error' level corresponds to throwing a critical error and stops code execution.
-  subroutine log_message(msg, level)
+  !!       Error messages are printed in red, warnings in yellow, info messages have
+  !!       default colouring and debug messages are in green.
+  subroutine log_message(msg, level, use_prefix)
     use mod_exceptions, only: raise_exception
 
     !> the message to print to the console
     character(len=*), intent(in)  :: msg
     !> the level (severity) of the message
     character(len=*), intent(in)  :: level
+    !> prefixes message type to string, default is <tt>.true.</tt>
+    logical, intent(in), optional :: use_prefix
+
+    character(len=str_len) :: msg_painted
+    logical                :: add_prefix
+
+    add_prefix = .true.
+    if (present(use_prefix)) then
+      add_prefix = use_prefix
+    end if
 
     select case(level)
-    case('error')
+    case("error")
       call raise_exception(msg)
-    case('warning')
+    case("warning")
       if (logging_level >= 1) then
-        write(*, *) "[  WARNING  ] ", msg
+        if (add_prefix) then
+          call paint_string(" WARNING | " // msg, "yellow", msg_painted)
+        else
+          call paint_string("           " // msg, "yellow", msg_painted)
+        end if
+        write(*, *) msg_painted
       end if
-    case('info')
+    case("info")
       if (logging_level >= 2) then
-        write(*, *) "[   INFO    ] ", msg
+        if (add_prefix) then
+          write(*, *) " INFO    | " // msg
+        else
+          write(*, *) "           " // msg
+        end if
       end if
-    case('debug')
+    case("debug")
       if (logging_level >=3) then
-        write(*, *) "[   DEBUG   ] ", msg
+        if (add_prefix) then
+          call paint_string(" DEBUG   | " // msg, "green", msg_painted)
+        else
+          call paint_string("         | " // msg, "green", msg_painted)
+        end if
+        write(*, *) msg_painted
       end if
     case default
-      write(*, *) "[   ERROR   ] level argument should be 'error', 'warning', 'info' or 'debug'."
+      call raise_exception("argument 'level' should be 'error', 'warning', 'info' or 'debug'")
       error stop
     end select
   end subroutine log_message
@@ -72,19 +100,28 @@ contains
   !! The logo is wrapped in 1 whitespace at the top and
   !! two at the bottom. Only for logging level 'warning' (1) and above
   subroutine print_logo()
+    !> array containing the different logo lines
+    character(len=str_len) :: logo(10)
+    integer :: i
+
     if (logging_level <= 1) then
       return
     end if
 
     call print_whitespace(1)
-    write(*, *) " _        _______  _______  _______  _        _______  _______ "
-    write(*, *) "( \      (  ____ \(  ____ \(  ___  )( \      (  ___  )(  ____ \"
-    write(*, *) "| (      | (    \/| (    \/| (   ) || (      | (   ) || (    \/"
-    write(*, *) "| |      | (__    | |      | |   | || |      | (___) || (_____ "
-    write(*, *) "| |      |  __)   | | ____ | |   | || |      |  ___  |(_____  )"
-    write(*, *) "| |      | (      | | \_  )| |   | || |      | (   ) |      ) |"
-    write(*, *) "| (____/\| (____/\| (___) || (___) || (____/\| )   ( |/\____) |"
-    write(*, *) "(_______/(_______/(_______)(_______)(_______/|/     \|\_______)"
+    call paint_string("    __       ________  ________   _______   __          ___     __________ ", "cyan", logo(1))
+    call paint_string("   |  |     |   ____ \|   ____ \ /   _   \ |  |        /   \   |   ______ \", "cyan", logo(2))
+    call paint_string("   |  |     |  |    \/|  |    \/|   / \   ||  |       /  _  \  |  |      \/", "cyan", logo(3))
+    call paint_string("   |  |     |  |__    |  |      |  |   |  ||  |      /  / \  \ |  \_______ ", "cyan", logo(4))
+    call paint_string("   |  |     |   __/   |  | ____ |  |   |  ||  |     /  /   \  \\_______   \", "cyan", logo(5))
+    call paint_string("   |  |     |  |      |  | \_  ||  |   |  ||  |    /  /     \  \       |  |", "cyan", logo(6))
+    call paint_string("   |  |_____|  |____/\|  |___| ||   \_/   ||  |___/  /  /\___\  \      |  |", "cyan", logo(7))
+    call paint_string("   |_______/|________/|________| \_______/ |________/   \_______/      |  |", "cyan", logo(8))
+    call paint_string("                                                           /\__________/  |", "cyan", logo(9))
+    call paint_string("   Large Eigensystem Generator for One-dimensional pLASmas \_____________/ ", "cyan", logo(10))
+    do i = 1, size(logo)
+      write(*, *) logo(i)
+    end do
     call print_whitespace(2)
   end subroutine print_logo
 
@@ -99,37 +136,60 @@ contains
       return
     end if
 
-    call log_message("--------------- Configuration ---------------", level='info')
-
-    call log_message("                Grid settings", level='info')
-    call log_message("geometry             : " // adjustl(trim(geometry)), level='info')
+    call log_message("---------------------------------------------", level="info")
+    call log_message("              << Grid settings >>", level="info", use_prefix=.false.)
+    call log_message("geometry             : " // adjustl(trim(geometry)), level="info", use_prefix=.false.)
     write(char_log, dp_fmt) x_start
-    call log_message("grid start           : " // adjustl(char_log), level='info')
+    call log_message("grid start           : " // adjustl(char_log), level="info", use_prefix=.false.)
     write(char_log, dp_fmt) x_end
-    call log_message("grid end             : " // adjustl(char_log), level='info')
+    call log_message("grid end             : " // adjustl(char_log), level="info", use_prefix=.false.)
     write(char_log, int_fmt) gridpts
-    call log_message("gridpoints (base)    : " // adjustl(char_log), level='info')
+    call log_message("gridpoints (base)    : " // adjustl(char_log), level="info", use_prefix=.false.)
     write(char_log, int_fmt) gauss_gridpts
-    call log_message("gridpoints (Gauss)   : " // adjustl(char_log), level='info')
+    call log_message("gridpoints (Gauss)   : " // adjustl(char_log), level="info", use_prefix=.false.)
     write(char_log, int_fmt) matrix_gridpts
-    call log_message("gridpoints (matrix)  : " // adjustl(char_log), level='info')
+    call log_message("gridpoints (matrix)  : " // adjustl(char_log), level="info", use_prefix=.false.)
 
-    call log_message("             Equilibrium settings", level='info')
-    call log_message("selected equilibrium : " // adjustl(trim(equilibrium_type)), level='info')
-    call log_message("boundary conditions  : " // adjustl(trim(boundary_type)), level='info')
+    call log_message("          << Equilibrium settings >>", level="info", use_prefix=.false.)
+    call log_message("selected equilibrium : " // adjustl(trim(equilibrium_type)), level="info", use_prefix=.false.)
+    call log_message("boundary conditions  : " // adjustl(trim(boundary_type)), level="info", use_prefix=.false.)
     write(char_log, dp_fmt) k2
-    call log_message("wave number k2       : " // adjustl(char_log), level='info')
+    call log_message("wave number k2       : " // adjustl(char_log), level="info", use_prefix=.false.)
     write(char_log, dp_fmt) k3
-    call log_message("wave number k3       : " // adjustl(char_log), level='info')
+    call log_message("wave number k3       : " // adjustl(char_log), level="info", use_prefix=.false.)
 
-    call log_message("               DataIO settings", level='info')
-    call log_message("datfile name         : " // adjustl(trim(basename_datfile)), level='info')
-    call log_message("output folder        : " // adjustl(trim(output_folder)), level='info')
+    if (flow .or. external_gravity .or. radiative_cooling .or. thermal_conduction .or. resistivity) then
+      call log_message("            << Physics settings >>", level="info", use_prefix=.false.)
+      if (flow) then
+        call logical_tostring(flow, char_log)
+        call log_message("flow                 : " // adjustl(char_log), level="info", use_prefix=.false.)
+      end if
+      if (external_gravity) then
+        call logical_tostring(external_gravity, char_log)
+        call log_message("external gravity     : " // adjustl(char_log), level="info", use_prefix=.false.)
+      end if
+      if (radiative_cooling) then
+        call logical_tostring(radiative_cooling, char_log)
+        call log_message("radiative cooling    : " // adjustl(char_log), level="info", use_prefix=.false.)
+      end if
+      if (thermal_conduction) then
+        call logical_tostring(thermal_conduction, char_log)
+        call log_message("thermal conduction   : " // adjustl(char_log), level="info", use_prefix=.false.)
+      end if
+      if (resistivity) then
+        call logical_tostring(resistivity, char_log)
+        call log_message("resistivity          : " // adjustl(char_log), level="info", use_prefix=.false.)
+      end if
+    end if
+
+    call log_message("            << DataIO settings >>", level="info", use_prefix=.false.)
+    call log_message("datfile name         : " // adjustl(trim(basename_datfile)), level="info", use_prefix=.false.)
+    call log_message("output folder        : " // adjustl(trim(output_folder)), level="info", use_prefix=.false.)
     call logical_tostring(write_matrices, char_log)
-    call log_message("write matrices       : " // adjustl(char_log), level='info')
+    call log_message("write matrices       : " // adjustl(char_log), level="info", use_prefix=.false.)
     call logical_tostring(write_eigenfunctions, char_log)
-    call log_message("write eigenfunctions : " // adjustl(char_log), level='info')
-    call log_message("---------------------------------------------", level='info')
+    call log_message("write eigenfunctions : " // adjustl(char_log), level="info", use_prefix=.false.)
+    call log_message("---------------------------------------------", level="info", use_prefix=.false.)
     call print_whitespace(1)
   end subroutine print_console_info
 

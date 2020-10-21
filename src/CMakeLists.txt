@@ -1,5 +1,6 @@
 set (sources
         mod_global_variables.f08
+        dataIO/mod_painting.f08
         mod_equilibrium_params.f08
         dataIO/mod_exceptions.f08
         dataIO/mod_logging.f08
