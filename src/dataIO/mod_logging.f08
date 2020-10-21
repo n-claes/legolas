@@ -100,26 +100,35 @@ contains
   !! The logo is wrapped in 1 whitespace at the top and
   !! two at the bottom. Only for logging level 'warning' (1) and above
   subroutine print_logo()
+    use mod_version, only: LEGOLAS_VERSION
+
     !> array containing the different logo lines
-    character(len=str_len) :: logo(10)
+    character(len=str_len) :: logo(11)
+    !> whitespace prepended to logo
+    character(len=3)       :: spaces_logo = ""
+    !> whitespace prepended to versioning
+    character(len=57)      :: spaces_v = ""
     integer :: i
 
     if (logging_level <= 1) then
       return
     end if
 
+    logo(1)  = " __       ________  ________   _______   __          ___     __________ "
+    logo(2)  = "|  |     |   ____ \|   ____ \ /   _   \ |  |        /   \   |   ______ \"
+    logo(3)  = "|  |     |  |    \/|  |    \/|   / \   ||  |       /  _  \  |  |      \/"
+    logo(4)  = "|  |     |  |__    |  |      |  |   |  ||  |      /  / \  \ |  \_______ "
+    logo(5)  = "|  |     |   __/   |  | ____ |  |   |  ||  |     /  /   \  \\_______   \"
+    logo(6)  = "|  |     |  |      |  | \_  ||  |   |  ||  |    /  /     \  \       |  |"
+    logo(7)  = "|  |_____|  |____/\|  |___| ||   \_/   ||  |___/  /  /\___\  \      |  |"
+    logo(8)  = "|_______/|________/|________| \_______/ |________/   \_______/      |  |"
+    logo(9)  = "                                                        /\__________/  |"
+    logo(10) = "Large Eigensystem Generator for One-dimensional pLASmas \______________/"
+    logo(11) = spaces_v // "v. " // trim(adjustl(LEGOLAS_VERSION))
+
     call print_whitespace(1)
-    call paint_string("    __       ________  ________   _______   __          ___     __________ ", "cyan", logo(1))
-    call paint_string("   |  |     |   ____ \|   ____ \ /   _   \ |  |        /   \   |   ______ \", "cyan", logo(2))
-    call paint_string("   |  |     |  |    \/|  |    \/|   / \   ||  |       /  _  \  |  |      \/", "cyan", logo(3))
-    call paint_string("   |  |     |  |__    |  |      |  |   |  ||  |      /  / \  \ |  \_______ ", "cyan", logo(4))
-    call paint_string("   |  |     |   __/   |  | ____ |  |   |  ||  |     /  /   \  \\_______   \", "cyan", logo(5))
-    call paint_string("   |  |     |  |      |  | \_  ||  |   |  ||  |    /  /     \  \       |  |", "cyan", logo(6))
-    call paint_string("   |  |_____|  |____/\|  |___| ||   \_/   ||  |___/  /  /\___\  \      |  |", "cyan", logo(7))
-    call paint_string("   |_______/|________/|________| \_______/ |________/   \_______/      |  |", "cyan", logo(8))
-    call paint_string("                                                           /\__________/  |", "cyan", logo(9))
-    call paint_string("   Large Eigensystem Generator for One-dimensional pLASmas \_____________/ ", "cyan", logo(10))
     do i = 1, size(logo)
+      call paint_string(spaces_logo // trim(logo(i)), "cyan", logo(i))
       write(*, *) logo(i)
     end do
     call print_whitespace(2)

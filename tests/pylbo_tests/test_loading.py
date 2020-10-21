@@ -9,13 +9,22 @@ pylbo.set_loglevel("warning")
 @pytest.mark.timeout(10)
 def test_load_v0():
     file = Path("utility_files/v0_datfile_efs.dat").resolve()
-    pylbo.load(file)
+    ds = pylbo.load(file)
+    assert ds.header["legolas_version"] == "0"
 
 
 @pytest.mark.timeout(10)
 def test_load_v1():
     file = Path("utility_files/v1_datfile_efs.dat").resolve()
-    pylbo.load(file)
+    ds = pylbo.load(file)
+    assert ds.header["legolas_version"] == "0.1"
+
+
+@pytest.mark.timeout(10)
+def test_load_vproper():
+    file = Path("utility_files/v0.9.0_datfile.dat").resolve()
+    ds = pylbo.load(file)
+    assert ds.header["legolas_version"] == "0.9.0"
 
 
 def test_filenotfound():

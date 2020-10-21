@@ -29,16 +29,25 @@ def get_header(istream):
 
     # version information was added afterwards, check for this
     try:
-        version_name = "datfile_version"
+        version_name = "legolas_version"
         fmt = ALIGN + len(version_name) * "c"
         hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
-        assert b"".join(hdr).strip().decode() == version_name
-        fmt = ALIGN + "i"
-        (VERSION,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
-    except AssertionError:
+        if b"".join(hdr).strip().decode() == version_name:
+            # formatted version is character of length 10
+            fmt = ALIGN + 10 * "c"
+            hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+            VERSION = b"".join(hdr).strip().decode()
+        elif b"".join(hdr).strip().decode() == "datfile_version":
+            # old version numbering, single integer
+            fmt = ALIGN + "i"
+            (VERSION,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+            VERSION = f"0.{str(VERSION)}"
+        else:
+            raise ValueError
+    except ValueError:
         istream.seek(0)
-        VERSION = 0
-    h["datfile_version"] = VERSION
+        VERSION = "0"
+    h["legolas_version"] = VERSION
 
     # read maximal string length and length of strings in arrays
     fmt = ALIGN + 2 * "i"
