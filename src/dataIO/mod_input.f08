@@ -55,6 +55,7 @@ contains
     namelist /paramlist/    k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, cte_p0, &
                             p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, lambda, nu, &
                             r0, rc, rj, Bth0, Bz0, V, j0, g
+    namelist /solvelist/    solver
 
     call init_equilibrium_params()
     ! if no parfile supplied, return to keep using defaults
@@ -90,7 +91,10 @@ contains
     1005  rewind(unit_par)
           read(unit_par, unitslist, end=1006)
 
-    1006  close(unit_par)
+    1006  rewind(unit_par)
+          read(unit_par, solvelist, end=1007)
+
+    1007  close(unit_par)
 
     ! Set gridpoints and gamma, if supplied
     if (.not. gridpoints == 0) then

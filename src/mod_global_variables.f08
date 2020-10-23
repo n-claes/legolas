@@ -148,6 +148,9 @@ module mod_global_variables
   !> boolean for doing a dry run, defaults to <tt>False</tt>
   logical, save             :: dry_run
 
+  !> method to solve the eigenvalue problem, defaults to <tt>"QR-invert"</tt>
+  character(len=str_len)    :: solver
+
 contains
 
 
@@ -215,6 +218,9 @@ contains
     basename_datfile = "datfile"
     basename_logfile = ""
     output_folder = "output"
+
+    !! solution method variables
+    solver = "QR-invert"
   end subroutine initialise_globals
 
 
