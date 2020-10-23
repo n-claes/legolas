@@ -18,6 +18,12 @@ module mod_check_values
     module procedure small_values_complex_matrix
   end interface check_small_values
 
+  !> Interface to check if a given matrix is square
+  interface matrix_is_square
+    module procedure matrix_real_is_square
+    module procedure matrix_complex_is_square
+  end interface matrix_is_square
+
   !> Interface to check NaN values in the equilibrium types.
   interface check_nan_values
     module procedure check_nan_values_density
@@ -36,6 +42,7 @@ module mod_check_values
   public :: check_small_values
   public :: check_negative_array
   public :: check_nan_values
+  public :: matrix_is_square
   public :: value_is_zero
   public :: value_is_equal
   public :: value_is_nan
@@ -240,6 +247,36 @@ contains
       end do
     end do
   end subroutine small_values_complex_matrix
+
+
+  !> Checks if a given real matrix is square.
+  !! Returns <tt>.true.</tt> if dimensions are equal, <tt>.false.</tt> otherwise.
+  function matrix_real_is_square(matrix)  result(is_square)
+    !> the real matrix to check
+    real(dp), intent(in)  :: matrix(:, :)
+    logical :: is_square
+
+    if (size(matrix, dim=1) == size(matrix, dim=2)) then
+      is_square = .true.
+    else
+      is_square = .false.
+    end if
+  end function matrix_real_is_square
+
+
+  !> Checks if a given complex matrix is square.
+  !! Returns <tt>.true.</tt> if dimensions are equal, <tt>.false.</tt> otherwise.
+  function matrix_complex_is_square(matrix)  result(is_square)
+    !> the real matrix to check
+    complex(dp), intent(in)  :: matrix(:, :)
+    logical :: is_square
+
+    if (size(matrix, dim=1) == size(matrix, dim=2)) then
+      is_square = .true.
+    else
+      is_square = .false.
+    end if
+  end function matrix_complex_is_square
 
 
   !> Negative value checks on a real array.
