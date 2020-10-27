@@ -26,7 +26,7 @@
 Legolas is the result of months and months of developing, testing, fixing issues, testing again,
 thinking bugs are fixed, further development, discovering that bugs weren't fixed, headscratching, testing again, etc.
 In short, a typical development process of a brand new code. Since this took (and still takes) a lot of effort and time,
-we therefore kindly ask you to contact and _include one of the core developers in the first paper you write using Legolas_.
+we therefore kindly ask that _**the first published peer-reviewed paper from applying Legolas is done in co-authorship with at least one of the original authors**_.
 Since the code is brand new we would like to know how it is used and provide guidance if possible.
 
 ## Obtaining Legolas
@@ -47,7 +47,7 @@ given time. Feel free to check these out, but note that we will frequently rebas
 be common when pulling updates from those branches.
 
 ## Requirements
-We make extensive use of submodules (Fortran 2008) and object-oriented features (Fortran 2003), 
+We make extensive use of submodules (Fortran 2008) and object-oriented features (Fortran 2003),
 meaning that Legolas requires relatively recent compilers. We build using [CMake](https://cmake.org).
 To make use of the post-processing framework [Pylbo](post_processing) (which is highly recommended since we
 use a dedicated file format to store information) you need Python 3.6 or higher.
@@ -57,18 +57,19 @@ The list below gives an indication of what is needed, note that lower versions _
 - Python v3.6+
 - make
 - BLAS and LAPACK v3.5+
+
 For more information see the website.
 
 ## Compilation
 For compilation instructions we refer to the website.
 
-## Directory contents 
+## Directory contents
 Below is an overview of what's in the directory:
 - `.github/workflows`: all `.yml` files used for automatic testing.
-- `docs`: everything related to documentation, contains the Jekyll/Sphinx/ford configuration files. The website is built from this folder.
+- `docs`: everything related to documentation, contains the Jekyll/Sphinx/Ford configuration files. The website is built from this folder.
 - `post-processing`: contains the Python package Pylbo.
 - `setup_tools`: scripts related to Legolas setup, also contains the `findBLAS` and `findLAPACK` CMake files.
-- `src`: all legolas source files and subdirectories. 
+- `src`: all legolas source files and subdirectories.
 - `tests`: everything related to testing
     - `core_tests`: tests for the Legolas core subroutines, uses [pFUnit](https://github.com/Goddard-Fortran-Ecosystem/pFUnit).
     - `pylbo_tests`: tests for the Pylbo framework, does checks on internal Pylbo routines + Legolas interface for multiruns.
