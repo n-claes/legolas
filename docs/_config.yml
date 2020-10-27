@@ -12,7 +12,7 @@ footer:
   links:
     - label: "The Legolas code on GitHub"
       icon: "fab fa-fw fa-github"
-      url: https://github.com/n-claes/website_test
+      url: https://github.com/n-claes/legolas
 
 # Build settings
 remote_theme: mmistakes/minimal-mistakes
