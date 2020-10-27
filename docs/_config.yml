@@ -1,10 +1,8 @@
 title: The Legolas Code
-subtitle: A novel tool for 1D MHD spectroscopy
+subtitle: A novel tool for MHD spectroscopy
 email: niels.claes@kuleuven.be
 description: >-
   The Legolas code
-baseurl: "/the-legolas-code"
-url: "localhost:4000"
 permalink: pretty
 
 minimal_mistakes_skin: "air"
@@ -26,8 +24,9 @@ exclude:
   - Gemfile
   - Gemfile.lock
 
-# this is needed because sphinx creates directories with _ prepended, which
-# are not copied by Jekyll.
-keep_files:
-  - content/src-docs/sphinx
-  - content/src-docs/ford
+# this is needed because Sphinx creates directories with _ prepended, which
+# are not copied by Jekyll. Just the folder name is sufficient, full path doesn't work.
+include:
+  - _static
+  - _modules
+  - _sources

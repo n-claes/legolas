@@ -1,14 +1,13 @@
 src_dir: ../src
-output_dir: _site/content/src-docs/ford
+output_dir: content/src-docs/ford
 project: Legolas
 project_github: https://github.com/n-claes/legolas
 project_website: ../../../index.html
-summary: Legolas is a novel finite-element based code that allows for
+summary: ![LOGO](../../../assets/images/logo_legolas_640_trans.png)<br>
+         Legolas is a novel finite-element based code that allows for
          realistic MHD spectroscopy of one-dimensional plasmas.
-author: Niels Claes, Jordi De Jonghe and Rony Keppens
 fpp_extensions: fpp
 predocmark: >
-media_dir: ./ford_source/media
 docmark_alt: #
 predocmark_alt: <
 display: public
@@ -30,4 +29,3 @@ on the `master` branch of the [GitHub repository](https://github.com/n-claes/leg
 and are built after every commit.
 
 You can return to the main site [here](../../../index.html).
-
