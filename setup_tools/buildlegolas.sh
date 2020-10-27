@@ -20,11 +20,19 @@ if [ "$1" == "clean" ]; then
     echo "No local build directory found, skipping."
   fi
   # clean build directory
-  rm -rf "$LEGOLASDIR/build"
-  echo "Build directory ${LEGOLASDIR}/build removed."
+  if [ -d "$LEGOLASDIR/build" ]; then
+    rm -r "$LEGOLASDIR/build"
+    echo "Build directory ${LEGOLASDIR}/build removed."
+  else
+    echo "No build directory found in legolas repository, skipping."
+  fi
   # clean source directory executable
-  rm -f "$LEGOLASDIR/legolas"
-  echo "Executable in main legolas directory removed."
+  if [ -f "$LEGOLASDIR/legolas" ]; then
+    rm "$LEGOLASDIR/legolas"
+    echo "Executable in main legolas directory removed."
+  else
+    echo "No legolas executable found in legolas repository, skipping."
+  fi
   exit
 fi
 if [ ! -f CMakeLists.txt ]; then
