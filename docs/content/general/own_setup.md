@@ -24,7 +24,7 @@ You'll need this file for the basic Legolas configuration, so please do so. Take
 In this module you will set up your equilibrium configuration. You can either choose to copy over the default template
 from the legolas `src` directory, or create your own. Both are fine, as long as the file is named `smod_user_defined.f08`
 and the general template looks like this:
-```fortran 
+```fortran
 submodule (mod_equilibrium) smod_user_defined
   implicit none
 
@@ -37,7 +37,7 @@ contains
   end subroutine user_defined_eq
 end submodule smod_user_defined
 ```
-This is all that's needed. The `mod_equilibrium` statement between brackets refers to the parent module, 
+This is all that's needed. The `mod_equilibrium` statement between brackets refers to the parent module,
 which contains the interface of the subroutines that are implemented in their respective submodules.
 This also implies that you have access to _all_ global `use` statements in the `mod_equilibrium` module, without
 having to explicitly import them.
@@ -51,32 +51,32 @@ to fixed values. However, in some use cases it may be necessary to vary grid par
 We therefore provided the `allow_geometry_override` subroutine, which can be used to set default values that can be
 overridden through the parfile.
 
-**Note:** The variables `geometry`, `x_start`, `x_end` and the subroutine `call initialise_grid()` are all known 
+**Note:** The variables `geometry`, `x_start`, `x_end` and the subroutine `call initialise_grid()` are all known
 in the parent module and don't have to be imported explicitly.
 {: .notice--info}
 
 _Option 1_: full override
-```fortran 
+```fortran
 call allow_geometry_override(default_geometry='cylindrical', &
                              default_x_start=0.0d0, &
                              default_x_end=1.0d0)
 ```
 _Option 2_: partial override
-```fortran 
+```fortran
 x_end = 1.0d0
 call allow_geometry_override(default_geometry="Cartesian", default_x_start=0.0d0)
 ```
 _Option 3_: hardcoded
-```fortran 
+```fortran
 geometry = "Cartesian"
 x_start = 0.0d0
 x_end = 1.0d0
 ```
-In the first option above you can switch between `"Cartesian"` and `cylindrical` geometries and custom grid boundaries 
+In the first option above you can switch between `"Cartesian"` and `cylindrical` geometries and custom grid boundaries
 solely using the parfile, while in option 2 you can only modify the outer grid boundary. Option 3 does not allow for
 an override at all.
 After these three variables are set, you tell the code it should initialise the grid through
-```fortran 
+```fortran
 call initialise_grid()
 ```
 which allocates the arrays and initialises the grid, geometry scale factor and Gaussian grid.
@@ -91,7 +91,7 @@ An example is given below.
 to use should be explicitly imported.
 {: .notice--info}
 
-```fortran 
+```fortran
 use mod_equilibrium_params, only: alpha, beta, p1
 
 if (use_defaults) then
@@ -109,8 +109,8 @@ variables. If you forget to set a variable that you use later on its value will 
 during the pre-run checks and warn you.
 
 ## Setting units
-**Note:** All public variables/subroutine defined in 
-[`mod_units`](../../src-docs/ford/module/mod_units.html#variable-unit_length) are known to the parent module and 
+**Note:** All public variables/subroutine defined in
+[`mod_units`](../../src-docs/ford/module/mod_units.html#variable-unit_length) are known to the parent module and
 do not have to be imported explicitly in the submodule.
 {: .notice--info}
 
@@ -118,39 +118,39 @@ Specifying the unit normalisations can either be done through the parfile (the `
 directly. This is only relevant if you include radiative cooling, thermal conduction or (temperature-dependent)
 resistivity, since these units are used to re-dimensionalise the variables for the corresponding calculations and/or
 table lookups. To set the units you can do, for example
-```fortran 
+```fortran
 use_cgs = .true.
 call set_normalisations(new_unit_density=1.6727d-15, &
                         new_unit_magneticfield=22.5d0, &
                         new_unit_length=1.0d10)
 ```
 which sets values in cgs units, if you set `use_cgs = .false.` these are interpreted as SI units. Instead of specifying
-`new_unit_density` you can choose a reference temperature `new_unit_temperature` instead, 
+`new_unit_density` you can choose a reference temperature `new_unit_temperature` instead,
 see [units](../equations_physics/#units) for more information.
 
 ## Including additional physics
 **Note:** You can set everything here either in the parfile or in the submodule. In case of the latter,
 the logicals `resistivity`, `flow`, `radiative_cooling`, `external_gravity` and `thermal_conduction` are
-known in the parent module. Variables like `use_fixed_resistivity`, `fixed_eta_value` and related ones on the other hand 
+known in the parent module. Variables like `use_fixed_resistivity`, `fixed_eta_value` and related ones on the other hand
 must be imported explicitly.
 {: .notice--info}
 
 Including additional physics in your setup is quite straightforward: you set the corresponding logical to `.true.` and
 set up the additional variables.
- 
+
 ### Resistivity
 In the case of resistivity you have two options after setting `resistivity = .true.`:
-- A constant value over the entire grid (with a possible drop-off near the edges, 
+- A constant value over the entire grid (with a possible drop-off near the edges,
   see the [physicslist](../parameter_file/#physicslist) namelist). Set `use_fixed_resistivity = .true.` and
   specify `fixed_eta_value`.
 - A realistic temperature-dependent resistivity profile based on the Spitzer resistivity. Here it suffices
   to only specify `resistivity = .true.`, since `use_fixed_resistivity` is `.false.` by default.
   It's perhaps a good idea to specify unit normalisations in this case, if the default ones are not sufficient to your
   needs.
- 
+
 ### Thermal conduction
-Set `thermal_conduction = .true.`. This is analogous to resistivity, in the sense that you can either specify a 
-constant value for the parallel and perpendicular components (separately), or use a fully realistic profile that 
+Set `thermal_conduction = .true.`. This is analogous to resistivity, in the sense that you can either specify a
+constant value for the parallel and perpendicular components (separately), or use a fully realistic profile that
 depends on density, temperature and magnetic field. The constant values are controlled through the variables
 `use_fixed_tc_para` and `fixed_tc_para_value` for the parallel thermal conduction component, and through
 `use_fixed_tc_perp` and `fixed_tc_perp_value` for the perpendicular component. If you use the realistic profile
@@ -172,6 +172,11 @@ value.
 {: .notice--success}
 
 ## Defining the equilibrium state
+
+**Please note** <i class="fas fa-hard-hat"></i> <i class="fas fa-hammer"></i>  
+We are planning a (minor) refactor of some attributes in the (near) future, so keep a look out for changes.
+{: .notice--danger}
+
 **Tip:** to make sure your implementation is in order you can do a dry run first (`dry_run = .true.` in the parfile)
 and plot the equilibrium arrays using Pylbo. Once you're sure that everything is correct, remove the `dry_run` line from
 the parfile and you're good to go.
@@ -183,7 +188,7 @@ the variable `rho_field` contains (you guessed it) density-related variables, ac
 `rho_field % rho0` for the regular density and `rho_field % d_rho0_dr` for the density derivative.
 Analogous for the other fields. The advantage of this is that everything is contained to its particular type,
 meaning they can be easily passed to other subroutines, and adding a new attribute is as easy as appending it to the
-corresponding type. For a full list of the various fields and attributes see 
+corresponding type. For a full list of the various fields and attributes see
 [mod_types](../../src-docs/ford/module/mod_types.html#type-density_type).
 
 You only have to specify the `rho_field`, `v_field`, `B_field`, `T_field` and `grav_field` (the names are self-explanatory);
@@ -207,7 +212,7 @@ a part of `eta_field` and not of `B_field`) and should be set explicitly if `res
 You can do this through `eta_field % dd_B02_dr` and `eta_field % dd_B03_dr`.
 {: .notice--info}
 
-```fortran 
+```fortran
 ! specify variables to use later on
 real(dp)    :: x
 integer     :: i
@@ -242,9 +247,9 @@ The kind `dp` above denotes the intrinsic double precision `real64` from Fortran
 `mod_global_variables`. The variables `dp`, `gauss_gridpts` and `grid_gauss` are known in the parent module and
 don't have to be imported.
 
-If you prefer to work with pressure instead of temperature that is also possible, due to the usage of the ideal
-gas law. You can specify a pressure and density profile, and set temperature as such:
-```fortran 
+If you prefer to work with pressure instead of temperature that is also possible.
+You can specify a pressure and density profile, and set temperature as such:
+```fortran
 real(dp) :: x
 ! pressure arrays
 real(dp) :: px(gauss_gridpts), dpx(gauss_gridpts)
@@ -264,7 +269,7 @@ do i = 1, gauss_gridpts
 end do
 ```
 
-For more examples you can look at implementation of the various descendants of the 
+For more examples you can look at implementation of the various descendants of the
 [`mod_equilibrium`](../../src-docs/ford/module/mod_equilibrium.html) parent module.
 
 **Note:** all equilibria should satisfy the [equilibrium conditions](../equations_physics/#equilibrium-requirements).

@@ -4,6 +4,7 @@ layout: single
 classes: wide
 sidebar:
   nav: "leftcontents"
+last_modified_at: 2020-10-27
 ---
 
 Since we would like to know how much of the code base is actually checked when running the tests, we've included
@@ -25,7 +26,7 @@ tools are linked to the `test_legolas` executable during the compilation process
 
 Next you simply run all tests and the reports will be automatically generated.
 To process the results, navigate to the main legolas directory and do
-```bash 
+```bash
 mkdir coverage
 cd build
 gcovr . -r ../src --print-summary --html --html-details --output ../coverage/coverage.html

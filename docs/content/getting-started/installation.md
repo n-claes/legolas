@@ -7,14 +7,14 @@ sidebar:
 toc: true
 toc_label: "Installing"
 toc_icon: "cogs"
-last_modified_at: 2020-09-02
+last_modified_at: 2020-10-27
 ---
 
 # Requirements
 Due to the heavy use of object-oriented features (Fortran 2003) and submodules (Fortran 2008), Legolas
 requires relatively recent Fortran compilers.
 Below is a list of prerequisites needed to successfully build and run both Legolas and the post-processing
-framework [Pylbo](../../general/data_analysis/). Please note that lower compiler versions have not been
+framework [Pylbo](../../pylbo/installing_pylbo/). Please note that lower compiler versions have not been
 tested, but _might_ work.
 
 - Fortran compiler
@@ -40,8 +40,8 @@ brew install lapack
 using [HomeBrew](https://brew.sh) on macOS. Note that macOS ships with a default BLAS/LAPACK installation
 as part of the [vecLib](https://developer.apple.com/documentation/accelerate/veclib) framework.
 If you did a manual compilation of the BLAS and LAPACK libraries (if you don't have sudo rights, for example),
-CMake may not find the libraries by default. In that case it will throw a warning, and you may have to set the 
-`$BLAS_LIBRARIES` and `$LAPACK_LIBRARIES` variables which link to the compiled libraries. 
+CMake may not find the libraries by default. In that case it will throw a warning, and you may have to set the
+`$BLAS_LIBRARIES` and `$LAPACK_LIBRARIES` variables which link to the compiled libraries.
 
 # Pre-build
 Below we explain the stuff you _should_ do before attempting to compile Legolas.
@@ -67,30 +67,31 @@ folder, such that they can be called from any directory.
 
 # Compiling the code
 Compiling the code is quite straightforward, and for your convenience we have provided a simple shell script
-to do everything at once. Compiling the code can either be done in the repository itself (which is not recommended),
-or in a dedicated folder somewhere.
+to do everything at once. Compiling the code can either be done from inside the repository or from a dedicated folder somewhere.
+The latter option will be particularly useful when you're setting up your own problems.
 
 **Note:** whichever of the two options you choose, `Legolas` is _always_ compiled in a directory called `build`
 _inside_ the main repository, which is ignored by git. Because we make heavy use of submodules (which prevent
 compilation cascades when changes are made), you don't have to recompile the code every time you set up a new problem.
-Only the modified user-defined submodule is recompiled, and the "new" executable is placed in the same directory. 
+Only the modified user-defined submodule is recompiled, and the "new" executable is placed in the same directory.
 {: .notice--info}
 
 ## 1. In-repository build
 The first option is building inside the repository. To do so, navigate to the legolas source directory and do
-```bash 
+```bash
 sh setup_tools/buildlegolas.sh
 ```
 This will create a directory `build` inside the repository (which is ignored by git), and places the `legolas`
-executable in the topmost directory. Option two is doing it manually if you don't trust the automatic script:
+executable in the topmost directory. You can also do it manually:
 ```bash
 mkdir build
 cd build
 cmake ..
 make
 ```
-Note that an in-repository build means that you'll have to edit source files, which could give rise
-to merge conflicts when you're updating the code (and we all hate those!) so we don't recommend doing it like this.
+An in-repository build is fine if you want to run pre-implemented problems, but note that when you start modifying
+equilibria (or adding your own) you are essentially modifying the source files. This means that you will probably run
+into merge conflicts soon when you're updating the code (and we all hate those!) so we don't recommend doing it like this.
 
 ## 2. Out-of-repository build (recommended)
 This is the recommended way to build Legolas. This requires you to have set the environment variable and PATH
@@ -105,8 +106,9 @@ Starting Legolas setup process in directory 'your_directory'. Is this ok? [y/n] 
 >> No user-defined submodule found, copy default template? [y/n] y
 >> Copying smod_user_defined.f08 to present directory.
 
->> Setup complete. 
-You can start the build process by calling 'buildlegolas.sh' directly or do a manual CMake install.
+>> Setup complete.
+You can start the build process by calling 'buildlegolas.sh'
+directly or do a manual CMake install.
 ```
 So first `CMakeLists.txt` is copied over, which is needed for the build, followed by the Pylbo wrapper script if you
 need it. If no parfile is found a default template is copied over, the same holds for the user-defined equilibrium.
@@ -120,17 +122,14 @@ cmake ..
 make
 ```
 In both cases the executable is placed in the same directory as the parfile and user submodule.
-Note that the automatic buildscript removes the build directory afterwards, leaving only the executable.
-If you don't want this, build manually.
 
 # Equivalent of "make clean"
 Since we use CMake for compilation there is no `make clean` equivalent as there is with GNU Make.
-Instead, you can simply remove the `build` directory inside the repository, which contains the compiled object files.
+Instead, you can simply remove the `build` directory inside the repository (or your local folder),
+which contains the compiled object files.
 You can do this automatically from any directory by supplying an additional argument to `buildlegolas.sh`.
 Say you just compiled in a local directory and you want to do a fresh compilation, simply call
 ```bash
 buildlegolas.sh clean
 ```
 This will remove the `build` folder in the main legolas directory and the local executable (if one is found).
-This requires you to have set the `$LEGOLASDIR` environment variable, if you did not do this you have to remove
-the `build` folder manually.

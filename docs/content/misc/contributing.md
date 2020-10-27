@@ -4,10 +4,11 @@ layout: single
 sidebar:
   nav: "leftcontents"
 toc: true
+last_modified_at: 2020-10-27
 ---
 
 Legolas is developed as an open-source code, which means that we welcome contributions that improve the code in any
-way. The ideal way to do this is following a proper 
+way. The ideal way to do this is following a proper
 [GitHub workflow](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork).
 This means that you first fork the main Legolas repository, make the edits you want and then submit a
 [pull request](https://github.com/n-claes/legolas/pulls).
@@ -18,10 +19,10 @@ Once the pull request (PR) is submitted it will be up for review by one of the m
 [labels](https://github.com/n-claes/legolas/labels) to label your pull request (or issue), this allows us to easily keep track
 of the various types of additions that are being made.
 
-**Note:** all PR's should be directed against the [`develop`](https://github.com/n-claes/legolas/tree/develop) branch, 
+**Note:** all PR's should be directed against the [`develop`](https://github.com/n-claes/legolas/tree/develop) branch,
 and NOT against the [`master`](https://github.com/n-claes/legolas/tree/master) branch.
 We keep the `master` branch dedicated to stable releases, and keep "new" features on the `develop` branch until we
-release a new major/minor version.
+release a new major/minor version. Doc updates are an exception to this, since the website is built from the `master` branch.
 {: .notice--info}
 
 # Adding to the Legolas code
@@ -42,8 +43,8 @@ take a look at the already documented modules for more information and examples.
 
 # Adding to the Pylbo code
 For contributions to the Pylbo source code there are no "real" guidelines, besides the regular Python guidelines.
-This means that all new or modified code should follow the [PEP8 guidelines](https://www.python.org/dev/peps/pep-0008/),
-with the exception of maximum line length. We find 79 a bit on the low side, so we usually wrap around 100.
+This means that all new or modified code should follow the [PEP8 guidelines](https://www.python.org/dev/peps/pep-0008/) (roughly).
+An exception to this is the maximum line length, since Black uses 88 (instead of the 79 suggested by PEP).
 Method names are also quite flexible, if they are concise and clear it's fine.
 
 Additionally, whenever you add code you should also add a dedicated unit test to the [pylbo tests](../../testing/test_pylbo).
@@ -57,7 +58,7 @@ Take a look at the already documented methods and classes for more information a
 
 # Adding to the documentation
 ## Edits to the website
-The documentation (this website) is built from the [`docs`](https://github.com/n-claes/legolas/tree/master/docs) 
+The documentation (this website) is built from the [`docs`](https://github.com/n-claes/legolas/tree/master/docs)
 folder on the `master` branch, using [GitHub Pages](https://pages.github.com).
 We make use of [Jekyll](https://jekyllrb.com) and the [minimal-mistakes](https://github.com/mmistakes/minimal-mistakes) theme.
 For instructions and detailed guides we refer back to those pages.
@@ -70,22 +71,22 @@ for this, instructions are given on the [Jekyll website](https://jekyllrb.com/do
 - GCC and Make, you can check through `gcc -v`, `g++ -v` and `make -v`.
 
 Once you have this set up, you install the `Jekyll` and `Bundler` Gems
-```bash 
+```bash
 gem install jekyll bundler
 ```
 and that's it! Now you simply navigate to the `docs` folder and type
-```bash 
+```bash
 bundle exec jekyll serve
 ```
-after which the website builds in a folder `_site`, and it will tell you the local URL that you can paste in your 
-browser of choice (denoted by "_Server address_). Due to the `serve` statement you can make additional edits 
+after which the website builds in a folder `_site`, and it will tell you the local URL that you can paste in your
+browser of choice (denoted by "_Server address_). Due to the `serve` statement you can make additional edits
 to the documentation and refresh the webpage to immediately look at the result.
 
 ## Edits to the Pylbo docs
-For the pylbo docs you'll need [Sphinx](https://www.sphinx-doc.org/en/master/) configured, 
+For the pylbo docs you'll need [Sphinx](https://www.sphinx-doc.org/en/master/) configured,
 together with its dependencies. You can install all of them through
 the `install_dependencies.sh` script in the `docs` folder:
-```bash 
+```bash
 sh install_dependencies.sh
 ```
 or, if you want to do it manually:
@@ -96,14 +97,14 @@ pip install sphinx-rtd-theme
 pip install lazy-object-proxy==1.4
 pip install sphinx-autoapi
 ```
-Once this is done, you can execute 
-```bash 
+Once this is done, you can execute
+```bash
 sh build_sphinx.sh
 ```
 to build the Sphinx documentation, which is configured in such a way that Jekyll finds the generated html files.
 
 ## Edits to the Legolas docs
-For the Legolas docs you'll need [Ford](https://github.com/Fortran-FOSS-Programmers/ford). 
+For the Legolas docs you'll need [Ford](https://github.com/Fortran-FOSS-Programmers/ford).
 The `install_dependencies.sh` script installs it together with the Sphinx
 dependencies, but just in case you want to do it manually:
 ```bash

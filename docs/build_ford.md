@@ -14,8 +14,8 @@ display: public
          protected
          private
 source: false
-graph: true
-search: true
+graph: false
+search: false
 macro: TEST
        LOGIC=.true.
 extra_mods: json_module: http://jacobwilliams.github.io/json-fortran/

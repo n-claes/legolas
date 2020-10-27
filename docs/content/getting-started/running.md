@@ -4,7 +4,7 @@ layout: single
 sidebar:
   nav: "leftcontents"
 toc: true
-last_modified_at: 2020-08-28
+last_modified_at: 2020-10-27
 ---
 
 Once you have compiled Legolas it will have placed an executable in your current working directory (or in the
@@ -22,7 +22,7 @@ Afterwards you simply call the executable from the command line, passing the par
 The output is one single file, placed by default in a subdirectory `output` which is created during compilation.
 
 # 2. Interfacing with Pylbo
-A second way to run Legolas is through the Pylbo-interface, which is is a bit more cumbersome than running directly
+A second way to run Legolas is through the Pylbo-interface, which is a bit more cumbersome than running directly
 but extremely handy when you are doing parametric studies or want to run multiple setups at once. This obviously
 requires you to have Pylbo installed, explained [here](../../pylbo/installing_pylbo).
 To start, fire up Python (or create a script) with the following lines
@@ -30,21 +30,25 @@ To start, fire up Python (or create a script) with the following lines
 import pylbo
 
 parfiles = ["path_to_file1", "path_to_file2"]
-pylbo.run_legolas(parfiles, remove_parfiles=False, nb_cpus=8)
+pylbo.run_legolas(parfiles)
 ```
-the variable `parfiles` contains the paths to your parfiles as Strings or 
-[pathlike](https://docs.python.org/3/library/pathlib.html) objects. The optional `remove_parfiles` keyword argument 
-(`False` by default) removes the parfiles after the runs are completed, 
-in case you want to automatically clean up afterwards. 
-The `nb_cpus` kwargs is also optional, with a default value of 1. If you supply multiple parfiles and set this
+the variable `parfiles` contains the paths to your parfiles as Strings or
+[pathlike](https://docs.python.org/3/library/pathlib.html) objects. The optional `remove_parfiles` keyword argument
+(`False` by default) removes the parfiles after the runs are completed,
+in case you want to automatically clean up afterwards.
+The `nb_cpus` kwarg is also optional, with a default value of 1. If you supply multiple parfiles and set this
 number larger than one Pylbo will use Python's [multiprocessing](https://docs.python.org/3/library/multiprocessing.html)
 module to parallelise the runs. A progressbar will be printed so you can keep track of the progress.
+More information on the `run_legolas` routine can be found [here](../../src-docs/sphinx/autoapi/pylbo/utilities/automation/)
 
 **Advice**: Please note that Legolas loads the _full_ matrices into memory, meaning that if you run multiple large
-setups in parallel you will probably run out of memory and your system will start using swap memory to keep up, 
-_greatly_ slowing down the calculations. 
-A rule of thumb is running a maximum (combined) value of 3000 _base_ gridpoints at once, 
+setups in parallel you will probably run out of memory and your system will start using swap memory to keep up,
+_greatly_ slowing down the calculations.
+A rule of thumb is running a maximum (combined) value of 3000 _base_ gridpoints at once,
 meaning 30 runs of 100 gridpoints each (`nb_cpus=30`), or 15 runs of 200 gridpoints each (`nb_cpus=15`), etc.
 This depends on your available computational resources ofcourse, but if you start noticing slowdown you're
-probably using too much memory.
+probably using too much memory. <br>
+--- <br>
+We are trying to optimise this by using different solvers and changing the internal logic of the code, so this should improve
+in future versions.
 {: .notice--warning}

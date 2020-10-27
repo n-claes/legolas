@@ -4,6 +4,7 @@ layout: single
 classes: wide
 sidebar:
   nav: "leftcontents"
+last_modified_at: 2020-10-27
 ---
 
 The "main" testing framework for the Legolas code handles regression tests, which basically compare code
@@ -24,23 +25,23 @@ This means that we can not do a straight comparison between the eigenvalues. Inc
 not possible, as explained below:
 - There is no guarantee that all eigenvalues appear in the same order, and they hence have to be sorted. We therefore
   sort them based on the real and imaginary parts, in that order. However, an eigenvalue that is purely real may have
-  a very small (e.g. $10^{-12}$) imaginary part due to numerical errors, while it is considered zero 
-  (or negative that small value) in the stored answers. This messes up the sorting, and if this happens a few times 
+  a very small (e.g. $10^{-12}$) imaginary part due to numerical errors, while it is considered zero
+  (or negative that small value) in the stored answers. This messes up the sorting, and if this happens a few times
   in the sequence you start comparing eigenvalues that shouldn't be compared in the first place, and the test fails.
 - Say the lists are correctly sorted, then the second issue that arises is the actual comparison. For "large" eigenvalues,
   e.g. $250.1234 + 180.23i$, an error of $\pm 0.1$ (or even one) for each component is perfectly fine. However, for
   an eigenvalue of e.g. $0.00345 - 0.000152i$ even an error of $\pm 10^{-3}$ is way too big. Switching to a relative
   comparison is also not really an option, since deviations strongly depend on which equilibrium we are testing and
   you never know beforehand how "big" the relative error may be in order to be robust to small changes.
-  
+
 What the regression tests actually do is a figure-based _pixel comparison_. Both the eigenvalues of the tests and answers
 are plotted in the imaginary plane and their values are transformed to $xy$ pixel coordinates using matplotlib's
 [`transData.transform`](https://matplotlib.org/3.1.1/api/transformations.html#module-matplotlib.transforms).
-We then look at a radius of 1 pixel around every point of the test case, and if there is a point from the answer 
-tests in this radius we flag it as fine and move on to the next point. 
+We then look at a radius of 1 pixel around every point of the test case, and if there is a point from the answer
+tests in this radius we flag it as fine and move on to the next point.
 We've found that this method is actually quite robust, since a spectrum is quite sensitive to
-even small changes. For example, modifying the value of a constant in the equations by a small number (say 0.1%) 
-is in most cases enough to fail the tests, since there will be at least one point that is sufficiently shifted 
+even small changes. For example, modifying the value of a constant in the equations by a small number (say 0.1%)
+is in most cases enough to fail the tests, since there will be at least one point that is sufficiently shifted
 such that it lies outside the 1 pixel circle.
 
 Points that are flagged as failed are added to the list, and in the end they will be plotted together with the base answers

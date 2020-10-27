@@ -4,13 +4,13 @@ layout: splash
 last_modified_at: 2020-08-28
 header:
   image: /assets/images/logo_legolas_1280_trans.png
-intro: 
+intro:
   - excerpt: "Legolas, short for **L**arge **E**igensystem **G**enerator for **O**ne-dimensional p**LAS**mas, is a novel
-              finite element code tailored to MHD spectroscopy of 1D Cartesian/cylindrical 
+              finite element code tailored to MHD spectroscopy of 1D Cartesian/cylindrical
               equilibria with flow that balance pressure gradients, enriched with various non-adiabatic effects."
-suydam_example:
+example:
   - image_path: /assets/images/example_suydam.png
-    excerpt: Legolas can do a multitude of things, ranging from full spectrum calculations to eigenfunctions 
+    excerpt: Legolas can do a multitude of things, ranging from full spectrum calculations to eigenfunctions
              of specific modes, to full-on parametric studies of various equilibrium configurations in different
              geometries. Take a look at the examples to see what the code is capable of.
     title: "Examples"
@@ -19,28 +19,32 @@ suydam_example:
     btn_class: "btn--primary"
 code_paper:
   - image_path: /assets/images/code_paper_fig.png
-    excerpt: We've written a method paper, published in the Astrophysical Journal Supplement Series,
-             showcasing Legolas to the scientific community. If you use Legolas for a publication,
-             we kindly ask you to cite it.
-    title: "Our method paper"
+    excerpt: We have written a method paper, accepted in the Astrophysical Journal Supplement Series, showcasing
+             Legolas to the scientific community. Here we explain the underlying mathematical formalism
+             in great detail, including a plethora of examples ranging from p- and g-modes in gravitationally
+             stratified atmospheres to modes relevant in coronal loop seismology and stability studies of astrophysical jets.
+    title: "The Legolas paper"
     url: "https://arxiv.org"
-    btn_label: "Paper pdf"
+    btn_label: "Read More"
     btn_class: "btn--primary"
-contact:
-  - image_path: /assets/images/get_in_touch.png
-    excerpt: If you run into issues installing/using the code, or encounter bugs, please get in touch with us!
-             For bugs or ideas for improvements, log an issue or submit a pull request on the 
-             [GitHub repository](https://github.com/n-claes/legolas). Simply chatting with the developers is
-             also possible, Legolas has a dedicated Slack channel.
-    title: "Get in touch"
-    url: "https://join.slack.com/t/the-legolas-code/shared_invite/zt-h8whvb80-28yXwqafp8DCsPTw4OProQ"
-    btn_label: "Join Legolas Slack channel"
+using_legolas:
+  - image_path: /assets/images/code_paper_fig.png
+    excerpt: Legolas is the result of months and months of developing, testing, fixing issues, testing again,
+             thinking bugs are fixed, further development, discovering that bugs weren't fixed, headscratching, testing again, etc.
+             In short, a typical development process of a brand new code. Since this took (and still takes) a lot of effort and time,
+             we therefore kindly ask that _**the first published peer-reviewed paper from applying Legolas is done in
+             co-authorship with at least one of the original authors**_.
+             Since the code is brand new we would like to know how it is used and provide guidance if possible.
+             Additionally, if you use Legolas in a publication, we kindly request that you cite our paper.
+    title: "Using Legolas"
+    url: ""
+    btn_label: "BibTex: TODO"
     btn_class: "btn--primary"
 funding:
   - image_path: /assets/images/prominent_logo.png
-    excerpt: Legolas is supported by funding from the European Research Council (ERC) under the European 
-             Unions Horizon 2020 research and innovation programme, 
-             Grant agreement No. 833251 PROMINENT ERC-ADG 2018; from the VSC (Flemish Supercomputer Center), 
+    excerpt: Legolas is supported by funding from the European Research Council (ERC) under the European
+             Unions Horizon 2020 research and innovation programme,
+             Grant agreement No. 833251 PROMINENT ERC-ADG 2018; from the VSC (Flemish Supercomputer Center),
              funded by the Research Foundation – Flanders (FWO) and the Flemish Government – department EWI;
              and from Internal Funds KU Leuven, project C14/19/089 TRACESpace.
     title: "Funding"
@@ -51,11 +55,10 @@ funding:
 
 {% include feature_row id="intro" type="center" %}
 
-{% include feature_row id="suydam_example" type="left" %}
+{% include feature_row id="example" type="left" %}
 
-{% include feature_row id="code_paper" type="right" %}
+{% include feature_row id="using_legolas" type="right" %}
 
-{% include feature_row id="contact" type="left" %}
+{% include feature_row id="code_paper" type="left" %}
 
 {% include feature_row id="funding" type="right" %}
-

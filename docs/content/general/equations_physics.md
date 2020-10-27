@@ -5,14 +5,14 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "calculator"
-last_modified_at: 2020-08-28
+last_modified_at: 2020-10-27
 ---
 
 In general, Legolas solves the linearised MHD equations using a Fourier analysis in the ignorable
 coordinates. The full system of equations is given below, including flow, gravity, resistivity,
 optically thin radiative losses and anisotropic thermal conduction.
 
-For a detailed discussion we refer to our [code paper]("https://arxiv.org").
+For a detailed discussion we refer to our [code paper](https://arxiv.org).
 
 ## System of equations
 
@@ -59,14 +59,14 @@ $$
 \newcommand{\eps}{\varepsilon}
 \begin{align}
 	\left(p_0 + \frac{1}{2}\bfb_0^2\right)' + \rho_0 g - \frac{\eps'}{\eps}\left(\rho_0v_{02}^2 - B_{02}^2\right) &= 0 \\
-	\frac{1}{\eps}\left(\eps \kappa_\bot T_0'\right)' - \rho_0\HL_0 &= 0 
+	\frac{1}{\eps}\left(\eps \kappa_\bot T_0'\right)' - \rho_0\HL_0 &= 0
 \end{align}
 $$
 
 where $\varepsilon = r$ and $\varepsilon' = 1$ in cylindrical geometries, and $\varepsilon = 1$ and $\varepsilon' = 0$
 in Cartesian slabs. The prime denotes the derivative with respect to $u_1$.
- 
-Legolas explicitly checks these conditions at runtime and will raise a warning if these are not fulfilled, 
+
+Legolas explicitly checks these conditions at runtime and will raise a warning if these are not fulfilled,
 giving you additional information on how large the discrepancies are and where they occur with respect to the grid.
 
 ## Units
@@ -77,16 +77,16 @@ A unit magnetic field $B_{unit}$ and unit length $L_{unit}$ should _always_ be s
 
 $$
 p_{unit} = \frac{B_{unit}^2}{\mu}
-$$ 
+$$
 
-Then, specifying a unit density $\rho_{unit}$ fixes the unit temperature $T_{unit}$ (or vice-versa) 
+Then, specifying a unit density $\rho_{unit}$ fixes the unit temperature $T_{unit}$ (or vice-versa)
 through the ideal gas law
 
-$$ 
+$$
 p_{unit} = \mathcal{R}T_{unit}\rho_{unit}
-$$ 
+$$
 
-Hence we only have **three** degrees of freedom: the unit magnetic field $B_{unit}$ and unit length $L_{unit}$ 
+Hence we only have **three** degrees of freedom: the unit magnetic field $B_{unit}$ and unit length $L_{unit}$
 should be set, together with _either_ the unit density $\rho_{unit}$ OR unit temperature $T_{unit}$.
 All other unit normalisations follow from the three degrees of freedom and are given by
 
@@ -104,8 +104,4 @@ conduction.
 **Note:** The unit normalisations are only used when radiative cooling, thermal conduction or temperature-dependent
 resistivity is included. We always set base values though (as one should), which are given in cgs units by
 $B_{unit} = 10$ Gauss, $L_{unit} = 10^9$ cm and $T_{unit} = 10^6$ K.
-{: .notice--info}
-
-**Note:** Since one can always specify a unit current, the unit resistivity is defined in such a way that the
-normalised resistivity equals 0.1 at 1 MK.
 {: .notice--info}
