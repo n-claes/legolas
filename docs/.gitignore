@@ -3,10 +3,6 @@ _site
 .jekyll-cache
 .jekyll-metadata
 vendor
-content/src-docs/ford
 Gemfile.lock
-content/src-docs/sphinx
 sphinx_source/rst_files
 *.DS_store
-
-
