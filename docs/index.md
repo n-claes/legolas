@@ -24,11 +24,11 @@ code_paper:
              in great detail, including a plethora of examples ranging from p- and g-modes in gravitationally
              stratified atmospheres to modes relevant in coronal loop seismology and stability studies of astrophysical jets.
     title: "The Legolas paper"
-    url: "https://arxiv.org"
+    url: "https://arxiv.org/abs/2010.14148"
     btn_label: "Read More"
     btn_class: "btn--primary"
 using_legolas:
-  - image_path: /assets/images/code_paper_fig.png
+  - image_path: /assets/images/console_output.png
     excerpt: Legolas is the result of months and months of developing, testing, fixing issues, testing again,
              thinking bugs are fixed, further development, discovering that bugs weren't fixed, headscratching, testing again, etc.
              In short, a typical development process of a brand new code. Since this took (and still takes) a lot of effort and time,
@@ -37,8 +37,8 @@ using_legolas:
              Since the code is brand new we would like to know how it is used and provide guidance if possible.
              Additionally, if you use Legolas in a publication, we kindly request that you cite our paper.
     title: "Using Legolas"
-    url: ""
-    btn_label: "BibTex: TODO"
+    url: "https://ui.adsabs.harvard.edu/abs/2020arXiv201014148C/exportcitation"
+    btn_label: "BibTex citation"
     btn_class: "btn--primary"
 funding:
   - image_path: /assets/images/prominent_logo.png

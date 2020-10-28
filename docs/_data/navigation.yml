@@ -4,7 +4,7 @@ main:
   - title: "About"
     url: /content/about/
   - title: "Code paper"
-    url: "https://arxiv.org"
+    url: "https://arxiv.org/abs/2010.14148"
   - title: "Detailed guide"
     url: /content/getting-started/installation/
   - title: "Source docs"

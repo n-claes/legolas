@@ -1,6 +1,7 @@
 title: The Legolas Code
 subtitle: A novel tool for MHD spectroscopy
 email: niels.claes@kuleuven.be
+baseurl: /legolas
 description: >-
   The Legolas code
 permalink: pretty

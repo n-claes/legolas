@@ -5,14 +5,14 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "calculator"
-last_modified_at: 2020-10-27
+last_modified_at: 2020-10-28
 ---
 
 In general, Legolas solves the linearised MHD equations using a Fourier analysis in the ignorable
 coordinates. The full system of equations is given below, including flow, gravity, resistivity,
 optically thin radiative losses and anisotropic thermal conduction.
 
-For a detailed discussion we refer to our [code paper](https://arxiv.org).
+For a detailed discussion we refer to our [code paper](https://arxiv.org/abs/2010.14148).
 
 ## System of equations
 
