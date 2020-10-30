@@ -1,5 +1,6 @@
 submodule (mod_solvers) smod_qr_invert
   use mod_matrix_operations, only: invert_matrix, multiply_matrices
+  use mod_check_values, only: matrix_is_square
   implicit none
 
 contains
@@ -41,14 +42,12 @@ contains
     !> second work array
     real(dp), allocatable     :: rwork(:)
 
-    call log_message("using QR-invert", level="debug")
-
     ! check that we have square matrices
-    if (size(matrix_A, dim=1) /= size(matrix_A, dim=2)) then
+    if (.not. matrix_is_square(matrix_A)) then
       call log_message("qr_invert: A matrix is not square!", level="error")
       return
     end if
-    if (size(matrix_B, dim=1) /= size(matrix_B, dim=2)) then
+    if (.not. matrix_is_square(matrix_B)) then
       call log_message("qr_invert: B matrix is not square!", level="error")
       return
     end if
@@ -57,12 +56,12 @@ contains
     call invert_matrix(matrix_B, B_inv)
     ! do matrix multiplication B^{-1}A
     call multiply_matrices(B_inv, matrix_A, B_invA)
-    ! calculate eigenvectors, we don't use the right ones
-    jobvr = "N"
+    ! calculate eigenvectors, we don't use the left ones
+    jobvl = "N"
     if (write_eigenfunctions) then
-      jobvl = "V"
+      jobvr = "V"
     else
-      jobvl = "N"
+      jobvr = "N"
     end if
     ! set array dimensions
     N = size(B_invA, dim=1)
@@ -75,6 +74,7 @@ contains
     allocate(rwork(2 * N))
 
     ! solve eigenvalue problem
+    call log_message("solving evp using QR algorithm zgeev (LAPACK)", level="debug")
     call zgeev( &
       jobvl, jobvr, N, B_invA, ldB_invA, omega, &
       vl, ldvl, vr, ldvr, work, lwork, rwork, info &
