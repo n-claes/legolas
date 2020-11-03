@@ -54,6 +54,7 @@ set (sources
         mod_matrix_creation.f08
         solvers/mod_solvers.f08
         solvers/smod_qr_invert.f08
+        solvers/smod_qz_direct.f08
         mod_eigenfunctions.f08
         dataIO/mod_output.f08
 )
@@ -61,6 +62,8 @@ set (sources
 set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)
 set_source_files_properties(main.f08 PROPERTIES LANGUAGE Fortran)
 
+set(LIBSTOLINK ${SCALAPACK_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+
 add_library(${LEGOLASLIB} ${sources})
 add_executable(${LEGOLASEXEC} main.f08)
-target_link_libraries(${LEGOLASEXEC} ${LEGOLASLIB} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+target_link_libraries(${LEGOLASEXEC} ${LEGOLASLIB} ${LIBSTOLINK})

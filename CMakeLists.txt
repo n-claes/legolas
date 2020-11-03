@@ -43,6 +43,7 @@ file(MAKE_DIRECTORY ${OUTPUT})
 
 include(${setup_tools}/findBLAS.cmake)
 include(${setup_tools}/findLAPACK.cmake)
+include(${setup_tools}/findSCALAPACK.cmake)
 
 # name of library
 set(LEGOLASLIB lego)

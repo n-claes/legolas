@@ -192,6 +192,7 @@ contains
     end if
 
     call log_message("            << DataIO settings >>", level="info", use_prefix=.false.)
+    call log_message("solution method      : " // adjustl(trim(solver)), level="info", use_prefix=.false.)
     call log_message("datfile name         : " // adjustl(trim(basename_datfile)), level="info", use_prefix=.false.)
     call log_message("output folder        : " // adjustl(trim(output_folder)), level="info", use_prefix=.false.)
     call logical_tostring(write_matrices, char_log)
