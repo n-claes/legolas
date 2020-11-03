@@ -28,7 +28,8 @@ module mod_matrix_operations
 
   !> Interface to do matrix multiplication
   interface multiply_matrices
-    module procedure multiply_matrices_rxc
+    module procedure rmat_x_cmat
+    module procedure cmat_x_carr
   end interface multiply_matrices
 
   public  :: invert_matrix
@@ -86,9 +87,9 @@ contains
   end subroutine invert_matrix_real
 
 
-  !> Matrix multiplication using LAPACK routines, multiplies a real with
-  !! a complex matrix.
-  subroutine multiply_matrices_rxc(mat1, mat2, mat_out)
+  !> Matrix multiplication using LAPACK routines, multiplies
+  !! a real with a complex matrix.
+  subroutine rmat_x_cmat(mat1, mat2, mat_out)
     !> first matrix (left side)
     real(dp), intent(in)      :: mat1(:, :)
     !> second matrix (right side)
@@ -96,14 +97,14 @@ contains
     !> matrix multiplication mat1 x mat2
     complex(dp), intent(out)  :: mat_out(:, :)
 
-    !> number of columns in mat1
-    integer   :: cols_mat1
     !> number of rows in mat1
     integer   :: rows_mat1
+    !> number of columns in mat1
+    integer   :: cols_mat1
+    !> number of rows in mat2
+    integer   :: rows_mat2
     !> number of columns in mat2
     integer   :: cols_mat2
-    !> number of columns in mat1 and rows in mat2
-    integer   :: rows_mat2
     !> complex analog of mat1
     complex(dp) :: mat1_c(size(mat1, dim=1), size(mat1, dim=2))
     !> scalar alpha, see zgemm
@@ -113,10 +114,10 @@ contains
 
     ldm1 = size(mat1, dim=1)
     ldm2 = size(mat2, dim=1)
-    cols_mat1 = size(mat1, dim=1)
-    rows_mat1 = size(mat1, dim=2)
-    cols_mat2 = size(mat2, dim=1)
-    rows_mat2 = size(mat2, dim=2)
+    rows_mat1 = size(mat1, dim=1)
+    cols_mat1 = size(mat1, dim=2)
+    rows_mat2 = size(mat2, dim=1)
+    cols_mat2 = size(mat2, dim=2)
 
     ! check compatibility
     if (cols_mat1 /= rows_mat2) then
@@ -135,11 +136,62 @@ contains
     ! make mat1 complex
     mat1_c = mat1 * (1.0d0, 0.0d0)
     ! do multiplication
-    call log_message("matrix multiplication using zgemm", level="debug")
     call zgemm( &
       "N", "N", rows_mat1, cols_mat2, rows_mat2, &
       alpha, mat1_c, ldm1, mat2, ldm2, beta, mat_out, ldm1 &
     )
-  end subroutine multiply_matrices_rxc
+  end subroutine rmat_x_cmat
+
+
+  !> Matrix multiplication using LAPACK routines,
+  !! multiplies a complex matrix with a complex vector
+  subroutine cmat_x_carr(mat, vec, vec_out)
+    !> matrix (left side)
+    complex(dp), intent(in)   :: mat(:, :)
+    !> column vector (right side)
+    complex(dp), intent(in)   :: vec(:)
+    !> matrix multiplication mat x vec, yields vector
+    complex(dp), intent(out)  :: vec_out(:)
+
+    !> number of rows in mat
+    integer   :: rows_mat
+    !> number of cols in mat
+    integer   :: cols_mat
+    !> number of rows in vec
+    integer   :: rows_vec
+    !> number of cols in vec
+    integer   :: cols_vec
+    !> scalar alpha, see zgemm
+    complex(dp) :: alpha
+    !> scalar beta, see zgemm
+    complex(dp) :: beta
+
+    ldm1 = size(mat, dim=1)
+    ldm2 = size(vec, dim=1)
+    rows_mat = size(mat, dim=1)
+    cols_mat = size(mat, dim=2)
+    rows_vec = size(vec, dim=1)
+    cols_vec = 1
+
+    ! check compatibility
+    if (cols_mat /= rows_vec) then
+      call log_message( &
+        "incompatible matrices during matrix multiplication", &
+        level="error" &
+      )
+    end if
+
+    !> @note <tt>zgemm</tt> performs one of the matrix-matrix operations
+    !! $$ C := \alpha*op(A)*op(B) + \beta*C $$
+    !! In this case, \(\alpha = 1\), \(\beta = 0\), op = 'N'
+    !! (so no transpose or conjugate).
+    alpha = (1.0d0, 0.0d0)
+    beta  = (0.0d0, 0.0d0)
+    ! do multiplication
+    call zgemm( &
+      "N", "N", rows_mat, cols_vec, cols_mat, &
+      alpha, mat, ldm1, vec, ldm2, beta, vec_out, ldm1 &
+    )
+  end subroutine cmat_x_carr
 
 end module mod_matrix_operations
