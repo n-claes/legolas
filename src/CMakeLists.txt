@@ -62,7 +62,12 @@ set (sources
 set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)
 set_source_files_properties(main.f08 PROPERTIES LANGUAGE Fortran)
 
-set(LIBSTOLINK ${SCALAPACK_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+set(LIBSTOLINK
+    ${MUMPS_LIBRARIES}
+    ${SCALAPACK_LIBRARIES}
+    ${LAPACK_LIBRARIES}
+    ${BLAS_LIBRARIES}
+)
 
 add_library(${LEGOLASLIB} ${sources})
 add_executable(${LEGOLASEXEC} main.f08)
