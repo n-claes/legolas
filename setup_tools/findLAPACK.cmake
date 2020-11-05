@@ -1,11 +1,12 @@
+message("")
 message(STATUS "Finding LAPACK")
 
-IF(DEFINED ENV{LAPACK_LIBRARIES})
+if(DEFINED ENV{LAPACK_LIBRARIES})
     message(STATUS "LAPACK found: $ENV{LAPACK_LIBRARIES}")
     set(LAPACK_FOUND TRUE)
     set(LAPACK_LIBRARIES $ENV{LAPACK_LIBRARIES})
     return()
-ENDIF()
+endif()
 
 find_package(LAPACK REQUIRED)
 if (${LAPACK_FOUND})

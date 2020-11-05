@@ -63,8 +63,10 @@ set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)
 set_source_files_properties(main.f08 PROPERTIES LANGUAGE Fortran)
 
 set(LIBSTOLINK
-    ${MUMPS_LIBRARIES}
-    ${SCALAPACK_LIBRARIES}
+    ${ARPACK_LIBRARIES}
+    ${PARPACK_LIBRARIES}
+#    ${MUMPS_LIBRARIES}
+#    ${SCALAPACK_LIBRARIES}
     ${LAPACK_LIBRARIES}
     ${BLAS_LIBRARIES}
 )

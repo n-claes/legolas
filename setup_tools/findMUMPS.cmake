@@ -30,12 +30,13 @@ function(check_if_mumps_links)
             SRC_EXT
             f90
         )
-        if(NOT ${MUMPS_${comp}_links})
+        if(NOT MUMPS_${comp}_links)
             set(MUMPS_links False PARENT_SCOPE)
         endif()
     endforeach()
 endfunction()
 
+message("")
 message(STATUS "Finding MUMPS")
 
 # MUMPS needs scalapack, already checked before this script is called
@@ -141,7 +142,7 @@ set(MUMPS_INCLUDE_DIR ${MUMPS_INCLUDE_DIR})
 # check if we are able to link and compile Fortran programs containing MUMPS
 set(MUMPS_links True)
 check_if_mumps_links()
-if(NOT MUMPS_links)
+if(NOT ${MUMPS_links})
     message(STATUS "MUMPS libraries found but linking failed!")
     unable_to_find()
     return()

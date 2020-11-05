@@ -43,8 +43,10 @@ file(MAKE_DIRECTORY ${OUTPUT})
 
 include(${setup_tools}/findBLAS.cmake)
 include(${setup_tools}/findLAPACK.cmake)
-include(${setup_tools}/findSCALAPACK.cmake)
-include(${setup_tools}/findMUMPS.cmake)
+# we don't use SCALAPACK or MUMPS at the moment
+#include(${setup_tools}/findSCALAPACK.cmake)
+#include(${setup_tools}/findMUMPS.cmake)
+include(${setup_tools}/findARPACK.cmake)
 
 # name of library
 set(LEGOLASLIB lego)
