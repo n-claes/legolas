@@ -5,6 +5,43 @@ function(unable_to_find)
     message(STATUS "Unable to find ARPACK!")
 endfunction()
 
+
+# check if arpack compiles
+function(check_if_arpack_links)
+    set(CMAKE_REQUIRED_INCLUDES
+        ${ARPACK_INCLUDE_DIR}
+    )
+    set(CMAKE_REQUIRED_LIBRARIES
+        ${ARPACK_LIBRARY}
+        ${LAPACK_LIBRARIES}
+    )
+
+    include(CheckFortranSourceCompiles)
+    check_fortran_source_compiles("
+        program test_arpack_include
+            implicit none
+            include 'arpackicb.h'
+        end program"
+        ARPACK_includes
+        SRC_EXT
+        f90
+    )
+    # we don't have to supply arguments to dnaupd, this will error
+    # out but link just fine
+    check_fortran_source_compiles("
+        program test_arpack_call
+            implicit none
+            call dnaupd()
+        end program"
+        ARPACK_calls
+        SRC_EXT
+        f90
+    )
+    if(NOT ARPACK_includes OR NOT ARPACK_calls)
+        set(ARPACK_links False PARENT_SCOPE)
+    endif()
+endfunction()
+
 message("")
 message(STATUS "Finding ARPACK")
 
@@ -69,6 +106,15 @@ if(PARPACK_LIBRARY)
 else()
     # don't abort if not found
     message(STATUS "Looking for libparpack - not found")
+endif()
+
+# check if we are able to link and compile Fortran programs containing ARPACK
+set(ARPACK_links True)
+check_if_arpack_links()
+if(NOT ${ARPACK_links})
+    message(STATUS "ARPACK libraries found but linking failed!")
+    unable_to_find()
+    return()
 endif()
 
 # find (P)ARPACK package and set corresponding variables
