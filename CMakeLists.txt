@@ -14,7 +14,7 @@ if (${Coverage})
     set (CMAKE_Fortran_FLAGS "--coverage -o0 -g")
 else()
     set(CMAKE_Fortran_FLAGS "-fcheck=all -fbounds-check -Wall \
-                             -Wextra -Wconversion -pedantic -fbacktrace")
+                             -Wextra -Wconversion -pedantic -fbacktrace -cpp")
 endif()
 
 if (DEFINED ENV{LEGOLASDIR})
@@ -47,6 +47,15 @@ include(${setup_tools}/findLAPACK.cmake)
 #include(${setup_tools}/findSCALAPACK.cmake)
 #include(${setup_tools}/findMUMPS.cmake)
 include(${setup_tools}/findARPACK.cmake)
+
+# add preprocessor directives for optional compilation of submodules,
+# depending on packages found
+add_definitions(
+#    -D _SCALAPACK_FOUND=${SCALAPACK_FOUND}
+#    -D _MUMPS_FOUND=${MUMPS_FOUND}
+    -D _ARPACK_FOUND=${ARPACK_FOUND}
+    -D _PARPACK_FOUND=${PARPACK_FOUND}
+)
 
 # name of library
 set(LEGOLASLIB lego)
