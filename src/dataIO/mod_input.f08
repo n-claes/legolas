@@ -55,7 +55,7 @@ contains
     namelist /paramlist/    k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, cte_p0, &
                             p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, lambda, nu, &
                             r0, rc, rj, Bth0, Bz0, V, j0, g
-    namelist /solvelist/    solver
+    namelist /solvelist/    solver, arpack_mode, number_of_eigenvalues, which_eigenvalues, maxiter
 
     call init_equilibrium_params()
     ! if no parfile supplied, return to keep using defaults

@@ -55,6 +55,7 @@ set (sources
         solvers/mod_solvers.f08
         solvers/smod_qr_invert.f08
         solvers/smod_qz_direct.f08
+        solvers/smod_arnoldi.f08
         mod_eigenfunctions.f08
         dataIO/mod_output.f08
 )

@@ -48,13 +48,24 @@ include(${setup_tools}/findLAPACK.cmake)
 #include(${setup_tools}/findMUMPS.cmake)
 include(${setup_tools}/findARPACK.cmake)
 
+# for some reason TRUE and FALSE are not expanded to 1 and 0 in the preprocessor,
+# so we explicitly do it here
+set(_ARPACK_FOUND 0)
+set(_PARPACK_FOUND 0)
+if (${ARPACK_FOUND})
+    set(_ARPACK_FOUND 1)
+endif()
+if (${PARPACK_FOUND})
+    set(_PARPACK_FOUND 1)
+endif()
+
 # add preprocessor directives for optional compilation of submodules,
 # depending on packages found
 add_definitions(
 #    -D _SCALAPACK_FOUND=${SCALAPACK_FOUND}
 #    -D _MUMPS_FOUND=${MUMPS_FOUND}
-    -D _ARPACK_FOUND=${ARPACK_FOUND}
-    -D _PARPACK_FOUND=${PARPACK_FOUND}
+    -D _ARPACK_FOUND=${_ARPACK_FOUND}
+    -D _PARPACK_FOUND=${_PARPACK_FOUND}
 )
 
 # name of library

@@ -21,7 +21,7 @@ module mod_logging
   !> integer format
   character(4), parameter    :: int_fmt  = '(i8)'
   !> character used as variable to log non-strings
-  character(20) :: char_log
+  character(20) :: char_log, char_log2
 
   private
 
@@ -29,7 +29,7 @@ module mod_logging
   public :: print_logo
   public :: print_console_info
   public :: print_whitespace
-  public :: char_log, exp_fmt, dp_fmt, int_fmt
+  public :: char_log, char_log2, exp_fmt, dp_fmt, int_fmt
 
 contains
 
@@ -52,8 +52,9 @@ contains
     !> prefixes message type to string, default is <tt>.true.</tt>
     logical, intent(in), optional :: use_prefix
 
-    character(len=str_len) :: msg_painted
-    logical                :: add_prefix
+    ! need a bit more room here, we trim anyway when printing
+    character(len=2*str_len) :: msg_painted
+    logical                  :: add_prefix
 
     add_prefix = .true.
     if (present(use_prefix)) then
@@ -70,14 +71,14 @@ contains
         else
           call paint_string("           " // msg, "yellow", msg_painted)
         end if
-        write(*, *) msg_painted
+        write(*, *) trim(msg_painted)
       end if
     case("info")
       if (logging_level >= 2) then
         if (add_prefix) then
-          write(*, *) " INFO    | " // msg
+          write(*, *) " INFO    | " // trim(msg)
         else
-          write(*, *) "           " // msg
+          write(*, *) "           " // trim(msg)
         end if
       end if
     case("debug")
@@ -87,7 +88,7 @@ contains
         else
           call paint_string("         | " // msg, "green", msg_painted)
         end if
-        write(*, *) msg_painted
+        write(*, *) trim(msg_painted)
       end if
     case default
       call raise_exception("argument 'level' should be 'error', 'warning', 'info' or 'debug'")

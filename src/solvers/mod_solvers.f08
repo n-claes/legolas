@@ -23,6 +23,13 @@ module mod_solvers
       complex(dp), intent(out)  :: vl(:, :)
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine qz_direct
+
+    module subroutine arnoldi(matrix_A, matrix_B, omega, vr)
+      complex(dp), intent(in)   :: matrix_A(:, :)
+      real(dp), intent(in)      :: matrix_B(:, :)
+      complex(dp), intent(out)  :: omega(:)
+      complex(dp), intent(out)  :: vr(:, :)
+    end subroutine arnoldi
   end interface
 
   public  :: solve_evp
@@ -40,12 +47,15 @@ contains
     complex(dp), intent(out)  :: vr(:, :)
 
     select case(solver)
-      case("QR-invert")
-        call qr_invert(matrix_A, matrix_B, omega, vl, vr)
-      case("QZ-direct")
-        call qz_direct(matrix_A, matrix_B, omega, vl, vr)
-      case default
-        call log_message("unknown solver passed: " // solver, level="error")
+    case("QR-invert")
+      call qr_invert(matrix_A, matrix_B, omega, vl, vr)
+    case("QZ-direct")
+      call qz_direct(matrix_A, matrix_B, omega, vl, vr)
+    case("arnoldi")
+      call arnoldi(matrix_A, matrix_B, omega, vr)
+    case default
+      call log_message("unknown solver passed: " // solver, level="error")
+      return
     end select
 
   end subroutine solve_evp
