@@ -111,4 +111,21 @@ contains
     end do
   end function linspace
 
+
+  subroutine sort_complex_array(array)
+    complex(dp), intent(inout)  :: array(:)
+    complex(dp) :: temp
+    integer     :: i, minidx
+
+    ! sort array using selection sort, based on real part
+    do i = 1, size(array) - 1
+      minidx = minloc(real(array(i:)), 1) + i - 1
+      if (real(array(i)) > real(array(minidx))) then
+        temp = array(i)
+        array(i) = array(minidx)
+        array(minidx) = temp
+      end if
+    end do
+  end subroutine sort_complex_array
+
 end module mod_suite_utils

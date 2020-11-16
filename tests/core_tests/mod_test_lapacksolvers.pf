@@ -1,0 +1,106 @@
+module mod_test_lapacksolvers
+  use mod_suite_utils
+  use funit
+  use mod_global_variables, only: ic, ir, solver
+  use mod_solvers, only: solve_evp
+  implicit none
+
+contains
+
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+    call reset_eigenfunctions(init_efs=.false.)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_lapack_qr_simple()
+    complex(dp) :: amat(5, 5), vl(5, 5), vr(5, 5)
+    real(dp)    :: bmat(5, 5)
+    complex(dp) :: eigenvals(5), expected(5)
+    integer     :: i
+
+    write(*, *) "Testing QR solver: Ax = wx"
+    solver = "QR-invert"
+
+    amat = reshape( &
+      (/ &
+        1.0d0*ir, 2.0d0*ir, 3.0d0*ir, 1.0d0*ir, 0.0d0*ir, &
+        2.0d0*ic, 1.0d0*ic, -1.0d0*ir, 0.0d0*ir, -1.0d0*ic, &
+        -3.0d0*ir, 3.0d0*ir, -2.0d0*ic, 0.0d0*ir, 3.0d0*ic, &
+        0.0d0*ir, 5.0d0*ic, 4.0d0*ir, -3.0d0*ic, 2.0d0*ic, &
+        1.0d0*ir, 0.0d0*ir, 2.0d0*ir, 2.0d0*ic, -5.0d0*ir &
+      /), &
+      shape(amat) &
+    )
+    ! these come from scipy.linalg.eigvals
+    expected = (/ &
+      (-4.82361603918897d0, -0.55489270355141d0), &
+      (-2.01155112095697d0, -2.49781686227086d0), &
+      (-0.05902597975282d0, 2.062061812204889d0), &
+      (0.663744370985872d0, -5.82933550828359d0), &
+      (2.230448768912873d0, 2.819983261900966d0) &
+    /)
+    ! make unit matrix
+    bmat = 0.0d0
+    do i = 1, 5
+      bmat(i, i) = 1.0d0
+    end do
+    call solve_evp(amat, bmat, eigenvals, vl, vr)
+    call sort_complex_array(eigenvals)
+    @assertEqual(expected, eigenvals, tolerance=TOL)
+  end subroutine test_lapack_qr_simple
+
+
+  @test
+  subroutine test_lapack_qr_general()
+    complex(dp) :: amat(5, 5), vl(5, 5), vr(5, 5)
+    real(dp)    :: bmat(5, 5)
+    complex(dp) :: eigenvals(5), expected(5)
+
+    write(*, *) "Testing QR solver: Ax = wBx"
+    solver = "QR-invert"
+
+    amat = reshape( &
+      (/ &
+        1.0d0*ir, 2.0d0*ir, 3.0d0*ir, 1.0d0*ir, 0.0d0*ir, &
+          2.0d0*ic, 1.0d0*ic, -1.0d0*ir, 0.0d0*ir, -1.0d0*ic, &
+          -3.0d0*ir, 3.0d0*ir, -2.0d0*ic, 0.0d0*ir, 3.0d0*ic, &
+          0.0d0*ir, 5.0d0*ic, 4.0d0*ir, -3.0d0*ic, 2.0d0*ic, &
+          1.0d0*ir, 0.0d0*ir, 2.0d0*ir, 2.0d0*ic, -5.0d0*ir &
+        /), &
+      shape(amat) &
+    )
+    bmat = reshape( &
+      (/ &
+        1.0d0, -2.0d0, 0.0d0, 1.0d0, 0.0d0, &
+        2.0d0, 5.0d0, 4.0d0, 3.0d0, -2.0d0, &
+        3.0d0, 3.0d0, 2.0d0, 0.0d0, 3.0d0, &
+        4.0d0, -1.0d0, -2.0d0, 0.0d0, 0.0d0, &
+        5.0d0, 0.0d0, 0.0d0, -2.0d0, -3.0d0 &
+      /), &
+      shape(bmat) &
+    )
+    ! these come from scipy.linalg.eigvals
+    expected = (/ &
+      (-1.0912043648361447d0, -1.471457235137944d0), &
+      (-0.558926729560291d0, 0.5012768267805334d0), &
+      (0.017238447154045447d0, 0.9160844663696124d0), &
+      (0.6276596796722511d0, 0.48642862257574954d0), &
+      (0.6282488405860116d0, -0.23788823614350615d0) &
+    /)
+    call solve_evp(amat, bmat, eigenvals, vl, vr)
+    call sort_complex_array(eigenvals)
+    @assertEqual(expected, eigenvals, tolerance=TOL)
+  end subroutine test_lapack_qr_general
+
+end module mod_test_lapacksolvers
