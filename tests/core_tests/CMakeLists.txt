@@ -53,7 +53,7 @@ set( test_sources
         mod_test_boundaries.pf
         mod_test_splines.pf
         mod_test_subblock.pf
-        mod_test_solvers.pf
+        mod_test_matrixoperations.pf
         mod_test_interpolation.pf
         mod_test_integration.pf
 )
