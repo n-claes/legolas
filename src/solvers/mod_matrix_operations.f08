@@ -29,7 +29,7 @@ module mod_matrix_operations
   !> Interface to do matrix multiplication
   interface multiply_matrices
     module procedure rmat_x_cmat
-    module procedure cmat_x_carr
+    module procedure cmat_x_cvec
   end interface multiply_matrices
 
   public  :: invert_matrix
@@ -51,6 +51,7 @@ contains
 
     if (.not. matrix_is_square(mat)) then
       call log_message("trying to invert but matrix is not square!", level="error")
+      return
     end if
 
     mat_inv = mat
@@ -125,6 +126,7 @@ contains
         "incompatible matrices during matrix multiplication", &
         level="error" &
       )
+      return
     end if
 
     !> @note <tt>zgemm</tt> performs one of the matrix-matrix operations
@@ -145,7 +147,7 @@ contains
 
   !> Matrix multiplication using LAPACK routines,
   !! multiplies a complex matrix with a complex vector
-  subroutine cmat_x_carr(mat, vec, vec_out)
+  subroutine cmat_x_cvec(mat, vec, vec_out)
     !> matrix (left side)
     complex(dp), intent(in)   :: mat(:, :)
     !> column vector (right side)
@@ -179,6 +181,7 @@ contains
         "incompatible matrices during matrix multiplication", &
         level="error" &
       )
+      return
     end if
 
     !> @note <tt>zgemm</tt> performs one of the matrix-matrix operations
@@ -192,6 +195,6 @@ contains
       "N", "N", rows_mat, cols_vec, cols_mat, &
       alpha, mat, ldm1, vec, ldm2, beta, vec_out, ldm1 &
     )
-  end subroutine cmat_x_carr
+  end subroutine cmat_x_cvec
 
 end module mod_matrix_operations
