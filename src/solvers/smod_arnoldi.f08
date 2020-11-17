@@ -61,22 +61,24 @@ contains
     complex(dp), allocatable  :: workev(:)
 
     evpdim = size(matrix_A, dim=1)
-    allocate(residual(evpdim))
-
     ! is maxiter is not set in the parfile it's still 0, default to 10*N
     if (maxiter == 0) then
       maxiter = 10 * evpdim
     end if
+    call do_arpack_sanity_checks(evpdim=evpdim)
+
+    allocate(residual(evpdim))
     residual = (0.0d0, 0.0d0)
+
     ! TODO: allow for customisation of ncv through parfile
     ncv = min(evpdim, 2 * number_of_eigenvalues)
+
     allocate(arnoldi_vectors(evpdim, ncv))
     arnoldi_vectors = (0.0d0, 0.0d0)
+
     lworkl = 3 * ncv * (ncv + 2)
     allocate(workl(lworkl))
     allocate(rwork(ncv))
-
-    call do_arpack_sanity_checks(evpdim=evpdim)
 
     ! cycle through possible modes
     select case(arpack_mode)
@@ -94,6 +96,8 @@ contains
 
       bmat = "I"
     case default
+      ! TODO: proper allocation handling of variables, maybe use a type
+      deallocate(residual, arnoldi_vectors, workl, rwork)
       call log_message("unknown mode for ARPACK: " // arpack_mode, level="error")
       return
     end select
@@ -104,6 +108,7 @@ contains
     iparam(7) = mode        ! mode for the solver
 
     ido = 0                 ! 0 means first call to interface
+    info = 0                ! 0 at input means use random initial residual vector
     converged = .false.
 
     ! keep iterating as long as the eigenvalues are not converged.
