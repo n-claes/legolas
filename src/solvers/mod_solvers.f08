@@ -111,8 +111,8 @@ contains
     allowed_which = [character(len=2) :: "LM", "SM", "LR", "SR", "LI", "SI"]
     if (.not. any(which_eigenvalues == allowed_which)) then
       call log_message( &
-        "which_eigenvalues = " // which_eigenvalues // " is invalid; must be one of &
-          &the following: 'LM', 'SM', 'LR', 'SR', 'LI' or 'SI'", level="error" &
+        "which_eigenvalues = " // which_eigenvalues // " is invalid", &
+        level="error" &
       )
       return
     end if
