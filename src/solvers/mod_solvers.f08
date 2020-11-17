@@ -90,7 +90,7 @@ contains
     end if
 
     ! validity check for max Arnoldi iterations
-    if (maxiter <= 0) then
+    if (maxiter < 0) then
       write(char_log, int_fmt) maxiter
       call log_message( &
         "maxiter has to be positive, but is equal to " &
