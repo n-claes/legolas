@@ -1,0 +1,162 @@
+module mod_test_arpacksolvers
+  use mod_suite_utils
+  use funit
+  use mod_solvers, only: solve_evp
+  use mod_global_variables, only: ir, ic, arpack_mode, number_of_eigenvalues, maxiter
+  implicit none
+
+  complex(dp), allocatable  :: amat(:, :)
+  real(dp), allocatable     :: bmat(:, :)
+  complex(dp), allocatable  :: vl(:, :), vr(:, :)
+  complex(dp), allocatable  :: eigenvals(:)
+  complex(dp), allocatable  :: expected(:)
+
+contains
+
+
+  subroutine reset_arrays(ndim)
+    integer, intent(in) :: ndim
+
+    if (allocated(amat)) then
+      deallocate(amat)
+    end if
+    allocate(amat(ndim, ndim))
+    if (allocated(bmat)) then
+      deallocate(bmat)
+    end if
+    allocate(bmat(ndim, ndim))
+    if (allocated(vl)) then
+      deallocate(vl)
+    end if
+    allocate(vl(ndim, ndim))
+    if (allocated(vr)) then
+      deallocate(vr)
+    end if
+    allocate(vr(ndim, ndim))
+    if (allocated(eigenvals)) then
+      deallocate(eigenvals)
+    end if
+    allocate(eigenvals(ndim))
+    if (allocated(expected)) then
+      deallocate(expected)
+    end if
+    allocate(expected(ndim))
+    expected = (0.0d0, 0.0d0)
+  end subroutine reset_arrays
+
+
+  @before
+  subroutine init_test()
+    use mod_global_variables, only: solver
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+    call reset_eigenfunctions(init_efs=.false.)
+    solver = "arnoldi"
+    number_of_eigenvalues = 5
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_arpack_bad_nev()
+    use mod_solvers, only: do_arpack_sanity_checks
+    use mod_global_variables, only: number_of_eigenvalues
+
+    write(*, *) "Testing ARPACK: invalid number_of_eigenvalues"
+    number_of_eigenvalues = -1
+    call do_arpack_sanity_checks(evpdim=10)
+    @assertExceptionRaised("number_of_eigenvalues must be >= 0, but is equal to -1")
+
+    number_of_eigenvalues = 12
+    call do_arpack_sanity_checks(evpdim=10)
+    @assertExceptionRaised("number_of_eigenvalues larger than matrix size! (12 > 10)")
+  end subroutine test_arpack_bad_nev
+
+
+  @test
+  subroutine test_arpack_bad_maxiter()
+    use mod_solvers, only: do_arpack_sanity_checks
+    use mod_global_variables, only: maxiter
+
+    write(*, *) "Testing ARPACK: invalid maxiter"
+    maxiter = -1
+    call do_arpack_sanity_checks(evpdim=10)
+    @assertExceptionRaised("maxiter has to be positive, but is equal to -1")
+  end subroutine test_arpack_bad_maxiter
+
+
+  @test
+  subroutine test_arpack_bad_which()
+    use mod_solvers, only: do_arpack_sanity_checks
+    use mod_global_variables, only: which_eigenvalues
+
+    write(*, *) "Testing ARPACK: invalid which_eigenvalues"
+    which_eigenvalues = "LL"
+    call do_arpack_sanity_checks(evpdim=10)
+    @assertExceptionRaised("which_eigenvalues = LL is invalid")
+  end subroutine test_arpack_bad_which
+
+
+  @test
+  subroutine test_arpack_bad_mode()
+    call reset_arrays(ndim=10)
+
+    write(*, *) "Testing ARPACK: invalid mode"
+    arpack_mode = "test_fail"
+    call solve_evp(amat, bmat, eigenvals, vl, vr)
+    @assertExceptionRaised("unknown mode for ARPACK: test_fail")
+  end subroutine test_arpack_bad_mode
+
+
+  @test
+  subroutine test_arpack_standard()
+    use mod_global_variables, only: which_eigenvalues
+
+    integer   :: i
+
+    write(*, *) "Testing ARPACK: Ax = wx"
+    arpack_mode = "standard"
+
+    number_of_eigenvalues = 3
+    call reset_arrays(ndim=10)
+    ! 10x10 freely chosen sparse matrix
+    amat = reshape( &
+      (/ &
+         1*ir, 2*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
+         2*ic, 1*ic, -1*ir,  0*ir,  0*ir,  0*ir,  0*ir,  2*ic,  0*ir,  0*ir, &
+        -3*ir, 3*ir, -2*ic, -1*ic,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
+         0*ir, 5*ic,  4*ir, -3*ic, -1*ic,  2*ic,  0*ir,  0*ir,  0*ir,  0*ir, &
+         1*ir, 0*ir,  2*ir,  2*ic,  3*ic, -7*ir,  1*ic, -3*ir,  0*ir,  0*ir, &
+         0*ir, 0*ir,  3*ic,  4*ir,  5*ic, -3*ir, -1*ir, -5*ic,  2*ic,  0*ir, &
+         0*ir, 0*ir,  0*ir,  3*ir, -5*ir, -1*ic,  4*ic,  7*ic,  2*ir,  1*ic, &
+         0*ir, 0*ir,  0*ir,  0*ir,  6*ic,  0*ir, -7*ir, -3*ir,  1*ic, -2*ir, &
+        -1*ir, 0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  1*ir, -3*ir,  5*ic, &
+         0*ir, 0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  2*ic,  5*ir &
+      /), &
+      shape(amat) &
+    )
+    ! create identity matrix for B
+    do i = 1, 10
+      bmat(i, i) = 1.0d0
+    end do
+
+    ! all solutions are obtained through scipy.sparse.linalg.eigs
+    which_eigenvalues = "LM"
+    expected(1) = (-7.8838765894019d0, 4.199144433240663d0)
+    expected(2) = (-5.1382612419544d0, 7.50090137392018d0)
+    expected(10) = (5.24005150421898d0, -6.595821187876013d0)
+    call solve_evp(amat, bmat, eigenvals, vl, vr)
+    call sort_complex_array(eigenvals)
+    @assertEqual(expected, eigenvals, tolerance=TOL)
+  end subroutine test_arpack_standard
+
+
+
+
+
+end module mod_test_arpacksolvers

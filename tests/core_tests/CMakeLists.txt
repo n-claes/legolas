@@ -68,6 +68,7 @@ set( test_sources
         mod_test_interpolation.pf
         mod_test_integration.pf
         mod_test_lapacksolvers.pf
+        mod_test_arpacksolvers.pf
 )
 add_pfunit_ctest (test_legolas
         TEST_SOURCES ${test_sources}
