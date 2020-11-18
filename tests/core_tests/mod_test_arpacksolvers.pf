@@ -36,11 +36,11 @@ contains
     if (allocated(eigenvals)) then
       deallocate(eigenvals)
     end if
-    allocate(eigenvals(ndim))
+    allocate(eigenvals(number_of_eigenvalues))
     if (allocated(expected)) then
       deallocate(expected)
     end if
-    allocate(expected(ndim))
+    allocate(expected(number_of_eigenvalues))
     expected = (0.0d0, 0.0d0)
   end subroutine reset_arrays
 
@@ -121,8 +121,7 @@ contains
 
     write(*, *) "Testing ARPACK: Ax = wx"
     arpack_mode = "standard"
-
-    number_of_eigenvalues = 3
+    number_of_eigenvalues = 4
     call reset_arrays(ndim=10)
     ! 10x10 freely chosen sparse matrix
     amat = reshape( &
@@ -141,18 +140,22 @@ contains
       shape(amat) &
     )
     ! create identity matrix for B
-    do i = 1, 10
+    bmat = 0.0d0
+    do i = 1, size(amat, dim=1)
       bmat(i, i) = 1.0d0
     end do
 
     ! all solutions are obtained through scipy.sparse.linalg.eigs
     which_eigenvalues = "LM"
-    expected(1) = (-7.8838765894019d0, 4.199144433240663d0)
-    expected(2) = (-5.1382612419544d0, 7.50090137392018d0)
-    expected(10) = (5.24005150421898d0, -6.595821187876013d0)
+    expected = (/ &
+      (-7.88387658940d0, 4.1991444332407d0), &
+      (-5.138261241954d0, 7.5009013739202d0), &
+      (0.31046578943724d0, -4.047463930579d0), &
+      (5.2400515042190d0, -6.595821187876d0) &
+    /)
     call solve_evp(amat, bmat, eigenvals, vl, vr)
     call sort_complex_array(eigenvals)
-    @assertEqual(expected, eigenvals, tolerance=TOL)
+    @assertEqual(expected, eigenvals, tolerance=1.0d-10)
   end subroutine test_arpack_standard
 
 
