@@ -2,9 +2,11 @@ module mod_test_arpacksolvers
   use mod_suite_utils
   use funit
   use mod_solvers, only: solve_evp
-  use mod_global_variables, only: ir, ic, arpack_mode, number_of_eigenvalues
+  use mod_arpack_type, only: arpack_type
+  use mod_global_variables, only: ir, ic, number_of_eigenvalues, arpack_mode
   implicit none
 
+  type(arpack_type)         :: arpackparams
   complex(dp), allocatable  :: amat(:, :)
   real(dp), allocatable     :: bmat(:, :)
   complex(dp), allocatable  :: vl(:, :), vr(:, :)
@@ -61,45 +63,44 @@ contains
   @after
   subroutine teardown_test()
     call clean_up()
+    call arpackparams % tear_down()
   end subroutine teardown_test
 
 
   @test
   subroutine test_arpack_bad_nev()
-    use mod_solvers, only: do_arpack_sanity_checks
     use mod_global_variables, only: number_of_eigenvalues
 
     write(*, *) "Testing ARPACK: invalid number_of_eigenvalues"
     number_of_eigenvalues = -1
-    call do_arpack_sanity_checks(evpdim=10)
+    call arpackparams % initialise(evpdim=10)
     @assertExceptionRaised("number_of_eigenvalues must be >= 0, but is equal to -1")
+    call arpackparams % tear_down()
 
     number_of_eigenvalues = 12
-    call do_arpack_sanity_checks(evpdim=10)
+    call arpackparams % initialise(evpdim=10)
     @assertExceptionRaised("number_of_eigenvalues larger than matrix size! (12 > 10)")
   end subroutine test_arpack_bad_nev
 
 
   @test
   subroutine test_arpack_bad_maxiter()
-    use mod_solvers, only: do_arpack_sanity_checks
     use mod_global_variables, only: maxiter
 
     write(*, *) "Testing ARPACK: invalid maxiter"
     maxiter = -1
-    call do_arpack_sanity_checks(evpdim=10)
+    call arpackparams % initialise(evpdim=10)
     @assertExceptionRaised("maxiter has to be positive, but is equal to -1")
   end subroutine test_arpack_bad_maxiter
 
 
   @test
   subroutine test_arpack_bad_which()
-    use mod_solvers, only: do_arpack_sanity_checks
     use mod_global_variables, only: which_eigenvalues
 
     write(*, *) "Testing ARPACK: invalid which_eigenvalues"
     which_eigenvalues = "LL"
-    call do_arpack_sanity_checks(evpdim=10)
+    call arpackparams % initialise(evpdim=10)
     @assertExceptionRaised("which_eigenvalues = LL is invalid")
   end subroutine test_arpack_bad_which
 

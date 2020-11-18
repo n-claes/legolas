@@ -36,7 +36,6 @@ module mod_solvers
 
   public  :: residual_norm
   public  :: solve_evp
-  public  :: do_arpack_sanity_checks
   public  :: solvers_clean
 
 contains
@@ -64,63 +63,6 @@ contains
     end select
 
   end subroutine solve_evp
-
-
-  subroutine do_arpack_sanity_checks(evpdim)
-    use mod_global_variables, only: number_of_eigenvalues, which_eigenvalues, maxiter
-
-    integer, intent(in) :: evpdim
-    character(2)        :: allowed_which(6)
-
-    ! validity check for requested number of eigenvalues
-    if (number_of_eigenvalues <= 0) then
-      write(char_log, int_fmt) number_of_eigenvalues
-      call log_message( &
-        "number_of_eigenvalues must be >= 0, but is equal to " &
-          // adjustl(trim(char_log)), &
-        level="error" &
-      )
-      return
-    end if
-    if (number_of_eigenvalues >= evpdim) then
-      write(char_log, int_fmt) number_of_eigenvalues
-      write(char_log2, int_fmt) evpdim
-      call log_message( &
-        "number_of_eigenvalues larger than matrix size! (" &
-          // trim(adjustl(char_log)) // " > " // trim(adjustl(char_log2)) // ")", &
-        level="error" &
-      )
-      return
-    end if
-
-    ! validity check for provided 'which' argument
-    allowed_which = [character(len=2) :: "LM", "SM", "LR", "SR", "LI", "SI"]
-    if (.not. any(which_eigenvalues == allowed_which)) then
-      call log_message( &
-        "which_eigenvalues = " // which_eigenvalues // " is invalid", &
-        level="error" &
-      )
-      return
-    end if
-
-    ! validity check for max Arnoldi iterations
-    if (maxiter < 0) then
-      write(char_log, int_fmt) maxiter
-      call log_message( &
-        "maxiter has to be positive, but is equal to " &
-          // trim(adjustl(char_log)), level="error" &
-      )
-      return
-    else if (maxiter < 10 * evpdim) then
-      write(char_log, int_fmt) maxiter
-      write(char_log2, int_fmt) 10 * evpdim
-      call log_message( &
-        "maxiter is below recommended 10*N: (" &
-          // trim(adjustl(char_log)) // " < " // trim(adjustl(char_log2)) // ")", &
-        level="warning" &
-      )
-    end if
-  end subroutine do_arpack_sanity_checks
 
 
   subroutine solvers_clean()

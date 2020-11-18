@@ -53,6 +53,7 @@ set (sources
         mod_boundary_conditions.f08
         mod_matrix_creation.f08
         solvers/mod_solvers.f08
+        solvers/mod_arpack_type.f08
         solvers/smod_qr_invert.f08
         solvers/smod_qz_direct.f08
         solvers/smod_arnoldi.f08
