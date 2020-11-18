@@ -89,6 +89,16 @@ contains
       return
     end if
 
+    ! validity check for provided 'which' argument
+    allowed_which = [character(len=2) :: "LM", "SM", "LR", "SR", "LI", "SI"]
+    if (.not. any(which_eigenvalues == allowed_which)) then
+      call log_message( &
+        "which_eigenvalues = " // which_eigenvalues // " is invalid", &
+        level="error" &
+      )
+      return
+    end if
+
     ! validity check for max Arnoldi iterations
     if (maxiter < 0) then
       write(char_log, int_fmt) maxiter
@@ -105,16 +115,6 @@ contains
           // trim(adjustl(char_log)) // " < " // trim(adjustl(char_log2)) // ")", &
         level="warning" &
       )
-    end if
-
-    ! validity check for provided 'which' argument
-    allowed_which = [character(len=2) :: "LM", "SM", "LR", "SR", "LI", "SI"]
-    if (.not. any(which_eigenvalues == allowed_which)) then
-      call log_message( &
-        "which_eigenvalues = " // which_eigenvalues // " is invalid", &
-        level="error" &
-      )
-      return
     end if
   end subroutine do_arpack_sanity_checks
 

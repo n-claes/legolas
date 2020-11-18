@@ -1,7 +1,7 @@
 module mod_test_lapacksolvers
   use mod_suite_utils
   use funit
-  use mod_global_variables, only: ic, ir, solver
+  use mod_global_variables, only: ic, ir, solver, write_eigenfunctions
   use mod_solvers, only: solve_evp
   implicit none
 
@@ -113,6 +113,7 @@ contains
 
     write(*, *) "Testing QZ solver: Ax = wx"
     solver = "QZ-direct"
+    write_eigenfunctions = .false.
 
     amat = reshape( &
       (/ &
@@ -151,6 +152,7 @@ contains
 
     write(*, *) "Testing QZ solver: Ax = wBx"
     solver = "QZ-direct"
+    write_eigenfunctions = .false.
 
     amat = reshape( &
       (/ &

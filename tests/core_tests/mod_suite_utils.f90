@@ -12,7 +12,7 @@ contains
 
     call initialise_globals()
     call init_equilibrium_params()
-    logging_level = 0
+    logging_level = 1 ! also print warnings
     k2 = 1.0d0
     k3 = 2.5d0
   end subroutine reset_globals
