@@ -4,6 +4,8 @@ module mod_solvers
   use mod_check_values, only: check_small_values
   implicit none
 
+  real(dp), allocatable  :: residual_norm(:)
+
   private
 
   !> interface to the different solution methods implemented in submodules
@@ -32,8 +34,10 @@ module mod_solvers
     end subroutine arnoldi
   end interface
 
+  public  :: residual_norm
   public  :: solve_evp
   public  :: do_arpack_sanity_checks
+  public  :: solvers_clean
 
 contains
 
@@ -117,5 +121,12 @@ contains
       )
     end if
   end subroutine do_arpack_sanity_checks
+
+
+  subroutine solvers_clean()
+    if (allocated(residual_norm)) then
+      deallocate(residual_norm)
+    end if
+  end subroutine solvers_clean
 
 end module mod_solvers

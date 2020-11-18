@@ -2,14 +2,16 @@ module mod_test_arpacksolvers
   use mod_suite_utils
   use funit
   use mod_solvers, only: solve_evp
-  use mod_global_variables, only: ir, ic, arpack_mode, number_of_eigenvalues, maxiter
+  use mod_global_variables, only: ir, ic, arpack_mode, number_of_eigenvalues
   implicit none
 
   complex(dp), allocatable  :: amat(:, :)
   real(dp), allocatable     :: bmat(:, :)
   complex(dp), allocatable  :: vl(:, :), vr(:, :)
   complex(dp), allocatable  :: eigenvals(:)
-  complex(dp), allocatable  :: expected(:)
+  complex(dp), allocatable  :: expected(:, :)
+
+  character(2)  :: which_to_test(6) = ["LM", "SM", "LR", "SR", "LI", "SI"]
 
 contains
 
@@ -40,7 +42,7 @@ contains
     if (allocated(expected)) then
       deallocate(expected)
     end if
-    allocate(expected(number_of_eigenvalues))
+    allocate(expected(size(which_to_test), number_of_eigenvalues))
     expected = (0.0d0, 0.0d0)
   end subroutine reset_arrays
 
@@ -115,15 +117,19 @@ contains
 
   @test
   subroutine test_arpack_standard()
-    use mod_global_variables, only: which_eigenvalues
+    use mod_global_variables, only: which_eigenvalues, maxiter
+    use mod_solvers, only: solvers_clean
 
+    real(dp)  :: custom_tol
     integer   :: i
 
     write(*, *) "Testing ARPACK: Ax = wx"
     arpack_mode = "standard"
     number_of_eigenvalues = 4
-    call reset_arrays(ndim=10)
+    ! set maxiter manually, 100 iterations (10N) is too low for some cases
+    maxiter = 2000
     ! 10x10 freely chosen sparse matrix
+    call reset_arrays(ndim=10)
     amat = reshape( &
       (/ &
          1*ir, 2*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
@@ -145,21 +151,67 @@ contains
       bmat(i, i) = 1.0d0
     end do
 
-    ! all solutions are obtained through scipy.sparse.linalg.eigs
-    which_eigenvalues = "LM"
-    expected = (/ &
+    ! fill expected values, all solutions are obtained through scipy.sparse.linalg.eigs
+    ! mode = "LM"
+    expected(1, :) = (/ &
       (-7.88387658940d0, 4.1991444332407d0), &
       (-5.138261241954d0, 7.5009013739202d0), &
       (0.31046578943724d0, -4.047463930579d0), &
       (5.2400515042190d0, -6.595821187876d0) &
     /)
-    call solve_evp(amat, bmat, eigenvals, vl, vr)
-    call sort_complex_array(eigenvals)
-    @assertEqual(expected, eigenvals, tolerance=1.0d-10)
+    ! mode = "SM"
+    expected(2, :) = (/ &
+      (-1.8535519260158162d0, -2.3664867110999914d0), &
+      (-1.1552554495101768d0, -0.035423895485982966d0), &
+      (0.24267531391652103d0, 0.03073408215019738d0), &
+      (2.990390817288886d0, 0.9764506866571272d0) &
+    /)
+    ! mode = "LR"
+    expected(3, :) = (/ &
+      (0.7986174799734262d0, 3.1698016541082943d0), &
+      (2.990390817288887d0, 0.9764506866571241d0), &
+      (3.4487443020471886d0, 0.16816349496512467d0), &
+      (5.24005150421897d0, -6.595821187876013d0) &
+    /)
+    ! mode = "SR"
+    expected(4, :) = (/ &
+      (-7.883876589401881d0, 4.199144433240658d0), &
+      (-5.13826124195435d0, 7.5009013739201595d0), &
+      (-1.8535519260158175d0, -2.366486711099991d0), &
+      (-1.155255449510177d0, -0.035423895485983105) &
+    /)
+    ! mode = "LI"
+    expected(5, :) = (/ &
+      (-7.883876589401901d0, 4.199144433240657d0), &
+      (-5.138261241954358d0, 7.500901373920169d0), &
+      (0.7986174799734265d0, 3.169801654108291d0), &
+      (2.9903908172888825d0, 0.9764506866571268d0) &
+    /)
+    ! mode = "SI"
+    expected(6, :) = (/ &
+      (-1.8535519260158189d0, -2.3664867110999865d0), &
+      (-1.155255449510176d0, -0.03542389548598286d0), &
+      (0.31046578943724584d0, -4.047463930579591d0), &
+      (5.2400515042189735d0, -6.595821187875999d0) &
+    /)
+
+    ! all solutions are obtained through scipy.sparse.linalg.eigs
+    do i = 1, size(which_to_test)
+      which_eigenvalues = which_to_test(i)
+      write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
+      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call sort_complex_array(eigenvals)
+
+      ! specify custom tolerance for comparison Python-Fortran (1e-12 is a bit strict)
+      custom_tol = 1.0d-10
+      if (i == 4) then
+        ! slight deviation for mode="SR" but imaginary part still within 1e-8
+        custom_tol = 1.0d-8
+      end if
+      @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)
+      ! manual deallocation of residual_norm since we're still in the same test
+      call solvers_clean()
+    end do
   end subroutine test_arpack_standard
-
-
-
-
 
 end module mod_test_arpacksolvers

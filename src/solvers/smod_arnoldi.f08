@@ -4,8 +4,6 @@ submodule (mod_solvers) smod_arnoldi
   use mod_matrix_operations, only: invert_matrix, multiply_matrices
   implicit none
 
-  real(dp), allocatable  :: residual_norm(:)
-
 contains
 
 
@@ -232,7 +230,7 @@ contains
 
     ! calculate residual vector || A*x - lambda*x ||
     nconv = iparam(5)       ! iparam(5) contains number of converged eigenvalues
-    allocate(residual_norm(nconv))
+    allocate(residual_norm(nconv))    ! defined in parent module
     do i = 1, nconv
       call multiply_matrices(B_invA, vr(:, i), ax)
       residual_norm(i) = real(sqrt(sum( &

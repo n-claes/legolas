@@ -52,6 +52,7 @@ contains
     use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid, grid_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
+    use mod_solvers, only: solvers_clean
 
     if (allocated(grid)) then
       call grid_clean()
@@ -61,6 +62,7 @@ contains
       call radiative_cooling_clean()
     end if
     call reset_eigenfunctions(init_efs=.false.)
+    call solvers_clean()
   end subroutine clean_up
 
 
