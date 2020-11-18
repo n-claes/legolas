@@ -4,7 +4,7 @@ submodule (mod_solvers) smod_arnoldi
   use mod_matrix_operations, only: invert_matrix, multiply_matrices
   implicit none
 
-  complex(dp), allocatable  :: residual(:)
+  real(dp), allocatable  :: residual_norm(:)
 
 contains
 
@@ -31,6 +31,8 @@ contains
     character(len=1)   :: bmat
     !> dimension of the eigenvalue problem
     integer            :: evpdim
+    !> contains the residual vector used for initialisation
+    complex(dp), allocatable  :: residual(:)
     !> number of Arnoldi vectors generated
     integer            :: ncv
     !> contains the Arnoldi basis vectors
@@ -59,6 +61,12 @@ contains
     complex(dp)        :: sigma
     !> work array for eigenvalues, size 2*ncv
     complex(dp), allocatable  :: workev(:)
+    !> number of converged eigenvalues
+    integer   :: nconv
+    !> matrix product A*x
+    complex(dp) :: ax(size(matrix_A, dim=1))
+
+    integer   :: i
 
     evpdim = size(matrix_A, dim=1)
     ! is maxiter is not set in the parfile it's still 0, default to 10*N
@@ -66,9 +74,6 @@ contains
       maxiter = 10 * evpdim
     end if
     call do_arpack_sanity_checks(evpdim=evpdim)
-
-    allocate(residual(evpdim))
-    residual = (0.0d0, 0.0d0)
 
     ! TODO: allow for customisation of ncv through parfile
     ncv = min(evpdim, 2 * number_of_eigenvalues)
@@ -97,7 +102,7 @@ contains
       bmat = "I"
     case default
       ! TODO: proper allocation handling of variables, maybe use a type
-      deallocate(residual, arnoldi_vectors, workl, rwork)
+      deallocate(arnoldi_vectors, workl, rwork)
       call log_message("unknown mode for ARPACK: " // arpack_mode, level="error")
       return
     end select
@@ -108,8 +113,12 @@ contains
     iparam(7) = mode        ! mode for the solver
 
     ido = 0                 ! 0 means first call to interface
-    info = 0                ! 0 at input means use random initial residual vector
     converged = .false.
+
+    ! setting info = 0 at input means use a random starting vector
+    allocate(residual(evpdim))
+    residual = (0.0d0, 0.0d0)
+    info = 0
 
     ! keep iterating as long as the eigenvalues are not converged.
     ! if convergence is achieved or the maximum number of iterations is reached,
@@ -183,14 +192,13 @@ contains
     end if
 
     ! if we have a normal exit, extract the eigenvalues through zneupd
-    omega = (0.0d0, 0.0d0)
     allocate(select_vectors(ncv))
     allocate(workev(2 * ncv))
     call zneupd( &
-      write_eigenfunctions, &
+      .true., &           ! calculate eigenvectors, needed for residual afterwards
       "A", &
       select_vectors, &
-      omega(1:number_of_eigenvalues + 1), &
+      omega(1:number_of_eigenvalues), &
       vr(:, 1:number_of_eigenvalues), &
       size(vr, dim=1), &
       sigma, &
@@ -222,12 +230,23 @@ contains
       return
     end if
 
+    ! calculate residual vector || A*x - lambda*x ||
+    nconv = iparam(5)       ! iparam(5) contains number of converged eigenvalues
+    allocate(residual_norm(nconv))
+    do i = 1, nconv
+      call multiply_matrices(B_invA, vr(:, i), ax)
+      residual_norm(i) = real(sqrt(sum( &
+        (ax - omega(i) * vr(:, i)) * conjg(ax - omega(i) * vr(:, i)) &
+      )))
+    end do
+
     if (allocated(B_invA)) then
       deallocate(B_invA)
     end if
     deallocate(arnoldi_vectors)
     deallocate(workl)
     deallocate(rwork)
+    deallocate(residual)
     deallocate(select_vectors)
     deallocate(workev)
 
