@@ -106,14 +106,24 @@ contains
 
 
   @test
-  subroutine test_arpack_bad_mode()
+  subroutine test_arpack_bad_arpackmode()
     call reset_arrays(ndim=10)
 
-    write(*, *) "Testing ARPACK: invalid mode"
+    write(*, *) "Testing ARPACK: invalid arpack_mode"
     arpack_mode = "test_fail"
     call solve_evp(amat, bmat, eigenvals, vl, vr)
     @assertExceptionRaised("unknown mode for ARPACK: test_fail")
-  end subroutine test_arpack_bad_mode
+  end subroutine test_arpack_bad_arpackmode
+
+
+  @test
+  subroutine test_arpack_bad_mode_nb()
+    write(*, *) "Testing ARPACK: invalid mode number"
+    call arpackparams % set_mode(0)
+    @assertExceptionRaised("mode must be 1, 2 or 3 but mode = 0 was given")
+    call arpackparams % set_mode(4)
+    @assertExceptionRaised("mode must be 1, 2 or 3 but mode = 4 was given")
+  end subroutine test_arpack_bad_mode_nb
 
 
   @test

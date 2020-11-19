@@ -121,7 +121,7 @@ contains
     if (mode < 1 .or. mode > 3) then
       write(char_log, int_fmt) mode
       call log_message( &
-        "mode must be 1, 2 or 3 but mode = " // adjustl(trim(char_log)) &
+        "mode must be 1, 2 or 3 but mode = " // trim(adjustl(char_log)) &
           // " was given", &
         level="error" &
       )
