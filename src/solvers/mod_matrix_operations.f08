@@ -1,7 +1,7 @@
 module mod_matrix_operations
   use mod_global_variables, only: dp
   use mod_check_values, only: matrix_is_square
-  use mod_logging, only: log_message, char_log, int_fmt
+  use mod_logging, only: log_message, char_log, char_log2, int_fmt
   implicit none
 
   !> integer used to set matrix dimensions
@@ -30,6 +30,7 @@ module mod_matrix_operations
   interface multiply_matrices
     module procedure rmat_x_cmat
     module procedure cmat_x_cvec
+    module procedure rmat_x_cvec
   end interface multiply_matrices
 
   public  :: invert_matrix
@@ -119,15 +120,7 @@ contains
     cols_mat1 = size(mat1, dim=2)
     rows_mat2 = size(mat2, dim=1)
     cols_mat2 = size(mat2, dim=2)
-
-    ! check compatibility
-    if (cols_mat1 /= rows_mat2) then
-      call log_message( &
-        "incompatible matrices during matrix multiplication", &
-        level="error" &
-      )
-      return
-    end if
+    call check_matrix_compatibility(cols_mat1, rows_mat2)
 
     !> @note <tt>zgemm</tt> performs one of the matrix-matrix operations
     !! $$ C := \alpha*op(A)*op(B) + \beta*C $$
@@ -174,15 +167,7 @@ contains
     cols_mat = size(mat, dim=2)
     rows_vec = size(vec, dim=1)
     cols_vec = 1
-
-    ! check compatibility
-    if (cols_mat /= rows_vec) then
-      call log_message( &
-        "incompatible matrices during matrix multiplication", &
-        level="error" &
-      )
-      return
-    end if
+    call check_matrix_compatibility(cols_mat, rows_vec)
 
     !> @note <tt>zgemm</tt> performs one of the matrix-matrix operations
     !! $$ C := \alpha*op(A)*op(B) + \beta*C $$
@@ -196,5 +181,73 @@ contains
       alpha, mat, ldm1, vec, ldm2, beta, vec_out, ldm1 &
     )
   end subroutine cmat_x_cvec
+
+
+  !> Matrix multiplication using LAPACK routines,
+  !! multiplies a real matrix with a complex vector
+  subroutine rmat_x_cvec(mat, vec, vec_out)
+    !> matrix (left side)
+    real(dp), intent(in)      :: mat(:, :)
+    !> column vector (right side)
+    complex(dp), intent(in)   :: vec(:)
+    !> matrix multiplication mat x vec, yields vector
+    complex(dp), intent(out)  :: vec_out(:)
+
+    complex(dp)   :: matc(size(mat, dim=1), size(mat, dim=2))
+
+    !> number of rows in mat
+    integer   :: rows_mat
+    !> number of cols in mat
+    integer   :: cols_mat
+    !> number of rows in vec
+    integer   :: rows_vec
+    !> number of cols in vec
+    integer   :: cols_vec
+    !> scalar alpha, see zgemm
+    complex(dp) :: alpha
+    !> scalar beta, see zgemm
+    complex(dp) :: beta
+
+    ldm1 = size(mat, dim=1)
+    ldm2 = size(vec, dim=1)
+    rows_mat = size(mat, dim=1)
+    cols_mat = size(mat, dim=2)
+    rows_vec = size(vec, dim=1)
+    cols_vec = 1
+    call check_matrix_compatibility(cols_mat, rows_vec)
+
+    matc = mat * (1.0d0, 0.0d0)
+    !> @note <tt>zgemm</tt> performs one of the matrix-matrix operations
+    !! $$ C := \alpha*op(A)*op(B) + \beta*C $$
+    !! In this case, \(\alpha = 1\), \(\beta = 0\), op = 'N'
+    !! (so no transpose or conjugate).
+    alpha = (1.0d0, 0.0d0)
+    beta  = (0.0d0, 0.0d0)
+    ! do multiplication
+    call zgemm( &
+      "N", "N", rows_mat, cols_vec, cols_mat, &
+      alpha, matc, ldm1, vec, ldm2, beta, vec_out, ldm1 &
+    )
+  end subroutine rmat_x_cvec
+
+
+  !> Checks if two matrices (or a matrix and a vector) are compatible
+  !! for matrix multiplication.
+  subroutine check_matrix_compatibility(cols_mat1, rows_mat2)
+    !> the number of columns of the first matrix
+    integer, intent(in) :: cols_mat1
+    !> the number of rows of the second matrix
+    integer, intent(in) :: rows_mat2
+
+    if (cols_mat1 /= rows_mat2) then
+      write(char_log, int_fmt) cols_mat1
+      write(char_log2, int_fmt) rows_mat2
+      call log_message( &
+        "incompatible matrices during matrix multiplication: (. x " &
+        // trim(adjustl(char_log)) // ") x (" // trim(adjustl(char_log2)) // " x .)", &
+        level="error" &
+      )
+    end if
+  end subroutine check_matrix_compatibility
 
 end module mod_matrix_operations
