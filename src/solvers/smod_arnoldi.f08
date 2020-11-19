@@ -34,21 +34,27 @@ contains
     ! initialise arpack params
     call arpackparams % initialise(evpdim=size(matrix_A, dim=1))
 
+    ! get inverse of B matrix, needed in both standard and general eigenvalue problem
+    allocate(B_inv(size(matrix_B, dim=1), size(matrix_B, dim=2)))
+    allocate(B_invA(size(matrix_A, dim=1), size(matrix_A, dim=2)))
+    ! do inversion of B
+    call invert_matrix(matrix_B, B_inv)
+    ! do matrix multiplication B^{-1}A
+    call multiply_matrices(B_inv, matrix_A, B_invA)
+    deallocate(B_inv)   ! no longer used after this
+
     ! cycle through possible modes
     select case(arpack_mode)
     case("standard")
       ! solves standard eigenvalue problem Ax = wx
-      allocate(B_inv(size(matrix_B, dim=1), size(matrix_B, dim=2)))
-      allocate(B_invA(size(matrix_A, dim=1), size(matrix_A, dim=2)))
-      ! do inversion of B
-      call invert_matrix(matrix_B, B_inv)
-      ! do matrix multiplication B^{-1}A
-      call multiply_matrices(B_inv, matrix_A, B_invA)
-      deallocate(B_inv)   ! no longer used after this
-
       call arpackparams % set_mode(1)
       ! in this case B is the identity matrix
       arpackparams % bmat = "I"
+    case("general")
+      ! solves general eigenvalue problem Ax = wBx
+      call arpackparams % set_mode(2)
+      ! in this case B is a general matrix
+      arpackparams % bmat = "G"
     case default
       call arpackparams % tear_down()
       call log_message("unknown mode for ARPACK: " // arpack_mode, level="error")
@@ -59,7 +65,6 @@ contains
     ! keep iterating as long as the eigenvalues are not converged.
     ! if convergence is achieved or the maximum number of iterations is reached,
     ! ARPACK sets ido=99 so while loop breaks, we know what happened through 'info'.
-    ! TODO: if mode = 2 or mode = 3 we can also have ido = 2 and ido = 3
     do while (.not. converged)
       call znaupd( &
         arpackparams % ido, &
@@ -80,22 +85,39 @@ contains
         arpackparams % rwork, &
         arpackparams % info &
       )
-      if (arpackparams % ido == -1 .or. arpackparams % ido == 1) then
-        ! do matrix vector multiplication A*x -> y
-        ! start of x is given by workd(ipntr(1))
-        xleft = arpackparams % ipntr(1)
-        xright = xleft + arpackparams % evpdim - 1
-        yleft = arpackparams % ipntr(2)
-        yright = yleft + arpackparams % evpdim - 1
-        ! start of y is stored in workd(ipntr(2))
+
+      ! start of x is given by ipntr(1)
+      xleft = arpackparams % ipntr(1)
+      xright = xleft + arpackparams % evpdim - 1
+      ! start of y is given by ipntr(2)
+      yleft = arpackparams % ipntr(2)
+      yright = yleft + arpackparams % evpdim - 1
+
+      ! take action depending on "ido" outcome
+      select case(arpackparams % ido)
+        ! x-values are given by workd(xleft:xright)
+        ! y-values are given by workd(yleft:yright)
+      case(-1, 1)
+        ! entered for both mode = 1 or mode = 2
+        ! mode = 1: does A * x -> y     (but in our case then A = inv[B] * A)
+        ! mode = 2: does inv[B] * A * x -> y    (so same thing as mode = 1)
         call multiply_matrices( &
           B_invA, &
           arpackparams % workd(xleft:xright), &
           arpackparams % workd(yleft:yright) &
         )
-      else
+      case(2)
+        ! only entered if mode = 2
+        ! mode = 2: does B * x -> y
+        call multiply_matrices( &
+          matrix_B, &
+          arpackparams % workd(xleft:xright), &
+          arpackparams % workd(yleft:yright) &
+        )
+      case default
+        ! entered if values converged or maxiter is reached: exit while loop
         exit
-      end if
+      end select
     end do
 
     ! check info parameter from znaupd, this errors if necessary
