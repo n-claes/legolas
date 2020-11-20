@@ -206,7 +206,6 @@ contains
       (5.2400515042189735d0, -6.595821187875999d0) &
     /)
 
-    ! all solutions are obtained through scipy.sparse.linalg.eigs
     do i = 1, size(which_to_test)
       which_eigenvalues = which_to_test(i)
       write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
@@ -224,5 +223,110 @@ contains
       call solvers_clean()
     end do
   end subroutine test_arpack_standard
+
+
+  @test
+  subroutine test_arpack_general
+    use mod_global_variables, only: which_eigenvalues, maxiter
+    use mod_solvers, only: solvers_clean
+
+    real(dp)  :: custom_tol
+    integer   :: i
+
+    write(*, *) "Testing ARPACK: Ax = wBx"
+    arpack_mode = "general"
+    number_of_eigenvalues = 4
+    ! set maxiter manually, 100 iterations (10N) is too low for some cases
+    maxiter = 2000
+    ! 10x10 freely chosen sparse matrix
+    call reset_arrays(ndim=10)
+    amat = reshape( &
+      (/ &
+         1*ir, 2*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
+         2*ic, 1*ic, -1*ir,  0*ir,  0*ir,  0*ir,  0*ir,  2*ic,  0*ir,  0*ir, &
+        -3*ir, 3*ir, -2*ic, -1*ic,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
+         0*ir, 5*ic,  4*ir, -3*ic, -1*ic,  2*ic,  0*ir,  0*ir,  0*ir,  0*ir, &
+         1*ir, 0*ir,  2*ir,  2*ic,  3*ic, -7*ir,  1*ic, -3*ir,  0*ir,  0*ir, &
+         0*ir, 0*ir,  3*ic,  4*ir,  5*ic, -3*ir, -1*ir, -5*ic,  2*ic,  0*ir, &
+         0*ir, 0*ir,  0*ir,  3*ir, -5*ir, -1*ic,  4*ic,  7*ic,  2*ir,  1*ic, &
+         0*ir, 0*ir,  0*ir,  0*ir,  6*ic,  0*ir, -7*ir, -3*ir,  1*ic, -2*ir, &
+        -1*ir, 0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  1*ir, -3*ir,  5*ic, &
+         0*ir, 0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  2*ic,  5*ir  &
+      /), &
+      shape(amat) &
+    )
+    ! this matrix is symmetric and positive definite, as it should be
+    bmat = reshape( &
+      (/ &
+        9.0d0,  2.0d0,  8.0d0,  1.0d0,  2.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        2.0d0, 23.0d0, -4.0d0, -5.5d0,-10.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        8.0d0, -4.0d0, 15.0d0, -9.5d0, -3.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        1.0d0, -5.5d0, -9.5d0,60.25d0, -9.5d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        2.0d0,-10.0d0, -3.0d0, -9.5d0, 51.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0, 18.0d0, 11.0d0, 27.0d0, 4.0d0, 0.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0, 11.0d0, 14.0d0, 13.0d0, 3.0d0, 0.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0, 27.0d0, 13.0d0, 51.0d0, 5.5d0, 1.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  4.0d0,  3.0d0,  5.5d0,2.25d0, 3.5d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  1.0d0, 3.5d0, 10.0d0 &
+      /), &
+      shape(bmat) &
+    )
+    ! fill expected values, all solutions are obtained through scipy.sparse.linalg.eigs
+    ! mode = "LM"
+    expected(1, :) = (/ &
+      (-47.2665629010241d0, -53.44467400017329d0), &
+      (-2.189909116110393d0, 2.5207526151739104d0), &
+      (0.27674478315351964d0, -0.05805107198127579d0), &
+      (3.255610316647699d0, -1.7224326867994835d0) &
+    /)
+    ! mode = "SM"
+    expected(2, :) = (/ &
+      (-0.1090874990971426d0, 0.07259700665954608d0), &
+      (-0.09731865560338829d0, -0.07865430786985059d0), &
+      (0.005806290449585147d0, -0.00571678567700864d0), &
+      (0.09148540813167974d0, -0.09425266599250161d0) &
+    /)
+    ! mode = "LR"
+    expected(3, :) = (/ &
+      (0.09148540813169981d0, -0.09425266599249923d0), &
+      (0.18564017432800176d0, -0.018108179117325113d0), &
+      (0.2767447831535259d0, -0.05805107198128537d0), &
+      (3.2556103166476946d0, -1.7224326867994848d0) &
+    /)
+    ! mode = "SR"
+    expected(4, :) = (/ &
+      (-47.26656290102423d0, -53.44467400017332d0), &
+      (-2.1899091161103916d0, 2.5207526151739206d0), &
+      (-0.10908749909714037d0, 0.07259700665954676d0), &
+      (-0.09731865560338862d0, -0.07865430786985349d0) &
+    /)
+    ! mode = "LI"
+    expected(5, :) = (/ &
+      (-2.18990911611039d0, 2.5207526151739192d0),&
+      (-0.10908749909713217d0, 0.07259700665954318d0), &
+      (0.005806290449592661d0, -0.0057167856770139625d0), &
+      (0.07082410204964182d0, 0.17332751670248298d0) &
+    /)
+    ! mode = "SI"
+    expected(6, :) = (/ &
+      (-47.26656290102416d0, -53.44467400017327d0), &
+      (-0.09731865560338793d0, -0.07865430786985747d0), &
+      (0.0914854081317005d0, -0.09425266599247786d0), &
+      (3.255610316647708d0, -1.7224326867994837d0) &
+    /)
+
+    do i = 1, size(which_to_test)
+      which_eigenvalues = which_to_test(i)
+      write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
+      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call sort_complex_array(eigenvals)
+
+      ! specify custom tolerance for comparison Python-Fortran (1e-12 is a bit strict)
+      custom_tol = 1.0d-10
+      @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)
+      ! manual deallocation of residual_norm since we're still in the same test
+      call solvers_clean()
+    end do
+  end subroutine test_arpack_general
 
 end module mod_test_arpacksolvers

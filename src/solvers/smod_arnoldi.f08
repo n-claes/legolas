@@ -34,15 +34,6 @@ contains
     ! initialise arpack params
     call arpackparams % initialise(evpdim=size(matrix_A, dim=1))
 
-    ! get inverse of B matrix, needed in both standard and general eigenvalue problem
-    allocate(B_inv(size(matrix_B, dim=1), size(matrix_B, dim=2)))
-    allocate(B_invA(size(matrix_A, dim=1), size(matrix_A, dim=2)))
-    ! do inversion of B
-    call invert_matrix(matrix_B, B_inv)
-    ! do matrix multiplication B^{-1}A
-    call multiply_matrices(B_inv, matrix_A, B_invA)
-    deallocate(B_inv)   ! no longer used after this
-
     ! cycle through possible modes
     select case(arpack_mode)
     case("standard")
@@ -60,6 +51,15 @@ contains
       call log_message("unknown mode for ARPACK: " // arpack_mode, level="error")
       return
     end select
+
+    ! get inverse of B matrix, needed in both standard and general eigenvalue problem
+    allocate(B_inv(size(matrix_B, dim=1), size(matrix_B, dim=2)))
+    allocate(B_invA(size(matrix_A, dim=1), size(matrix_A, dim=2)))
+    ! do inversion of B
+    call invert_matrix(matrix_B, B_inv)
+    ! do matrix multiplication B^{-1}A
+    call multiply_matrices(B_inv, matrix_A, B_invA)
+    deallocate(B_inv)   ! no longer used after this
 
     converged = .false.
     ! keep iterating as long as the eigenvalues are not converged.
