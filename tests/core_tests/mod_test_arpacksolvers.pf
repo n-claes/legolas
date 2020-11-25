@@ -3,7 +3,8 @@ module mod_test_arpacksolvers
   use funit
   use mod_solvers, only: solve_evp
   use mod_arpack_type, only: arpack_type
-  use mod_global_variables, only: ir, ic, number_of_eigenvalues, arpack_mode
+  use mod_global_variables, only: ir, ic, number_of_eigenvalues, arpack_mode, &
+    which_eigenvalues
   implicit none
 
   type(arpack_type)         :: arpackparams
@@ -51,12 +52,16 @@ contains
 
   @before
   subroutine init_test()
-    use mod_global_variables, only: solver
+    use mod_global_variables, only: solver, maxiter
+
     call reset_globals()
     call reset_fields(init_fields=.true.)
     call reset_eigenfunctions(init_efs=.false.)
     solver = "arnoldi"
-    number_of_eigenvalues = 5
+    ! default maxiter=10*N is too low in some cases
+    maxiter = 2000
+    number_of_eigenvalues = 4
+    call reset_arrays(ndim=10)
   end subroutine init_test
 
 
@@ -69,8 +74,6 @@ contains
 
   @test
   subroutine test_arpack_bad_nev()
-    use mod_global_variables, only: number_of_eigenvalues
-
     write(*, *) "Testing ARPACK: invalid number_of_eigenvalues"
     number_of_eigenvalues = -1
     call arpackparams % initialise(evpdim=10)
@@ -96,8 +99,6 @@ contains
 
   @test
   subroutine test_arpack_bad_which()
-    use mod_global_variables, only: which_eigenvalues
-
     write(*, *) "Testing ARPACK: invalid which_eigenvalues"
     which_eigenvalues = "LL"
     call arpackparams % initialise(evpdim=10)
@@ -107,8 +108,6 @@ contains
 
   @test
   subroutine test_arpack_bad_arpackmode()
-    call reset_arrays(ndim=10)
-
     write(*, *) "Testing ARPACK: invalid arpack_mode"
     arpack_mode = "test_fail"
     call solve_evp(amat, bmat, eigenvals, vl, vr)
@@ -127,8 +126,24 @@ contains
 
 
   @test
+  subroutine test_arpack_bad_sigma()
+    write(*, *) "Testing ARPACK: invalid sigma"
+    call arpackparams % set_sigma((0.0d0, 0.0d0))
+    @assertExceptionRaised("ARPACK shift-invert: sigma can not be equal to zero")
+  end subroutine test_arpack_bad_sigma
+
+
+  @test
+  subroutine test_arpack_edge_sigma()
+    write(*, *) "Testing ARPACK: Re/Im sigma = 0"
+    ! should raise no errors
+    call arpackparams % set_sigma((1.0d0, 0.0d0))
+    call arpackparams % set_sigma((0.0d0, 1.0d0))
+  end subroutine test_arpack_edge_sigma
+
+
+  @test
   subroutine test_arpack_standard()
-    use mod_global_variables, only: which_eigenvalues, maxiter
     use mod_solvers, only: solvers_clean
 
     real(dp)  :: custom_tol
@@ -136,11 +151,6 @@ contains
 
     write(*, *) "Testing ARPACK: Ax = wx"
     arpack_mode = "standard"
-    number_of_eigenvalues = 4
-    ! set maxiter manually, 100 iterations (10N) is too low for some cases
-    maxiter = 2000
-    ! 10x10 freely chosen sparse matrix
-    call reset_arrays(ndim=10)
     amat = reshape( &
       (/ &
          1*ir, 2*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
@@ -156,12 +166,7 @@ contains
       /), &
       shape(amat) &
     )
-    ! create identity matrix for B
-    bmat = 0.0d0
-    do i = 1, size(amat, dim=1)
-      bmat(i, i) = 1.0d0
-    end do
-
+    call create_identity_matrix(ndim=10, mat=bmat)
     ! fill expected values, all solutions are obtained through scipy.sparse.linalg.eigs
     ! mode = "LM"
     expected(1, :) = (/ &
@@ -211,7 +216,6 @@ contains
       write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
       call solve_evp(amat, bmat, eigenvals, vl, vr)
       call sort_complex_array(eigenvals)
-
       ! specify custom tolerance for comparison Python-Fortran (1e-12 is a bit strict)
       custom_tol = 1.0d-10
       if (i == 4) then
@@ -227,7 +231,6 @@ contains
 
   @test
   subroutine test_arpack_general
-    use mod_global_variables, only: which_eigenvalues, maxiter
     use mod_solvers, only: solvers_clean
 
     real(dp)  :: custom_tol
@@ -235,11 +238,6 @@ contains
 
     write(*, *) "Testing ARPACK: Ax = wBx"
     arpack_mode = "general"
-    number_of_eigenvalues = 4
-    ! set maxiter manually, 100 iterations (10N) is too low for some cases
-    maxiter = 2000
-    ! 10x10 freely chosen sparse matrix
-    call reset_arrays(ndim=10)
     amat = reshape( &
       (/ &
          1*ir, 2*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
@@ -320,11 +318,8 @@ contains
       write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
       call solve_evp(amat, bmat, eigenvals, vl, vr)
       call sort_complex_array(eigenvals)
-
-      ! specify custom tolerance for comparison Python-Fortran (1e-12 is a bit strict)
       custom_tol = 1.0d-10
       @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)
-      ! manual deallocation of residual_norm since we're still in the same test
       call solvers_clean()
     end do
   end subroutine test_arpack_general

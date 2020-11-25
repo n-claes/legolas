@@ -130,4 +130,17 @@ contains
     end do
   end subroutine sort_complex_array
 
+
+  subroutine create_identity_matrix(ndim, mat)
+    integer, intent(in)   :: ndim
+    real(dp), intent(out) :: mat(ndim, ndim)
+
+    integer   :: i
+
+    mat = 0.0d0
+    do i = 1, ndim
+      mat(i, i) = 1.0d0
+    end do
+  end subroutine create_identity_matrix
+
 end module mod_suite_utils
