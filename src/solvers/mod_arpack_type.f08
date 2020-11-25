@@ -58,6 +58,7 @@ module mod_arpack_type
 
       procedure, public   :: initialise
       procedure, public   :: set_mode
+      procedure, public   :: set_sigma
       procedure, public   :: parse_znaupd_info
       procedure, public   :: parse_zneupd_info
       procedure, public   :: tear_down
@@ -129,6 +130,22 @@ contains
     this % mode = mode
     this % iparam(7) = this % mode
   end subroutine set_mode
+
+
+  subroutine set_sigma(this, sigma)
+    use mod_check_values, only: value_is_zero
+
+    class(arpack_type)      :: this
+    complex(dp), intent(in) :: sigma
+
+    if (value_is_zero(sigma)) then
+      call log_message( &
+        "ARPACK shift-invert: sigma can not be equal to zero", &
+        level="error" &
+      )
+    end if
+    this % sigma = sigma
+  end subroutine set_sigma
 
 
   subroutine parse_znaupd_info(this, converged)

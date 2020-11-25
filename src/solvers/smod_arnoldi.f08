@@ -1,7 +1,7 @@
 submodule (mod_solvers) smod_arnoldi
   use mod_matrix_operations, only: invert_matrix, multiply_matrices
   use mod_arpack_type, only: arpack_type
-  use mod_global_variables, only: arpack_mode
+  use mod_global_variables, only: arpack_mode, sigma
   implicit none
 
 contains
@@ -20,19 +20,25 @@ contains
 #if _ARPACK_FOUND
     !> inverse B-matrix
     real(dp), allocatable    :: B_inv(:, :)
-    !> matrix \(B^{-1}A\)
-    complex(dp), allocatable :: B_invA(:, :)
+    !> partial operator, sometimes needed for intermediate calculations
+    complex(dp), allocatable :: OPpart(:, :)
+    !> operator to use in the various cases
+    complex(dp), allocatable :: OP(:, :)
     !> matrix product A*x
     complex(dp) :: ax(size(matrix_A, dim=1))
     !> dedicated type with all ARPACK-related stuff
     type(arpack_type) :: arpackparams
     !> flag to check if solver converged
     logical, save     :: converged
+    !> flag if we are in shift-invert mode or not
+    logical, save     :: shift_invert
 
     integer   :: i, xleft, xright, yleft, yright
 
     ! initialise arpack params
     call arpackparams % initialise(evpdim=size(matrix_A, dim=1))
+    shift_invert = .false.
+    allocate(OP, mold=matrix_A)
 
     ! cycle through possible modes
     select case(arpack_mode)
@@ -46,20 +52,36 @@ contains
       call arpackparams % set_mode(2)
       ! in this case B is a general matrix
       arpackparams % bmat = "G"
+    case("shift-invert")
+      ! solves eigenvalue problem Ax = wBx in shift-invert mode
+      call arpackparams % set_mode(3)
+      arpackparams % bmat = "G"
+      call arpackparams % set_sigma(sigma)
+      shift_invert = .true.
     case default
       call arpackparams % tear_down()
       call log_message("unknown mode for ARPACK: " // arpack_mode, level="error")
       return
     end select
 
-    ! get inverse of B matrix, needed in both standard and general eigenvalue problem
-    allocate(B_inv(size(matrix_B, dim=1), size(matrix_B, dim=2)))
-    allocate(B_invA(size(matrix_A, dim=1), size(matrix_A, dim=2)))
-    ! do inversion of B
-    call invert_matrix(matrix_B, B_inv)
-    ! do matrix multiplication B^{-1}A
-    call multiply_matrices(B_inv, matrix_A, B_invA)
-    deallocate(B_inv)   ! no longer used after this
+    if (shift_invert) then
+      call log_message("starting Arnoldi iteration, shift-invert mode", level="debug")
+      allocate(OPpart, mold=OP)
+      ! calculate partial operator inv[A - sigma * B]
+      call invert_matrix(matrix_A - sigma * matrix_B, OPpart)
+      ! set operator OP <- inv[A - sigma*B] * B
+      call multiply_matrices(OPpart, matrix_B, OP)
+      deallocate(OPpart)
+    else
+      call log_message("starting Arnoldi iteration, normal mode", level="debug")
+      ! get inverse of B matrix, needed in both standard and general eigenvalue problem
+      allocate(B_inv, mold=matrix_B)
+      ! do inversion of B
+      call invert_matrix(matrix_B, B_inv)
+      ! set operator OP <- inv[B]*A
+      call multiply_matrices(B_inv, matrix_A, OP)
+      deallocate(B_inv)   ! no longer used after this
+    end if
 
     converged = .false.
     ! keep iterating as long as the eigenvalues are not converged.
@@ -97,18 +119,30 @@ contains
       select case(arpackparams % ido)
         ! x-values are given by workd(xleft:xright)
         ! y-values are given by workd(yleft:yright)
-      case(-1, 1)
-        ! entered for both mode = 1 or mode = 2
-        ! mode = 1: does A * x -> y     (but in our case then A = inv[B] * A)
-        ! mode = 2: does inv[B] * A * x -> y    (so same thing as mode = 1)
+      case(-1)
+        ! entered on initialisation, forces starting vector in OP range
         call multiply_matrices( &
-          B_invA, &
+          OP, &
+          arpackparams % workd(xleft:xright), &
+          arpackparams % workd(yleft:yright) &
+        )
+      case(1)
+        ! entered during iteration, calculates OP * x --> y
+        ! mode = 1: OP = A          (but in our case A = inv[B] * A)
+        ! mode = 2: OP = inv[B] * A
+        ! mode = 3: OP = inv[A - sigma * B] * B
+        if (shift_invert) then
+          ! in shift-invert mode start of B*x has been saved in ipntr(3)
+          xleft = arpackparams % ipntr(3)
+          xright = xleft + arpackparams % evpdim - 1
+        end if
+        call multiply_matrices( &
+          OP, &
           arpackparams % workd(xleft:xright), &
           arpackparams % workd(yleft:yright) &
         )
       case(2)
-        ! only entered if mode = 2
-        ! mode = 2: does B * x -> y
+        ! entered during iteration, calculates B * x --> y
         call multiply_matrices( &
           matrix_B, &
           arpackparams % workd(xleft:xright), &
@@ -158,12 +192,13 @@ contains
     arpackparams % nconv = arpackparams % iparam(5)
     allocate(residual_norm(arpackparams % nconv))    ! defined in parent module
     do i = 1, arpackparams % nconv
-      call multiply_matrices(B_invA, vr(:, i), ax)
+      call multiply_matrices(OP, vr(:, i), ax)
       residual_norm(i) = real(sqrt(sum( &
         (ax - omega(i) * vr(:, i)) * conjg(ax - omega(i) * vr(:, i)) &
       )))
     end do
 
+    deallocate(OP)
     call arpackparams % tear_down()
 
 #else

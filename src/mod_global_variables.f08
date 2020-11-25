@@ -158,6 +158,8 @@ module mod_global_variables
   character(len=2)          :: which_eigenvalues
   !> maximum number of Arnoldi iterations
   integer                   :: maxiter
+  !> sigma value, only used in shift-invert mode
+  complex(dp)               :: sigma
 
 contains
 
