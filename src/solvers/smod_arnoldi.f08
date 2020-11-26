@@ -20,12 +20,12 @@ contains
 #if _ARPACK_FOUND
     !> inverse B-matrix
     real(dp), allocatable    :: B_inv(:, :)
-    !> partial operator, sometimes needed for intermediate calculations
-    complex(dp), allocatable :: OPpart(:, :)
     !> operator to use in the various cases
     complex(dp), allocatable :: OP(:, :)
-    !> matrix product A*x
-    complex(dp) :: ax(size(matrix_A, dim=1))
+    !> matrix product A*x used during residual calculation
+    complex(dp), allocatable :: ax(:)
+    !> matrix product B*x used during residual calculation
+    complex(dp), allocatable :: bx(:)
     !> dedicated type with all ARPACK-related stuff
     type(arpack_type) :: arpackparams
     !> flag to check if solver converged
@@ -66,12 +66,8 @@ contains
 
     if (shift_invert) then
       call log_message("starting Arnoldi iteration, shift-invert mode", level="debug")
-      allocate(OPpart, mold=OP)
-      ! calculate partial operator inv[A - sigma * B]
-      call invert_matrix(matrix_A - sigma * matrix_B, OPpart)
-      ! set operator OP <- inv[A - sigma*B] * B
-      call multiply_matrices(OPpart, matrix_B, OP)
-      deallocate(OPpart)
+      ! calculate operator inv[A - sigma * B]
+      call invert_matrix(matrix_A - sigma * matrix_B, OP)
     else
       call log_message("starting Arnoldi iteration, normal mode", level="debug")
       ! get inverse of B matrix, needed in both standard and general eigenvalue problem
@@ -130,9 +126,10 @@ contains
         ! entered during iteration, calculates OP * x --> y
         ! mode = 1: OP = A          (but in our case A = inv[B] * A)
         ! mode = 2: OP = inv[B] * A
-        ! mode = 3: OP = inv[A - sigma * B] * B
+        ! mode = 3: OP = inv[A - sigma * B]
         if (shift_invert) then
           ! in shift-invert mode start of B*x has been saved in ipntr(3)
+          ! this takes [...] * B into account
           xleft = arpackparams % ipntr(3)
           xright = xleft + arpackparams % evpdim - 1
         end if
@@ -188,17 +185,28 @@ contains
     ! check info parameter from zneupd, this errors if necessary
     call arpackparams % parse_zneupd_info()
 
-    ! calculate residual vector || A*x - lambda*x ||
+    ! calculate residual vector
+    ! - for standard problem: || A*x - lambda * x ||
+    ! - for general problem : || A*x - lambda * B * x ||
     arpackparams % nconv = arpackparams % iparam(5)
     allocate(residual_norm(arpackparams % nconv))    ! defined in parent module
+    allocate(ax(arpackparams % evpdim))
+    allocate(bx(arpackparams % evpdim))
     do i = 1, arpackparams % nconv
-      call multiply_matrices(OP, vr(:, i), ax)
+      call multiply_matrices(matrix_A, vr(:, i), ax)
+      if (arpackparams % bmat == "G") then
+        call multiply_matrices(matrix_B, vr(:, i), bx)
+      else
+        bx = vr(:, i)
+      end if
       residual_norm(i) = real(sqrt(sum( &
-        (ax - omega(i) * vr(:, i)) * conjg(ax - omega(i) * vr(:, i)) &
+        (ax - omega(i) * bx) * conjg(ax - omega(i) * bx) &
       )))
     end do
 
     deallocate(OP)
+    deallocate(ax)
+    deallocate(bx)
     call arpackparams % tear_down()
 
 #else
@@ -207,7 +215,7 @@ contains
       level="warning" &
     )
     call log_message( &
-      "unable to use 'arnoldi, try another solver!", &
+      "unable to use 'arnoldi', try another solver!", &
       level="error" &
     )
 #endif

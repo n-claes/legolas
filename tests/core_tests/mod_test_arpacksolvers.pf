@@ -544,7 +544,7 @@ contains
     expected(2, :) = (/ &
       (-47.26656290102486d0, -53.44467400017213d0), &
       (-2.1899091161104165d0, 2.520752615173916d0), &
-      (0.07082410204964547d0, 0.17332751670247556d0), &
+      (-0.10908749909706655d0, 0.07259700665965224d0), &
       (3.2556103166477097d0, -1.7224326867994855d0) &
     /)
     ! mode = "LR"
@@ -586,5 +586,201 @@ contains
       call solvers_clean()
     end do
   end subroutine test_arpack_shift_BG_01
+
+
+  @test
+  subroutine test_arpack_shift_BG_02
+    use mod_global_variables, only: sigma
+    use mod_solvers, only: solvers_clean
+
+    real(dp)  :: custom_tol
+    integer   :: i
+
+    write(*, *) "Testing ARPACK: Ax = wBx, shift-invert with sigma = 0.5i"
+    arpack_mode = "shift-invert"
+    amat = reshape( &
+      (/ &
+        1*ir, 2*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
+        2*ic, 1*ic, -1*ir,  0*ir,  0*ir,  0*ir,  0*ir,  2*ic,  0*ir,  0*ir, &
+       -3*ir, 3*ir, -2*ic, -1*ic,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
+        0*ir, 5*ic,  4*ir, -3*ic, -1*ic,  2*ic,  0*ir,  0*ir,  0*ir,  0*ir, &
+        1*ir, 0*ir,  2*ir,  2*ic,  3*ic, -7*ir,  1*ic, -3*ir,  0*ir,  0*ir, &
+        0*ir, 0*ir,  3*ic,  4*ir,  5*ic, -3*ir, -1*ir, -5*ic,  2*ic,  0*ir, &
+        0*ir, 0*ir,  0*ir,  3*ir, -5*ir, -1*ic,  4*ic,  7*ic,  2*ir,  1*ic, &
+        0*ir, 0*ir,  0*ir,  0*ir,  6*ic,  0*ir, -7*ir, -3*ir,  1*ic, -2*ir, &
+       -1*ir, 0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  1*ir, -3*ir,  5*ic, &
+        0*ir, 0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  2*ic,  5*ir  &
+      /), &
+      shape(amat) &
+    )
+    ! this matrix is symmetric and positive definite, as it should be
+    bmat = reshape( &
+      (/ &
+        9.0d0,  2.0d0,  8.0d0,  1.0d0,  2.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        2.0d0, 23.0d0, -4.0d0, -5.5d0,-10.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        8.0d0, -4.0d0, 15.0d0, -9.5d0, -3.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        1.0d0, -5.5d0, -9.5d0,60.25d0, -9.5d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        2.0d0,-10.0d0, -3.0d0, -9.5d0, 51.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0, 18.0d0, 11.0d0, 27.0d0, 4.0d0, 0.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0, 11.0d0, 14.0d0, 13.0d0, 3.0d0, 0.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0, 27.0d0, 13.0d0, 51.0d0, 5.5d0, 1.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  4.0d0,  3.0d0,  5.5d0,2.25d0, 3.5d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  1.0d0, 3.5d0, 10.0d0 &
+      /), &
+      shape(bmat) &
+    )
+    sigma = (0.0d0, 0.5d0)
+    ! fill expected values, all solutions are obtained through scipy.sparse.linalg.eigs
+    ! mode = "LM"
+    expected(1, :) = (/ &
+      (-0.10908749909713965d0, 0.07259700665954422d0), &
+      (0.005806290449582674d0, -0.005716785677010505d0), &
+      (0.07082410204964576d0, 0.1733275167024742d0), &
+      (0.18564017432800586d0, -0.018108179117325318d0) &
+    /)
+    ! mode = "SM"
+    expected(2, :) = (/ &
+      (-47.26656290102419d0, -53.44467400017343d0), &
+      (-2.189909116110391d0, 2.5207526151739135d0), &
+      (0.27674478315352147d0, -0.05805107198128745d0), &
+      (3.2556103166477026d0, -1.7224326867994937d0) &
+    /)
+    ! mode = "LR"
+    expected(3, :) = (/ &
+      (0.07082410204964586d0, 0.17332751670247443d0), &
+      (0.0914854081316891d0, -0.09425266599248983d0), &
+      (0.18564017432800584d0, -0.018108179117325096d0), &
+      (0.276744783153521d0, -0.05805107198128645d0) &
+    /)
+    ! mode = "SR"
+    expected(4, :) = (/ &
+      (-47.26656290102387d0, -53.444674000172995d0), &
+      (-2.189909116110392d0, 2.5207526151739126d0), &
+      (-0.10908749909713956d0, 0.07259700665954466d0), &
+      (-0.09731865560338877d0, -0.07865430786985295d0) &
+    /)
+    ! mode = "LI"
+    expected(5, :) = (/ &
+      (-0.1090874990971382d0, 0.07259700665954616d0), &
+      (0.005806290449582174d0, -0.005716785677010838d0), &
+      (0.07082410204964558d0, 0.1733275167024747d0), &
+      (0.18564017432800542d0, -0.018108179117324874d0) &
+    /)
+    ! mode = "SI"
+    expected(6, :) = (/ &
+      (-47.26656290102456d0, -53.44467400017384d0), &
+      (-2.189909116110398d0, 2.5207526151739152d0), &
+      (0.2767447831535215d0, -0.05805107198128645d0), &
+      (3.2556103166477053d0, -1.7224326867994852d0) &
+    /)
+
+    do i = 1, size(which_to_test)
+      which_eigenvalues = which_to_test(i)
+      write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
+      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call sort_complex_array(eigenvals)
+      custom_tol = 1.0d-10
+      @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)
+      call solvers_clean()
+    end do
+  end subroutine test_arpack_shift_BG_02
+
+
+  @test
+  subroutine test_arpack_shift_BG_03
+    use mod_global_variables, only: sigma
+    use mod_solvers, only: solvers_clean
+
+    real(dp)  :: custom_tol
+    integer   :: i
+
+    write(*, *) "Testing ARPACK: Ax = wBx, shift-invert with sigma = -2.0"
+    arpack_mode = "shift-invert"
+    amat = reshape( &
+      (/ &
+        1*ir, 2*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
+        2*ic, 1*ic, -1*ir,  0*ir,  0*ir,  0*ir,  0*ir,  2*ic,  0*ir,  0*ir, &
+       -3*ir, 3*ir, -2*ic, -1*ic,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir, &
+        0*ir, 5*ic,  4*ir, -3*ic, -1*ic,  2*ic,  0*ir,  0*ir,  0*ir,  0*ir, &
+        1*ir, 0*ir,  2*ir,  2*ic,  3*ic, -7*ir,  1*ic, -3*ir,  0*ir,  0*ir, &
+        0*ir, 0*ir,  3*ic,  4*ir,  5*ic, -3*ir, -1*ir, -5*ic,  2*ic,  0*ir, &
+        0*ir, 0*ir,  0*ir,  3*ir, -5*ir, -1*ic,  4*ic,  7*ic,  2*ir,  1*ic, &
+        0*ir, 0*ir,  0*ir,  0*ir,  6*ic,  0*ir, -7*ir, -3*ir,  1*ic, -2*ir, &
+       -1*ir, 0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  1*ir, -3*ir,  5*ic, &
+        0*ir, 0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  0*ir,  2*ic,  5*ir  &
+      /), &
+      shape(amat) &
+    )
+    ! this matrix is symmetric and positive definite, as it should be
+    bmat = reshape( &
+      (/ &
+        9.0d0,  2.0d0,  8.0d0,  1.0d0,  2.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        2.0d0, 23.0d0, -4.0d0, -5.5d0,-10.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        8.0d0, -4.0d0, 15.0d0, -9.5d0, -3.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        1.0d0, -5.5d0, -9.5d0,60.25d0, -9.5d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        2.0d0,-10.0d0, -3.0d0, -9.5d0, 51.0d0,  0.0d0,  0.0d0,  0.0d0, 0.0d0, 0.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0, 18.0d0, 11.0d0, 27.0d0, 4.0d0, 0.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0, 11.0d0, 14.0d0, 13.0d0, 3.0d0, 0.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0, 27.0d0, 13.0d0, 51.0d0, 5.5d0, 1.0d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  4.0d0,  3.0d0,  5.5d0,2.25d0, 3.5d0, &
+        0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  0.0d0,  1.0d0, 3.5d0, 10.0d0 &
+      /), &
+      shape(bmat) &
+    )
+    sigma = (-2.0d0, 0.0d0)
+    ! fill expected values, all solutions are obtained through scipy.sparse.linalg.eigs
+    ! mode = "LM"
+    expected(1, :) = (/ &
+      (-0.10908749909714088d0, 0.07259700665954433d0), &
+      (-0.0973186556033876d0, -0.0786543078698522d0), &
+      (0.005806290449583251d0, -0.005716785677010937d0), &
+      (0.0708241020496434d0, 0.17332751670247576d0) &
+    /)
+    ! mode = "SM"
+    expected(2, :) = (/ &
+      (-47.26656290102421d0, -53.444674000172526d0), &
+      (-2.189909116110397d0, 2.520752615173911d0), &
+      (0.2767447831535197d0, -0.05805107198128776d0), &
+      (3.2556103166477124d0, -1.7224326867994924d0) &
+    /)
+    ! mode = "LR"
+    expected(3, :) = (/ &
+      (-0.10908749909714355d0, 0.07259700665954572d0), &
+      (-0.09731865560339159d0, -0.07865430786985331d0), &
+      (0.005806290449582807d0, -0.005716785677010454d0), &
+      (0.07082410204964962d0, 0.1733275167024759d0) &
+    /)
+    ! mode = "SR"
+    expected(4, :) = (/ &
+      (-47.26656290102409d0, -53.44467400017334d0), &
+      (-2.189909116110396d0, 2.520752615173911d0), &
+      (0.27674478315352236d0, -0.058051071981286256d0), &
+      (3.2556103166477115d0, -1.7224326867994837d0) &
+    /)
+    ! mode = "LI"
+    expected(5, :) = (/ &
+      (-0.09731865560338604d0, -0.07865430786985382d0), &
+      (0.09148540813169115d0, -0.09425266599248917d0), &
+      (0.27674478315352147d0, -0.05805107198128707d0), &
+      (3.255610316647707d0, -1.7224326867994928d0) &
+    /)
+    ! mode = "SI"
+    expected(6, :) = (/ &
+      (-2.1899091161103965d0, 2.520752615173913d0), &
+      (-0.10908749909714d0, 0.0725970066595445d0), &
+      (0.005806290449583251d0, -0.0057167856770109875d0), &
+      (0.07082410204964429d0, 0.1733275167024755d0) &
+    /)
+
+    do i = 1, size(which_to_test)
+      which_eigenvalues = which_to_test(i)
+      write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
+      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call sort_complex_array(eigenvals)
+      custom_tol = 1.0d-10
+      @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)
+      call solvers_clean()
+    end do
+  end subroutine test_arpack_shift_BG_03
 
 end module mod_test_arpacksolvers
