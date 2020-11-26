@@ -261,7 +261,7 @@ contains
       write(char_log, int_fmt) cols_mat1
       write(char_log2, int_fmt) rows_mat2
       call log_message( &
-        "incompatible matrices during matrix multiplication: (. x " &
+        "incompatible matrix multiplication: (. x " &
         // trim(adjustl(char_log)) // ") x (" // trim(adjustl(char_log2)) // " x .)", &
         level="error" &
       )

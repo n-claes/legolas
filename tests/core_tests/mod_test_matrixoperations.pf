@@ -94,16 +94,16 @@ contains
 
 
   @test
-  subroutine test_rmatxcmat_fail()
+  subroutine test_multiplication_fail()
     use mod_matrix_operations, only: multiply_matrices
 
     real(dp)    :: rmat(5, 5)
     complex(dp) :: cmat(4, 5), result(5, 5)
 
-    write(*, *) "Testing rxc matrix multiplication: incompatible"
+    write(*, *) "Testing matrix multiplication: incompatible"
     call multiply_matrices(rmat, cmat, result)
-    @assertExceptionRaised("incompatible matrices during matrix multiplication")
-  end subroutine test_rmatxcmat_fail
+    @assertExceptionRaised("incompatible matrix multiplication: (. x 5) x (4 x .)")
+  end subroutine test_multiplication_fail
 
 
   @test
@@ -145,18 +145,6 @@ contains
     call multiply_matrices(rmat, cmat, result)
     @assertEqual(expected, result, tolerance=TOL)
   end subroutine test_rmatxcmat
-
-
-  @test
-  subroutine test_cmatxcvec_fail()
-    use mod_matrix_operations, only: multiply_matrices
-
-    complex(dp) :: cmat(5, 5), cvec(4), result(5)
-
-    write(*, *) "Testing rxc matrix-vector multiplication: incompatible"
-    call multiply_matrices(cmat, cvec, result)
-    @assertExceptionRaised("incompatible matrices during matrix multiplication")
-  end subroutine test_cmatxcvec_fail
 
 
   @test
