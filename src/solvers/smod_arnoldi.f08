@@ -55,16 +55,22 @@ contains
     ! cycle through possible modes
     select case(arpack_mode)
     case("standard")
+      call log_message("initialising Arnoldi iteration, standard mode", level="debug")
       ! solves standard eigenvalue problem Ax = wx
       call arpackparams % set_mode(1)
       ! in this case B is the identity matrix
       arpackparams % bmat = "I"
     case("general")
+      call log_message("initialising Arnoldi iteration, general mode", level="debug")
       ! solves general eigenvalue problem Ax = wBx
       call arpackparams % set_mode(2)
       ! in this case B is a general matrix
       arpackparams % bmat = "G"
     case("shift-invert")
+      call log_message( &
+        "initialising Arnoldi iteration, shift-invert mode", &
+        level="debug" &
+      )
       ! solves eigenvalue problem Ax = wBx in shift-invert mode
       call arpackparams % set_mode(3)
       arpackparams % bmat = "G"
@@ -77,11 +83,9 @@ contains
     end select
 
     if (shift_invert) then
-      call log_message("starting Arnoldi iteration, shift-invert mode", level="debug")
       ! calculate operator inv[A - sigma * B]
       call invert_matrix(matrix_A - sigma * matrix_B, OP)
     else
-      call log_message("starting Arnoldi iteration, normal mode", level="debug")
       ! get inverse of B matrix, needed in both standard and general eigenvalue problem
       allocate(B_inv, mold=matrix_B)
       ! do inversion of B
@@ -91,6 +95,7 @@ contains
       deallocate(B_inv)   ! no longer used after this
     end if
 
+    call log_message("doing Arnoldi iteration...", level="debug")
     converged = .false.
     ! keep iterating as long as the eigenvalues are not converged.
     ! if convergence is achieved or the maximum number of iterations is reached,
@@ -164,8 +169,10 @@ contains
     end do
 
     ! check info parameter from znaupd, this errors if necessary
+    call log_message("checking znaupd info parameter", level="debug")
     call arpackparams % parse_znaupd_info(converged)
 
+    call log_message("extracting eigenvalues...", level="debug")
     ! if we have a normal exit, extract the eigenvalues through zneupd
     call zneupd( &
       arpackparams % rvec, &
@@ -195,6 +202,7 @@ contains
     )
 
     ! check info parameter from zneupd, this errors if necessary
+    call log_message("checking zneupd info parameter", level="debug")
     call arpackparams % parse_zneupd_info()
 
     ! calculate residual vector
@@ -204,6 +212,7 @@ contains
     allocate(residual_norm(arpackparams % nconv))    ! defined in parent module
     allocate(ax(arpackparams % evpdim))
     allocate(bx(arpackparams % evpdim))
+    call log_message("calculating residual norm", level="debug")
     do i = 1, arpackparams % nconv
       call multiply_matrices(matrix_A, vr(:, i), ax)
       if (arpackparams % bmat == "G") then
