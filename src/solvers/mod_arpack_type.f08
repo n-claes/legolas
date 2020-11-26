@@ -1,3 +1,7 @@
+! =============================================================================
+!> Module containing a dedicated type for the ARPACK solvers.
+!! All needed variables are defined and allocated here, along with sanity
+!! checks when setting certain values.
 module mod_arpack_type
   use mod_logging, only: char_log, char_log2, dp_fmt, int_fmt, log_message
   use mod_global_variables, only: dp, dp_LIMIT
@@ -56,17 +60,24 @@ module mod_arpack_type
 
     contains
 
+      !> initialises derived type
       procedure, public   :: initialise
+      !> sets mode of ARPACK solver
       procedure, public   :: set_mode
+      !> sets sigma for shift-invert mode
       procedure, public   :: set_sigma
+      !> parses info parameter of <tt>znaupd</tt>
       procedure, public   :: parse_znaupd_info
+      !> parses info parameter of <tt>zneupd</tt>
       procedure, public   :: parse_zneupd_info
+      !> cleanup routine
       procedure, public   :: tear_down
-
+      !> setter for requested number of eigenvalues
       procedure, private  :: set_nev
+      !> setter for 'which' argument
       procedure, private  :: set_which
+      !> setter for maximum number of iterations to take
       procedure, private  :: set_maxiter
-
   end type arpack_type
 
   private
@@ -75,8 +86,12 @@ module mod_arpack_type
 
 contains
 
+  !> Initialises the derived type based on the given dimension
+  !! of the eigenvalue problem. Everything is allocated and the variables
+  !! (<tt>nev, which, maxiter, iparam, ido</tt> etc.)
+  !! are prepared for their calls in the ARPACK routines.
   subroutine initialise(this, evpdim)
-    !> reference to arpack_type
+    !> reference to type object
     class(arpack_type)  :: this
     !> dimension of eigenvalue problem
     integer, intent(in) :: evpdim
@@ -115,8 +130,13 @@ contains
   end subroutine initialise
 
 
+  !> Sets the mode for the ARPACK solver and passes this on
+  !! to the <tt>iparam</tt> array.
+  !! @warning Throws an error if mode is not equal to 1, 2 or 3. @endwarning
   subroutine set_mode(this, mode)
+    !> reference to type object
     class(arpack_type)  :: this
+    !> the mode to set, should be 1, 2 or 3
     integer, intent(in) :: mode
 
     if (mode < 1 .or. mode > 3) then
@@ -132,10 +152,16 @@ contains
   end subroutine set_mode
 
 
+  !> Sets the sigma value for the shift-invert mode of ARPACK.
+  !! Sigma can't be zero since the A-matrix can have zero rows, and then
+  !! we run into troubles.
+  !! @warning Throws an error if sigma = 0. @endwarning
   subroutine set_sigma(this, sigma)
     use mod_check_values, only: value_is_zero
 
+    !> reference to type object
     class(arpack_type)      :: this
+    !> sigma for the shift-invert method
     complex(dp), intent(in) :: sigma
 
     if (value_is_zero(sigma)) then
@@ -148,8 +174,14 @@ contains
   end subroutine set_sigma
 
 
+  !> Parses the info parameter that comes out of ARPACK's <tt>znaupd</tt> method.
+  !! If info = 0, everything behaved nicely the reverse communication subroutines
+  !! exited properly. If info is any other value something went wrong and
+  !! we handle it accordingly.
   subroutine parse_znaupd_info(this, converged)
+    !> reference to type object
     class(arpack_type)    :: this
+    !> if .true. the reverse communication routines converged, .false. otherwise
     logical, intent(out)  :: converged
 
     converged = .false.
@@ -199,7 +231,11 @@ contains
   end subroutine parse_znaupd_info
 
 
+  !> Parses the info parameter that comes out of ARPACK's <tt>zneupd</tt> method.
+  !! If info = 0, the eigenvalues extraction routines exited properly, if info
+  !! is any other value something went wrong and we handle it accordingly.
   subroutine parse_zneupd_info(this)
+    !> reference to type object
     class(arpack_type)  :: this
 
     select case(this % info)
@@ -235,9 +271,13 @@ contains
   end subroutine parse_zneupd_info
 
 
+  !> Setter for the number of eigenvalues that should be calculated.
+  !! The requested number of eigenvalues should be positive and smaller than
+  !! the dimension of the eigenvalue problem.
   subroutine set_nev(this)
     use mod_global_variables, only: number_of_eigenvalues
 
+    !> reference to type object
     class(arpack_type)  :: this
 
     if (number_of_eigenvalues <= 0) then
@@ -263,6 +303,8 @@ contains
   end subroutine set_nev
 
 
+  !> Setter for the 'which' argument of ARPACK routines.
+  !! Should be one of the following: "LM", "SM", "LR", "SR", "LI" or "SI".
   subroutine set_which(this)
     use mod_global_variables, only: which_eigenvalues
 
@@ -280,6 +322,9 @@ contains
   end subroutine set_which
 
 
+  !> Setter for the maximum number of iterations that ARPACK can take,
+  !! defaults to 10N with N the dimension of the eigenvalue problem.
+  !! @warning Throws a warning if <tt>maxiter</tt> is smaller than 10*N. @endwarning
   subroutine set_maxiter(this)
     use mod_global_variables, only: maxiter
 
@@ -308,7 +353,9 @@ contains
   end subroutine set_maxiter
 
 
+  !> Cleanup routine, deallocates type attributes.
   subroutine tear_down(this)
+    !> reference to type object
     class(arpack_type)  :: this
 
     if (allocated(this % arnoldi_vectors)) then
@@ -333,7 +380,5 @@ contains
       deallocate(this % workev)
     end if
   end subroutine tear_down
-
-
 
 end module mod_arpack_type

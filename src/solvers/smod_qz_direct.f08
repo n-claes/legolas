@@ -1,8 +1,18 @@
+! =============================================================================
+!> Submodule containing the implementation of the QZ-direct algorithm.
+!! We keep the general form of the eigenvalue problem
+!! $$ \mathcal{A}\textbf{X} = \omega\mathcal{B}\textbf{X}\ $$
+!! and solve this directly by calling LAPACK's <tt>zggev</tt> routine.
+!! @note  Because the eigenvalue problem remains in general form, this
+!!        routine returns the generalised eigenvectors instead of the ordinary ones.
+!!        If you want eigenvectors as well, either use the QR-invert solvers
+!!        or one of the ARPACK methods.
 submodule (mod_solvers) smod_qz_direct
   implicit none
 
 contains
 
+  !> Solves the eigenvalue problem directly.
   module subroutine qz_direct(matrix_A, matrix_B, omega, vl, vr)
     !> matrix A
     complex(dp), intent(in)   :: matrix_A(:, :)

@@ -1,3 +1,6 @@
+! =============================================================================
+!> Module containing various matrix operations (inverting, multiplying, etc).
+!! Does calls to relevant BLAS or LAPACK routines.
 module mod_matrix_operations
   use mod_global_variables, only: dp
   use mod_check_values, only: matrix_is_square
@@ -47,7 +50,7 @@ contains
   !! First a LU-factorisation is performed using <tt>dgetrf</tt>, then inversion is
   !! done using <tt>dgetri</tt>.
   !! @warning Throws a warning if <tt>dgetrf</tt> or <tt>dgetri</tt> fails. @endwarning
-  !! @warning Throws an error if the matrix is not square.
+  !! @warning Throws an error if the matrix is not square. @endwarning
   subroutine invert_matrix_real(mat, mat_inv)
     !> real matrix to invert
     real(dp), intent(in)  :: mat(:, :)
@@ -93,7 +96,7 @@ contains
   !! First a LU-factorisation is performed using <tt>zgetrf</tt>, then inversion is
   !! done using <tt>zgetri</tt>.
   !! @warning Throws a warning if <tt>zgetrf</tt> or <tt>zgetri</tt> fails. @endwarning
-  !! @warning Throws an error if the matrix is not square.
+  !! @warning Throws an error if the matrix is not square. @endwarning
   subroutine invert_matrix_complex(mat, mat_inv)
     !> complex matrix to invert
     complex(dp), intent(in)  :: mat(:, :)
@@ -134,7 +137,7 @@ contains
   end subroutine invert_matrix_complex
 
 
-  !> Matrix multiplication using LAPACK routines, multiplies
+  !> Matrix multiplication using the LAPACK routine <tt>zgemm</tt>, multiplies
   !! a real with a complex matrix.
   subroutine rmat_x_cmat(mat1, mat2, mat_out)
     !> first matrix (left side)
@@ -163,7 +166,7 @@ contains
   end subroutine rmat_x_cmat
 
 
-  !> Matrix multiplication using LAPACK routines,
+  !> Matrix multiplication using the LAPACK routine <tt>zgemm</tt>,
   !! multiplies a real matrix with a complex vector
   subroutine rmat_x_cvec(mat, vec, vec_out)
     !> matrix (left side)
@@ -191,8 +194,8 @@ contains
   end subroutine rmat_x_cvec
 
 
-  !> Matrix multiplication using LAPACK routines, multiplies
-  !! a complex with a real matrix.
+  !> Matrix multiplication using the LAPACK routine <tt>zgemm</tt>,
+  !! multiplies a complex with a real matrix.
   subroutine cmat_x_rmat(mat1, mat2, mat_out)
     !> first matrix (left side)
     complex(dp), intent(in)   :: mat1(:, :)
@@ -220,7 +223,7 @@ contains
   end subroutine cmat_x_rmat
 
 
-  !> Matrix multiplication using LAPACK routines,
+  !> Matrix multiplication using the LAPACK routine <tt>zgemm</tt>,
   !! multiplies a complex matrix with a complex vector
   subroutine cmat_x_cvec(mat, vec, vec_out)
     !> matrix (left side)

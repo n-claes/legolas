@@ -1,3 +1,14 @@
+! =============================================================================
+!> Submodule containing the implementation of the various ARPACK solvers.
+!! Preprocessor directives are used here, if ARPACK was not found during compilation
+!! most of this submodule will not be compiled to avoid unknown calls to methods.
+!! We first cycle through the possible modes, set up the relevant matrix operators and
+!! call the corresponding methods. Then the reverse communication interface
+!! <tt>znaupd</tt> is called, which will keep iterating until either
+!! everything is converged or the maximum number of iterations <tt>maxiter</tt>
+!! is reached. Then eigenvalues are extracted using <tt>zneupd</tt>, eigenvectors
+!! are calculated and the residual of each eigenvalue is computed
+!! which should be small for converged values.
 submodule (mod_solvers) smod_arnoldi
   use mod_matrix_operations, only: invert_matrix, multiply_matrices
   use mod_arpack_type, only: arpack_type
@@ -7,6 +18,7 @@ submodule (mod_solvers) smod_arnoldi
 contains
 
 
+  !> Implementation of the ARPACK solvers
   module subroutine arnoldi(matrix_A, matrix_B, omega, vr)
     !> matrix A
     complex(dp), intent(in)   :: matrix_A(:, :)

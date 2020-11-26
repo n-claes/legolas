@@ -1,3 +1,12 @@
+! =============================================================================
+!> Submodule containing the implementation of the QR-invert algorithm.
+!! The original problem is written as a standard eigenvalue problem through
+!! $$ \mathcal{B}^{-1}\mathcal{A}\textbf{X} = \omega\textbf{X}\ $$
+!! where \(\mathcal{B}\) is always properly conditioned.
+!! Various calls to <tt>mod_matrix_operations</tt> are done to invert the
+!! B-matrix and to do matrix multiplications.
+!! Eventually a call to LAPACK's <tt>zgeev</tt> routine is done to obtain
+!! all eigenvalues and eigenvectors.
 submodule (mod_solvers) smod_qr_invert
   use mod_matrix_operations, only: invert_matrix, multiply_matrices
   use mod_check_values, only: matrix_is_square
@@ -5,6 +14,10 @@ submodule (mod_solvers) smod_qr_invert
 
 contains
 
+  !> Solves the eigenvalue problem by rewriting it to a standard form
+  !! through inversion of the B-matrix.
+  !! @warning Throws an error if <tt>matrix_A</tt> or <tt>matrix_B</tt>
+  !!          is not a square matrix. @endwarning
   module subroutine qr_invert(matrix_A, matrix_B, omega, vl, vr)
     !> matrix A
     complex(dp), intent(in)   :: matrix_A(:, :)
