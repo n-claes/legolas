@@ -19,10 +19,6 @@ module mod_matrix_operations
   integer   :: lwork
   !> integer used for successful exits
   integer   :: info
-  !> array for pivot indices
-  integer, allocatable  :: ipiv(:)
-  !> array for work
-  real(dp), allocatable :: work(:)
 
   private
 
@@ -56,6 +52,10 @@ contains
     real(dp), intent(in)  :: mat(:, :)
     !> inverted matrix
     real(dp), intent(out) :: mat_inv(:, :)
+    !> array for pivot indices
+    integer, allocatable  :: ipiv(:)
+    !> array for work
+    real(dp), allocatable :: work(:)
 
     if (.not. matrix_is_square(mat)) then
       call log_message("trying to invert but matrix is not square!", level="error")
@@ -102,6 +102,10 @@ contains
     complex(dp), intent(in)  :: mat(:, :)
     !> inverted matrix
     complex(dp), intent(out) :: mat_inv(:, :)
+    !> array for pivot indices
+    integer, allocatable     :: ipiv(:)
+    !> array for work
+    complex(dp), allocatable :: work(:)
 
     if (.not. matrix_is_square(mat)) then
       call log_message("trying to invert but matrix is not square!", level="error")
