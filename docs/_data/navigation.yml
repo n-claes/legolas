@@ -27,6 +27,8 @@ leftcontents:
         url: /content/general/parameter_file/
       - title: "Equilibria"
         url: /content/general/equilibria/
+      - title: "Solvers"
+        url: /content/general/solvers/
       - title: "Running your own setup"
         url: /content/general/own_setup/
   - title: Data-analysis with Pylbo

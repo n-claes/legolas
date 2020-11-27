@@ -1,33 +1,40 @@
 ---
-title: Installation guide
 layout: single
-classes: wide
 sidebar:
   nav: "leftcontents"
 toc: true
-toc_label: "Installing"
+toc_label: "Installation Guide"
 toc_icon: "cogs"
-last_modified_at: 2020-10-27
+last_modified_at: 2020-11-27
 ---
 
-# Requirements
 Due to the heavy use of object-oriented features (Fortran 2003) and submodules (Fortran 2008), Legolas
-requires relatively recent Fortran compilers.
-Below is a list of prerequisites needed to successfully build and run both Legolas and the post-processing
-framework [Pylbo](../../pylbo/installing_pylbo/). Please note that lower compiler versions have not been
-tested, but _might_ work.
+requires relatively recent Fortran compilers. This page gives a detailed overview of required
+and optional dependencies to successfully build and run both Legolas and the post-processing framework
+[Pylbo](../../pylbo/installing_pylbo/). Note that the compilers noted below are only recommended,
+and it is quite possible that Legolas also builds with lower versions (we haven't tested that).
 
+# Dependencies
+## Compilation
 - Fortran compiler
     - gfortran v8.x+ (recommended and tested)
     - Intel compilers v18.0+ (not tested)
 - CMake v3.12+
 - Python v3.6+
 - make
-- BLAS and LAPACK libraries v3.5+
 
-## Linear algebra tools BLAS and LAPACK
-CMake is configured in such a way that the BLAS and LAPACK libraries should be found and linked automatically.
-In general, it is sufficient if you have them installed through
+**Note:** Python is needed for Pylbo, not for Legolas itself. You can still run Legolas
+if the Python requirements are not satisfied, however you will not be able to immediately
+see the results after the run finishes (so set `show_results=.false.` in the parfile).
+{: .notice--info}
+
+## Linear algebra
+### BLAS and LAPACK
+The [BLAS](http://www.netlib.org/blas/) and [LAPACK](http://www.netlib.org/lapack/)
+linear algebra packages are **required** dependencies, and you will
+not be able to compile without them. We recommend version 3.5 or higher.
+CMake is configured in such a way that both libraries should be found and linked automatically if
+they are installed. In general, it is sufficient if you have them installed through
 ```bash
 sudo apt-get install libblas-dev
 sudo apt-get install liblapack-dev
@@ -43,9 +50,31 @@ If you did a manual compilation of the BLAS and LAPACK libraries (if you don't h
 CMake may not find the libraries by default. In that case it will throw a warning, and you may have to set the
 `$BLAS_LIBRARIES` and `$LAPACK_LIBRARIES` variables which link to the compiled libraries.
 
-# Pre-build
-Below we explain the stuff you _should_ do before attempting to compile Legolas.
-## Obtaining legolas
+
+### ARPACK
+The [ARPACK](https://www.caam.rice.edu/software/ARPACK/) library (and its parallel counterpart
+PARPACK is an **optional** dependency, so
+Legolas will compile and run just fine if you don't have this installed (related modules are
+conditionally compiled). Also here CMake will try to automatically find and link the libraries if installed.
+We recommend using maintained [arpack-ng](https://github.com/opencollab/arpack-ng) repository to
+install ARPACK. If CMake fails to find the library and you have it installed, you can set the
+`$ARPACK_ROOT` environment variable, pointing to the top-level of your local `arpack-ng` repository.
+
+
+### SCALAPACK
+The [SCALAPACK](http://www.netlib.org/scalapack/) package is an **optional** depencency.
+CMake has been configured to find and link this library, but this feature is currently
+disabled since Legolas does not have SCALAPACK routines implemented (yet).
+
+
+### MUMPS
+The [MUMPS](http://mumps.enseeiht.fr) library is an **optional** dependency.
+CMake has been configured to find and link this library, but this feature is currently
+disabled since Legolas does not have MUMPS routines implemented (yet).
+
+
+# Building Legolas
+## Obtaining the code
 Legolas can be obtained by cloning the online repository:
 ```bash
 git clone https://github.com/n-claes/legolas.git
@@ -65,7 +94,7 @@ PATH="$PATH:$LEGOLASDIR/setup_tools"
 The last line allows for easy access to the `buildlegolas.sh` and `setuplegolas.py` scripts in the `setup_tools`
 folder, such that they can be called from any directory.
 
-# Compiling the code
+## Compiling the code
 Compiling the code is quite straightforward, and for your convenience we have provided a simple shell script
 to do everything at once. Compiling the code can either be done from inside the repository or from a dedicated folder somewhere.
 The latter option will be particularly useful when you're setting up your own problems.
@@ -76,7 +105,7 @@ compilation cascades when changes are made), you don't have to recompile the cod
 Only the modified user-defined submodule is recompiled, and the "new" executable is placed in the same directory.
 {: .notice--info}
 
-## 1. In-repository build
+### 1. In-repository build
 The first option is building inside the repository. To do so, navigate to the legolas source directory and do
 ```bash
 sh setup_tools/buildlegolas.sh
@@ -93,26 +122,16 @@ An in-repository build is fine if you want to run pre-implemented problems, but 
 equilibria (or adding your own) you are essentially modifying the source files. This means that you will probably run
 into merge conflicts soon when you're updating the code (and we all hate those!) so we don't recommend doing it like this.
 
-## 2. Out-of-repository build (recommended)
+### 2. Out-of-repository build (recommended)
 This is the recommended way to build Legolas. This requires you to have set the environment variable and PATH
 modification described above. To setup a folder for a Legolas build, call `setuplegolas.py` from the command line and
-follow the instructions, which look like this
-```
-Starting Legolas setup process in directory 'your_directory'. Is this ok? [y/n] y
->> Copying CMakeLists.txt to present directory.
->> You'll need the Python wrapper to plot results after running. Copy over? [y/n] n
->> No parfile found. Copy default template? [y/n] y
->> Copying legolas_config.par to present directory.
->> No user-defined submodule found, copy default template? [y/n] y
->> Copying smod_user_defined.f08 to present directory.
+follow the instructions. The script will do (and ask you) a couple of things:
+1. Copy over `CMakeLists.txt`.
+2. Copy over `pylbo_wrapper.py`, which you will need if you want to plot the results afterwards.
+3. Copy over a default parfile if none was found.
+4. Copy over the default user submodule template if none was found.
+5. Modify the build script to include the custom submodule if found.
 
->> Setup complete.
-You can start the build process by calling 'buildlegolas.sh'
-directly or do a manual CMake install.
-```
-So first `CMakeLists.txt` is copied over, which is needed for the build, followed by the Pylbo wrapper script if you
-need it. If no parfile is found a default template is copied over, the same holds for the user-defined equilibrium.
-If the latter is found in the repository, the setup script edits the `CMakeLists.txt` file to include it in the build.
 Next you simply build as described before, either through `buildlegolas.sh` which does everything automatically, or
 manually through
 ```bash
@@ -123,13 +142,17 @@ make
 ```
 In both cases the executable is placed in the same directory as the parfile and user submodule.
 
-# Equivalent of "make clean"
-Since we use CMake for compilation there is no `make clean` equivalent as there is with GNU Make.
-Instead, you can simply remove the `build` directory inside the repository (or your local folder),
-which contains the compiled object files.
-You can do this automatically from any directory by supplying an additional argument to `buildlegolas.sh`.
+# Doing a clean build
+Since we use CMake for compilation there is no exact `make clean` equivalent as there is with GNU Make.
+Instead, you can do one of the following things:
+1. Navigate to the `build` directory (inside the repository or the local one) and do `make clean`.
+   This removes the compiled object files and lets you do a fresh `make` compilation.
+2. Remove the (local) `build` directory, re-create it and compile again. This is perhaps best way to 
+   do it, since that means that the `CMakeCache` is removed as well.
+   
+You can also do this automatically from any directory by supplying an additional argument to `buildlegolas.sh`.
 Say you just compiled in a local directory and you want to do a fresh compilation, simply call
 ```bash
 buildlegolas.sh clean
 ```
-This will remove the `build` folder in the main legolas directory and the local executable (if one is found).
+This will remove the `build` folder in the main legolas directory, the local `build` directory and the local executable (if one is found).
