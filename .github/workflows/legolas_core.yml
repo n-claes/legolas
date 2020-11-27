@@ -11,6 +11,7 @@ env:
   FC: /usr/bin/gfortran-9
   PFUNIT_DIR: /home/runner/work/legolas/legolas/tests/core_tests/pFUnit/build/installed
   LEGOLASDIR: /home/runner/work/legolas/legolas
+  ARPACK_ROOT: /home/runner/work/legolas/legolas/tests/arpack-ng
 
 jobs:
   tests:
@@ -53,7 +54,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: tests/arpack-ng/
-        key: ${{ runner.os }}-arpack
+        key: ${{ runner.os }}-arpackv2
 
     - name: Build ARPACK
       if: steps.arpack-cache.outputs.cache-hit != 'true'
@@ -62,8 +63,9 @@ jobs:
         git clone https://github.com/opencollab/arpack-ng.git
         cd arpack-ng
         mkdir build
+        mkdir installed
         cd build
-        cmake -DEXAMPLES=OFF -DMPI=OFF -DBUILD_SHARED_LIBS=ON ..
+        cmake -DEXAMPLES=OFF -DMPI=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=../installed ..
         make -j 2
         sudo make -j 2 install
 
