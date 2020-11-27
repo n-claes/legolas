@@ -148,6 +148,19 @@ module mod_global_variables
   !> boolean for doing a dry run, defaults to <tt>False</tt>
   logical, save             :: dry_run
 
+  !> method to solve the eigenvalue problem, defaults to <tt>"QR-invert"</tt>
+  character(len=str_len)    :: solver
+  !> selected mode for ARPACK, defaults to <tt>"standard"</tt>
+  character(len=str_len)    :: arpack_mode
+  !> number of eigenvalues to calculate with ARPACK, defaults to 10
+  integer                   :: number_of_eigenvalues
+  !> which eigenvalues to calculate, defaults to <tt>"LM"<tt> (largest magnitude)
+  character(len=2)          :: which_eigenvalues
+  !> maximum number of Arnoldi iterations
+  integer                   :: maxiter
+  !> sigma value, only used in shift-invert mode
+  complex(dp)               :: sigma
+
 contains
 
 
@@ -215,6 +228,14 @@ contains
     basename_datfile = "datfile"
     basename_logfile = ""
     output_folder = "output"
+
+    !! solution method variables
+    solver = "QR-invert"
+    arpack_mode = "standard"
+    number_of_eigenvalues = 100
+    which_eigenvalues = "LM"
+    ! this defaults to 10*N, but we technically don't know N yet
+    maxiter = 0
   end subroutine initialise_globals
 
 

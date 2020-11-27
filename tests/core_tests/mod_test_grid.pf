@@ -46,11 +46,12 @@ contains
 
   @test
   subroutine test_cyl_grid_force()
-    use mod_global_variables, only: force_r0
+    use mod_global_variables, only: force_r0, logging_level
     use mod_grid, only: grid
 
     write(*, *) "Testing cylindrical grid edges (forced)"
     force_r0 = .true.
+    logging_level = 0
     call create_test_grid(pts=31, geom='cylindrical', &
                           start=0.0d0, end=1.0d0)
     @assertEqual(grid(1), 0.0d0, tolerance=TOL)

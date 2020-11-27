@@ -48,7 +48,26 @@ jobs:
         make -j 2 tests
         make -j 2 install
 
-    - name: Compilation
+    - name: Cache ARPACK
+      id: arpack-cache
+      uses: actions/cache@v1
+      with:
+        path: tests/arpack-ng/
+        key: ${{ runner.os }}-arpack
+
+    - name: Build ARPACK
+      if: steps.arpack-cache.outputs.cache-hit != 'true'
+      run: |
+        cd tests
+        git clone https://github.com/opencollab/arpack-ng.git
+        cd arpack-ng
+        mkdir build
+        cd build
+        cmake -DEXAMPLES=OFF -DMPI=OFF -DBUILD_SHARED_LIBS=ON ..
+        make -j 2
+        sudo make -j 2 install
+
+    - name: Build Legolas
       run: |
         sh setup_tools/buildlegolas.sh
         cd tests/core_tests

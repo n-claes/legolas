@@ -1,0 +1,180 @@
+module mod_test_matrixoperations
+  use mod_suite_utils
+  use funit
+  implicit none
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+    call reset_eigenfunctions(init_efs=.false.)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_inversion_notsquare()
+    use mod_matrix_operations, only: invert_matrix
+
+    real(dp)  :: matrix(4, 3), inverse(4, 3)
+
+    write(*, *) "Testing matrix inversion: not square failure"
+    call invert_matrix(matrix, inverse)
+    @assertExceptionRaised("trying to invert but matrix is not square!")
+  end subroutine test_inversion_notsquare
+
+
+  @test
+  subroutine test_inversion_diag()
+    use mod_matrix_operations, only: invert_matrix
+
+    real(dp)  :: matrix(5, 5), inverse(5, 5), expected(5, 5)
+
+    write(*, *) "Testing matrix inversion: real diagonal"
+    matrix = reshape( &
+      (/ &
+        1.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, &
+        0.0d0, 2.0d0, 0.0d0, 0.0d0, 0.0d0, &
+        0.0d0, 0.0d0, 5.0d0, 0.0d0, 0.0d0, &
+        0.0d0, 0.0d0, 0.0d0, 4.0d0, 0.0d0, &
+        0.0d0, 0.0d0, 0.0d0, 0.0d0, 10.0d0 &
+      /), &
+      shape(matrix) &
+    )
+    expected = reshape( &
+      (/ &
+        1.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, &
+        0.0d0, 0.5d0, 0.0d0, 0.0d0, 0.0d0, &
+        0.0d0, 0.0d0, 0.2d0, 0.0d0, 0.0d0, &
+        0.0d0, 0.0d0, 0.0d0, 0.25d0, 0.0d0, &
+        0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.1d0 &
+        /), &
+      shape(matrix) &
+    )
+    call invert_matrix(matrix, inverse)
+    @assertEqual(expected, inverse, tolerance=TOL)
+  end subroutine test_inversion_diag
+
+
+  @test
+  subroutine test_inversion_real()
+    use mod_matrix_operations, only: invert_matrix
+
+    real(dp)  :: matrix(4, 4), inverse(4, 4), expected(4, 4)
+
+    write(*, *) "Testing matrix inversion: real matrix"
+    matrix = reshape( &
+      (/ &
+        7.0d0, 0.0d0, -3.0d0, 2.0d0, &   ! column 1
+        2.0d0, 3.0d0, 4.0d0, 2.0d0, &   ! column 2
+        1.0d0, -1.0d0, -2.0d0, -1.0d0, &
+        -2.0d0, 2.0d0, 1.0d0, 4.0d0 &
+      /), &
+      shape(matrix) &
+    )
+    expected = reshape( &
+      (/ &
+        1.0d0/7.0d0, 0.0d0, -2.0d0/7.0d0, -1.0d0/7.0d0, &
+        -4.0d0/7.0d0, 1.0d0, 22.0d0/7.0d0, 4.0d0/7.0d0, &
+        10.0d0/49.0d0, -2.0d0/7.0d0, -76.0d0/49.0d0, -17.0d0/49.0d0, &
+        15.0d0/49.0d0, -3.0d0/7.0d0, -65.0d0/49.0d0, -1.0d0/49.0d0 &
+      /), &
+      shape(expected) &
+    )
+    call invert_matrix(matrix, inverse)
+    @assertEqual(expected, inverse, tolerance=TOL)
+  end subroutine test_inversion_real
+
+
+  @test
+  subroutine test_multiplication_fail()
+    use mod_matrix_operations, only: multiply_matrices
+
+    real(dp)    :: rmat(5, 5)
+    complex(dp) :: cmat(4, 5), result(5, 5)
+
+    write(*, *) "Testing matrix multiplication: incompatible"
+    call multiply_matrices(rmat, cmat, result)
+    @assertExceptionRaised("incompatible matrix multiplication: (. x 5) x (4 x .)")
+  end subroutine test_multiplication_fail
+
+
+  @test
+  subroutine test_rmatxcmat()
+    use mod_matrix_operations, only: multiply_matrices
+    use mod_global_variables, only: ic, ir
+
+    real(dp)    :: rmat(4, 4)
+    complex(dp) :: cmat(4, 4), result(4, 4), expected(4, 4)
+
+    write(*, *) "Testing rxc matrix multiplication"
+    rmat = reshape( &
+      (/ &
+        7.0d0, 0.0d0, -3.0d0, 2.0d0, &
+        2.0d0, 3.0d0, 4.0d0, 2.0d0, &
+        1.0d0, -1.0d0, -2.0d0, -1.0d0, &
+        -2.0d0, 2.0d0, 1.0d0, 4.0d0 &
+      /), &
+      shape(rmat) &
+    )
+    cmat = reshape( &
+      (/ &
+        2.0d0*ir, 0.0d0*ir, 1.0d0*ic, -3.0d0*ir, &
+        3.0d0*ir, 0.0d0*ir, 2.0d0*ic, 1.0d0*ir, &
+        4.0d0*ic, 3.0d0*ir, -7.0d0*ir, 5.0d0*ic, &
+        -1.0d0*ir, -2.0d0*ir,  3.0d0*ir,  2.0d0*ir &
+      /), &
+      shape(cmat) &
+    )
+    expected = reshape( &
+      (/ &
+        (20.0d0, 1.0d0), (-6.0d0,-1.0d0), (-9.0d0,-2.0d0), (-8.0d0,-1.0d0), &
+        (19.0d0, 2.0d0), ( 2.0d0,-2.0d0), (-8.0d0,-4.0d0), (10.0d0,-2.0d0), &
+        (-1.0d0,18.0d0), (16.0d0,10.0d0), (26.0d0,-7.0d0), (13.0d0,28.0d0), &
+        (-12.0d0, 0.0d0), (-5.0d0, 0.0d0), (-9.0d0, 0.0d0), (-1.0d0, 0.0d0) &
+      /), &
+      shape(expected) &
+    )
+    call multiply_matrices(rmat, cmat, result)
+    @assertEqual(expected, result, tolerance=TOL)
+  end subroutine test_rmatxcmat
+
+
+  @test
+  subroutine test_cmatxcvec()
+    use mod_matrix_operations, only: multiply_matrices
+    use mod_global_variables, only: ir, ic
+
+    complex(dp) :: cmat(5, 5), cvec(5), result(5), expected(5)
+
+    write(*, *) "Testing rxc matrix-vector multiplication"
+    cmat = reshape( &
+      (/ &
+        5.0d0*ic, -3.0d0*ic, 2.0d0*ir, -3.0d0*ic, -5.0d0*ic, &
+        2.0d0*ir, 7.0d0*ir, 4.0d0*ir, 1.0d0*ir, -3.0d0*ic, &
+        0.0d0*ir, -3.0d0*ir, -4.0d0*ic, -1.0d0*ir, -8.0d0*ir, &
+        -1.0d0*ir, -4.0d0*ir, -5.0d0*ic, 2.0d0*ic, 9.0d0*ic, &
+        2.0d0*ic, -1.0d0*ic, 3.0d0*ir, 7.0d0*ic, 3.0d0*ir &
+      /), &
+      shape(cmat) &
+    )
+    cvec = (/ 2.0d0*ic, -1.0d0*ir, 6.0d0*ic, -4.0d0*ir, -8.0d0*ir /)
+    expected = (/ &
+      (-8.0d0, -16.0d0), &
+      (15.0d0, -10.0d0), &
+      (-4.0d0, 24.0d0), &
+      (5.0d0, -70.0d0), &
+      (-14.0d0, -81.0d0) &
+    /)
+    call multiply_matrices(cmat, cvec, result)
+    @assertEqual(expected, result, tolerance=TOL)
+  end subroutine test_cmatxcvec
+
+end module mod_test_matrixoperations

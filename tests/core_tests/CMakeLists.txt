@@ -25,6 +25,9 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 include(${setup_tools}/findBLAS.cmake)
 include(${setup_tools}/findLAPACK.cmake)
+#include(${setup_tools}/findSCALAPACK.cmake)
+#include(${setup_tools}/findMUMPS.cmake)
+include(${setup_tools}/findARPACK.cmake)
 
 # add default modules to library
 add_library(suite
@@ -39,7 +42,15 @@ target_include_directories(suite PUBLIC ${BUILD}/bin)
 target_include_directories(suite PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 # link compiled library as well
 FILE(GLOB LEGOLASLIB ${BUILD}/lib/*.a)
-target_link_libraries(suite ${LEGOLASLIB} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+set(LIBSTOLINK
+    ${ARPACK_LIBRARIES}
+    ${PARPACK_LIBRARIES}
+    #    ${MUMPS_LIBRARIES}
+    #    ${SCALAPACK_LIBRARIES}
+    ${LAPACK_LIBRARIES}
+    ${BLAS_LIBRARIES}
+)
+target_link_libraries(suite ${LEGOLASLIB} ${LIBSTOLINK})
 
 set( test_sources
         mod_test_variables.pf
@@ -53,14 +64,16 @@ set( test_sources
         mod_test_boundaries.pf
         mod_test_splines.pf
         mod_test_subblock.pf
-        mod_test_solvers.pf
+        mod_test_matrixoperations.pf
         mod_test_interpolation.pf
         mod_test_integration.pf
+        mod_test_lapacksolvers.pf
+        mod_test_arpacksolvers.pf
 )
 add_pfunit_ctest (test_legolas
         TEST_SOURCES ${test_sources}
         OTHER_SOURCES mod_pfunit_exceptions.f90
-        LINK_LIBRARIES suite ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES}
+        LINK_LIBRARIES suite ${LIBSTOLINK}
         EXTRA_USE mod_pfunit_exceptions
         EXTRA_INITIALIZE init_pfunit_raise
 )

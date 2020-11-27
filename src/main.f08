@@ -9,7 +9,7 @@
 program legolas
   use mod_global_variables, only: dp, str_len, show_results, dry_run
   use mod_matrix_creation, only: create_matrices
-  use mod_solvers, only: solve_QR
+  use mod_solvers, only: solve_evp
   use mod_output, only: datfile_name
   use mod_logging, only: log_message, print_console_info, print_whitespace
   use mod_inspections, only: handle_spurious_eigenvalues
@@ -32,7 +32,7 @@ program legolas
 
   if (.not. dry_run) then
     call log_message("solving eigenvalue problem...", level='info')
-    call solve_QR(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
+    call solve_evp(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
   else
     call log_message("running dry, overriding parfile and setting &
                       &eigenvalues to zero", level='info')
