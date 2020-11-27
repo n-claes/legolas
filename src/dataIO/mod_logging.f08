@@ -273,10 +273,10 @@ contains
       )
       if (arpack_mode == "shift-invert") then
         write(char_log, dp_fmt) real(sigma)
-        write(char_log2, dp_fmt) aimag(sigma)
+        write(char_log2, '(SP,f18.8,"i")') aimag(sigma)
       call log_message( &
         "sigma value          : " // trim(adjustl(char_log)) &
-          // trim(adjustl(char_log2)) // "i", &
+          // trim(adjustl(char_log2)), &
         level="info", &
         use_prefix=.false. &
       )
