@@ -65,7 +65,7 @@ jobs:
         cd build
         cmake -DEXAMPLES=OFF -DMPI=OFF -DBUILD_SHARED_LIBS=ON ..
         make -j 2
-        make -j 2 install
+        sudo make -j 2 install
 
     - name: Build Legolas
       run: |
