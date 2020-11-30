@@ -10,6 +10,7 @@ set (sources
         mod_grid.f08
         mod_types.f08
         mod_check_values.f08
+        solvers/mod_matrix_operations.f08
         mod_spline_functions.f08
         mod_interpolation.f08
         mod_integration.f08
@@ -51,7 +52,11 @@ set (sources
         mod_make_subblock.f08
         mod_boundary_conditions.f08
         mod_matrix_creation.f08
-        mod_solvers.f08
+        solvers/mod_solvers.f08
+        solvers/mod_arpack_type.f08
+        solvers/smod_qr_invert.f08
+        solvers/smod_qz_direct.f08
+        solvers/smod_arnoldi.f08
         mod_eigenfunctions.f08
         dataIO/mod_output.f08
 )
@@ -59,6 +64,15 @@ set (sources
 set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)
 set_source_files_properties(main.f08 PROPERTIES LANGUAGE Fortran)
 
+set(LIBSTOLINK
+    ${ARPACK_LIBRARIES}
+    ${PARPACK_LIBRARIES}
+#    ${MUMPS_LIBRARIES}
+#    ${SCALAPACK_LIBRARIES}
+    ${LAPACK_LIBRARIES}
+    ${BLAS_LIBRARIES}
+)
+
 add_library(${LEGOLASLIB} ${sources})
 add_executable(${LEGOLASEXEC} main.f08)
-target_link_libraries(${LEGOLASEXEC} ${LEGOLASLIB} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+target_link_libraries(${LEGOLASEXEC} ${LEGOLASLIB} ${LIBSTOLINK})

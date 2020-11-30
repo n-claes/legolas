@@ -12,7 +12,7 @@ contains
 
     call initialise_globals()
     call init_equilibrium_params()
-    logging_level = 0
+    logging_level = 1 ! also print warnings
     k2 = 1.0d0
     k3 = 2.5d0
   end subroutine reset_globals
@@ -52,6 +52,7 @@ contains
     use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid, grid_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
+    use mod_solvers, only: solvers_clean
 
     if (allocated(grid)) then
       call grid_clean()
@@ -61,6 +62,7 @@ contains
       call radiative_cooling_clean()
     end if
     call reset_eigenfunctions(init_efs=.false.)
+    call solvers_clean()
   end subroutine clean_up
 
 
@@ -110,5 +112,35 @@ contains
       xarray(i) = x0 + (i - 1) * dx
     end do
   end function linspace
+
+
+  subroutine sort_complex_array(array)
+    complex(dp), intent(inout)  :: array(:)
+    complex(dp) :: temp
+    integer     :: i, minidx
+
+    ! sort array using selection sort, based on real part
+    do i = 1, size(array) - 1
+      minidx = minloc(real(array(i:)), 1) + i - 1
+      if (real(array(i)) > real(array(minidx))) then
+        temp = array(i)
+        array(i) = array(minidx)
+        array(minidx) = temp
+      end if
+    end do
+  end subroutine sort_complex_array
+
+
+  subroutine create_identity_matrix(ndim, mat)
+    integer, intent(in)   :: ndim
+    real(dp), intent(out) :: mat(ndim, ndim)
+
+    integer   :: i
+
+    mat = 0.0d0
+    do i = 1, ndim
+      mat(i, i) = 1.0d0
+    end do
+  end subroutine create_identity_matrix
 
 end module mod_suite_utils

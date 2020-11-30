@@ -3,7 +3,7 @@
 !! small, NaN or negative values in arrays. We also have single-value checks against
 !! zero or NaN, along with a double-precision equality check.
 module mod_check_values
-  use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan
+  use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan, ieee_is_finite
   use mod_global_variables, only: dp, dp_LIMIT, gauss_gridpts
   use mod_logging, only: log_message, int_fmt, exp_fmt, char_log
   implicit none
@@ -17,6 +17,12 @@ module mod_check_values
     module procedure small_values_real_matrix
     module procedure small_values_complex_matrix
   end interface check_small_values
+
+  !> Interface to check if a given matrix is square
+  interface matrix_is_square
+    module procedure matrix_real_is_square
+    module procedure matrix_complex_is_square
+  end interface matrix_is_square
 
   !> Interface to check NaN values in the equilibrium types.
   interface check_nan_values
@@ -33,12 +39,20 @@ module mod_check_values
     module procedure complex_is_zero
   end interface value_is_zero
 
+  !> Interface to check if a real or complex value is infinity.
+  interface value_is_inf
+    module procedure real_is_inf
+    module procedure complex_is_inf
+  end interface value_is_inf
+
   public :: check_small_values
   public :: check_negative_array
   public :: check_nan_values
+  public :: matrix_is_square
   public :: value_is_zero
   public :: value_is_equal
   public :: value_is_nan
+  public :: value_is_inf
 
 contains
 
@@ -112,6 +126,36 @@ contains
       is_nan = .false.
     end if
   end function value_is_nan
+
+
+  !> Infinity check for real values.
+  !! Returns <tt>True</tt> if value equals Infinity, <tt>False</tt> otherwise
+  function real_is_inf(value) result(is_inf)
+    !> the real value to check
+    real(dp), intent(in)  :: value
+    logical :: is_inf
+
+    if (ieee_is_finite(value)) then
+      is_inf = .false.
+    else
+      is_inf = .true.
+    end if
+  end function real_is_inf
+
+
+  !> Infinity check for complex values.
+  !! Returns <tt>True</tt> if value equals Infinity, <tt>False</tt> otherwise
+  function complex_is_inf(value) result(is_inf)
+    !> the real value to check
+    complex(dp), intent(in)  :: value
+    logical :: is_inf
+
+    if (ieee_is_finite(real(value)) .and. ieee_is_finite(aimag(value))) then
+      is_inf = .false.
+    else
+      is_inf = .true.
+    end if
+  end function complex_is_inf
 
 
   !> Small value checks on a real array.
@@ -240,6 +284,36 @@ contains
       end do
     end do
   end subroutine small_values_complex_matrix
+
+
+  !> Checks if a given real matrix is square.
+  !! Returns <tt>.true.</tt> if dimensions are equal, <tt>.false.</tt> otherwise.
+  function matrix_real_is_square(matrix)  result(is_square)
+    !> the real matrix to check
+    real(dp), intent(in)  :: matrix(:, :)
+    logical :: is_square
+
+    if (size(matrix, dim=1) == size(matrix, dim=2)) then
+      is_square = .true.
+    else
+      is_square = .false.
+    end if
+  end function matrix_real_is_square
+
+
+  !> Checks if a given complex matrix is square.
+  !! Returns <tt>.true.</tt> if dimensions are equal, <tt>.false.</tt> otherwise.
+  function matrix_complex_is_square(matrix)  result(is_square)
+    !> the real matrix to check
+    complex(dp), intent(in)  :: matrix(:, :)
+    logical :: is_square
+
+    if (size(matrix, dim=1) == size(matrix, dim=2)) then
+      is_square = .true.
+    else
+      is_square = .false.
+    end if
+  end function matrix_complex_is_square
 
 
   !> Negative value checks on a real array.

@@ -95,6 +95,17 @@ parameter studies, to prevent having to recompile the submodule over and over ag
 | dropoff_edge_dist | real | distance between grid edge and the smoothened profile center  | 0.05  |
 | dropoff_width | real | sets the width over which the profile is smoothened out   | 0.1   |
 
+## solvelist
+This namelist includes all solver-related variables. For more information, see [Solvers](../../general/solvers)
+
+| Parameter     | Type  | Description   | Default value     |
+| :---          | :---: | :----         | :---:             |
+| solver        | string    | which solver to use | `"QR-invert"` |
+| arpack_mode   | string    | the mode for ARPACK, only used if `solver="arnoldi"` | `"standard"`  |
+| number_of_eigenvalues | int   | number of eigenvalues to calculate, only used if `solver="arnoldi"`   | 10    |
+| which eigenvalues | string    | which eigenvalues to calculate, only used if `solver="arnoldi"`   |   `"LM"`  |
+| maxiter       | int   | the maximum number of iterations the Arnoldi solver may take, only used if `solver="arnoldi"` | 10N   |
+| sigma         | complex   | sigma-value around which to do shift-invert, only for `arpack_mode="shift-invert"`  | **NaN** |
 
 ## unitslist
 This namelist includes all units-related variables.

@@ -68,12 +68,18 @@ contains
   !! For a wall, that means handling \(v1, a2\) and \(a3\) (and \(T1\) if there is
   !! perpendicular thermal conduction).
   !! @note    The contribution from the 0 quadratic basis function automatically
-  !!          zeroes out the odd rows/columns for the quadratic variables on the left edge.
-  !!          These are explicitly handled. @endnote
+  !!          zeroes out the odd rows/columns for the quadratic variables on the
+  !!          left edge. These are explicitly handled. @endnote
+  !! @note    In the case of the Arnoldi solver, setting boundary conditions to
+  !!          1e20 throws off the solver such that it returns completely wrong results.
+  !!          Setting them to a "normal" value, 0 here, seems to fix it. We now have
+  !!          an exact match with the QR/QZ solvers in this case.
+  !!          Eigenvalues will be introduced at 0 instead of at 1, but this does not
+  !!          affect the final spectrum in any way. @endnote
   !! @warning Throws an error if <tt>boundary_type</tt> is not known,
   !!          or if <tt>edge</tt> is not known.
   subroutine essential_boundaries(quadblock, edge, matrix)
-    use mod_global_variables, only: boundary_type
+    use mod_global_variables, only: boundary_type, solver
     use mod_logging, only: log_message
 
     !> the quadblock corresponding to the left/right edge
@@ -89,7 +95,11 @@ contains
     if (matrix == 'B') then
       diagonal_factor = (1.0d0, 0.0d0)
     else if (matrix == 'A') then
-      diagonal_factor = (1.0d20, 0.0d0)
+      if (solver == "arnoldi") then
+        diagonal_factor = (0.0d0, 0.0d0)
+      else
+        diagonal_factor = (1.0d20, 0.0d0)
+      end if
     else
       call log_message("essential boundaries: invalid matrix argument", level='error')
     end if
