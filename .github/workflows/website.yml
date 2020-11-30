@@ -39,6 +39,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: ./docs
+          cname: legolas.science
           enable_jekyll: true
           full_commit_message: "deploy ${{ github.sha }}: ${{ github.event.head_commit.message }}"
           force_orphan: true
