@@ -121,4 +121,4 @@ def test_temperature(ds_test):
     for value in ds_test.equilibria.get("T0"):
         temp = value * ds_test.units.get("unit_temperature")
         # relative tolerance of 0.2%
-        assert temp == pytest.approx(2.9e5, rel=0.002)
+        assert temp == pytest.approx(2.9e5, rel=0.0065)

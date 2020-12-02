@@ -7,7 +7,7 @@
 !! $$ p_{unit} = \frac{B_{unit}^2}{\mu} $$
 !! Then, if a unit density is specified this fixes the unit temperature and vice-versa,
 !! through use of the ideal gas law
-!! $$ p_{unit} = \mathcal{R}T_{unit}\rho_{unit} $$
+!! $$ p_{unit} = \mathcal{R}_{specific}T_{unit}\rho_{unit} $$
 !! The other normalisations are then fixed, and are set through
 !! $$ n_{unit} = \frac{\rho_{unit}}{m_p}, ~~~~~~~
 !!    v_{unit} = \frac{B_{unit}}{\sqrt{\mu\rho_{unit}}},  $$
@@ -163,10 +163,10 @@ contains
 
     if (present(new_unit_density)) then
       unit_density = new_unit_density
-      unit_temperature = unit_pressure / (Rgas * unit_density)
+      unit_temperature = unit_pressure * mp / (kB * unit_density)
     else if (present(new_unit_temperature)) then
       unit_temperature = new_unit_temperature
-      unit_density = unit_pressure / (Rgas * unit_temperature)
+      unit_density = unit_pressure * mp / (kB * unit_temperature)
     else
       call log_message("no unit density or unit temperature specified.", level='error')
     end if

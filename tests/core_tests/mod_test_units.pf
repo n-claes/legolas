@@ -81,7 +81,7 @@ contains
     use mod_units, only: unit_density
 
     write(*, *) "Testing unit density"
-    @assertEqual(2.3927317200657786d0, unit_density * 1.0d14, tolerance=TOL)
+    @assertEqual(2.4101533254935998d0, unit_density * 1.0d14, tolerance=TOL)
   end subroutine test_unit_density
 
 
@@ -90,7 +90,7 @@ contains
     use mod_units, only: unit_numberdensity
 
     write(*, *) "Testing unit numberdensity"
-    @assertEqual(14305276620.02202d0, unit_numberdensity, tolerance=TOL)
+    @assertEqual(14409434091.049740d0, unit_numberdensity, tolerance=TOL)
   end subroutine test_unit_numberdensity
 
 
@@ -99,7 +99,7 @@ contains
     use mod_units, only: unit_velocity
 
     write(*, *) "Testing unit velocity"
-    @assertEqual(9118388.015433429d0, unit_velocity, tolerance=TOL)
+    @assertEqual(9085372.4661753811d0, unit_velocity, tolerance=TOL)
   end subroutine test_unit_velocity
 
 
@@ -108,7 +108,7 @@ contains
     use mod_units, only: unit_time
 
     write(*, *) "Testing unit time"
-    @assertEqual(1096.6850701104613d0, unit_time, tolerance=TOL)
+    @assertEqual(1100.6703398489997d0, unit_time, tolerance=TOL)
   end subroutine test_unit_time
 
 
@@ -117,7 +117,7 @@ contains
     use mod_units, only: unit_lambdaT
 
     write(*, *) "Testing unit lambda(T)"
-    @assertEqual(8.864529572713094d0, unit_lambdaT * 1.0d24, tolerance=TOL)
+    @assertEqual(8.7052055713759540d0, unit_lambdaT * 1.0d24, tolerance=TOL)
   end subroutine test_unit_lambdaT
 
 
@@ -126,7 +126,7 @@ contains
     use mod_units, only: unit_dlambdaT_dT
 
     write(*, *) "Testing unit dlambda(T)/dT"
-    @assertEqual(8.864529572713094d0, unit_dlambdaT_dT * 1.0d30, tolerance=TOL)
+    @assertEqual(8.7052055713759540d0, unit_dlambdaT_dT * 1.0d30, tolerance=TOL)
   end subroutine test_unit_dlambdaT_dT
 
 
@@ -135,7 +135,7 @@ contains
     use mod_units, only: unit_conduction
 
     write(*, *) "Testing unit conduction"
-    @assertEqual(181404565710.76596d0, unit_conduction, tolerance=TOL)
+    @assertEqual(180747742227.85196d0, unit_conduction, tolerance=TOL)
   end subroutine test_unit_conduction
 
 
