@@ -20,14 +20,16 @@ contains
   !! @note  Perpendicular thermal conduction is hard-checked, that is, not just the
   !!        global logical. There must be a value in the corresponding array that is non-zero.
   subroutine apply_boundary_conditions(matrix_A, matrix_B)
-    use mod_global_variables, only: dp_LIMIT
+    use mod_global_variables, only: dp_LIMIT, hall_mhd
     use mod_equilibrium, only: kappa_field
+    use mod_hallmhd, only: hall_boundaries
 
     !> the A-matrix with boundary conditions imposed on exit
     complex(dp), intent(inout)  :: matrix_A(matrix_gridpts, matrix_gridpts)
     !> the B-matrix with boundary conditions imposed on exit
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp)                 :: quadblock(dim_quadblock, dim_quadblock)
+    complex(dp)                 :: quadblock_Hall(dim_quadblock, dim_quadblock)
     integer                     :: idx_end_left, idx_start_right
 
     ! check if perpendicular thermal conduction is present
@@ -54,11 +56,19 @@ contains
     quadblock = matrix_A(1:idx_end_left, 1:idx_end_left)
     call essential_boundaries(quadblock, edge='l_edge', matrix='A')
     call natural_boundaries(quadblock, edge='l_edge')
+    if (hall_mhd) then
+      call hall_boundaries(quadblock_Hall, edge='l_edge')
+      quadblock = quadblock + quadblock_Hall
+    end if
     matrix_A(1:idx_end_left, 1:idx_end_left) = quadblock
     ! matrix A right-edge quadblock
     quadblock = matrix_A(idx_start_right:matrix_gridpts, idx_start_right:matrix_gridpts)
     call essential_boundaries(quadblock, edge='r_edge', matrix='A')
     call natural_boundaries(quadblock, edge='r_edge')
+    if (hall_mhd) then
+      call hall_boundaries(quadblock_Hall, edge='r_edge')
+      quadblock = quadblock + quadblock_Hall
+    end if
     matrix_A(idx_start_right:matrix_gridpts, idx_start_right:matrix_gridpts) = quadblock
   end subroutine apply_boundary_conditions
 

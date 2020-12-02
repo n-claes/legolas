@@ -7,6 +7,10 @@
   mesh_accumulation = .false.
 /
 
+&physicslist
+  ! hall_mhd = .true.
+/
+
 &equilibriumlist
   ! equilibrium_type = "adiabatic_homo"               ! Cartesian
   ! equilibrium_type = "resistive_homo"               ! Cartesian

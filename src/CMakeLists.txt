@@ -59,6 +59,7 @@ set (sources
         solvers/smod_arnoldi.f08
         mod_eigenfunctions.f08
         dataIO/mod_output.f08
+        mod_hallmhd.f08
 )
 
 set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)

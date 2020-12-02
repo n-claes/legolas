@@ -67,6 +67,10 @@ module mod_global_variables
   real(dp)                  :: dropoff_edge_dist
   !> width of the dropoff region, defaults to <tt>0.1</tt>
   real(dp)                  :: dropoff_width
+  !> boolean to use Hall MHD, defaults to <tt>False</tt>
+  logical, save             :: hall_mhd
+  !> Normalised Hall factor
+  real(dp)                  :: hallfactor
 
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
@@ -195,6 +199,8 @@ contains
     use_eta_dropoff = .false.
     dropoff_edge_dist = 0.05d0
     dropoff_width = 0.1d0
+    hall_mhd = .false.
+    hallfactor = NaN
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile

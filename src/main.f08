@@ -55,11 +55,12 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, matrix_gridpts
+    use mod_global_variables, only: initialise_globals, matrix_gridpts, hall_mhd
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_logging, only: print_logo
+    use mod_hallmhd, only: get_hallfactor
 
     character(len=str_len)  :: parfile
 
@@ -78,6 +79,9 @@ contains
     call initialise_equilibrium()
     call initialise_eigenfunctions()
     call set_equilibrium()
+    if (hall_mhd) then
+      call get_hallfactor()
+    end if
   end subroutine initialisation
 
 

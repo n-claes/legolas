@@ -1,6 +1,6 @@
 ! =============================================================================
 !> This submodule defines a Gold-Hoyle equilibrium in cylindrical geometry.
-!! This equilibrium configuration models a flament with a uniform twist
+!! This equilibrium configuration models a filament with a uniform twist
 !! such that all fieldlines perform an equal amount of turns around the cylinder axis.
 !! The geometry can be overridden in the parfile.
 !!
