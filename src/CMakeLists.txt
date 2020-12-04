@@ -48,6 +48,7 @@ set (sources
         equilibria/smod_equil_RTI_KHI.f08
         equilibria/smod_equil_RTI_theta_pinch.f08
         equilibria/smod_equil_suydam_cluster.f08
+        equilibria/smod_equil_harris_sheet.f08
         ${USR_SMOD_LOC}/smod_user_defined.f08
         mod_make_subblock.f08
         mod_boundary_conditions.f08

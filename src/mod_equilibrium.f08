@@ -53,6 +53,7 @@ module mod_equilibrium
     module subroutine RTI_KHI_eq; end subroutine
     module subroutine RTI_theta_pinch_eq; end subroutine
     module subroutine suydam_cluster_eq; end subroutine
+    module subroutine harris_sheet_eq; end subroutine
     module subroutine user_defined_eq; end subroutine
   end interface
 
@@ -206,6 +207,8 @@ contains
       set_equilibrium_values => RTI_theta_pinch_eq
     case("suydam_cluster")
       set_equilibrium_values => suydam_cluster_eq
+    case("harris_sheet")
+      set_equilibrium_values => harris_sheet_eq
     case("user_defined")
       set_equilibrium_values => user_defined_eq
     case default

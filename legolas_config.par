@@ -3,8 +3,17 @@
   ! geometry = 'cylindrical'
   ! x_start  = 0.0d0
   ! x_end    = 1.0d0
-  gridpoints = 51
+  gridpoints = 101
   mesh_accumulation = .false.
+/
+
+&solvelist
+  ! solver = "QR-invert"
+  solver = "arnoldi"
+  arpack_mode = "shift-invert"
+  number_of_eigenvalues = 10
+  ! which_eigenvalues = "LI"
+  sigma = (0.0d0, 0.01d0)
 /
 
 &physicslist
@@ -18,7 +27,7 @@
   ! equilibrium_type = "gravito_mhd"                  ! Cartesian
   ! equilibrium_type = "resistive_tearing"            ! Cartesian
   ! equilibrium_type = "resistive_tearing_flow"       ! Cartesian
-  equilibrium_type = "suydam_cluster"               ! cylindrical
+  ! equilibrium_type = "suydam_cluster"               ! cylindrical
   ! equilibrium_type = "rotating_plasma_cylinder"     ! cylindrical
   ! equilibrium_type = "kelvin_helmholtz_cd"          ! cylindrical
   ! equilibrium_type = "internal_kink"                ! cylindrical
@@ -36,6 +45,7 @@
   ! equilibrium_type = "kelvin_helmholtz"
   ! equilibrium_type = "RTI_KHI"
   ! equilibrium_type = "isothermal_atmosphere"
+  equilibrium_type = "harris_sheet"
   ! equilibrium_type = "user_defined"
 
   ! boundary_type = "wall"
