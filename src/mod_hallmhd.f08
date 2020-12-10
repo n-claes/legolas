@@ -60,7 +60,7 @@ contains
 
     real(dp)                  :: eps_inv
     real(dp)                  :: rho0, B02, B03
-    real(dp)                  :: drho0, drB02, dB02_r, dB03, dB02
+    real(dp)                  :: drho0, drB02, dB03, dB02
     real(dp)                  :: mq
 
     mq = hallfactor
@@ -78,7 +78,6 @@ contains
 
     !! Calculate derivatives eps*B02, B02/eps
     drB02 = d_eps_dr * B02 + eps * dB02
-    dB02_r = eps_inv * dB02 - d_eps_dr * eps_inv**2 * B02
 
     !! Setup of matrix elements
 
@@ -176,7 +175,7 @@ contains
                   + mq * k3 * B02 * (d_eps_dr * eps_inv + drho0 / rho0) / rho0
     positions(2, :) = [7, 8]
     ! A(8, 7)
-    factors(3) = mq * k2 * B03 * eps_inv**2 * drho0 / rho0
+    factors(3) = mq * k2 * B03 * eps_inv**2 * drho0 / rho0**2
     positions(3, :) = [8, 7]
     ! A(8, 8)
     factors(4) = - mq * k2 * eps_inv * (drB02 * eps_inv - dB02) / rho0 &

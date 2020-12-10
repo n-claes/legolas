@@ -10,7 +10,7 @@ submodule (mod_equilibrium) smod_equil_harris_sheet
 contains
 
   module subroutine harris_sheet_eq()
-    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value, x_end
+    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_params, only: cte_rho0, cte_B02, cte_B03, cte_T0, alpha, eq_bool
 
     real(dp)      :: x

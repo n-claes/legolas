@@ -8,12 +8,12 @@
 /
 
 &solvelist
-  ! solver = "QR-invert"
-  solver = "arnoldi"
-  arpack_mode = "shift-invert"
-  number_of_eigenvalues = 10
+  solver = "QR-invert"
+  ! solver = "arnoldi"
+  ! arpack_mode = "shift-invert"
+  ! number_of_eigenvalues = 10
   ! which_eigenvalues = "LI"
-  sigma = (0.0d0, 0.01d0)
+  ! sigma = (0.0d0, 0.01d0)
 /
 
 &physicslist
