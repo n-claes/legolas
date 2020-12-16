@@ -32,7 +32,7 @@ contains
   !! both matrices. On exit, both matrices are fully assembled and
   !! boundary conditions are imposed.
   subroutine create_matrices(matrix_B, matrix_A)
-    use mod_global_variables, only: gaussian_weights, n_gauss, hall_mhd
+    use mod_global_variables, only: gaussian_weights, n_gauss, hall_mhd, hallfactor
     use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
                                     cubic_factors, cubic_factors_deriv
@@ -61,7 +61,6 @@ contains
       ! reset quadblock (complex)
       quadblock_B = (0.0d0, 0.0d0)
       quadblock_A = (0.0d0, 0.0d0)
-      quadblock_Hall = (0.0d0, 0.0d0)
 
       ! This integrates in the interval grid(i) to grid(i + 1)
       r_lo = grid(i)
@@ -92,7 +91,7 @@ contains
         if (hall_mhd) then
           call get_hallterm(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_Hall, &
                             h_quadratic, h_cubic, dh_cubic_dr)
-          quadblock_A = quadblock_A + quadblock_Hall
+          quadblock_A = quadblock_A - hallfactor * quadblock_Hall
         end if
       end do   ! ends iteration gaussian points
 
@@ -209,7 +208,7 @@ contains
     !> current weight in the Gaussian quadrature
     real(dp), intent(in)      :: curr_weight
     !> the A-quadblock for a particular grid interval
-    complex(dp), intent(out)  :: quadblock_A(dim_quadblock, dim_quadblock)
+    complex(dp), intent(inout):: quadblock_A(dim_quadblock, dim_quadblock)
 
     complex(dp), allocatable  :: factors(:)
     integer, allocatable      :: positions(:, :)
