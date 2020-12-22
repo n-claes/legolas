@@ -90,7 +90,7 @@ contains
 
         if (hall_mhd) then
           call get_hallterm(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_Hall, &
-                            h_quadratic, h_cubic, dh_cubic_dr)
+                            h_quadratic, dh_quadratic_dr, h_cubic, dh_cubic_dr)
           quadblock_A = quadblock_A - hallfactor * quadblock_Hall
         end if
       end do   ! ends iteration gaussian points
