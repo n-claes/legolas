@@ -279,15 +279,15 @@ contains
     deallocate(surface_terms)
   end subroutine hall_boundaries
 
-  !> Retrieves the B01 (constant contributions to the A-matrix Hall contribution
-  !! for a given quadblock corresponding
+  !> Retrieves the B01 (constant) contributions to the A-matrix Hall
+  !! contribution for a given quadblock corresponding
   !! to a particular point in the grid and a particular Gaussian weight.
   !! If <tt>hall_mhd = True</tt>, this routine is called <tt>n_gauss</tt> times
   !! for every grid interval.
   !! @note  Usage of a constant B01 component is currently not implemented. This
   !!        subroutine supports a future extension of the code. @endnote
-  subroutine get_hallterm_B01(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_Hall, &
-                          h_quadratic, h_cubic, dh_cubic_dr)
+  subroutine get_hallterm_B01(gauss_idx, eps, d_eps_dr, curr_weight, &
+                              quadblock_Hall, h_quadratic, h_cubic, dh_cubic_dr)
     use mod_global_variables, only: ic
     use mod_equilibrium_params, only: k2, k3
     use mod_equilibrium, only: rho_field, B_field
@@ -341,13 +341,13 @@ contains
     call reset_factors(factors, 4)
     call reset_positions(positions, 4)
     ! A(7, 1)
-    factors(1) = - ic * eps_inv * rho0_inv**2 * B01 * drB02
+    factors(1) = - ic * eps_inv**2 * rho0_inv**2 * B01 * drB02
     positions(1, :) = [7, 1]
     ! A(7, 6)
     factors(2) = ic * k3 * B01 * rho0_inv * (d_eps_dr * eps_inv + drho0 * rho0_inv)
     positions(2, :) = [7, 6]
     ! A(8, 1)
-    factors(3) = - ic * rho0_inv**2 * B01 * dB03
+    factors(3) = - ic * eps_inv * rho0_inv**2 * B01 * dB03
     positions(3, :) = [8, 1]
     ! A(8, 6)
     factors(4) = - ic * drho0 * rho0_inv**2 * k2 * B01 * eps_inv
