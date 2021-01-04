@@ -2,6 +2,10 @@ import matplotlib.pyplot as plt
 
 
 class FigureContainer(dict):
+    def __init__(self):
+        super().__init__()
+        self.stack_is_enabled = True
+
     def add(self, figure):
         if figure.figure_id in self.figure_id_list:
             raise ValueError(
@@ -10,24 +14,40 @@ class FigureContainer(dict):
             )
         self.update({figure.figure_id: figure})
 
-    def pop(self, figure):
-        self._validate_figure_id(figure.figure_id)
-        return self.pop(figure.figure_id)
-
-    def get(self, figure):
-        self._validate_figure_id(figure.figure_id)
-        return self.get(figure.figure_id)
-
-    def remove(self, figure):
-        figure = self.pop(figure.figure_id)
-        plt.delaxes(figure.ax)
-        plt.close(figure.fig)
+    def pop(self, figure_id):
+        self._validate_figure_id(figure_id)
+        plt.close(figure_id)
+        super().pop(figure_id)
 
     def _validate_figure_id(self, figure_id):
         if figure_id not in self.figure_id_list:
             raise ValueError(
                 f"id='{figure_id}' not in existing list {self.figure_id_list}"
             )
+
+    def disable_stack(self):
+        """
+        This disables the figurestack by closing the figures: this prevents them
+        from showing when calling plt.show(). Later on we reconstruct the
+        figuremanagers.
+        """
+        if self.stack_is_enabled:
+            return
+        [figure.disable() for figure in self.figure_list]
+        self.stack_is_enabled = False
+
+    def enable_stack(self):
+        """
+        This enables the figurestack so figures are again accessible through
+        the plt.show() methods. When we lock the stack those figures are closed,
+        which essentially destroys the figuremanager but keeps the figure references
+        alive. Here we simply reconstruct the figuremanager for every disabled figure
+        in the stack, allowing for multiple calls to show(), save(), etc.
+        """
+        if not self.stack_is_enabled:
+            return
+        [figure.enable() for figure in self.figure_list]
+        self.stack_is_enabled = True
 
     @property
     def number_of_figures(self):
@@ -38,6 +58,10 @@ class FigureContainer(dict):
         return list(self.keys())
 
     @property
+    def figure_list(self):
+        return list(self.values())
+
+    @property
     def is_empty(self):
         return len(self) == 0
 
@@ -45,14 +69,23 @@ class FigureContainer(dict):
 class FigureWindow:
     figure_stack = FigureContainer()
 
-    def __init__(self, figure_type, figsize=None):
-        self.figsize = figsize
-        if self.figsize is None:
-            self.figsize = (12, 8)
-        self.figure_id = self._generate_figure_id(figure_type)
-        self.fig = plt.figure(self.figure_id, figsize=self.figsize)
-        self.ax = self.fig.add_subplot(111)
-        self.ax.plot([0, 1, 2], [2, 3, 4])
+    def __init__(self, figure_type, figsize=None, custom_figure=None):
+        if custom_figure is not None:
+            plt.close(custom_figure[0])
+            self.fig, self.ax = custom_figure
+            self.figsize = tuple(self.fig.get_size_inches())
+            if self.fig.get_label() == "":
+                self.figure_id = self._generate_figure_id(figure_type)
+            else:
+                self.figure_id = self._generate_figure_id(self.fig.get_label())
+        else:
+            self.figsize = figsize
+            if self.figsize is None:
+                self.figsize = (12, 8)
+            self.figure_id = self._generate_figure_id(figure_type)
+            self.fig = plt.figure(self.figure_id, figsize=self.figsize)
+            self.ax = self.fig.add_subplot(111)
+        self.enabled = False
         self.__class__.figure_stack.add(self)
 
     @classmethod
@@ -64,8 +97,19 @@ class FigureWindow:
         suffix = 1 + occurences
         return f"{figure_type}-{suffix}"
 
-    def use_custom_figure(self, fig, ax):
-        pass
+    def disable(self):
+        if not self.enabled:
+            return
+        self.enabled = False
+        plt.close(self.figure_id)
+
+    def enable(self):
+        if self.enabled:
+            return
+        self.enabled = False
+        manager = plt.figure(self.figure_id, self.figsize).canvas.manager
+        manager.canvas.figure = self.fig
+        self.fig.set_canvas(manager.canvas)
 
     def set_x_scaling(self):
         pass
@@ -79,38 +123,17 @@ class FigureWindow:
     def add_eigenfunctions(self):
         pass
 
-    def _reconstruct_figure_managers(self):
-        """
-        plt.close() and plt.show() destroy the figuremanager but the figure
-        references are kept alive in the figure stack. Here we simply reconstruct
-        the figuremanager for every figure in the stack, allowing for multiple
-        calls to show(), save(), etc.
-        """
-        for fig_id, figure in self.__class__.figure_stack.items():
-            manager = plt.figure(fig_id, self.figsize).canvas.manager
-            manager.canvas.figure = figure.fig
-            figure.fig.set_canvas(manager.canvas)
-
-    def _close_other_figures(self):
-        """
-        Closes all figures besides the current instance.
-        """
-        for fig_id, figure in self.__class__.figure_stack.items():
-            if fig_id == self.figure_id:
-                continue
-            plt.close(figure.fig)
-
     def show(self):
         """
-        Shows (only) the current figure, uses a workaround since matplotlib
-        shows all active figures at once. We want to be able to show the figure,
-        close it and then modify it and show it again, or save it.
+        Shows the current figure.
         """
-        self._close_other_figures()
+        self.__class__.figure_stack.disable_stack()
+        self.enable()
         plt.show()
-        self._reconstruct_figure_managers()
+        self.__class__.figure_stack.enable_stack()
 
-    def showall(self, reconstruct=False):
+    @classmethod
+    def showall(cls, reconstruct=False):
         """
         Shows all active figures at once through a call to plt.show().
         Unless `reconstruct=True` this is final: all figures and figuremanagers
@@ -121,18 +144,23 @@ class FigureWindow:
             If `True`, reconstructs all figuremanagers, allowing for multiple
             calls to the show routines.
         """
-        if self.__class__.figure_stack.is_empty:
+        if cls.figure_stack.is_empty:
             raise ValueError("No active figures present, stack is empty.")
+        if not cls.figure_stack.stack_is_enabled:
+            raise ValueError("Figure stack is disabled.")
         plt.show()
         if reconstruct:
-            self._reconstruct_figure_managers()
+            cls.figure_stack.enable_stack()
         else:
-            self.__class__.figure_stack.clear()
+            cls.figure_stack.clear()
 
     def save(self, filename):
-        self._close_other_figures()
+        if not self.enabled:
+            raise ValueError("This figure is disabled.")
+        self.__class__.figure_stack.disable_stack()
+        self.enable()
         self.fig.save(filename)
-        self._reconstruct_figure_managers()
+        self.__class__.figure_stack.enable_stack()
 
     def clear(self):
         self.ax.clear()
