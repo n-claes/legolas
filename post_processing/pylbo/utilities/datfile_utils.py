@@ -1,5 +1,6 @@
 import struct
 import numpy as np
+from pylbo._version import LegolasVersion
 
 SIZE_CHAR = struct.calcsize("c")
 SIZE_INT = struct.calcsize("i")
@@ -41,13 +42,13 @@ def get_header(istream):
             # old version numbering, single integer
             fmt = ALIGN + "i"
             (VERSION,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
-            VERSION = f"0.{str(VERSION)}"
+            VERSION = f"0.{str(VERSION)}.0"
         else:
             raise ValueError
     except ValueError:
         istream.seek(0)
-        VERSION = "0"
-    h["legolas_version"] = VERSION
+        VERSION = "0.0.0"
+    h["legolas_version"] = LegolasVersion(VERSION)
 
     # read maximal string length and length of strings in arrays
     fmt = ALIGN + 2 * "i"
@@ -85,7 +86,7 @@ def get_header(istream):
     h["eigenfuncs_written"] = bool(
         *hdr
     )  # bool casts 0 to False, everything else to True
-    # # read matrices boolean
+    # read matrices boolean
     fmt = ALIGN + "i"
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     h["matrices_written"] = bool(*hdr)
