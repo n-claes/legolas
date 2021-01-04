@@ -5,6 +5,7 @@ from tkinter import filedialog
 from pylbo.exceptions import InvalidLegolasFile
 from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
 from pylbo.utilities.toolbox import transform_to_list
+from pylbo.utilities.logger import pylboLogger
 
 
 def _validate_file(file):
@@ -47,6 +48,15 @@ def load(datfile):
     """
     _validate_file(datfile)
     ds = LegolasDataSet(datfile)
+    pylboLogger.info(f"Legolas version  : {ds.legolas_version}")
+    pylboLogger.info(f"file loaded      : {ds.datfile.parent} -- {ds.datfile.name}")
+    pylboLogger.info(f"gridpoints       : {ds.gridpts}")
+    pylboLogger.info(f"geometry         : {ds.geometry} in {ds.x_start, ds.x_end}")
+    pylboLogger.info(f"equilibrium      : {ds.eq_type}")
+    if ds.header["matrices_written"]:
+        pylboLogger.info("matrices present in datfile")
+    if ds.header["eigenfuncs_written"]:
+        pylboLogger.info("eigenfunctions present in datfile")
     return ds
 
 

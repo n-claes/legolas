@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path
 from abc import ABC, abstractmethod
 from pylbo.utilities.datfile_utils import (
     get_header,
@@ -20,7 +21,7 @@ class LegolasDataContainer(ABC):
 
 class LegolasDataSet(LegolasDataContainer):
     def __init__(self, datfile):
-        self.datfile = str(datfile)
+        self.datfile = Path(datfile)
         with open(self.datfile, "rb") as istream:
             self.header = get_header(istream)
             self.grid = read_grid(istream, self.header)
@@ -40,6 +41,7 @@ class LegolasDataSet(LegolasDataContainer):
         self.cgs = self.header["cgs"]
         self.units = self.header["units"]
         self.eq_names = self.header["equil_names"]
+        self.legolas_version = self.header["legolas_version"]
 
     def get_sound_speed(self):
         """

@@ -13,6 +13,7 @@ class LegolasVersion:
     version_number : str
         The Legolas version number in the form "x.x.x".
     """
+
     def __init__(self, version_number):
         self._validate_version(version_number)
         self._version_number = version.parse(version_number)
@@ -45,3 +46,6 @@ class LegolasVersion:
     def __ne__(self, other):
         self._validate_version(other)
         return self._version_number != version.parse(other)
+
+    def __str__(self):
+        return str(self._version_number)
