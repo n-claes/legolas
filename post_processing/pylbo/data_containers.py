@@ -10,6 +10,7 @@ from pylbo.utilities.datfile_utils import (
     read_matrix_B,
     read_matrix_A,
 )
+from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import MatricesNotPresent
 
 
@@ -28,7 +29,15 @@ class LegolasDataSet(LegolasDataContainer):
             self.grid_gauss = read_grid_gauss(istream, self.header)
             self.equilibria = read_equilibrium_arrays(istream, self.header)
             self.eigenvalues = read_eigenvalues(istream, self.header)
+
         self.geometry = self.header["geometry"]
+        if self.geometry == "Cartesian":
+            self.scale_factor = np.ones_like(self.grid_gauss)
+            pylboLogger.debug("dataset: scale factor set to unity.")
+        else:
+            self.scale_factor = self.grid_gauss
+            pylboLogger.debug("dataset: scale factor set to radial coordinate.")
+
         self.x_start = self.header["x_start"]
         self.x_end = self.header["x_end"]
         self.gridpts = self.header["gridpts"]
@@ -42,6 +51,9 @@ class LegolasDataSet(LegolasDataContainer):
         self.units = self.header["units"]
         self.eq_names = self.header["equil_names"]
         self.legolas_version = self.header["legolas_version"]
+
+    def __iter__(self):
+        yield self
 
     def get_sound_speed(self):
         """

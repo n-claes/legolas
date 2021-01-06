@@ -1,5 +1,6 @@
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.utilities.logger import pylboLogger
+from pylbo.visualisation.continua import ContinuaRegions
 
 
 class SingleSpectrumPlot(FigureWindow):
@@ -34,7 +35,8 @@ class SingleSpectrumPlot(FigureWindow):
         self.ax.set_ylabel(r"Im($\omega$)")
         self.ax.set_title(self.dataset.eq_type)
 
-    def add_continua(self):
+    def add_continua(self, interactive=True, **kwargs):
+        regions = ContinuaRegions(self.dataset, interactive, self, **kwargs)
         pass
 
     def add_eigenfunctions(self):
