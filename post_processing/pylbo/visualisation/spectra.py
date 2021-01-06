@@ -15,7 +15,7 @@ class SingleSpectrumPlot(FigureWindow):
         self.ydata = self.dataset.eigenvalues.imag
 
     def draw(self):
-        pylboLogger.info("creating single spectrum plot...")
+        pylboLogger.debug("creating single spectrum plot...")
         self.xdata *= self.x_scaling
         self.ydata *= self.y_scaling
         self.ax.plot(

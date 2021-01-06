@@ -81,8 +81,6 @@ class FigureContainer(dict):
         from showing when calling plt.show(). Later on we reconstruct the
         figuremanagers.
         """
-        if self.stack_is_enabled:
-            return
         [figure.disable() for figure in self.figure_list]
         self.stack_is_enabled = False
 
@@ -94,8 +92,6 @@ class FigureContainer(dict):
         alive. Here we simply reconstruct the figuremanager for every disabled figure
         in the stack, allowing for multiple calls to show(), save(), etc.
         """
-        if not self.stack_is_enabled:
-            return
         [figure.enable() for figure in self.figure_list]
         self.stack_is_enabled = True
 
@@ -140,6 +136,8 @@ class FigureWindow:
         The figure on which to draw.
     ax : matplotlib.axes.Axes
         The axes on which to draw.
+    custom_figure : tuple
+        The (fig, ax) custom figure that was passed, `None` by default.
     figsize : tuple
         The size of the figure.
     figure_id : str
@@ -207,7 +205,7 @@ class FigureWindow:
         """Enables the current figure, reconstructs the figuremanagers"""
         if self.enabled:
             return
-        self.enabled = False
+        self.enabled = True
         manager = plt.figure(self.figure_id, self.figsize).canvas.manager
         manager.canvas.figure = self.fig
         self.fig.set_canvas(manager.canvas)
@@ -244,19 +242,10 @@ class FigureWindow:
         reconstruct : bool
             If `True`, reconstructs all figuremanagers, allowing for multiple
             calls to the show routines.
-
-        Raises
-        ------
-        ValueError
-            If no active figures are present.
-        ValueError
-            If the figure stack is disabled.
         """
-        if cls.figure_stack.is_empty:
-            raise ValueError("No active figures present, stack is empty.")
-        if not cls.figure_stack.stack_is_enabled:
-            raise ValueError("Figure stack is disabled.")
+        cls.figure_stack.disable_stack()
         for figure in cls.figure_stack.figure_list:
+            figure.enable()
             figure.draw()
         plt.show()
         if reconstruct:
