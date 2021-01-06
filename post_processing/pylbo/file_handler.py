@@ -57,6 +57,7 @@ def load(datfile):
         pylboLogger.info("matrices present in datfile")
     if ds.header["eigenfuncs_written"]:
         pylboLogger.info("eigenfunctions present in datfile")
+    print("-"*100)
     return ds
 
 

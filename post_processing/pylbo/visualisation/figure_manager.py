@@ -85,6 +85,8 @@ class FigureWindow:
             self.figure_id = self._generate_figure_id(figure_type)
             self.fig = plt.figure(self.figure_id, figsize=self.figsize)
             self.ax = self.fig.add_subplot(111)
+        self.x_scaling = 1
+        self.y_scaling = 1
         self.enabled = False
         self.__class__.figure_stack.add(self)
 
@@ -111,10 +113,7 @@ class FigureWindow:
         manager.canvas.figure = self.fig
         self.fig.set_canvas(manager.canvas)
 
-    def set_x_scaling(self):
-        pass
-
-    def set_y_scaling(self):
+    def draw(self):
         pass
 
     def add_continua(self):
@@ -129,6 +128,7 @@ class FigureWindow:
         """
         self.__class__.figure_stack.disable_stack()
         self.enable()
+        self.draw()
         plt.show()
         self.__class__.figure_stack.enable_stack()
 
@@ -148,6 +148,8 @@ class FigureWindow:
             raise ValueError("No active figures present, stack is empty.")
         if not cls.figure_stack.stack_is_enabled:
             raise ValueError("Figure stack is disabled.")
+        for figure in cls.figure_stack.figure_list:
+            figure.draw()
         plt.show()
         if reconstruct:
             cls.figure_stack.enable_stack()
