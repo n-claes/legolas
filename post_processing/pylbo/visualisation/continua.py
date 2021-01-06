@@ -13,6 +13,11 @@ def _calculate_continua(ds):
     ----------
     ds : `~pylbo.data_containers.LegolasDataSet` instance
         The Legolas dataset.
+
+    Returns
+    -------
+    continua : dict
+        Dictonary containing the various continua as numpy arrays.
     """
     if not isinstance(ds, LegolasDataSet):
         raise ValueError("continua should be calculated on a single dataset at once.")
@@ -48,71 +53,78 @@ def _calculate_continua(ds):
         and all(kappa_para == 0)
         and all(kappa_perp == 0)
     ):
-        return np.zeros_like(ds.grid_gauss)
+        thermal = np.zeros_like(ds.grid_gauss)
     # if temperature is zero (no pressure), set to zero and return
-    if (T == 0).all():
-        return np.zeros_like(ds.grid_gauss)
-    # wave vector parallel to magnetic field, uses vector projection and scale factor
-    kpara = (k2 * B02 / ds.scale_factor + k3 * B03) / B0
-    cs2 = gamma * p / rho  # sound speed
-    vA2 = B0 ** 2 / rho  # Alfvén speed
-    ci2 = p / rho  # isothermal sound speed
-    sigma_A2 = kpara * vA2  # Alfvén frequency
-    sigma_c2 = cs2 * sigma_A2 / (vA2 + cs2)  # cusp frequency
-    sigma_i2 = ci2 * sigma_A2 / (vA2 + ci2)  # isothermal cusp frequency
+    elif (T == 0).all():
+        thermal = np.zeros_like(ds.grid_gauss)
+    else:
+        # wave vector parallel to magnetic field,
+        # uses vector projection and scale factor
+        kpara = (k2 * B02 / ds.scale_factor + k3 * B03) / B0
+        cs2 = gamma * p / rho  # sound speed
+        vA2 = B0 ** 2 / rho  # Alfvén speed
+        ci2 = p / rho  # isothermal sound speed
+        sigma_A2 = kpara * vA2  # Alfvén frequency
+        sigma_c2 = cs2 * sigma_A2 / (vA2 + cs2)  # cusp frequency
+        sigma_i2 = ci2 * sigma_A2 / (vA2 + ci2)  # isothermal cusp frequency
 
-    # thermal and slow continuum are coupled in a third degree polynomial in omega,
-    # coeffi means the coefficient corresponding to the term omega^i
-    coeff3 = rho * (cs2 + vA2) * 1j / (gamma - 1)
-    coeff2 = -(kappa_para * kpara ** 2 + rho * dLdT) * (ci2 + vA2) + rho ** 2 * dLdrho
-    coeff1 = -rho * (cs2 + vA2) * sigma_c2 * 1j / (gamma - 1)
-    coeff0 = (kappa_para * kpara ** 2 + rho * dLdT) * (
-        ci2 + vA2
-    ) * sigma_i2 - rho ** 2 * dLdrho * sigma_A2
-    # we have to solve this equation "gauss_gridpts" times.
-    # the thermal continuum corresponds to the (only) purely imaginary solution,
-    # slow continuum are other two (real) solutions
-    thermal = []
-    for idx in range(len(ds.grid_gauss)):
-        solutions = np.roots([coeff3[idx], coeff2[idx], coeff1[idx], coeff0[idx]])
-        imag_sol = solutions.imag[abs(solutions.real) < 1e-14]
-        if (imag_sol == 0).all():
-            # if all solutions are zero (no thermal continuum), then append zero
-            w = 0
-        else:
-            # else there should be ONE value that is nonzero,
-            # this is the thermal continuum value.
-            # Filter out non-zero solution and try to unpack.
-            # If there is more than one non-zero
-            # value unpacking fails, this is a sanity check so we raise an error.
-            try:
-                (w,) = imag_sol[imag_sol != 0]  # this is an array, so unpack with ,
-            except ValueError:
-                pylboLogger.warning(
-                    f"Something went wrong, more than one solution for the thermal "
-                    f"continuum was found (and there should be only one). "
-                    f"Setting value to zero. "
-                    f"Solutions found: {imag_sol[imag_sol != 0]}."
-                )
-                w = 0
-        thermal.append(w)
-    thermal = np.asarray(thermal)
-
-    # additional sanity check: if the slow continuum vanishes
-    # there is an analytical solution for the
-    # thermal continuum. This one should be equal to the solution
-    # obtained through solving the polynomial equation.
-    if (slow2 == 0).all() and (T != 0).all():
-        analytic_sol = (
-            1j * (gamma - 1) * (rho * dLdrho / T - dLdT * (T + vA2)) / (vA2 + gamma * T)
+        # thermal and slow continuum are coupled in a third degree polynomial in omega,
+        # coeffi means the coefficient corresponding to the term omega^i
+        coeff3 = rho * (cs2 + vA2) * 1j / (gamma - 1)
+        coeff2 = (
+             -(kappa_para * kpara ** 2 + rho * dLdT) * (ci2 + vA2) + rho ** 2 * dLdrho
         )
-        diff = abs(np.sort(thermal) - np.sort(np.imag(analytic_sol)))
-        # if any value in the difference is larger than 1e-12, simply print a warning
-        if any(diff > 1e-12):
-            pylboLogger.warning(
-                "slow continuum vanishes, but difference in analytical/numerical "
-                "thermal continuum!"
+        coeff1 = -rho * (cs2 + vA2) * sigma_c2 * 1j / (gamma - 1)
+        coeff0 = (kappa_para * kpara ** 2 + rho * dLdT) * (
+            ci2 + vA2
+        ) * sigma_i2 - rho ** 2 * dLdrho * sigma_A2
+        # we have to solve this equation "gauss_gridpts" times.
+        # the thermal continuum corresponds to the (only) purely imaginary solution,
+        # slow continuum are other two (real) solutions
+        thermal = []
+        for idx in range(len(ds.grid_gauss)):
+            solutions = np.roots([coeff3[idx], coeff2[idx], coeff1[idx], coeff0[idx]])
+            imag_sol = solutions.imag[abs(solutions.real) < 1e-14]
+            if (imag_sol == 0).all():
+                # if all solutions are zero (no thermal continuum), then append zero
+                w = 0
+            else:
+                # else there should be ONE value that is nonzero,
+                # this is the thermal continuum value.
+                # Filter out non-zero solution and try to unpack.
+                # If there is more than one non-zero
+                # value unpacking fails, this is a sanity check so we raise an error.
+                try:
+                    (w,) = imag_sol[imag_sol != 0]  # this is an array, so unpack with ,
+                except ValueError:
+                    pylboLogger.warning(
+                        f"Something went wrong, more than one solution for the thermal "
+                        f"continuum was found (and there should be only one). "
+                        f"Setting value to zero. "
+                        f"Solutions found: {imag_sol[imag_sol != 0]}."
+                    )
+                    w = 0
+            thermal.append(w)
+        thermal = np.asarray(thermal)
+
+        # additional sanity check: if the slow continuum vanishes
+        # there is an analytical solution for the
+        # thermal continuum. This one should be equal to the solution
+        # obtained through solving the polynomial equation.
+        if (slow2 == 0).all() and (T != 0).all():
+            analytic_sol = (
+                1j
+                * (gamma - 1)
+                * (rho * dLdrho / T - dLdT * (T + vA2))
+                / (vA2 + gamma * T)
             )
+            diff = abs(np.sort(thermal) - np.sort(np.imag(analytic_sol)))
+            # if any value in the difference is larger than 1e-12, print a warning
+            if any(diff > 1e-12):
+                pylboLogger.warning(
+                    "slow continuum vanishes, but difference in analytical/numerical "
+                    "thermal continuum!"
+                )
 
     # get doppler-shifted continua and return
     continua = {
