@@ -2,11 +2,34 @@ import matplotlib.pyplot as plt
 
 
 class FigureContainer(dict):
+    """
+    A special dictionary containing the currently active figures.
+
+    Attributes
+    ----------
+    stack_is_enabled : bool
+        If `True` (default), the dictionary is unlocked and figures are drawn
+        when calling plt.show(). If `False`, the figures in the dictionary will remain
+        closed and will not be drawn.
+    """
     def __init__(self):
         super().__init__()
         self.stack_is_enabled = True
 
     def add(self, figure):
+        """
+        Adds a new figure to the stack.
+
+        Parameters
+        ----------
+        figure : `~pylbo.visualisation.figure_manager.PlotWindow` instance
+            The figure to add.
+
+        Raises
+        -------
+        ValueError
+            If the figure id is already present in the stack.
+        """
         if figure.figure_id in self.figure_id_list:
             raise ValueError(
                 f"id = '{figure.figure_id}' already in existing list: "
@@ -15,11 +38,38 @@ class FigureContainer(dict):
         self.update({figure.figure_id: figure})
 
     def pop(self, figure_id):
+        """
+        Removes and returns the figure corresponding to the given id from the stack.
+
+        Parameters
+        ----------
+        figure_id : str
+            The figure id, corresponds to the dictionary key.
+
+        Returns
+        -------
+        figure : `~pylbo.visualisation.figure_manager.PlotWindow` instance
+            The figure corresponding to `figure_id`.
+        """
         self._validate_figure_id(figure_id)
         plt.close(figure_id)
-        super().pop(figure_id)
+        return super().pop(figure_id)
 
     def _validate_figure_id(self, figure_id):
+        """
+        Checks if the current id is present, needed to avoid matplotlib errors
+        when trying to close.
+
+        Parameters
+        ----------
+        figure_id : str
+            The figure id, corresponds to the dictionary key.
+
+        Raises
+        -------
+        ValueError
+            If the given id is not present in the list.
+        """
         if figure_id not in self.figure_id_list:
             raise ValueError(
                 f"id='{figure_id}' not in existing list {self.figure_id_list}"
@@ -51,22 +101,56 @@ class FigureContainer(dict):
 
     @property
     def number_of_figures(self):
+        """Returns the total number of figures in the stack."""
         return len(self)
 
     @property
     def figure_id_list(self):
+        """Returns the list of figure ids in the stack."""
         return list(self.keys())
 
     @property
     def figure_list(self):
+        """Returns the list of figures in the stack."""
         return list(self.values())
 
     @property
     def is_empty(self):
+        """Returns `True` if there are no active figures."""
         return len(self) == 0
 
 
 class FigureWindow:
+    """
+    Class to handle drawing different types of plots.
+
+    Parameters
+    ----------
+    figure_type : str
+        The type of figure to create, links to the figure id.
+    figsize : tuple
+        The figuresize as a matplotlib (x, x) tuple.
+    custom_figure : tuple
+        A custom figure to use, in the form (fig, ax) corresponding to the figure
+        and axis objects from matplotlib.
+
+    Attributes
+    ----------
+    fig : matplotlib.figure.Figure
+        The figure on which to draw.
+    ax : matplotlib.axes.Axes
+        The axes on which to draw.
+    figsize : tuple
+        The size of the figure.
+    figure_id : str
+        A unique id associated with the figure.
+    x_scaling : int, float, complex, np.ndarray
+        Scaling to apply to the x-axis.
+    y_scaling : int, float, complex, np.ndarray
+        Scaling to apply to the y-axis.
+    enabled : bool
+        If `False` (default), the current figure will not be plotted at plt.show().
+    """
     figure_stack = FigureContainer()
 
     def __init__(self, figure_type, figsize=None, custom_figure=None):
@@ -92,6 +176,19 @@ class FigureWindow:
 
     @classmethod
     def _generate_figure_id(cls, figure_type):
+        """
+        Generates a unique figure id.
+
+        Parameters
+        ----------
+        figure_type : str
+            The type of figure to create
+
+        Returns
+        -------
+        figure_id : str
+            The unique figure id of the form "figure_type-x" where x is an integer.
+        """
         # count occurences of this type of id in the list
         occurences = sum(
             figure_type in fig_id for fig_id in cls.figure_stack.figure_id_list
@@ -100,12 +197,14 @@ class FigureWindow:
         return f"{figure_type}-{suffix}"
 
     def disable(self):
+        """Disables the current figure."""
         if not self.enabled:
             return
         self.enabled = False
         plt.close(self.figure_id)
 
     def enable(self):
+        """Enables the current figure, reconstructs the figuremanagers"""
         if self.enabled:
             return
         self.enabled = False
@@ -114,18 +213,19 @@ class FigureWindow:
         self.fig.set_canvas(manager.canvas)
 
     def draw(self):
+        """Method to draw, should be overriden by subclass."""
         pass
 
     def add_continua(self):
+        """Method to add continua, should be overridden by subclass."""
         pass
 
     def add_eigenfunctions(self):
+        """Method to add eigenfunctions, should be overridden by subclass."""
         pass
 
     def show(self):
-        """
-        Shows the current figure.
-        """
+        """Shows the current figure."""
         self.__class__.figure_stack.disable_stack()
         self.enable()
         self.draw()
@@ -138,11 +238,19 @@ class FigureWindow:
         Shows all active figures at once through a call to plt.show().
         Unless `reconstruct=True` this is final: all figures and figuremanagers
         will be destroyed and will not be reconstructed.
+
         Parameters
         ----------
         reconstruct : bool
             If `True`, reconstructs all figuremanagers, allowing for multiple
             calls to the show routines.
+
+        Raises
+        ------
+        ValueError
+            If no active figures are present.
+        ValueError
+            If the figure stack is disabled.
         """
         if cls.figure_stack.is_empty:
             raise ValueError("No active figures present, stack is empty.")
@@ -157,6 +265,19 @@ class FigureWindow:
             cls.figure_stack.clear()
 
     def save(self, filename):
+        """
+        Saves the current figure.
+
+        Parameters
+        ----------
+        filename : str, ~os.PathLike
+            The filename to which the current figure is saved.
+
+        Raises
+        ------
+        ValueError
+            If the current figure is disabled.
+        """
         if not self.enabled:
             raise ValueError("This figure is disabled.")
         self.__class__.figure_stack.disable_stack()
@@ -165,4 +286,5 @@ class FigureWindow:
         self.__class__.figure_stack.enable_stack()
 
     def clear(self):
+        """Clears the current axes."""
         self.ax.clear()
