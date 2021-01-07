@@ -1,11 +1,10 @@
 import numpy as np
 from pylbo.utilities.logger import pylboLogger
-from pylbo.data_containers import LegolasDataSet
 
 CONTINUA_KEYS = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]
 
 
-def _calculate_continua(ds):
+def calculate_continua(ds):
     """
     Calculates the different continua for a given dataset.
 
@@ -19,9 +18,6 @@ def _calculate_continua(ds):
     continua : dict
         Dictonary containing the various continua as numpy arrays.
     """
-    if not isinstance(ds, LegolasDataSet):
-        raise ValueError("continua should be calculated on a single dataset at once.")
-
     rho = ds.equilibria["rho0"]
     B02 = ds.equilibria["B02"]
     B03 = ds.equilibria["B03"]
@@ -72,7 +68,7 @@ def _calculate_continua(ds):
         # coeffi means the coefficient corresponding to the term omega^i
         coeff3 = rho * (cs2 + vA2) * 1j / (gamma - 1)
         coeff2 = (
-             -(kappa_para * kpara ** 2 + rho * dLdT) * (ci2 + vA2) + rho ** 2 * dLdrho
+            -(kappa_para * kpara ** 2 + rho * dLdT) * (ci2 + vA2) + rho ** 2 * dLdrho
         )
         coeff1 = -rho * (cs2 + vA2) * sigma_c2 * 1j / (gamma - 1)
         coeff0 = (kappa_para * kpara ** 2 + rho * dLdT) * (
@@ -136,23 +132,3 @@ def _calculate_continua(ds):
         CONTINUA_KEYS[5]: doppler,
     }
     return continua
-
-
-class ContinuaRegions:
-    def __init__(self, datasets, interactive, figure, **kwargs):
-        self.dataset = datasets
-        self._interactive = interactive
-        self._figure = figure
-        self.kwargs = kwargs
-        self.continua = {
-            "slow+": [],
-            "slow-": [],
-            "alfven+": [],
-            "alfven-": [],
-            "thermal": [],
-            "doppler": [],
-        }
-        for dataset in datasets:
-            continua = _calculate_continua(dataset)
-            for key in CONTINUA_KEYS:
-                self.continua[key].append(continua[key])

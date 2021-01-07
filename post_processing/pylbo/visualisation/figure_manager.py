@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from pathlib import Path
+from pylbo.utilities.logger import pylboLogger
 
 
 class FigureContainer(dict):
@@ -12,6 +14,7 @@ class FigureContainer(dict):
         when calling plt.show(). If `False`, the figures in the dictionary will remain
         closed and will not be drawn.
     """
+
     def __init__(self):
         super().__init__()
         self.stack_is_enabled = True
@@ -149,6 +152,7 @@ class FigureWindow:
     enabled : bool
         If `False` (default), the current figure will not be plotted at plt.show().
     """
+
     figure_stack = FigureContainer()
 
     def __init__(self, figure_type, figsize=None, custom_figure=None):
@@ -226,7 +230,6 @@ class FigureWindow:
         """Shows the current figure."""
         self.__class__.figure_stack.disable_stack()
         self.enable()
-        self.draw()
         plt.show()
         self.__class__.figure_stack.enable_stack()
 
@@ -246,14 +249,13 @@ class FigureWindow:
         cls.figure_stack.disable_stack()
         for figure in cls.figure_stack.figure_list:
             figure.enable()
-            figure.draw()
         plt.show()
         if reconstruct:
             cls.figure_stack.enable_stack()
         else:
             cls.figure_stack.clear()
 
-    def save(self, filename):
+    def save(self, filename, **kwargs):
         """
         Saves the current figure.
 
@@ -261,17 +263,15 @@ class FigureWindow:
         ----------
         filename : str, ~os.PathLike
             The filename to which the current figure is saved.
-
-        Raises
-        ------
-        ValueError
-            If the current figure is disabled.
+        kwargs
+            Default keyword arguments passed to `matplotlib.pyplot.savefig`.
         """
-        if not self.enabled:
-            raise ValueError("This figure is disabled.")
         self.__class__.figure_stack.disable_stack()
         self.enable()
-        self.fig.save(filename)
+        filepath = Path(filename).resolve()
+        self.fig.savefig(filepath, **kwargs)
+        print(type(self.fig.savefig()))
+        pylboLogger.info(f"figure saved to {filepath}")
         self.__class__.figure_stack.enable_stack()
 
     def clear(self):

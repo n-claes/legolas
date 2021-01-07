@@ -12,9 +12,24 @@ from pylbo.utilities.datfile_utils import (
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import MatricesNotPresent
+from pylbo.continua import calculate_continua
 
 
 class LegolasDataContainer(ABC):
+    @property
+    def continua(self):
+        if isinstance(self, LegolasDataSet):
+            return self._continua
+        elif isinstance(self, LegolasDataSeries):
+            keys = self.datasets[0].continua.keys()
+            _continua = {key: [] for key in keys}
+            for dataset in self.datasets:
+                for key in keys:
+                    _continua[key].append(dataset.continua[key])
+            return {key: np.array(values) for key, values in _continua.items()}
+        else:
+            raise TypeError
+
     @abstractmethod
     def get_sound_speed(self, **kwargs):
         pass
@@ -51,6 +66,8 @@ class LegolasDataSet(LegolasDataContainer):
         self.units = self.header["units"]
         self.eq_names = self.header["equil_names"]
         self.legolas_version = self.header["legolas_version"]
+
+        self._continua = calculate_continua(self)
 
     def __iter__(self):
         yield self
@@ -114,7 +131,7 @@ class LegolasDataSet(LegolasDataContainer):
 
 class LegolasDataSeries(LegolasDataContainer):
     def __init__(self, datfiles):
-        pass
+        self.datasets = [LegolasDataSet(datfile) for datfile in datfiles]
 
     def get_sound_speed(self, which_values="average"):
         pass
