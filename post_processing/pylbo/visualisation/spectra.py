@@ -1,5 +1,6 @@
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.utilities.logger import pylboLogger
+from pylbo.continua import ContinuaHandler
 
 
 class SingleSpectrumPlot(FigureWindow):
@@ -34,7 +35,19 @@ class SingleSpectrumPlot(FigureWindow):
         self.ax.set_title(self.dataset.eq_type)
 
     def add_continua(self, interactive=True, **kwargs):
-        pass
+        c_handler = ContinuaHandler(self)
+        c_handler.draw_continua(**kwargs)
+        if interactive:
+            callback_kind = "button_press_event"
+            callback_method = c_handler.on_legend_pick
+            callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
+            self._mpl_callbacks.append(
+                {
+                    "cid": callback_id,
+                    "kind": callback_kind,
+                    "method": callback_method,
+                }
+            )
 
     def add_eigenfunctions(self):
         pass

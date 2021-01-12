@@ -28,7 +28,7 @@ class LegolasDataContainer(ABC):
                     _continua[key].append(dataset.continua[key])
             return {key: np.array(values) for key, values in _continua.items()}
         else:
-            raise TypeError
+            raise TypeError(f"unexpected instance: {type(self)}")
 
     @abstractmethod
     def get_sound_speed(self, **kwargs):

@@ -2,6 +2,7 @@ import numpy as np
 from pylbo.utilities.logger import pylboLogger
 
 CONTINUA_KEYS = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]
+CONTINUA_COLOURS = ["red", "red", "cyan", "cyan", "green", "grey"]
 
 
 def calculate_continua(ds):
@@ -132,3 +133,62 @@ def calculate_continua(ds):
         CONTINUA_KEYS[5]: doppler,
     }
     return continua
+
+
+class ContinuaHandler:
+    def __init__(self, figure_obj):
+        self.figure_obj = figure_obj
+        self.legend_items = []
+        self.legend = None
+        self.key_colours = CONTINUA_COLOURS
+
+    def on_legend_pick(self, event):
+        # TODO: add interactivity with legend items
+        pass
+
+    def draw_continua(self, **kwargs):
+        for key, colour in zip(CONTINUA_KEYS, self.continua_colours):
+            continuum = self.figure_obj.dataset.continua[key]
+            if self._check_if_all_zero(continuum=continuum):
+                continue
+            min_value = np.min(continuum)
+            max_value = np.max(continuum)
+            if self._check_if_collapsed(continuum=continuum):
+                item = self.figure_obj.ax.plot(
+                    min_value,
+                    0,
+                    marker=kwargs.pop("marker", "p"),
+                    markersize=kwargs.pop("markersize", 8),
+                    color=colour,
+                    linestyle="none",
+                    alpha=kwargs.pop("alpha", 0.5),
+                    label=key,
+                )
+                self.legend_items.append(item)
+            else:
+                raise NotImplementedError
+            self.legend = self.figure_obj.ax.legend(loc=kwargs.pop("legend_loc", "best"))
+
+    @property
+    def continua_colours(self):
+        return self.key_colours
+
+    @continua_colours.setter
+    def continua_colours(self, values):
+        if not isinstance(values, (list, np.ndarray)):
+            raise ValueError(
+                f"continua_colours should be an array/list but got {type(values)}"
+            )
+        self.continua_colours = values
+
+    @staticmethod
+    def _check_if_collapsed(continuum):
+        if all(np.diff(continuum) == 0):
+            return True
+        return False
+
+    @staticmethod
+    def _check_if_all_zero(continuum):
+        if all(continuum == 0):
+            return True
+        return False

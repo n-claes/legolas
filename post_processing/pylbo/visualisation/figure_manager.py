@@ -174,6 +174,7 @@ class FigureWindow:
         self.x_scaling = 1
         self.y_scaling = 1
         self.enabled = False
+        self._mpl_callbacks = []
         self.__class__.figure_stack.add(self)
 
     @classmethod
@@ -214,6 +215,14 @@ class FigureWindow:
         manager.canvas.figure = self.fig
         self.fig.set_canvas(manager.canvas)
 
+    def connect_callbacks(self):
+        for callback in self._mpl_callbacks:
+            self.fig.canvas.mpl_connect(callback["kind"], callback["method"])
+
+    def disconnect_callbacks(self):
+        for callback in self._mpl_callbacks:
+            self.fig.canvas.mpl_disconnect(callback["cid"])
+
     def draw(self):
         """Method to draw, should be overriden by subclass."""
         pass
@@ -230,6 +239,7 @@ class FigureWindow:
         """Shows the current figure."""
         self.__class__.figure_stack.disable_stack()
         self.enable()
+        self.connect_callbacks()
         plt.show()
         self.__class__.figure_stack.enable_stack()
 
@@ -249,6 +259,7 @@ class FigureWindow:
         cls.figure_stack.disable_stack()
         for figure in cls.figure_stack.figure_list:
             figure.enable()
+            figure.connect_callbacks()
         plt.show()
         if reconstruct:
             cls.figure_stack.enable_stack()
