@@ -1,8 +1,10 @@
 import numpy as np
+import matplotlib.collections as mpl_collections
+
 from pylbo.utilities.logger import pylboLogger
 
-CONTINUA_KEYS = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]
-CONTINUA_COLOURS = ["red", "red", "cyan", "cyan", "green", "grey"]
+CONTINUA_NAMES = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]
+CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "green", "grey"]
 
 
 def calculate_continua(ds):
@@ -125,70 +127,190 @@ def calculate_continua(ds):
 
     # get doppler-shifted continua and return
     continua = {
-        CONTINUA_KEYS[0]: doppler - np.sqrt(slow2),
-        CONTINUA_KEYS[1]: doppler + np.sqrt(slow2),
-        CONTINUA_KEYS[2]: doppler - np.sqrt(alfven2),
-        CONTINUA_KEYS[3]: doppler + np.sqrt(alfven2),
-        CONTINUA_KEYS[4]: thermal,
-        CONTINUA_KEYS[5]: doppler,
+        CONTINUA_NAMES[0]: doppler - np.sqrt(slow2),
+        CONTINUA_NAMES[1]: doppler + np.sqrt(slow2),
+        CONTINUA_NAMES[2]: doppler - np.sqrt(alfven2),
+        CONTINUA_NAMES[3]: doppler + np.sqrt(alfven2),
+        CONTINUA_NAMES[4]: thermal,
+        CONTINUA_NAMES[5]: doppler,
     }
     return continua
 
 
 class ContinuaHandler:
-    def __init__(self, figure_obj):
+    """
+    Handler to draw continua regions on the plots and make them interactive.
+
+    Parameters
+    ----------
+    figure_obj : `~pylbo.visualisation.figure_manager.PlotWindow` instance
+        The instance used to draw the continua.
+    interactive : bool
+        If `True`, makes the legend pickable and continuum plotting interactive.
+
+    Attributes
+    ----------
+    figure_obj : `~pylbo.visualisation.figure_manager.PlotWindow` instance
+        Argument passed set as attribute.
+    legend : `matplotlib.legend.Legend`
+        The matplotlib legend.
+    alpha_point : float
+        The alpha-value to draw the collapsed continuum points.
+    alpha_region : float
+        The alpha-value to draw the continuum regions.
+    alpha_hidden : float
+        The alpha-value to draw the legend handles if hidden.
+    """
+    def __init__(self, figure_obj, interactive):
         self.figure_obj = figure_obj
-        self.legend_items = []
         self.legend = None
-        self.key_colours = CONTINUA_COLOURS
+        self.alpha_point = 0.8
+        self.alpha_region = 0.2
+        self.alpha_hidden = 0.05
+
+        self._interactive = interactive
+        self.continua_names = CONTINUA_NAMES
+        self._continua_colors = CONTINUA_COLORS
+        self._drawn_items = []
+        self._legend_mapping = {}
 
     def on_legend_pick(self, event):
-        # TODO: add interactivity with legend items
-        pass
+        """
+        Determines what happens when the legend gets picked.
 
-    def draw_continua(self, **kwargs):
-        for key, colour in zip(CONTINUA_KEYS, self.continua_colours):
-            continuum = self.figure_obj.dataset.continua[key]
-            if self._check_if_all_zero(continuum=continuum):
-                continue
-            min_value = np.min(continuum)
-            max_value = np.max(continuum)
-            if self._check_if_collapsed(continuum=continuum):
-                item = self.figure_obj.ax.plot(
-                    min_value,
-                    0,
-                    marker=kwargs.pop("marker", "p"),
-                    markersize=kwargs.pop("markersize", 8),
-                    color=colour,
-                    linestyle="none",
-                    alpha=kwargs.pop("alpha", 0.5),
-                    label=key,
-                )
-                self.legend_items.append(item)
+        Parameters
+        ----------
+        event : `~matplotlib.backend_bases.PickEvent`
+            The matplotlib pick event.
+        """
+        artist = event.artist
+        if artist not in self._legend_mapping:
+            return
+        drawn_item = self._legend_mapping.get(artist)
+        visible = not drawn_item.get_visible()
+        drawn_item.set_visible(visible)
+        if visible:
+            if isinstance(artist, mpl_collections.PathCollection):
+                artist.set_alpha(self.alpha_point)
+                drawn_item.set_alpha(self.alpha_point)
             else:
-                raise NotImplementedError
-            self.legend = self.figure_obj.ax.legend(loc=kwargs.pop("legend_loc", "best"))
+                artist.set_alpha(self.alpha_region)
+                drawn_item.set_alpha(self.alpha_region)
+        else:
+            artist.set_alpha(self.alpha_hidden)
+        self.figure_obj.fig.canvas.draw()
+
+    def make_legend_pickable(self, pickradius):
+        """
+        Makes the legend pickable, only used if `interactive=True`.
+
+        Parameters
+        ----------
+        pickradius : float
+            The pickradius or 'sensitivity' around legend markers.
+        """
+        legend_handles = self.legend.legendHandles
+        handle_labels = [handle.get_label() for handle in legend_handles]
+        # we need a mapping of the legend item to the actual item that was drawn
+        for drawn_item in self._drawn_items:
+            idx = handle_labels.index(drawn_item.get_label())
+            legend_item = self.legend.legendHandles[idx]
+            if not drawn_item.get_label() == legend_item.get_label():
+                raise ValueError(
+                    f"something went wrong in mapping legend items to drawn items. \n"
+                    f"Tried to map {legend_item} (label '{legend_item.get_label()}')"
+                    f" to {drawn_item} (label '{drawn_item.get_label()}') \n"
+                )
+            legend_item.set_picker(pickradius)
+            legend_item.set_alpha(self.alpha_hidden)
+            # we make the continuum regions invisible until clicked
+            drawn_item.set_visible(False)
+            self._legend_mapping[legend_item] = drawn_item
+
+    def add(self, item):
+        """
+        Adds an item to the list of drawn items on the canvas.
+
+        Parameters
+        ----------
+        item : object
+            A single object, usually a return from the matplotlib plot or scatter
+            methods.
+        """
+        if isinstance(item, (list, np.ndarray, tuple)):
+            raise ValueError("object expected, not something list-like")
+        self._drawn_items.append(item)
 
     @property
-    def continua_colours(self):
-        return self.key_colours
+    def continua_colors(self):
+        """
+        Returns the list of continua colors.
 
-    @continua_colours.setter
-    def continua_colours(self, values):
-        if not isinstance(values, (list, np.ndarray)):
+        Returns
+        -------
+        The continua colors as a list.
+        """
+        return self._continua_colors
+
+    @continua_colors.setter
+    def continua_colors(self, colors):
+        """
+        Setter for the continua colors attribute.
+
+        Parameters
+        ----------
+        colors : list, numpy.ndarray
+            The colors to use when plotting the continua as a list of strings.
+
+        Raises
+        ------
+        ValueError
+            If a wrong argument is passed or if it is of improper length.
+        """
+        if colors is None:
+            return
+        if not isinstance(colors, (list, np.ndarray)):
             raise ValueError(
-                f"continua_colours should be an array/list but got {type(values)}"
+                f"continua_colors should be an array/list but got {type(colors)}"
             )
-        self.continua_colours = values
+        if not len(colors) == len(CONTINUA_COLORS):
+            raise ValueError(
+                f"continua_colors should be of length {len(CONTINUA_COLORS)}"
+            )
+        self._continua_colors = colors
 
     @staticmethod
-    def _check_if_collapsed(continuum):
+    def check_if_collapsed(continuum):
+        """
+        Checks if a given continuum is "collapsed" to a single point.
+
+        Parameters
+        ----------
+        continuum : np.ndarray
+            Array with values.
+
+        Returns
+        -------
+        True if all values are the same, false otherwise.
+        """
         if all(np.diff(continuum) == 0):
             return True
         return False
 
     @staticmethod
-    def _check_if_all_zero(continuum):
+    def check_if_all_zero(continuum):
+        """
+        Checks if a given continuum is pure zero.
+
+        Parameters
+        ----------
+        continuum : np.ndarray
+            Array with values.
+
+        Returns
+        -------
+        True if all values are zero, false otherwise.
+        """
         if all(continuum == 0):
             return True
         return False

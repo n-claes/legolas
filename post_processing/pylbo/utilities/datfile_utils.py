@@ -1,6 +1,6 @@
 import struct
 import numpy as np
-from pylbo._version import LegolasVersion
+from pylbo._version import VersionHandler
 
 SIZE_CHAR = struct.calcsize("c")
 SIZE_INT = struct.calcsize("i")
@@ -48,7 +48,7 @@ def get_header(istream):
     except ValueError:
         istream.seek(0)
         VERSION = "0.0.0"
-    h["legolas_version"] = LegolasVersion(VERSION)
+    h["legolas_version"] = VersionHandler(VERSION)
 
     # read maximal string length and length of strings in arrays
     fmt = ALIGN + 2 * "i"

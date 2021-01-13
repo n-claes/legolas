@@ -1,17 +1,18 @@
+import matplotlib
 from packaging import version
 
 # The current pylbo version number.
 __version__ = "0.4.1"
 
 
-class LegolasVersion:
+class VersionHandler:
     """
-    Parser for the Legolas version number, allows for direct comparison
+    Dedicated parser for a version number, allows for direct comparison.
 
     Parameters
     ----------
     version_number : str
-        The Legolas version number in the form "x.x.x".
+        The version number in the form "x.x.x".
     """
 
     def __init__(self, version_number):
@@ -49,3 +50,7 @@ class LegolasVersion:
 
     def __str__(self):
         return str(self._version_number)
+
+
+# package versions etc, allows backwards compatibility (especially matplotlib...)
+_mpl_version = VersionHandler(matplotlib.__version__)

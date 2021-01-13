@@ -227,9 +227,33 @@ class FigureWindow:
         """Method to draw, should be overriden by subclass."""
         pass
 
-    def add_continua(self):
-        """Method to add continua, should be overridden by subclass."""
-        pass
+    def add_continua(self, c_handler, interactive, pickradius):
+        """
+        Method to add continua, should be partially overridden by subclass and then
+        called through `super()`.
+        This solely makes an existing legend pickable if `interactive=True`.
+
+        Parameters
+        ----------
+        c_handler : `pylbo.continua.ContinuaHandler` instance
+            The `ContinuaHandler` instance.
+        interactive : bool
+            If `True`, enables interactivity and makes the legend pickable.
+        pickradius : float
+            The pickradius or 'sensitivity' of each legend item when picking.
+        """
+        if interactive:
+            c_handler.make_legend_pickable(pickradius=pickradius)
+            callback_kind = "pick_event"
+            callback_method = c_handler.on_legend_pick
+            callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
+            self._mpl_callbacks.append(
+                {
+                    "cid": callback_id,
+                    "kind": callback_kind,
+                    "method": callback_method,
+                }
+            )
 
     def add_eigenfunctions(self):
         """Method to add eigenfunctions, should be overridden by subclass."""
