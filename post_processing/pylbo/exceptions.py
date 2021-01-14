@@ -63,3 +63,28 @@ class MatricesNotPresent(LegolasException):
 
     def __str__(self):
         return f"No matrices present in {self.file}"
+
+
+class ParfileGenerationError(LegolasException):
+    """
+    Gets thrown when something went wrong during parfile generation.
+    """
+    def __init__(self, file, nb_runs=None, key=None):
+        self.file = file
+        self.nb_runs = nb_runs
+        self.key = key
+
+    def __str__(self):
+        base_msg = "Inconsistency encountered during parfile generation! \n"
+        if self.nb_runs is None:
+            error_msg = (
+                f"There are still some variables remaining in the supplied dictionary, "
+                f"check keys/values. Remaining variables: \n"
+                f"{self.file}"
+            )
+        else:
+            error_msg = (
+                f"Number of runs: {self.nb_runs} \n"
+                f"Length of '{self.key}' key: {len(self.file.get(self.key))}"
+            )
+        return "".join([base_msg, error_msg])
