@@ -28,14 +28,14 @@ def custom_enumerate(iterable, start=0, step=1):
         start += step
 
 
-def transform_to_list(obj):
+def transform_to_list(obj: any) -> list:
     """
     Transforms a given input argument `obj` to a list. If `obj`
-    is a Numpy-array, :func:`~numpy.ndarray.tolist` is invoked.
+    is a Numpy-array or tuple, a cast to `list()` is invoked.
 
     Parameters
     ----------
-    obj : object
+    obj : any
         The object to transform.
 
     Returns
@@ -45,20 +45,20 @@ def transform_to_list(obj):
     """
     if obj is None:
         return [obj]
-    elif isinstance(obj, np.ndarray):
-        return obj.tolist()
+    elif isinstance(obj, (tuple, np.ndarray)):
+        return list(obj)
     elif isinstance(obj, list):
         return obj
     return [obj]
 
 
-def transform_to_numpy(obj):
+def transform_to_numpy(obj: any) -> np.ndarray:
     """
     Transforms a given input argument `obj` to a numpy array.
 
     Parameters
     ----------
-    obj : object
+    obj : any
         The object to transform.
 
     Returns

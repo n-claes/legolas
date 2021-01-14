@@ -8,12 +8,46 @@ from pylbo.exceptions import ParfileGenerationError
 
 
 def _validate_basename(basename):
+    """
+    Validates the basename for a given parfile.
+
+    Parameters
+    ----------
+    basename : str
+        The basename for a parfile. If not given, defaults to "parfile".
+
+    Returns
+    -------
+    basename : str
+        The basename for a parfile.
+
+    """
     if basename is None:
         basename = "parfile"
     return basename
 
 
 def _validate_output_dir(output_dir):
+    """
+    Validates and returns the output directory for the parfiles.
+
+    Parameters
+    ----------
+    output_dir : str, ~os.PathLike
+        The output directory to store the parfiles in. If not given, defaults to
+        the current working directory.
+
+    Raises
+    ------
+    NotADirectoryError
+        If the output directory is not found.
+
+    Returns
+    -------
+    output : ~os.PathLike
+        The resolved path to the output directory with "parfiles" appended.
+
+    """
     if output_dir is None:
         output_dir = Path.cwd()
     output = Path(output_dir).resolve()
@@ -26,6 +60,23 @@ def _validate_output_dir(output_dir):
 
 
 class ParfileGenerator:
+    """
+    Handles parfile generation.
+
+    Parameters
+    ----------
+    parfile_dict : dict
+        Dictionary containing the keys to be placed in the parfile.
+    basename : str
+        The basename for the parfile, the `.par` suffix is added automatically and is
+        not needed. If multiple parfiles are generated, these
+        will be prepended by a 4-digit number (e.g. 0003myparfile.par).
+        If not provided, the basename will default to `parfile`.
+    output_dir : str, ~os.PathLike
+        Output directory where the parfiles are saved, defaults to the current
+        working directory if not specified. A subdirectory called `parfiles` will be
+        created in which the parfiles will be saved.
+    """
     def __init__(self, parfile_dict, basename=None, output_dir=None):
         self.parfile_dict = parfile_dict
         self.basename = _validate_basename(basename)
@@ -35,6 +86,31 @@ class ParfileGenerator:
         self.container = {}
 
     def _get_and_check_item(self, namelist, name, allowed_dtypes):
+        """
+        Does typechecking on the various dictionary keys supplied to the parfile
+        generator. Pops the key from the dictionary.
+
+        Parameters
+        ----------
+        namelist : str
+            One of the namelists ("gridlist", "savelist", etc.)
+        name : str
+            The key to check.
+        allowed_dtypes : class, tuple
+            Allowed types for that particular key. Either a single value or a tuple.
+
+        Raises
+        ------
+        TypeError
+            If the types do not matche, e.g. if "gridpoints" is specified as a float
+            value when it should be an integer.
+
+        Returns
+        -------
+        item : any
+            The item popped from the dictionary corresponding to the given key.
+
+        """
         item = self.parfile_dict.pop(name, None)
         if item is not None:
             item_aslist = transform_to_list(item)
@@ -48,6 +124,15 @@ class ParfileGenerator:
         return item
 
     def create_namelist_from_dict(self):
+        """
+        Creates one major namelist from the given dictionary.
+
+        Raises
+        ------
+        ParfileGenerationError
+            - If the original dictionary is not empty after everything should be popped
+            - If there is an inconsistency between array sizes of dictionary items
+        """
         for namelist, items in namelist_items.items():
             # update container
             self.container.update({namelist: {}})
@@ -85,6 +170,17 @@ class ParfileGenerator:
                 self.container.get(namelist).update({key: values_list})
 
     def generate_parfiles(self):
+        """
+        Creates separate parfiles from the main namelist container and writes
+        the individual parfiles to disk.
+
+        Returns
+        -------
+        parfiles : list of str
+            List containing the paths of the parfiles, can be passed to the legolas
+            runner.
+
+        """
         run_dict = {key: {} for key in self.container.keys()}
         # savelist must be present
         try:
