@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import tkinter as tk
 from pathlib import Path
@@ -14,7 +15,7 @@ def _validate_file(file):
 
     Parameters
     ----------
-    file : str, ~os.PathLike
+    file : str, Path
         The path to the datfile, either as a :class:`str` or
         :class:`~os.PathLike` object.
 
@@ -38,14 +39,21 @@ def load(datfile):
 
     Parameters
     ----------
-    datfile : str, ~os.PathLike
+    datfile : str, Path
         Path to the datfile.
+
+    Raises
+    ------
+    ValueError
+        If `datfile` is not a single file.
 
     Returns
     -------
     ds : :class:`~.pylbo.data_containers.DataSet`
         A dataset instance for the given datfile.
     """
+    if not isinstance(datfile, (str, os.PathLike)):
+        raise ValueError("load() takes a single datfile.")
     _validate_file(datfile)
     ds = LegolasDataSet(datfile)
     pylboLogger.info(f"Legolas version  : {ds.legolas_version}")
@@ -67,7 +75,7 @@ def load_series(datfiles):
 
     Parameters
     ----------
-    datfiles : list of str, list of ~os.PathLike
+    datfiles : list of str, list of Path, np.ndarray of str
         Paths to the datfiles that should be loaded, in list/array form.
 
     Returns
@@ -79,6 +87,60 @@ def load_series(datfiles):
     for datfile in datfiles:
         _validate_file(datfile)
     series = LegolasDataSeries(datfiles)
+
+    # handle version printing
+    versions = [ds.legolas_version.parse() for ds in series.datasets]
+    minversion, maxversion = min(versions), max(versions)
+    if minversion == maxversion:
+        info_msg = str(minversion)
+    else:
+        info_msg = f"{minversion} --> {maxversion}"
+    pylboLogger.info(f"Legolas_version  : {info_msg}")
+
+    # handle file information printing
+    names = sorted([ds.datfile.name for ds in series.datasets])
+    pylboLogger.info(f"files loaded     : {names[0]} --> {names[-1]}")
+
+    # handle gridpoints printing
+    pts = [ds.gridpoints for ds in series.datasets]
+    minpts, maxpts = min(pts), max(pts)
+    if minpts == maxpts:
+        info_msg = str(minpts)
+    else:
+        info_msg = f"{minpts} --> {maxpts}"
+    pylboLogger.info(f"gridpoints       : {info_msg}")
+
+    # handle geometry printing
+    geoms = set([ds.geometry for ds in series.datasets])
+    if len(geoms) > 1:
+        pylboLogger.warning("multiple geometries detected!")
+    else:
+        pylboLogger.info(f"geometries       : {geoms.pop()}")
+
+    # handle equilibrium printing
+    equils = set([ds.eq_type for ds in series.datasets])
+    if len(equils) > 1:
+        pylboLogger.warning("multiple equilibria detected!")
+    else:
+        pylboLogger.info(f"equilibria       : {equils.pop()}")
+
+    # check presence of matrices
+    matrices_present = set([ds.header["matrices_written"] for ds in series.datasets])
+    if len(matrices_present) > 1:
+        pylboLogger.info("matrices present in some datfiles, but not all")
+    else:
+        if matrices_present.pop():
+            pylboLogger.info("matrices present in all datfiles")
+
+    # check presence of eigenfunctions
+    efs_present = set([ds.header["eigenfuncs_written"] for ds in series.datasets])
+    if len(efs_present) > 1:
+        pylboLogger.info("eigenfunctions present in some datfiles, but not all")
+    else:
+        if efs_present.pop():
+            pylboLogger.info("eigenfunctions present in all datfiles")
+    print("-"*100)
+
     return series
 
 
@@ -88,7 +150,7 @@ def load_logfile(logfile, sort=False):
 
     Parameters
     ----------
-    logfile : str or ~os.PathLike
+    logfile : str or Path
        The path to the logfile.
     sort : bool
        If `True`, sorts the eigenvalues in the logfile. Sorting is done first

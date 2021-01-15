@@ -21,12 +21,26 @@ class LegolasDataContainer(ABC):
         if isinstance(self, LegolasDataSet):
             return self._continua
         elif isinstance(self, LegolasDataSeries):
-            keys = self.datasets[0].continua.keys()
+            keys = self[0].continua.keys()
             _continua = {key: [] for key in keys}
-            for dataset in self.datasets:
+            for ds in self:
                 for key in keys:
-                    _continua[key].append(dataset.continua[key])
+                    _continua[key].append(ds.continua[key])
             return {key: np.array(values) for key, values in _continua.items()}
+        else:
+            raise TypeError(f"unexpected instance: {type(self)}")
+
+    @property
+    def parameters(self):
+        if isinstance(self, LegolasDataSet):
+            return self._parameters
+        elif isinstance(self, LegolasDataSeries):
+            keys = self[0].parameters.keys()
+            _params = {key: [] for key in keys}
+            for ds in self:
+                for key in keys:
+                    _params[key].append(ds.parameters[key])
+            return {key: np.array(values) for key, values in _params.items()}
         else:
             raise TypeError(f"unexpected instance: {type(self)}")
 
@@ -55,13 +69,13 @@ class LegolasDataSet(LegolasDataContainer):
 
         self.x_start = self.header["x_start"]
         self.x_end = self.header["x_end"]
-        self.gridpts = self.header["gridpts"]
-        self.gauss_gridpts = self.header["gauss_gridpts"]
-        self.matrix_gridpts = self.header["matrix_gridpts"]
-        self.ef_gridpts = self.header["ef_gridpts"]
+        self.gridpoints = self.header["gridpts"]
+        self.gauss_gridpoints = self.header["gauss_gridpts"]
+        self.matrix_gridpoints = self.header["matrix_gridpts"]
+        self.ef_gridpoints = self.header["ef_gridpts"]
         self.gamma = self.header["gamma"]
         self.eq_type = self.header["eq_type"]
-        self.parameters = self.header["params"]
+        self._parameters = self.header["params"]
         self.cgs = self.header["cgs"]
         self.units = self.header["units"]
         self.eq_names = self.header["equil_names"]
@@ -132,6 +146,16 @@ class LegolasDataSet(LegolasDataContainer):
 class LegolasDataSeries(LegolasDataContainer):
     def __init__(self, datfiles):
         self.datasets = [LegolasDataSet(datfile) for datfile in datfiles]
+
+    def __iter__(self):
+        for ds in self.datasets:
+            yield ds
+
+    def __getitem__(self, idx):
+        return self.datasets[idx]
+
+    def __len__(self):
+        return len(self.datasets)
 
     def get_sound_speed(self, which_values="average"):
         pass

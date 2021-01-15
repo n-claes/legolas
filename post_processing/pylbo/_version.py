@@ -19,6 +19,9 @@ class VersionHandler:
         self._validate_version(version_number)
         self._version_number = version.parse(version_number)
 
+    def parse(self):
+        return self._version_number
+
     @staticmethod
     def _validate_version(version_number):
         if not isinstance(version_number, str):

@@ -1,6 +1,7 @@
 import numpy as np
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.utilities.logger import pylboLogger
+from pylbo.utilities.toolbox import transform_to_numpy
 from pylbo.continua import ContinuaHandler
 
 
@@ -21,19 +22,20 @@ class SingleSpectrumPlot(FigureWindow):
     ----------
     dataset : `~pylbo.data_containers.LegolasDataSet`
         The dataset passed as parameter
-    xdata : np.ndarray(dtype=float, ndim=1)
+    w_real : np.ndarray(dtype=float, ndim=1)
         Real part of the eigenvalues as a numpy array.
-    ydata : np.ndarray(dtype=float, ndim=1)
+    w_imag : np.ndarray(dtype=float, ndim=1)
         Imaginary part of the eigenvalues as a numpy array.
     """
+
     def __init__(self, dataset, figsize, custom_figure, **kwargs):
         super().__init__(
             figure_type="single-spectrum", figsize=figsize, custom_figure=custom_figure
         )
         self.dataset = dataset
         self.kwargs = kwargs
-        self.xdata = self.dataset.eigenvalues.real
-        self.ydata = self.dataset.eigenvalues.imag
+        self.w_real = self.dataset.eigenvalues.real
+        self.w_imag = self.dataset.eigenvalues.imag
         self.draw()
 
     def draw(self):
@@ -41,11 +43,9 @@ class SingleSpectrumPlot(FigureWindow):
         Draw method, creates the spectrum.
         """
         pylboLogger.debug("creating single spectrum plot...")
-        self.xdata *= self.x_scaling
-        self.ydata *= self.y_scaling
         self.ax.plot(
-            self.xdata,
-            self.ydata,
+            self.w_real * self.x_scaling,
+            self.w_imag * self.y_scaling,
             marker=self.kwargs.pop("marker", "."),
             color=self.kwargs.pop("color", "blue"),
             markersize=self.kwargs.pop("markersize", 6),
@@ -110,4 +110,53 @@ class SingleSpectrumPlot(FigureWindow):
         return c_handler
 
     def add_eigenfunctions(self):
+        pass
+
+
+class MultiSpectrumPlot(FigureWindow):
+    def __init__(
+        self,
+        dataseries,
+        xdata,
+        use_squared_omega,
+        use_real_parts,
+        x_scaling,
+        y_scaling,
+        figsize,
+        custom_figure,
+        **kwargs
+    ):
+        super().__init__(
+            figure_type="multi-spectrum", figsize=figsize, custom_figure=custom_figure
+        )
+        self.dataseries = dataseries
+        self._validate_xdata(xdata)
+        self.xdata = xdata
+        self.use_squared_omega = use_squared_omega
+        self.use_real_parts = use_real_parts
+        self.x_scaling = x_scaling
+        self.y_scaling = y_scaling
+        self.kwargs = kwargs
+        self.draw()
+
+    def _validate_xdata(self, xdata):
+        if isinstance(xdata, str):
+            if self.dataseries.parameters.get(xdata, None) is None:
+                raise ValueError(
+                    f"Provided key xdata='{xdata}' is not in parameters: \n"
+                    f"{self.dataseries.parameters.keys()}"
+                )
+        elif isinstance(xdata, (list, np.ndarray)):
+            xdata = transform_to_numpy(xdata)
+            if len(xdata) != len(self.dataseries):
+                raise ValueError(
+                    f"Lengts of xdata do not match: "
+                    f"{len(xdata)} vs {len(self.dataseries)}"
+                )
+        else:
+            raise TypeError(
+                f"xdata should be a string, list or numpy array but got {type(xdata)}."
+            )
+
+    def draw(self):
         pass

@@ -225,7 +225,7 @@ class FigureWindow:
 
     def draw(self):
         """Method to draw, should be overriden by subclass."""
-        pass
+        raise NotImplementedError
 
     def add_continua(self, c_handler, interactive, pickradius):
         """
