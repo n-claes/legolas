@@ -1,6 +1,10 @@
 import numpy as np
 import matplotlib.collections as mpl_collections
+import matplotlib.lines as mpl_lines
+import matplotlib.patches as mpl_patches
+from matplotlib import colors
 
+from pylbo._version import _mpl_version
 from pylbo.utilities.logger import pylboLogger
 
 CONTINUA_NAMES = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]
@@ -163,6 +167,7 @@ class ContinuaHandler:
         self.marker = "p"
         self.markersize = 64
         self.pickradius = 10
+        self.linewidth = 2
         self.legend_properties = {}
 
         self.interactive = interactive
@@ -187,12 +192,10 @@ class ContinuaHandler:
         visible = not drawn_item.get_visible()
         drawn_item.set_visible(visible)
         if visible:
-            if isinstance(artist, mpl_collections.PathCollection):
+            if isinstance(artist, (mpl_collections.PathCollection, mpl_lines.Line2D)):
                 artist.set_alpha(self.alpha_point)
-                drawn_item.set_alpha(self.alpha_point)
             else:
                 artist.set_alpha(self.alpha_region)
-                drawn_item.set_alpha(self.alpha_region)
         else:
             artist.set_alpha(self.alpha_hidden)
         artist.figure.canvas.draw()
@@ -204,16 +207,31 @@ class ContinuaHandler:
         legend_handles = self.legend.legendHandles
         handle_labels = [handle.get_label() for handle in legend_handles]
         # we need a mapping of the legend item to the actual item that was drawn
-        for drawn_item in self._drawn_items:
-            idx = handle_labels.index(drawn_item.get_label())
-            legend_item = self.legend.legendHandles[idx]
+        for i, drawn_item in enumerate(self._drawn_items):
+            # TODO: for some reason fill_between returns empty handles such that
+            #       the code below errors out. The try-except clause is an attempt
+            #       to fix it and _should_ work. This relies on the ordening of the
+            #       legend items when they are drawn, but should be thorougly tested.
+            try:
+                idx = handle_labels.index(drawn_item.get_label())
+                legend_item = self.legend.legendHandles[idx]
+            except ValueError:
+                idx = i
+                legend_item = self.legend.legendHandles[idx]
+                # fix empty label
+                legend_item.set_label(drawn_item.get_label())
             if not drawn_item.get_label() == legend_item.get_label():
                 raise ValueError(
                     f"something went wrong in mapping legend items to drawn items. \n"
                     f"Tried to map {legend_item} (label '{legend_item.get_label()}')"
                     f" to {drawn_item} (label '{drawn_item.get_label()}') \n"
                 )
-            legend_item.set_picker(self.pickradius)
+            # set_picker is deprecated for line2D from matplotlib 3.3 onwards
+            if isinstance(legend_item, mpl_lines.Line2D) and _mpl_version >= "3.3":
+                legend_item.set_picker(True)
+                legend_item.pickradius = self.pickradius
+            else:
+                legend_item.set_picker(self.pickradius)
             legend_item.set_alpha(self.alpha_hidden)
             # we make the continuum regions invisible until clicked
             drawn_item.set_visible(False)

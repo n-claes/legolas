@@ -1,7 +1,7 @@
 import numpy as np
 from copy import copy
+from matplotlib import colors
 from pylbo.visualisation.figure_manager import FigureWindow
-from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import transform_to_numpy
 from pylbo.continua import ContinuaHandler
 
@@ -134,6 +134,9 @@ class MultiSpectrumPlot(FigureWindow):
         )
         self.dataseries = dataseries
         self.use_squared_omega = use_squared_omega
+        self._w_pow = 1
+        if self.use_squared_omega:
+            self._w_pow = 2
         self.use_real_parts = use_real_parts
         self.xdata = self._validate_xdata(xdata)
         self.ydata = self._get_ydata()
@@ -164,10 +167,10 @@ class MultiSpectrumPlot(FigureWindow):
         return xdata_values
 
     def _get_ydata(self):
-        w_pow = 1
-        if self.use_squared_omega:
-            w_pow = 2
-        ydata_values = np.array([ds.eigenvalues ** w_pow for ds in self.dataseries])
+        ydata_values = np.array(
+            [ds.eigenvalues ** self._w_pow for ds in self.dataseries]
+        )
+        ydata_values[np.where(np.abs(ydata_values) < 1e-12)] = np.nan
         if self.use_real_parts:
             return ydata_values.real
         else:
@@ -205,3 +208,51 @@ class MultiSpectrumPlot(FigureWindow):
             )
         self.ax.axhline(y=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
+
+    def add_continua(self, interactive=True):
+        if self._c_handler is None:
+            self._c_handler = ContinuaHandler(interactive=interactive)
+
+        for key, color in zip(
+            self._c_handler.continua_names, self._c_handler.continua_colors
+        ):
+            # we skip duplicates if eigenvalues are squared
+            if self.use_squared_omega:
+                if key in ("slow-", "alfven-"):
+                    continue
+            # retrieve continuum, calculate region boundaries
+            continuum = self.dataseries.continua[key]
+            min_values = (
+                np.array([np.min(c_ds) for c_ds in continuum]) ** self._w_pow
+                * self.y_scaling
+            )
+            max_values = (
+                np.array([np.max(c_ds) for c_ds in continuum]) ** self._w_pow *
+                self.y_scaling
+            )
+            # skip if continua are all zero
+            if all(min_values == 0) and all(max_values == 0):
+                continue
+            # when continua are collapsed then min = max and we draw a line instread
+            if all(abs(min_values - max_values) < 1e-12):
+                item, = self.ax.plot(
+                    self.xdata,
+                    min_values,
+                    color=color,
+                    alpha=self._c_handler.alpha_point,
+                    label=key,
+                )
+            else:
+                item = self.ax.fill_between(
+                    self.xdata,
+                    min_values,
+                    max_values,
+                    facecolor=colors.to_rgba(color, self._c_handler.alpha_region),
+                    edgecolor=colors.to_rgba(color, self._c_handler.alpha_point),
+                    linewidth=self._c_handler.linewidth,
+                    label=key,
+                )
+            self._c_handler.add(item)
+        self._c_handler.legend = self.ax.legend(**self._c_handler.legend_properties)
+        super().add_continua(self._c_handler.interactive)
+        return self._c_handler
