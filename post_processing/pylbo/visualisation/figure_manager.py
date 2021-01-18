@@ -1,6 +1,18 @@
 import matplotlib.pyplot as plt
 from pathlib import Path
+from functools import wraps
 from pylbo.utilities.logger import pylboLogger
+
+
+def refresh_plot(f):
+    @wraps(f)
+    def refresh(*args, **kwargs):
+        f(*args, **kwargs)
+        window = args[0]
+        window.draw()
+        return f
+
+    return refresh
 
 
 class FigureContainer(dict):
@@ -175,6 +187,8 @@ class FigureWindow:
         self.y_scaling = 1
         self.enabled = False
         self._mpl_callbacks = []
+        self._c_handler = None
+        self._ef_handler = None
         self.__class__.figure_stack.add(self)
 
     @classmethod
@@ -224,28 +238,34 @@ class FigureWindow:
             self.fig.canvas.mpl_disconnect(callback["cid"])
 
     def draw(self):
-        """Method to draw, should be overriden by subclass."""
-        raise NotImplementedError
+        self.ax.cla()
+        self._add_spectrum()
+        if self._c_handler is not None:
+            self.add_continua(self._c_handler.interactive)
+        if self._ef_handler is not None:
+            self.add_eigenfunctions()
 
-    def add_continua(self, c_handler, interactive, pickradius):
+    @refresh_plot
+    def set_x_scaling(self, x_scaling):
+        self.x_scaling = x_scaling
+
+    @refresh_plot
+    def set_y_scaling(self, y_scaling):
+        self.y_scaling = y_scaling
+
+    def _add_spectrum(self):
+        pass
+
+    def add_continua(self, interactive):
         """
         Method to add continua, should be partially overridden by subclass and then
         called through `super()`.
         This solely makes an existing legend pickable if `interactive=True`.
-
-        Parameters
-        ----------
-        c_handler : `pylbo.continua.ContinuaHandler` instance
-            The `ContinuaHandler` instance.
-        interactive : bool
-            If `True`, enables interactivity and makes the legend pickable.
-        pickradius : float
-            The pickradius or 'sensitivity' of each legend item when picking.
         """
         if interactive:
-            c_handler.make_legend_pickable(pickradius=pickradius)
+            self._c_handler.make_legend_pickable()
             callback_kind = "pick_event"
-            callback_method = c_handler.on_legend_pick
+            callback_method = self._c_handler.on_legend_pick
             callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
             self._mpl_callbacks.append(
                 {
@@ -305,10 +325,5 @@ class FigureWindow:
         self.enable()
         filepath = Path(filename).resolve()
         self.fig.savefig(filepath, **kwargs)
-        print(type(self.fig.savefig()))
         pylboLogger.info(f"figure saved to {filepath}")
         self.__class__.figure_stack.enable_stack()
-
-    def clear(self):
-        """Clears the current axes."""
-        self.ax.clear()

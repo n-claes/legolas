@@ -45,7 +45,11 @@ class LegolasDataContainer(ABC):
             raise TypeError(f"unexpected instance: {type(self)}")
 
     @abstractmethod
-    def get_sound_speed(self, **kwargs):
+    def get_sound_speed(self, which_values=None):
+        pass
+
+    @abstractmethod
+    def get_alfven_speed(self, which_values=None):
         pass
 
 
@@ -86,9 +90,18 @@ class LegolasDataSet(LegolasDataContainer):
     def __iter__(self):
         yield self
 
-    def get_sound_speed(self):
+    def get_sound_speed(self, which_values=None):
         """
         Calculates the sound speed based on the equilibrium arrays.
+
+        Parameters
+        ----------
+        which_values : str
+            Which values to return:
+            - None : returns the sound speed as a function of the grid.
+            - "average" : returns the average sound speed over the grid.
+            - "minimum" : returns the minimum sound speed over the grid.
+            - "maximum" : returns the maximum sound speed over the grid
 
         Returns
         -------
@@ -98,7 +111,42 @@ class LegolasDataSet(LegolasDataContainer):
         """
         pressure = self.equilibria["T0"] * self.equilibria["rho0"]
         cs = np.sqrt(self.gamma * pressure / self.equilibria["rho0"])
+        if which_values == "average":
+            return np.average(cs)
+        elif which_values == "minimum":
+            return np.min(cs)
+        elif which_values == "maximum":
+            return np.max(cs)
         return cs
+
+    def get_alfven_speed(self, which_values=None):
+        """
+        Calculates the Alfvén speed based on the equilibrium arrays,
+        given by :math:`c_A = \\sqrt{\\frac{B_0^2}{\\rho_0}}`.
+
+        Parameters
+        ----------
+        which_values : str
+            Which values to return:
+            - None : returns the sound speed as a function of the grid.
+            - "average" : returns the average sound speed over the grid.
+            - "minimum" : returns the minimum sound speed over the grid.
+            - "maximum" : returns the maximum sound speed over the grid
+
+        Returns
+        -------
+        cA : numpy.ndarray(dtype=float, ndim=1)
+            The Alfvén speed at every gridpoint.
+        """
+        B0 = np.sqrt(self.equilibria["B02"] ** 2 + self.equilibria["B03"] ** 2)
+        cA = B0 / np.sqrt(self.equilibria["rho0"])
+        if which_values == "average":
+            return np.average(cA)
+        elif which_values == "minimum":
+            return np.min(cA)
+        elif which_values == "maximum":
+            return np.max(cA)
+        return cA
 
     def get_matrix_B(self):
         """
@@ -157,5 +205,8 @@ class LegolasDataSeries(LegolasDataContainer):
     def __len__(self):
         return len(self.datasets)
 
-    def get_sound_speed(self, which_values="average"):
-        pass
+    def get_sound_speed(self, which_values=None):
+        return np.array([ds.get_sound_speed(which_values) for ds in self.datasets])
+
+    def get_alfven_speed(self, which_values=None):
+        return np.array([ds.get_alfven_speed(which_values) for ds in self.datasets])

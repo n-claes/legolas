@@ -1,4 +1,5 @@
 import numpy as np
+from copy import copy
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import transform_to_numpy
@@ -34,22 +35,24 @@ class SingleSpectrumPlot(FigureWindow):
         )
         self.dataset = dataset
         self.kwargs = kwargs
+
+        self.marker = "."
+        self.color = "blue"
+        self.markersize = 6
+        self.alpha = 0.8
+
         self.w_real = self.dataset.eigenvalues.real
         self.w_imag = self.dataset.eigenvalues.imag
-        self.draw()
+        self._add_spectrum()
 
-    def draw(self):
-        """
-        Draw method, creates the spectrum.
-        """
-        pylboLogger.debug("creating single spectrum plot...")
+    def _add_spectrum(self):
         self.ax.plot(
             self.w_real * self.x_scaling,
             self.w_imag * self.y_scaling,
-            marker=self.kwargs.pop("marker", "."),
-            color=self.kwargs.pop("color", "blue"),
-            markersize=self.kwargs.pop("markersize", 6),
-            alpha=self.kwargs.pop("alpha", 0.8),
+            marker=self.marker,
+            color=self.color,
+            markersize=self.markersize,
+            alpha=self.alpha,
             linestyle="None",
             **self.kwargs,
         )
@@ -59,7 +62,7 @@ class SingleSpectrumPlot(FigureWindow):
         self.ax.set_ylabel(r"Im($\omega$)")
         self.ax.set_title(self.dataset.eq_type)
 
-    def add_continua(self, interactive=True, colors=None, **kwargs):
+    def add_continua(self, interactive=True):
         """
         Adds the continua to the spectrum.
 
@@ -67,47 +70,49 @@ class SingleSpectrumPlot(FigureWindow):
         ----------
         interactive : bool
             If `True`, makes the legend pickable.
-        colors : np.ndarray(dtype=str, ndim=1)
-            Array of colors which will be used to plot the continua.
 
         Returns
         -------
         c_handler : `~pylbo.continua.ContinuaHandler` instance
             The `ContinuaHandler` instance used to plot the continua.
         """
-        c_handler = ContinuaHandler(self, interactive)
-        c_handler.continua_colors = colors
-        c_handler.alpha_point = kwargs.pop("alpha_point", 0.8)
-        c_handler.alpha_region = kwargs.pop("alpha_region", 0.2)
-        c_handler.alpha_hidden = kwargs.pop("alpha_hidden", 0.05)
+        if self._c_handler is None:
+            self._c_handler = ContinuaHandler(interactive=interactive)
 
-        for key, color in zip(c_handler.continua_names, c_handler.continua_colors):
+        for key, color in zip(
+            self._c_handler.continua_names, self._c_handler.continua_colors
+        ):
             continuum = self.dataset.continua[key]
-            if c_handler.check_if_all_zero(continuum=continuum):
+            if self._c_handler.check_if_all_zero(continuum=continuum):
                 continue
             min_value = np.min(continuum)
             max_value = np.max(continuum)
-            if c_handler.check_if_collapsed(continuum=continuum):
+            if self._c_handler.check_if_collapsed(continuum=continuum):
                 item = self.ax.scatter(
-                    min_value,
+                    min_value * self.x_scaling,
                     0,
-                    marker=kwargs.pop("marker", "p"),
-                    s=kwargs.pop("markersize", 64),
+                    marker=self._c_handler.marker,
+                    s=self._c_handler.markersize,
                     c=color,
-                    alpha=c_handler.alpha_point,
+                    alpha=self._c_handler.alpha_point,
                     label=key,
                 )
             else:
-                props = dict(facecolor=color, alpha=c_handler.alpha_region, label=key)
+                props = dict(
+                    facecolor=color, alpha=self._c_handler.alpha_region, label=key
+                )
                 if key == "thermal":
-                    item = self.ax.axhspan(min_value, max_value, **props)
+                    item = self.ax.axhspan(
+                        min_value * self.y_scaling, max_value * self.y_scaling, **props
+                    )
                 else:
-                    item = self.ax.axvspan(min_value, max_value, **props)
-            c_handler.add(item)
-        c_handler.legend = self.ax.legend(**kwargs)
-
-        super().add_continua(c_handler, interactive, kwargs.pop("pickradius", 10))
-        return c_handler
+                    item = self.ax.axvspan(
+                        min_value * self.x_scaling, max_value * self.x_scaling, **props
+                    )
+            self._c_handler.add(item)
+        self._c_handler.legend = self.ax.legend(**self._c_handler.legend_properties)
+        super().add_continua(self._c_handler.interactive)
+        return self._c_handler
 
     def add_eigenfunctions(self):
         pass
@@ -120,24 +125,22 @@ class MultiSpectrumPlot(FigureWindow):
         xdata,
         use_squared_omega,
         use_real_parts,
-        x_scaling,
-        y_scaling,
         figsize,
         custom_figure,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             figure_type="multi-spectrum", figsize=figsize, custom_figure=custom_figure
         )
         self.dataseries = dataseries
-        self._validate_xdata(xdata)
-        self.xdata = xdata
         self.use_squared_omega = use_squared_omega
         self.use_real_parts = use_real_parts
-        self.x_scaling = x_scaling
-        self.y_scaling = y_scaling
+        self.xdata = self._validate_xdata(xdata)
+        self.ydata = self._get_ydata()
+        self.x_scaling = np.ones_like(self.dataseries)
+        self.y_scaling = np.ones_like(self.dataseries)
         self.kwargs = kwargs
-        self.draw()
+        self._add_spectrum()
 
     def _validate_xdata(self, xdata):
         if isinstance(xdata, str):
@@ -146,17 +149,59 @@ class MultiSpectrumPlot(FigureWindow):
                     f"Provided key xdata='{xdata}' is not in parameters: \n"
                     f"{self.dataseries.parameters.keys()}"
                 )
+            xdata_values = self.dataseries.parameters[xdata]
         elif isinstance(xdata, (list, np.ndarray)):
-            xdata = transform_to_numpy(xdata)
-            if len(xdata) != len(self.dataseries):
+            xdata_values = transform_to_numpy(xdata)
+            if len(xdata_values) != len(self.dataseries):
                 raise ValueError(
                     f"Lengts of xdata do not match: "
-                    f"{len(xdata)} vs {len(self.dataseries)}"
+                    f"{len(xdata_values)} vs {len(self.dataseries)}"
                 )
         else:
             raise TypeError(
                 f"xdata should be a string, list or numpy array but got {type(xdata)}."
             )
+        return xdata_values
 
-    def draw(self):
-        pass
+    def _get_ydata(self):
+        w_pow = 1
+        if self.use_squared_omega:
+            w_pow = 2
+        ydata_values = np.array([ds.eigenvalues ** w_pow for ds in self.dataseries])
+        if self.use_real_parts:
+            return ydata_values.real
+        else:
+            return ydata_values.imag
+
+    def set_x_scaling(self, x_scaling):
+        if isinstance(x_scaling, (int, float, complex)):
+            x_scaling = np.ones_like(self.dataseries) * x_scaling
+        super().set_x_scaling(x_scaling)
+
+    def set_y_scaling(self, y_scaling):
+        if isinstance(y_scaling, (int, float, complex)):
+            y_scaling = np.ones_like(self.dataseries) * y_scaling
+        super().set_y_scaling(y_scaling)
+
+    def _add_spectrum(self):
+        """
+        Draw method, creates the spectrum.
+        """
+        props = copy(self.kwargs)
+        marker = props.pop("marker", ".")
+        color = props.pop("color", "blue")
+        markersize = props.pop("markersize", 6)
+        alpha = props.pop("alpha", 0.8)
+        for i, ds in enumerate(self.dataseries):
+            self.ax.plot(
+                self.xdata[i] * np.ones_like(self.ydata[i]) * self.x_scaling[i],
+                self.ydata[i] * self.y_scaling[i],
+                marker=marker,
+                color=color,
+                markersize=markersize,
+                alpha=alpha,
+                linestyle="None",
+                **props,
+            )
+        self.ax.axhline(y=0, linestyle="dotted", color="grey", alpha=0.3)
+        self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)

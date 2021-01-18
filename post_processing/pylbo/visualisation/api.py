@@ -47,8 +47,6 @@ def plot_spectrum_multi(
     xdata,
     use_squared_omega=False,
     use_real_parts=True,
-    x_scaling=None,
-    y_scaling=None,
     figsize=None,
     custom_figure=None,
     **kwargs,
@@ -70,12 +68,6 @@ def plot_spectrum_multi(
     use_real_parts : bool
         If `True` (default), this will plot the real part of the eigenvalues on the
         vertical axis. If `False` the imaginary part will be used.
-    x_scaling : int, float, list, np.ndarray
-        The scaling to apply to the horizontal axis, all values will be multiplied
-        by the scaling factor (default unity).
-    y_scaling : int, float, list, np.ndarray
-        The scaling to apply to the vertical axis, all values will be multiplied
-        by the scaling factor (default unity).
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
     custom_figure : tuple
@@ -107,8 +99,6 @@ def plot_spectrum_multi(
         xdata,
         use_squared_omega,
         use_real_parts,
-        x_scaling,
-        y_scaling,
         figsize,
         custom_figure,
         **kwargs,

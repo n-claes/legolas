@@ -58,14 +58,14 @@ def load(datfile):
     ds = LegolasDataSet(datfile)
     pylboLogger.info(f"Legolas version  : {ds.legolas_version}")
     pylboLogger.info(f"file loaded      : {ds.datfile.parent} -- {ds.datfile.name}")
-    pylboLogger.info(f"gridpoints       : {ds.gridpts}")
+    pylboLogger.info(f"gridpoints       : {ds.gridpoints}")
     pylboLogger.info(f"geometry         : {ds.geometry} in {ds.x_start, ds.x_end}")
     pylboLogger.info(f"equilibrium      : {ds.eq_type}")
     if ds.header["matrices_written"]:
         pylboLogger.info("matrices present in datfile")
     if ds.header["eigenfuncs_written"]:
         pylboLogger.info("eigenfunctions present in datfile")
-    print("-"*100)
+    print("-" * 100)
     return ds
 
 
@@ -139,7 +139,7 @@ def load_series(datfiles):
     else:
         if efs_present.pop():
             pylboLogger.info("eigenfunctions present in all datfiles")
-    print("-"*100)
+    print("-" * 100)
 
     return series
 

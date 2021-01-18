@@ -143,32 +143,29 @@ class ContinuaHandler:
 
     Parameters
     ----------
-    figure_obj : `~pylbo.visualisation.figure_manager.PlotWindow` instance
-        The instance used to draw the continua.
     interactive : bool
         If `True`, makes the legend pickable and continuum plotting interactive.
 
     Attributes
     ----------
-    figure_obj : `~pylbo.visualisation.figure_manager.PlotWindow` instance
-        Argument passed set as attribute.
     legend : `matplotlib.legend.Legend`
         The matplotlib legend.
-    alpha_point : float
-        The alpha-value to draw the collapsed continuum points.
-    alpha_region : float
-        The alpha-value to draw the continuum regions.
-    alpha_hidden : float
-        The alpha-value to draw the legend handles if hidden.
+    legend_properties : dict
+        Properties related to the legend.
     """
-    def __init__(self, figure_obj, interactive):
-        self.figure_obj = figure_obj
+
+    def __init__(self, interactive):
         self.legend = None
         self.alpha_point = 0.8
         self.alpha_region = 0.2
         self.alpha_hidden = 0.05
 
-        self._interactive = interactive
+        self.marker = "p"
+        self.markersize = 64
+        self.pickradius = 10
+        self.legend_properties = {}
+
+        self.interactive = interactive
         self.continua_names = CONTINUA_NAMES
         self._continua_colors = CONTINUA_COLORS
         self._drawn_items = []
@@ -198,16 +195,11 @@ class ContinuaHandler:
                 drawn_item.set_alpha(self.alpha_region)
         else:
             artist.set_alpha(self.alpha_hidden)
-        self.figure_obj.fig.canvas.draw()
+        artist.figure.canvas.draw()
 
-    def make_legend_pickable(self, pickradius):
+    def make_legend_pickable(self):
         """
-        Makes the legend pickable, only used if `interactive=True`.
-
-        Parameters
-        ----------
-        pickradius : float
-            The pickradius or 'sensitivity' around legend markers.
+        Makes the legend pickable, only used if interactive.
         """
         legend_handles = self.legend.legendHandles
         handle_labels = [handle.get_label() for handle in legend_handles]
@@ -221,7 +213,7 @@ class ContinuaHandler:
                     f"Tried to map {legend_item} (label '{legend_item.get_label()}')"
                     f" to {drawn_item} (label '{drawn_item.get_label()}') \n"
                 )
-            legend_item.set_picker(pickradius)
+            legend_item.set_picker(self.pickradius)
             legend_item.set_alpha(self.alpha_hidden)
             # we make the continuum regions invisible until clicked
             drawn_item.set_visible(False)
