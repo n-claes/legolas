@@ -189,6 +189,7 @@ class FigureWindow:
         self._mpl_callbacks = []
         self._c_handler = None
         self._ef_handler = None
+        self._ef_ax = None
         self.__class__.figure_stack.add(self)
 
     @classmethod
@@ -239,6 +240,7 @@ class FigureWindow:
 
     def draw(self):
         self.ax.cla()
+        self.disconnect_callbacks()
         self._add_spectrum()
         if self._c_handler is not None:
             self.add_continua(self._c_handler.interactive)
@@ -259,7 +261,8 @@ class FigureWindow:
     def add_continua(self, interactive):
         """
         Method to add continua, should be partially overridden by subclass and then
-        called through `super()`.
+        called through `super()`. The attribute `self._c_handler` should have
+        been set in the subclass.
         This solely makes an existing legend pickable if `interactive=True`.
         """
         if interactive:
@@ -276,8 +279,40 @@ class FigureWindow:
             )
 
     def add_eigenfunctions(self):
-        """Method to add eigenfunctions, should be overridden by subclass."""
-        pass
+        """
+        Method to add eigenfunctions, should be partially overridden by subclass and
+        then called through `super()` to connect the figure events.
+        The attribute `self._ef_handler` should have been set in the subclass.
+        This will modify the geometry of the existing axes, adding a new subplot
+        in which the eigenfunctions will be drawn.
+        """
+        if self._ef_handler is not None and self._ef_ax is None:
+            if self.ax.get_geometry() != (1, 1, 1):
+                raise ValueError(
+                    f"Something went wrong when adding the eigenfunctions. Expected "
+                    f"axes with geometry (1, 1, 1) but got {self.ax.get_geometry()}."
+                )
+            self.ax.change_geometry(1, 2, 1)
+            self._ef_ax = self.fig.add_subplot(122)
+            self.fig.set_size_inches(16, 8)
+            # this will update the figure's gridspec
+            self.fig.tight_layout()
+        callback_kinds = (
+            "pick_event", "key_press_event"
+        )
+        callback_methods = (
+            self._ef_handler.on_point_pick,
+            self._ef_handler.on_key_press,
+        )
+        for callback_kind, callback_method in zip(callback_kinds, callback_methods):
+            callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
+            self._mpl_callbacks.append(
+                {
+                    "cid": callback_id,
+                    "kind": callback_kind,
+                    "method": callback_method
+                }
+            )
 
     def show(self):
         """Shows the current figure."""

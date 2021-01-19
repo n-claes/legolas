@@ -1,10 +1,8 @@
 import numpy as np
 import matplotlib.collections as mpl_collections
 import matplotlib.lines as mpl_lines
-import matplotlib.patches as mpl_patches
-from matplotlib import colors
 
-from pylbo._version import _mpl_version
+from pylbo.utilities.toolbox import add_pickradius_to_item
 from pylbo.utilities.logger import pylboLogger
 
 CONTINUA_NAMES = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]
@@ -198,6 +196,8 @@ class ContinuaHandler:
                 artist.set_alpha(self.alpha_region)
         else:
             artist.set_alpha(self.alpha_hidden)
+        # add an attribute to this artist to tell it's from a legend
+        setattr(artist, "is_legend_item", True)
         artist.figure.canvas.draw()
 
     def make_legend_pickable(self):
@@ -226,12 +226,7 @@ class ContinuaHandler:
                     f"Tried to map {legend_item} (label '{legend_item.get_label()}')"
                     f" to {drawn_item} (label '{drawn_item.get_label()}') \n"
                 )
-            # set_picker is deprecated for line2D from matplotlib 3.3 onwards
-            if isinstance(legend_item, mpl_lines.Line2D) and _mpl_version >= "3.3":
-                legend_item.set_picker(True)
-                legend_item.pickradius = self.pickradius
-            else:
-                legend_item.set_picker(self.pickradius)
+            add_pickradius_to_item(item=legend_item, pickradius=self.pickradius)
             legend_item.set_alpha(self.alpha_hidden)
             # we make the continuum regions invisible until clicked
             drawn_item.set_visible(False)

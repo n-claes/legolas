@@ -2,7 +2,8 @@ import numpy as np
 from copy import copy
 from matplotlib import colors
 from pylbo.visualisation.figure_manager import FigureWindow
-from pylbo.utilities.toolbox import transform_to_numpy
+from pylbo.visualisation.eigenfunctions import EigenfunctionHandler
+from pylbo.utilities.toolbox import transform_to_numpy, add_pickradius_to_item
 from pylbo.continua import ContinuaHandler
 
 
@@ -46,7 +47,7 @@ class SingleSpectrumPlot(FigureWindow):
         self._add_spectrum()
 
     def _add_spectrum(self):
-        self.ax.plot(
+        spectrum_point, = self.ax.plot(
             self.w_real * self.x_scaling,
             self.w_imag * self.y_scaling,
             marker=self.marker,
@@ -56,6 +57,7 @@ class SingleSpectrumPlot(FigureWindow):
             linestyle="None",
             **self.kwargs,
         )
+        add_pickradius_to_item(item=spectrum_point, pickradius=10)
         self.ax.axhline(y=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.set_xlabel(r"Re($\omega$)")
@@ -115,7 +117,10 @@ class SingleSpectrumPlot(FigureWindow):
         return self._c_handler
 
     def add_eigenfunctions(self):
-        pass
+        if self._ef_handler is None:
+            self._ef_handler = EigenfunctionHandler(self.dataset)
+        # connect everything
+        super().add_eigenfunctions()
 
 
 class MultiSpectrumPlot(FigureWindow):

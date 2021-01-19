@@ -1,6 +1,27 @@
-import copy
 import numpy as np
-from pylbo.utilities.logger import pylboLogger
+import matplotlib.lines as mpl_lines
+from pylbo._version import _mpl_version
+
+
+def add_pickradius_to_item(item, pickradius):
+    """
+    Makes a matplotlib artist pickable and adds a pickradius.
+    We have to handle this separately, because for line2D items the method
+    `set_picker` is deprecated from version 3.3 onwards.
+
+    Parameters
+    ----------
+    item : `~matplotlib.artist.Artist`
+        The artist which will be made pickable
+    pickradius : int, float
+        Sets the pickradius, which determines if something is "on" the picked point.
+    """
+    # set_picker is deprecated for line2D from matplotlib 3.3 onwards
+    if isinstance(item, mpl_lines.Line2D) and _mpl_version >= "3.3":
+        item.set_picker(True)
+        item.pickradius = pickradius
+    else:
+        item.set_picker(pickradius)
 
 
 def custom_enumerate(iterable, start=0, step=1):
