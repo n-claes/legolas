@@ -231,7 +231,10 @@ class LegolasDataSeries(LegolasDataContainer):
             yield ds
 
     def __getitem__(self, idx):
-        return self.datasets[idx]
+        if isinstance(idx, slice):
+            return self.datasets[idx.start:idx.stop:idx.step]
+        else:
+            return self.datasets[idx]
 
     def __len__(self):
         return len(self.datasets)

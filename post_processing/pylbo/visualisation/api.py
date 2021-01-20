@@ -87,8 +87,12 @@ def plot_spectrum_multi(
         The spectrum instance which can be used further to add continua,
         eigenfunctions, etc.
     """
-    if not isinstance(dataseries, LegolasDataSeries):
-        raise TypeError("plot_spectrum needs a dataseries, not a single dataset.")
+    if isinstance(dataseries, list):
+        for ds in dataseries:
+            if not isinstance(ds, LegolasDataSet):
+                raise TypeError("invalid dataset passed to plot_spectrum_multi.")
+    elif not isinstance(dataseries, LegolasDataSeries):
+        raise TypeError("plot_spectrum_multi needs a dataseries, not a single dataset.")
     for arg in forbidden_args:
         if kwargs.pop(arg, None) is not None:
             pylboLogger.warning(
