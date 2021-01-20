@@ -1,4 +1,5 @@
 import numpy as np
+from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import add_pickradius_to_item
 from pylbo.utilities.datfile_utils import read_eigenfunction
 from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
@@ -26,7 +27,6 @@ class EigenfunctionHandler:
         if isinstance(self.data, LegolasDataSeries):
             if not any(self.data.efs_written):
                 raise EigenfunctionsNotPresent(error_msg)
-            self._mark_eigenfunctions_present()
         else:
             if not self.data.efs_written:
                 raise EigenfunctionsNotPresent(error_msg)
@@ -40,6 +40,9 @@ class EigenfunctionHandler:
         self._ef_names = self.data.ef_names
         # if True, retransforms the eigenfunctions to e.g. rv_r in cylindrical geometry
         self._retransform_efs = False
+        # flag to check if points are marked
+        self._no_efs_is_transparent = False
+        self._unmarked_alpha = None
 
     def on_point_pick(self, event):
         artist = event.artist
@@ -50,8 +53,8 @@ class EigenfunctionHandler:
         fig, ax = artist.figure, artist.axes
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
-        # Retrieves the dataset associated with the current points. This has been
-        # set when the spectrum was added to the plot.
+        # Retrieves the dataset associated with the current points.
+        # This attribute has been set when the spectrum was added to the plot.
         associated_ds = artist.dataset
         # This retrieves the indices of the clicked points. Multiple indices are
         # possible depending on an overlapping pickradius. Look which point corresponds
@@ -68,6 +71,16 @@ class EigenfunctionHandler:
             idx = idxs[distances.argmin()]
         xdata = xdata[idx]
         ydata = ydata[idx]
+
+        # if the selected point has no eigenfunctions, do nothing
+        if not associated_ds.efs_written:
+            pylboLogger.warn(
+                f"the selected point at ({xdata: 3.2e}, {ydata: 3.2e}) "
+                f"has no eigenfunctions associated with it. "
+                f"(corresponding dataset: {associated_ds.datfile.stem})"
+            )
+            return
+
         # handle left clicking
         if event.mouseevent.button == 1:
             # skip if point index is already in list
@@ -84,8 +97,7 @@ class EigenfunctionHandler:
             )
             add_pickradius_to_item(item=marked_point, pickradius=1)
             self._selected_idxs.update({associated_ds: {f"{idx}": marked_point}})
-            # checks if eigenfunctions are available
-            self._check_eigenfunction_availability()
+
         # handle right clicking
         elif event.mouseevent.button == 3:
             # remove selected index from list
@@ -100,9 +112,12 @@ class EigenfunctionHandler:
         fig.canvas.draw()
 
     def on_key_press(self, event):
-        # if nothing is selected, return
-        if not self._selected_idxs:
-            return
+        # pressing "m" marks points without eigenfunctions
+        if event.key == "m":
+            self.mark_points_without_eigenfunctions()
+        # # if nothing is selected, return
+        # if not self._selected_idxs:
+        #     return
         # pressing "d" clears figure and selection
         if event.key == "d":
             # retrieve (index, item) dicts for each dataset
@@ -128,6 +143,9 @@ class EigenfunctionHandler:
         event.canvas.draw()
 
     def update_plot(self):
+        # do nothing if nothing is selected
+        if not self._selected_idxs:
+            return
         self.ef_ax.clear()
         ef_name = self._ef_names[self._selected_ef_name_idx]
         for ds, idxs_dict in self._selected_idxs.items():
@@ -205,18 +223,18 @@ class EigenfunctionHandler:
         name = f"{part}(${ef_name}$) eigenfunction"
         return name
 
-    def _mark_eigenfunctions_present(self):
-        return
-        raise NotImplementedError
-
-    def _check_eigenfunction_availability(self):
-        """
-        Checks if eigenfunctions are available. This is important for
-        multispectra, where every dataset does not necessarily has eigenfunctions
-        associated with it. This routine will check the marked points, if a point
-        is encountered without eigenfunctions it will be removed and a warning
-        will be thrown.
-        """
-        return
-        if isinstance(self.data, LegolasDataSeries):
-            raise NotImplementedError
+    def mark_points_without_eigenfunctions(self):
+        if all(self.data.efs_written):
+            return
+        self._no_efs_is_transparent = not self._no_efs_is_transparent
+        for ax in self.ef_ax.figure.get_axes():
+            for child in ax.get_children():
+                # the ones with this attribute are all the vertical rows of datapoints
+                if hasattr(child, "dataset"):
+                    if self._unmarked_alpha is None:
+                        self._unmarked_alpha = child.get_alpha()
+                    if not child.dataset.efs_written:
+                        if self._no_efs_is_transparent:
+                            child.set_alpha(0)
+                        else:
+                            child.set_alpha(self._unmarked_alpha)

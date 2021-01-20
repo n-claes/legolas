@@ -111,7 +111,7 @@ def load_series(datfiles):
     pylboLogger.info(f"gridpoints       : {info_msg}")
 
     # handle geometry printing
-    if len(series.geometry) > 1:
+    if not isinstance(series.geometry, str) and len(series.geometry) > 1:
         pylboLogger.warning("multiple geometries detected!")
     else:
         pylboLogger.info(f"geometries       : {series.geometry}")

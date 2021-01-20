@@ -247,7 +247,7 @@ class LegolasDataSeries(LegolasDataContainer):
 
     @property
     def ef_names(self):
-        names = np.array([ds.ef_names for ds in self.datasets])
+        names = np.array([ds.ef_names for ds in self.datasets], dtype=object)
         for item in names:
             if item is None:
                 continue
@@ -258,7 +258,7 @@ class LegolasDataSeries(LegolasDataContainer):
 
     @property
     def ef_grid(self):
-        return np.array([ds.ef_grid for ds in self.datasets])
+        return np.array([ds.ef_grid for ds in self.datasets], dtype=object)
 
     def get_sound_speed(self, which_values=None):
         return np.array([ds.get_sound_speed(which_values) for ds in self.datasets])
