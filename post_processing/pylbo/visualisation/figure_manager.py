@@ -278,25 +278,33 @@ class FigureWindow:
                 }
             )
 
+    def _add_eigenfunction_axes(self):
+        """
+        Adds a new axes to the existing plot.
+        This sets the attribute `self._ef_handler` and will modify the geometry of
+        the existing axes, adding a new subplot in which the eigenfunctions will
+        be drawn.
+        Eventually `fig.tight_layout()` is called to update the figure's gridspec.
+        """
+        if self._ef_ax is not None:
+            return
+
+        if self.ax.get_geometry() != (1, 1, 1):
+            raise ValueError(
+                f"Something went wrong when adding the eigenfunctions. Expected "
+                f"axes with geometry (1, 1, 1) but got {self.ax.get_geometry()}."
+            )
+        self.ax.change_geometry(1, 2, 1)
+        self._ef_ax = self.fig.add_subplot(122)
+        self.fig.set_size_inches(16, 8)
+        # this will update the figure's gridspec
+        self.fig.tight_layout()
+
     def add_eigenfunctions(self):
         """
         Method to add eigenfunctions, should be partially overridden by subclass and
         then called through `super()` to connect the figure events.
-        The attribute `self._ef_handler` should have been set in the subclass.
-        This will modify the geometry of the existing axes, adding a new subplot
-        in which the eigenfunctions will be drawn.
         """
-        if self._ef_handler is not None and self._ef_ax is None:
-            if self.ax.get_geometry() != (1, 1, 1):
-                raise ValueError(
-                    f"Something went wrong when adding the eigenfunctions. Expected "
-                    f"axes with geometry (1, 1, 1) but got {self.ax.get_geometry()}."
-                )
-            self.ax.change_geometry(1, 2, 1)
-            self._ef_ax = self.fig.add_subplot(122)
-            self.fig.set_size_inches(16, 8)
-            # this will update the figure's gridspec
-            self.fig.tight_layout()
         callback_kinds = (
             "pick_event", "key_press_event"
         )

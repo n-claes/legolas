@@ -111,16 +111,16 @@ def load_series(datfiles):
     pylboLogger.info(f"gridpoints       : {info_msg}")
 
     # handle geometry printing
-    geoms = set([ds.geometry for ds in series.datasets])
-    if len(geoms) > 1:
+    if len(series.geometry) > 1:
         pylboLogger.warning("multiple geometries detected!")
     else:
-        pylboLogger.info(f"geometries       : {geoms.pop()}")
+        pylboLogger.info(f"geometries       : {series.geometry.args()}")
 
     # handle equilibrium printing
     equils = set([ds.eq_type for ds in series.datasets])
     if len(equils) > 1:
-        pylboLogger.warning("multiple equilibria detected!")
+        pylboLogger.error(f"multiple equilibria detected! -- {equils}")
+        raise ValueError
     else:
         pylboLogger.info(f"equilibria       : {equils.pop()}")
 

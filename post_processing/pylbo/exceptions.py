@@ -36,15 +36,15 @@ class EigenfunctionsNotPresent(LegolasException):
 
     Parameters
     ----------
-    file : str or ~os.PathLike
-        The path to the file.
+    msg : str
+        The error message to pass on.
     """
 
-    def __init__(self, file):
-        self.file = file
+    def __init__(self, msg):
+        self.msg = msg
 
     def __str__(self):
-        return f"No eigenfunctions present in {self.file}"
+        return f"{self.msg}"
 
 
 class MatricesNotPresent(LegolasException):

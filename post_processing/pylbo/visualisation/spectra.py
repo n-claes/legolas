@@ -47,7 +47,7 @@ class SingleSpectrumPlot(FigureWindow):
         self._add_spectrum()
 
     def _add_spectrum(self):
-        spectrum_point, = self.ax.plot(
+        (spectrum_point,) = self.ax.plot(
             self.w_real * self.x_scaling,
             self.w_imag * self.y_scaling,
             marker=self.marker,
@@ -117,8 +117,10 @@ class SingleSpectrumPlot(FigureWindow):
         return self._c_handler
 
     def add_eigenfunctions(self):
+        # this creates and sets self._ef_ax
+        self._add_eigenfunction_axes()
         if self._ef_handler is None:
-            self._ef_handler = EigenfunctionHandler(self.dataset)
+            self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax)
         # connect everything
         super().add_eigenfunctions()
 
@@ -201,7 +203,7 @@ class MultiSpectrumPlot(FigureWindow):
         markersize = props.pop("markersize", 6)
         alpha = props.pop("alpha", 0.8)
         for i, ds in enumerate(self.dataseries):
-            self.ax.plot(
+            (spectrum_point,) = self.ax.plot(
                 self.xdata[i] * np.ones_like(self.ydata[i]) * self.x_scaling[i],
                 self.ydata[i] * self.y_scaling[i],
                 marker=marker,
@@ -211,6 +213,7 @@ class MultiSpectrumPlot(FigureWindow):
                 linestyle="None",
                 **props,
             )
+            add_pickradius_to_item(item=spectrum_point, pickradius=10)
         self.ax.axhline(y=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
 
@@ -261,3 +264,10 @@ class MultiSpectrumPlot(FigureWindow):
         self._c_handler.legend = self.ax.legend(**self._c_handler.legend_properties)
         super().add_continua(self._c_handler.interactive)
         return self._c_handler
+
+    def add_eigenfunctions(self):
+        self._add_eigenfunction_axes()
+        if self._ef_handler is None:
+            self._ef_handler = EigenfunctionHandler(self.dataseries, self._ef_ax)
+        # connect everything
+        super().add_eigenfunctions()

@@ -9,6 +9,7 @@ from pylbo.utilities.datfile_utils import (
     read_equilibrium_arrays,
     read_matrix_B,
     read_matrix_A,
+    read_ef_grid
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import MatricesNotPresent
@@ -43,6 +44,18 @@ class LegolasDataContainer(ABC):
             return {key: np.array(values) for key, values in _params.items()}
         else:
             raise TypeError(f"unexpected instance: {type(self)}")
+
+    @abstractmethod
+    def efs_written(self):
+        pass
+
+    @abstractmethod
+    def ef_grid(self):
+        pass
+
+    @abstractmethod
+    def ef_names(self):
+        pass
 
     @abstractmethod
     def get_sound_speed(self, which_values=None):
@@ -89,6 +102,23 @@ class LegolasDataSet(LegolasDataContainer):
 
     def __iter__(self):
         yield self
+
+    @property
+    def efs_written(self):
+        return self.header["eigenfuncs_written"]
+
+    @property
+    def ef_names(self):
+        return self.header.get("ef_names", None)
+
+    @property
+    def ef_grid(self):
+        if self.efs_written:
+            with open(self.datfile, "rb") as istream:
+                grid = read_ef_grid(istream, self.header)
+            return grid
+        else:
+            return None
 
     def get_sound_speed(self, which_values=None):
         """
@@ -194,6 +224,7 @@ class LegolasDataSet(LegolasDataContainer):
 class LegolasDataSeries(LegolasDataContainer):
     def __init__(self, datfiles):
         self.datasets = [LegolasDataSet(datfile) for datfile in datfiles]
+        self.geometry = set([ds.geometry for ds in self.datasets])
 
     def __iter__(self):
         for ds in self.datasets:
@@ -204,6 +235,23 @@ class LegolasDataSeries(LegolasDataContainer):
 
     def __len__(self):
         return len(self.datasets)
+
+    @property
+    def efs_written(self):
+        return np.array([ds.efs_written for ds in self.datasets])
+
+    @property
+    def ef_names(self):
+        names = np.array([ds.ef_names for ds in self.datasets])
+        try:
+            # returns first not-None item. If all are none, throws a StopIteration
+            return next(item for item in names if item is None)
+        except StopIteration:
+            return None
+
+    @property
+    def ef_grid(self):
+        return np.array([ds.ef_grid for ds in self.datasets])
 
     def get_sound_speed(self, which_values=None):
         return np.array([ds.get_sound_speed(which_values) for ds in self.datasets])
