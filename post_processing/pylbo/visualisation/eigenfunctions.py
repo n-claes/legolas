@@ -68,7 +68,7 @@ class EigenfunctionHandler:
         ydata = ydata[idx]
         # handle left clicking
         if event.mouseevent.button == 1:
-            # skip if point index is alreadt in list
+            # skip if point index is already in list
             if str(idx) in self._selected_idxs.keys():
                 return
             (marked_point,) = ax.plot(
@@ -198,7 +198,7 @@ class EigenfunctionHandler:
 
     def _mark_eigenfunctions_present(self):
         raise NotImplementedError
-    
+
     def _check_eigenfunction_availability(self):
         """
         Checks if eigenfunctions are available. This is important for

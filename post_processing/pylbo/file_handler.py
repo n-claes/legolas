@@ -114,7 +114,7 @@ def load_series(datfiles):
     if len(series.geometry) > 1:
         pylboLogger.warning("multiple geometries detected!")
     else:
-        pylboLogger.info(f"geometries       : {series.geometry.args()}")
+        pylboLogger.info(f"geometries       : {series.geometry}")
 
     # handle equilibrium printing
     equils = set([ds.eq_type for ds in series.datasets])
