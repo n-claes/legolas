@@ -196,8 +196,6 @@ class ContinuaHandler:
                 artist.set_alpha(self.alpha_region)
         else:
             artist.set_alpha(self.alpha_hidden)
-        # add an attribute to this artist to tell it's from a legend
-        setattr(artist, "is_legend_item", True)
         artist.figure.canvas.draw()
 
     def make_legend_pickable(self):
@@ -228,6 +226,8 @@ class ContinuaHandler:
                 )
             add_pickradius_to_item(item=legend_item, pickradius=self.pickradius)
             legend_item.set_alpha(self.alpha_hidden)
+            # add an attribute to this artist to tell it's from a legend
+            setattr(legend_item, "is_legend_item", True)
             # we make the continuum regions invisible until clicked
             drawn_item.set_visible(False)
             self._legend_mapping[legend_item] = drawn_item

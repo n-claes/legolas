@@ -11,7 +11,10 @@ class EigenfunctionHandler:
         # if artist is a legend item, return (this attribute has been set manually)
         if hasattr(artist, "is_legend_item"):
             return
+        # retrieve figure and axis for this artist, save limits to prevent zoom reset
         fig, ax = artist.figure, artist.axes
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
         # This retrieves the indices of the clicked points. Multiple indices are
         # possible depending on an overlapping pickradius. Look which point corresponds
         # to the smallest distance to the mouse click.
@@ -43,6 +46,9 @@ class EigenfunctionHandler:
             selected_artist = self._selected_idxs.pop(str(idx), None)
             if selected_artist is not None:
                 selected_artist.remove()
+        # this fixes a zoom reset when picking the figure
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
         fig.canvas.draw()
 
     def on_key_press(self, event):
