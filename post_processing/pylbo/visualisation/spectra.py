@@ -57,6 +57,8 @@ class SingleSpectrumPlot(FigureWindow):
             linestyle="None",
             **self.kwargs,
         )
+        # set dataset associated with this line of points
+        setattr(spectrum_point, "dataset", self.dataset)
         add_pickradius_to_item(item=spectrum_point, pickradius=10)
         self.ax.axhline(y=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
@@ -214,6 +216,8 @@ class MultiSpectrumPlot(FigureWindow):
                 **props,
             )
             add_pickradius_to_item(item=spectrum_point, pickradius=10)
+            # set dataset associated with this line of points
+            setattr(spectrum_point, "dataset", ds)
         self.ax.axhline(y=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
 

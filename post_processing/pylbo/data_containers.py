@@ -225,6 +225,8 @@ class LegolasDataSeries(LegolasDataContainer):
     def __init__(self, datfiles):
         self.datasets = [LegolasDataSet(datfile) for datfile in datfiles]
         self.geometry = set([ds.geometry for ds in self.datasets])
+        if len(self.geometry) == 1:
+            self.geometry = self.geometry.pop()
 
     def __iter__(self):
         for ds in self.datasets:
@@ -246,10 +248,12 @@ class LegolasDataSeries(LegolasDataContainer):
     @property
     def ef_names(self):
         names = np.array([ds.ef_names for ds in self.datasets])
-        try:
-            # returns first not-None item. If all are none, throws a StopIteration
-            return next(item for item in names if item is None)
-        except StopIteration:
+        for item in names:
+            if item is None:
+                continue
+            else:
+                return item
+        else:
             return None
 
     @property

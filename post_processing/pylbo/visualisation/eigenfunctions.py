@@ -7,9 +7,7 @@ from pylbo.exceptions import EigenfunctionsNotPresent
 
 def get_eigenfunctions(dataset, ef_idxs):
     if not isinstance(dataset, LegolasDataSet):
-        raise ValueError(
-            "get_eigenfunctions should be called on a single dataset."
-        )
+        raise ValueError("get_eigenfunctions should be called on a single dataset.")
     eigenfuncs = np.array([{}] * len(ef_idxs), dtype=dict)
     with open(dataset.datfile, "rb") as istream:
         for dict_idx, ef_idx in enumerate(ef_idxs):
@@ -33,6 +31,8 @@ class EigenfunctionHandler:
             if not self.data.efs_written:
                 raise EigenfunctionsNotPresent(error_msg)
 
+        # holds the points that are currently selected in the form of a "double" dict:
+        # {"ds instance" : {"index" : line2D instance}}
         self._selected_idxs = {}
         self._use_real_part = True
         # index for the selected eigenfunction, cfr. state vector (so 0 = "rho")
@@ -40,7 +40,6 @@ class EigenfunctionHandler:
         self._ef_names = self.data.ef_names
         # if True, retransforms the eigenfunctions to e.g. rv_r in cylindrical geometry
         self._retransform_efs = False
-        self.ef_container = None
 
     def on_point_pick(self, event):
         artist = event.artist
@@ -51,6 +50,9 @@ class EigenfunctionHandler:
         fig, ax = artist.figure, artist.axes
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
+        # Retrieves the dataset associated with the current points. This has been
+        # set when the spectrum was added to the plot.
+        associated_ds = artist.dataset
         # This retrieves the indices of the clicked points. Multiple indices are
         # possible depending on an overlapping pickradius. Look which point corresponds
         # to the smallest distance to the mouse click.
@@ -69,7 +71,7 @@ class EigenfunctionHandler:
         # handle left clicking
         if event.mouseevent.button == 1:
             # skip if point index is already in list
-            if str(idx) in self._selected_idxs.keys():
+            if str(idx) in self._selected_idxs.get(associated_ds, {}).keys():
                 return
             (marked_point,) = ax.plot(
                 xdata,
@@ -81,13 +83,15 @@ class EigenfunctionHandler:
                 markeredgewidth=3,
             )
             add_pickradius_to_item(item=marked_point, pickradius=1)
-            self._selected_idxs.update({f"{idx}": marked_point})
+            self._selected_idxs.update({associated_ds: {f"{idx}": marked_point}})
             # checks if eigenfunctions are available
             self._check_eigenfunction_availability()
         # handle right clicking
         elif event.mouseevent.button == 3:
             # remove selected index from list
-            selected_artist = self._selected_idxs.pop(str(idx), None)
+            selected_artist = self._selected_idxs.get(associated_ds, {}).pop(
+                str(idx), None
+            )
             if selected_artist is not None:
                 selected_artist.remove()
         # this fixes a zoom reset when picking the figure
@@ -101,8 +105,10 @@ class EigenfunctionHandler:
             return
         # pressing "d" clears figure and selection
         if event.key == "d":
-            for artist in self._selected_idxs.values():
-                artist.remove()
+            # retrieve (index, item) dicts for each dataset
+            for ds_artist_dict in self._selected_idxs.values():
+                for artist in ds_artist_dict.values():
+                    artist.remove()
             self._selected_idxs.clear()
             self.ef_ax.clear()
         # pressing "i" switches between real and imaginary parts
@@ -124,30 +130,33 @@ class EigenfunctionHandler:
     def update_plot(self):
         self.ef_ax.clear()
         ef_name = self._ef_names[self._selected_ef_name_idx]
-        if isinstance(self.data, LegolasDataSet):
-            idxs = np.array([int(idx) for idx in self._selected_idxs.keys()])
-            self.ef_container = get_eigenfunctions(self.data, idxs)
-        else:
-            raise NotImplementedError
-        for ev_idx, efs in zip(idxs, self.ef_container):
-            ef = efs.get(ef_name)
-            if self._use_real_part:
-                ef = ef.real
-            else:
-                ef = ef.imag
-            # check for retransform
-            if (
-                self._retransform_efs
-                and ef_name in ("rho", "v1", "v3", "T", "a2")
-                and self.data.geometry == "cylindrical"
-            ):
-                ef = ef * self.data.ef_grid
-            label = rf"$\omega_{{{ev_idx}}}$ = {efs.get('eigenvalue'):2.3e}"
-            # get color of selected point
-            color = self._selected_idxs.get(str(ev_idx)).get_color()
-            self.ef_ax.plot(self.data.ef_grid, ef, color=color, label=label)
+        for ds, idxs_dict in self._selected_idxs.items():
+            idxs = np.array([int(idx) for idx in idxs_dict.keys()])
+            ef_container = get_eigenfunctions(ds, idxs)
+
+            for ev_idx, efs in zip(idxs, ef_container):
+                ef = efs.get(ef_name)
+                if self._use_real_part:
+                    ef = ef.real
+                else:
+                    ef = ef.imag
+                # check for retransform
+                if (
+                    self._retransform_efs
+                    and ef_name in ("rho", "v1", "v3", "T", "a2")
+                    and self.data.geometry == "cylindrical"
+                ):
+                    ef = ef * ds.ef_grid
+                # create label associated with ds if it's a series
+                label = rf"$\omega_{{{ev_idx}}}$ = {efs.get('eigenvalue'):2.3e}"
+                if isinstance(self.data, LegolasDataSeries):
+                    label = "".join([f"{ds.datfile.stem} | ", label])
+                # get color of selected point
+                color = self._selected_idxs.get(ds).get(str(ev_idx)).get_color()
+                self.ef_ax.plot(ds.ef_grid, ef, color=color, label=label)
         self.ef_ax.axhline(y=0, linestyle="dotted", color="grey")
-        self.ef_ax.axvline(x=self.data.x_start, linestyle="dotted", color="grey")
+        if isinstance(self.data, LegolasDataSet):
+            self.ef_ax.axvline(x=self.data.x_start, linestyle="dotted", color="grey")
         self.ef_ax.set_title(self._get_title(ef_name))
         self.ef_ax.legend(loc="best")
         # updates gridspec
@@ -197,6 +206,7 @@ class EigenfunctionHandler:
         return name
 
     def _mark_eigenfunctions_present(self):
+        return
         raise NotImplementedError
 
     def _check_eigenfunction_availability(self):
@@ -207,5 +217,6 @@ class EigenfunctionHandler:
         is encountered without eigenfunctions it will be removed and a warning
         will be thrown.
         """
+        return
         if isinstance(self.data, LegolasDataSeries):
             raise NotImplementedError
