@@ -195,7 +195,7 @@ class ParfileGenerator:
             # generate dictionary for this specific run
             for namelist, items in self.container.items():
                 for key, values in items.items():
-                    run_dict[namelist].update({key: values[current_run - 1]})
+                    run_dict[namelist].update({key: values[current_run]})
             # parfile name
             parfile_name = f"{prefix}{self.basename}.par"
             # datfile name (no extension .dat needed)
