@@ -134,10 +134,6 @@ contains
   !> Function for fast table-lookup, returns the corresponding y-value
   !! in <tt>y_values</tt> based on a given based on a given \(x0\).
   !! Uses simple linear interpolation.
-  !! @warning Throws an error if
-  !!
-  !! - <tt>x_values</tt> is not monotonically increasing.
-  !! - x is outside of <tt>x_values</tt> range. @endwarning
   function lookup_table_value(x, x_values, y_values) result(y_found)
     use mod_global_variables, only: NaN
 
@@ -154,14 +150,6 @@ contains
     real(dp)  :: y_found
 
     nvals = size(x_values)
-    ! check if x_values is a monotonically increasing array
-    do idx = 1, nvals - 1
-      if (x_values(idx + 1) < x_values(idx)) then
-        call log_message( &
-          "lookup_value: x_values are not monotonically increasing!", level="error" &
-        )
-      end if
-    end do
 
     ! check if we are outside of the table
     if (x < x_values(1)) then
