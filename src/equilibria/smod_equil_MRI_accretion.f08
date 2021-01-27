@@ -57,7 +57,7 @@ contains
     p1 = epsilon**2
     Bz1 = sqrt(2.0d0 * p1 / (beta * (1.0d0 + mu1**2)))
     Bth1 = mu1 * Bz1
-    vth1 = sqrt(1.0d0 - 2.5d0 * p1 - 0.5d0 * Bth1**2 - 1.25d0 * Bz1**2)
+    vth1 = sqrt(1.0d0 - 2.5d0 * p1 - 0.25d0 * Bth1**2 - 1.25d0 * Bz1**2)
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
