@@ -95,38 +95,106 @@ contains
 
 
   !> Calculates the numerical derivative of a given array.
-  !! The outer values in the array use their immediate neighbours (index 2 and
-  !! index n-1) to calculate the derivative. A simple two-point method is used,
-  !! where the derivative at index \(i\) is given by
-  !! $$ dy_i = \frac{y_{i+1} - y_{i-1}}{x_{i+1} - x_{i-1}} $$
-  !! Returns an array of the same size as <tt>y_values</tt>.
+  !! A sixth-order accurate central difference stencil is used to calculate the
+  !! derivative. Near the edges a sixth-order accurate forward and backward
+  !! difference stencil is used for the left and right boundary, respectively.
+  !! It is assumed that the x values are all equally spaced. If this is not the case,
+  !! a polynomial interpolation on a uniform grid can be done and that one can be
+  !! differentiated instead. The stencils are as follows:
+  !!
+  !! - 6th order central differences:
+  !!   $$ dy_i = \frac{-y_{i-3} + 9y_{i-2} - 45y_{i-1} + 45y_{i+1}
+  !!                - 9y_{i+2} + y_{i+3}}{60dx} $$
+  !! - 6th order forward differences:
+  !!   $$ dy_i = \frac{-147y_i + 360y_{i+1} - 450y_{i+2} + 400y_{i+3}
+  !!                - 225y_{i+4} + 72y_{i+5} - 10y_{i+6}}{60dx} $$
+  !! - 6th order backward differences:
+  !!   $$ dy_i = \frac{10y_{i-6} - 72y_{i-5} + 225y_{i-4} - 400y_{i-3}
+  !!                + 450y_{i-2} - 360y_{i-1} + 147y_i}{60dx} $$
+  !!
   !! @warning Throws an error if <tt>x_values</tt> and <tt>y_values</tt> differ
   !!          in size. @endwarning
-  subroutine get_numerical_derivative(x_values, y_values, dy_values)
-    !> x-values against which to differentiate
-    real(dp), intent(in)  :: x_values(:)
-    !> array of y-values, assuming \(y(x)\) relation
-    real(dp), intent(in)  :: y_values(:)
-    !> derivative of \(y\) with respect to \(x\), same size as input arrays
-    real(dp), intent(out) :: dy_values(size(y_values))
+  subroutine get_numerical_derivative(x, y, dy)
+    use mod_check_values, only: value_is_equal
+    use mod_logging, only: str
 
-    integer :: i, nvals
+    !> x-values against which to differentiate
+    real(dp), intent(in)  :: x(:)
+    !> array of y-values, assuming \(y(x)\) relation
+    real(dp), intent(in)  :: y(:)
+    !> derivative of \(y\) with respect to \(x\), same size as input arrays
+    real(dp), intent(out) :: dy(size(y))
+
+    integer   :: i, nvals, nbprints
+    real(dp)  :: dx, dxi
 
     ! x_values and y_values should be the same length
-    if (size(x_values) /= size(y_values)) then
+    if (size(x) /= size(y)) then
       call log_message( &
-        "numerical derivative: x_values and y_values should have the same size!", &
+        "numerical derivative: x and y should have the same size!", &
         level="error" &
       )
     end if
+    nbprints = 0
 
-    nvals = size(x_values)
-    dy_values(1) = (y_values(2) - y_values(1)) / (x_values(2) - x_values(1))
-    dy_values(nvals) = (y_values(nvals) - y_values(nvals - 1)) &
-                     / (x_values(nvals) - x_values(nvals - 1))
-    do i = 2, nvals - 1
-      dy_values(i) = (y_values(i + 1) - y_values(i - 1)) &
-                   / (x_values(i + 1) - x_values(i - 1))
+    nvals = size(x)
+    dx = x(2) - x(1)
+    do i = 2, nvals
+      dxi = x(i) - x(i-1)
+      if (.not. value_is_equal(dx, dxi, tol=1.0d-11)) then
+        call log_message( &
+          "numerical derivative: x is not equally spaced, derivative may be wrong!", &
+          level="warning" &
+        )
+        call log_message( &
+          "at index " // str(i) // ", difference was " // str(dx - dxi, fmt="e20.4") &
+          // " (expected dx=" // str(dx, fmt="e20.4") // &
+          " but got dx=" // str(dxi, fmt="e20.4") // ")", &
+          level="warning", &
+          use_prefix=.false. &
+        )
+        nbprints = nbprints + 1
+        if (nbprints == 10) then
+          call log_message("...", level="warning", use_prefix=.false.)
+          exit
+        end if
+      end if
+    end do
+
+    ! left side: 6th order forward differences for first 3 points
+    do i = 1, 3
+      dy(i) = ( &
+        -147 * y(i) &
+        + 360 * y(i + 1) &
+        - 450 * y(i + 2) &
+        + 400 * y(i + 3) &
+        - 225 * y(i + 4) &
+        + 72 * y(i + 5) &
+        - 10 * y(i + 6)&
+      ) / (60 * dx)
+    end do
+    ! middle: 6th order central differences
+    do i = 4, nvals-3
+      dy(i) = ( &
+        -y(i - 3) &
+        + 9 * y(i - 2) &
+        - 45 * y(i - 1) &
+        + 45 * y(i + 1) &
+        - 9 * y(i + 2) &
+        + y(i + 3) &
+      ) / (60 * dx)
+    end do
+    ! right side: 6th order backwards differences for last 3 points
+    do i = nvals-2, nvals
+      dy(i) = ( &
+        10 * y(i - 6) &
+        - 72 * y(i - 5) &
+        + 225 * y(i - 4) &
+        - 400 * y(i - 3) &
+        + 450 * y(i - 2) &
+        - 360 * y(i - 1) &
+        + 147 * y(i) &
+      ) / (60 * dx)
     end do
   end subroutine get_numerical_derivative
 
