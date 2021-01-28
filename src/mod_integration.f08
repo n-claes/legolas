@@ -137,7 +137,11 @@ contains
     end if
 
     ! allocate temporary arrays, this should be more than sufficient
-    allocate(xtemp(100 * nbpoints), ytemp(100 * nbpoints))
+    if (use_adaptive_stepping) then
+      allocate(xtemp(10 * nbpoints), ytemp(10 * nbpoints))
+    else
+      allocate(xtemp(nbpoints), ytemp(nbpoints))
+    end if
 
     ! do integration
     i = 1
@@ -159,7 +163,7 @@ contains
       if ( &
         .not. use_adaptive_stepping &
         .and. i == nbpoints - 1 &
-        .and. (xend - xi - dh) < 1.0d-12 &
+        .and. (xend - xi - dh) < dh_min &
       ) then
         dh = xend - xi
       end if
@@ -191,6 +195,10 @@ contains
           cycle
         end if
         re_iter = 0
+        ! also handle tiny dh for adaptive stepping
+        if ((xend - xi - dh) < dh_min) then
+          dh = xend - xi
+        end if
       end if
 
       ! we are either within tolerance or without adaptive stepping, take next step

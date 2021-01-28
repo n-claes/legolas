@@ -114,7 +114,7 @@ contains
   !!
   !! @warning Throws an error if <tt>x_values</tt> and <tt>y_values</tt> differ
   !!          in size. @endwarning
-  subroutine get_numerical_derivative(x, y, dy)
+  subroutine get_numerical_derivative(x, y, dy, dxtol)
     use mod_check_values, only: value_is_equal
     use mod_logging, only: str
 
@@ -124,9 +124,11 @@ contains
     real(dp), intent(in)  :: y(:)
     !> derivative of \(y\) with respect to \(x\), same size as input arrays
     real(dp), intent(out) :: dy(size(y))
+    !> optional tolerance for equally spaced arrays
+    real(dp), intent(in), optional  :: dxtol
 
     integer   :: i, nvals, nbprints
-    real(dp)  :: dx, dxi
+    real(dp)  :: dx, dxi, tol
 
     ! x_values and y_values should be the same length
     if (size(x) /= size(y)) then
@@ -136,20 +138,28 @@ contains
       )
     end if
     nbprints = 0
+    tol = 1.0d-10
+    if (present(dxtol)) then
+      tol = dxtol
+    end if
 
     nvals = size(x)
     dx = x(2) - x(1)
     do i = 2, nvals
       dxi = x(i) - x(i-1)
-      if (.not. value_is_equal(dx, dxi, tol=1.0d-11)) then
+      if (.not. value_is_equal(dx, dxi, tol=tol)) then
         call log_message( &
           "numerical derivative: x is not equally spaced, derivative may be wrong!", &
           level="warning" &
         )
         call log_message( &
-          "at index " // str(i) // ", difference was " // str(dx - dxi, fmt="e20.4") &
-          // " (expected dx=" // str(dx, fmt="e20.4") // &
-          " but got dx=" // str(dxi, fmt="e20.4") // ")", &
+          "at index " // str(i) // " expected dx=" // str(dx, fmt="e20.10") // &
+          " but got dx=" // str(dxi, fmt="e20.10"), &
+          level="warning", &
+          use_prefix=.false. &
+        )
+        call log_message( &
+          "---> diff = " // str(abs(dx - dxi), fmt="e20.6"), &
           level="warning", &
           use_prefix=.false. &
         )
