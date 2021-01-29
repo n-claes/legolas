@@ -4,7 +4,7 @@ from matplotlib import colors
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.visualisation.eigenfunctions import EigenfunctionHandler
 from pylbo.utilities.toolbox import transform_to_numpy, add_pickradius_to_item
-from pylbo.continua import ContinuaHandler
+from pylbo.visualisation.continua import ContinuaHandler
 
 
 class SpectrumFigure(FigureWindow):

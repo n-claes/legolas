@@ -13,7 +13,7 @@ from pylbo.utilities.datfile_utils import (
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import MatricesNotPresent
-from pylbo.continua import calculate_continua
+from pylbo.visualisation.continua import calculate_continua
 
 
 class LegolasDataContainer(ABC):
