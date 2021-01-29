@@ -96,7 +96,10 @@ class EigenfunctionHandler:
                 markeredgewidth=3,
             )
             add_pickradius_to_item(item=marked_point, pickradius=1)
-            self._selected_idxs.update({associated_ds: {f"{idx}": marked_point}})
+            # get items corresponding to this ds
+            items = self._selected_idxs.get(associated_ds, {})
+            items.update({f"{idx}": marked_point})
+            self._selected_idxs.update({associated_ds: items})
 
         # handle right clicking
         elif event.mouseevent.button == 3:
@@ -106,6 +109,10 @@ class EigenfunctionHandler:
             )
             if selected_artist is not None:
                 selected_artist.remove()
+                # if no items remaining for this ds, remove key
+                if len(self._selected_idxs[associated_ds]) == 0:
+                    self._selected_idxs.pop(associated_ds)
+
         # this fixes a zoom reset when picking the figure
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
@@ -115,9 +122,6 @@ class EigenfunctionHandler:
         # pressing "m" marks points without eigenfunctions
         if event.key == "m":
             self.mark_points_without_eigenfunctions()
-        # # if nothing is selected, return
-        # if not self._selected_idxs:
-        #     return
         # pressing "d" clears figure and selection
         if event.key == "d":
             # retrieve (index, item) dicts for each dataset
@@ -145,6 +149,7 @@ class EigenfunctionHandler:
     def update_plot(self):
         # do nothing if nothing is selected
         if not self._selected_idxs:
+            self.ef_ax.clear()
             return
         self.ef_ax.clear()
         ef_name = self._ef_names[self._selected_ef_name_idx]
@@ -224,6 +229,8 @@ class EigenfunctionHandler:
         return name
 
     def mark_points_without_eigenfunctions(self):
+        if not isinstance(self.data, LegolasDataSeries):
+            return
         if all(self.data.efs_written):
             return
         self._no_efs_is_transparent = not self._no_efs_is_transparent
