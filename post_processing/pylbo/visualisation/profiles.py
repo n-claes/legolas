@@ -62,6 +62,8 @@ class EquilibriumProfile(FigureWindow):
             ncol=10,
             mode="expand",
         )
+        # enable autoscaling when clicking
+        self.leg_handle.autoscale = True
         self.fig.tight_layout()
 
     def _enable_interactive_legend(self):

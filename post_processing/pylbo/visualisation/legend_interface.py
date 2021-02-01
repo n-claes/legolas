@@ -18,6 +18,7 @@ class LegendHandler:
         self.legend_properties = {}
 
         self.interactive = interactive
+        self.autoscale = False
         self._drawn_items = []
         self._legend_mapping = {}
 
@@ -43,6 +44,8 @@ class LegendHandler:
                 artist.set_alpha(self.alpha_region)
         else:
             artist.set_alpha(self.alpha_hidden)
+        self._check_autoscaling()
+        artist.figure.tight_layout()
         artist.figure.canvas.draw()
 
     def make_legend_pickable(self):
@@ -92,3 +95,28 @@ class LegendHandler:
         if isinstance(item, (list, np.ndarray, tuple)):
             raise ValueError("object expected, not something list-like")
         self._drawn_items.append(item)
+
+    def _check_autoscaling(self):
+        if not self.autoscale:
+            return
+        visible_items = [item for item in self._drawn_items if item.get_visible()]
+        # check scaling for visible items. This explicitly implements the equilibria,
+        # but works for general cases as well. If needed we can simply subclass
+        # and override.
+        ymin1, ymax1 = None, None
+        ymin2, ymax2 = None, None
+        for item in visible_items:
+            if not item.get_label().startswith("d"):
+                if ymin1 is None or ymax1 is None:
+                    ymin1, ymax1 = np.min(item.get_ydata()), np.max(item.get_ydata())
+                else:
+                    ymin1 = min(ymin1, np.min(item.get_ydata()))
+                    ymax1 = max(ymax1, np.max(item.get_ydata()))
+                item.axes.set_ylim(ymin1 - abs(0.1 * ymin1), ymax1 + abs(0.1 * ymax1))
+            else:
+                if ymin2 is None or ymax2 is None:
+                    ymin2, ymax2 = np.min(item.get_ydata()), np.max(item.get_ydata())
+                else:
+                    ymin2 = min(ymin2, np.min(item.get_ydata()))
+                    ymax2 = max(ymax2, np.max(item.get_ydata()))
+                item.axes.set_ylim(ymin2 - abs(0.2 * ymin2), ymax2 + abs(0.2 * ymax2))
