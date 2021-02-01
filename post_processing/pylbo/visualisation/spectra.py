@@ -166,7 +166,9 @@ class SingleSpectrumPlot(SpectrumFigure):
                 )
             else:
                 props = dict(
-                    facecolor=color, alpha=self._c_handler.alpha_region, label=key
+                    facecolor=colors.to_rgba(color, self._c_handler.alpha_region),
+                    edgecolor=colors.to_rgba(color, self._c_handler.alpha_point),
+                    label=key
                 )
                 if key == "thermal":
                     item = self.ax.axhspan(
