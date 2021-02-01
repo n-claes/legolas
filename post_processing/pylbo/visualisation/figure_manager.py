@@ -231,6 +231,19 @@ class FigureWindow:
         for callback in self._mpl_callbacks:
             self.fig.canvas.mpl_disconnect(callback["cid"])
 
+    def _enable_interactive_legend(self, handle):
+        handle.make_legend_pickable()
+        callback_kind = "pick_event"
+        callback_method = handle.on_legend_pick
+        callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
+        self._mpl_callbacks.append(
+            {
+                "cid": callback_id,
+                "kind": callback_kind,
+                "method": callback_method,
+            }
+        )
+
     def draw(self):
         self.ax.cla()
         self.disconnect_callbacks()

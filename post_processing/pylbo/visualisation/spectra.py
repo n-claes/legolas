@@ -28,24 +28,8 @@ class SpectrumFigure(FigureWindow):
         pass
 
     def add_continua(self, interactive):
-        """
-        Method to add continua, should be partially overridden by subclass and then
-        called through `super()`. The attribute `self._c_handler` should have
-        been set in the subclass.
-        This solely makes an existing legend pickable if `interactive=True`.
-        """
         if interactive:
-            self._c_handler.make_legend_pickable()
-            callback_kind = "pick_event"
-            callback_method = self._c_handler.on_legend_pick
-            callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
-            self._mpl_callbacks.append(
-                {
-                    "cid": callback_id,
-                    "kind": callback_kind,
-                    "method": callback_method,
-                }
-            )
+            super()._enable_interactive_legend(self._c_handler)
 
     def _add_eigenfunction_axes(self):
         """

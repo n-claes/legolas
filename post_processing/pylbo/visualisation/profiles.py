@@ -19,7 +19,7 @@ class EquilibriumProfile(FigureWindow):
         self.leg_handle = LegendHandler(interactive)
         self.draw()
         if interactive:
-            self._enable_interactive_legend()
+            self._enable_interactive_legend(self.leg_handle)
 
     def _add_extra_axis(self):
         self.ax.change_geometry(2, 1, 1)
@@ -65,16 +65,3 @@ class EquilibriumProfile(FigureWindow):
         # enable autoscaling when clicking
         self.leg_handle.autoscale = True
         self.fig.tight_layout()
-
-    def _enable_interactive_legend(self):
-        self.leg_handle.make_legend_pickable()
-        callback_kind = "pick_event"
-        callback_method = self.leg_handle.on_legend_pick
-        callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
-        self._mpl_callbacks.append(
-            {
-                "cid": callback_id,
-                "kind": callback_kind,
-                "method": callback_method,
-            }
-        )
