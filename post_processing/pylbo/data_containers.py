@@ -9,7 +9,7 @@ from pylbo.utilities.datfile_utils import (
     read_equilibrium_arrays,
     read_matrix_B,
     read_matrix_A,
-    read_ef_grid
+    read_ef_grid,
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import MatricesNotPresent
@@ -63,6 +63,22 @@ class LegolasDataContainer(ABC):
 
     @abstractmethod
     def get_alfven_speed(self, which_values=None):
+        pass
+
+    @abstractmethod
+    def get_tube_speed(self, which_values=None):
+        pass
+
+    @abstractmethod
+    def get_reynolds_nb(self, which_values=None):
+        pass
+
+    @abstractmethod
+    def get_magnetic_reynolds_nb(self, which_values=None):
+        pass
+
+    @abstractmethod
+    def get_k0_squared(self):
         pass
 
 
@@ -120,9 +136,23 @@ class LegolasDataSet(LegolasDataContainer):
         else:
             return None
 
+    @staticmethod
+    def _get_values(array, which_values):
+        if which_values is None:
+            return array
+        elif which_values == "average":
+            return np.average(array)
+        elif which_values == "minimum":
+            return np.min(array)
+        elif which_values == "maximum":
+            return np.max(array)
+        else:
+            raise ValueError(f"unknown argument which_values: {which_values}")
+
     def get_sound_speed(self, which_values=None):
         """
-        Calculates the sound speed based on the equilibrium arrays.
+        Calculates the sound speed based on the equilibrium arrays,
+        given by :math:`c_s = \\sqrt{\\frac{\\gamma p_0}{\\rho_0}}`.
 
         Parameters
         ----------
@@ -135,19 +165,13 @@ class LegolasDataSet(LegolasDataContainer):
 
         Returns
         -------
-        cs : numpy.ndarray(dtype=float, ndim=1)
-            Sound speed at every grid point, defined as
-            :math:`c_s = \\sqrt{\\frac{\\gamma p_0}{\\rho_0}}`.
+        cs : float, numpy.ndarray(dtype=float, ndim=1)
+            Array with the sound speed at every grid point, or a float corresponding
+            to the value of `which_values` if provided.
         """
         pressure = self.equilibria["T0"] * self.equilibria["rho0"]
         cs = np.sqrt(self.gamma * pressure / self.equilibria["rho0"])
-        if which_values == "average":
-            return np.average(cs)
-        elif which_values == "minimum":
-            return np.min(cs)
-        elif which_values == "maximum":
-            return np.max(cs)
-        return cs
+        return self._get_values(cs, which_values)
 
     def get_alfven_speed(self, which_values=None):
         """
@@ -158,25 +182,136 @@ class LegolasDataSet(LegolasDataContainer):
         ----------
         which_values : str
             Which values to return:
-            - None : returns the sound speed as a function of the grid.
-            - "average" : returns the average sound speed over the grid.
-            - "minimum" : returns the minimum sound speed over the grid.
-            - "maximum" : returns the maximum sound speed over the grid
+            - None : returns the Alfvén speed as a function of the grid.
+            - "average" : returns the average Alfvén speed over the grid.
+            - "minimum" : returns the minimum Alfvén speed over the grid.
+            - "maximum" : returns the maximum Alfvén speed over the grid
 
         Returns
         -------
-        cA : numpy.ndarray(dtype=float, ndim=1)
-            The Alfvén speed at every gridpoint.
+        cA : float, numpy.ndarray(dtype=float, ndim=1)
+            Array with the Alfvén speed at every grid point,
+            or a float corresponding to the value of `which_values` if provided.
         """
         B0 = np.sqrt(self.equilibria["B02"] ** 2 + self.equilibria["B03"] ** 2)
         cA = B0 / np.sqrt(self.equilibria["rho0"])
-        if which_values == "average":
-            return np.average(cA)
-        elif which_values == "minimum":
-            return np.min(cA)
-        elif which_values == "maximum":
-            return np.max(cA)
-        return cA
+        return self._get_values(cA, which_values)
+
+    def get_tube_speed(self, which_values=None):
+        """
+        Calculates the tube speed for a cylinder, given by
+        :math:`c_t = \\frac{c_s c_A}{\\sqrt{c_s^2 + c_A^2}}`.
+
+        Parameters
+        ----------
+        which_values : str
+            Which values to return:
+            - None : returns the tube speed as a function of the grid.
+            - "average" : returns the average tube speed over the grid.
+            - "minimum" : returns the minimum tube speed over the grid.
+            - "maximum" : returns the maximum tube speed over the grid
+
+        Returns
+        -------
+        ct = float, numpy.ndarray(dtype=float, ndim=1)
+            Array with the tube speed at every grid point,
+            or a float corresponding to the value of `which_values` if provided.
+            Returns `None` if the geometry is not cylindrical.
+        """
+        if not self.geometry == "cylindrical":
+            pylboLogger.warning(
+                "geometry is not cylindrical, unable to calculate tube speed"
+            )
+            return None
+        else:
+            cA = self.get_alfven_speed()
+            cs = self.get_sound_speed()
+            ct = cs * cA / np.sqrt(cs ** 2 + cA ** 2)
+            return self._get_values(ct, which_values)
+
+    def get_reynolds_nb(self, which_values=None):
+        """
+        Calculates the Reynolds number, defined as
+        :math:`R_e = \\frac{ac_s}{\\eta}` where the slabsize is given by
+        :math:`a = x_{end} - x_{start}`.
+
+        Parameters
+        ----------
+        which_values : str
+            Which values to return:
+            - None : returns the Reynolds number as a function of the grid.
+            - "average" : returns the average Reynolds number over the grid.
+            - "minimum" : returns the minimum Reynolds number over the grid.
+            - "maximum" : returns the maximum Reynolds number the grid
+
+        Returns
+        -------
+        Re : float, numpy.ndarray(dtype=float, ndim=1)
+            Array with the Reynolds number at every grid point,
+            or a float corresponding to the value of `which_values` if provided.
+            Returns `None` if the resistivity is zero somewhere on the domain.
+        """
+        cs = self.get_sound_speed()
+        a = self.x_end - self.x_start
+        eta = self.equilibria["eta"]
+        if (eta == 0).any():
+            pylboLogger.warning(
+                "resistivity is zero somewhere on the domain, unable to "
+                "calculate the Reynolds number"
+            )
+            return None
+        else:
+            Re = a * cs / eta
+            return self._get_values(Re, which_values)
+
+    def get_magnetic_reynolds_nb(self, which_values=None):
+        """
+        Calculates the magnetic Reynolds number, defined as
+        :math:`R_m = \\frac{ac_A}{\\eta}` where the slabsize is given by
+        :math:`a = x_{end} - x_{start}`.
+
+        Parameters
+        ----------
+        which_values : str
+            Which values to return:
+            - None : returns the magnetic Reynolds number as a function of the grid.
+            - "average" : returns the average magnetic Reynolds number over the grid.
+            - "minimum" : returns the minimum magnetic Reynolds number over the grid.
+            - "maximum" : returns the maximum magnetic Reynolds number over the grid
+
+        Returns
+        -------
+        Rm : float, numpy.ndarray(dtype=float, ndim=1)
+            Array with the magnetic Reynolds number at every grid point,
+            or a float corresponding to the value of `which_values` if provided.
+            Returns `None` if the resistivity is zero somewhere on the domain.
+        """
+        cA = self.get_alfven_speed()
+        a = self.x_end - self.x_start
+        eta = self.equilibria["eta"]
+        if (eta == 0).any():
+            pylboLogger.warning(
+                "resistivity is zero somewhere on the domain, unable to "
+                "calculate the magnetic Reynolds number"
+            )
+            return None
+        else:
+            Rm = a * cA / eta
+            return self._get_values(Rm, which_values)
+
+    def get_k0_squared(self):
+        """
+        Calculates the squared wave number, defined as
+        :math:`k_0^2 = k_2^2 + k_3^2`.
+
+        Returns
+        -------
+        k0_sq : float
+            The wave number squared.
+
+        """
+        k0_sq = self.parameters.get("k2") ** 2 + self.parameters.get("k3") ** 2
+        return k0_sq
 
     def get_matrix_B(self):
         """
@@ -234,7 +369,7 @@ class LegolasDataSeries(LegolasDataContainer):
 
     def __getitem__(self, idx):
         if isinstance(idx, slice):
-            return self.datasets[idx.start:idx.stop:idx.step]
+            return self.datasets[idx.start : idx.stop : idx.step]
         else:
             return self.datasets[idx]
 
@@ -265,3 +400,17 @@ class LegolasDataSeries(LegolasDataContainer):
 
     def get_alfven_speed(self, which_values=None):
         return np.array([ds.get_alfven_speed(which_values) for ds in self.datasets])
+
+    def get_tube_speed(self, which_values=None):
+        return np.array([ds.get_tube_speed(which_values) for ds in self.datasets])
+
+    def get_reynolds_nb(self, which_values=None):
+        return np.array([ds.get_reynolds_nb(which_values) for ds in self.datasets])
+
+    def get_magnetic_reynolds_nb(self, which_values=None):
+        return np.array(
+            [ds.get_magnetic_reynolds_nb(which_values) for ds in self.datasets]
+        )
+
+    def get_k0_squared(self):
+        return np.array([ds.get_k0_squared() for ds in self.datasets])
