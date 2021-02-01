@@ -1,21 +1,8 @@
 import numpy as np
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import add_pickradius_to_item
-from pylbo.utilities.datfile_utils import read_eigenfunction
 from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
 from pylbo.exceptions import EigenfunctionsNotPresent
-
-
-def get_eigenfunctions(dataset, ef_idxs):
-    if not isinstance(dataset, LegolasDataSet):
-        raise ValueError("get_eigenfunctions should be called on a single dataset.")
-    eigenfuncs = np.array([{}] * len(ef_idxs), dtype=dict)
-    with open(dataset.datfile, "rb") as istream:
-        for dict_idx, ef_idx in enumerate(ef_idxs):
-            efs = read_eigenfunction(istream, dataset.header, ef_idx)
-            efs.update({"eigenvalue": dataset.eigenvalues[ef_idx]})
-            eigenfuncs[dict_idx] = efs
-    return eigenfuncs
 
 
 class EigenfunctionHandler:
@@ -155,7 +142,7 @@ class EigenfunctionHandler:
         ef_name = self._ef_names[self._selected_ef_name_idx]
         for ds, idxs_dict in self._selected_idxs.items():
             idxs = np.array([int(idx) for idx in idxs_dict.keys()])
-            ef_container = get_eigenfunctions(ds, idxs)
+            ef_container = ds.get_eigenfunctions(ev_idxs=idxs)
 
             for ev_idx, efs in zip(idxs, ef_container):
                 ef = efs.get(ef_name)

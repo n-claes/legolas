@@ -10,10 +10,12 @@ from pylbo.utilities.datfile_utils import (
     read_matrix_B,
     read_matrix_A,
     read_ef_grid,
+    read_eigenfunction,
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import MatricesNotPresent
 from pylbo.visualisation.continua import calculate_continua
+from pylbo.utilities.toolbox import transform_to_numpy
 
 
 class LegolasDataContainer(ABC):
@@ -354,6 +356,80 @@ class LegolasDataSet(LegolasDataContainer):
         with open(self.datfile, "rb") as istream:
             rows, cols, vals = read_matrix_A(istream, self.header)
         return rows, cols, vals
+
+    def get_eigenfunctions(self, ev_guesses=None, ev_idxs=None):
+        """
+        Returns the eigenfunctions based on given eigenvalue guesses or their
+        indices. An array will be returned where every item is a dictionary, containing
+        both the eigenvalue and its eigenfunctions. Either eigenvalue guesses or
+        indices can be supplied, but not both.
+
+        Parameters
+        ----------
+        ev_guesses : (list of) int, float, complex
+            Eigenvalue guesses.
+        ev_idxs : (list of) int
+            Indices corresponding to the eigenvalues that need to be retrieved.
+
+        Returns
+        -------
+        eigenfuncs : numpy.ndarray(dtype=dict, ndim=1)
+            Array containing the eigenfunctions and eigenvalues corresponding to the
+            supplied indices. Every index in this array contains a dictionary with the
+            eigenfunctions and corresponding eigenvalue.
+            The keys of each dictionary are the eigenfunction names.
+        """
+        if ev_guesses is not None and ev_idxs is not None:
+            raise ValueError(
+                "get_eigenfunctions: either provide guesses or indices but not both"
+            )
+        if ev_guesses is not None:
+            idxs, _ = self.get_nearest_eigenvalues(ev_guesses)
+        else:
+            idxs = transform_to_numpy(ev_idxs)
+            for idx in idxs:
+                if not isinstance(idx, (int, np.int64)):
+                    raise ValueError("get_eigenfunctions: ev_idxs should be integers")
+        eigenfuncs = np.array([{}] * len(idxs), dtype=dict)
+        with open(self.datfile, "rb") as istream:
+            for dict_idx, ef_idx in enumerate(idxs):
+                efs = read_eigenfunction(istream, self.header, ef_idx)
+                efs.update({"eigenvalue": self.eigenvalues[ef_idx]})
+                eigenfuncs[dict_idx] = efs
+        return eigenfuncs
+
+    def get_nearest_eigenvalues(self, ev_guesses):
+        """
+        Calculates the eigenvalues nearest to a given guess. This calculates
+        the nearest eigenvalue based on the distance between two points.
+
+        Parameters
+        ----------
+        ev_guesses : float, complex, list of float, list of complex
+            The guesses for the eigenvalues. These can be a single float/complex value,
+            or a list/Numpy array of floats/complex values.
+
+        Returns
+        -------
+        idxs : numpy.ndarray(dtype=int, ndim=1)
+            The indices of the nearest eigenvalues in the :attr:`eigenvalues` array.
+        eigenvalues: numpy.ndarray(dtype=complex, ndim=1)
+            The nearest eigenvalues to the provided guesses, corresponding with the
+            indices `idxs`.
+        """
+        ev_guesses = transform_to_numpy(ev_guesses)
+        idxs = np.empty(shape=len(ev_guesses), dtype=np.int)
+        eigenvals = np.empty(shape=len(ev_guesses), dtype=np.complex)
+        for i, ev_guess in enumerate(ev_guesses):
+            # distance from guess to all eigenvalues
+            distances = (self.eigenvalues.real - ev_guess.real) ** 2 + (
+                self.eigenvalues.imag - ev_guess.imag
+            ) ** 2
+            # closest distance (squared)
+            idx = distances.argmin()
+            idxs[i] = idx
+            eigenvals[i] = self.eigenvalues[idx]
+        return idxs, eigenvals
 
 
 class LegolasDataSeries(LegolasDataContainer):
