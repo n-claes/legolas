@@ -1,5 +1,6 @@
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.visualisation.legend_interface import LegendHandler
+from pylbo.visualisation.continua import ContinuaHandler
 
 
 class EquilibriumProfile(FigureWindow):
@@ -30,6 +31,7 @@ class EquilibriumProfile(FigureWindow):
     def draw(self):
         super().draw()
         self._add_equilibria()
+        self.fig.tight_layout()
 
     def _add_equilibria(self):
         items = []
@@ -57,7 +59,7 @@ class EquilibriumProfile(FigureWindow):
         self.leg_handle.legend = self.ax.legend(
             items,
             labels,
-            bbox_to_anchor=(0., 1, 1, .102),
+            bbox_to_anchor=(0.0, 1, 1, 0.102),
             loc="lower left",
             ncol=10,
             mode="expand",
@@ -65,3 +67,41 @@ class EquilibriumProfile(FigureWindow):
         # enable autoscaling when clicking
         self.leg_handle.autoscale = True
         self.fig.tight_layout()
+
+
+class ContinuumProfile(FigureWindow):
+    def __init__(self, data, figsize, interactive, **kwargs):
+        super().__init__(figure_type="continua", figsize=figsize)
+        self.data = data
+        self.kwargs = kwargs
+        self.handler = ContinuaHandler(interactive)
+        self.draw()
+        if interactive:
+            self._enable_interactive_legend(self.handler)
+
+    def draw(self):
+        super().draw()
+        self._draw_continua()
+        self.fig.tight_layout()
+
+    def _draw_continua(self):
+        for color, name in zip(
+            self.handler.continua_colors, self.handler.continua_names
+        ):
+            continuum = self.data.continua[name]
+            if self.handler.check_if_all_zero(continuum):
+                continue
+            (item,) = self.ax.plot(
+                self.data.grid_gauss,
+                self.data.continua[name],
+                color=color,
+                label=name
+            )
+            self.handler.add(item)
+        self.handler.legend = self.ax.legend()
+        self.ax.axhline(y=0, color="grey", linestyle="dotted", alpha=0.8)
+        self.ax.axvline(
+            x=self.data.x_start, color="grey", linestyle="dotted", alpha=0.8
+        )
+        self.ax.set_xlabel("Grid coordinate")
+        self.ax.set_ylabel(r"$\omega$")
