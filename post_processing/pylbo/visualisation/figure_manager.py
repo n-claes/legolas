@@ -213,15 +213,11 @@ class FigureWindow:
 
     def disable(self):
         """Disables the current figure."""
-        if not self.enabled:
-            return
         self.enabled = False
         plt.close(self.figure_id)
 
     def enable(self):
         """Enables the current figure, reconstructs the figuremanagers"""
-        if self.enabled:
-            return
         self.enabled = True
         manager = plt.figure(self.figure_id, self.figsize).canvas.manager
         manager.canvas.figure = self.fig
@@ -253,30 +249,15 @@ class FigureWindow:
         self.enable()
         self.connect_callbacks()
         plt.show()
-        self.__class__.figure_stack.enable_stack()
 
     @classmethod
-    def showall(cls, reconstruct=False):
-        """
-        Shows all active figures at once through a call to plt.show().
-        Unless `reconstruct=True` this is final: all figures and figuremanagers
-        will be destroyed and will not be reconstructed.
-
-        Parameters
-        ----------
-        reconstruct : bool
-            If `True`, reconstructs all figuremanagers, allowing for multiple
-            calls to the show routines.
-        """
+    def showall(cls):
+        """Shows all active figures at once through a call to plt.show()."""
         cls.figure_stack.disable_stack()
         for figure in cls.figure_stack.figure_list:
             figure.enable()
             figure.connect_callbacks()
         plt.show()
-        if reconstruct:
-            cls.figure_stack.enable_stack()
-        else:
-            cls.figure_stack.clear()
 
     def save(self, filename, **kwargs):
         """
@@ -289,9 +270,6 @@ class FigureWindow:
         kwargs
             Default keyword arguments passed to `matplotlib.pyplot.savefig`.
         """
-        self.__class__.figure_stack.disable_stack()
-        self.enable()
         filepath = Path(filename).resolve()
         self.fig.savefig(filepath, **kwargs)
         pylboLogger.info(f"figure saved to {filepath}")
-        self.__class__.figure_stack.enable_stack()
