@@ -3,6 +3,7 @@ from pylbo.visualisation.spectra import SingleSpectrumPlot
 from pylbo.visualisation.spectra import MultiSpectrumPlot
 from pylbo.visualisation.profiles import EquilibriumProfile
 from pylbo.visualisation.profiles import ContinuumProfile
+from pylbo.visualisation.matrices import MatrixFigure
 from pylbo.utilities.logger import pylboLogger
 
 forbidden_args = ["linestyle", "linewidth", "lw"]
@@ -153,4 +154,24 @@ def plot_continua(data, figsize=None, interactive=True, **kwargs):
         The profile instance containing the continua plots.
     """
     p = ContinuumProfile(data, figsize, interactive, **kwargs)
+    return p
+
+
+def plot_matrices(dataset, figsize=None, **kwargs):
+    """
+    Plots the continua profiles.
+
+    Parameters
+    ----------
+    dataset : `~pylbo.data_containers.LegolasDataSet` instance
+        The dataset that should be used.
+    figsize : tuple
+        Optional figure size like the usual matplotlib (x, x) size.
+
+    Returns
+    -------
+    p : `~pylbo.visualisation.figure_manager.matrices.MatrixFigure` instance
+        The instance containing the matrix plots.
+    """
+    p = MatrixFigure(dataset, figsize, **kwargs)
     return p

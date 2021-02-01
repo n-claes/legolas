@@ -7,6 +7,7 @@ from pylbo.visualisation.api import (
     plot_spectrum_multi,
     plot_equilibrium,
     plot_continua,
+    plot_matrices,
 )
 from pylbo.automation.api import generate_parfiles, run_legolas
 
