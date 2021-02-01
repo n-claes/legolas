@@ -1,6 +1,7 @@
 from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
 from pylbo.visualisation.spectra import SingleSpectrumPlot
 from pylbo.visualisation.spectra import MultiSpectrumPlot
+from pylbo.visualisation.profiles import EquilibriumProfile
 from pylbo.utilities.logger import pylboLogger
 
 forbidden_args = ["linestyle", "linewidth", "lw"]
@@ -107,4 +108,26 @@ def plot_spectrum_multi(
         custom_figure,
         **kwargs,
     )
+    return p
+
+
+def plot_equilibrium(data, figsize=None, interactive=True, **kwargs):
+    """
+    Plots the equilibrium profiles.
+
+    Parameters
+    ----------
+    data : `~pylbo.data_containers.LegolasDataContainer` instance
+        The dataset or series that should be used.
+    figsize : tuple
+        Optional figure size like the usual matplotlib (x, x) size.
+    interactive : bool
+        If `True` (default), enables an interactive legend.
+
+    Returns
+    -------
+    p : `~pylbo.visualisation.figure_manager.profiles.EquilibriumProfile` instance
+        The profile instance containing the equilibrium plots.
+    """
+    p = EquilibriumProfile(data, figsize, interactive, **kwargs)
     return p
