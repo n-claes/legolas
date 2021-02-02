@@ -34,8 +34,6 @@ from regression_tests.test_suydam import suydam_setup
 from regression_tests.test_tokamak import tokamak_setup
 
 
-pylbo.set_loglevel("warning")
-
 # retrieve test setups
 tests_to_run = [
     adiabatic_homo_setup,
