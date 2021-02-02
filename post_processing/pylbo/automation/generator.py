@@ -1,4 +1,4 @@
-import numpy as np
+import copy
 import f90nml
 from pathlib import Path
 from pylbo.automation.defaults import namelist_items
@@ -78,7 +78,7 @@ class ParfileGenerator:
         created in which the parfiles will be saved.
     """
     def __init__(self, parfile_dict, basename=None, output_dir=None):
-        self.parfile_dict = parfile_dict
+        self.parfile_dict = copy.deepcopy(parfile_dict)
         self.basename = _validate_basename(basename)
         self.output_dir = _validate_output_dir(output_dir)
         self.nb_runs = self.parfile_dict.pop("number_of_runs", 1)
@@ -186,7 +186,7 @@ class ParfileGenerator:
         try:
             run_dict["savelist"]
         except KeyError:
-            run_dict.update({"savelist", {}})
+            run_dict.update({"savelist": {}})
 
         for current_run in range(self.nb_runs):
             prefix = "{:04d}".format(current_run + 1)
