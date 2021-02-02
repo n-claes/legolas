@@ -15,7 +15,7 @@ def _validate_file(file):
 
     Parameters
     ----------
-    file : str, Path
+    file : str, ~os.PathLike
         The path to the datfile, either as a :class:`str` or
         :class:`~os.PathLike` object.
 
@@ -39,7 +39,7 @@ def load(datfile):
 
     Parameters
     ----------
-    datfile : str, Path
+    datfile : str, ~os.PathLike
         Path to the datfile.
 
     Raises
@@ -49,7 +49,7 @@ def load(datfile):
 
     Returns
     -------
-    ds : :class:`~.pylbo.data_containers.DataSet`
+    ds : ~pylbo.data_containers.LegolasDataSet
         A dataset instance for the given datfile.
     """
     if not isinstance(datfile, (str, os.PathLike)):
@@ -75,12 +75,12 @@ def load_series(datfiles):
 
     Parameters
     ----------
-    datfiles : list of str, list of Path, np.ndarray of str
+    datfiles : list of str, list of ~os.PathLike, numpy.ndarray of str
         Paths to the datfiles that should be loaded, in list/array form.
 
     Returns
     -------
-    series : :class:`~pylbo.data_containers.DataSeries`
+    series : ~pylbo.data_containers.LegolasDataSeries
         A dataseries instance for the given datfiles.
     """
     transform_to_list(datfiles)
@@ -150,7 +150,7 @@ def load_logfile(logfile, sort=False):
 
     Parameters
     ----------
-    logfile : str or Path
+    logfile : str, ~os.PathLike
        The path to the logfile.
     sort : bool
        If `True`, sorts the eigenvalues in the logfile. Sorting is done first
@@ -158,7 +158,7 @@ def load_logfile(logfile, sort=False):
 
     Returns
     -------
-    eigenvalues : np.ndarray(dtype=complex, ndim=1)
+    eigenvalues : numpy.ndarray
        Array containing the eigenvalues from the logfile.
     """
     _validate_file(logfile)

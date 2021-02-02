@@ -6,6 +6,10 @@ from pylbo.exceptions import EigenfunctionsNotPresent
 
 
 class EigenfunctionHandler:
+    """
+    Main handler for eigenfunctions.
+    """
+
     def __init__(self, data, ef_ax):
         self.data = data
         self.ef_ax = ef_ax
@@ -32,6 +36,14 @@ class EigenfunctionHandler:
         self._unmarked_alpha = None
 
     def on_point_pick(self, event):
+        """
+        Determines what happens when a pickable artist is selected.
+
+        Parameters
+        ----------
+        event : ~matplotlib.backend_bases.PickEvent
+            The pick event.
+        """
         artist = event.artist
         # if artist is a legend item, return (this attribute has been set manually)
         if hasattr(artist, "is_legend_item"):
@@ -106,6 +118,14 @@ class EigenfunctionHandler:
         fig.canvas.draw()
 
     def on_key_press(self, event):
+        """
+        Determines what happens when a key is pressed.
+
+        Parameters
+        ----------
+        event : ~matplotlib.backend_bases.KeyEvent
+            The key event.
+        """
         # pressing "m" marks points without eigenfunctions
         if event.key == "m":
             self.mark_points_without_eigenfunctions()
@@ -134,6 +154,10 @@ class EigenfunctionHandler:
         event.canvas.draw()
 
     def update_plot(self):
+        """
+        Updates the plot when an event is triggered, clears and then redraws
+        the eigenfunctions. Rescaling of the axes is done automatically.
+        """
         # do nothing if nothing is selected
         if not self._selected_idxs:
             self.ef_ax.clear()
@@ -173,11 +197,13 @@ class EigenfunctionHandler:
         self.ef_ax.figure.tight_layout()
 
     def _select_next_eigenfunction(self):
+        """Increments the eigenfunction index by one."""
         self._selected_ef_name_idx += 1
         if self._selected_ef_name_idx > len(self._ef_names) - 1:
             self._selected_ef_name_idx = 0
 
     def _select_previous_eigenfunction(self):
+        """Decrements the eigenfunction index by one."""
         self._selected_ef_name_idx -= 1
         if self._selected_ef_name_idx < 0:
             self._selected_ef_name_idx = len(self._ef_names) - 1
@@ -189,7 +215,7 @@ class EigenfunctionHandler:
         along with Re/Im depending on the real/imaginary part shown.
         Additionally, LaTeX formatting is used and numbers are replaced with the
         corresponding suffix: :math:`(1, 2, 3)`
-        becomes :math:`(x, y, z)` or :math:`(r, \theta, z)`.
+        becomes :math:`(x, y, z)` or :math:`(r, \\theta, z)`.
 
         Parameters
         ----------
@@ -216,6 +242,12 @@ class EigenfunctionHandler:
         return name
 
     def mark_points_without_eigenfunctions(self):
+        """
+        For dataseries, it is possible that not all datasets in the series
+        have eigenfunctions associated with them. This routine will toggle a change
+        in the opacity value for datapoints with no eigenfunctions, so they are
+        clearly distinguishable from those who do have them.
+        """
         if not isinstance(self.data, LegolasDataSeries):
             return
         if all(self.data.efs_written):

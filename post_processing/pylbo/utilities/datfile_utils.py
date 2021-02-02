@@ -344,9 +344,7 @@ def read_eigenfunction(istream, header, ef_index):
     ef_index : int
         The index of the eigenfunction in the matrix. This value corresponds to the
         index of the accompanying eigenvalue in the
-        :attr:`~pylbo.LegolasDataContainer.eigenvalues` attribute.
-        These indices can be retrieved through
-        :func:`~pylbo.LegolasDataContainer.get_nearest_eigenvalues`.
+        :class:`~pylbo.data_containers.LegolasDataSet` eigenvalues attribute.
 
     Returns
     -------

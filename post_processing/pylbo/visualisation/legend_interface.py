@@ -5,6 +5,35 @@ from pylbo.utilities.toolbox import add_pickradius_to_item
 
 
 class LegendHandler:
+    """
+    Main handler for legend stuff.
+
+    Attributes
+    ----------
+    legend : ~matplotlib.legend.Legend
+        The matplotlib legend to use.
+    alpha_point : int, float
+        Alpha value for non-hidden lines or points.
+    alpha_region : int, float
+        Alpha value for non-hidden regions.
+    alpha_hidden : int, float
+        Alpha value for hidden artists.
+    marker : ~matplotlib.markers
+        The marker to use for points.
+    markersize : int, float
+        Size of the marker.
+    pickradius : int, float
+        Radius around pickable items so pickevents are triggered.
+    linewidth : int, float
+        Width of drawn lines.
+    legend_properties : dict
+        Additional properties used when setting the legend.
+    interactive : bool
+        If `True`, makes the legend interactive
+    autoscale : bool
+        If `True`, will check if autoscale is needed when clicking the legend.
+    """
+
     def __init__(self, interactive):
         self.legend = None
         self.alpha_point = 0.8
@@ -28,7 +57,7 @@ class LegendHandler:
 
         Parameters
         ----------
-        event : `~matplotlib.backend_bases.PickEvent`
+        event : ~matplotlib.backend_bases.PickEvent
             The matplotlib pick event.
         """
         artist = event.artist
@@ -97,6 +126,10 @@ class LegendHandler:
         self._drawn_items.append(item)
 
     def _check_autoscaling(self):
+        """
+        Checks if autoscaling is needed and if so, rescales the y-axis to the min-max
+        value of the currently visible legend items.
+        """
         if not self.autoscale:
             return
         visible_items = [item for item in self._drawn_items if item.get_visible()]

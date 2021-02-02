@@ -12,7 +12,7 @@ def calculate_continua(ds):
 
     Parameters
     ----------
-    ds : `~pylbo.data_containers.LegolasDataSet` instance
+    ds : ~pylbo.data_containers.LegolasDataSet
         The Legolas dataset.
 
     Returns
@@ -201,7 +201,7 @@ class ContinuaHandler(LegendHandler):
 
         Parameters
         ----------
-        continuum : np.ndarray
+        continuum : numpy.ndarray
             Array with values.
 
         Returns
@@ -219,7 +219,7 @@ class ContinuaHandler(LegendHandler):
 
         Parameters
         ----------
-        continuum : np.ndarray
+        continuum : numpy.ndarray
             Array with values.
 
         Returns

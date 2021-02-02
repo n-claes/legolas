@@ -77,6 +77,7 @@ class ParfileGenerator:
         working directory if not specified. A subdirectory called `parfiles` will be
         created in which the parfiles will be saved.
     """
+
     def __init__(self, parfile_dict, basename=None, output_dir=None):
         self.parfile_dict = copy.deepcopy(parfile_dict)
         self.basename = _validate_basename(basename)
@@ -102,14 +103,13 @@ class ParfileGenerator:
         Raises
         ------
         TypeError
-            If the types do not matche, e.g. if "gridpoints" is specified as a float
+            If the types do not match, e.g. if "gridpoints" is specified as a float
             value when it should be an integer.
 
         Returns
         -------
         item : any
             The item popped from the dictionary corresponding to the given key.
-
         """
         item = self.parfile_dict.pop(name, None)
         if item is not None:
@@ -202,7 +202,7 @@ class ParfileGenerator:
             datfile_name = "".join(
                 [
                     f"{prefix}",
-                    run_dict["savelist"].get("basename_datfile", self.basename)
+                    run_dict["savelist"].get("basename_datfile", self.basename),
                 ]
             )
             run_dict["savelist"].update({"basename_datfile": datfile_name})

@@ -7,11 +7,11 @@ def add_pickradius_to_item(item, pickradius):
     """
     Makes a matplotlib artist pickable and adds a pickradius.
     We have to handle this separately, because for line2D items the method
-    `set_picker` is deprecated from version 3.3 onwards.
+    :meth:`~matplotlib.axes.Axes.set_picker` is deprecated from version 3.3 onwards.
 
     Parameters
     ----------
-    item : `~matplotlib.artist.Artist`
+    item : ~matplotlib.artist.Artist
         The artist which will be made pickable
     pickradius : int, float
         Sets the pickradius, which determines if something is "on" the picked point.
@@ -39,9 +39,9 @@ def custom_enumerate(iterable, start=0, step=1):
 
     Yields
     ------
-    start : :class:`int`
+    start : int
         The current index in `iterable`, incremented with `step`.
-    itr : :class:`~typing.Iterable`
+    itr : ~typing.Iterable
         The corresponding entry of `iterable`.
     """
     for itr in iterable:

@@ -8,6 +8,8 @@ from pylbo.visualisation.continua import ContinuaHandler
 
 
 class SpectrumFigure(FigureWindow):
+    """Superclass of both single and multispectra."""
+
     def __init__(self, figure_type, figsize, custom_figure):
         super().__init__(
             figure_type=figure_type, figsize=figsize, custom_figure=custom_figure
@@ -17,6 +19,9 @@ class SpectrumFigure(FigureWindow):
         self._ef_ax = None
 
     def draw(self):
+        """
+        Draws everything, checks for continua/eigenfunctions. Overridden by subclasses.
+        """
         super().draw()
         self._add_spectrum()
         if self._c_handler is not None:
@@ -25,9 +30,18 @@ class SpectrumFigure(FigureWindow):
             self.add_eigenfunctions()
 
     def _add_spectrum(self):
+        """Adds the spectrum, is overridden in subclasses."""
         pass
 
     def add_continua(self, interactive):
+        """
+        Adds the continua to the plot, overridden by subclasses.
+
+        Parameters
+        ----------
+        interactive : bool
+            If `True`, makes the legend interactive.
+        """
         if interactive:
             super()._enable_interactive_legend(self._c_handler)
 
@@ -76,21 +90,27 @@ class SingleSpectrumPlot(SpectrumFigure):
 
     Parameters
     ----------
-    dataset : `~pylbo.data_containers.LegolasDataSet` instance
+    dataset : ~pylbo.data_containers.LegolasDataSet
         The dataset used to create the spectrum.
     figsize : tuple
         Figure size used when creating a window, analogous to matplotlib.
     custom_figure : tuple
-        The custom figure to use in the form (fig, axes)
+        The custom figure to use in the form (fig, axes).
 
     Attributes
     ----------
-    dataset : `~pylbo.data_containers.LegolasDataSet`
+    dataset : ~pylbo.data_containers.LegolasDataSet
         The dataset passed as parameter
-    w_real : np.ndarray(dtype=float, ndim=1)
+    w_real : numpy.ndarray(dtype=float, ndim=1)
         Real part of the eigenvalues as a numpy array.
-    w_imag : np.ndarray(dtype=float, ndim=1)
+    w_imag : numpy.ndarray(dtype=float, ndim=1)
         Imaginary part of the eigenvalues as a numpy array.
+    marker : ~matplotlib.markers
+        The marker used to draw the points.
+    markersize : int, float
+        Size of the marker.
+    alpha : int, float
+        Alpha value of the points.
     """
 
     def __init__(self, dataset, figsize, custom_figure, **kwargs):
@@ -110,6 +130,7 @@ class SingleSpectrumPlot(SpectrumFigure):
         self._add_spectrum()
 
     def _add_spectrum(self):
+        """Adds the spectrum to the plot, makes the points pickable."""
         (spectrum_point,) = self.ax.plot(
             self.w_real * self.x_scaling,
             self.w_imag * self.y_scaling,
@@ -140,8 +161,8 @@ class SingleSpectrumPlot(SpectrumFigure):
 
         Returns
         -------
-        c_handler : `~pylbo.continua.ContinuaHandler` instance
-            The `ContinuaHandler` instance used to plot the continua.
+        c_handler : ~pylbo.continua.ContinuaHandler
+            The legendhandler used to plot the continua.
         """
         if self._c_handler is None:
             self._c_handler = ContinuaHandler(interactive=interactive)
@@ -168,7 +189,7 @@ class SingleSpectrumPlot(SpectrumFigure):
                 props = dict(
                     facecolor=colors.to_rgba(color, self._c_handler.alpha_region),
                     edgecolor=colors.to_rgba(color, self._c_handler.alpha_point),
-                    label=key
+                    label=key,
                 )
                 if key == "thermal":
                     item = self.ax.axhspan(
@@ -184,6 +205,7 @@ class SingleSpectrumPlot(SpectrumFigure):
         return self._c_handler
 
     def add_eigenfunctions(self):
+        """Adds the eigenfunctions to the plot, sets the eigenfunction handler."""
         # this creates and sets self._ef_ax
         self._add_eigenfunction_axes()
         if self._ef_handler is None:
@@ -193,6 +215,30 @@ class SingleSpectrumPlot(SpectrumFigure):
 
 
 class MultiSpectrumPlot(SpectrumFigure):
+    """
+    Subclass that draws the multispectra.
+
+    Parameters
+    ----------
+    dataseries : ~pylbo.data_containers.LegolasDataSeries
+        The dataseries that should be used.
+    xdata : str, list, numpy.ndarray
+        Data to use for the horizontal axis. This can either be a key from the
+        parameters dictionary, or a list/numpy array containing actual data.
+    use_squared_omega : bool
+        If `True`, this will square the eigenvalues when they are plotted on the
+        vertical axis. If `False` (default), either the real or imaginary part of the
+        eigenvalues will be plotted depending on the value of `use_real_parts`.
+    use_real_parts : bool
+        If `True` (default), this will plot the real part of the eigenvalues on the
+        vertical axis. If `False` the imaginary part will be used.
+    figsize : tuple
+        Optional figure size like the usual matplotlib (x, x) size.
+    custom_figure : tuple
+        Optional, in the form (fig, ax). If supplied no new figure will be created
+        but this one will be used instead. `fig` refers to the matplotlib figure and
+        `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+    """
     def __init__(
         self,
         dataseries,
@@ -220,6 +266,21 @@ class MultiSpectrumPlot(SpectrumFigure):
         self._add_spectrum()
 
     def _validate_xdata(self, xdata):
+        """
+        Validates the xdata passed, does typechecking and necessary casting.
+        If a string is passed, this will request the proper values based on the
+        parameters.
+
+        Parameters
+        ----------
+        xdata : str, list, numpy.ndarray
+            The xdata used as x values on the spectrum plot.
+
+        Returns
+        -------
+        xdata_values : numpy.ndarray
+            The xdata values of proper length and casted to a Numpy array.
+        """
         if isinstance(xdata, str):
             if self.dataseries.parameters.get(xdata, None) is None:
                 raise ValueError(
@@ -241,6 +302,15 @@ class MultiSpectrumPlot(SpectrumFigure):
         return xdata_values
 
     def _get_ydata(self):
+        """
+        Gets the y data based on the value of :attr:`use_squared_omega`.
+
+        Returns
+        -------
+        ydata_values : numpy.ndarray
+            The y data values, either the real or imaginary parts based on
+            :attr:`use_real_parts`.
+        """
         ydata_values = np.array(
             [ds.eigenvalues ** self._w_pow for ds in self.dataseries]
         )
@@ -251,11 +321,27 @@ class MultiSpectrumPlot(SpectrumFigure):
             return ydata_values.imag
 
     def set_x_scaling(self, x_scaling):
+        """
+        Sets the x scaling, properly adjusted to the dataseries length.
+
+        Parameters
+        ----------
+        x_scaling : int, float, complex, numpy.ndarray
+            Values to use for the x-scaling.
+        """
         if isinstance(x_scaling, (int, float, complex)):
             x_scaling = np.ones_like(self.dataseries) * x_scaling
         super().set_x_scaling(x_scaling)
 
     def set_y_scaling(self, y_scaling):
+        """
+        Sets the y scaling, properly adjusted to the dataseries length.
+
+        Parameters
+        ----------
+        y_scaling : int, float, complex, numpy.ndarray
+            Values to use for the y-scaling.
+        """
         if isinstance(y_scaling, (int, float, complex)):
             y_scaling = np.ones_like(self.dataseries) * y_scaling
         super().set_y_scaling(y_scaling)
@@ -287,6 +373,14 @@ class MultiSpectrumPlot(SpectrumFigure):
         self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
 
     def add_continua(self, interactive=True):
+        """
+        Adds the continua to the plot, either interactive or not.
+
+        Parameters
+        ----------
+        interactive : bool
+            If `True`, makes the legend interactive.
+        """
         if self._c_handler is None:
             self._c_handler = ContinuaHandler(interactive=interactive)
 
@@ -335,6 +429,9 @@ class MultiSpectrumPlot(SpectrumFigure):
         return self._c_handler
 
     def add_eigenfunctions(self):
+        """
+        Adds the eigenfunctions to the current figure.
+        """
         self._add_eigenfunction_axes()
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.dataseries, self._ef_ax)

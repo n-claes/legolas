@@ -15,7 +15,7 @@ def plot_spectrum(dataset, figsize=None, custom_figure=None, **kwargs):
 
     Parameters
     ----------
-    dataset : `~pylbo.data_containers.LegolasDataSet` instance
+    dataset : ~pylbo.data_containers.LegolasDataSet
         The dataset that should be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
@@ -28,11 +28,11 @@ def plot_spectrum(dataset, figsize=None, custom_figure=None, **kwargs):
     ------
     TypeError
         If the argument `dataset` is not an instance of
-        :class:~pylbo.data_containers.LegolasDataSet.
+        :class:`~pylbo.data_containers.LegolasDataSet`.
 
     Returns
     -------
-    p : `~pylbo.visualisation.figure_manager.spectra.SingleSpectrumPlot` instance
+    p : ~pylbo.visualisation.spectra.SingleSpectrumPlot
         The spectrum instance which can be used further to add continua,
         eigenfunctions, etc.
     """
@@ -59,9 +59,9 @@ def plot_spectrum_multi(
 
     Parameters
     ----------
-    dataseries : `~pylbo.data_containers.LegolasDataSeries` instance
+    dataseries : ~pylbo.data_containers.LegolasDataSeries
         The dataseries that should be used.
-    xdata : str, list, np.ndarray
+    xdata : str, list, numpy.ndarray
         Data to use for the horizontal axis. This can either be a key from the
         parameters dictionary, or a list/numpy array containing actual data.
     use_squared_omega : bool
@@ -86,7 +86,7 @@ def plot_spectrum_multi(
 
     Returns
     -------
-    p : `~pylbo.visualisation.figure_manager.spectra.MultiSpectrumPlot` instance
+    p : ~pylbo.visualisation.spectra.MultiSpectrumPlot
         The spectrum instance which can be used further to add continua,
         eigenfunctions, etc.
     """
@@ -119,7 +119,7 @@ def plot_equilibrium(data, figsize=None, interactive=True, **kwargs):
 
     Parameters
     ----------
-    data : `~pylbo.data_containers.LegolasDataContainer` instance
+    data : ~pylbo.data_containers.LegolasDataContainer
         The dataset or series that should be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
@@ -128,7 +128,7 @@ def plot_equilibrium(data, figsize=None, interactive=True, **kwargs):
 
     Returns
     -------
-    p : `~pylbo.visualisation.figure_manager.profiles.EquilibriumProfile` instance
+    p : ~pylbo.visualisation.profiles.EquilibriumProfile
         The profile instance containing the equilibrium plots.
     """
     p = EquilibriumProfile(data, figsize, interactive, **kwargs)
@@ -141,7 +141,7 @@ def plot_continua(data, figsize=None, interactive=True, **kwargs):
 
     Parameters
     ----------
-    data : `~pylbo.data_containers.LegolasDataContainer` instance
+    data : ~pylbo.data_containers.LegolasDataContainer
         The dataset or series that should be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
@@ -150,7 +150,7 @@ def plot_continua(data, figsize=None, interactive=True, **kwargs):
 
     Returns
     -------
-    p : `~pylbo.visualisation.figure_manager.profiles.ContinuumProfile` instance
+    p : ~pylbo.visualisation.profiles.ContinuumProfile
         The profile instance containing the continua plots.
     """
     p = ContinuumProfile(data, figsize, interactive, **kwargs)
@@ -163,14 +163,14 @@ def plot_matrices(dataset, figsize=None, **kwargs):
 
     Parameters
     ----------
-    dataset : `~pylbo.data_containers.LegolasDataSet` instance
+    dataset : ~pylbo.data_containers.LegolasDataSet
         The dataset that should be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
 
     Returns
     -------
-    p : `~pylbo.visualisation.figure_manager.matrices.MatrixFigure` instance
+    p : ~pylbo.visualisation.matrices.MatrixFigure
         The instance containing the matrix plots.
     """
     p = MatrixFigure(dataset, figsize, **kwargs)

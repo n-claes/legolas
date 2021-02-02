@@ -42,9 +42,7 @@ def _validate_executable(executable):
             f"Directory containing the executable was not found: {executable.parent}"
         )
     if not executable.is_file():
-        raise FileNotFoundError(
-            f"Executable was not found: {executable}"
-        )
+        raise FileNotFoundError(f"Executable was not found: {executable}")
     return executable
 
 
@@ -90,7 +88,7 @@ def _validate_parfiles(files):
 
     Returns
     -------
-    files_list : list of ~os.PathLike
+    files_list : list
         A list of resolved filepaths for the parfiles.
 
     """
@@ -98,9 +96,7 @@ def _validate_parfiles(files):
     files_list = [Path(file).resolve() for file in files_list]
     for file in files_list:
         if not file.is_file():
-            raise FileNotFoundError(
-                f"Parfile was not found: {file}"
-            )
+            raise FileNotFoundError(f"Parfile was not found: {file}")
     return files_list
 
 
@@ -110,7 +106,7 @@ class LegolasRunner:
 
     Parameters
     ----------
-    parfiles : list or numpy.ndarray
+    parfiles : list, numpy.ndarray
         A list or array containing the names or paths to the parfiles.
     remove_parfiles : bool
         If `True`, removes the parfiles after running Legolas. This will also remove
@@ -124,6 +120,7 @@ class LegolasRunner:
         The path to the legolas executable. If not specified, defaults to the
         standard one in the legolas home directory.
     """
+
     def __init__(self, parfiles, remove_parfiles, nb_cpus, executable):
         self.parfiles = _validate_parfiles(parfiles)
         self.parfile_dir = self.parfiles[0].parent
@@ -147,7 +144,7 @@ class LegolasRunner:
 
         Parameters
         ----------
-        parfile : str or `~os.PathLike`
+        parfile : str, ~os.PathLike
             The path to the parfile
 
         Returns
@@ -190,6 +187,7 @@ class LegolasRunner:
         Executes the legolas executables and initialises the multiprocessing
         pool if requested.
         """
+
         def update_pbar(*args):
             pbar.update()
 

@@ -19,8 +19,25 @@ from pylbo.utilities.toolbox import transform_to_numpy
 
 
 class LegolasDataContainer(ABC):
+    """
+    Baseclass for a Legolas data container.
+    """
+
     @property
     def continua(self):
+        """
+        Retrieves the continua based on the type of subclass, returns a dictionary
+        with the names of the continua as keys.
+
+            - :class:`LegolasDataSet`: the values are single Numpy arrays.
+            - :class:`LegolasDataSeries`: every value is an array of Numpy arrays,
+              one for each dataset in the series.
+
+        Returns
+        -------
+        continua : dict
+            Dictionary containing the continua values.
+        """
         if isinstance(self, LegolasDataSet):
             return self._continua
         elif isinstance(self, LegolasDataSeries):
@@ -35,6 +52,18 @@ class LegolasDataContainer(ABC):
 
     @property
     def parameters(self):
+        """
+        Retrieves the parameters based on the type of subclass, returns a dictionary
+        with the parameter names as keys.
+
+            - :class:`LegolasDataSet`: values are single items.
+            - :class:`LegolasDataSeries`: values are Numpy arrays.
+
+        Returns
+        -------
+        parameters : dict
+            Dictionary containing the parameters.
+        """
         if isinstance(self, LegolasDataSet):
             return self._parameters
         elif isinstance(self, LegolasDataSeries):
@@ -85,6 +114,56 @@ class LegolasDataContainer(ABC):
 
 
 class LegolasDataSet(LegolasDataContainer):
+    """
+    Main container for a single Legolas dataset.
+
+    Parameters
+    ----------
+    datfile : str, ~os.PathLike
+        Path to the datfile.
+
+    Attributes
+    ----------
+    header : dict
+        The datfile header.
+    grid : numpy.ndarray
+        The base grid.
+    grid_gauss : numpy.ndarray
+        The Gaussian grid.
+    equilibria : dict
+        Dictionary containing the equilibrium arrays.
+    eigenvalues : numpy.ndarray
+        Array containing the complex eigenvalues.
+    geometry : str
+        The geometry.
+    scale_factor : numpy.ndarray
+        Array with the scale factor. One for Cartesian geometries, r for cylindrical.
+    x_start : float
+        Start of the grid.
+    x_end : float
+        End of the grid
+    gridpoints : int
+        The number of base gridpoints.
+    gauss_gridpoints : int
+        The number of Gaussian gridpoints.
+    matrix_gridpoints : int
+        The dimension of the matrix.
+    ef_gridpoints : int
+        The number of eigenfunction gridpoints.
+    gamma : float
+        The ratio of specific heats.
+    eq_type : str
+        The type of equilibrium selected.
+    cgs : bool
+        If `True`, all units are in cgs.
+    units : dict
+        Dictionary containing the unit normalisations.
+    eq_names : numpy.ndarray
+        Array containing the names of the equilibrium arrays.
+    legolas_version : ~pylbo._version.VersionHandler
+        The current Legolas version.
+    """
+
     def __init__(self, datfile):
         self.datfile = Path(datfile)
         with open(self.datfile, "rb") as istream:
@@ -123,14 +202,39 @@ class LegolasDataSet(LegolasDataContainer):
 
     @property
     def efs_written(self):
+        """
+        Checks if eigenfunctions are present.
+
+        Returns
+        -------
+        efs_written : bool
+            If `True`, eigenfunctions are present in the datfile.
+        """
         return self.header["eigenfuncs_written"]
 
     @property
     def ef_names(self):
+        """
+        Retrieves the eigenfunction names.
+
+        Returns
+        -------
+        ef_names : numpy.ndarray
+            Array containing the names of the eigenfunctions as strings.
+            None if no eigenfunctions are present.
+        """
         return self.header.get("ef_names", None)
 
     @property
     def ef_grid(self):
+        """
+        Retrieves the eigenfunction grid.
+
+        Returns
+        -------
+        ef_grid : numpy.ndarray
+            The eigenfunction grid. Returns None if eigenfunctions are not present.
+        """
         if self.efs_written:
             with open(self.datfile, "rb") as istream:
                 grid = read_ef_grid(istream, self.header)
@@ -140,6 +244,27 @@ class LegolasDataSet(LegolasDataContainer):
 
     @staticmethod
     def _get_values(array, which_values):
+        """
+        Determines which values to retrieve from an array.
+
+        Parameters
+        ----------
+        array : numpy.ndarray
+            The array with values.
+        which_values : str
+            Can be one of the following:
+
+                - "average": returns the average of the array
+                - "minimum": returns the minimum of the array
+                - "maximum": returns the maximum of the array
+
+            If not supplied or equal to None, simply returns the array.
+
+        Returns
+        -------
+        array : numpy.ndarray
+            Numpy array with values depending on the argument provided.
+        """
         if which_values is None:
             return array
         elif which_values == "average":
@@ -159,15 +284,15 @@ class LegolasDataSet(LegolasDataContainer):
         Parameters
         ----------
         which_values : str
-            Which values to return:
-            - None : returns the sound speed as a function of the grid.
-            - "average" : returns the average sound speed over the grid.
-            - "minimum" : returns the minimum sound speed over the grid.
-            - "maximum" : returns the maximum sound speed over the grid
+            Can be one of the following:
+                - None : returns the sound speed as a function of the grid.
+                - "average": returns the average sound speed over the grid.
+                - "minimum": returns the minimum sound speed over the grid.
+                - "maximum": returns the maximum sound speed over the grid.
 
         Returns
         -------
-        cs : float, numpy.ndarray(dtype=float, ndim=1)
+        cs : float, numpy.ndarray
             Array with the sound speed at every grid point, or a float corresponding
             to the value of `which_values` if provided.
         """
@@ -183,15 +308,15 @@ class LegolasDataSet(LegolasDataContainer):
         Parameters
         ----------
         which_values : str
-            Which values to return:
-            - None : returns the Alfvén speed as a function of the grid.
-            - "average" : returns the average Alfvén speed over the grid.
-            - "minimum" : returns the minimum Alfvén speed over the grid.
-            - "maximum" : returns the maximum Alfvén speed over the grid
+            Can be one of the following:
+                - None : returns the Alfvén speed as a function of the grid.
+                - "average": returns the average Alfvén speed over the grid.
+                - "minimum": returns the minimum Alfvén speed over the grid.
+                - "maximum": returns the maximum Alfvén speed over the grid.
 
         Returns
         -------
-        cA : float, numpy.ndarray(dtype=float, ndim=1)
+        cA : float, numpy.ndarray
             Array with the Alfvén speed at every grid point,
             or a float corresponding to the value of `which_values` if provided.
         """
@@ -207,15 +332,15 @@ class LegolasDataSet(LegolasDataContainer):
         Parameters
         ----------
         which_values : str
-            Which values to return:
-            - None : returns the tube speed as a function of the grid.
-            - "average" : returns the average tube speed over the grid.
-            - "minimum" : returns the minimum tube speed over the grid.
-            - "maximum" : returns the maximum tube speed over the grid
+            Can be one of the following:
+                - None : returns the tube speed as a function of the grid.
+                - "average": returns the average tube speed over the grid.
+                - "minimum": returns the minimum tube speed over the grid.
+                - "maximum": returns the maximum tube speed over the grid.
 
         Returns
         -------
-        ct = float, numpy.ndarray(dtype=float, ndim=1)
+        ct = float, numpy.ndarray
             Array with the tube speed at every grid point,
             or a float corresponding to the value of `which_values` if provided.
             Returns `None` if the geometry is not cylindrical.
@@ -240,15 +365,15 @@ class LegolasDataSet(LegolasDataContainer):
         Parameters
         ----------
         which_values : str
-            Which values to return:
-            - None : returns the Reynolds number as a function of the grid.
-            - "average" : returns the average Reynolds number over the grid.
-            - "minimum" : returns the minimum Reynolds number over the grid.
-            - "maximum" : returns the maximum Reynolds number the grid
+             Can be one of the following:
+                - None : returns the Reynolds number as a function of the grid.
+                - "average": returns the average Reynolds number over the grid.
+                - "minimum": returns the minimum Reynolds number over the grid.
+                - "maximum": returns the maximum Reynolds number the grid
 
         Returns
         -------
-        Re : float, numpy.ndarray(dtype=float, ndim=1)
+        Re : float, numpy.ndarray
             Array with the Reynolds number at every grid point,
             or a float corresponding to the value of `which_values` if provided.
             Returns `None` if the resistivity is zero somewhere on the domain.
@@ -275,11 +400,11 @@ class LegolasDataSet(LegolasDataContainer):
         Parameters
         ----------
         which_values : str
-            Which values to return:
-            - None : returns the magnetic Reynolds number as a function of the grid.
-            - "average" : returns the average magnetic Reynolds number over the grid.
-            - "minimum" : returns the minimum magnetic Reynolds number over the grid.
-            - "maximum" : returns the maximum magnetic Reynolds number over the grid
+            Can be one of the following:
+                - None : returns the magnetic Reynolds number as a function of the grid.
+                - "average": returns the average magnetic Reynolds number over the grid.
+                - "minimum": returns the minimum magnetic Reynolds number over the grid.
+                - "maximum": returns the maximum magnetic Reynolds number over the grid
 
         Returns
         -------
@@ -454,10 +579,27 @@ class LegolasDataSeries(LegolasDataContainer):
 
     @property
     def efs_written(self):
+        """
+        Checks if the eigenfunctions are written.
+
+        Returns
+        -------
+        efs_written : numpy.ndarray
+            An array of bools corresponding to the various datasets, `True` if a
+            dataset has eigenfunctions present.
+        """
         return np.array([ds.efs_written for ds in self.datasets])
 
     @property
     def ef_names(self):
+        """
+        Returns the eigenfunction names.
+
+        Returns
+        -------
+        ef_names : numpy.ndarray
+            An array with the eigenfunction names as strings.
+        """
         names = np.array([ds.ef_names for ds in self.datasets], dtype=object)
         for item in names:
             if item is None:
@@ -469,24 +611,154 @@ class LegolasDataSeries(LegolasDataContainer):
 
     @property
     def ef_grid(self):
+        """
+        Retrieves the eigenfunction grid.
+
+        Returns
+        -------
+        ef_grid : numpy.ndarray
+            An array with arrays, containing the eigenfunction grids for each dataset.
+        """
         return np.array([ds.ef_grid for ds in self.datasets], dtype=object)
 
     def get_sound_speed(self, which_values=None):
+        """
+        Calculates the sound speed for the various datasets.
+
+        Parameters
+        ----------
+        which_values : str
+            Which values to return, can be one of the following:
+                - None: every element of the return array will be an array in itself.
+                - "average": every element of the return array is a float, equal to
+                  the average sound speed for that dataset.
+                - "minimum": every element of the return array is a float, equal to
+                  the minimum sound speed for that dataset.
+                - "maximum": every element of the return array is a float, equal to
+                  the minimum sound speed for that dataset.
+
+        Returns
+        -------
+        cs : numpy.ndarray
+            A Numpy array of same length as the number of datasets, containing the
+            sound speeds. Elements are either arrays themselves or floats, depending
+            on the value of `which_values`.
+        """
         return np.array([ds.get_sound_speed(which_values) for ds in self.datasets])
 
     def get_alfven_speed(self, which_values=None):
+        """
+        Calculates the Alfvén speed for the various datasets.
+
+        Parameters
+        ----------
+        which_values : str
+            Which values to return, can be one of the following:
+                - None: every element of the return array will be an array in itself.
+                - "average": every element of the return array is a float, equal to
+                  the average Alfvén speed for that dataset.
+                - "minimum": every element of the return array is a float, equal to
+                  the minimum Alfvén speed for that dataset.
+                - "maximum": every element of the return array is a float, equal to
+                  the minimum Alfvén speed for that dataset.
+
+        Returns
+        -------
+        cA : numpy.ndarray
+            A Numpy array of same length as the number of datasets, containing the
+            Alfvén speeds. Elements are either arrays themselves or floats, depending
+            on the value of `which_values`.
+        """
         return np.array([ds.get_alfven_speed(which_values) for ds in self.datasets])
 
     def get_tube_speed(self, which_values=None):
+        """
+        Calculates the tube speed for the various datasets.
+
+        Parameters
+        ----------
+        which_values : str
+            Which values to return, can be one of the following:
+                - None: every element of the return array will be an array in itself.
+                - "average": every element of the return array is a float, equal to
+                  the average tube speed for that dataset.
+                - "minimum": every element of the return array is a float, equal to
+                  the minimum tube speed for that dataset.
+                - "maximum": every element of the return array is a float, equal to
+                  the minimum tube speed for that dataset.
+
+        Returns
+        -------
+        cA : numpy.ndarray
+            A Numpy array of same length as the number of datasets, containing the
+            tube speeds. Elements are either arrays themselves or floats, depending
+            on the value of `which_values`. Elements are None if the geometry is
+            not cylindrical.
+        """
         return np.array([ds.get_tube_speed(which_values) for ds in self.datasets])
 
     def get_reynolds_nb(self, which_values=None):
+        """
+        Calculates the Reynolds number for the various datasets.
+
+        Parameters
+        ----------
+        which_values : str
+            Which values to return, can be one of the following:
+                - None: every element of the return array will be an array in itself.
+                - "average": every element of the return array is a float, equal to
+                  the average Reynolds number for that dataset.
+                - "minimum": every element of the return array is a float, equal to
+                  the minimum Reynolds number for that dataset.
+                - "maximum": every element of the return array is a float, equal to
+                  the minimum Reynolds number for that dataset.
+
+        Returns
+        -------
+        Re : numpy.ndarray
+            A Numpy array of same length as the number of datasets, containing the
+            Reynolds number. Elements are either arrays themselves or floats, depending
+            on the value of `which_values`.
+            Elements are None if the resistivity is zero.
+        """
         return np.array([ds.get_reynolds_nb(which_values) for ds in self.datasets])
 
     def get_magnetic_reynolds_nb(self, which_values=None):
+        """
+        Calculates the magnetic Reynolds number for the various datasets.
+
+        Parameters
+        ----------
+        which_values : str
+            Which values to return, can be one of the following:
+                - None: every element of the return array will be an array in itself.
+                - "average": every element of the return array is a float, equal to
+                  the average magnetic Reynolds number for that dataset.
+                - "minimum": every element of the return array is a float, equal to
+                  the minimum magnetic Reynolds number for that dataset.
+                - "maximum": every element of the return array is a float, equal to
+                  the minimum magnetic Reynolds number for that dataset.
+
+        Returns
+        -------
+        Re : numpy.ndarray
+            A Numpy array of same length as the number of datasets, containing the
+            magnetic Reynolds number. Elements are either arrays themselves
+            or floats, depending on the value of `which_values`.
+            Elements are None if the resistivity is zero.
+        """
         return np.array(
             [ds.get_magnetic_reynolds_nb(which_values) for ds in self.datasets]
         )
 
     def get_k0_squared(self):
+        """
+        Calculates the squared wave number for the various datasets.
+
+        Returns
+        -------
+        k0_sq : numpy.ndarray
+            A Numpy array of same length as the number of datasets, containing the
+            squared wavenumber for each.
+        """
         return np.array([ds.get_k0_squared() for ds in self.datasets])

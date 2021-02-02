@@ -4,6 +4,8 @@ from pylbo.visualisation.continua import ContinuaHandler
 
 
 class EquilibriumProfile(FigureWindow):
+    """Subclass responsible for drawing the equilibrium profiles."""
+
     def __init__(self, data, figsize, interactive, **kwargs):
         super().__init__(figure_type="equilibrium-fields", figsize=figsize)
         self.data = data
@@ -23,17 +25,30 @@ class EquilibriumProfile(FigureWindow):
             self._enable_interactive_legend(self.leg_handle)
 
     def _add_extra_axis(self):
+        """
+        Adds an extra axis to the current figure. Changes the geometry to include
+        an additional subplot.
+
+        Returns
+        -------
+        ax2 : ~matplotlib.axes.Axes
+            The axes object of the figure that was added.
+        """
         self.ax.change_geometry(2, 1, 1)
         ax2 = self.fig.add_subplot(212)
         self.fig.tight_layout()
         return ax2
 
     def draw(self):
+        """Draws the figure."""
         super().draw()
         self._add_equilibria()
         self.fig.tight_layout()
 
     def _add_equilibria(self):
+        """
+        Adds the equilibria to the figure. Also sets the legend handler items
+        """
         items = []
         for name in self.data.eq_names:
             if name.startswith("d"):
@@ -70,6 +85,8 @@ class EquilibriumProfile(FigureWindow):
 
 
 class ContinuumProfile(FigureWindow):
+    """Subclass responsible for drawing the continuum profiles."""
+
     def __init__(self, data, figsize, interactive, **kwargs):
         super().__init__(figure_type="continua", figsize=figsize)
         self.data = data
@@ -80,11 +97,13 @@ class ContinuumProfile(FigureWindow):
             self._enable_interactive_legend(self.handler)
 
     def draw(self):
+        """Draws the continua."""
         super().draw()
         self._draw_continua()
         self.fig.tight_layout()
 
     def _draw_continua(self):
+        """Adds the continua to the plot, also sets the legend handlers."""
         for color, name in zip(
             self.handler.continua_colors, self.handler.continua_names
         ):

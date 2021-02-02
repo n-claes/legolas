@@ -18,7 +18,7 @@ class InvalidLegolasFile(LegolasException):
 
     Parameters
     ----------
-    file : str or ~os.PathLike
+    file : str, ~os.PathLike
         The path to the file.
     """
 
@@ -54,7 +54,7 @@ class MatricesNotPresent(LegolasException):
 
     Parameters
     ----------
-    file : str or ~os.PathLike
+    file : str, ~os.PathLike
         The path to the file.
     """
 

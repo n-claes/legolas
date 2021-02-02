@@ -6,6 +6,8 @@ from pylbo.visualisation.figure_manager import FigureWindow
 
 
 class MatrixFigure(FigureWindow):
+    """Figure showing both matrices from a dataset."""
+
     def __init__(self, dataset, figsize, **kwargs):
         super().__init__(figure_type="matrices", figsize=figsize)
         self.dataset = dataset
@@ -16,10 +18,12 @@ class MatrixFigure(FigureWindow):
         self.draw()
 
     def draw(self):
+        """Draws the matrices."""
         super().draw()
         self._add_matrices()
 
     def _add_matrices(self):
+        """Adds the matrices to the figure windows."""
         # matrix A
         rows, cols, vals = self.dataset.get_matrix_A()
         # take modulus of values

@@ -5,6 +5,12 @@ from pylbo.utilities.logger import pylboLogger
 
 
 def refresh_plot(f):
+    """
+    Simple decorator, when a routine is wrapped with this the plot will be
+    cleared and redrawn, useful for when the scaling is changed or artists are
+    added/removed.
+    """
+
     @wraps(f)
     def refresh(*args, **kwargs):
         f(*args, **kwargs)
@@ -23,7 +29,8 @@ class FigureContainer(dict):
     ----------
     stack_is_enabled : bool
         If `True` (default), the dictionary is unlocked and figures are drawn
-        when calling plt.show(). If `False`, the figures in the dictionary will remain
+        when calling `plt.show()`.
+        If `False`, the figures in the dictionary will remain
         closed and will not be drawn.
     """
 
@@ -37,7 +44,7 @@ class FigureContainer(dict):
 
         Parameters
         ----------
-        figure : `~pylbo.visualisation.figure_manager.PlotWindow` instance
+        figure : ~pylbo.visualisation.figure_manager.FigureWindow
             The figure to add.
 
         Raises
@@ -63,7 +70,7 @@ class FigureContainer(dict):
 
         Returns
         -------
-        figure : `~pylbo.visualisation.figure_manager.PlotWindow` instance
+        figure : ~pylbo.visualisation.figure_manager.FigureWindow
             The figure corresponding to `figure_id`.
         """
         self._validate_figure_id(figure_id)
@@ -93,8 +100,8 @@ class FigureContainer(dict):
     def disable_stack(self):
         """
         This disables the figurestack by closing the figures: this prevents them
-        from showing when calling plt.show(). Later on we reconstruct the
-        figuremanagers.
+        from showing when calling `plt.show()`.
+        Later on we reconstruct the figuremanagers.
         """
         [figure.disable() for figure in self.figure_list]
         self.stack_is_enabled = False
@@ -147,9 +154,9 @@ class FigureWindow:
 
     Attributes
     ----------
-    fig : matplotlib.figure.Figure
+    fig : ~matplotlib.figure.Figure
         The figure on which to draw.
-    ax : matplotlib.axes.Axes
+    ax : ~matplotlib.axes.Axes
         The axes on which to draw.
     custom_figure : tuple
         The (fig, ax) custom figure that was passed, `None` by default.
@@ -224,14 +231,24 @@ class FigureWindow:
         self.fig.set_canvas(manager.canvas)
 
     def connect_callbacks(self):
+        """Connects all callbacks to the canvas"""
         for callback in self._mpl_callbacks:
             self.fig.canvas.mpl_connect(callback["kind"], callback["method"])
 
     def disconnect_callbacks(self):
+        """Disconnects all callbacks from the canvas"""
         for callback in self._mpl_callbacks:
             self.fig.canvas.mpl_disconnect(callback["cid"])
 
     def _enable_interactive_legend(self, handle):
+        """
+        Makes the current legendhandler interactive.
+
+        Parameters
+        ----------
+        handle : ~pylbo.visualisation.legend_interface.LegendHandler
+            The legendhandler (or a subclass thereof)
+        """
         handle.make_legend_pickable()
         callback_kind = "pick_event"
         callback_method = handle.on_legend_pick
@@ -245,15 +262,36 @@ class FigureWindow:
         )
 
     def draw(self):
+        """
+        Draws everything on the figure. This method is meant to be overriden by
+        a subclass, where a `super()` call can be done to this method to clear the
+        figure first.
+        """
         self.ax.cla()
         self.disconnect_callbacks()
 
     @refresh_plot
     def set_x_scaling(self, x_scaling):
+        """
+        Sets the x scaling, should be overridden by a subclass.
+
+        Parameters
+        ----------
+        x_scaling : int, float, complex, numpy.ndarray
+            The scaling to apply to the x-axis.
+        """
         self.x_scaling = x_scaling
 
     @refresh_plot
     def set_y_scaling(self, y_scaling):
+        """
+        Sets the y scaling, should be overridden by a subclass.
+
+        Parameters
+        ----------
+        y_scaling : int, float, complex, numpy.ndarray
+            The scaling to apply to the y-axis
+        """
         self.y_scaling = y_scaling
 
     def show(self):
@@ -281,7 +319,7 @@ class FigureWindow:
         filename : str, ~os.PathLike
             The filename to which the current figure is saved.
         kwargs
-            Default keyword arguments passed to `matplotlib.pyplot.savefig`.
+            Default keyword arguments passed to :meth:`~matplotlib.pyplot.savefig`.
         """
         filepath = Path(filename).resolve()
         self.fig.savefig(filepath, **kwargs)
