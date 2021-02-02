@@ -27,6 +27,7 @@ from regression_tests.test_resistive_tearing import resistive_tearing_setup
 from regression_tests.test_resistive_tearing_flow import resistive_tearing_flow_setup
 from regression_tests.test_rotating_cylinder import rotating_cylinder_setup
 from regression_tests.test_RTI import rti_setup
+from regression_tests.test_RTI_KHI import rti_khi_setup
 from regression_tests.test_RTI_theta_pinch_HD import rti_thetapinch_hd_setup
 from regression_tests.test_RTI_theta_pinch_MHD import rti_thetapinch_mhd_setup
 from regression_tests.test_suydam import suydam_setup
@@ -54,6 +55,7 @@ tests_to_run = [
     resistive_tearing_flow_setup,
     rotating_cylinder_setup,
     rti_setup,
+    rti_khi_setup,
     rti_thetapinch_hd_setup,
     rti_thetapinch_mhd_setup,
     suydam_setup,
