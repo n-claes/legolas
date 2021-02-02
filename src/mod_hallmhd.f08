@@ -9,24 +9,54 @@ implicit none
 
 private
 
-public  :: get_hallfactor
+public  :: set_hallfactor
 public  :: get_hallterm
 public  :: hall_boundaries
 
 contains
 
-  !> Retrieves the normalised Hall factor as described by Porth et al. (2014)
-  subroutine get_hallfactor()
-    use mod_global_variables, only: cgs_units, hallfactor
+  !> Retrieves the normalised Hall factor as described by Porth et al. (2014),
+  !! with a dropoff at the boundary
+  subroutine set_hallfactor(hall_field)
+    use mod_grid, only: grid_gauss
+    use mod_physical_constants, only: dpi
+    use mod_global_variables, only: cgs_units, gauss_gridpts, dropoff_edge_dist, dropoff_width
     use mod_physical_constants, only: mp_cgs, mp_si, ec_cgs, ec_si
     use mod_units, only: unit_velocity, unit_length, unit_magneticfield
+    use mod_types, only: hall_type
 
+    type (hall_type), intent(inout)  :: hall_field
+
+    real(dp)  :: sleft, sright, width, hallval
+    real(dp)  :: x, shift, stretch
+    integer   :: i
+
+    width = dropoff_width
     if (cgs_units) then
-      hallfactor = (mp_cgs * unit_velocity) / (ec_cgs * unit_length * unit_magneticfield)
+      hallval = (mp_cgs * unit_velocity) / (ec_cgs * unit_length * unit_magneticfield)
     else
-      hallfactor = (mp_si * unit_velocity) / (ec_si * unit_length * unit_magneticfield)
+      hallval = (mp_si * unit_velocity) / (ec_si * unit_length * unit_magneticfield)
     end if
-  end subroutine get_hallfactor
+
+    sleft = grid_gauss(1) + 0.5d0 * width + dropoff_edge_dist
+    sright = grid_gauss(gauss_gridpts) - dropoff_edge_dist - 0.5d0 * width
+
+    shift = hallval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
+    stretch = hallval / (tanh(dpi) - tanh(-dpi))
+
+    do i = 1, gauss_gridpts
+      x = grid_gauss(i)
+      if (sleft - 0.5d0*width <= x .and. x <= sleft + 0.5d0*width) then
+        hall_field % hallfactor(i) = shift + stretch * tanh(2.0d0 * dpi * (x - sleft) / width)
+      else if (sleft + 0.5d0*width < x .and. x < sright - 0.5d0*width) then
+        hall_field % hallfactor(i) = hallval
+      else if (sright - 0.5d0*width <= x .and. x <= sright + 0.5d0*width) then
+        hall_field % hallfactor(i) = shift + stretch * tanh(2.0d0 * dpi * (sright - x) / width)
+      else
+        hall_field % hallfactor(i) = 0.0d0
+      end if
+    end do
+  end subroutine set_hallfactor
 
   !> Retrieves the A-matrix Hall contribution for a given quadblock corresponding
   !! to a particular point in the grid and a particular Gaussian weight.
@@ -194,14 +224,13 @@ contains
   end subroutine get_hallterm
 
   !> Creates a quadblock for the A matrix containing the natural boundary
-  !! conditions coming from the Hall term.
+  !! conditions coming from the Hall term, depending on the supplied edge.
   subroutine hall_boundaries(quadblock_Hall, edge)
     use mod_global_variables, only: gauss_gridpts, dim_subblock
     use mod_logging, only: log_message
     use mod_equilibrium, only: rho_field, B_field
     use mod_grid, only: eps_grid
     use mod_equilibrium_params, only: k2, k3
-    use mod_make_subblock, only: reset_factors, reset_positions
 
     !> the quadblock corresponding to the left/right edge
     complex(dp), intent(out)      :: quadblock_Hall(dim_quadblock, dim_quadblock)
@@ -232,39 +261,21 @@ contains
     B02 = B_field % B02(idx)
     B03 = B_field % B03(idx)
 
-    ! Quadratic * Quadratic
-    call reset_factors(surface_terms, 1)
-    call reset_positions(positions, 1)
+    allocate(positions(3, 2))
+    allocate(surface_terms(3))
 
     ! surface term for element (6, 6)
     surface_terms(1) = - rho0_inv * (k2 * B03 * eps_inv - k3 * B02)
     positions(1, :) = [6, 6]
-
-    ! l_edge: add to top-right of 2x2 block, for top-left subblock only
-    ! r_edge: add to top-right of 2x2 block, for bottom-right subblock only
-    if (edge == 'l_edge') then
-      positions = 2 * positions
-    else if (edge == 'r_edge') then
-      positions = 2 * positions + dim_subblock
-    end if
-
-    do i = 1, size(surface_terms)
-      quadblock_Hall(positions(i, 1), positions(i, 2)) = quadblock_Hall(positions(i, 1), positions(i, 2)) + surface_terms(i)
-    end do
-
-    ! Quadratic * d(Cubic)/dr
-    call reset_factors(surface_terms, 2)
-    call reset_positions(positions, 2)
-
     ! surface term for element (6, 7)
-    surface_terms(1) = B03 * eps_inv * rho0_inv
-    positions(1, :) = [6, 7]
+    surface_terms(2) = B03 * eps_inv * rho0_inv
+    positions(2, :) = [6, 7]
     ! surface term for element (6, 8)
-    surface_terms(2) = - B02 * rho0_inv
-    positions(2, :) = [6, 8]
+    surface_terms(3) = - B02 * rho0_inv
+    positions(3, :) = [6, 8]
 
-    ! l_edge: add to top-right of 2x2 block, for top-left subblock only
-    ! r_edge: add to top-right of 2x2 block, for bottom-right subblock only
+    ! l_edge: add to bottom-right of 2x2 block, for top-left subblock only
+    ! r_edge: add to bottom-right of 2x2 block, for bottom-right subblock only
     if (edge == 'l_edge') then
       positions = 2 * positions
     else if (edge == 'r_edge') then

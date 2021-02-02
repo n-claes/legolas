@@ -69,7 +69,7 @@ contains
     use mod_version, only: LEGOLAS_VERSION
     use mod_logging, only: log_message
     use mod_grid, only: grid, grid_gauss
-    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, kappa_field, eta_field, grav_field
+    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions, only: ef_grid, ef_names, ef_array
     use mod_check_values, only: value_is_zero
     use mod_equilibrium_params
@@ -82,7 +82,7 @@ contains
     !> the B-matrix
     real(dp), intent(in)          :: matrix_B(matrix_gridpts, matrix_gridpts)
 
-    character(len=16)             :: param_names(32), equil_names(23)
+    character(len=16)             :: param_names(32), equil_names(24)
     integer                       :: i, j, nonzero_A_values, nonzero_B_values
 
     param_names = [character(len=str_len_arr) :: 'k2', 'k3', 'cte_rho0', 'cte_T0', 'cte_B02', 'cte_B03', &
@@ -91,7 +91,7 @@ contains
                    'Bth0', 'Bz0', 'V', 'j0', 'g']
     equil_names = [character(len=str_len_arr) :: 'rho0', 'drho0', 'T0', 'dT0', 'B02', 'B03', 'dB02', 'dB03', &
                    'ddB02', 'ddB03', 'B0', 'v02', 'v03', 'dv02', 'dv03', 'dLdT', 'dLdrho', &
-                   'kappa_para', 'kappa_perp', 'eta', 'detadT', 'detadr', 'grav']
+                   'kappa_para', 'kappa_perp', 'eta', 'detadT', 'detadr', 'grav', 'Hall']
 
     call make_filename(trim(basename_datfile) // ".dat", datfile_name)
     call open_file(dat_fh, datfile_name)
@@ -118,7 +118,7 @@ contains
                   eta_field % dd_B02_dr, eta_field % dd_B03_dr, &
                   B_field % B0, v_field % v02, v_field % v03, v_field % d_v02_dr, v_field % d_v03_dr, &
                   rc_field % d_L_dT, rc_field % d_L_drho, kappa_field % kappa_para, kappa_field % kappa_perp, &
-                  eta_field % eta, eta_field % d_eta_dT, eta_field % d_eta_dr, grav_field % grav
+                  eta_field % eta, eta_field % d_eta_dT, eta_field % d_eta_dr, grav_field % grav, hall_field % hallfactor
 
     ! Eigenfunction data [optional]
     if (write_eigenfunctions) then

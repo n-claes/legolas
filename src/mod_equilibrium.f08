@@ -11,7 +11,7 @@
 module mod_equilibrium
   use mod_units
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
-                       gravity_type, resistivity_type, cooling_type, conduction_type
+                       gravity_type, resistivity_type, cooling_type, conduction_type, hall_type
   use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
                                   flow, resistivity, external_gravity, radiative_cooling, &
                                   thermal_conduction, geometry, use_defaults, cgs_units
@@ -73,6 +73,8 @@ module mod_equilibrium
   type (cooling_type)     :: rc_field
   !> type containing all thermal conduction-related equilibrium variables
   type (conduction_type)  :: kappa_field
+  !> type containing all Hall related variables
+  type (hall_type)        :: hall_field
 
   public :: rho_field
   public :: T_field
@@ -82,6 +84,7 @@ module mod_equilibrium
   public :: eta_field
   public :: rc_field
   public :: kappa_field
+  public :: hall_field
 
   public :: initialise_equilibrium
   public :: set_equilibrium
@@ -104,6 +107,7 @@ contains
     call initialise_type(eta_field)
     call initialise_type(rc_field)
     call initialise_type(kappa_field)
+    call initialise_type(hall_field)
   end subroutine initialise_equilibrium
 
 
@@ -119,6 +123,8 @@ contains
     use mod_resistivity, only: set_resistivity_values
     use mod_radiative_cooling, only: initialise_radiative_cooling, set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
+    use mod_global_variables, only: hall_mhd
+    use mod_hallmhd, only: set_hallfactor
 
     ! Set equilibrium submodule to use
     call set_equilibrium_pointer()
@@ -126,6 +132,10 @@ contains
     call set_equilibrium_values()
     ! Set normalisations if needed
     call check_if_normalisations_set()
+    ! Set Hall factor if needed
+    if (hall_mhd) then
+      call set_hallfactor(hall_field)
+    end if
 
     ! Check for negative/NaN values
     call check_negative_array(rho_field % rho0, 'density')
@@ -279,6 +289,7 @@ contains
     call deallocate_type(eta_field)
     call deallocate_type(rc_field)
     call deallocate_type(kappa_field)
+    call deallocate_type(hall_field)
   end subroutine equilibrium_clean
 
 end module mod_equilibrium

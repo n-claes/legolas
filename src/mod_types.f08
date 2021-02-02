@@ -105,6 +105,12 @@ module mod_types
     complex(dp), allocatable :: eigenfunctions(:, :)
   end type ef_type
 
+  !> type containing Hall related variables
+  type hall_type
+    !> Hall parameter
+    real(dp), allocatable    :: hallfactor(:)
+  end type hall_type
+
 
   !> interface to initialise all the different types
   interface initialise_type
@@ -116,6 +122,7 @@ module mod_types
     module procedure initialise_resistivity_type
     module procedure initialise_cooling_type
     module procedure initialise_conduction_type
+    module procedure initialise_hall_type
   end interface initialise_type
 
   !> interface to deallocate all the different types
@@ -128,6 +135,7 @@ module mod_types
     module procedure deallocate_resistivity_type
     module procedure deallocate_cooling_type
     module procedure deallocate_conduction_type
+    module procedure deallocate_hall_type
   end interface deallocate_type
 
   public :: density_type
@@ -139,6 +147,7 @@ module mod_types
   public :: cooling_type
   public :: conduction_type
   public :: ef_type
+  public :: hall_type
 
   public :: initialise_type
   public :: deallocate_type
@@ -256,6 +265,17 @@ contains
   end subroutine initialise_cooling_type
 
 
+  !> Allocates the Hall type and initialises all values to zero.
+  subroutine initialise_hall_type(type_hall)
+    !> the type containing the density attributes
+    type (hall_type), intent(inout)  :: type_hall
+
+    allocate(type_hall % hallfactor(gauss_gridpts))
+
+    type_hall % hallfactor = 0.0d0
+  end subroutine initialise_hall_type
+
+
   !> Allocates the thermal conduction type and initialises all values to zero.
   subroutine initialise_conduction_type(type_kappa)
     !> the type containing the thermal conduction attributes
@@ -364,5 +384,14 @@ contains
     deallocate(type_kappa % d_kappa_perp_dT)
     deallocate(type_kappa % d_kappa_perp_dB2)
   end subroutine deallocate_conduction_type
+
+
+  !> Deallocates all attributes contained in the Hall type.
+  subroutine deallocate_hall_type(type_hall)
+    !> the type containing the density attributes
+    type (hall_type), intent(inout)  :: type_hall
+
+    deallocate(type_hall % hallfactor)
+  end subroutine deallocate_hall_type
 
 end module mod_types

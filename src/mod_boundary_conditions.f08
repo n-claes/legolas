@@ -20,9 +20,10 @@ contains
   !! @note  Perpendicular thermal conduction is hard-checked, that is, not just the
   !!        global logical. There must be a value in the corresponding array that is non-zero.
   subroutine apply_boundary_conditions(matrix_A, matrix_B)
-    use mod_global_variables, only: dp_LIMIT, hall_mhd, hallfactor
+    use mod_global_variables, only: dp_LIMIT, hall_mhd, gauss_gridpts
     use mod_equilibrium, only: kappa_field
     use mod_hallmhd, only: hall_boundaries
+    use mod_equilibrium, only: hall_field
 
     !> the A-matrix with boundary conditions imposed on exit
     complex(dp), intent(inout)  :: matrix_A(matrix_gridpts, matrix_gridpts)
@@ -31,6 +32,7 @@ contains
     complex(dp)                 :: quadblock(dim_quadblock, dim_quadblock)
     complex(dp)                 :: quadblock_Hall(dim_quadblock, dim_quadblock)
     integer                     :: idx_end_left, idx_start_right
+    real(dp)                    :: hf
 
     ! check if perpendicular thermal conduction is present
     kappa_perp_is_zero = .true.
@@ -58,7 +60,8 @@ contains
     call natural_boundaries(quadblock, edge='l_edge')
     if (hall_mhd) then
       call hall_boundaries(quadblock_Hall, edge='l_edge')
-      quadblock = quadblock - hallfactor * quadblock_Hall
+      hf = hall_field % hallfactor(1)
+      quadblock = quadblock - hf * quadblock_Hall
     end if
     matrix_A(1:idx_end_left, 1:idx_end_left) = quadblock
     ! matrix A right-edge quadblock
@@ -67,7 +70,8 @@ contains
     call natural_boundaries(quadblock, edge='r_edge')
     if (hall_mhd) then
       call hall_boundaries(quadblock_Hall, edge='r_edge')
-      quadblock = quadblock - hallfactor * quadblock_Hall
+      hf = hall_field % hallfactor(gauss_gridpts)
+      quadblock = quadblock - hf * quadblock_Hall
     end if
     matrix_A(idx_start_right:matrix_gridpts, idx_start_right:matrix_gridpts) = quadblock
   end subroutine apply_boundary_conditions

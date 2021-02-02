@@ -32,12 +32,13 @@ contains
   !! both matrices. On exit, both matrices are fully assembled and
   !! boundary conditions are imposed.
   subroutine create_matrices(matrix_B, matrix_A)
-    use mod_global_variables, only: gaussian_weights, n_gauss, hall_mhd, hallfactor
+    use mod_global_variables, only: gaussian_weights, n_gauss, hall_mhd!, hallfactor
     use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
                                     cubic_factors, cubic_factors_deriv
     use mod_boundary_conditions, only: apply_boundary_conditions
     use mod_hallmhd, only: get_hallterm
+    use mod_equilibrium, only: hall_field
 
     !> the B-matrix
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
@@ -50,6 +51,7 @@ contains
     real(dp)                    :: r, r_lo, r_hi, eps, d_eps_dr, curr_weight
     integer                     :: i, j, gauss_idx, k, l
     integer                     :: quadblock_idx, idx1, idx2
+    real(dp)                    :: hf
 
     ! initialise matrices (A is complex, B is real)
     matrix_B = 0.0d0
@@ -91,7 +93,8 @@ contains
         if (hall_mhd) then
           call get_hallterm(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_Hall, &
                             h_quadratic, dh_quadratic_dr, h_cubic, dh_cubic_dr)
-          quadblock_A = quadblock_A - hallfactor * quadblock_Hall
+          hf = hall_field % hallfactor(gauss_idx)
+          quadblock_A = quadblock_A - hf * quadblock_Hall
         end if
       end do   ! ends iteration gaussian points
 
