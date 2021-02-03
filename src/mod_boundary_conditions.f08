@@ -59,7 +59,7 @@ contains
     call essential_boundaries(quadblock, edge='l_edge', matrix='A')
     call natural_boundaries(quadblock, edge='l_edge')
     if (hall_mhd) then
-      call hall_boundaries(quadblock_Hall, edge='l_edge')
+      call hall_boundaries(quadblock_Hall, kappa_perp_is_zero, edge='l_edge')
       hf = hall_field % hallfactor(1)
       quadblock = quadblock - hf * quadblock_Hall
     end if
@@ -69,7 +69,7 @@ contains
     call essential_boundaries(quadblock, edge='r_edge', matrix='A')
     call natural_boundaries(quadblock, edge='r_edge')
     if (hall_mhd) then
-      call hall_boundaries(quadblock_Hall, edge='r_edge')
+      call hall_boundaries(quadblock_Hall, kappa_perp_is_zero, edge='r_edge')
       hf = hall_field % hallfactor(gauss_gridpts)
       quadblock = quadblock - hf * quadblock_Hall
     end if

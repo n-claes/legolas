@@ -66,7 +66,7 @@ contains
                           h_quadratic, dh_quadratic_dr, h_cubic, dh_cubic_dr)
     use mod_global_variables, only: dp_LIMIT
     use mod_equilibrium_params, only: k2, k3
-    use mod_equilibrium, only: rho_field, B_field
+    use mod_equilibrium, only: rho_field, B_field, T_field
     use mod_make_subblock, only: subblock, reset_factors, reset_positions
 
     !> current index in the Gaussian grid
@@ -92,8 +92,8 @@ contains
     integer, allocatable      :: positions(:, :)
 
     real(dp)                  :: eps_inv, rho0_inv
-    real(dp)                  :: rho0, B01, B02, B03
-    real(dp)                  :: drho0, drB02, dB02_r, dB03, dB02
+    real(dp)                  :: rho0, B01, B02, B03, T0
+    real(dp)                  :: drho0, drB02, dB02_r, dB03, dB02, dT0
 
     quadblock_Hall = (0.0d0, 0.0d0)
     eps_inv = 1.0d0 / eps
@@ -102,6 +102,9 @@ contains
     rho0 = rho_field % rho0(gauss_idx)
     drho0 = rho_field % d_rho0_dr(gauss_idx)
     rho0_inv = 1.0d0 / rho0
+
+    T0 = T_field % T0(gauss_idx)
+    dT0 = T_field % d_T0_dr(gauss_idx)
 
     ! To be uncommented when B01 is implemented
     B01 = 0.0d0 !B_field % B01(gauss_idx)
@@ -117,23 +120,33 @@ contains
     ! Setup of matrix elements
 
     ! Quadratic * Quadratic
-    call reset_factors(factors, 2)
-    call reset_positions(positions, 2)
+    call reset_factors(factors, 3)
+    call reset_positions(positions, 3)
     ! A(6, 1)
-    factors(1) = - eps_inv * rho0_inv**2 * (B02 * drB02 * eps_inv + B03 * dB03)
+    factors(1) = - eps_inv * rho0_inv**2 * (B02 * drB02 * eps_inv + B03 * dB03) &
+                  - dT0 * eps_inv * rho0_inv
     positions(1, :) = [6, 1]
+    ! A(6, 5)
+    factors(2) = drho0 * eps_inv * rho0_inv
+    positions(2, :) = [6, 5]
     ! A(6, 6)
-    factors(2) = - drho0 * rho0_inv**2 * (k2 * B03 * eps_inv - k3 * B02) &
+    factors(3) = - drho0 * rho0_inv**2 * (k2 * B03 * eps_inv - k3 * B02) &
                   + k3 * rho0_inv * (drB02 * eps_inv - eps * dB02_r)
-    positions(2, :) = [6, 6]
+    positions(3, :) = [6, 6]
     call subblock(quadblock_Hall, factors, positions, curr_weight, h_quadratic, h_quadratic)
 
     ! d(Quadratic)/dr * Quadratic
-    call reset_factors(factors, 1)
-    call reset_positions(positions, 1)
+    call reset_factors(factors, 3)
+    call reset_positions(positions, 3)
+    ! A(6, 1)
+    factors(1) = - T0 * eps_inv * rho0_inv
+    positions(1, :) = [6, 1]
+    ! A(6, 5)
+    factors(2) = - eps_inv
+    positions(2, :) = [6, 5]
     ! A(6, 6)
-    factors(1) = rho0_inv * (k2 * B03 * eps_inv - k3 * B02)
-    positions(1, :) = [6, 6]
+    factors(3) = rho0_inv * (k2 * B03 * eps_inv - k3 * B02)
+    positions(3, :) = [6, 6]
     call subblock(quadblock_Hall, factors, positions, curr_weight, dh_quadratic_dr, h_quadratic)
 
     ! Quadratic * Cubic
@@ -170,14 +183,26 @@ contains
     call subblock(quadblock_Hall, factors, positions, curr_weight, dh_quadratic_dr, dh_cubic_dr)
 
     ! Cubic * Quadratic
-    call reset_factors(factors, 2)
-    call reset_positions(positions, 2)
+    call reset_factors(factors, 6)
+    call reset_positions(positions, 6)
+    ! A(7, 1)
+    factors(1) = k2 * T0 * rho0_inv * eps_inv**2
+    positions(1, :) = [7, 1]
+    ! A(7, 5)
+    factors(2) = k2 * eps_inv**2
+    positions(2, :) = [7, 5]
     ! A(7, 6)
-    factors(1) = - B03 * rho0_inv * ((k2 * eps_inv)**2 + k3**2)
-    positions(1, :) = [7, 6]
+    factors(3) = - B03 * rho0_inv * ((k2 * eps_inv)**2 + k3**2)
+    positions(3, :) = [7, 6]
+    ! A(8, 1)
+    factors(4) = k3 * T0 * rho0_inv * eps_inv
+    positions(4, :) = [8, 1]
+    ! A(8, 5)
+    factors(5) = k3 * eps_inv
+    positions(5, :) = [8, 5]
     ! A(8, 6)
-    factors(2) = B02 * rho0_inv * ((k2 * eps_inv)**2 + k3**2)
-    positions(2, :) = [8, 6]
+    factors(6) = B02 * rho0_inv * ((k2 * eps_inv)**2 + k3**2)
+    positions(6, :) = [8, 6]
     call subblock(quadblock_Hall, factors, positions, curr_weight, h_cubic, h_quadratic)
 
     ! Cubic * Cubic
@@ -225,10 +250,13 @@ contains
 
   !> Creates a quadblock for the A matrix containing the natural boundary
   !! conditions coming from the Hall term, depending on the supplied edge.
-  subroutine hall_boundaries(quadblock_Hall, edge)
+  !! @note  Currently, no boundary conditions are applied due to the use of a
+  !!        dropoff profile for the Hall parameter, which is zero at the
+  !!        edges. @endnote
+  subroutine hall_boundaries(quadblock_Hall, kappa_perp_is_zero, edge)
     use mod_global_variables, only: gauss_gridpts, dim_subblock
     use mod_logging, only: log_message
-    use mod_equilibrium, only: rho_field, B_field
+    use mod_equilibrium, only: rho_field, B_field, T_field
     use mod_grid, only: eps_grid
     use mod_equilibrium_params, only: k2, k3
 
@@ -236,10 +264,12 @@ contains
     complex(dp), intent(out)      :: quadblock_Hall(dim_quadblock, dim_quadblock)
     !> the edge, either "l_edge" or "r_edge"
     character(len=6), intent(in)  :: edge
+    !> boolean indicating if perpendicular thermal conduction is included or not
+    logical, intent(in)           :: kappa_perp_is_zero
 
     complex(dp), allocatable  :: surface_terms(:)
     real(dp)                  :: eps, eps_inv, rho0_inv
-    real(dp)                  :: rho0, B02, B03
+    real(dp)                  :: rho0, B02, B03, T0
     integer, allocatable      :: positions(:, :)
     integer                   :: idx, i
 
@@ -258,21 +288,33 @@ contains
     eps_inv = 1.0d0 / eps
     rho0 = rho_field % rho0(idx)
     rho0_inv = 1.0d0 / rho0
+    T0 = T_field % T0(idx)
     B02 = B_field % B02(idx)
     B03 = B_field % B03(idx)
 
-    allocate(positions(3, 2))
-    allocate(surface_terms(3))
+    allocate(positions(5, 2))
+    allocate(surface_terms(5))
 
+    ! surface term for element (6, 1)
+    surface_terms(1) = T0 * eps_inv * rho0_inv
+    positions(1, :) = [6, 1]
+    ! surface term for element (6, 5)
+    surface_terms(2) = eps_inv
+    positions(2, :) = [6, 5]
     ! surface term for element (6, 6)
-    surface_terms(1) = - rho0_inv * (k2 * B03 * eps_inv - k3 * B02)
-    positions(1, :) = [6, 6]
+    surface_terms(3) = - rho0_inv * (k2 * B03 * eps_inv - k3 * B02)
+    positions(3, :) = [6, 6]
     ! surface term for element (6, 7)
-    surface_terms(2) = B03 * eps_inv * rho0_inv
-    positions(2, :) = [6, 7]
+    surface_terms(4) = B03 * eps_inv * rho0_inv
+    positions(4, :) = [6, 7]
     ! surface term for element (6, 8)
-    surface_terms(3) = - B02 * rho0_inv
-    positions(3, :) = [6, 8]
+    surface_terms(5) = - B02 * rho0_inv
+    positions(5, :) = [6, 8]
+
+    ! T1 is zero at the wall if perpendicular thermal conduction is included
+    if (.not. kappa_perp_is_zero) then
+      surface_terms(2) = 0.0d0
+    end if
 
     ! l_edge: add to bottom-right of 2x2 block, for top-left subblock only
     ! r_edge: add to bottom-right of 2x2 block, for bottom-right subblock only
