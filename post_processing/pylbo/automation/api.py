@@ -91,9 +91,9 @@ def run_legolas(parfiles, remove_parfiles=False, nb_cpus=1, executable=None):
 
     Parameters
     ----------
-    parfiles : list or numpy.ndarray
-        A list or array containing the paths to the parfiles. Accepts the output
-        of :func:`pylbo.generate_parfiles`.
+    parfiles : str, list, numpy.ndarray
+        A string, list or array containing the paths to the parfile(s).
+        Accepts the output of :func:`pylbo.generate_parfiles`.
     remove_parfiles : bool
         If `True`, removes the parfiles after running Legolas. This will also remove
         the containing folder if it turns out to be empty after the parfiles are

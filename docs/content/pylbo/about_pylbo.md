@@ -4,16 +4,8 @@ layout: single
 classes: wide
 sidebar:
   nav: "leftcontents"
-last_modified_at: 2020-10-27
+last_modified_at: 2020-02-02
 ---
-
-**Note** <i class="fas fa-hard-hat"></i> <i class="fas fa-hammer"></i>  
-Pylbo is still in beta (version 0.x), and as such it is possible that some API aspects may change
-during updates. We're adding functionality on an as-needed basis, which in some cases means modifying a method or class.
-The [Pylbo documentation](../../src-docs/sphinx/autoapi/pylbo/index.html) is always up-to-date. We'll mention possible
-breaking changes in the [Pylbo changelog](../../misc/pylbo_changelog/).
-{: .notice--info}
-
 When Legolas finishes solving the eigenvalue problem it writes all information to a specially
 tailored datfile. First a header is written, containing information such as the geometry, chosen equilibrium,
 parameters, unit normalisations and names of the equilibrium variables. The header is followed by the actual data
