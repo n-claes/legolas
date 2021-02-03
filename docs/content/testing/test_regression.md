@@ -4,7 +4,7 @@ layout: single
 classes: wide
 sidebar:
   nav: "leftcontents"
-last_modified_at: 2020-10-27
+last_modified_at: 2021-02-03
 ---
 
 The "main" testing framework for the Legolas code handles regression tests, which basically compare code
@@ -49,12 +49,13 @@ for a visual comparison. A .png file for every failed test will be present in th
 with `FAILED_` prepended to the name.
 
 ## Locally running regression tests
-Similar as to the [pylbo tests](../test_pylbo) you'll need pytest for this. Navigate to the `testing/regression_tests`
-folder and execute
+Similar as to the [pylbo tests](../test_pylbo) you'll need pytest for this with the same plugins.
+Navigate to the `tests/regression_tests` folder and execute
 ```bash
-pytest
+pytest regression.py test* -v --mpl --mpl-results-path=results
 ```
-This will automatically find all testfiles in the directory and execute them, you can track the progress during
-runtime.
+Due to the structure of the testing hierarchy we want to run the file `regression.py` first to properly configure
+each setup, followed by all other tests in random order. The `-v` argument enables more clear testing output,
+while `--mpl --mpl-results-path` enables image baseline comparison for the various multiruns. 
 
 Regression tests are run automatically for each commit and pull request to the `master` and `develop` branches.

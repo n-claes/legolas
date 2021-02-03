@@ -6,7 +6,7 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2020-11-27
+last_modified_at: 2021-02-03
 ---
 
 Legolas has interfaces implemented to various BLAS, LAPACK and ARPACK routines.
@@ -16,7 +16,7 @@ Note that in (most) cases we have a general eigenvalue problem of the form
 
 $$ A\mathbf{x} = \omega B\mathbf{x} $$
 
-where $$A$$ is a non-symmetric and non-Hermitian complex matrix. The $$B$$-matrix is
+where $A$ is a non-symmetric and non-Hermitian complex matrix. The $B$-matrix is
 symmetric, real and positive definite. Both matrices are block-tridiagonal, meaning
 they are very sparse.
 
@@ -115,7 +115,7 @@ When using Arnoldi-based solvers the solvelist can be set as follows:
 ```
 
 - `arpack_mode`: which mode to use, see the subsections below.
-- `number_of_eigenvalues`: this is an integer denoting the $$k$$ eigenvalues to be computed.
+- `number_of_eigenvalues`: this is an integer denoting the $k$ eigenvalues to be computed.
    Note that this number (obviously) has to be positive and should be smaller than the dimension of
    the eigenvalue problem (that is, `matrix_gridpts`).
 - `which_eigenvalues`: denotes the type of eigenvalues that should be calculated
@@ -131,8 +131,8 @@ When using Arnoldi-based solvers the solvelist can be set as follows:
    However, sometimes (especially for small eigenvalues) this may not be enough,
    in which case you can increase this number.
    
-If the iterative solver reaches `maxiter`, only a number $$j < k$$ eigenvalues will be converged.
-Legolas will notify you how many are converged, and you can still plot these $$j$$ eigenvalues and their eigenfunctions.
+If the iterative solver reaches `maxiter`, only a number $j < k$ eigenvalues will be converged.
+Legolas will notify you how many are converged, and you can still plot these $j$ eigenvalues and their eigenfunctions.
 
 Note that ARPACK is better at finding large eigenvalues. We recommend using the shift-invert mode
 if you want better performance for smaller eigenvalues. Ideally a combination of both is used, where
@@ -163,13 +163,13 @@ problem in standard form to the iterative solver.
 
 _General mode_: set `arpack_mode = "general"`.
 Solves the eigenvalue problem in its general form, however an inversion of the
-B-matrix is still needed. The main difference with the standard mode is that $$B\textbf{x}$$ is also
+B-matrix is still needed. The main difference with the standard mode is that $B\textbf{x}$ is also
 used during the iteration.
 
 ### Shift-invert
 {% capture pros %}
 **Pros:**
-- Ability to probe specific parts of the spectrum by shifting $$\sigma$$
+- Ability to probe specific parts of the spectrum by shifting $\sigma$
 - Better performance for small eigenvalues
 {% endcapture %}
 <div class="notice--success">
@@ -178,25 +178,25 @@ used during the iteration.
 
 {% capture cons %}
 **Cons:**
-- Method needs an operator $$[A - \sigma B]^{-1}B$$, so the inverse of a complex matrix
+- Method needs an operator $[A - \sigma B]^{-1}B$, so the inverse of a complex matrix
 {% endcapture %}
 <div class="notice--danger">
   {{ cons | markdownify }}
 </div>
-Running ARPACK in shift-invert mode allows one to set a certain shift $$\sigma$$ and calculate
+Running ARPACK in shift-invert mode allows one to set a certain shift $\sigma$ and calculate
 the shifted eigenvalues. Note that for this mode, the setting `which_eigenvalues` in the parfile
 refers to the shifted eigenvalues 
 
 $$ \dfrac{1}{\omega_i - \sigma} $$
 
-The value of $$\sigma$$ can be specified by adding it to the solvelist, like so
+The value of $\sigma$ can be specified by adding it to the solvelist, like so
 ```fortran 
 &solvelist
   sigma = (1.0d0, 0.05d0)
 /
 ```
 and should be a complex tuple (standard Fortran notation for complex numbers).
-Note that we need the operator $$[A - \sigma B]^{-1}B$$, which implies that $$\sigma$$ can not be zero
+Note that we need the operator $[A - \sigma B]^{-1}B$, which implies that $\sigma$ can not be zero
 in our case, because the matrix A can be singular (no magnetic field, for example) which removes the
 guarantee that the system is properly conditioned.
 

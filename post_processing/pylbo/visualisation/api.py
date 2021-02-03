@@ -119,7 +119,7 @@ def plot_equilibrium(data, figsize=None, interactive=True, **kwargs):
 
     Parameters
     ----------
-    data : ~pylbo.data_containers.LegolasDataContainer
+    data : ~pylbo.data_containers.LegolasDataSet
         The dataset or series that should be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
@@ -141,7 +141,7 @@ def plot_continua(data, figsize=None, interactive=True, **kwargs):
 
     Parameters
     ----------
-    data : ~pylbo.data_containers.LegolasDataContainer
+    data : ~pylbo.data_containers.LegolasDataSet
         The dataset or series that should be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
