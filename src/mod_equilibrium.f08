@@ -123,8 +123,6 @@ contains
     use mod_resistivity, only: set_resistivity_values
     use mod_radiative_cooling, only: initialise_radiative_cooling, set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
-    use mod_global_variables, only: hall_mhd
-    use mod_hallmhd, only: set_hallfactor
 
     ! Set equilibrium submodule to use
     call set_equilibrium_pointer()
@@ -132,10 +130,6 @@ contains
     call set_equilibrium_values()
     ! Set normalisations if needed
     call check_if_normalisations_set()
-    ! Set Hall factor if needed
-    if (hall_mhd) then
-      call set_hallfactor(hall_field)
-    end if
 
     ! Check for negative/NaN values
     call check_negative_array(rho_field % rho0, 'density')
