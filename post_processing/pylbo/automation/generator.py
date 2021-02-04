@@ -151,7 +151,7 @@ class ParfileGenerator:
             self.container["equilibriumlist"].update({"use_defaults": [False]})
             for name, param in params.items():
                 params.update({name: transform_to_list(param)})
-        self.container.update({"paramlist": params})
+            self.container.update({"paramlist": params})
 
         # here the original dictionary should be empty,
         # something went wrong if it isn't
@@ -167,6 +167,9 @@ class ParfileGenerator:
                     values_list = values
                 else:
                     raise ParfileGenerationError(items, self.nb_runs, key)
+                # make sure that sigma has complex values
+                if key == "sigma":
+                    values_list = [complex(value) for value in values_list]
                 self.container.get(namelist).update({key: values_list})
 
     def generate_parfiles(self):
