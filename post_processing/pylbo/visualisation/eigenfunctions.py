@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib.collections import PathCollection
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import add_pickradius_to_item
 from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
@@ -59,8 +60,14 @@ class EigenfunctionHandler:
         # possible depending on an overlapping pickradius. Look which point corresponds
         # to the smallest distance to the mouse click.
         idxs = event.ind
-        xdata = artist.get_xdata()
-        ydata = artist.get_ydata()
+        if isinstance(artist, PathCollection):
+            # this is done for points drawn using scatter instead of plot
+            xdata, ydata = np.split(artist.get_offsets(), [-1], axis=1)
+            xdata = xdata.squeeze()
+            ydata = ydata.squeeze()
+        else:
+            xdata = artist.get_xdata()
+            ydata = artist.get_ydata()
         if len(idxs) == 1:
             idx = idxs[0]
         else:

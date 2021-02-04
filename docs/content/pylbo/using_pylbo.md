@@ -80,7 +80,7 @@ axis and split it in two. The spectrum will be drawn on the left, the eigenfunct
 for which you want to see eigenfunctions. Selected points will be annotated on the plot, clicking left will deselect them.
 Pressing Enter draws the eigenfunctions for the selected points, you can cycle through the various eigenfunctions as well.
 
-Note that every point you select will have a different colour, the colours between the eigenfunctions and the selected spectrum points are consistent.
+Note that every point you select will have a different color, the colors between the eigenfunctions and the selected spectrum points are consistent.
 The legend on the eigenfunction panel will contain the index of the selected point in the `ds.eigenvalues` array, with the value printed as well.
 Below is a detailed overview of the various commands:
 
@@ -188,6 +188,7 @@ xdata = series.get_k0_squared()
 p = pylbo.plot_spectrum_multi(series, xdata=xdata)
 p.add_continua()
 p.add_eigenfunctions()
+p.show()
 ```
 Interactive controls are the same as before, except for one addition. When multiple datfiles are loaded it is not necessarily the case that all of them have
 eigenfunctions as well, making it difficult to known which spectrum points can be selected and which ones cannot. This can be made clear by pressing the M key, which will
@@ -198,3 +199,26 @@ and that this will have no effect if all datasets have eigenfunctions present.
 | :---: | :----          |
 | _m_ | Toggles the opacity for spectrum points that have no eigenfunctions, making them less visible.|
 
+### Plotting a merged spectrum
+In some cases it may be useful to merge all datasets of a series into a single 2D figure, for examply when probing the spectrum using multiple $\sigma$-values
+with the shift-invert solver. Pylbo supplies a method to do this, and even draw eigenfunctions at the same time:
+```python 
+p = pylbo.plot_merged_spectrum(series)
+p.add_eigenfunctions()
+p.show()
+```
+See the API [here](../../src-docs/sphinx/autoapi/pylbo/index.html#pylbo.plot_merged_spectrum) for more information.
+This will create a scatterplot where the points of every dataset in the series will be assigned a different color, and a legend will be created saying
+which color corresponds to which dataset. The legend is interactive by default, meaning that similar as to the interactive continua regions you can click on the
+legend and show/hide the corresponding dataset. To disable this, supply `interactive=False` as an additional keyword argument.
+
+If a great many datasets are loaded it may be useful to disable the legend alltogether. This can be done by giving the kwarg `legend=False` to `plot_merged_spectrum`.
+Furthermore, if you simply want to look at the spectrum in a single color, supply the argument `color="blue"` (or use your favorite color), 
+which will also disable the legend and plot all points in that color.
+
+The eigenfunctions are interactive in exactly the same way as for the other types of plots, but note that it's possible that points from different datasets may overlap,
+for example when the same eigenvalue is picked up by multiple datasets. Selecting that point will therefore plot multiple eigenfunctions
+(equal to the amount of overlapping points), however, you can circumvent this by hiding the points of the datasets you're not interesting in by clicking on their legend entries.
+Similar as to the multispectrum case you can highlight datasets that have eigenfunctions present by pressing the "M" key.
+
+Drawing continua is not supported for this type of figure.

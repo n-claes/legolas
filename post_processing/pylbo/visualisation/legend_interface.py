@@ -50,6 +50,7 @@ class LegendHandler:
         self.autoscale = False
         self._drawn_items = []
         self._legend_mapping = {}
+        self._make_visible_by_default = False
 
     def on_legend_pick(self, event):
         """
@@ -104,11 +105,14 @@ class LegendHandler:
                     f" to {drawn_item} (label '{drawn_item.get_label()}') \n"
                 )
             add_pickradius_to_item(item=legend_item, pickradius=self.pickradius)
-            legend_item.set_alpha(self.alpha_hidden)
             # add an attribute to this artist to tell it's from a legend
             setattr(legend_item, "is_legend_item", True)
-            # we make the regions invisible until clicked
-            drawn_item.set_visible(False)
+            # we make the regions invisible until clicked, or set visible as default
+            if self._make_visible_by_default:
+                legend_item.set_alpha(self.alpha_point)
+            else:
+                legend_item.set_alpha(self.alpha_hidden)
+            drawn_item.set_visible(self._make_visible_by_default)
             self._legend_mapping[legend_item] = drawn_item
 
     def add(self, item):

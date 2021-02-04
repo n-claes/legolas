@@ -1,6 +1,7 @@
 from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
 from pylbo.visualisation.spectra import SingleSpectrumPlot
 from pylbo.visualisation.spectra import MultiSpectrumPlot
+from pylbo.visualisation.spectra import MergedSpectrumPlot
 from pylbo.visualisation.profiles import EquilibriumProfile
 from pylbo.visualisation.profiles import ContinuumProfile
 from pylbo.visualisation.matrices import MatrixFigure
@@ -9,13 +10,49 @@ from pylbo.utilities.logger import pylboLogger
 forbidden_args = ["linestyle", "linewidth", "lw"]
 
 
-def plot_spectrum(dataset, figsize=None, custom_figure=None, **kwargs):
+def _ensure_dataset(data):
+    """
+    Ensures that the data object passed is a LegolasDataSet
+
+    Parameters
+    ----------
+    data : object
+        The data object to check.
+
+    Raises
+    ------
+    ValueError
+        If data is not a :class:`LegolasDataSet`.
+    """
+    if not isinstance(data, LegolasDataSet):
+        raise ValueError(f"expected a LegolasDataSet, but got {type(data)}")
+
+
+def _ensure_dataseries(data):
+    """
+    Ensures that the data object passed is a LegolasDataSeries
+
+    Parameters
+    ----------
+    data : object
+        The data object to check.
+
+    Raises
+    ------
+    ValueError
+        If data is not a :class:`LegolasDataSeries`.
+    """
+    if not isinstance(data, LegolasDataSeries):
+        raise ValueError(f"expected a LegolasDataSeries object, but got {type(data)}")
+
+
+def plot_spectrum(data, figsize=None, custom_figure=None, **kwargs):
     """
     Plots the spectrum of a single dataset.
 
     Parameters
     ----------
-    dataset : ~pylbo.data_containers.LegolasDataSet
+    data : ~pylbo.data_containers.LegolasDataSet
         The dataset that should be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
@@ -24,29 +61,22 @@ def plot_spectrum(dataset, figsize=None, custom_figure=None, **kwargs):
         but this one will be used instead. `fig` refers to the matplotlib figure and
         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
 
-    Raises
-    ------
-    TypeError
-        If the argument `dataset` is not an instance of
-        :class:`~pylbo.data_containers.LegolasDataSet`.
-
     Returns
     -------
     p : ~pylbo.visualisation.spectra.SingleSpectrumPlot
         The spectrum instance which can be used further to add continua,
         eigenfunctions, etc.
     """
-    if not isinstance(dataset, LegolasDataSet):
-        raise TypeError("plot_spectrum needs a single dataset, not a series.")
+    _ensure_dataset(data)
     for arg in forbidden_args:
         if kwargs.pop(arg, None) is not None:
             pylboLogger.warning(f"plot_spectrum does not accept the '{arg}' argument.")
-    p = SingleSpectrumPlot(dataset, figsize, custom_figure, **kwargs)
+    p = SingleSpectrumPlot(data, figsize, custom_figure, **kwargs)
     return p
 
 
 def plot_spectrum_multi(
-    dataseries,
+    data,
     xdata,
     use_squared_omega=False,
     use_real_parts=True,
@@ -59,7 +89,7 @@ def plot_spectrum_multi(
 
     Parameters
     ----------
-    dataseries : ~pylbo.data_containers.LegolasDataSeries
+    data : ~pylbo.data_containers.LegolasDataSeries
         The dataseries that should be used.
     xdata : str, list, numpy.ndarray
         Data to use for the horizontal axis. This can either be a key from the
@@ -78,31 +108,20 @@ def plot_spectrum_multi(
         but this one will be used instead. `fig` refers to the matplotlib figure and
         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
 
-    Raises
-    ------
-    TypeError
-        If the argument `dataseries` is not an instance of
-        :class:`pylbo.data_containers.LegolasDataSeries`.
-
     Returns
     -------
     p : ~pylbo.visualisation.spectra.MultiSpectrumPlot
         The spectrum instance which can be used further to add continua,
         eigenfunctions, etc.
     """
-    if isinstance(dataseries, list):
-        for ds in dataseries:
-            if not isinstance(ds, LegolasDataSet):
-                raise TypeError("invalid dataset passed to plot_spectrum_multi.")
-    elif not isinstance(dataseries, LegolasDataSeries):
-        raise TypeError("plot_spectrum_multi needs a dataseries, not a single dataset.")
+    _ensure_dataseries(data)
     for arg in forbidden_args:
         if kwargs.pop(arg, None) is not None:
             pylboLogger.warning(
                 f"plot_spectrum_multi does not accept the '{arg}' argument."
             )
     p = MultiSpectrumPlot(
-        dataseries,
+        data,
         xdata,
         use_squared_omega,
         use_real_parts,
@@ -110,6 +129,39 @@ def plot_spectrum_multi(
         custom_figure,
         **kwargs,
     )
+    return p
+
+
+def plot_merged_spectrum(
+    data, figsize=None, custom_figure=None, interactive=True, legend=True, **kwargs
+):
+    """
+    Creates a merged spectrum from various datasets, useful in plotting multiple
+    results from the shift-invert solver, for example. This draws every dataset
+    in a different color by default, and creates a corresponding legend. Supply the
+    optional argument `color` to draw all points in the same color.
+
+    Parameters
+    ----------
+    data : ~pylbo.data_containers.LegolasDataSeries
+    figsize : tuple
+        Optional figure size like the usual matplotlib (x, x) size.
+    custom_figure : tuple
+        Optional, in the form (fig, ax). If supplied no new figure will be created
+        but this one will be used instead. `fig` refers to the matplotlib figure and
+        `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+    interactive : bool
+        If `True` (default), enables an interactive legend.
+    legend : bool
+        If `True` (default), draws a legend.
+
+    Returns
+    -------
+    p : ~pylbo.visualisation.spectra.MultiSpectrumPlot
+        The spectrumfigure instance, containing the plot.
+    """
+    _ensure_dataseries(data)
+    p = MergedSpectrumPlot(data, figsize, custom_figure, interactive, legend, **kwargs)
     return p
 
 
@@ -131,6 +183,7 @@ def plot_equilibrium(data, figsize=None, interactive=True, **kwargs):
     p : ~pylbo.visualisation.profiles.EquilibriumProfile
         The profile instance containing the equilibrium plots.
     """
+    _ensure_dataset(data)
     p = EquilibriumProfile(data, figsize, interactive, **kwargs)
     return p
 
@@ -153,17 +206,18 @@ def plot_continua(data, figsize=None, interactive=True, **kwargs):
     p : ~pylbo.visualisation.profiles.ContinuumProfile
         The profile instance containing the continua plots.
     """
+    _ensure_dataset(data)
     p = ContinuumProfile(data, figsize, interactive, **kwargs)
     return p
 
 
-def plot_matrices(dataset, figsize=None, **kwargs):
+def plot_matrices(data, figsize=None, **kwargs):
     """
     Plots the continua profiles.
 
     Parameters
     ----------
-    dataset : ~pylbo.data_containers.LegolasDataSet
+    data : ~pylbo.data_containers.LegolasDataSet
         The dataset that should be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
@@ -173,5 +227,6 @@ def plot_matrices(dataset, figsize=None, **kwargs):
     p : ~pylbo.visualisation.matrices.MatrixFigure
         The instance containing the matrix plots.
     """
-    p = MatrixFigure(dataset, figsize, **kwargs)
+    _ensure_dataset(data)
+    p = MatrixFigure(data, figsize, **kwargs)
     return p

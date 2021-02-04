@@ -208,7 +208,7 @@ class ContinuaHandler(LegendHandler):
         -------
         True if all values are the same, false otherwise.
         """
-        if all(np.diff(continuum) == 0):
+        if np.all(np.isclose(np.diff(continuum), 0)):
             return True
         return False
 

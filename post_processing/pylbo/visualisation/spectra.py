@@ -3,8 +3,9 @@ from copy import copy
 from matplotlib import colors
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.visualisation.eigenfunctions import EigenfunctionHandler
-from pylbo.utilities.toolbox import transform_to_numpy, add_pickradius_to_item
 from pylbo.visualisation.continua import ContinuaHandler
+from pylbo.visualisation.legend_interface import LegendHandler
+from pylbo.utilities.toolbox import transform_to_numpy, add_pickradius_to_item
 
 
 class SpectrumFigure(FigureWindow):
@@ -18,6 +19,12 @@ class SpectrumFigure(FigureWindow):
         self._ef_handler = None
         self._ef_ax = None
 
+        self.plot_props = None
+        self.marker = None
+        self.color = None
+        self.markersize = None
+        self.alpha = None
+
     def draw(self):
         """
         Draws everything, checks for continua/eigenfunctions. Overridden by subclasses.
@@ -28,6 +35,23 @@ class SpectrumFigure(FigureWindow):
             self.add_continua(self._c_handler.interactive)
         if self._ef_handler is not None:
             self.add_eigenfunctions()
+
+    def _set_plot_properties(self, properties):
+        """
+        Sets all relevant plot properties.
+
+        Parameters
+        ----------
+        properties : dict
+            Dictionary containing the usual matplotlib properties (marker, color,
+            markersize, alpha, etc.)
+        """
+        plot_props = copy(properties)
+        self.marker = plot_props.pop("marker", ".")
+        self.color = plot_props.pop("color", "blue")
+        self.markersize = plot_props.pop("markersize", 6)
+        self.alpha = plot_props.pop("alpha", 0.8)
+        self.plot_props = plot_props
 
     def _add_spectrum(self):
         """Adds the spectrum, is overridden in subclasses."""
@@ -118,12 +142,7 @@ class SingleSpectrumPlot(SpectrumFigure):
             figure_type="single-spectrum", figsize=figsize, custom_figure=custom_figure
         )
         self.dataset = dataset
-        self.kwargs = kwargs
-
-        self.marker = "."
-        self.color = "blue"
-        self.markersize = 6
-        self.alpha = 0.8
+        super()._set_plot_properties(kwargs)
 
         self.w_real = self.dataset.eigenvalues.real
         self.w_imag = self.dataset.eigenvalues.imag
@@ -139,7 +158,7 @@ class SingleSpectrumPlot(SpectrumFigure):
             markersize=self.markersize,
             alpha=self.alpha,
             linestyle="None",
-            **self.kwargs,
+            **self.plot_props,
         )
         # set dataset associated with this line of points
         setattr(spectrum_point, "dataset", self.dataset)
@@ -239,6 +258,7 @@ class MultiSpectrumPlot(SpectrumFigure):
         but this one will be used instead. `fig` refers to the matplotlib figure and
         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
     """
+
     def __init__(
         self,
         dataseries,
@@ -262,7 +282,7 @@ class MultiSpectrumPlot(SpectrumFigure):
         self.ydata = self._get_ydata()
         self.x_scaling = np.ones_like(self.dataseries)
         self.y_scaling = np.ones_like(self.dataseries)
-        self.kwargs = kwargs
+        super()._set_plot_properties(kwargs)
         self._add_spectrum()
 
     def _validate_xdata(self, xdata):
@@ -350,21 +370,16 @@ class MultiSpectrumPlot(SpectrumFigure):
         """
         Draw method, creates the spectrum.
         """
-        props = copy(self.kwargs)
-        marker = props.pop("marker", ".")
-        color = props.pop("color", "blue")
-        markersize = props.pop("markersize", 6)
-        alpha = props.pop("alpha", 0.8)
         for i, ds in enumerate(self.dataseries):
             (spectrum_point,) = self.ax.plot(
                 self.xdata[i] * np.ones_like(self.ydata[i]) * self.x_scaling[i],
                 self.ydata[i] * self.y_scaling[i],
-                marker=marker,
-                color=color,
-                markersize=markersize,
-                alpha=alpha,
+                marker=self.marker,
+                color=self.color,
+                markersize=self.markersize,
+                alpha=self.alpha,
                 linestyle="None",
-                **props,
+                **self.plot_props,
             )
             add_pickradius_to_item(item=spectrum_point, pickradius=10)
             # set dataset associated with this line of points
@@ -429,11 +444,89 @@ class MultiSpectrumPlot(SpectrumFigure):
         return self._c_handler
 
     def add_eigenfunctions(self):
-        """
-        Adds the eigenfunctions to the current figure.
-        """
+        """Adds the eigenfunctions to the current figure."""
         self._add_eigenfunction_axes()
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.dataseries, self._ef_ax)
         # connect everything
+        super().add_eigenfunctions()
+
+
+class MergedSpectrumPlot(SpectrumFigure):
+    """
+    Merges the datasets from a given series into a single plot.
+
+    Parameters
+    ----------
+    data : ~pylbo.data_containers.LegolasDataSeries
+        The dataseries which will be merged.
+    figsize : tuple
+        Figure size used when creating a window, analogous to matplotlib.
+    custom_figure : tuple
+        The custom figure to use in the form (fig, axes).
+    interactive : bool
+        If `True` an interactive legend is enabled.
+    legend : bool
+        If `False` no legend will be drawn.
+
+    Attributes
+    ----------
+    data : ~pylbo.data_containers.LegolasDataSeries
+        The dataseries passed as parameter.
+    leg_handle : ~pylbo.visualisation.legend_interface.LegendHandler
+        The handler for the legend.
+    """
+    def __init__(self, data, figsize, custom_figure, interactive, legend, **kwargs):
+        super().__init__(
+            figure_type="merged-spectrum", figsize=figsize, custom_figure=custom_figure
+        )
+        self.data = data
+        self.leg_handle = LegendHandler(interactive)
+        super()._set_plot_properties(kwargs)
+        self._use_legend = legend
+        self._single_color = False
+        if isinstance(kwargs.get("color", None), str):
+            self._single_color = True
+            # if everything is 1 color no use for a legend
+            self._use_legend = False
+        self._add_spectrum()
+
+        if self._use_legend and interactive:
+            self._enable_interactive_legend(self.leg_handle)
+
+    def _add_spectrum(self):
+        """Adds the spectrum to the plot, makes the points pickable."""
+        color = None
+        if self._single_color:
+            color = self.color
+        for ds in self.data:
+            spectrum_point = self.ax.scatter(
+                ds.eigenvalues.real * self.x_scaling,
+                ds.eigenvalues.imag * self.y_scaling,
+                marker=self.marker,
+                s=6 * self.markersize,
+                c=color,
+                alpha=self.alpha,
+                label=ds.datfile.stem,
+                **self.plot_props,
+            )
+            setattr(spectrum_point, "dataset", ds)
+            add_pickradius_to_item(item=spectrum_point, pickradius=10)
+            self.leg_handle.add(spectrum_point)
+        self.ax.axhline(y=0, linestyle="dotted", color="grey", alpha=0.3)
+        self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
+        self.ax.set_xlabel(r"Re($\omega$)")
+        self.ax.set_ylabel(r"Im($\omega$)")
+
+        if self._use_legend:
+            self.leg_handle.legend = self.ax.legend(loc="best")
+            self.leg_handle._make_visible_by_default = True
+        self.fig.tight_layout()
+
+    def add_eigenfunctions(self):
+        """Adds the eigenfunctions to the current figure."""
+        self._add_eigenfunction_axes()
+        if self._ef_handler is None:
+            self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax)
+            # connect everything
         super().add_eigenfunctions()

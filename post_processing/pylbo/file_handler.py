@@ -75,8 +75,14 @@ def load_series(datfiles):
 
     Parameters
     ----------
-    datfiles : list of str, list of ~os.PathLike, numpy.ndarray of str
-        Paths to the datfiles that should be loaded, in list/array form.
+    datfiles : list, numpy.ndarray
+        Paths to the datfiles that should be loaded, in list/array form. Every element
+        should be a string or a ~os.PathLike object.
+
+    Raises
+    ------
+    ValueError
+        If an empty list or array is supplied.
 
     Returns
     -------
@@ -84,6 +90,8 @@ def load_series(datfiles):
         A dataseries instance for the given datfiles.
     """
     transform_to_list(datfiles)
+    if not datfiles:
+        raise ValueError("load_series: supplied an empty list")
     for datfile in datfiles:
         _validate_file(datfile)
     series = LegolasDataSeries(datfiles)

@@ -5,6 +5,7 @@ from pylbo.file_handler import load, load_series, load_logfile
 from pylbo.visualisation.api import (
     plot_spectrum,
     plot_spectrum_multi,
+    plot_merged_spectrum,
     plot_equilibrium,
     plot_continua,
     plot_matrices,
