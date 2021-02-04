@@ -38,6 +38,9 @@ def calculate_continua(ds):
     slow2 = (gamma * p / (gamma * p + B0 ** 2)) * alfven2
     # doppler shift equals dot product of k and v
     doppler = k2 * v02 / ds.scale_factor + k3 * v03
+    slow_min = -np.sqrt(slow2)
+    slow_plus = np.sqrt(slow2)
+    slow_is_zero = np.all(np.isclose(slow2, 0))
 
     # Thermal continuum
     dLdT = ds.equilibria["dLdT"]
@@ -62,7 +65,7 @@ def calculate_continua(ds):
         cs2 = gamma * p / rho  # sound speed
         vA2 = B0 ** 2 / rho  # Alfvén speed
         ci2 = p / rho  # isothermal sound speed
-        sigma_A2 = kpara * vA2  # Alfvén frequency
+        sigma_A2 = kpara ** 2 * vA2  # Alfvén frequency
         sigma_c2 = cs2 * sigma_A2 / (vA2 + cs2)  # cusp frequency
         sigma_i2 = ci2 * sigma_A2 / (vA2 + ci2)  # isothermal cusp frequency
 
@@ -78,11 +81,22 @@ def calculate_continua(ds):
         ) * sigma_i2 - rho ** 2 * dLdrho * sigma_A2
         # we have to solve this equation "gauss_gridpts" times.
         # the thermal continuum corresponds to the (only) purely imaginary solution,
-        # slow continuum are other two (real) solutions
-        thermal = []
-        for idx in range(len(ds.grid_gauss)):
+        # modified slow continuum are other two solutions
+        thermal = np.empty(shape=len(ds.grid_gauss), dtype=np.float)
+        if not slow_is_zero:
+            slow_min = np.empty(shape=len(ds.grid_gauss), dtype=np.complex)
+            slow_plus = np.empty(shape=len(ds.grid_gauss), dtype=np.complex)
+        for idx, _ in enumerate(ds.grid_gauss):
             solutions = np.roots([coeff3[idx], coeff2[idx], coeff1[idx], coeff0[idx]])
-            imag_sol = solutions.imag[abs(solutions.real) < 1e-14]
+            # create mask for purely imaginary solutions
+            mask = abs(solutions.real) < 1e-14
+            imag_sol = solutions[mask].imag
+            # extract slow continuum solutions, only if there is a slow continuum
+            if not slow_is_zero:
+                s_neg, s_pos = np.sort_complex(solutions[np.invert(mask)])
+                slow_min[idx] = s_neg
+                slow_plus[idx] = s_pos
+            # process thermal continuum solution
             if (imag_sol == 0).all():
                 # if all solutions are zero (no thermal continuum), then append zero
                 w = 0
@@ -102,8 +116,7 @@ def calculate_continua(ds):
                         f"Solutions found: {imag_sol[imag_sol != 0]}."
                     )
                     w = 0
-            thermal.append(w)
-        thermal = np.asarray(thermal)
+            thermal[idx] = w
 
         # additional sanity check: if the slow continuum vanishes
         # there is an analytical solution for the
@@ -126,8 +139,8 @@ def calculate_continua(ds):
 
     # get doppler-shifted continua and return
     continua = {
-        CONTINUA_NAMES[0]: doppler - np.sqrt(slow2),
-        CONTINUA_NAMES[1]: doppler + np.sqrt(slow2),
+        CONTINUA_NAMES[0]: doppler + slow_min,  # minus is accounted for in slow_min
+        CONTINUA_NAMES[1]: doppler + slow_plus,
         CONTINUA_NAMES[2]: doppler - np.sqrt(alfven2),
         CONTINUA_NAMES[3]: doppler + np.sqrt(alfven2),
         CONTINUA_NAMES[4]: thermal,

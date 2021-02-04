@@ -299,6 +299,7 @@ class FigureWindow:
         self.__class__.figure_stack.disable_stack()
         self.enable()
         self.connect_callbacks()
+        self.fig.tight_layout()
         plt.show()
 
     @classmethod

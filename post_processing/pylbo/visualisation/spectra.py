@@ -194,7 +194,17 @@ class SingleSpectrumPlot(SpectrumFigure):
                 continue
             min_value = np.min(continuum)
             max_value = np.max(continuum)
-            if self._c_handler.check_if_collapsed(continuum=continuum):
+            # check if continua are complex
+            if np.all(np.iscomplex(continuum)):
+                (item,) = self.ax.plot(
+                    continuum.real * self.x_scaling,
+                    continuum.imag * self.y_scaling,
+                    color=color,
+                    linewidth=self.markersize / 2,
+                    alpha=self.alpha,
+                    label=key,
+                )
+            elif self._c_handler.check_if_collapsed(continuum=continuum):
                 item = self.ax.scatter(
                     min_value * self.x_scaling,
                     0,
@@ -231,6 +241,11 @@ class SingleSpectrumPlot(SpectrumFigure):
             self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax)
         # connect everything
         super().add_eigenfunctions()
+
+    def _ensure_smooth_continuum(self, continuum):
+        # TODO: this method should split the continuum into multiple parts, such that
+        #       regions that lie far apart are not connected by a line.
+        pass
 
 
 class MultiSpectrumPlot(SpectrumFigure):
@@ -476,6 +491,7 @@ class MergedSpectrumPlot(SpectrumFigure):
     leg_handle : ~pylbo.visualisation.legend_interface.LegendHandler
         The handler for the legend.
     """
+
     def __init__(self, data, figsize, custom_figure, interactive, legend, **kwargs):
         super().__init__(
             figure_type="merged-spectrum", figsize=figsize, custom_figure=custom_figure
