@@ -27,7 +27,7 @@ rti_khi_setup = {
         "show_results": False,
         "write_eigenfunctions": False,
         "write_matrices": False,
-    }
+    },
 }
 parametrisation = dict(
     argnames="setup",
@@ -41,4 +41,3 @@ def test_gravity_value(ds_test, setup):
     g_value = 100.0
     assert setup["config"]["parameters"]["g"] == pytest.approx(g_value)
     assert np.all(ds_test.equilibria.get("grav") == pytest.approx(g_value))
-

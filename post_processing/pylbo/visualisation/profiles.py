@@ -96,10 +96,7 @@ class ContinuumProfile(FigureWindow):
             if self.handler.check_if_all_zero(continuum):
                 continue
             (item,) = self.ax.plot(
-                self.data.grid_gauss,
-                self.data.continua[name],
-                color=color,
-                label=name
+                self.data.grid_gauss, self.data.continua[name], color=color, label=name
             )
             self.handler.add(item)
         self.handler.legend = self.ax.legend()

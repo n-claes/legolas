@@ -31,7 +31,7 @@ resistive_homo_setup = {
         -0.4154890 - 0.0076967j,
         -0.4151935 - 0.0136528j,
         -0.4148061 - 0.0213107,
-    ]
+    ],
 }
 parametrisation = dict(
     argnames="setup",

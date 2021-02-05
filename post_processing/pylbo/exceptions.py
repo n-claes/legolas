@@ -69,6 +69,7 @@ class ParfileGenerationError(LegolasException):
     """
     Gets thrown when something went wrong during parfile generation.
     """
+
     def __init__(self, file, nb_runs=None, key=None):
         self.file = file
         self.nb_runs = nb_runs

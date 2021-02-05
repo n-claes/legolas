@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import matplotlib.pyplot as plt
-import pylbo
 from pathlib import Path
 
 # relative tolerance, this is percentage-based (1% here)

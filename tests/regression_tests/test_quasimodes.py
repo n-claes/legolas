@@ -26,7 +26,7 @@ quasimodes_setup = {
         "show_results": False,
         "write_eigenfunctions": False,
         "write_matrices": False,
-    }
+    },
 }
 parametrisation = dict(
     argnames="setup",

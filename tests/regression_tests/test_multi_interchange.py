@@ -40,7 +40,7 @@ parametrisation = dict(
 )
 def test_interchange_flow(series_test):
     xdata = np.linspace(0, np.pi, len(series_test)) / np.pi
-    y_scaling = 1 / series_test.get_alfven_speed(which_values="average")**2
+    y_scaling = 1 / series_test.get_alfven_speed(which_values="average") ** 2
     p = pylbo.plot_spectrum_multi(
         series_test, xdata=xdata, use_squared_omega=True, markersize=3
     )

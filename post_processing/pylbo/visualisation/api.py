@@ -167,7 +167,12 @@ def plot_merged_spectrum(
 
 
 def plot_spectrum_comparison(
-    ds1, ds2, figsize=None, custom_figure=None, lock_zoom=False, **kwargs,
+    ds1,
+    ds2,
+    figsize=None,
+    custom_figure=None,
+    lock_zoom=False,
+    **kwargs,
 ):
     """
     Compares two spectra.

@@ -20,5 +20,5 @@ internal_kink_setup = {
         "write_eigenfunctions": True,
         "write_matrices": False,
     },
-    "ev_guesses": [0.470629 + 0.00607j, 0.470629 + 0.00607j]
+    "ev_guesses": [0.470629 + 0.00607j, 0.470629 + 0.00607j],
 }

@@ -21,4 +21,3 @@ fluxtube_coronal_setup = {
     },
     "all_eigenvalues_real": True,
 }
-

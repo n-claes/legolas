@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 from pathlib import Path
-import pylbo
 
 from regression_tests.suite_utils import (
     output,
@@ -57,7 +56,7 @@ tests_to_run = [
     rti_thetapinch_hd_setup,
     rti_thetapinch_mhd_setup,
     suydam_setup,
-    tokamak_setup
+    tokamak_setup,
 ]
 # configure test setup
 for _setup in tests_to_run:

@@ -39,7 +39,7 @@ parametrisation = dict(
 )
 def test_gravito_mhd(series_test):
     xdata = series_test.get_k0_squared()
-    y_scaling = 1 / series_test.get_alfven_speed(which_values="average")**2
+    y_scaling = 1 / series_test.get_alfven_speed(which_values="average") ** 2
     p = pylbo.plot_spectrum_multi(
         series_test, xdata=xdata, use_squared_omega=True, markersize=3
     )
