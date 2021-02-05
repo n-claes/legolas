@@ -45,6 +45,10 @@ class EigenfunctionHandler:
         event : ~matplotlib.backend_bases.PickEvent
             The pick event.
         """
+        # comparing spectra: prevents double event triggering
+        if hasattr(self, "associated_ds_ax"):
+            if not event.mouseevent.inaxes == self.associated_ds_ax:
+                return
         artist = event.artist
         # if artist is a legend item, return (this attribute has been set manually)
         if hasattr(artist, "is_legend_item"):

@@ -2,6 +2,7 @@ from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
 from pylbo.visualisation.spectra import SingleSpectrumPlot
 from pylbo.visualisation.spectra import MultiSpectrumPlot
 from pylbo.visualisation.spectra import MergedSpectrumPlot
+from pylbo.visualisation.spectra import SpectrumComparisonPlot
 from pylbo.visualisation.profiles import EquilibriumProfile
 from pylbo.visualisation.profiles import ContinuumProfile
 from pylbo.visualisation.matrices import MatrixFigure
@@ -162,6 +163,39 @@ def plot_merged_spectrum(
     """
     _ensure_dataseries(data)
     p = MergedSpectrumPlot(data, figsize, custom_figure, interactive, legend, **kwargs)
+    return p
+
+
+def plot_spectrum_comparison(
+    ds1, ds2, figsize=None, custom_figure=None, lock_zoom=False, **kwargs,
+):
+    """
+    Compares two spectra.
+
+    Parameters
+    ----------
+    ds1 : ~pylbo.data_containers.LegolasDataSet
+        The first dataset, this one is put on the left panel.
+    ds2 : ~pylbo.data_containers.LegolasDataSet
+        The second dataset, this one is put on the right panel.
+    figsize : tuple
+        Optional figure size like the usual matplotlib (x, x) size.
+    custom_figure : tuple
+        The custom figure to use in the form (fig, axes).
+    lock_zoom : bool
+        If `True` (`False` by default), locks the zoom of both axis. When locked,
+        zoomin in on one of the axis automatically scales the zoom on the other one
+        as well.
+
+    Returns
+    -------
+    p : ~pylbo.visualisation.spectra.SpectrumComparisonPlot
+        The figure instance containing the compared spectrum plot.
+
+    """
+    _ensure_dataset(ds1)
+    _ensure_dataset(ds2)
+    p = SpectrumComparisonPlot(ds1, ds2, figsize, custom_figure, lock_zoom, **kwargs)
     return p
 
 

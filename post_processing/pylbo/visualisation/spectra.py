@@ -225,6 +225,16 @@ class SingleSpectrumPlot(SpectrumFigure):
         #       regions that lie far apart are not connected by a line.
         pass
 
+    @property
+    def ef_ax(self):
+        """Property, returns the eigenfunction axes."""
+        return self._ef_ax
+
+    @property
+    def ef_handler(self):
+        """Property, returns the eigenfunction handler."""
+        return self._ef_handler
+
 
 class MultiSpectrumPlot(SpectrumFigure):
     """
@@ -526,3 +536,56 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax)
             # connect everything
         super().add_eigenfunctions()
+
+    def add_continua(self, interactive):
+        raise NotImplementedError("Continua are not supported for this type of figure.")
+
+
+class SpectrumComparisonPlot(SpectrumFigure):
+    def __init__(
+            self, ds1, ds2, figsize, custom_figure, lock_zoom, **kwargs
+    ):
+        super().__init__(
+            figure_type="compare-spectra", figsize=figsize, custom_figure=custom_figure,
+        )
+        super()._set_plot_properties(kwargs)
+        share = None
+        if lock_zoom:
+            share = "all"
+        self.ax2 = super()._add_subplot_axes(self.ax, "right", share=share)
+        # both panels are essentially single spectra, so create two instances and
+        # link that figure with this one
+        self.panel1 = SingleSpectrumPlot(
+            ds1, figsize=figsize, custom_figure=(self.fig, self.ax)
+        )
+        self.panel1.ax.set_title(ds1.datfile.stem)
+        self.panel2 = SingleSpectrumPlot(
+            ds2, figsize=figsize, custom_figure=(self.fig, self.ax2)
+        )
+        self.panel2.ax.set_title(ds2.datfile.stem)
+        self._axes_set = False
+
+    def _use_custom_axes(self):
+        if self._axes_set:
+            return
+        self.panel1.ax.change_geometry(2, 2, 1)
+        self.panel1._ef_ax = self.panel1.fig.add_subplot(2, 2, 3)
+        self.panel2.ax.change_geometry(2, 2, 2)
+        self.panel2._ef_ax = self.panel2.fig.add_subplot(2, 2, 4)
+        self._axes_set = True
+
+    def add_eigenfunctions(self):
+        self._use_custom_axes()
+        for panel in [self.panel1, self.panel2]:
+            panel.add_eigenfunctions()
+            panel.disconnect_callbacks()
+            # merge callbacks
+            self._mpl_callbacks.extend(panel._mpl_callbacks)
+            # add dedicated attribute to prevent mpl from double triggering events
+            setattr(panel.ef_handler, "associated_ds_ax", panel.ax)
+
+    def add_continua(self, interactive=True):
+        for panel in (self.panel1, self.panel2):
+            panel.add_continua(interactive)
+            panel.disconnect_callbacks()
+            self._mpl_callbacks.extend(panel._mpl_callbacks)

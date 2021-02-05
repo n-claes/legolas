@@ -261,10 +261,12 @@ class FigureWindow:
             }
         )
 
-    def _add_subplot_axes(self, ax, loc="right"):
+    def _add_subplot_axes(self, ax, loc="right", share=None):
         """
         Adds a new subplot to the given axes object, depending on the loc argument.
         On return, `tight_layout()` is called to update the figure's gridspec.
+        This is meant to split a single axis, and should not be used for multiple
+        subplots.
 
         Parameters
         ----------
@@ -275,11 +277,14 @@ class FigureWindow:
             The location of the new subplot to add, should be "right", "left", "top"
             or "bottom". Equal to "right" by default, so the original figure is shifted
             to the left and the new axis is added on the right.
+        share : str
+            Can be "x", "y" or "all". This locks axes zooming between both subplots.
 
         Raises
         ------
         ValueError
-            If the loc argument is invalid.
+            - If the subplot is not a single axis
+            - If the loc argument is invalid.
 
         Returns
         -------
@@ -307,8 +312,14 @@ class FigureWindow:
             raise ValueError(
                 f"invalid loc = {loc}, expected 'top', 'right', 'bottom' or 'left'"
             )
+        sharex = None
+        sharey = None
+        if share in ("x", "all"):
+            sharex = ax
+        if share in ("y", "all"):
+            sharey = ax
         ax.change_geometry(*geom_ax)
-        new_ax = self.fig.add_subplot(*geom_new_ax)
+        new_ax = self.fig.add_subplot(*geom_new_ax, sharex=sharex, sharey=sharey)
         # this will update the figure's gridspec
         self.fig.tight_layout()
         return new_ax
