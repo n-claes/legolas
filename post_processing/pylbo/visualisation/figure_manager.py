@@ -261,6 +261,58 @@ class FigureWindow:
             }
         )
 
+    def _add_subplot_axes(self, ax, loc="right"):
+        """
+        Adds a new subplot to the given axes object, depending on the loc argument.
+        On return, `tight_layout()` is called to update the figure's gridspec.
+
+        Parameters
+        ----------
+        ax : ~matplotlib.axes.Axes
+            The axes object, this will be "split" and a new axes will be added
+            to the figure.
+        loc : str
+            The location of the new subplot to add, should be "right", "left", "top"
+            or "bottom". Equal to "right" by default, so the original figure is shifted
+            to the left and the new axis is added on the right.
+
+        Raises
+        ------
+        ValueError
+            If the loc argument is invalid.
+
+        Returns
+        -------
+        new_ax : ~matplotlib.axes.Axes
+            The axes instance that was added.
+        """
+        if ax.get_geometry() != (1, 1, 1):
+            raise ValueError(
+                f"Something went wrong when adding a subplot. Expected "
+                f"axes with geometry (1, 1, 1) but got {self.ax.get_geometry()}."
+            )
+        if loc == "top":
+            geom_ax = (2, 1, 2)
+            geom_new_ax = (2, 1, 1)
+        elif loc == "right":
+            geom_ax = (1, 2, 1)
+            geom_new_ax = (1, 2, 2)
+        elif loc == "bottom":
+            geom_ax = (2, 1, 1)
+            geom_new_ax = (2, 1, 2)
+        elif loc == "left":
+            geom_ax = (1, 2, 2)
+            geom_new_ax = (1, 2, 1)
+        else:
+            raise ValueError(
+                f"invalid loc = {loc}, expected 'top', 'right', 'bottom' or 'left'"
+            )
+        ax.change_geometry(*geom_ax)
+        new_ax = self.fig.add_subplot(*geom_new_ax)
+        # this will update the figure's gridspec
+        self.fig.tight_layout()
+        return new_ax
+
     def draw(self):
         """
         Draws everything on the figure. This method is meant to be overriden by

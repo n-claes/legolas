@@ -17,27 +17,12 @@ class EquilibriumProfile(FigureWindow):
             if name.startswith("d"):
                 values = self.data.equilibria.get(name)
                 if any(values != 0):
-                    self.ax2 = self._add_extra_axis()
+                    self.ax2 = super()._add_subplot_axes(self.ax, "bottom")
                     break
         self.leg_handle = LegendHandler(interactive)
         self.draw()
         if interactive:
             self._enable_interactive_legend(self.leg_handle)
-
-    def _add_extra_axis(self):
-        """
-        Adds an extra axis to the current figure. Changes the geometry to include
-        an additional subplot.
-
-        Returns
-        -------
-        ax2 : ~matplotlib.axes.Axes
-            The axes object of the figure that was added.
-        """
-        self.ax.change_geometry(2, 1, 1)
-        ax2 = self.fig.add_subplot(212)
-        self.fig.tight_layout()
-        return ax2
 
     def draw(self):
         """Draws the figure."""
