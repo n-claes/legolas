@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from pathlib import Path
 import pylbo
-from pylbo.utilities.exceptions import EigenfunctionsNotPresent, MatricesNotPresent
 
 
 def _main():
@@ -16,19 +15,11 @@ def _main():
             raise FileNotFoundError(datfile)
 
     ds = pylbo.load(datfile)
-    ps = pylbo.SingleSpectrum(ds)
-    ps.plot_spectrum(annotate_continua=True)
-    try:
-        ps.plot_eigenfunctions(merge_figs=True)
-    except EigenfunctionsNotPresent:
-        pass
-    if ds.gridpts < 20:
-        try:
-            pylbo.plot_matrices(ds)
-        except MatricesNotPresent:
-            pass
-    ps.plot_equilibria()
-    pylbo.show()
+    p2 = pylbo.plot_equilibrium(ds)
+    p = pylbo.plot_spectrum(ds)
+    p.add_continua()
+    p.add_eigenfunctions()
+    p.showall()
 
 
 if __name__ == '__main__':
