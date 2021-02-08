@@ -1,3 +1,4 @@
+import numpy as np
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.visualisation.legend_interface import LegendHandler
 from pylbo.visualisation.continua import ContinuaHandler
@@ -106,3 +107,59 @@ class ContinuumProfile(FigureWindow):
         )
         self.ax.set_xlabel("Grid coordinate")
         self.ax.set_ylabel(r"$\omega$")
+
+
+class EquilibriumBalance(FigureWindow):
+    """Subclass responsible for plotting the equilibrium balance equations."""
+
+    def __init__(self, data, figsize, **kwargs):
+        super().__init__(figure_type="equilibrium-balance", figsize=figsize)
+        self.data = data
+        self.kwargs = kwargs
+        self.ax2 = super()._add_subplot_axes(self.ax, "bottom")
+        self.draw()
+
+    def draw(self):
+        """Draws the equilibrium balance equations."""
+        rho = self.data.equilibria["rho0"]
+        drho = self.data.equilibria["drho0"]
+        temp = self.data.equilibria["T0"]
+        dtemp = self.data.equilibria["dT0"]
+        b02 = self.data.equilibria["B02"]
+        db02 = self.data.equilibria["dB02"]
+        b03 = self.data.equilibria["B03"]
+        db03 = self.data.equilibria["dB03"]
+        g = self.data.equilibria["grav"]
+        v02 = self.data.equilibria["v02"]
+        kappa_perp = self.data.equilibria["kappa_perp"]
+        # L0 is only non-zero when custom heating is added
+        # (and is not saved to the datfile for now)
+        heat_loss = np.zeros_like(self.data.grid_gauss)
+        r_scale = self.data.scale_factor
+        dr_scale = self.data.d_scale_factor
+        equil_force = (
+            drho * temp
+            + rho * dtemp
+            + b02 * db02
+            + b03 * db03
+            + rho * g
+            - (dr_scale / r_scale) * (rho * v02 ** 2 - b02 ** 2)
+        )
+        equil_force[np.where(abs(equil_force) <= 1e-16)] = 0
+        self.ax.plot(self.data.grid_gauss, equil_force, **self.kwargs)
+        self.ax.axhline(y=0, color="grey", linestyle="dotted")
+        if any(abs(equil_force) > 1e-14):
+            self.ax.set_yscale("symlog")
+        self.ax.set_title("Force balance")
+
+        # ddT0 is not saved, so we do it numerically (it's a check anyway)
+        dtemp_fact = np.gradient(kappa_perp * dtemp, self.data.grid_gauss, edge_order=2)
+        equil_nadiab = (
+            dr_scale * kappa_perp * dtemp / r_scale + dtemp_fact - rho * heat_loss
+        )
+        equil_nadiab[np.where(abs(equil_nadiab) <= 1e-16)] = 0
+        self.ax2.plot(self.data.grid_gauss, equil_nadiab, **self.kwargs)
+        self.ax2.axhline(y=0, color="grey", linestyle="dotted")
+        if any(abs(equil_nadiab) > 1e-14):
+            self.ax2.set_yscale("symlog")
+        self.ax2.set_title("Nonadiabatic balance")

@@ -7,7 +7,7 @@ sidebar:
 toc: true
 toc_label: "Pylbo guide contents"
 toc_icon: "laptop-code"
-last_modified_at: 2021-02-03
+last_modified_at: 2021-02-08
 ---
 
 Using Pylbo is quite straightforward, for a detailed guide on the API we refer to the 
@@ -156,6 +156,18 @@ See the API [here](../../src-docs/sphinx/autoapi/pylbo/index.html#pylbo.plot_mat
 Note that this method is only for inspection purposes on low resolution datasets (10, maybe 20 gridpoints).
 This method should not be used for "regular" datasets, since thousands of points will be drawn in that case.
 
+### Plotting the equilibrium balance
+In case you are setting up an equilibrium by yourself and Legolas is complaining that the equilibrium
+balance equations are not satisfied, you can do a quick inspection of these equations like so:
+```python 
+p = pylbo.plot_equilibrium_balance(ds)
+p.show()
+```
+See the API [here](../../src-docs/sphinx/autoapi/pylbo/index.html#pylbo.plot_equilibrium_balance) for more information.
+The resulting curves should be as close to zero as possible. Note that for the non-adiabatic equilibrium
+equation Pylbo does a crude 2nd order numerical differentation (Numpy's gradient method), so the results
+may be off by about 1e-7 - 1e-8.
+
 ## Analysing multiple files
 In what follows we assume that all datfiles have been loaded in `series` as explained above.
 
@@ -222,3 +234,20 @@ for example when the same eigenvalue is picked up by multiple datasets. Selectin
 Similar as to the multispectrum case you can highlight datasets that have eigenfunctions present by pressing the "M" key.
 
 Drawing continua is not supported for this type of figure.
+
+### Comparing two spectra
+Sometimes it may be convenient to plot two similar spectra next to each other and do a direct visual comparison of both.
+This can be done as follows:
+```python 
+p = pylbo.plot_spectrum_comparison(ds1, ds2)
+p.show()
+```
+See the API [here](../../src-docs/sphinx/autoapi/pylbo/index.html#pylbo.plot_spectrum_comparison) for more information.
+This will create a 2x1 figure with the spectrum of `ds1` on the left and the one from `ds2` on the right. Note that you can add
+continua and eigenfunctions to this as well through `p.add_continua()` (with an optional `interactive=False` flag) and 
+`p.add_eigenfunctions()`. In the case of eigenfunctions, the figure will be transformed to a 2x2 plot, where the panel below each
+spectrum corresponds to the eigenfunctions.
+
+The additional keyword argument `lock_zoom=True` can be supplied to `plot_spectrum_comparison()`, which will lock the zoom on both
+spectra (and is off by default). Turning this on means that if you zoom in on one of the two spectra, 
+the zoom of the other plot is automatically adjusted to match.

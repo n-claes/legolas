@@ -4,6 +4,7 @@ from pylbo.visualisation.spectra import MultiSpectrumPlot
 from pylbo.visualisation.spectra import MergedSpectrumPlot
 from pylbo.visualisation.spectra import SpectrumComparisonPlot
 from pylbo.visualisation.profiles import EquilibriumProfile
+from pylbo.visualisation.profiles import EquilibriumBalance
 from pylbo.visualisation.profiles import ContinuumProfile
 from pylbo.visualisation.matrices import MatrixFigure
 from pylbo.utilities.logger import pylboLogger
@@ -224,6 +225,28 @@ def plot_equilibrium(data, figsize=None, interactive=True, **kwargs):
     """
     _ensure_dataset(data)
     p = EquilibriumProfile(data, figsize, interactive, **kwargs)
+    return p
+
+
+def plot_equilibrium_balance(data, figsize=None, **kwargs):
+    """
+    Creates a plot of the force balance equation and non-adiabatic equilibrium
+    equation. These should be as close to zero as possible over the entire grid.
+    All values smaller than 1e-16 are set to zero.
+
+    Parameters
+    ----------
+    data : ~pylbo.data_containers.LegolasDataSet
+        The dataset that should be used
+    figsize : tuple
+        Optional figure size like the usual matplotlib (x, x) size.
+
+    Returns
+    -------
+    p : ~pylbo.visualisation.profiles.EquilibriumBalance
+        The profile instance containing the equilibrium balance plots.
+    """
+    p = EquilibriumBalance(data, figsize, **kwargs)
     return p
 
 

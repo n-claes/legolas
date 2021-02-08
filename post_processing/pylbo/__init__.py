@@ -8,6 +8,7 @@ from pylbo.visualisation.api import (
     plot_merged_spectrum,
     plot_spectrum_comparison,
     plot_equilibrium,
+    plot_equilibrium_balance,
     plot_continua,
     plot_matrices,
 )

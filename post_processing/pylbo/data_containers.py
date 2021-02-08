@@ -176,9 +176,11 @@ class LegolasDataSet(LegolasDataContainer):
         self.geometry = self.header["geometry"]
         if self.geometry == "Cartesian":
             self.scale_factor = np.ones_like(self.grid_gauss)
+            self.d_scale_factor = np.zeros_like(self.grid_gauss)
             pylboLogger.debug("dataset: scale factor set to unity.")
         else:
             self.scale_factor = self.grid_gauss
+            self.d_scale_factor = np.ones_like(self.grid_gauss)
             pylboLogger.debug("dataset: scale factor set to radial coordinate.")
 
         self.x_start = self.header["x_start"]
