@@ -1,64 +1,14 @@
 import pylbo
 import copy
 from pathlib import Path
-from regression_tests.test_adiabatic_homo import config as adiabatic_config
-from regression_tests.test_discrete_alfven import config as discrete_alfven_config
-from regression_tests.test_fluxtube_coronal import config as fluxtube_coronal_config
-from regression_tests.test_fluxtube_photospheric import config as fluxtube_photo_config
-from regression_tests.test_gold_hoyle import config as gold_hoyle_config
-from regression_tests.test_interchange_modes import config as interchange_config
-from regression_tests.test_internal_kink import config as internal_kink_config
-from regression_tests.test_kh_cd import config as kh_cd_config
-from regression_tests.test_KHI import config as KHI_config
-from regression_tests.test_magnetothermal import config as magnetothermal_config
-from regression_tests.test_MRI import config as MRI_config
-from regression_tests.test_quasimodes import config as quasi_config
-from regression_tests.test_resistive_homo import config as resistive_homo_config
-from regression_tests.test_resistive_tearing import config as resistive_tearing_config
-from regression_tests.test_resistive_tearing_flow import config as resistive_tearing_flow_config
-from regression_tests.test_rotating_cylinder import config as plasma_cylinder_config
-from regression_tests.test_RTI import config as RTI_config
-from regression_tests.test_RTI_KHI import config as RTI_KHI_config
-from regression_tests.test_RTI_theta_pinch_HD import config as RTI_pinch_HD_config
-from regression_tests.test_RTI_theta_pinch_MHD import config as RTI_pinch_MHD_config
-from regression_tests.test_suydam import config as suydam_config
-from regression_tests.test_tokamak import config as tokamak_config
-
-pylbo.set_loglevel('info')
-output_dir = (pylbo.LEGOLAS_DIR / 'tests/regression_tests/answers').resolve()
-
-tests = [
-    adiabatic_config,
-    discrete_alfven_config,
-    fluxtube_coronal_config,
-    fluxtube_photo_config,
-    gold_hoyle_config,
-    interchange_config,
-    internal_kink_config,
-    kh_cd_config,
-    KHI_config,
-    magnetothermal_config,
-    MRI_config,
-    quasi_config,
-    resistive_homo_config,
-    resistive_tearing_config,
-    resistive_tearing_flow_config,
-    plasma_cylinder_config,
-    RTI_config,
-    RTI_KHI_config,
-    RTI_pinch_HD_config,
-    RTI_pinch_MHD_config,
-    suydam_config,
-    tokamak_config
-]
+from regression_tests.regression import tests_to_run
 
 
-def overwrite_files(base_filename):
-    datfile = (output_dir / (base_filename + '.dat')).resolve()
+def overwrite_files(datfile):
     if Path.is_file(datfile):
-        print('{} already exists!'.format(datfile.name))
-        force = input('overwrite? ')
-        if force.lower() in ('yes', 'y'):
+        print(f"{datfile.name} already exists!")
+        force = input("overwrite? ")
+        if force.lower() in ("yes", "y"):
             return True
         else:
             return False
@@ -67,25 +17,40 @@ def overwrite_files(base_filename):
 
 def main():
     parfiles = []
-    for test_dict in tests:
-        config = copy.deepcopy(test_dict)
-        name = config['equilibrium_type']
-        print('='*50)
-        print('>> generating {}'.format(name))
-        new_basename_datfile = '{}_{}'.format('answer', config['basename_datfile'])
-        new_basename_logfile = '{}_{}'.format('answer', config['basename_logfile'])
-        config.update({'basename_datfile': new_basename_datfile,
-                       'basename_logfile': new_basename_logfile,
-                       'output_folder': str(output_dir)})
-        if overwrite_files(new_basename_datfile):
-            parfile = pylbo.generate_parfiles(parfile_dict=config,
-                                              basename_parfile=new_basename_datfile,
-                                              output_dir=output_dir)
+    names = []
+    for test in tests_to_run:
+        name = test["name"]
+        print("=" * 50)
+        print(">> generating {}".format(name))
+        config = copy.deepcopy(test["config"])
+        output_folder = str(test["answer_datfile"].parent)
+        config.update(
+            {
+                "basename_datfile": test["answer_datfile"].stem,
+                "basename_logfile": test["answer_logfile"].stem,
+                "output_folder": output_folder
+            }
+        )
+        if overwrite_files(test["answer_datfile"]):
+            parfile = pylbo.generate_parfiles(
+                parfile_dict=config,
+                basename=test["answer_datfile"].stem,
+                output_dir=output_folder,
+            )
             parfiles.append(*parfile)
+            names.append(test["answer_datfile"].stem)
         else:
-            print('Skipping {}'.format(name))
+            print(f"Skipping {name}")
     if parfiles:
-        pylbo.run_legolas(parfiles, remove_parfiles=True, nb_cpus=4)
+        print("=" * 50)
+        print(
+            f"Generator will overwrite the following files: {[name for name in names]}"
+        )
+        force = input("Are you sure? ")
+        if force.lower() in ("yes", "y"):
+            pylbo.run_legolas(parfiles, remove_parfiles=True, nb_cpus=4)
+        else:
+            pass
 
 
 if __name__ == '__main__':

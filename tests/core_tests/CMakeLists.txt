@@ -7,7 +7,7 @@ option(Coverage "Coverage" OFF)
 
 get_filename_component(Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 set(CMAKE_Fortran_FLAGS "-fcheck=all -fbounds-check -Wall \
-                         -Wextra -Wconversion -pedantic -fbacktrace")
+                         -Wextra -Wconversion -pedantic -fbacktrace -cpp")
 
 find_package(PFUNIT REQUIRED)
 enable_testing()

@@ -26,7 +26,5 @@ The executable to run the tests will be placed in the `core_tests` folder, run i
 ```bash
 ./test_legolas
 ```
-The legolas core tests will run in less than a second, since these are simply calls to the various subroutines
-themselves.
 
 These tests are run automatically for each commit and pull request to the `master` and `develop` branches.

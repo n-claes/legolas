@@ -68,23 +68,3 @@ def test_none_tonumpy():
     result = toolbox.transform_to_numpy(None)
     assert isinstance(result, np.ndarray)
     assert result[0] is None
-
-
-def test_get_precoded():
-    from pylbo.utilities.defaults import precoded_runs
-
-    name = "interchange_modes_noshear"
-    run = toolbox.get_precoded_run(name)
-    expected = precoded_runs.get("interchange_modes_noshear")
-    for val, exp in zip(run.pop("parameters"), expected.pop("parameters")):
-        assert np.all(val == exp)
-    for val, exp in zip(run, expected):
-        assert np.all(val == exp)
-
-
-def test_get_precoded_fail():
-    from pylbo.utilities.exceptions import UnknownPrecodedRun
-
-    name = "unknown"
-    with pytest.raises(UnknownPrecodedRun):
-        toolbox.get_precoded_run(name)

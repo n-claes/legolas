@@ -23,6 +23,7 @@ Activate any conda/virtualenv environment beforehand in order to install it ther
 cd post-processing
 python setup.py develop
 ```
+All of the dependencies listed above will be automatically handled if you run this.
 The `develop` argument means that you can pull updates to the package from the upstream repository straight away,
 without having to install it again.
 
