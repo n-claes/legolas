@@ -11,6 +11,7 @@ private
 
 public  :: set_hallfactor
 public  :: get_hallterm
+public  :: get_hallterm_Bmat
 public  :: hall_boundaries
 
 contains
@@ -21,22 +22,26 @@ contains
     use mod_grid, only: grid_gauss
     use mod_physical_constants, only: dpi
     use mod_global_variables, only: cgs_units, gauss_gridpts, dropoff_edge_dist, dropoff_width
-    use mod_physical_constants, only: mp_cgs, mp_si, ec_cgs, ec_si
+    use mod_physical_constants, only: mp_cgs, mp_si, ec_cgs, ec_si, me_cgs, me_si
     use mod_units, only: unit_velocity, unit_length, unit_magneticfield
     use mod_types, only: hall_type
 
     type (hall_type), intent(inout)  :: hall_field
 
-    real(dp)  :: sleft, sright, width, hallval
+    real(dp)  :: sleft, sright, width, hallval, inertiaval
     real(dp)  :: x, shift, stretch
     integer   :: i
 
     width = dropoff_width
     if (cgs_units) then
       hallval = (mp_cgs * unit_velocity) / (ec_cgs * unit_length * unit_magneticfield)
+      inertiaval = (mp_cgs * me_cgs * unit_velocity**2) / (ec_cgs * unit_length * unit_magneticfield)**2
     else
       hallval = (mp_si * unit_velocity) / (ec_si * unit_length * unit_magneticfield)
+      inertiaval = (mp_si * me_si * unit_velocity**2) / (ec_si * unit_length * unit_magneticfield)**2
     end if
+
+    hall_field % inertiafactor = inertiaval
 
     sleft = grid_gauss(1) + 0.5d0 * width + dropoff_edge_dist
     sright = grid_gauss(gauss_gridpts) - dropoff_edge_dist - 0.5d0 * width
@@ -248,6 +253,133 @@ contains
     end if
   end subroutine get_hallterm
 
+  !> Retrieves the A-matrix Hall contribution for a given quadblock corresponding
+  !! to a particular point in the grid and a particular Gaussian weight.
+  !! If <tt>hall_mhd = True</tt>, this routine is called <tt>n_gauss</tt> times
+  !! for every grid interval.
+  subroutine get_hallterm_Bmat(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_HallB, &
+                          h_quadratic, h_cubic, dh_cubic_dr)
+    use mod_equilibrium_params, only: k2, k3
+    use mod_equilibrium, only: rho_field
+    use mod_make_subblock, only: subblock, reset_factors, reset_positions
+
+    !> current index in the Gaussian grid
+    integer, intent(in)       :: gauss_idx
+    !> current value for the scale factor epsilon
+    real(dp), intent(in)      :: eps
+    !> current value for the derivative of epsilon
+    real(dp), intent(in)      :: d_eps_dr
+    !> current weight in the Gaussian quadrature
+    real(dp), intent(in)      :: curr_weight
+    !> the A-quadblock for a particular grid interval
+    complex(dp), intent(out)  :: quadblock_HallB(dim_quadblock, dim_quadblock)
+    !> array containing the 4 quadratic basis functions
+    real(dp), intent(in)      :: h_quadratic(4)
+    !> array containing the 4 cubic basis functions
+    real(dp), intent(in)      :: h_cubic(4)
+    !> array containing the derivatives of the 4 cubic basis functions
+    real(dp), intent(in)      :: dh_cubic_dr(4)
+
+    complex(dp), allocatable  :: factors(:)
+    integer, allocatable      :: positions(:, :)
+
+    real(dp)                  :: eps_inv, rho0_inv
+    real(dp)                  :: rho0, drho0
+
+    quadblock_HallB = (0.0d0, 0.0d0)
+    eps_inv = 1.0d0 / eps
+
+    ! Equilibrium quantities
+    rho0 = rho_field % rho0(gauss_idx)
+    drho0 = rho_field % d_rho0_dr(gauss_idx)
+    rho0_inv = 1.0d0 / rho0
+
+    ! Setup of matrix elements
+
+    ! Quadratic * Quadratic
+    call reset_factors(factors, 1)
+    call reset_positions(positions, 1)
+    ! A(6, 6)
+    factors(1) = rho0_inv * ((k2 * eps_inv)**2 + k3**2)
+    positions(1, :) = [6, 6]
+    call subblock(quadblock_HallB, factors, positions, curr_weight, h_quadratic, h_quadratic)
+
+    ! Quadratic * d(Cubic)/dr
+    call reset_factors(factors, 2)
+    call reset_positions(positions, 2)
+    ! A(6, 7)
+    factors(1) = - k2 * rho0_inv * eps_inv**2
+    positions(1, :) = [6, 7]
+    ! A(6, 8)
+    factors(2) = - k3 * rho0_inv
+    positions(2, :) = [6, 8]
+    call subblock(quadblock_HallB, factors, positions, curr_weight, h_quadratic, dh_cubic_dr)
+
+    ! Cubic * Quadratic
+    call reset_factors(factors, 2)
+    call reset_positions(positions, 2)
+    ! A(7, 6)
+    factors(1) = drho0 * k2 * eps_inv * rho0_inv**2
+    positions(1, :) = [7, 6]
+    ! A(8, 6)
+    factors(2) = drho0 * k3 * rho0_inv**2 + d_eps_dr * k3 * eps_inv * rho0_inv
+    positions(2, :) = [8, 6]
+    call subblock(quadblock_HallB, factors, positions, curr_weight, h_cubic, h_quadratic)
+
+    ! d(Cubic)/dr * Quadratic
+    call reset_factors(factors, 2)
+    call reset_positions(positions, 2)
+    ! A(7, 6)
+    factors(1) = - k2 * eps_inv * rho0_inv
+    positions(1, :) = [7, 6]
+    ! A(8, 6)
+    factors(2) = - k3 * rho0_inv
+    positions(2, :) = [8, 6]
+    call subblock(quadblock_HallB, factors, positions, curr_weight, dh_cubic_dr, h_quadratic)
+
+    ! Cubic * Cubic
+    call reset_factors(factors, 4)
+    call reset_positions(positions, 4)
+    ! A(7, 7)
+    factors(1) = k3**2 * eps_inv * rho0_inv
+    positions(1, :) = [7, 7]
+    ! A(7, 8)
+    factors(2) = - k2 * k3 * eps_inv * rho0_inv
+    positions(2, :) = [7, 8]
+    ! A(8, 7)
+    factors(3) = - k2 * k3 * eps_inv**2 * rho0_inv
+    positions(3, :) = [8, 7]
+    ! A(8, 8)
+    factors(4) = (k2 * eps_inv)**2 * rho0_inv
+    positions(4, :) = [8, 8]
+    call subblock(quadblock_HallB, factors, positions, curr_weight, h_cubic, h_cubic)
+
+    ! Cubic * d(Cubic)/dr
+    call reset_factors(factors, 2)
+    call reset_positions(positions, 2)
+    ! A(7, 7)
+    factors(1) = - drho0 * eps_inv * rho0_inv**2
+    positions(1, :) = [7, 7]
+    ! A(8, 8)
+    factors(2) = - rho0_inv * (d_eps_dr * eps_inv + drho0 * rho0_inv)
+    positions(2, :) = [8, 8]
+    call subblock(quadblock_HallB, factors, positions, curr_weight, h_cubic, dh_cubic_dr)
+
+    ! d(Cubic)/dr * d(Cubic)/dr
+    call reset_factors(factors, 2)
+    call reset_positions(positions, 2)
+    ! A(7, 7)
+    factors(1) = eps_inv * rho0_inv
+    positions(1, :) = [7, 7]
+    ! A(8, 8)
+    factors(2) = rho0_inv
+    positions(2, :) = [8, 8]
+    call subblock(quadblock_HallB, factors, positions, curr_weight, dh_cubic_dr, dh_cubic_dr)
+
+    deallocate(factors)
+    deallocate(positions)
+  end subroutine get_hallterm_Bmat
+
   !> Creates a quadblock for the A matrix containing the natural boundary
   !! conditions coming from the Hall term, depending on the supplied edge.
   !! @note  Currently, no boundary conditions are applied due to the use of a
@@ -324,7 +456,10 @@ contains
       positions = 2 * positions + dim_subblock
     end if
 
-    do i = 1, size(surface_terms)
+    do i = 1, 3
+      quadblock_Hall(positions(i, 1), positions(i, 2)) = quadblock_Hall(positions(i, 1), positions(i, 2)) + surface_terms(i)
+    end do
+    do i = 4, size(surface_terms)
       quadblock_Hall(positions(i, 1), positions(i, 2)) = quadblock_Hall(positions(i, 1), positions(i, 2)) + surface_terms(i)
     end do
 

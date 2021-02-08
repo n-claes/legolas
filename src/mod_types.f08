@@ -109,6 +109,8 @@ module mod_types
   type hall_type
     !> Hall parameter
     real(dp), allocatable    :: hallfactor(:)
+    !> electron inertia parameter
+    real(dp), allocatable    :: inertiafactor(:)
   end type hall_type
 
 
@@ -271,8 +273,10 @@ contains
     type (hall_type), intent(inout)  :: type_hall
 
     allocate(type_hall % hallfactor(gauss_gridpts))
+    allocate(type_hall % inertiafactor(gauss_gridpts))
 
     type_hall % hallfactor = 0.0d0
+    type_hall % inertiafactor = 0.0d0
   end subroutine initialise_hall_type
 
 
@@ -392,6 +396,7 @@ contains
     type (hall_type), intent(inout)  :: type_hall
 
     deallocate(type_hall % hallfactor)
+    deallocate(type_hall % inertiafactor)
   end subroutine deallocate_hall_type
 
 end module mod_types

@@ -37,7 +37,7 @@ contains
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
                                     cubic_factors, cubic_factors_deriv
     use mod_boundary_conditions, only: apply_boundary_conditions
-    use mod_hallmhd, only: get_hallterm
+    use mod_hallmhd, only: get_hallterm, get_hallterm_Bmat
     use mod_equilibrium, only: hall_field
 
     !> the B-matrix
@@ -47,11 +47,12 @@ contains
     complex(dp)                 :: quadblock_B(dim_quadblock, dim_quadblock)
     complex(dp)                 :: quadblock_A(dim_quadblock, dim_quadblock)
     complex(dp)                 :: quadblock_Hall(dim_quadblock, dim_quadblock)
+    complex(dp)                 :: quadblock_HallB(dim_quadblock, dim_quadblock)
 
     real(dp)                    :: r, r_lo, r_hi, eps, d_eps_dr, curr_weight
     integer                     :: i, j, gauss_idx, k, l
     integer                     :: quadblock_idx, idx1, idx2
-    real(dp)                    :: hf
+    real(dp)                    :: hf, inf
 
     ! initialise matrices (A is complex, B is real)
     matrix_B = 0.0d0
@@ -95,6 +96,10 @@ contains
                             h_quadratic, dh_quadratic_dr, h_cubic, dh_cubic_dr)
           hf = hall_field % hallfactor(gauss_idx)
           quadblock_A = quadblock_A - hf * quadblock_Hall
+          call get_hallterm_Bmat(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_HallB, &
+                            h_quadratic, h_cubic, dh_cubic_dr)
+          inf = hall_field % inertiafactor(gauss_idx)
+          quadblock_B = quadblock_B + inf * quadblock_HallB
         end if
       end do   ! ends iteration gaussian points
 
