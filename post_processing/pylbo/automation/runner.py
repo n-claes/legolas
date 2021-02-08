@@ -22,8 +22,6 @@ def _validate_executable(executable):
 
     Raises
     ------
-    NotADirectoryError
-        If the directory containing the executable was not found.
     FileNotFoundError
         If the executable was not found.
 
@@ -37,10 +35,6 @@ def _validate_executable(executable):
         exec_dir = Path(__file__).parents[3]
         executable = (exec_dir / "legolas").resolve()
     executable = Path(executable).resolve()
-    if not executable.parent.is_dir():
-        raise NotADirectoryError(
-            f"Directory containing the executable was not found: {executable.parent}"
-        )
     if not executable.is_file():
         raise FileNotFoundError(f"Executable was not found: {executable}")
     return executable
@@ -225,7 +219,7 @@ class LegolasRunner:
                 self._terminate_workers()
                 pool.terminate()
                 pool.join()
-                exit(1)
+                return
         pylboLogger.info("all runs completed")
 
         # change back to the original directory
