@@ -82,10 +82,10 @@ def calculate_continua(ds):
         # we have to solve this equation "gauss_gridpts" times.
         # the thermal continuum corresponds to the (only) purely imaginary solution,
         # modified slow continuum are other two solutions
-        thermal = np.empty(shape=len(ds.grid_gauss), dtype=np.float)
+        thermal = np.empty(shape=len(ds.grid_gauss), dtype=float)
         if not slow_is_zero:
-            slow_min = np.empty(shape=len(ds.grid_gauss), dtype=np.complex)
-            slow_plus = np.empty(shape=len(ds.grid_gauss), dtype=np.complex)
+            slow_min = np.empty(shape=len(ds.grid_gauss), dtype=complex)
+            slow_plus = np.empty(shape=len(ds.grid_gauss), dtype=complex)
         for idx, _ in enumerate(ds.grid_gauss):
             solutions = np.roots([coeff3[idx], coeff2[idx], coeff1[idx], coeff0[idx]])
             # create mask for purely imaginary solutions

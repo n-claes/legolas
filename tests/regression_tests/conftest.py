@@ -62,7 +62,6 @@ def tempdir():
     tempdir_path.mkdir()
     yield tempdir_path
     # all code after yield is executed as teardown
-    print("Teardown: removing tmp directory")
     shutil.rmtree(tempdir_path)
 
 
@@ -75,6 +74,7 @@ def series_test(tempdir, setup):
         basename=setup["name"],
         output_dir=tempdir,
     )
+    print("")
     pylbo.run_legolas(parfiles, remove_parfiles=True, nb_cpus=nb_cpus)
     datfiles = sorted(tempdir.glob(f"*{setup['config']['basename_datfile']}.dat"))
     return pylbo.load_series(datfiles)

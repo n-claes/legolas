@@ -545,8 +545,8 @@ class LegolasDataSet(LegolasDataContainer):
             indices `idxs`.
         """
         ev_guesses = transform_to_numpy(ev_guesses)
-        idxs = np.empty(shape=len(ev_guesses), dtype=np.int)
-        eigenvals = np.empty(shape=len(ev_guesses), dtype=np.complex)
+        idxs = np.empty(shape=len(ev_guesses), dtype=int)
+        eigenvals = np.empty(shape=len(ev_guesses), dtype=complex)
         for i, ev_guess in enumerate(ev_guesses):
             # distance from guess to all eigenvalues
             distances = (self.eigenvalues.real - ev_guess.real) ** 2 + (
