@@ -283,8 +283,8 @@ class MultiSpectrumPlot(SpectrumFigure):
         self.use_real_parts = use_real_parts
         self.xdata = self._validate_xdata(xdata)
         self.ydata = self._get_ydata()
-        self.x_scaling = np.ones_like(self.dataseries)
-        self.y_scaling = np.ones_like(self.dataseries)
+        self.x_scaling = np.ones_like(self.dataseries, dtype=float)
+        self.y_scaling = np.ones_like(self.dataseries, dtype=float)
         super()._set_plot_properties(kwargs)
         self._add_spectrum()
 
@@ -353,7 +353,7 @@ class MultiSpectrumPlot(SpectrumFigure):
             Values to use for the x-scaling.
         """
         if isinstance(x_scaling, (int, float, complex)):
-            x_scaling = np.ones_like(self.dataseries) * x_scaling
+            x_scaling = np.ones_like(self.dataseries, dtype=float) * x_scaling
         super().set_x_scaling(x_scaling)
 
     def set_y_scaling(self, y_scaling):
@@ -366,7 +366,7 @@ class MultiSpectrumPlot(SpectrumFigure):
             Values to use for the y-scaling.
         """
         if isinstance(y_scaling, (int, float, complex)):
-            y_scaling = np.ones_like(self.dataseries) * y_scaling
+            y_scaling = np.ones_like(self.dataseries, dtype=float) * y_scaling
         super().set_y_scaling(y_scaling)
 
     def _add_spectrum(self):
@@ -375,7 +375,9 @@ class MultiSpectrumPlot(SpectrumFigure):
         """
         for i, ds in enumerate(self.dataseries):
             (spectrum_point,) = self.ax.plot(
-                self.xdata[i] * np.ones_like(self.ydata[i]) * self.x_scaling[i],
+                self.xdata[i]
+                * np.ones_like(self.ydata[i], dtype=float)
+                * self.x_scaling[i],
                 self.ydata[i] * self.y_scaling[i],
                 marker=self.marker,
                 color=self.color,

@@ -190,8 +190,8 @@ class FigureWindow:
             self.figure_id = self._generate_figure_id(figure_type)
             self.fig = plt.figure(self.figure_id, figsize=self.figsize)
             self.ax = self.fig.add_subplot(111)
-        self.x_scaling = 1
-        self.y_scaling = 1
+        self.x_scaling = 1.0
+        self.y_scaling = 1.0
         self.enabled = False
         self._mpl_callbacks = []
         self.__class__.figure_stack.add(self)
