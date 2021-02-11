@@ -82,15 +82,15 @@ def calculate_continua(ds):
         # we have to solve this equation "gauss_gridpts" times.
         # the thermal continuum corresponds to the (only) purely imaginary solution,
         # modified slow continuum are other two solutions
-        thermal = np.empty(shape=len(ds.grid_gauss), dtype=float)
+        thermal = np.empty(shape=len(ds.grid_gauss), dtype=complex)
         if not slow_is_zero:
             slow_min = np.empty(shape=len(ds.grid_gauss), dtype=complex)
             slow_plus = np.empty(shape=len(ds.grid_gauss), dtype=complex)
         for idx, _ in enumerate(ds.grid_gauss):
             solutions = np.roots([coeff3[idx], coeff2[idx], coeff1[idx], coeff0[idx]])
             # create mask for purely imaginary solutions
-            mask = abs(solutions.real) < 1e-14
-            imag_sol = solutions[mask].imag
+            mask = np.isclose(abs(solutions.real), 0)
+            imag_sol = solutions[mask]
             # extract slow continuum solutions, only if there is a slow continuum
             if not slow_is_zero:
                 s_neg, s_pos = np.sort_complex(solutions[np.invert(mask)])
@@ -129,7 +129,7 @@ def calculate_continua(ds):
                 * (rho * dLdrho / T - dLdT * (T + vA2))
                 / (vA2 + gamma * T)
             )
-            diff = abs(np.sort(thermal) - np.sort(np.imag(analytic_sol)))
+            diff = abs(np.sort(thermal.imag) - np.sort(analytic_sol.imag))
             # if any value in the difference is larger than 1e-12, print a warning
             if any(diff > 1e-12):
                 pylboLogger.warning(

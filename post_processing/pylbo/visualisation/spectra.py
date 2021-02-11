@@ -200,7 +200,9 @@ class SingleSpectrumPlot(SpectrumFigure):
                 )
                 if key == "thermal":
                     item = self.ax.axhspan(
-                        min_value * self.y_scaling, max_value * self.y_scaling, **props
+                        min_value.imag * self.y_scaling,
+                        max_value * self.y_scaling,
+                        **props
                     )
                 else:
                     item = self.ax.axvspan(
@@ -412,23 +414,21 @@ class MultiSpectrumPlot(SpectrumFigure):
                 if key in ("slow-", "alfven-"):
                     continue
             # retrieve continuum, calculate region boundaries
-            continuum = self.dataseries.continua[key]
-            min_values = (
-                np.array([np.min(c_ds) for c_ds in continuum]) ** self._w_pow
-                * self.y_scaling
-            )
-            max_values = (
-                np.array([np.max(c_ds) for c_ds in continuum]) ** self._w_pow
-                * self.y_scaling
-            )
+            continuum = self.dataseries.continua[key] ** self._w_pow
+            if self.use_real_parts:
+                continuum = continuum.real
+            else:
+                continuum = continuum.imag
+            min_values = (np.array([np.min(c_ds) for c_ds in continuum]))
+            max_values = (np.array([np.max(c_ds) for c_ds in continuum]))
             # skip if continua are all zero
-            if all(min_values == 0) and all(max_values == 0):
+            if all(np.isclose(min_values, 0)) and all(np.isclose(max_values, 0)):
                 continue
-            # when continua are collapsed then min = max and we draw a line instread
-            if all(abs(min_values - max_values) < 1e-12):
+            # when continua are collapsed then min = max and we draw a line instead
+            if all(np.isclose(abs(max_values - min_values), 0)):
                 (item,) = self.ax.plot(
                     self.xdata,
-                    min_values,
+                    min_values * self.y_scaling,
                     color=color,
                     alpha=self._c_handler.alpha_point,
                     label=key,
@@ -436,8 +436,8 @@ class MultiSpectrumPlot(SpectrumFigure):
             else:
                 item = self.ax.fill_between(
                     self.xdata,
-                    min_values,
-                    max_values,
+                    min_values * self.y_scaling,
+                    max_values * self.y_scaling,
                     facecolor=colors.to_rgba(color, self._c_handler.alpha_region),
                     edgecolor=colors.to_rgba(color, self._c_handler.alpha_point),
                     linewidth=self._c_handler.linewidth,
