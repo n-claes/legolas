@@ -47,9 +47,9 @@ autoapi_options = [
     'members',                   # children of objects
     'undoc-members',             # include no-docstring members
     'private-members',           # include _
-    'special-members',           # include __
+    # 'special-members',           # include __
     'show-inheritance',          # list of classes below base class
-    'show-inheritance-diagram',  # needs graphviz
+    # 'show-inheritance-diagram',  # needs graphviz
     'show-module-summary',       # passes to autosummary
     'imported-members'           # objects from top-level package
 ]

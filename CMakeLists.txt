@@ -11,7 +11,7 @@ if (${Coverage})
     message(STATUS "Building with code coverage enabled.")
     message(STATUS "Default Fortran flags are disabled, optimisation disabled.")
     message(STATUS "====================")
-    set (CMAKE_Fortran_FLAGS "--coverage -o0 -g")
+    set (CMAKE_Fortran_FLAGS "--coverage -o0 -g -cpp")
 else()
     set(CMAKE_Fortran_FLAGS "-fcheck=all -fbounds-check -Wall \
                              -Wextra -Wconversion -pedantic -fbacktrace -cpp")

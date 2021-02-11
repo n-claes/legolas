@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import matplotlib.pyplot as plt
-import pylbo
+from pathlib import Path
 
 # relative tolerance, this is percentage-based (1% here)
 REL_TOL = 1e-2
@@ -9,8 +9,20 @@ REL_TOL = 1e-2
 ABS_TOL = 1e-10
 # pixel tolerance
 PIX_TOL = 1
-output = (pylbo.LEGOLAS_DIR / "tests/regression_tests/results").resolve()
-answers = (pylbo.LEGOLAS_DIR / "tests/regression_tests/answers").resolve()
+# dpi for image-based comparison
+FIG_DPI = 200
+
+regression_test_dir = Path(__file__).parent
+output = (regression_test_dir / "results").resolve()
+answers = (regression_test_dir / "answers").resolve()
+baseline_dir = (regression_test_dir / "baseline").resolve()
+
+if not output.is_dir():
+    output.mkdir()
+if not answers.is_dir():
+    answers.mkdir()
+if not baseline_dir.is_dir():
+    baseline_dir.mkdir()
 
 
 def get_filepaths(basename):

@@ -1,8 +1,27 @@
-import copy
 import numpy as np
-from .defaults import precoded_runs
-from .exceptions import UnknownPrecodedRun
-from .logger import pylboLogger
+import matplotlib.lines as mpl_lines
+from pylbo._version import _mpl_version
+
+
+def add_pickradius_to_item(item, pickradius):
+    """
+    Makes a matplotlib artist pickable and adds a pickradius.
+    We have to handle this separately, because for line2D items the method
+    :meth:`~matplotlib.axes.Axes.set_picker` is deprecated from version 3.3 onwards.
+
+    Parameters
+    ----------
+    item : ~matplotlib.artist.Artist
+        The artist which will be made pickable
+    pickradius : int, float
+        Sets the pickradius, which determines if something is "on" the picked point.
+    """
+    # set_picker is deprecated for line2D from matplotlib 3.3 onwards
+    if isinstance(item, mpl_lines.Line2D) and _mpl_version >= "3.3":
+        item.set_picker(True)
+        item.pickradius = pickradius
+    else:
+        item.set_picker(pickradius)
 
 
 def custom_enumerate(iterable, start=0, step=1):
@@ -20,9 +39,9 @@ def custom_enumerate(iterable, start=0, step=1):
 
     Yields
     ------
-    start : :class:`int`
+    start : int
         The current index in `iterable`, incremented with `step`.
-    itr : :class:`~typing.Iterable`
+    itr : ~typing.Iterable
         The corresponding entry of `iterable`.
     """
     for itr in iterable:
@@ -30,107 +49,49 @@ def custom_enumerate(iterable, start=0, step=1):
         start += step
 
 
-def transform_to_list(obj):
+def transform_to_list(obj: any) -> list:
     """
     Transforms a given input argument `obj` to a list. If `obj`
-    is a Numpy-array, :func:`~numpy.ndarray.tolist` is invoked.
+    is a Numpy-array or tuple, a cast to `list()` is invoked.
 
     Parameters
     ----------
-    obj : object
+    obj : any
         The object to transform.
 
     Returns
     -------
-    obj: list
+    list
         The object converted to a list.
     """
     if obj is None:
         return [obj]
-    elif isinstance(obj, np.ndarray):
-        return obj.tolist()
+    elif isinstance(obj, (tuple, np.ndarray)):
+        return list(obj)
     elif isinstance(obj, list):
         return obj
     return [obj]
 
 
-def transform_to_numpy(obj):
+def transform_to_numpy(obj: any) -> np.ndarray:
     """
     Transforms a given input argument `obj` to a numpy array.
 
     Parameters
     ----------
-    obj : object
+    obj : any
         The object to transform.
 
     Returns
     -------
-    obj : numpy.ndarray
+    numpy.ndarray
         The object transformed to a numpy array.
 
     """
     if obj is None:
         return np.asarray([obj])
-    elif isinstance(obj, np.ndarray):
-        return np.array(obj)
     elif isinstance(obj, (tuple, list)):
         return np.asarray(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj
     return np.asarray([obj])
-
-
-def get_precoded_run(name):
-    """
-    Retrieves the configuration dictionary for a precoded run based on
-    its name. These are the keys of `precoded_runs`.
-
-    Parameters
-    ----------
-    name : str
-        The name of the precoded run, as a key of `precoded_runs`.
-
-    Returns
-    -------
-    selected_run : dict
-        A :func:`~copy.deepcopy` of the configuration dictionary for the selected
-        precoded run, to avoid conflicts with multiple runs in the same script.
-
-    Raises
-    ------
-    UnknownPrecodedRun
-        If `name` is not a key of `precoded_runs`, and is hence unknown.
-    """
-    try:
-        selected_run = precoded_runs[name]
-    except KeyError:
-        raise UnknownPrecodedRun(name, precoded_runs.keys())
-    return copy.deepcopy(selected_run)
-
-
-def select_precoded_run():
-    """
-    Prints all available precoded runs such that a selection can be made.
-
-    Returns
-    -------
-    parfile_dict : dict
-        Dictionary containing the chosen configuration.
-
-    """
-    av_runs = iter(precoded_runs.keys())
-    pylboLogger.info("select one of the following precoded runs:")
-    for idx, pr in custom_enumerate(av_runs, start=1, step=3):
-        print(
-            "{:03d} {:<30}{:03d} {:<30}{:03d} {}".format(
-                idx,
-                pr,
-                idx + 1,
-                next(av_runs, "<empty>"),
-                idx + 2,
-                next(av_runs, "<empty>"),
-            )
-        )
-    pr_in = int(input("\nChoose precoded run: "))
-    chosen_pr = list(precoded_runs.keys())[pr_in - 1]
-    pylboLogger.info(f"selected run: {chosen_pr}")
-    parfile_dict = get_precoded_run(chosen_pr)
-    return parfile_dict

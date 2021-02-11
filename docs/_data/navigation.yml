@@ -37,10 +37,10 @@ leftcontents:
         url: /content/pylbo/about_pylbo/
       - title: "Installing Pylbo"
         url: /content/pylbo/installing_pylbo/
+      - title: "Interfacing with Legolas"
+        url: /content/pylbo/legolas_interface/
       - title: "Using Pylbo"
         url: /content/pylbo/using_pylbo/
-      - title: "Generating parfiles"
-        url: /content/pylbo/generate_parfiles/
   - title: Testing
     children:
       - title: "Code coverage"

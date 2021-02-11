@@ -83,7 +83,7 @@ Then, specifying a unit density $\rho_{unit}$ fixes the unit temperature $T_{uni
 through the ideal gas law
 
 $$
-p_{unit} = \mathcal{R}T_{unit}\rho_{unit}
+p_{unit} = \mathcal{R}_{specific}T_{unit}\rho_{unit}
 $$
 
 Hence we only have **three** degrees of freedom: the unit magnetic field $B_{unit}$ and unit length $L_{unit}$

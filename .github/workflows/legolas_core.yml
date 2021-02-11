@@ -35,7 +35,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: tests/core_tests/pFUnit/
-        key: ${{ runner.os }}-pfunitv2
+        key: ${{ runner.os }}-pfunitv1
 
     - name: Build pFUnit
       if: steps.pfunit-cache.outputs.cache-hit != 'true'
@@ -43,7 +43,6 @@ jobs:
         cd tests/core_tests
         git clone https://github.com/Goddard-Fortran-Ecosystem/pFUnit.git
         cd pFUnit
-        git reset --hard 2c96c37
         mkdir build
         cd build
         cmake .. -DSKIP_MPI=YES -DSKIP_OPENMP=YES -DSKIP_FHAMCREST=YES
