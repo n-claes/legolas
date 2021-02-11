@@ -203,7 +203,7 @@ class SingleSpectrumPlot(SpectrumFigure):
                     item = self.ax.axhspan(
                         min_value.imag * self.y_scaling,
                         max_value * self.y_scaling,
-                        **props
+                        **props,
                     )
                 else:
                     item = self.ax.axvspan(
@@ -420,8 +420,8 @@ class MultiSpectrumPlot(SpectrumFigure):
                 continuum = continuum.real
             else:
                 continuum = continuum.imag
-            min_values = (np.array([np.min(c_ds) for c_ds in continuum]))
-            max_values = (np.array([np.max(c_ds) for c_ds in continuum]))
+            min_values = np.array([np.min(c_ds) for c_ds in continuum])
+            max_values = np.array([np.max(c_ds) for c_ds in continuum])
             # skip if continua are all zero
             if all(np.isclose(min_values, 0)) and all(np.isclose(max_values, 0)):
                 continue

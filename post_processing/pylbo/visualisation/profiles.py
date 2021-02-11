@@ -56,6 +56,19 @@ class EquilibriumProfile(FigureWindow):
             )
             self.leg_handle.add(item)
             items.append(item)
+        # we add the plasma beta as well, only for MHD
+        if not np.all(np.isclose(self.data.equilibria["B0"], 0)):
+            plasma_beta = (
+                2 * self.data.equilibria["rho0"] * self.data.equilibria["T0"]
+            ) / self.data.equilibria["B0"] ** 2
+            (item,) = self.ax.plot(
+                self.data.grid_gauss,
+                plasma_beta,
+                label=r"plasma-$\beta$",
+                alpha=self.leg_handle.alpha_point,
+            )
+            self.leg_handle.add(item)
+            items.append(item)
         labels = [l_item.get_label() for l_item in items]
         self.leg_handle.legend = self.ax.legend(
             items,
@@ -117,7 +130,7 @@ class ContinuumProfile(FigureWindow):
                 if name == "thermal":
                     cont = cont.imag
                 (item,) = self.ax.plot(
-                    self.data.grid_gauss, cont, color=color, label=name,
+                    self.data.grid_gauss, cont, color=color, label=name
                 )
                 self.handler.add(item)
         self.handler.legend = self.ax.legend()
