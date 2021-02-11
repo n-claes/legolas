@@ -174,12 +174,13 @@ class SingleSpectrumPlot(SpectrumFigure):
             max_value = np.max(continuum)
             # check if continua are complex
             if np.all(np.iscomplex(continuum)):
-                (item,) = self.ax.plot(
+                item = self.ax.scatter(
                     continuum.real * self.x_scaling,
                     continuum.imag * self.y_scaling,
+                    marker=".",
                     color=color,
-                    linewidth=self.markersize / 2,
-                    alpha=self.alpha,
+                    linewidth=self.markersize,
+                    alpha=self.alpha / 1.5,
                     label=key,
                 )
             elif self._c_handler.check_if_collapsed(continuum=continuum):
@@ -533,13 +534,13 @@ class MergedSpectrumPlot(SpectrumFigure):
     def add_eigenfunctions(self):
         """Adds the eigenfunctions to the current figure."""
         if self._ef_ax is None:
-            self._ef_ax = super()._add_subplot_axes(self.ax, loc="left")
+            self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax)
             # connect everything
         super().add_eigenfunctions()
 
-    def add_continua(self, interactive):
+    def add_continua(self, interactive=True):
         raise NotImplementedError("Continua are not supported for this type of figure.")
 
 

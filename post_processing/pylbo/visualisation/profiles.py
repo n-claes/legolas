@@ -67,7 +67,6 @@ class EquilibriumProfile(FigureWindow):
         )
         # enable autoscaling when clicking
         self.leg_handle.autoscale = True
-        self.fig.tight_layout()
 
 
 class ContinuumProfile(FigureWindow):
@@ -96,11 +95,33 @@ class ContinuumProfile(FigureWindow):
             continuum = self.data.continua[name]
             if self.handler.check_if_all_zero(continuum):
                 continue
-            (item,) = self.ax.plot(
-                self.data.grid_gauss, self.data.continua[name], color=color, label=name
-            )
-            self.handler.add(item)
+            # non-adiabatic slow continua have real and imaginary parts
+            if np.any(np.iscomplex(continuum)) and "slow" in name:
+                (item,) = self.ax.plot(
+                    self.data.grid_gauss,
+                    self.data.continua[name].real,
+                    color=color,
+                    label="".join([name, r"$_{Re}$"]),
+                )
+                self.handler.add(item)
+                (item,) = self.ax.plot(
+                    self.data.grid_gauss,
+                    self.data.continua[name].imag,
+                    linestyle="dashed",
+                    color=color,
+                    label="".join([name, r"$_{Im}$"]),
+                )
+                self.handler.add(item)
+            else:
+                cont = self.data.continua[name]
+                if name == "thermal":
+                    cont = cont.imag
+                (item,) = self.ax.plot(
+                    self.data.grid_gauss, cont, color=color, label=name,
+                )
+                self.handler.add(item)
         self.handler.legend = self.ax.legend()
+        self.handler.autoscale = True
         self.ax.axhline(y=0, color="grey", linestyle="dotted", alpha=0.8)
         self.ax.axvline(
             x=self.data.x_start, color="grey", linestyle="dotted", alpha=0.8
