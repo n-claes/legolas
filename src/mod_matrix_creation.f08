@@ -32,7 +32,7 @@ contains
   !! both matrices. On exit, both matrices are fully assembled and
   !! boundary conditions are imposed.
   subroutine create_matrices(matrix_B, matrix_A)
-    use mod_global_variables, only: gaussian_weights, n_gauss, hall_mhd!, hallfactor
+    use mod_global_variables, only: gaussian_weights, n_gauss, hall_mhd, elec_inertia
     use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
                                     cubic_factors, cubic_factors_deriv
@@ -96,6 +96,9 @@ contains
                             h_quadratic, dh_quadratic_dr, h_cubic, dh_cubic_dr)
           hf = hall_field % hallfactor(gauss_idx)
           quadblock_A = quadblock_A - hf * quadblock_Hall
+        end if
+
+        if (elec_inertia) then
           call get_hallterm_Bmat(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_HallB, &
                             h_quadratic, h_cubic, dh_cubic_dr)
           inf = hall_field % inertiafactor(gauss_idx)

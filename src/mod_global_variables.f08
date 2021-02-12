@@ -69,6 +69,14 @@ module mod_global_variables
   real(dp)                  :: dropoff_width
   !> boolean to use Hall MHD, defaults to <tt>False</tt>
   logical, save             :: hall_mhd
+  !> boolean to use dropoff profile for Hall parameter, defaults to <tt>False </tt>
+  logical, save             :: hall_dropoff
+  !> boolean to use electron pressure in Ohm's law, defaults to <tt>False</tt>
+  logical, save             :: elec_pressure
+  !> boolean to use electron inertia in Ohm's law, defaults to <tt>False</tt>
+  logical, save             :: elec_inertia
+  !> boolean to use dropoff profile for inertia parameter, defaults to <tt>False </tt>
+  logical, save             :: inertia_dropoff
 
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
@@ -198,6 +206,10 @@ contains
     dropoff_edge_dist = 0.05d0
     dropoff_width = 0.1d0
     hall_mhd = .false.
+    hall_dropoff = .false.
+    elec_pressure = .false.
+    elec_inertia = .false.
+    inertia_dropoff = .false.
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile

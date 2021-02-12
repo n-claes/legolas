@@ -21,7 +21,8 @@ contains
   subroutine set_hallfactor(hall_field)
     use mod_grid, only: grid_gauss
     use mod_physical_constants, only: dpi
-    use mod_global_variables, only: cgs_units, gauss_gridpts, dropoff_edge_dist, dropoff_width
+    use mod_global_variables, only: cgs_units, gauss_gridpts, dropoff_edge_dist, &
+                                    dropoff_width, hall_dropoff, inertia_dropoff
     use mod_physical_constants, only: mp_cgs, mp_si, ec_cgs, ec_si, me_cgs, me_si
     use mod_units, only: unit_velocity, unit_length, unit_magneticfield
     use mod_types, only: hall_type
@@ -29,7 +30,7 @@ contains
     type (hall_type), intent(inout)  :: hall_field
 
     real(dp)  :: sleft, sright, width, hallval, inertiaval
-    real(dp)  :: x, shift, stretch
+    real(dp)  :: x, shift, stretch, shift2, stretch2
     integer   :: i
 
     width = dropoff_width
@@ -41,26 +42,48 @@ contains
       inertiaval = (mp_si * me_si * unit_velocity**2) / (ec_si * unit_length * unit_magneticfield)**2
     end if
 
-    hall_field % inertiafactor = inertiaval
-
     sleft = grid_gauss(1) + 0.5d0 * width + dropoff_edge_dist
     sright = grid_gauss(gauss_gridpts) - dropoff_edge_dist - 0.5d0 * width
 
-    shift = hallval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
-    stretch = hallval / (tanh(dpi) - tanh(-dpi))
+    if (hall_dropoff) then
+      shift = hallval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
+      stretch = hallval / (tanh(dpi) - tanh(-dpi))
 
-    do i = 1, gauss_gridpts
-      x = grid_gauss(i)
-      if (sleft - 0.5d0*width <= x .and. x <= sleft + 0.5d0*width) then
-        hall_field % hallfactor(i) = shift + stretch * tanh(2.0d0 * dpi * (x - sleft) / width)
-      else if (sleft + 0.5d0*width < x .and. x < sright - 0.5d0*width) then
-        hall_field % hallfactor(i) = hallval
-      else if (sright - 0.5d0*width <= x .and. x <= sright + 0.5d0*width) then
-        hall_field % hallfactor(i) = shift + stretch * tanh(2.0d0 * dpi * (sright - x) / width)
-      else
-        hall_field % hallfactor(i) = 0.0d0
-      end if
-    end do
+      do i = 1, gauss_gridpts
+        x = grid_gauss(i)
+        if (sleft - 0.5d0*width <= x .and. x <= sleft + 0.5d0*width) then
+          hall_field % hallfactor(i) = shift + stretch * tanh(2.0d0 * dpi * (x - sleft) / width)
+        else if (sleft + 0.5d0*width < x .and. x < sright - 0.5d0*width) then
+          hall_field % hallfactor(i) = hallval
+        else if (sright - 0.5d0*width <= x .and. x <= sright + 0.5d0*width) then
+          hall_field % hallfactor(i) = shift + stretch * tanh(2.0d0 * dpi * (sright - x) / width)
+        else
+          hall_field % hallfactor(i) = 0.0d0
+        end if
+      end do
+    else
+      hall_field % hallfactor = hallval
+    end if
+
+    if (inertia_dropoff) then
+      shift2 = inertiaval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
+      stretch2 = inertiaval / (tanh(dpi) - tanh(-dpi))
+
+      do i = 1, gauss_gridpts
+        x = grid_gauss(i)
+        if (sleft - 0.5d0*width <= x .and. x <= sleft + 0.5d0*width) then
+          hall_field % inertiafactor(i) = shift2 + stretch2 * tanh(2.0d0 * dpi * (x - sleft) / width)
+        else if (sleft + 0.5d0*width < x .and. x < sright - 0.5d0*width) then
+          hall_field % inertiafactor(i) = inertiaval
+        else if (sright - 0.5d0*width <= x .and. x <= sright + 0.5d0*width) then
+          hall_field % inertiafactor(i) = shift2 + stretch2 * tanh(2.0d0 * dpi * (sright - x) / width)
+        else
+          hall_field % inertiafactor(i) = 0.0d0
+        end if
+      end do
+    else
+      hall_field % inertiafactor = inertiaval
+    end if
   end subroutine set_hallfactor
 
   !> Retrieves the A-matrix Hall contribution for a given quadblock corresponding
@@ -69,7 +92,7 @@ contains
   !! for every grid interval.
   subroutine get_hallterm(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_Hall, &
                           h_quadratic, dh_quadratic_dr, h_cubic, dh_cubic_dr)
-    use mod_global_variables, only: dp_LIMIT
+    use mod_global_variables, only: dp_LIMIT, elec_pressure
     use mod_equilibrium_params, only: k2, k3
     use mod_equilibrium, only: rho_field, B_field, T_field
     use mod_make_subblock, only: subblock, reset_factors, reset_positions
@@ -128,30 +151,37 @@ contains
     call reset_factors(factors, 3)
     call reset_positions(positions, 3)
     ! A(6, 1)
-    factors(1) = - eps_inv * rho0_inv**2 * (B02 * drB02 * eps_inv + B03 * dB03) &
-                  - dT0 * eps_inv * rho0_inv
+    factors(1) = - eps_inv * rho0_inv**2 * (B02 * drB02 * eps_inv + B03 * dB03)
     positions(1, :) = [6, 1]
     ! A(6, 5)
-    factors(2) = drho0 * eps_inv * rho0_inv
+    factors(2) = 0.0d0
     positions(2, :) = [6, 5]
     ! A(6, 6)
     factors(3) = - drho0 * rho0_inv**2 * (k2 * B03 * eps_inv - k3 * B02) &
                   + k3 * rho0_inv * (drB02 * eps_inv - eps * dB02_r)
     positions(3, :) = [6, 6]
+    if (elec_pressure) then
+      factors(1) = factors(1) - dT0 * eps_inv * rho0_inv
+      factors(2) = factors(2) + drho0 * eps_inv * rho0_inv
+    end if
     call subblock(quadblock_Hall, factors, positions, curr_weight, h_quadratic, h_quadratic)
 
     ! d(Quadratic)/dr * Quadratic
     call reset_factors(factors, 3)
     call reset_positions(positions, 3)
     ! A(6, 1)
-    factors(1) = - T0 * eps_inv * rho0_inv
+    factors(1) = 0.0d0
     positions(1, :) = [6, 1]
     ! A(6, 5)
-    factors(2) = - eps_inv
+    factors(2) = 0.0d0
     positions(2, :) = [6, 5]
     ! A(6, 6)
     factors(3) = rho0_inv * (k2 * B03 * eps_inv - k3 * B02)
     positions(3, :) = [6, 6]
+    if (elec_pressure) then
+      factors(1) = factors(1) - T0 * eps_inv * rho0_inv
+      factors(2) = factors(2) - eps_inv
+    end if
     call subblock(quadblock_Hall, factors, positions, curr_weight, dh_quadratic_dr, h_quadratic)
 
     ! Quadratic * Cubic
@@ -191,23 +221,29 @@ contains
     call reset_factors(factors, 6)
     call reset_positions(positions, 6)
     ! A(7, 1)
-    factors(1) = k2 * T0 * rho0_inv * eps_inv**2
+    factors(1) = 0.0d0
     positions(1, :) = [7, 1]
     ! A(7, 5)
-    factors(2) = k2 * eps_inv**2
+    factors(2) = 0.0d0
     positions(2, :) = [7, 5]
     ! A(7, 6)
     factors(3) = - B03 * rho0_inv * ((k2 * eps_inv)**2 + k3**2)
     positions(3, :) = [7, 6]
     ! A(8, 1)
-    factors(4) = k3 * T0 * rho0_inv * eps_inv
+    factors(4) = 0.0d0
     positions(4, :) = [8, 1]
     ! A(8, 5)
-    factors(5) = k3 * eps_inv
+    factors(5) = 0.0d0
     positions(5, :) = [8, 5]
     ! A(8, 6)
     factors(6) = B02 * rho0_inv * ((k2 * eps_inv)**2 + k3**2)
     positions(6, :) = [8, 6]
+    if (elec_pressure) then
+      factors(1) = factors(1) + k2 * T0 * rho0_inv * eps_inv**2
+      factors(2) = factors(2) + k2 * eps_inv**2
+      factors(4) = factors(4) + k3 * T0 * rho0_inv * eps_inv
+      factors(5) = factors(5) + k3 * eps_inv
+    end if
     call subblock(quadblock_Hall, factors, positions, curr_weight, h_cubic, h_quadratic)
 
     ! Cubic * Cubic
@@ -386,7 +422,7 @@ contains
   !!        dropoff profile for the Hall parameter, which is zero at the
   !!        edges. @endnote
   subroutine hall_boundaries(quadblock_Hall, kappa_perp_is_zero, edge)
-    use mod_global_variables, only: gauss_gridpts, dim_subblock
+    use mod_global_variables, only: gauss_gridpts, dim_subblock, elec_pressure
     use mod_logging, only: log_message
     use mod_equilibrium, only: rho_field, B_field, T_field
     use mod_grid, only: eps_grid
@@ -428,10 +464,10 @@ contains
     allocate(surface_terms(5))
 
     ! surface term for element (6, 1)
-    surface_terms(1) = T0 * eps_inv * rho0_inv
+    surface_terms(1) = 0.0d0
     positions(1, :) = [6, 1]
     ! surface term for element (6, 5)
-    surface_terms(2) = eps_inv
+    surface_terms(2) = 0.0d0
     positions(2, :) = [6, 5]
     ! surface term for element (6, 6)
     surface_terms(3) = - rho0_inv * (k2 * B03 * eps_inv - k3 * B02)
@@ -442,6 +478,11 @@ contains
     ! surface term for element (6, 8)
     surface_terms(5) = - B02 * rho0_inv
     positions(5, :) = [6, 8]
+
+    if (elec_pressure) then
+      surface_terms(1) = surface_terms(1) + T0 * eps_inv * rho0_inv
+      surface_terms(2) = surface_terms(2) + eps_inv
+    end if
 
     ! T1 is zero at the wall if perpendicular thermal conduction is included
     if (.not. kappa_perp_is_zero) then
