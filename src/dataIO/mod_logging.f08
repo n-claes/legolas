@@ -24,6 +24,12 @@ module mod_logging
   character(4), parameter    :: int_fmt  = '(i8)'
   !> character used as variable to log non-strings
   character(20) :: char_log, char_log2
+  !> a convenient "tostring" interface, used for easy console writing
+  interface str
+    module procedure int_tostr
+    module procedure float_tostr
+    module procedure complex_tostr
+  end interface str
 
   private
 
@@ -31,6 +37,7 @@ module mod_logging
   public :: print_logo
   public :: print_console_info
   public :: print_whitespace
+  public  :: str
   public :: char_log, char_log2, exp_fmt, dp_fmt, int_fmt
 
 contains
@@ -337,6 +344,72 @@ contains
       boolean_string = 'False'
     end if
   end subroutine logical_tostring
+
+
+  !> Converts a given integer to a string, the default format is "i8".
+  function int_tostr(value, fmt) result(result_str)
+    !> integer to convert
+    integer, intent(in) :: value
+    !> optional format used for writing, default "i8"
+    character(len=*), intent(in), optional  :: fmt
+    !> return string, made allocatable so it has same length as input
+    character(:), allocatable :: result_str
+    character(len=20) :: format
+
+    if (present(fmt)) then
+      format = "(" // trim(fmt) // ")"
+    else
+      format = int_fmt
+    end if
+    write(char_log, format) value
+    result_str = trim(adjustl(char_log))
+  end function int_tostr
+
+
+  !> Converts a given float to a string, the default format is "f20.8".
+  function float_tostr(value, fmt) result(result_str)
+    use mod_global_variables, only: dp
+
+    !> float to convert
+    real(dp), intent(in)  :: value
+    !> optional format use for writing, default "f20.8"
+    character(len=*), intent(in), optional  :: fmt
+    !> return string, made allocatable so it has same length as input
+    character(:), allocatable :: result_str
+    character(len=20) :: format
+
+    if (present(fmt)) then
+      format = "(" // trim(fmt) // ")"
+    else
+      format = dp_fmt
+    end if
+    write(char_log, format) value
+    result_str = trim(adjustl(char_log))
+  end function float_tostr
+
+
+  !> Converts a given complex number to a string, the default format is "f20.8".
+  !! This will be printed in the form xxxx + xxxxi.
+  function complex_tostr(value, fmt) result(result_str)
+    use mod_global_variables, only: dp
+
+    !> complex to convert
+    complex(dp), intent(in) :: value
+    !> optional format use for writing, default "f20.8"
+    character(len=*), intent(in), optional  :: fmt
+    !> return string, made allocatable so it has same length as input
+    character(:), allocatable :: result_str
+    character(len=20) :: format
+
+    if (present(fmt)) then
+      format = "(" // trim(fmt) // ")"
+    else
+      format = dp_fmt
+    end if
+    write(char_log, format) real(value)
+    write(char_log2, '(SP,' // format // ',"i")')
+    result_str = trim(adjustl(char_log // char_log2))
+  end function complex_tostr
 
 
   !> Prints an empty line to the console.

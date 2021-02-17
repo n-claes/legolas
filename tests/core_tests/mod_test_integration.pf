@@ -1,77 +1,128 @@
 module mod_test_integration
   use funit
   use mod_suite_utils
+  use mod_integration, only: integrate_ode_rk
   implicit none
+
+  !> tolerance used for integrated results comparison
+  real(dp), parameter :: INTEGRATION_TOL = 1.0d-7
+  !> minimal truncation error for adaptive stepping
+  real(dp), parameter :: EPSILON_TOL = 1.0d-5
+
+  integer, parameter  :: nbvals = 10000
+  real(dp)  :: yinit
+  real(dp)  :: xvalues(nbvals)
+  real(dp)  :: ax(nbvals), bx(nbvals)
+  real(dp), allocatable :: yexpect(:), yvalues(:), xrkvalues(:)
 
 contains
 
+  @after
+  subroutine teardown()
+    deallocate(yexpect, yvalues)
+  end subroutine teardown
+
   @test
   subroutine test_rk_simple()
-    use mod_integration, only: integrate_ode_rk
-
-    integer, parameter   :: nbvals = 50
-    real(dp)  :: xvalues(nbvals), yvalues(nbvals), yexpect(nbvals)
-    real(dp)  :: ax(nbvals), bx(nbvals)
-    real(dp)  :: yinit
-
-    write(*, *) " Testing ODE integration: RK with y' = x, x=[1,3]"
+    write(*, *) "Testing ODE integration: y'=x, x=[1,3]"
     xvalues = linspace(1.0d0, 3.0d0, nbvals)
     ! y' = x with y(1) = 2
     ax = 0.0d0
     bx = xvalues
     yinit = 2.0d0
-    call integrate_ode_rk(xvalues, ax, bx, yvalues, yinit, 5000)
+    call integrate_ode_rk(xvalues, ax, bx, nbvals, yinit, yvalues)
     yexpect = 0.5d0 * xvalues**2 + 1.5d0
 
-    ! first value HAS to satisfy initial condition up to machine precision
+    @assertEqual(nbvals, size(yvalues))
     @assertEqual(yexpect(1), yvalues(1), tolerance=TOL)
-    @assertEqual(yexpect, yvalues, tolerance=1.0d-6)
+    @assertEqual(yexpect, yvalues, tolerance=INTEGRATION_TOL)
   end subroutine test_rk_simple
 
 
   @test
+  subroutine test_rk_simple_ad()
+    write(*, *) "Testing ODE integration: y'=x, x=[1,3] (adaptive)"
+    xvalues = linspace(1.0d0, 3.0d0, nbvals)
+    ax = 0.0d0
+    bx = xvalues
+    yinit = 2.0d0
+    call integrate_ode_rk( &
+      xvalues, ax, bx, nbvals, yinit, yvalues, &
+      adaptive=.true., epsilon=EPSILON_TOL, new_xvalues=xrkvalues &
+    )
+    yexpect = 0.5d0 * xrkvalues**2 + 1.5d0
+
+    @assertEqual(yexpect(1), yvalues(1), tolerance=TOL)
+    @assertEqual(yexpect, yvalues, tolerance=INTEGRATION_TOL)
+  end subroutine test_rk_simple_ad
+
+
+  @test
   subroutine test_rk_ode1()
-    use mod_integration, only: integrate_ode_rk
-
-    integer, parameter  :: nbvals = 100
-    real(dp)  :: xvalues(nbvals), yvalues(nbvals), yexpect(nbvals)
-    real(dp)  :: ax(nbvals), bx(nbvals)
-    real(dp)  :: yinit
-
-    write(*, *) "Testing ODE integration: RK with y' = x^3 - xy, x=[0,2]"
+    write(*, *) "Testing ODE integration: y'=x^3-xy, x=[0,2]"
     xvalues = linspace(0.0d0, 2.0d0, nbvals)
     ! y' = x^3 - xy with y(0) = 0
     ax = -xvalues
     bx = xvalues**3
     yinit = 0.0d0
-    call integrate_ode_rk(xvalues, ax, bx, yvalues, yinit, 5000)
+    call integrate_ode_rk(xvalues, ax, bx, nbvals, yinit, yvalues)
     yexpect = xvalues**2 - 2.0d0 + 2.0d0 * exp(-0.5d0 * xvalues**2)
 
+    @assertEqual(nbvals, size(yvalues))
     @assertEqual(yexpect(1), yvalues(1), tolerance=TOL)
-    @assertEqual(yexpect, yvalues, tolerance=1.0d-5)
+    @assertEqual(yexpect, yvalues, tolerance=INTEGRATION_TOL)
   end subroutine test_rk_ode1
+
+  @test
+  subroutine test_rk_ode1_ad()
+    write(*, *) "Testing ODE integration: y'=x^3-xy, x=[0,2] (adaptive)"
+    xvalues = linspace(0.0d0, 2.0d0, nbvals)
+    ax = -xvalues
+    bx = xvalues**3
+    yinit = 0.0d0
+    call integrate_ode_rk( &
+      xvalues, ax, bx, nbvals, yinit, yvalues, &
+      adaptive=.true., epsilon=EPSILON_TOL, new_xvalues=xrkvalues &
+    )
+    yexpect = xrkvalues**2 - 2.0d0 + 2.0d0 * exp(-0.5d0 * xrkvalues**2)
+
+    @assertEqual(yexpect(1), yvalues(1), tolerance=TOL)
+    @assertEqual(yexpect, yvalues, tolerance=INTEGRATION_TOL)
+  end subroutine test_rk_ode1_ad
 
 
   @test
   subroutine test_rk_ode2()
-    use mod_integration, only: integrate_ode_rk
-
-    integer, parameter  :: nbvals = 300
-    real(dp)  :: xvalues(nbvals), yvalues(nbvals), yexpect(nbvals)
-    real(dp)  :: ax(nbvals), bx(nbvals)
-    real(dp)  :: yinit
-
-    write(*, *) "Testing ODE integration: RK with y' = -cos(x)y + 2x*exp(-sin(x)), x=[-2,3]"
+    write(*, *) "Testing ODE integration: y'=-cos(x)y+2x*exp(-sin(x)), x=[-2,3]"
     xvalues = linspace(-2.0d0, 3.0d0, nbvals)
     ! y' = -cos(x)y + 2x*exp(-sinx) with y(-2) = 0
     ax = -cos(xvalues)
     bx = 2.0d0 * xvalues * exp(-sin(xvalues))
     yinit = 0.0d0
-    call integrate_ode_rk(xvalues, ax, bx, yvalues, yinit, 8000)
+    call integrate_ode_rk(xvalues, ax, bx, nbvals, yinit, yvalues)
     yexpect = (xvalues**2 - 4.0d0) * exp(-sin(xvalues))
 
+    @assertEqual(nbvals, size(yvalues))
     @assertEqual(yexpect(1), yvalues(1), tolerance=TOL)
-    @assertEqual(yexpect, yvalues, tolerance=1.0d-5)
+    @assertEqual(yexpect, yvalues, tolerance=1.0d-6)
   end subroutine test_rk_ode2
+
+
+  @test
+  subroutine test_rk_ode2_ad()
+    write(*, *) "Testing ODE integration: y'=-cos(x)y+2x*exp(-sin(x)), x=[-2,3] (adaptive)"
+    xvalues = linspace(-2.0d0, 3.0d0, nbvals)
+    ax = -cos(xvalues)
+    bx = 2.0d0 * xvalues * exp(-sin(xvalues))
+    yinit = 0.0d0
+    call integrate_ode_rk( &
+      xvalues, ax, bx, nbvals, yinit, yvalues, &
+      adaptive=.true., epsilon=EPSILON_TOL, new_xvalues=xrkvalues &
+    )
+    yexpect = (xrkvalues**2 - 4.0d0) * exp(-sin(xrkvalues))
+
+    @assertEqual(yexpect(1), yvalues(1), tolerance=TOL)
+    @assertEqual(yexpect, yvalues, tolerance=1.0d-6)
+  end subroutine test_rk_ode2_ad
 
 end module mod_test_integration

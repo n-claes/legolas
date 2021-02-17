@@ -33,6 +33,12 @@ module mod_check_values
     module procedure check_nan_values_gravity
   end interface check_nan_values
 
+  !> Interface to check if a value is equal to another value.
+  interface value_is_equal
+    module procedure real_value_is_equal
+    module procedure real_array_is_equal
+  end interface value_is_equal
+
   !> Interface to check if a real or complex value is zero.
   interface value_is_zero
     module procedure real_is_zero
@@ -97,19 +103,52 @@ contains
   !! Checks if two real double-precision values are equal to
   !! each other within <tt>DP_LIMIT</tt>.
   !! Returns <tt>True</tt> if _value == value_base_, <tt>False</tt> otherwise.
-  function value_is_equal(value, value_base)  result(is_equal)
+  function real_value_is_equal(value, value_base, tol)  result(is_equal)
     !> the first real value
     real(dp), intent(in)  :: value
     !> the base value to check against
     real(dp), intent(in)  :: value_base
-    logical :: is_equal
+    !> optional tolerance used for comparison
+    real(dp), intent(in), optional  :: tol
+    logical   :: is_equal
+    real(dp)  :: tolerance
 
-    if (abs(value - value_base) > dp_LIMIT) then
+    if (present(tol)) then
+      tolerance = tol
+    else
+      tolerance = dp_LIMIT
+    end if
+
+    if (abs(value - value_base) > tolerance) then
       is_equal = .false.
     else
       is_equal = .true.
     end if
-  end function value_is_equal
+  end function real_value_is_equal
+
+
+  function real_array_is_equal(array, array_base, tol)  result(is_equal)
+    !> the first array of values
+    real(dp), intent(in)  :: array(:)
+    !> the base values to check against
+    real(dp), intent(in)  :: array_base(:)
+    !> optional tolerance used for comparison
+    real(dp), intent(in), optional  :: tol
+    logical   :: is_equal
+    real(dp)  :: tolerance
+
+    if (present(tol)) then
+      tolerance = tol
+    else
+      tolerance = dp_LIMIT
+    end if
+
+    if (all(abs(array - array_base) < dp_LIMIT)) then
+      is_equal = .true.
+    else
+      is_equal = .false.
+    end if
+  end function real_array_is_equal
 
 
   !> NaN check for real values.
