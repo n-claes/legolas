@@ -183,12 +183,17 @@ contains
     !> luminosity values in the cooling table
     real(dp), intent(in)  :: table_L(:)
 
-    call interpolate_table(ncool, table_T, table_L, interp_table_T, interp_table_L)
-
-    ! cooling tables contain dimensionful values on a logarithmic scale, go to
-    ! actual values and normalise
-    interp_table_T = 10.0d0**interp_table_T / unit_temperature
-    interp_table_L = 10.0d0**interp_table_L / unit_lambdaT
+    ! cooling tables contain dimensionful values on a logarithmic scale, so we go to
+    ! actual values and normalise. This implies an unequally spaced temperature array
+    ! due to the power 10, so FIRST interpolate on equal spacing and THEN derive
+    ! (derivative needs an equally spaced dx)
+    call interpolate_table( &
+      ncool, &
+      10.0d0**table_T / unit_temperature, &
+      10.0d0**table_L / unit_lambdaT, &
+      interp_table_T, &
+      interp_table_L &
+    )
 
     ! get temperature derivative of interpolated table, already normalised
     call get_numerical_derivative(interp_table_T, interp_table_L, interp_table_dLdT)

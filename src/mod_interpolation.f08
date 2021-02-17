@@ -145,7 +145,7 @@ contains
 
     nvals = size(x)
     dx = x(2) - x(1)
-    do i = 2, nvals
+    do i = 2, nvals-1
       dxi = x(i) - x(i-1)
       if (.not. value_is_equal(dx, dxi, tol=tol)) then
         call log_message( &
