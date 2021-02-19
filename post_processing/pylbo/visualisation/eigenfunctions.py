@@ -59,6 +59,8 @@ class EigenfunctionHandler:
         ylim = ax.get_ylim()
         # Retrieves the dataset associated with the current points.
         # This attribute has been set when the spectrum was added to the plot.
+        if not hasattr(artist, "dataset"):
+            return
         associated_ds = artist.dataset
         # This retrieves the indices of the clicked points. Multiple indices are
         # possible depending on an overlapping pickradius. Look which point corresponds
