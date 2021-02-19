@@ -572,7 +572,9 @@ class LegolasDataSeries(LegolasDataContainer):
 
     def __getitem__(self, idx):
         if isinstance(idx, slice):
-            return self.datasets[idx.start : idx.stop : idx.step]
+            return LegolasDataSeries(
+                [ds.datfile for ds in self.datasets[idx.start : idx.stop : idx.step]]
+            )
         else:
             return self.datasets[idx]
 
