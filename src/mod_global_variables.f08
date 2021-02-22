@@ -152,7 +152,7 @@ module mod_global_variables
   character(len=str_len)    :: solver
   !> selected mode for ARPACK, defaults to <tt>"standard"</tt>
   character(len=str_len)    :: arpack_mode
-  !> number of eigenvalues to calculate with ARPACK, defaults to 10
+  !> number of eigenvalues to calculate with ARPACK, defaults to 100
   integer                   :: number_of_eigenvalues
   !> which eigenvalues to calculate, defaults to <tt>"LM"<tt> (largest magnitude)
   character(len=2)          :: which_eigenvalues

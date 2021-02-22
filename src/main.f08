@@ -11,7 +11,7 @@ program legolas
   use mod_matrix_creation, only: create_matrices
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_name
-  use mod_logging, only: log_message, print_console_info, print_whitespace
+  use mod_logging, only: log_message, str, print_console_info, print_whitespace
   use mod_inspections, only: handle_spurious_eigenvalues
   implicit none
 
@@ -23,8 +23,6 @@ program legolas
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
   complex(dp), allocatable  :: eigenvecs_right(:, :)
-  !> matrix with left eigenvectors, column indices correspond to omega indices
-  complex(dp), allocatable  :: eigenvecs_left(:, :)
 
   call initialisation()
   call create_matrices(matrix_B, matrix_A)
@@ -32,7 +30,7 @@ program legolas
 
   if (.not. dry_run) then
     call log_message("solving eigenvalue problem...", level='info')
-    call solve_evp(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
+    call solve_evp(matrix_A, matrix_B, omega, eigenvecs_right)
   else
     call log_message("running dry, overriding parfile and setting &
                       &eigenvalues to zero", level='info')
@@ -73,7 +71,6 @@ contains
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
     allocate(omega(matrix_gridpts))
     allocate(eigenvecs_right(matrix_gridpts, matrix_gridpts))
-    allocate(eigenvecs_left(matrix_gridpts, matrix_gridpts))
 
     call initialise_equilibrium()
     call initialise_eigenfunctions()
@@ -108,7 +105,6 @@ contains
     deallocate(matrix_A)
     deallocate(matrix_B)
     deallocate(omega)
-    deallocate(eigenvecs_left)
     deallocate(eigenvecs_right)
 
     call grid_clean()
