@@ -407,6 +407,8 @@ def read_eigenfunction(istream, header, ef_index):
         reals = hdr[::2]
         imags = hdr[1::2]
         ef_values = np.asarray([complex(x, y) for x, y in zip(reals, imags)])
+        # omit very small values
+        ef_values[np.where(np.isclose(ef_values, 0, atol=1e-12))] = 0.0
         eigenfunctions.update({name: ef_values})
     return eigenfunctions
 

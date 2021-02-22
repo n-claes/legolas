@@ -81,7 +81,6 @@ contains
         call get_eigenfunction(ef_array(j) % index, vr(:, i), ef_values)
         ! undo variable transformation for 'actual' eigenfunction
         call transform_eigenfunction(ef_array(j) % index, ef_values)
-        call check_small_values(ef_values, tol=1.0d-10)
         ef_array(j) % eigenfunctions(:, i) = ef_values
       end do
     end do
