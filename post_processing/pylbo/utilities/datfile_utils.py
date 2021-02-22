@@ -284,7 +284,7 @@ def read_eigenvalues(istream, header, omit_large_evs=True):
     header : dict
         Dictionary containing the datfile header, output from :func:`get_header`.
     omit_large_evs : bool
-        If `True`, all eigenvalues with a modulus larger than `1e15` are omitted.
+        If `True`, all eigenvalues with a modulus larger than `1e15` are set to NaN.
 
     Returns
     -------
@@ -299,7 +299,7 @@ def read_eigenvalues(istream, header, omit_large_evs=True):
     imags = hdr[1::2]
     eigenvalues = np.asarray([complex(x, y) for x, y in zip(reals, imags)])
     if omit_large_evs:
-        eigenvalues = eigenvalues[np.where(np.absolute(eigenvalues) < 1e15)]
+        eigenvalues[np.where(np.absolute(eigenvalues) > 1e15)] = np.nan
     return eigenvalues
 
 

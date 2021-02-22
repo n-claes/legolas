@@ -340,11 +340,13 @@ class MultiSpectrumPlot(SpectrumFigure):
         ydata_values = np.array(
             [ds.eigenvalues ** self._w_pow for ds in self.dataseries]
         )
-        ydata_values[np.where(np.abs(ydata_values) < 1e-12)] = np.nan
         if self.use_real_parts:
-            return ydata_values.real
+            ydata = ydata_values.real
         else:
-            return ydata_values.imag
+            ydata = ydata_values.imag
+        # omit zeros from data
+        ydata[np.where(np.isclose(ydata, 0, atol=1e-12))] = np.nan
+        return ydata
 
     def set_x_scaling(self, x_scaling):
         """
