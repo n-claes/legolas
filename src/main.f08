@@ -54,7 +54,7 @@ contains
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, matrix_gridpts, &
-      solver, number_of_eigenvalues
+      solver, number_of_eigenvalues, write_eigenfunctions
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
@@ -79,12 +79,17 @@ contains
     end if
     call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
     allocate(omega(nb_evs))
-    ! we need #rows = matrix dimension, #cols = #eigenvalues
-    allocate(eigenvecs_right(matrix_gridpts, nb_evs))
 
     call initialise_equilibrium()
-    call initialise_eigenfunctions()
     call set_equilibrium()
+
+    ! Arnoldi solver needs this, since it always calculates an orthonormal basis
+    if (write_eigenfunctions .or. solver == "arnoldi") then
+      call log_message("allocating eigenvector arrays", level="debug")
+      ! we need #rows = matrix dimension, #cols = #eigenvalues
+      allocate(eigenvecs_right(matrix_gridpts, nb_evs))
+      call initialise_eigenfunctions(nb_evs)
+    end if
   end subroutine initialisation
 
 
@@ -115,7 +120,9 @@ contains
     deallocate(matrix_A)
     deallocate(matrix_B)
     deallocate(omega)
-    deallocate(eigenvecs_right)
+    if (allocated(eigenvecs_right)) then
+      deallocate(eigenvecs_right)
+    end if
 
     call grid_clean()
     call equilibrium_clean()

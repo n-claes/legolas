@@ -1,0 +1,13 @@
+This is meant to keep a detailed record of which changes were made to the datfile
+format and when. This file should log:
+- change in Legolas version number
+- which things were added/removed in the datfile and WHERE
+- if the change required a modification to the Pylbo datfile reader
+New additions should go at the bottom of the file and follow the format already present.
+
+=== version 1.0.1 --> 1.0.2 ===
+1) added length of param_names entry between number of parameters and parameters
+2) added length of equil_names entry between number of arrays and equilibrium arrays
+3) added names of units and length of entry between cgs boolean and unit normalisations
+4) added length of eigenvalues array before eigenvalues are written
+Changes 1-4 needed an update of the pylbo reader
