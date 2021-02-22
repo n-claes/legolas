@@ -53,13 +53,15 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, matrix_gridpts
+    use mod_global_variables, only: initialise_globals, matrix_gridpts, &
+      solver, number_of_eigenvalues
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_logging, only: print_logo
 
     character(len=str_len)  :: parfile
+    integer   :: nb_evs
 
     call initialise_globals()
     call get_parfile(parfile)
@@ -69,8 +71,16 @@ contains
 
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
-    allocate(omega(matrix_gridpts))
-    allocate(eigenvecs_right(matrix_gridpts, matrix_gridpts))
+
+    if (solver == "arnoldi") then
+      nb_evs = number_of_eigenvalues
+    else
+      nb_evs = matrix_gridpts
+    end if
+    call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
+    allocate(omega(nb_evs))
+    ! we need #rows = matrix dimension, #cols = #eigenvalues
+    allocate(eigenvecs_right(matrix_gridpts, nb_evs))
 
     call initialise_equilibrium()
     call initialise_eigenfunctions()
