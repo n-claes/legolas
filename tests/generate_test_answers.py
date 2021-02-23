@@ -28,7 +28,7 @@ def main():
             {
                 "basename_datfile": test["answer_datfile"].stem,
                 "basename_logfile": test["answer_logfile"].stem,
-                "output_folder": output_folder
+                "output_folder": output_folder,
             }
         )
         if overwrite_files(test["answer_datfile"]):
@@ -54,5 +54,5 @@ def main():
             pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

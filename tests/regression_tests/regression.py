@@ -23,6 +23,9 @@ from regression_tests.test_magnetothermal_arnoldi_si import magneto_arnoldi_si_s
 from regression_tests.test_MRI import mri_setup
 from regression_tests.test_quasimodes import quasimodes_setup
 from regression_tests.test_resistive_homo import resistive_homo_setup
+from regression_tests.test_resistive_homo_arnoldi_si import (
+    resistive_homo_arnoldi_si_setup,
+)
 from regression_tests.test_resistive_tearing import resistive_tearing_setup
 from regression_tests.test_resistive_tearing_flow import resistive_tearing_flow_setup
 from regression_tests.test_rotating_cylinder import rotating_cylinder_setup
@@ -50,6 +53,7 @@ tests_to_run = [
     mri_setup,
     quasimodes_setup,
     resistive_homo_setup,
+    resistive_homo_arnoldi_si_setup,
     resistive_tearing_setup,
     resistive_tearing_flow_setup,
     rotating_cylinder_setup,
