@@ -11,7 +11,7 @@ program legolas
   use mod_matrix_creation, only: create_matrices
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_name
-  use mod_logging, only: log_message, print_console_info, print_whitespace
+  use mod_logging, only: log_message, str, print_console_info, print_whitespace
   use mod_inspections, only: handle_spurious_eigenvalues
   implicit none
 
@@ -23,8 +23,6 @@ program legolas
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
   complex(dp), allocatable  :: eigenvecs_right(:, :)
-  !> matrix with left eigenvectors, column indices correspond to omega indices
-  complex(dp), allocatable  :: eigenvecs_left(:, :)
 
   call initialisation()
   call create_matrices(matrix_B, matrix_A)
@@ -32,7 +30,7 @@ program legolas
 
   if (.not. dry_run) then
     call log_message("solving eigenvalue problem...", level='info')
-    call solve_evp(matrix_A, matrix_B, omega, eigenvecs_left, eigenvecs_right)
+    call solve_evp(matrix_A, matrix_B, omega, eigenvecs_right)
   else
     call log_message("running dry, overriding parfile and setting &
                       &eigenvalues to zero", level='info')
@@ -55,13 +53,15 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, matrix_gridpts
+    use mod_global_variables, only: initialise_globals, matrix_gridpts, &
+      solver, number_of_eigenvalues, write_eigenfunctions
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_logging, only: print_logo
 
     character(len=str_len)  :: parfile
+    integer   :: nb_evs
 
     call initialise_globals()
     call get_parfile(parfile)
@@ -71,13 +71,25 @@ contains
 
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
-    allocate(omega(matrix_gridpts))
-    allocate(eigenvecs_right(matrix_gridpts, matrix_gridpts))
-    allocate(eigenvecs_left(matrix_gridpts, matrix_gridpts))
+
+    if (solver == "arnoldi") then
+      nb_evs = number_of_eigenvalues
+    else
+      nb_evs = matrix_gridpts
+    end if
+    call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
+    allocate(omega(nb_evs))
 
     call initialise_equilibrium()
-    call initialise_eigenfunctions()
     call set_equilibrium()
+
+    ! Arnoldi solver needs this, since it always calculates an orthonormal basis
+    if (write_eigenfunctions .or. solver == "arnoldi") then
+      call log_message("allocating eigenvector arrays", level="debug")
+      ! we need #rows = matrix dimension, #cols = #eigenvalues
+      allocate(eigenvecs_right(matrix_gridpts, nb_evs))
+      call initialise_eigenfunctions(nb_evs)
+    end if
   end subroutine initialisation
 
 
@@ -108,8 +120,9 @@ contains
     deallocate(matrix_A)
     deallocate(matrix_B)
     deallocate(omega)
-    deallocate(eigenvecs_left)
-    deallocate(eigenvecs_right)
+    if (allocated(eigenvecs_right)) then
+      deallocate(eigenvecs_right)
+    end if
 
     call grid_clean()
     call equilibrium_clean()

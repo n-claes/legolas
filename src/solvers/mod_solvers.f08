@@ -15,19 +15,17 @@ module mod_solvers
 
   !> interface to the different solution methods implemented in submodules
   interface
-    module subroutine qr_invert(matrix_A, matrix_B, omega, vl, vr)
+    module subroutine qr_invert(matrix_A, matrix_B, omega, vr)
       complex(dp), intent(in)   :: matrix_A(:, :)
       real(dp), intent(in)      :: matrix_B(:, :)
       complex(dp), intent(out)  :: omega(:)
-      complex(dp), intent(out)  :: vl(:, :)
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine
 
-    module subroutine qz_direct(matrix_A, matrix_B, omega, vl, vr)
+    module subroutine qz_direct(matrix_A, matrix_B, omega, vr)
       complex(dp), intent(in)   :: matrix_A(:, :)
       real(dp), intent(in)      :: matrix_B(:, :)
       complex(dp), intent(out)  :: omega(:)
-      complex(dp), intent(out)  :: vl(:, :)
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine qz_direct
 
@@ -49,7 +47,7 @@ contains
   !> Main subroutine to solve the eigenvalue problem. Depending on the solvelist
   !! passed in the parfile, different solvers are called.
   !! @warning Throws an error if an unknown solver is passed. @endwarning
-  subroutine solve_evp(matrix_A, matrix_B, omega, vl, vr)
+  subroutine solve_evp(matrix_A, matrix_B, omega, vr)
     use mod_global_variables, only: solver
 
     !> A-matrix
@@ -58,16 +56,14 @@ contains
     real(dp), intent(in)      :: matrix_B(:, :)
     !> eigenvalues
     complex(dp), intent(out)  :: omega(:)
-    !> left eigenvectors
-    complex(dp), intent(out)  :: vl(:, :)
     !> right eigenvectors
     complex(dp), intent(out)  :: vr(:, :)
 
     select case(solver)
     case("QR-invert")
-      call qr_invert(matrix_A, matrix_B, omega, vl, vr)
+      call qr_invert(matrix_A, matrix_B, omega, vr)
     case("QZ-direct")
-      call qz_direct(matrix_A, matrix_B, omega, vl, vr)
+      call qz_direct(matrix_A, matrix_B, omega, vr)
     case("arnoldi")
       call arnoldi(matrix_A, matrix_B, omega, vr)
     case default

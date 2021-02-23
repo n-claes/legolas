@@ -10,6 +10,7 @@ env:
   CC: /usr/bin/gcc-9
   FC: /usr/bin/gfortran-9
   LEGOLASDIR: /home/runner/work/legolas/legolas
+  ARPACK_ROOT: /home/runner/work/legolas/legolas/tests/arpack-ng
 
 jobs:
   tests:
@@ -38,6 +39,26 @@ jobs:
         sudo apt-get install libblas-dev
         sudo apt-get install liblapack-dev
         gfortran-9 --version
+
+    - name: Cache ARPACK
+      id: arpack-cache
+      uses: actions/cache@v1
+      with:
+        path: tests/arpack-ng/
+        key: ${{ runner.os }}-arpackv1
+
+    - name: Build ARPACK
+      if: steps.arpack-cache.outputs.cache-hit != 'true'
+      run: |
+        cd tests
+        git clone https://github.com/opencollab/arpack-ng.git
+        cd arpack-ng
+        mkdir build
+        mkdir installed
+        cd build
+        cmake -DEXAMPLES=OFF -DMPI=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=../installed ..
+        make -j 2
+        sudo make -j 2 install
 
     - name: Compile Legolas
       run: sh setup_tools/buildlegolas.sh

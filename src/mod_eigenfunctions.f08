@@ -29,34 +29,41 @@ contains
 
   !> Main initialisations of this module.
   !! Allocates and initialises the eigenfunction grid, types and names.
-  !! @note    This is only done if the global variable for eigenfunction assembly is <tt>True</tt>.
-  !!          If eigenfunctions are not saved it makes no sense to assemble them.
-  subroutine initialise_eigenfunctions()
-    use mod_global_variables, only: write_eigenfunctions
-    integer    :: i
+  !! Passing the optional argument <tt>nb_evs</tt> sets the number of eigenvalues
+  !! that are calculated and limits the size of the eigenfunction arrays accordingly.
+  !! This routine is only called if <tt>write_eigenfunctions = .true.</tt>.
+  subroutine initialise_eigenfunctions(nb_evs)
+    !> the number of eigenvalues that are calculated, defaults to all (matrix dim)
+    integer, intent(in), optional :: nb_evs
 
-    if (write_eigenfunctions) then
-      allocate(ef_grid(ef_gridpts))
-      ef_grid = 0.0d0
-      do i = 1, nb_eqs
-        allocate(ef_array(i) % eigenfunctions(ef_gridpts, matrix_gridpts))
-      end do
+    integer    :: i, nev
+
+    if (present(nb_evs)) then
+      nev = nb_evs
+    else
+      nev = matrix_gridpts
     end if
 
-    ef_names = [character(len=str_len_arr) :: 'rho', 'v1', 'v2', 'v3', 'T', 'a1', 'a2', 'a3']
+    allocate(ef_grid(ef_gridpts))
+    ef_grid = 0.0d0
+    do i = 1, nb_eqs
+      allocate(ef_array(i) % eigenfunctions(ef_gridpts, nev))
+    end do
+
+    ef_names = [ &
+      character(len=str_len_arr) :: 'rho', 'v1', 'v2', 'v3', 'T', 'a1', 'a2', 'a3' &
+    ]
   end subroutine initialise_eigenfunctions
 
 
   !> Calculates the eigenfunctions for every eigenvalue and variable,
   !! based on the right eigenvectors. The eigenfunctions are transformed
   !! back to their 'actual' values
-  !! @note    All eigenfunctions with a value smaller than <tt>1e-10</tt> are set to zero.
-  !!          This is separately checked for the real and imaginary parts.
   subroutine calculate_eigenfunctions(vr)
     use mod_check_values, only: check_small_values
 
     !> the matrix of right eigenvectors
-    complex(dp), intent(in) :: vr(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(in) :: vr(:, :)
     !> eigenfunctio values
     complex(dp)             :: ef_values(ef_gridpts)
     integer                 :: i, j
@@ -67,13 +74,13 @@ contains
       ! eigenfunction name corresponding to the index
       ef_array(j) % name = ef_names(j)
 
-      do i = 1, matrix_gridpts
-        ! the eigenfunction for each eigenvalue is stored in the column of 'eigenfunctions'
-        ! with the same index as omega, so column indices correspond to the eigenvalue at that index.
+      do i = 1, size(vr, dim=2)
+        ! the eigenfunction for each eigenvalue is stored in the column of
+        ! 'eigenfunctions' with the same index as omega,
+        ! so column indices correspond to the eigenvalue at that index.
         call get_eigenfunction(ef_array(j) % index, vr(:, i), ef_values)
         ! undo variable transformation for 'actual' eigenfunction
         call transform_eigenfunction(ef_array(j) % index, ef_values)
-        call check_small_values(ef_values, tol=1.0d-10)
         ef_array(j) % eigenfunctions(:, i) = ef_values
       end do
     end do
@@ -224,11 +231,9 @@ contains
 
   !> Cleaning routine, deallocates the eigenfunction arrays.
   subroutine eigenfunctions_clean()
-    use mod_global_variables, only: write_eigenfunctions
-
     integer   :: i
 
-    if (write_eigenfunctions) then
+    if (allocated(ef_grid)) then
       deallocate(ef_grid)
       do i = 1, nb_eqs
         deallocate(ef_array(i) % eigenfunctions)

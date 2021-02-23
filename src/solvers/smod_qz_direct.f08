@@ -13,15 +13,13 @@ submodule (mod_solvers) smod_qz_direct
 contains
 
   !> Solves the eigenvalue problem directly.
-  module subroutine qz_direct(matrix_A, matrix_B, omega, vl, vr)
+  module subroutine qz_direct(matrix_A, matrix_B, omega, vr)
     !> matrix A
     complex(dp), intent(in)   :: matrix_A(:, :)
     !> matrix B
     real(dp), intent(in)      :: matrix_B(:, :)
     !> array with calculated eigenvalues
     complex(dp), intent(out)  :: omega(:)
-    !> array with left eigenvectors
-    complex(dp), intent(out)  :: vl(:, :)
     !> array with right eigenvectors
     complex(dp), intent(out)  :: vr(:, :)
 
@@ -53,6 +51,8 @@ contains
     real(dp), allocatable     :: rwork(:)
     !> info parameter, 0 on successful exit
     integer     :: info
+    !> dummy for left eigenvectors, jobvl = "N" so this is never referenced
+    complex(dp) :: vl(2, 2)
 
     ! make B complex
     call log_message("making B-matrix complex", level="debug")
