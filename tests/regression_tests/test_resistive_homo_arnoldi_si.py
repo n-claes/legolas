@@ -36,6 +36,7 @@ resistive_homo_arnoldi_si_setup = {
         4.155e-01 - 7.697e-03j,
         4.152e-01 - 1.365e-02j,
     ],
+    "relax_ef_test": True,
 }
 parametrisation = dict(
     argnames="setup",

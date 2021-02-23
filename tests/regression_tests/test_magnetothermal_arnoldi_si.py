@@ -37,6 +37,7 @@ magneto_arnoldi_si_setup = {
         2.799e-2j,
         2.022e-2 + 4.418e-2j,
     ],
+    "relax_ef_test": True,
 }
 parametrisation = dict(
     argnames="setup",

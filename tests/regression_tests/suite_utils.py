@@ -89,7 +89,7 @@ def compare_eigenvalues(values_test, values_answer, ds_name):
     plt.close(fig)
 
 
-def compare_eigenfunctions(values_test, values_answer, use_abs=True):
+def compare_eigenfunctions(values_test, values_answer, use_abs=True, relax=False):
     if use_abs:
         vals_test_real, vals_test_imag = (
             np.abs(values_test.real),
@@ -108,18 +108,24 @@ def compare_eigenfunctions(values_test, values_answer, use_abs=True):
             vals_answ_real == pytest.approx(vals_test_real, rel=REL_TOL, abs=ABS_TOL)
         )
     except AssertionError:
-        answ_norm = normalise_eigenfunction(vals_answ_real)
-        test_norm = normalise_eigenfunction(vals_test_real)
-        assert np.all(abs(answ_norm - test_norm) <= 1e-5)
+        if relax:
+            answ_norm = normalise_eigenfunction(vals_answ_real)
+            test_norm = normalise_eigenfunction(vals_test_real)
+            assert np.all(abs(answ_norm - test_norm) <= 1e-3)
+        else:
+            raise
     # imaginary parts
     try:
         assert np.all(
             vals_answ_imag == pytest.approx(vals_test_imag, rel=REL_TOL, abs=ABS_TOL)
         )
     except AssertionError:
-        answ_norm = normalise_eigenfunction(vals_answ_imag)
-        test_norm = normalise_eigenfunction(vals_test_imag)
-        assert np.all(abs(answ_norm - test_norm) <= 1e-5)
+        if relax:
+            answ_norm = normalise_eigenfunction(vals_answ_imag)
+            test_norm = normalise_eigenfunction(vals_test_imag)
+            assert np.all(abs(answ_norm - test_norm) <= 1e-3)
+        else:
+            raise
 
 
 def normalise_eigenfunction(array):

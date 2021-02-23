@@ -131,7 +131,12 @@ def test_if_eigenvalues_all_real(ds_test, setup):
 )
 def test_rho_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(ef_test.get("rho"), ef_answer.get("rho"), use_abs=True)
+        compare_eigenfunctions(
+            ef_test.get("rho"),
+            ef_answer.get("rho"),
+            use_abs=True,
+            relax=setup.get("relax_ef_test", False),
+        )
 
 
 @pytest.mark.parametrize(
@@ -141,7 +146,12 @@ def test_rho_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
 )
 def test_v1_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(ef_test.get("v1"), ef_answer.get("v1"), use_abs=True)
+        compare_eigenfunctions(
+            ef_test.get("v1"),
+            ef_answer.get("v1"),
+            use_abs=True,
+            relax=setup.get("relax_ef_test", False),
+        )
 
 
 @pytest.mark.parametrize(
@@ -164,7 +174,12 @@ def test_v1_eigenfunction_edges(eigfuncs_test, eigfuncs_answer, setup):
 )
 def test_v2_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(ef_test.get("v2"), ef_answer.get("v2"), use_abs=True)
+        compare_eigenfunctions(
+            ef_test.get("v2"),
+            ef_answer.get("v2"),
+            use_abs=True,
+            relax=setup.get("relax_ef_test", False),
+        )
 
 
 @pytest.mark.parametrize(
@@ -174,7 +189,12 @@ def test_v2_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
 )
 def test_v3_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(ef_test.get("v3"), ef_answer.get("v3"), use_abs=True)
+        compare_eigenfunctions(
+            ef_test.get("v3"),
+            ef_answer.get("v3"),
+            use_abs=True,
+            relax=setup.get("relax_ef_test", False),
+        )
 
 
 @pytest.mark.parametrize(
@@ -184,7 +204,12 @@ def test_v3_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
 )
 def test_T_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(ef_test.get("T"), ef_answer.get("T"), use_abs=True)
+        compare_eigenfunctions(
+            ef_test.get("T"),
+            ef_answer.get("T"),
+            use_abs=True,
+            relax=setup.get("relax_ef_test", False),
+        )
 
 
 @pytest.mark.parametrize(
@@ -194,7 +219,12 @@ def test_T_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
 )
 def test_a1_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(ef_test.get("a1"), ef_answer.get("a1"), use_abs=True)
+        compare_eigenfunctions(
+            ef_test.get("a1"),
+            ef_answer.get("a1"),
+            use_abs=True,
+            relax=setup.get("relax_ef_test", False),
+        )
 
 
 @pytest.mark.parametrize(
@@ -204,7 +234,12 @@ def test_a1_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
 )
 def test_a2_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(ef_test.get("a2"), ef_answer.get("a2"), use_abs=True)
+        compare_eigenfunctions(
+            ef_test.get("a2"),
+            ef_answer.get("a2"),
+            use_abs=True,
+            relax=setup.get("relax_ef_test", False),
+        )
 
 
 @pytest.mark.parametrize(
@@ -227,7 +262,12 @@ def test_a2_eigenfunction_edges(eigfuncs_test, eigfuncs_answer, setup):
 )
 def test_a3_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(ef_test.get("a3"), ef_answer.get("a3"), use_abs=True)
+        compare_eigenfunctions(
+            ef_test.get("a3"),
+            ef_answer.get("a3"),
+            use_abs=True,
+            relax=setup.get("relax_ef_test", False),
+        )
 
 
 @pytest.mark.parametrize(
