@@ -19,6 +19,7 @@ from regression_tests.test_internal_kink import internal_kink_setup
 from regression_tests.test_kh_cd import kh_cd_setup
 from regression_tests.test_KHI import khi_setup
 from regression_tests.test_magnetothermal import magnetothermal_setup
+from regression_tests.test_magnetothermal_arnoldi_si import magneto_arnoldi_si_setup
 from regression_tests.test_MRI import mri_setup
 from regression_tests.test_quasimodes import quasimodes_setup
 from regression_tests.test_resistive_homo import resistive_homo_setup
@@ -45,6 +46,7 @@ tests_to_run = [
     kh_cd_setup,
     khi_setup,
     magnetothermal_setup,
+    magneto_arnoldi_si_setup,
     mri_setup,
     quasimodes_setup,
     resistive_homo_setup,

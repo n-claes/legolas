@@ -102,8 +102,29 @@ def compare_eigenfunctions(values_test, values_answer, use_abs=True):
     else:
         vals_test_real, vals_test_imag = values_test.real, values_test.imag
         vals_answ_real, vals_answ_imag = values_answer.real, values_answer.imag
-    for val_test_arr, val_answ_arr in zip(
-        [vals_test_real, vals_test_imag], [vals_answ_real, vals_answ_imag]
-    ):
-        for val_test, val_answ in zip(val_test_arr, val_answ_arr):
-            assert val_test == pytest.approx(val_answ, rel=REL_TOL, abs=ABS_TOL)
+    # real parts
+    try:
+        assert np.all(
+            vals_answ_real == pytest.approx(vals_test_real, rel=REL_TOL, abs=ABS_TOL)
+        )
+    except AssertionError:
+        answ_norm = normalise_eigenfunction(vals_answ_real)
+        test_norm = normalise_eigenfunction(vals_test_real)
+        assert np.all(abs(answ_norm - test_norm) <= 1e-5)
+    # imaginary parts
+    try:
+        assert np.all(
+            vals_answ_imag == pytest.approx(vals_test_imag, rel=REL_TOL, abs=ABS_TOL)
+        )
+    except AssertionError:
+        answ_norm = normalise_eigenfunction(vals_answ_imag)
+        test_norm = normalise_eigenfunction(vals_test_imag)
+        assert np.all(abs(answ_norm - test_norm) <= 1e-5)
+
+
+def normalise_eigenfunction(array):
+    if np.all(np.isclose(array, 0, atol=ABS_TOL)):
+        return array
+    # this normalises between 0 and 1
+    arr_norm = (array - np.min(array)) / (np.max(array) - np.min(array))
+    return arr_norm

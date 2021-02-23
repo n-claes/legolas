@@ -44,7 +44,8 @@ def main():
     if parfiles:
         print("=" * 50)
         print(
-            f"Generator will overwrite the following files: {[name for name in names]}"
+            f"Generator will create or overwrite the "
+            f"following files: {[name for name in names]}"
         )
         force = input("Are you sure? ")
         if force.lower() in ("yes", "y"):
