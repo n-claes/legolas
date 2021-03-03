@@ -438,16 +438,16 @@ contains
     factors(3) = eps_inv * drB02 * k3 - eps * k3 * dB02_r
     positions(3, :) = [2, 6]
     ! A(7, 5)
-    factors(4) = ic * eps_inv * deta * dB03
+    factors(4) = ic * eps_inv * deta_dT * dB03
     positions(4, :) = [7, 5]
     ! A(7, 6)
     factors(5) = ic * deta * eps_inv * k2
     positions(5, :) = [7, 6]
     ! A(8, 5)
-    factors(6) = -ic * eps_inv**2 * deta * drB02
+    factors(6) = -ic * eps_inv**2 * deta_dT * drB02
     positions(6, :) = [8, 5]
     ! A(8, 6)
-    factors(7) = -ic * ( eta * d_eps_dr * eps_inv * k3 - deta)
+    factors(7) = -ic * ( eta * d_eps_dr * eps_inv - deta) * k3
     positions(7, :) = [8, 6]
     call subblock(quadblock_A, factors, positions, curr_weight, h_cubic, h_quadratic)
 
