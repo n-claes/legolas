@@ -263,6 +263,14 @@ contains
         use_prefix=.false. &
       )
     end if
+    if (viscosity) then
+      call logical_tostring(viscosity, char_log)
+      call log_message( &
+        "viscosity            : " // adjustl(char_log), &
+        level="info", &
+        use_prefix=.false. &
+      )
+    end if
 
     call log_message( &
       "            << Solver settings >>", level="info", use_prefix=.false. &

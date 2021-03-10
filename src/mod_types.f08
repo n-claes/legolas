@@ -105,6 +105,13 @@ module mod_types
     complex(dp), allocatable :: eigenfunctions(:, :)
   end type ef_type
 
+  !> type containing viscosity related variables
+  type viscosity_type
+    !> second derivative equilibrium v02
+    real(dp), allocatable    :: dd_v02_dr(:)
+    !> second derivative equilibrium v03
+    real(dp), allocatable    :: dd_v03_dr(:)
+  end type viscosity_type
 
   !> interface to initialise all the different types
   interface initialise_type
@@ -116,6 +123,7 @@ module mod_types
     module procedure initialise_resistivity_type
     module procedure initialise_cooling_type
     module procedure initialise_conduction_type
+    module procedure initialise_viscosity_type
   end interface initialise_type
 
   !> interface to deallocate all the different types
@@ -128,6 +136,7 @@ module mod_types
     module procedure deallocate_resistivity_type
     module procedure deallocate_cooling_type
     module procedure deallocate_conduction_type
+    module procedure deallocate_viscosity_type
   end interface deallocate_type
 
   public :: density_type
@@ -139,6 +148,7 @@ module mod_types
   public :: cooling_type
   public :: conduction_type
   public :: ef_type
+  public :: viscosity_type
 
   public :: initialise_type
   public :: deallocate_type
@@ -275,6 +285,19 @@ contains
   end subroutine initialise_conduction_type
 
 
+  !> Allocates the viscosity type and initialises all values to zero.
+  subroutine initialise_viscosity_type(type_viscosity)
+    !> the type containing the viscosity attributes
+    type (viscosity_type), intent(inout) :: type_viscosity
+
+    allocate(type_viscosity % dd_v02_dr(gauss_gridpts))
+    allocate(type_viscosity % dd_v03_dr(gauss_gridpts))
+
+    type_viscosity % dd_v02_dr = 0.0d0
+    type_viscosity % dd_v03_dr = 0.0d0
+  end subroutine initialise_viscosity_type
+
+
   !> Deallocates all attributes contained in the  density type.
   subroutine deallocate_density_type(type_rho)
     !> the type containing the density attributes
@@ -364,5 +387,15 @@ contains
     deallocate(type_kappa % d_kappa_perp_dT)
     deallocate(type_kappa % d_kappa_perp_dB2)
   end subroutine deallocate_conduction_type
+
+
+  !> Deallocates all attributes contained in the viscosity type.
+  subroutine deallocate_viscosity_type(type_viscosity)
+    !> the type containing the viscosity attributes
+    type (viscosity_type), intent(inout) :: type_viscosity
+
+    deallocate(type_viscosity % dd_v02_dr)
+    deallocate(type_viscosity % dd_v03_dr)
+  end subroutine deallocate_viscosity_type
 
 end module mod_types
