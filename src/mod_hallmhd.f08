@@ -460,33 +460,25 @@ contains
     B02 = B_field % B02(idx)
     B03 = B_field % B03(idx)
 
-    allocate(positions(5, 2))
-    allocate(surface_terms(5))
+    allocate(positions(4, 2))
+    allocate(surface_terms(4))
 
-    ! surface term for element (6, 1)
-    surface_terms(1) = 0.0d0
-    positions(1, :) = [6, 1]
     ! surface term for element (6, 5)
-    surface_terms(2) = 0.0d0
-    positions(2, :) = [6, 5]
+    surface_terms(1) = 0.0d0
+    positions(1, :) = [6, 5]
     ! surface term for element (6, 6)
-    surface_terms(3) = - rho0_inv * (k2 * B03 * eps_inv - k3 * B02)
-    positions(3, :) = [6, 6]
+    surface_terms(2) = - rho0_inv * (k2 * B03 * eps_inv - k3 * B02)
+    positions(2, :) = [6, 6]
     ! surface term for element (6, 7)
-    surface_terms(4) = B03 * eps_inv * rho0_inv
-    positions(4, :) = [6, 7]
+    surface_terms(3) = B03 * eps_inv * rho0_inv
+    positions(3, :) = [6, 7]
     ! surface term for element (6, 8)
-    surface_terms(5) = - B02 * rho0_inv
-    positions(5, :) = [6, 8]
-
-    if (elec_pressure) then
-      surface_terms(1) = surface_terms(1) + T0 * eps_inv * rho0_inv
-      surface_terms(2) = surface_terms(2) + eps_inv
-    end if
+    surface_terms(4) = - B02 * rho0_inv
+    positions(4, :) = [6, 8]
 
     ! T1 is zero at the wall if perpendicular thermal conduction is included
-    if (.not. kappa_perp_is_zero) then
-      surface_terms(2) = 0.0d0
+    if (elec_pressure .and. kappa_perp_is_zero) then
+      surface_terms(2) = surface_terms(2) + eps_inv
     end if
 
     ! l_edge: add to bottom-right of 2x2 block, for top-left subblock only
@@ -497,10 +489,10 @@ contains
       positions = 2 * positions + dim_subblock
     end if
 
-    do i = 1, 3
+    do i = 1, 2
       quadblock_Hall(positions(i, 1), positions(i, 2)) = quadblock_Hall(positions(i, 1), positions(i, 2)) + surface_terms(i)
     end do
-    do i = 4, size(surface_terms)
+    do i = 3, size(surface_terms)
       quadblock_Hall(positions(i, 1), positions(i, 2)) = quadblock_Hall(positions(i, 1), positions(i, 2)) + surface_terms(i)
     end do
 
