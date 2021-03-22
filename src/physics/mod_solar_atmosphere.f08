@@ -246,6 +246,8 @@ contains
   !> Saves the density and density derivatives to the given filename. These can be
   !! used later on to set the values instead of solving the differential equation.
   subroutine save_profile_to_file(filename)
+    use mod_units, only: unit_length, unit_temperature, unit_magneticfield, unit_density
+
     !> values are saved to this filename
     character(len=*), intent(in)  :: filename
     integer   :: unit
@@ -253,6 +255,8 @@ contains
     unit = 1001
     open(unit=unit, file=filename, access="stream", status="unknown", action="write")
     write(unit) size(rho_values)
+    ! write dimensions, so normalisations happen correctly when loading
+    write(unit) unit_length, unit_temperature, unit_magneticfield, unit_density
     ! next we write the B and g values to file, these are checked when loading
     write(unit) h_interp
     write(unit) b02_prof(h_interp), db02_prof(h_interp)
@@ -272,11 +276,14 @@ contains
   !! density and density derivatives.
   subroutine load_profile_from_file(filename)
     use mod_check_values, only: value_is_equal
+    use mod_units, only: unit_length, unit_temperature, unit_magneticfield, unit_density
 
     !> values are loaded from this file
     character(len=*), intent(in) :: filename
 
     integer :: unit, resolution
+    real(dp)  :: length_file, temperature_file, magneticfield_file, density_file
+    logical   :: b02_cte, b03_cte
     character(len=:), allocatable :: prof_names
     real(dp), allocatable :: hfile(:), profile(:)
 
@@ -298,12 +305,44 @@ contains
       use_prefix=.false. &
     )
 
+    ! check normalisations
+    read(unit) length_file, temperature_file, magneticfield_file, density_file
+    if (.not. value_is_equal(length_file, unit_length)) then
+      call log_message( &
+        "profile inconsistency: length units do not match! Got " // &
+        str(length_file) // " but expected " // str(unit_length), &
+        level="error" &
+      )
+    end if
+    if (.not. value_is_equal(temperature_file, unit_temperature)) then
+      call log_message( &
+        "profile inconsistency: temperature units do not match! Got " // &
+        str(temperature_file) // " but expected " // str(unit_temperature), &
+        level="error" &
+      )
+    end if
+    if (.not. value_is_equal(magneticfield_file, unit_magneticfield)) then
+      call log_message( &
+        "profile inconsistency: magnetic units do not match! Got " // &
+        str(magneticfield_file) // " but expected " // str(unit_magneticfield), &
+        level="error" &
+      )
+    end if
+    if (.not. value_is_equal(density_file, unit_density)) then
+      call log_message( &
+        "profile inconsistency: density units do not match! Got " // &
+        str(length_file) // " but expected " // str(unit_length), &
+        level="error" &
+      )
+    end if
+
     ! Here we check if the profiles that are provided correspond to the ones that
     ! were used to save the integrated profile. Since Fortran cannot save function
     ! statements themselves, the B and g values were saved to the file instead and we
     ! compare them at the same resolution here.
     allocate(hfile(nbpoints), profile(nbpoints))
     allocate(prof_names, mold="")
+
     ! check B02
     read(unit) hfile, profile
     if (.not. value_is_equal(profile, b02_prof(hfile))) then
@@ -314,6 +353,14 @@ contains
     if (.not. value_is_equal(profile, db02_prof(hfile))) then
       prof_names = trim(prof_names // " dB02")
     end if
+    ! dB02 will be zero if B02 is constant
+    b02_cte = .false.
+    if ( &
+      value_is_equal(profile, 0.0d0) .and. value_is_equal(db02_prof(hfile), 0.0d0) &
+    ) then
+      b02_cte = .true.
+    end if
+
     ! check B03
     read(unit) profile
     if (.not. value_is_equal(profile, b03_prof(hfile))) then
@@ -324,6 +371,23 @@ contains
     if (.not. value_is_equal(profile, db03_prof(hfile))) then
       prof_names = trim(prof_names // " dB03")
     end if
+    ! check if B03 is constant
+    b03_cte = .false.
+    if ( &
+      value_is_equal(profile, 0.0d0) .and. value_is_equal(db03_prof(hfile), 0.0d0) &
+    ) then
+      b03_cte = .true.
+    end if
+
+    ! if both B02 and B03 are constant then values do not matter for profile, so skip
+    if (b02_cte .and. b03_cte) then
+      deallocate(prof_names)
+      allocate(prof_names, mold="")
+      call log_message( &
+        "load profile: B02 and B03 are constant, skipping B0 checks", level="debug" &
+      )
+    end if
+
     ! check gravity
     read(unit) profile
     if (.not. value_is_equal(profile, gravity_prof(hfile))) then
