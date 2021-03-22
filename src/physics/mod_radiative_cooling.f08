@@ -183,20 +183,30 @@ contains
     !> luminosity values in the cooling table
     real(dp), intent(in)  :: table_L(:)
 
-    ! cooling tables contain dimensionful values on a logarithmic scale, so we go to
-    ! actual values and normalise. This implies an unequally spaced temperature array
-    ! due to the power 10, so FIRST interpolate on equal spacing and THEN derive
-    ! (derivative needs an equally spaced dx)
+    ! cooling tables contain dimensionful values on a logarithmic scale.
+    ! To avoid resampling the table on an unequally spaced temperature array
+    ! (by doing 10**Tvals) we FIRST interpolate the logarithmic table values on an
+    ! equally spaced T-array on log-scale.
+    ! This will yield log10(L(t)) and log10(T) interpolated (dimensionful) values
     call interpolate_table( &
       ncool, &
-      10.0d0**table_T / unit_temperature, &
-      10.0d0**table_L / unit_lambdaT, &
+      table_T, &
+      table_L, &
       interp_table_T, &
       interp_table_L &
     )
+    ! rescale to "actual" L(T) and normalise
+    interp_table_L = 10.0d0**interp_table_L / unit_lambdaT
+    ! now we normalise T, but taking care that his is actually log(T). So normalising
+    ! here means doing log10(T) - log10(Tunit), corresponding to T/Tunit non-log scale
+    interp_table_T = interp_table_T - log10(unit_temperature)
 
-    ! get temperature derivative of interpolated table, already normalised
+    ! calculate dL(T) / dlogT (hence chain rule: dL(T)/dlogT = (dL(T)/dT) * T
     call get_numerical_derivative(interp_table_T, interp_table_L, interp_table_dLdT)
+    ! rescale back to actual (already normalised) values
+    interp_table_T = 10.0d0**interp_table_T
+    ! and hence dL(T)/dT = dL(T) / dlogT * (1 / T)
+    interp_table_dLdT = interp_table_dLdT / interp_table_T
   end subroutine create_cooling_curve
 
 
