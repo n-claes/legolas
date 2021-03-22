@@ -37,6 +37,7 @@ module mod_check_values
   interface value_is_equal
     module procedure real_value_is_equal
     module procedure real_array_is_equal
+    module procedure real_array_is_equal_to_value
   end interface value_is_equal
 
   !> Interface to check if a real or complex value is zero.
@@ -127,6 +128,32 @@ contains
   end function real_value_is_equal
 
 
+  !> Checks if all values of a given array are equal to a given value.
+  function real_array_is_equal_to_value(array, value_base, tol)  result(is_equal)
+    !> the first array of values
+    real(dp), intent(in)  :: array(:)
+    !> the base value to check against
+    real(dp), intent(in)  :: value_base
+    !> optional tolerance used for comparison
+    real(dp), intent(in), optional  :: tol
+    logical   :: is_equal
+    real(dp)  :: tolerance
+
+    if (present(tol)) then
+      tolerance = tol
+    else
+      tolerance = dp_LIMIT
+    end if
+
+    if (all(abs(array - value_base) < dp_LIMIT)) then
+      is_equal = .true.
+    else
+      is_equal = .false.
+    end if
+  end function real_array_is_equal_to_value
+
+
+  !> Checks if two real arrays are equal.
   function real_array_is_equal(array, array_base, tol)  result(is_equal)
     !> the first array of values
     real(dp), intent(in)  :: array(:)
