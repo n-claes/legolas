@@ -69,9 +69,6 @@ module mod_global_variables
   real(dp)                  :: dropoff_width
   !> boolean for viscosity, defaults to <tt>False</tt>
   logical, save             :: viscosity
-  !> boolean to set a fixed value for the kinematic viscosity rather than
-  !! dynamic viscosity, defaults to <tt>False</tt>
-  logical, save             :: use_kinematic_viscosity
   !> defines the fixed value for either the dynamic or kinematic viscosity, defaults to 0
   real(dp)                  :: viscosity_value
 
@@ -203,7 +200,6 @@ contains
     dropoff_edge_dist = 0.05d0
     dropoff_width = 0.1d0
     viscosity = .false.
-    use_kinematic_viscosity = .false.
     viscosity_value = 0.0d0
 
     !! grid variables
