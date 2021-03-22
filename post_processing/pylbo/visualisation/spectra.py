@@ -430,7 +430,7 @@ class MultiSpectrumPlot(SpectrumFigure):
             # when continua are collapsed then min = max and we draw a line instead
             if all(np.isclose(abs(max_values - min_values), 0)):
                 (item,) = self.ax.plot(
-                    self.xdata,
+                    self.xdata * self.x_scaling,
                     min_values * self.y_scaling,
                     color=color,
                     alpha=self._c_handler.alpha_point,
@@ -438,7 +438,7 @@ class MultiSpectrumPlot(SpectrumFigure):
                 )
             else:
                 item = self.ax.fill_between(
-                    self.xdata,
+                    self.xdata * self.x_scaling,
                     min_values * self.y_scaling,
                     max_values * self.y_scaling,
                     facecolor=colors.to_rgba(color, self._c_handler.alpha_region),
