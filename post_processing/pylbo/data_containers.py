@@ -553,7 +553,7 @@ class LegolasDataSet(LegolasDataContainer):
                 self.eigenvalues.imag - ev_guess.imag
             ) ** 2
             # closest distance (squared)
-            idx = distances.argmin()
+            idx = np.nanargmin(distances)
             idxs[i] = idx
             eigenvals[i] = self.eigenvalues[idx]
         return idxs, eigenvals
