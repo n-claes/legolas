@@ -596,6 +596,30 @@ class SpectrumComparisonPlot(SpectrumFigure):
         self.panel2.ax.set_title(ds2.datfile.stem)
         self._axes_set = False
 
+    def set_x_scaling(self, x_scaling):
+        """
+        Overloads parent method, calls x scaling setter for each panel.
+
+        Parameters
+        ----------
+        x_scaling : int, float, complex, numpy.ndarray
+            The scaling to apply to the x-axis
+        """
+        for panel in (self.panel1, self.panel2):
+            panel.set_x_scaling(x_scaling)
+
+    def set_y_scaling(self, y_scaling):
+        """
+        Overloads parent method, calls y scaling setter for each panel.
+
+        Parameters
+        ----------
+        y_scaling : int, float, complex, numpy.ndarray
+            The scaling to apply to the y-axis
+        """
+        for panel in (self.panel1, self.panel2):
+            panel.set_y_scaling(y_scaling)
+
     def _use_custom_axes(self):
         """Splits the original 1x2 plot into a 2x2 plot."""
         if self._axes_set:
