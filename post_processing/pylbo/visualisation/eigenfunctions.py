@@ -161,6 +161,12 @@ class EigenfunctionHandler:
         # pressing "t" retransforms the eigenfunctions
         if event.key == "t":
             self._retransform_efs = not self._retransform_efs
+        if event.key == "w":
+            if self._selected_idxs:
+                print("Currently selected eigenvalues: ")
+                for ds, points in self._selected_idxs.items():
+                    idxs = np.array([int(idx) for idx in points.keys()])
+                    print(f"{ds.datfile.stem} | {ds.eigenvalues[idxs]}")
         # pressing one of these keys updates the plot
         if event.key in ("enter", "up", "down", "i", "t"):
             self.update_plot()

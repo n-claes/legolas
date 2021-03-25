@@ -42,7 +42,12 @@ def calculate_continua(ds):
     slow_plus = np.sqrt(slow2)
     slow_is_zero = np.all(np.isclose(slow2, 0))
 
-    # Thermal continuum
+    # Thermal continuum calculation
+    # wave vector parallel to magnetic field, uses vector projection and scale factor
+    kpara = (k2 * B02 / ds.scale_factor + k3 * B03) / B0
+    cs2 = gamma * p / rho  # sound speed
+    vA2 = B0 ** 2 / rho  # Alfvén speed
+    ci2 = p / rho  # isothermal sound speed
     dLdT = ds.equilibria["dLdT"]
     dLdrho = ds.equilibria["dLdrho"]
     kappa_para = ds.equilibria["kappa_para"]
@@ -58,13 +63,10 @@ def calculate_continua(ds):
     # if temperature is zero (no pressure), set to zero and return
     elif (T == 0).all():
         thermal = np.zeros_like(ds.grid_gauss)
+    # if slow continuum vanishes, thermal continuum is analytical
+    elif slow_is_zero:
+        thermal = 1j * (gamma - 1) * (rho * dLdrho - dLdT * (ci2 + vA2)) / (cs2 + vA2)
     else:
-        # wave vector parallel to magnetic field,
-        # uses vector projection and scale factor
-        kpara = (k2 * B02 / ds.scale_factor + k3 * B03) / B0
-        cs2 = gamma * p / rho  # sound speed
-        vA2 = B0 ** 2 / rho  # Alfvén speed
-        ci2 = p / rho  # isothermal sound speed
         sigma_A2 = kpara ** 2 * vA2  # Alfvén frequency
         sigma_c2 = cs2 * sigma_A2 / (vA2 + cs2)  # cusp frequency
         sigma_i2 = ci2 * sigma_A2 / (vA2 + ci2)  # isothermal cusp frequency
@@ -83,19 +85,17 @@ def calculate_continua(ds):
         # the thermal continuum corresponds to the (only) purely imaginary solution,
         # modified slow continuum are other two solutions
         thermal = np.empty(shape=len(ds.grid_gauss), dtype=complex)
-        if not slow_is_zero:
-            slow_min = np.empty(shape=len(ds.grid_gauss), dtype=complex)
-            slow_plus = np.empty(shape=len(ds.grid_gauss), dtype=complex)
+        slow_min = np.empty_like(thermal)
+        slow_plus = np.empty_like(thermal)
         for idx, _ in enumerate(ds.grid_gauss):
             solutions = np.roots([coeff3[idx], coeff2[idx], coeff1[idx], coeff0[idx]])
             # create mask for purely imaginary solutions
             mask = np.isclose(abs(solutions.real), 0)
             imag_sol = solutions[mask]
-            # extract slow continuum solutions, only if there is a slow continuum
-            if not slow_is_zero:
-                s_neg, s_pos = np.sort_complex(solutions[np.invert(mask)])
-                slow_min[idx] = s_neg
-                slow_plus[idx] = s_pos
+            # extract slow continuum solutions
+            s_neg, s_pos = np.sort_complex(solutions[np.invert(mask)])
+            slow_min[idx] = s_neg
+            slow_plus[idx] = s_pos
             # process thermal continuum solution
             if (imag_sol == 0).all():
                 # if all solutions are zero (no thermal continuum), then append zero
@@ -117,25 +117,6 @@ def calculate_continua(ds):
                     )
                     w = 0
             thermal[idx] = w
-
-        # additional sanity check: if the slow continuum vanishes
-        # there is an analytical solution for the
-        # thermal continuum. This one should be equal to the solution
-        # obtained through solving the polynomial equation.
-        if (slow2 == 0).all() and (T != 0).all():
-            analytic_sol = (
-                1j
-                * (gamma - 1)
-                * (rho * dLdrho / T - dLdT * (T + vA2))
-                / (vA2 + gamma * T)
-            )
-            diff = abs(np.sort(thermal.imag) - np.sort(analytic_sol.imag))
-            # if any value in the difference is larger than 1e-12, print a warning
-            if any(diff > 1e-12):
-                pylboLogger.warning(
-                    "slow continuum vanishes, but difference in analytical/numerical "
-                    "thermal continuum!"
-                )
 
     # get doppler-shifted continua and return
     continua = {
