@@ -74,6 +74,9 @@ module mod_global_variables
 
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
+  !> defines the presence of a coaxial inner boundary for a cylindrical geometry,
+  !! defaults to <tt>False</tt>
+  logical, save             :: coaxial
   !> start value of the base grid, defaults depend on chosen equilibrium
   real(dp)                  :: x_start
   !> end value of the base grid, defaults depend on chosen equilibrium
@@ -205,6 +208,7 @@ contains
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile
     geometry = ""
+    coaxial = .false.
     x_start = NaN
     x_end = NaN
     gridpts = 31

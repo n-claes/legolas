@@ -85,7 +85,8 @@ contains
   !! @warning Throws an error if <tt>boundary_type</tt> is not known,
   !!          or if <tt>edge</tt> is not known.
   subroutine essential_boundaries(quadblock, edge, matrix)
-    use mod_global_variables, only: boundary_type, solver, viscosity, geometry
+    use mod_global_variables, only: boundary_type, solver, viscosity, geometry, &
+                                    coaxial
     use mod_logging, only: log_message
 
     !> the quadblock corresponding to the left/right edge
@@ -143,8 +144,9 @@ contains
           quadblock(:, j) = (0.0d0, 0.0d0)
           quadblock(j, j) = diagonal_factor
         end do
-        ! No-slip condition does not apply at left edge for a cylindrical geometry
-        if (viscosity .and. geometry == 'Cartesian') then
+        ! No-slip condition does not apply at left edge for a cylindrical
+        ! geometry unless two coaxial walls are used
+        if (viscosity .and. (geometry == 'Cartesian' .or. coaxial)) then
           do i = 1, size(noslip_idx_left)
             j = noslip_idx_left(i)
             quadblock(j, :) = (0.0d0, 0.0d0)

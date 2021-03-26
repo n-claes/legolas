@@ -197,7 +197,7 @@ contains
   !> Creates a quadblock for the A matrix containing the natural boundary
   !! conditions coming from the viscosity terms, depending on the supplied edge.
   subroutine viscosity_boundaries(quadblock_viscosity, edge)
-    use mod_global_variables, only: dp_LIMIT, gauss_gridpts, geometry
+    use mod_global_variables, only: dp_LIMIT, gauss_gridpts, geometry, coaxial
     use mod_logging, only: log_message
     use mod_equilibrium, only: v_field, kappa_field
     use mod_grid, only: eps_grid, d_eps_grid_dr
@@ -235,7 +235,7 @@ contains
 
     dv03 = v_field % d_v03_dr(idx)
 
-    if (geometry == 'cylindrical' .and. edge == 'l_edge') then
+    if (geometry == 'cylindrical' .and. edge == 'l_edge' .and. .not. coaxial) then
       ! Add to bottom-right of 2x2 block, for top-left subblock only
       ! (Quadratic * Quadratic, Quadratic * d(Quadratic)/dr)
       call reset_factors(surface_terms, 2)

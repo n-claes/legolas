@@ -59,6 +59,7 @@ module mod_check_values
   public :: value_is_equal
   public :: value_is_nan
   public :: value_is_inf
+  public :: check_coax
 
 contains
 
@@ -459,5 +460,16 @@ contains
 
     call stop_if_nan(grav_field % grav, "g")
   end subroutine check_nan_values_gravity
+
+
+  !> Checks if x_start is non-zero if an inner wall boundary is included for
+  !! a cylindrical geometry
+  subroutine check_coax()
+    use mod_global_variables, only: dp_LIMIT, x_start, coaxial
+
+    if (coaxial .and. x_start < dp_LIMIT) then
+      call log_message("x_start must be larger than zero to introduce an inner wall boundary", level='error')
+    end if
+  end subroutine check_coax
 
 end module mod_check_values
