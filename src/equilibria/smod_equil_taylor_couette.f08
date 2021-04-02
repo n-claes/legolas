@@ -24,7 +24,7 @@ contains
     use mod_equilibrium_params, only: cte_rho0, alpha, beta
     use mod_global_variables, only: viscosity_value
 
-    real(dp)    :: r, h, Rrat, Orat, A, B
+    real(dp)    :: r, h, Rrat, Orat, A, B, Ta
     integer     :: i
 
     call allow_geometry_override(default_geometry='cylindrical', default_x_start=1.0d0, default_x_end=2.0d0)
@@ -61,6 +61,11 @@ contains
       v_field % d_v02_dr(i) = A - B / r**2
       T_field % d_T0_dr(i)  = (v_field % v02(i))**2 / r
     end do
+
+    Ta = (cte_rho0 * (v_field % v02(int(gauss_gridpts/2))) * h / viscosity_value)**2 &
+          * 2.0d0 * h / (x_start + x_end)
+    call log_message('Taylor number is ' // str(int(Ta)), level='info')
+
   end subroutine taylor_couette_eq
 
 end submodule smod_equil_taylor_couette

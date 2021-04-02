@@ -19,7 +19,7 @@ module mod_equilibrium
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
-  use mod_logging, only: log_message, dp_fmt, char_log
+  use mod_logging, only: log_message, dp_fmt, char_log, str
   implicit none
 
   private
