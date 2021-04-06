@@ -15,6 +15,7 @@ contains
 
   subroutine get_viscosity_terms(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_viscosity, &
                             h_quadratic, dh_quadratic_dr, h_cubic, dh_cubic_dr)
+    use mod_global_variables, only: viscous_heating
     use mod_equilibrium_params, only: k2, k3
     use mod_equilibrium, only: rho_field, v_field, viscosity_field
     use mod_make_subblock, only: subblock, reset_factors, reset_positions
@@ -77,11 +78,15 @@ contains
                  -d_eps_dr**2 * eps_inv**3
     positions(4, :) = [4, 4]
     ! A(5, 3)
-    factors(5) = 2.0d0 * (d_eps_dr * eps_inv)**2 * v02
+    factors(5) = 0.0d0
     positions(5, :) = [5, 3]
     ! A(5, 4)
-    factors(6) = -2.0d0 * eps_inv * ddv03
+    factors(6) = 0.0d0
     positions(6, :) = [5, 4]
+    if (viscous_heating) then
+      factors(5) = factors(5) + 2.0d0 * (d_eps_dr * eps_inv)**2 * v02
+      factors(6) = factors(6) - 2.0d0 * eps_inv * ddv03
+    end if
     call subblock(quadblock_viscosity, factors, positions, curr_weight, h_quadratic, h_quadratic)
 
     ! Quadratic * d(Quadratic)/dr
@@ -94,8 +99,11 @@ contains
     factors(2) = d_eps_dr * eps_inv**2
     positions(2, :) = [4, 4]
     ! A(5,3)
-    factors(3) = 2.0d0 * dv02
+    factors(3) = 0.0d0
     positions(3, :) = [5, 3]
+    if (viscous_heating) then
+      factors(3) = factors(3) + 2.0d0 * dv02
+    end if
     call subblock(quadblock_viscosity, factors, positions, curr_weight, h_quadratic, dh_quadratic_dr)
 
     ! d(Quadratic)/dr * Quadratic
@@ -105,8 +113,11 @@ contains
     factors(1) = d_eps_dr * eps_inv**2
     positions(1, :) = [4, 4]
     ! A(5, 4)
-    factors(2) = -2.0d0 * eps_inv * dv03
+    factors(2) = 0.0d0
     positions(2, :) = [5, 4]
+    if (viscous_heating) then
+      factors(2) = factors(2) - 2.0d0 * eps_inv * dv03
+    end if
     call subblock(quadblock_viscosity, factors, positions, curr_weight, dh_quadratic_dr, h_quadratic)
 
     ! d(Quadratic)/dr * d(Quadratic)/dr
@@ -120,13 +131,15 @@ contains
     positions(2, :) = [4, 4]
     call subblock(quadblock_viscosity, factors, positions, curr_weight, dh_quadratic_dr, dh_quadratic_dr)
 
-    ! Quadratic * Cubic
-    call reset_factors(factors, 1)
-    call reset_positions(positions, 1)
-    ! A(5,2)
-    factors(1) = -2.0d0 * d_eps_dr * eps_inv**3 * k2 * v02
-    positions(1, :) = [5, 2]
-    call subblock(quadblock_viscosity, factors, positions, curr_weight, h_quadratic, h_cubic)
+    if (viscous_heating) then
+      ! Quadratic * Cubic
+      call reset_factors(factors, 1)
+      call reset_positions(positions, 1)
+      ! A(5,2)
+      factors(1) = -2.0d0 * d_eps_dr * eps_inv**3 * k2 * v02
+      positions(1, :) = [5, 2]
+      call subblock(quadblock_viscosity, factors, positions, curr_weight, h_quadratic, h_cubic)
+    end if
 
     ! Quadratic * d(Cubic)/dr
     call reset_factors(factors, 2)
@@ -197,7 +210,7 @@ contains
   !> Creates a quadblock for the A matrix containing the natural boundary
   !! conditions coming from the viscosity terms, depending on the supplied edge.
   subroutine viscosity_boundaries(quadblock_viscosity, edge)
-    use mod_global_variables, only: dp_LIMIT, gauss_gridpts, geometry, coaxial
+    use mod_global_variables, only: dp_LIMIT, gauss_gridpts, geometry, coaxial, viscous_heating
     use mod_logging, only: log_message
     use mod_equilibrium, only: v_field, kappa_field
     use mod_grid, only: eps_grid, d_eps_grid_dr
@@ -245,7 +258,7 @@ contains
       surface_terms(1) = -d_eps_dr * eps_inv**2
       positions(1, :) = [4, 4]
       ! surface term for element (5, 4)
-      if (kappa_perp_is_zero) then
+      if (kappa_perp_is_zero .and. viscous_heating) then
         surface_terms(2) = 2.0d0 * eps_inv * dv03
       end if
       positions(2, :) = [5, 4]

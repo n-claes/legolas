@@ -271,6 +271,14 @@ contains
         use_prefix=.false. &
       )
     end if
+    if (viscous_heating) then
+      call logical_tostring(viscous_heating, char_log)
+      call log_message( &
+        "viscous heating      : " // adjustl(char_log), &
+        level="info", &
+        use_prefix=.false. &
+      )
+    end if
 
     call log_message( &
       "            << Solver settings >>", level="info", use_prefix=.false. &

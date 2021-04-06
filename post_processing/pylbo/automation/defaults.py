@@ -47,6 +47,8 @@ namelist_items = {
         ("use_eta_dropoff", bool),
         ("dropoff_edge_dist", (int, np.integer, float)),
         ("dropoff_width", (int, np.integer, float)),
+        ("viscosity", bool),
+        ("viscosity_value", (int, np.integer, float)),
     ],
     "unitslist": [
         ("cgs_units", bool),
