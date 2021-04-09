@@ -20,11 +20,11 @@ submodule (mod_equilibrium) smod_equil_taylor_couette
 contains
 
   module subroutine taylor_couette_eq()
-    use mod_global_variables, only: coaxial, dp_LIMIT
+    use mod_global_variables, only: coaxial
     use mod_equilibrium_params, only: cte_rho0, alpha, beta
     use mod_global_variables, only: viscosity_value
 
-    real(dp)    :: r, h, Rrat, Orat, A, B, Ta, Tstart
+    real(dp)    :: r, h, Rrat, A, B, Ta, Tstart
     integer     :: i
 
     call allow_geometry_override(default_geometry='cylindrical', default_x_start=1.0d0, default_x_end=2.0d0)
@@ -47,14 +47,8 @@ contains
 
     h = x_end - x_start
     Rrat = x_start / x_end
-    if (alpha > dp_LIMIT) then
-      Orat = beta / alpha
-      A = alpha * (Rrat**2 - Orat) / (Rrat**2 - 1.0d0)
-      B = alpha * x_start**2 * (1.0d0 - Orat) / (1.0d0 - Rrat**2)
-    else
-      A = beta / (1.0d0 - Rrat**2)
-      B = -beta * x_start**2 / (1.0d0 - Rrat**2)
-    end if
+    A = (alpha * Rrat**2 - beta) / (Rrat**2 - 1.0d0)
+    B = x_start**2 * (alpha - beta) / (1.0d0 - Rrat**2)
 
     Tstart = 0.5d0 * ((A * x_start)**2 + 4.0d0 * A * B * log(x_start) - (B / x_start)**2)
     do i = 1, gauss_gridpts
@@ -65,11 +59,13 @@ contains
       if (Tstart > 0) then
         T_field % T0(i)     = 0.5d0 * ((A * r)**2 + 4.0d0 * A * B * log(r) - (B / r)**2)
       else
-        T_field % T0(i) = 2.0d0*abs(Tstart) + 0.5d0 * ((A * r)**2 + 4.0d0 * A * B * log(r) - (B / r)**2)
+        T_field % T0(i) = 2.0d0 * abs(Tstart) + 0.5d0 * ((A * r)**2 + 4.0d0 * A * B * log(r) - (B / r)**2)
       end if
 
       v_field % d_v02_dr(i) = A - B / r**2
       T_field % d_T0_dr(i)  = (v_field % v02(i))**2 / r
+
+      viscosity_field % dd_v02_dr(i) = 2.0d0 * B / r**3
     end do
 
     Ta = (cte_rho0 * (v_field % v02(int(gauss_gridpts/2))) * h / viscosity_value)**2 &
