@@ -8,7 +8,7 @@
 !! KU Leuven, Belgium.
 program legolas
   use mod_global_variables, only: dp, str_len, show_results, dry_run
-  use mod_matrix_creation, only: create_matrices
+  use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_name
   use mod_logging, only: log_message, str, print_console_info, print_whitespace
@@ -25,7 +25,7 @@ program legolas
   complex(dp), allocatable  :: eigenvecs_right(:, :)
 
   call initialisation()
-  call create_matrices(matrix_B, matrix_A)
+  call build_matrices(matrix_B, matrix_A)
   call print_console_info()
 
   if (.not. dry_run) then
