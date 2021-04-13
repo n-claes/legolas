@@ -22,10 +22,10 @@ contains
   subroutine apply_boundary_conditions(matrix_A, matrix_B)
     use mod_global_variables, only: dp_LIMIT, viscosity
     use mod_equilibrium, only: kappa_field
-    use mod_viscosity, only: viscosity_boundaries
+    ! use mod_viscosity, only: viscosity_boundaries
     use mod_global_variables, only: dp_LIMIT, hall_mhd, gauss_gridpts
     use mod_equilibrium, only: kappa_field
-    use mod_hallmhd, only: hall_boundaries
+    ! use mod_hallmhd, only: hall_boundaries
     use mod_equilibrium, only: hall_field
 
     !> the A-matrix with boundary conditions imposed on exit
@@ -62,25 +62,25 @@ contains
     quadblock = matrix_A(1:idx_end_left, 1:idx_end_left)
     call essential_boundaries(quadblock, edge='l_edge', matrix='A')
     call natural_boundaries(quadblock, edge='l_edge')
-    if (viscosity) then
-      call viscosity_boundaries(quadblock_visc, edge='l_edge')
-      quadblock = quadblock + quadblock_visc
-    end if
-    if (hall_mhd) then
-      call hall_boundaries(quadblock_Hall, kappa_perp_is_zero, edge='l_edge')
-      hf = hall_field % hallfactor(1)
-      quadblock = quadblock - hf * quadblock_Hall
-    end if
+    ! if (viscosity) then
+    !   call viscosity_boundaries(quadblock_visc, edge='l_edge')
+    !   quadblock = quadblock + quadblock_visc
+    ! end if
+    ! if (hall_mhd) then
+    !   call hall_boundaries(quadblock_Hall, kappa_perp_is_zero, edge='l_edge')
+    !   hf = hall_field % hallfactor(1)
+    !   quadblock = quadblock - hf * quadblock_Hall
+    ! end if
     matrix_A(1:idx_end_left, 1:idx_end_left) = quadblock
     ! matrix A right-edge quadblock
     quadblock = matrix_A(idx_start_right:matrix_gridpts, idx_start_right:matrix_gridpts)
     call essential_boundaries(quadblock, edge='r_edge', matrix='A')
     call natural_boundaries(quadblock, edge='r_edge')
-    if (hall_mhd) then
-      call hall_boundaries(quadblock_Hall, kappa_perp_is_zero, edge='r_edge')
-      hf = hall_field % hallfactor(gauss_gridpts)
-      quadblock = quadblock - hf * quadblock_Hall
-    end if
+    ! if (hall_mhd) then
+    !   call hall_boundaries(quadblock_Hall, kappa_perp_is_zero, edge='r_edge')
+    !   hf = hall_field % hallfactor(gauss_gridpts)
+    !   quadblock = quadblock - hf * quadblock_Hall
+    ! end if
     matrix_A(idx_start_right:matrix_gridpts, idx_start_right:matrix_gridpts) = quadblock
   end subroutine apply_boundary_conditions
 

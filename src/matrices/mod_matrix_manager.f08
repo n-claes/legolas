@@ -34,7 +34,8 @@ module mod_matrix_manager
 
   private
 
-  public :: build_matrices
+  public  :: build_matrices
+  public  :: reset_factor_positions
 
 contains
 

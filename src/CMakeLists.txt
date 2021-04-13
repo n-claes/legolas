@@ -56,7 +56,7 @@ set (sources
         matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
         matrices/smod_regular_matrix.f08
-        physics/mod_viscosity.f08
+        # physics/mod_viscosity.f08
         mod_boundary_conditions.f08
         solvers/mod_solvers.f08
         solvers/mod_arpack_type.f08
@@ -65,7 +65,7 @@ set (sources
         solvers/smod_arnoldi.f08
         mod_eigenfunctions.f08
         dataIO/mod_output.f08
-        mod_hallmhd.f08
+        # mod_hallmhd.f08
 )
 
 set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)
