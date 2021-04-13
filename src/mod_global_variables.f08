@@ -73,7 +73,16 @@ module mod_global_variables
   logical, save             :: viscous_heating
   !> defines the fixed value for either the dynamic or kinematic viscosity, defaults to 0
   real(dp)                  :: viscosity_value
-
+  !> boolean to use Hall MHD, defaults to <tt>False</tt>
+  logical, save             :: hall_mhd
+  !> boolean to use dropoff profile for Hall parameter, defaults to <tt>False </tt>
+  logical, save             :: hall_dropoff
+  !> boolean to use electron pressure in Ohm's law, defaults to <tt>False</tt>
+  logical, save             :: elec_pressure
+  !> boolean to use electron inertia in Ohm's law, defaults to <tt>False</tt>
+  logical, save             :: elec_inertia
+  !> boolean to use dropoff profile for inertia parameter, defaults to <tt>False </tt>
+  logical, save             :: inertia_dropoff
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
   !> defines the presence of a coaxial inner boundary for a cylindrical geometry,
@@ -207,6 +216,11 @@ contains
     viscosity = .false.
     viscous_heating = .false.
     viscosity_value = 0.0d0
+    hall_mhd = .false.
+    hall_dropoff = .false.
+    elec_pressure = .false.
+    elec_inertia = .false.
+    inertia_dropoff = .false.
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile

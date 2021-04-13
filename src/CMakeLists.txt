@@ -51,6 +51,7 @@ set (sources
         equilibria/smod_equil_viscoresistive_tube.f08
         equilibria/smod_equil_couette_flow.f08
         equilibria/smod_equil_taylor_couette.f08
+        equilibria/smod_equil_harris_sheet.f08
         ${USR_SMOD_LOC}/smod_user_defined.f08
         mod_make_subblock.f08
         physics/mod_viscosity.f08
@@ -63,6 +64,7 @@ set (sources
         solvers/smod_arnoldi.f08
         mod_eigenfunctions.f08
         dataIO/mod_output.f08
+        mod_hallmhd.f08
 )
 
 set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)

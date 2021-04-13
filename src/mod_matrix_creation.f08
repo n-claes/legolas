@@ -33,12 +33,15 @@ contains
   !! boundary conditions are imposed.
   subroutine create_matrices(matrix_B, matrix_A)
     use mod_global_variables, only: gaussian_weights, n_gauss, &
-                                    ic, viscosity, viscosity_value
+                                    ic, viscosity, viscosity_value, &
+                                    hall_mhd, elec_inertia
     use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
                                     cubic_factors, cubic_factors_deriv
     use mod_boundary_conditions, only: apply_boundary_conditions
     use mod_viscosity, only: get_viscosity_terms
+    use mod_hallmhd, only: get_hallterm, get_hallterm_Bmat
+    use mod_equilibrium, only: hall_field
 
     !> the B-matrix
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
@@ -47,10 +50,13 @@ contains
     complex(dp)                 :: quadblock_B(dim_quadblock, dim_quadblock)
     complex(dp)                 :: quadblock_A(dim_quadblock, dim_quadblock)
     complex(dp)                 :: quadblock_viscosity(dim_quadblock, dim_quadblock)
+    complex(dp)                 :: quadblock_Hall(dim_quadblock, dim_quadblock)
+    complex(dp)                 :: quadblock_HallB(dim_quadblock, dim_quadblock)
 
     real(dp)                    :: r, r_lo, r_hi, eps, d_eps_dr, curr_weight
     integer                     :: i, j, gauss_idx, k, l
     integer                     :: quadblock_idx, idx1, idx2
+    real(dp)                    :: hf, inf
 
     ! initialise matrices (A is complex, B is real)
     matrix_B = 0.0d0
@@ -93,6 +99,19 @@ contains
           call get_viscosity_terms(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_viscosity, &
                                     h_quadratic, dh_quadratic_dr, h_cubic, dh_cubic_dr)
           quadblock_A = quadblock_A + ic * viscosity_value * quadblock_viscosity
+        end if
+        if (hall_mhd) then
+          call get_hallterm(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_Hall, &
+                            h_quadratic, dh_quadratic_dr, h_cubic, dh_cubic_dr)
+          hf = hall_field % hallfactor(gauss_idx)
+          quadblock_A = quadblock_A - hf * quadblock_Hall
+        end if
+
+        if (elec_inertia) then
+          call get_hallterm_Bmat(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_HallB, &
+                            h_quadratic, h_cubic, dh_cubic_dr)
+          inf = hall_field % inertiafactor(gauss_idx)
+          quadblock_B = quadblock_B + inf * quadblock_HallB
         end if
       end do   ! ends iteration gaussian points
 
@@ -209,7 +228,7 @@ contains
     !> current weight in the Gaussian quadrature
     real(dp), intent(in)      :: curr_weight
     !> the A-quadblock for a particular grid interval
-    complex(dp), intent(out)  :: quadblock_A(dim_quadblock, dim_quadblock)
+    complex(dp), intent(inout):: quadblock_A(dim_quadblock, dim_quadblock)
 
     complex(dp), allocatable  :: factors(:)
     integer, allocatable      :: positions(:, :)

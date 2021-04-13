@@ -112,6 +112,15 @@ module mod_types
     !> second derivative equilibrium v03
     real(dp), allocatable    :: dd_v03_dr(:)
   end type viscosity_type
+  
+  !> type containing Hall related variables
+  type hall_type
+    !> Hall parameter
+    real(dp), allocatable    :: hallfactor(:)
+    !> electron inertia parameter
+    real(dp), allocatable    :: inertiafactor(:)
+  end type hall_type
+
 
   !> interface to initialise all the different types
   interface initialise_type
@@ -124,6 +133,7 @@ module mod_types
     module procedure initialise_cooling_type
     module procedure initialise_conduction_type
     module procedure initialise_viscosity_type
+    module procedure initialise_hall_type
   end interface initialise_type
 
   !> interface to deallocate all the different types
@@ -137,6 +147,7 @@ module mod_types
     module procedure deallocate_cooling_type
     module procedure deallocate_conduction_type
     module procedure deallocate_viscosity_type
+    module procedure deallocate_hall_type
   end interface deallocate_type
 
   public :: density_type
@@ -149,6 +160,7 @@ module mod_types
   public :: conduction_type
   public :: ef_type
   public :: viscosity_type
+  public :: hall_type
 
   public :: initialise_type
   public :: deallocate_type
@@ -264,6 +276,19 @@ contains
     type_rc % d_L_dT = 0.0d0
     type_rc % d_L_drho = 0.0d0
   end subroutine initialise_cooling_type
+
+
+  !> Allocates the Hall type and initialises all values to zero.
+  subroutine initialise_hall_type(type_hall)
+    !> the type containing the density attributes
+    type (hall_type), intent(inout)  :: type_hall
+
+    allocate(type_hall % hallfactor(gauss_gridpts))
+    allocate(type_hall % inertiafactor(gauss_gridpts))
+
+    type_hall % hallfactor = 0.0d0
+    type_hall % inertiafactor = 0.0d0
+  end subroutine initialise_hall_type
 
 
   !> Allocates the thermal conduction type and initialises all values to zero.
@@ -397,5 +422,15 @@ contains
     deallocate(type_viscosity % dd_v02_dr)
     deallocate(type_viscosity % dd_v03_dr)
   end subroutine deallocate_viscosity_type
+
+  
+  !> Deallocates all attributes contained in the Hall type.
+  subroutine deallocate_hall_type(type_hall)
+    !> the type containing the density attributes
+    type (hall_type), intent(inout)  :: type_hall
+
+    deallocate(type_hall % hallfactor)
+    deallocate(type_hall % inertiafactor)
+  end subroutine deallocate_hall_type
 
 end module mod_types

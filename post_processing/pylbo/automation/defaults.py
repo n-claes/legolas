@@ -49,6 +49,11 @@ namelist_items = {
         ("dropoff_width", (int, np.integer, float)),
         ("viscosity", bool),
         ("viscosity_value", (int, np.integer, float)),
+        ("hall_mhd", bool),
+        ("hall_dropoff", bool),
+        ("elec_pressure", bool),
+        ("elec_inertia", bool),
+        ("inertia_dropoff", bool),
     ],
     "unitslist": [
         ("cgs_units", bool),

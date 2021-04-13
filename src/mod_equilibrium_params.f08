@@ -78,6 +78,8 @@ module mod_equilibrium_params
   real(dp)  :: j0
   !> general constant usually used for gravity
   real(dp)  :: g
+  !> general boolean for varied use, defaults to False
+  logical   :: eq_bool
 
 contains
 
@@ -124,6 +126,8 @@ contains
     V = NaN
     j0 = NaN
     g = NaN
+
+    eq_bool = .false.
   end subroutine init_equilibrium_params
 
 end module mod_equilibrium_params
