@@ -48,8 +48,12 @@ set (sources
         equilibria/smod_equil_RTI_KHI.f08
         equilibria/smod_equil_RTI_theta_pinch.f08
         equilibria/smod_equil_suydam_cluster.f08
+        equilibria/smod_equil_viscoresistive_tube.f08
+        equilibria/smod_equil_couette_flow.f08
+        equilibria/smod_equil_taylor_couette.f08
         ${USR_SMOD_LOC}/smod_user_defined.f08
         mod_make_subblock.f08
+        physics/mod_viscosity.f08
         mod_boundary_conditions.f08
         mod_matrix_creation.f08
         solvers/mod_solvers.f08

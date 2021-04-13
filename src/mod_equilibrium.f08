@@ -11,14 +11,15 @@
 module mod_equilibrium
   use mod_units
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
-                       gravity_type, resistivity_type, cooling_type, conduction_type
+                       gravity_type, resistivity_type, cooling_type, conduction_type, &
+                       viscosity_type
   use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
                                   flow, resistivity, external_gravity, radiative_cooling, &
-                                  thermal_conduction, geometry, use_defaults, cgs_units
+                                  thermal_conduction, viscosity, geometry, use_defaults, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
-  use mod_logging, only: log_message, dp_fmt, char_log
+  use mod_logging, only: log_message, dp_fmt, char_log, str
   implicit none
 
   private
@@ -53,6 +54,9 @@ module mod_equilibrium
     module subroutine RTI_KHI_eq; end subroutine
     module subroutine RTI_theta_pinch_eq; end subroutine
     module subroutine suydam_cluster_eq; end subroutine
+    module subroutine viscoresistive_tube_eq; end subroutine
+    module subroutine couette_flow_eq; end subroutine
+    module subroutine taylor_couette_eq; end subroutine
     module subroutine user_defined_eq; end subroutine
   end interface
 
@@ -72,6 +76,8 @@ module mod_equilibrium
   type (cooling_type)     :: rc_field
   !> type containing all thermal conduction-related equilibrium variables
   type (conduction_type)  :: kappa_field
+  !> type containing all viscosity-related equilibrium variables
+  type (viscosity_type)  :: viscosity_field
 
   public :: rho_field
   public :: T_field
@@ -81,6 +87,7 @@ module mod_equilibrium
   public :: eta_field
   public :: rc_field
   public :: kappa_field
+  public :: viscosity_field
 
   public :: initialise_equilibrium
   public :: set_equilibrium
@@ -103,6 +110,7 @@ contains
     call initialise_type(eta_field)
     call initialise_type(rc_field)
     call initialise_type(kappa_field)
+    call initialise_type(viscosity_field)
   end subroutine initialise_equilibrium
 
 
@@ -113,7 +121,7 @@ contains
   !!          not balanced, contains NaN or if density/temperature contains
   !!          negative values.
   subroutine set_equilibrium()
-    use mod_check_values, only: check_negative_array, check_nan_values
+    use mod_check_values, only: check_negative_array, check_nan_values, check_coax
     use mod_inspections, only: perform_sanity_checks
     use mod_resistivity, only: set_resistivity_values
     use mod_radiative_cooling, only: initialise_radiative_cooling, set_radiative_cooling_values
@@ -125,6 +133,9 @@ contains
     call set_equilibrium_values()
     ! Set normalisations if needed
     call check_if_normalisations_set()
+
+    ! Check x_start if coaxial is true
+    call check_coax()
 
     ! Check for negative/NaN values
     call check_negative_array(rho_field % rho0, 'density')
@@ -206,6 +217,12 @@ contains
       set_equilibrium_values => RTI_theta_pinch_eq
     case("suydam_cluster")
       set_equilibrium_values => suydam_cluster_eq
+    case("viscoresistive_tube")
+      set_equilibrium_values => viscoresistive_tube_eq
+    case("couette_flow")
+      set_equilibrium_values => couette_flow_eq
+    case("taylor_couette")
+      set_equilibrium_values => taylor_couette_eq
     case("user_defined")
       set_equilibrium_values => user_defined_eq
     case default
@@ -276,6 +293,7 @@ contains
     call deallocate_type(eta_field)
     call deallocate_type(rc_field)
     call deallocate_type(kappa_field)
+    call deallocate_type(viscosity_field)
   end subroutine equilibrium_clean
 
 end module mod_equilibrium

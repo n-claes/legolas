@@ -20,14 +20,16 @@ contains
   !! @note  Perpendicular thermal conduction is hard-checked, that is, not just the
   !!        global logical. There must be a value in the corresponding array that is non-zero.
   subroutine apply_boundary_conditions(matrix_A, matrix_B)
-    use mod_global_variables, only: dp_LIMIT
+    use mod_global_variables, only: dp_LIMIT, viscosity
     use mod_equilibrium, only: kappa_field
+    use mod_viscosity, only: viscosity_boundaries
 
     !> the A-matrix with boundary conditions imposed on exit
     complex(dp), intent(inout)  :: matrix_A(matrix_gridpts, matrix_gridpts)
     !> the B-matrix with boundary conditions imposed on exit
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp)                 :: quadblock(dim_quadblock, dim_quadblock)
+    complex(dp)                 :: quadblock_visc(dim_quadblock, dim_quadblock)
     integer                     :: idx_end_left, idx_start_right
 
     ! check if perpendicular thermal conduction is present
@@ -54,6 +56,10 @@ contains
     quadblock = matrix_A(1:idx_end_left, 1:idx_end_left)
     call essential_boundaries(quadblock, edge='l_edge', matrix='A')
     call natural_boundaries(quadblock, edge='l_edge')
+    if (viscosity) then
+      call viscosity_boundaries(quadblock_visc, edge='l_edge')
+      quadblock = quadblock + quadblock_visc
+    end if
     matrix_A(1:idx_end_left, 1:idx_end_left) = quadblock
     ! matrix A right-edge quadblock
     quadblock = matrix_A(idx_start_right:matrix_gridpts, idx_start_right:matrix_gridpts)
@@ -79,7 +85,8 @@ contains
   !! @warning Throws an error if <tt>boundary_type</tt> is not known,
   !!          or if <tt>edge</tt> is not known.
   subroutine essential_boundaries(quadblock, edge, matrix)
-    use mod_global_variables, only: boundary_type, solver
+    use mod_global_variables, only: boundary_type, solver, viscosity, geometry, &
+                                    coaxial
     use mod_logging, only: log_message
 
     !> the quadblock corresponding to the left/right edge
@@ -91,6 +98,7 @@ contains
 
     complex(dp)                   :: diagonal_factor
     integer                       :: i, j, qua_zeroes(5), wall_idx_left(4), wall_idx_right(4)
+    integer                       :: noslip_idx_left(2), noslip_idx_right(2)
 
     if (matrix == 'B') then
       diagonal_factor = (1.0d0, 0.0d0)
@@ -118,6 +126,10 @@ contains
     ! T is a quadratic element, so omit even row/columns
     wall_idx_left = [3, 13, 15, 10]
     wall_idx_right = [19, 29, 31, 26]
+    ! For a no-slip condition for viscous fluids v2 and v3 should equal the wall's
+    ! tangential velocities, here zero. (Quadratic elements, so omit even row/columns)
+    noslip_idx_left = [6, 8]
+    noslip_idx_right = [22, 24]
 
     select case(boundary_type)
     case('wall')
@@ -132,6 +144,16 @@ contains
           quadblock(:, j) = (0.0d0, 0.0d0)
           quadblock(j, j) = diagonal_factor
         end do
+        ! No-slip condition does not apply at left edge for a cylindrical
+        ! geometry unless two coaxial walls are used
+        if (viscosity .and. (geometry == 'Cartesian' .or. coaxial)) then
+          do i = 1, size(noslip_idx_left)
+            j = noslip_idx_left(i)
+            quadblock(j, :) = (0.0d0, 0.0d0)
+            quadblock(:, j) = (0.0d0, 0.0d0)
+            quadblock(j, j) = diagonal_factor
+          end do
+        end if
       else if (edge == 'r_edge') then
         do i = 1, size(wall_idx_right)
           j = wall_idx_right(i)
@@ -142,6 +164,14 @@ contains
           quadblock(:, j) = (0.0d0, 0.0d0)
           quadblock(j, j) = diagonal_factor
         end do
+        if (viscosity) then
+          do i = 1, size(noslip_idx_right)
+            j = noslip_idx_right(i)
+            quadblock(j, :) = (0.0d0, 0.0d0)
+            quadblock(:, j) = (0.0d0, 0.0d0)
+            quadblock(j, j) = diagonal_factor
+          end do
+        end if
       else
         call log_message("essential boundaries: invalid edge argument", level='error')
       end if

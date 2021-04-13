@@ -67,9 +67,18 @@ module mod_global_variables
   real(dp)                  :: dropoff_edge_dist
   !> width of the dropoff region, defaults to <tt>0.1</tt>
   real(dp)                  :: dropoff_width
+  !> boolean for viscosity, defaults to <tt>False</tt>
+  logical, save             :: viscosity
+  !> boolean to include viscoous heating, defaults to <tt>False</tt>
+  logical, save             :: viscous_heating
+  !> defines the fixed value for either the dynamic or kinematic viscosity, defaults to 0
+  real(dp)                  :: viscosity_value
 
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
+  !> defines the presence of a coaxial inner boundary for a cylindrical geometry,
+  !! defaults to <tt>False</tt>
+  logical, save             :: coaxial
   !> start value of the base grid, defaults depend on chosen equilibrium
   real(dp)                  :: x_start
   !> end value of the base grid, defaults depend on chosen equilibrium
@@ -195,10 +204,14 @@ contains
     use_eta_dropoff = .false.
     dropoff_edge_dist = 0.05d0
     dropoff_width = 0.1d0
+    viscosity = .false.
+    viscous_heating = .false.
+    viscosity_value = 0.0d0
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile
     geometry = ""
+    coaxial = .false.
     x_start = NaN
     x_end = NaN
     gridpts = 31
