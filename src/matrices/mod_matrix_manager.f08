@@ -1,5 +1,5 @@
 module mod_matrix_manager
-  use mod_global_variables, only: dp, ir, ic
+  use mod_global_variables, only: dp, ir, ic, gamma_1
   use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
   use mod_make_subblock, only: subblock
   use mod_equilibrium, only: rho_field, T_field, B_field
@@ -15,8 +15,6 @@ module mod_matrix_manager
   real(dp)  :: h_cubic(4)
   !> derivative of cubic basis functions
   real(dp)  :: dh_cubic(4)
-  !> gamma - 1 factor
-  real(dp)  :: gminusone
   !> array of factors, these are the integrands at every gaussian point
   complex(dp), allocatable  :: factors(:)
   !> array of positions, governs where factors are placed in the matrices
@@ -34,6 +32,12 @@ module mod_matrix_manager
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
     end subroutine add_regular_matrix_terms
+
+    module subroutine add_flow_matrix_terms(gauss_idx, current_weight, quadblock)
+      integer, intent(in)   :: gauss_idx
+      real(dp), intent(in)  :: current_weight
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_flow_matrix_terms
   end interface
 
   private
@@ -48,7 +52,7 @@ contains
 
   subroutine build_matrices(matrix_B, matrix_A)
     use mod_global_variables, only: gridpts, dim_quadblock, dim_subblock, &
-        n_gauss, gaussian_weights, gamma
+        n_gauss, gaussian_weights, flow
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
     use mod_boundary_conditions, only: apply_boundary_conditions
@@ -78,7 +82,6 @@ contains
     quadblock_idx = 0
     matrix_B = 0.0d0
     matrix_A = (0.0d0, 0.0d0)
-    gminusone = gamma - 1.0d0
 
     do i = 1, gridpts - 1
       ! reset quadblocks
@@ -105,6 +108,9 @@ contains
         ! get matrix elements
         call add_bmatrix_terms(gauss_idx, current_weight, quadblock_B)
         call add_regular_matrix_terms(gauss_idx, current_weight, quadblock_A)
+        if (flow) then
+          call add_flow_matrix_terms(gauss_idx, current_weight, quadblock_A)
+        end if
       end do
 
       ! dx from integral

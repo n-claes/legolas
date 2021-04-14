@@ -3,11 +3,7 @@ submodule (mod_matrix_manager) smod_regular_matrix
 
 contains
 
-  module subroutine add_bmatrix_terms(gauss_idx, current_weight, quadblock)
-    integer, intent(in)   :: gauss_idx
-    real(dp), intent(in)  :: current_weight
-    complex(dp), intent(inout)  :: quadblock(:, :)
-
+  module procedure add_bmatrix_terms
     real(dp)  :: rho, eps
 
     rho = rho_field % rho0(gauss_idx)
@@ -44,16 +40,12 @@ contains
     factors(3) = eps
     positions(3, :) = [8, 8]
     call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
-  end subroutine add_bmatrix_terms
+  end procedure add_bmatrix_terms
 
 
-  module subroutine add_regular_matrix_terms(gauss_idx, current_weight, quadblock)
+  module procedure add_regular_matrix_terms
     use mod_global_variables, only: external_gravity
     use mod_equilibrium, only: grav_field
-
-    integer, intent(in)   :: gauss_idx
-    real(dp), intent(in)  :: current_weight
-    complex(dp), intent(inout)  :: quadblock(:, :)
 
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
@@ -123,7 +115,7 @@ contains
     factors(5) = -eps * k3 * B02
     positions(5, :) = [4, 8]
     ! A(5, 2)
-    factors(6) = -gminusone * T0 * rho
+    factors(6) = -gamma_1 * T0 * rho
     positions(6, :) = [5, 2]
     call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
 
@@ -154,10 +146,10 @@ contains
     factors(8) = ic * deps * k2 * B01 / eps + B02 * Kop
     positions(8, :) = [4, 6]
     ! A(5, 3)
-    factors(9) = gminusone * k2 * rho * T0
+    factors(9) = gamma_1 * k2 * rho * T0
     positions(9, :) = [5, 3]
     ! A(5, 4)
-    factors(10) = gminusone * k3 * rho * T0
+    factors(10) = gamma_1 * k3 * rho * T0
     positions(10, :) = [5, 4]
     ! A(6, 3)
     factors(11) = -eps * B03
@@ -259,6 +251,6 @@ contains
     positions(2, :) = [4, 7]
     call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
 
-  end subroutine add_regular_matrix_terms
+  end procedure add_regular_matrix_terms
 
 end submodule smod_regular_matrix

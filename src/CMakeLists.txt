@@ -56,6 +56,7 @@ set (sources
         matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
         matrices/smod_regular_matrix.f08
+        matrices/smod_flow_matrix.f08
         # physics/mod_viscosity.f08
         mod_boundary_conditions.f08
         solvers/mod_solvers.f08
