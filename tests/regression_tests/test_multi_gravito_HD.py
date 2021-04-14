@@ -18,6 +18,7 @@ gravito_hd_setup = {
             "g": 0.5,
             "alpha": 20.42,
         },
+        "external_gravity": True,
         "basename_datfile": "gravito_acoustic",
         "write_eigenfunctions": False,
         "show_results": False,
@@ -34,7 +35,7 @@ parametrisation = dict(
 @pytest.mark.parametrize(**parametrisation)
 @pytest.mark.mpl_image_compare(
     baseline_dir=str(baseline_dir),
-    filename="gravito_acoustig.png",
+    filename="gravito_acoustic.png",
     savefig_kwargs={"dpi": FIG_DPI},
 )
 def test_gravito_hd(series_test):
