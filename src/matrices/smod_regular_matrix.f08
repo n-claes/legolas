@@ -171,11 +171,11 @@ contains
     call reset_factor_positions(new_size=5)
     ! A(2, 1)
     factors(1) = -deps * T0 / eps
-    positions(1, :) = [2, 1]
     if (external_gravity) then
       ! adds gravity term to A(2, 1) matrix element
       factors(1) = factors(1) + grav_field % grav(gauss_idx)
     end if
+    positions(1, :) = [2, 1]
     ! A(2, 5)
     factors(2) = -deps * rho / eps
     positions(2, :) = [2, 5]
@@ -199,7 +199,7 @@ contains
     factors(2) = -rho
     positions(2, :) = [2, 5]
     ! A(2, 6)
-    factors(3) = eps * Gop_min
+    factors(3) = -eps * Gop_min
     positions(3, :) = [2, 6]
     call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad)
 
