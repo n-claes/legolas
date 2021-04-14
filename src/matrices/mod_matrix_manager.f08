@@ -47,10 +47,11 @@ module mod_matrix_manager
 contains
 
   subroutine build_matrices(matrix_B, matrix_A)
-    use mod_global_variables, only: gridpts, dim_quadblock, n_gauss, &
-        gaussian_weights, gamma
+    use mod_global_variables, only: gridpts, dim_quadblock, dim_subblock, &
+        n_gauss, gaussian_weights, gamma
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
+    use mod_boundary_conditions, only: apply_boundary_conditions
 
     !> the B-matrix
     real(dp), intent(inout) :: matrix_B(:, :)
@@ -123,7 +124,11 @@ contains
           matrix_A(idx1, idx2) = matrix_A(idx1, idx2) + quadblock_A(k, l)
         end do
       end do
+      quadblock_idx = quadblock_idx + dim_subblock
     end do
+
+    ! apply boundary conditions
+    call apply_boundary_conditions(matrix_A, matrix_B)
 
   end subroutine build_matrices
 

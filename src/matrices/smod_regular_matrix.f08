@@ -138,18 +138,18 @@ contains
     ! A(3, 1)
     factors(3) = k2 * T0 / eps
     positions(3, :) = [3, 1]
-    ! A(3, 2)
+    ! A(3, 5)
     factors(4) = k2 * rho / eps
-    positions(4, :) = [3, 2]
+    positions(4, :) = [3, 5]
     ! A(3, 6)
     factors(5) = -Kop * B03
     positions(5, :) = [3, 6]
     ! A(4, 1)
     factors(6) = k3 * T0
     positions(6, :) = [4, 1]
-    ! A(4, 2)
+    ! A(4, 5)
     factors(7) = k3 * rho
-    positions(7, :) = [4, 2]
+    positions(7, :) = [4, 5]
     ! A(4, 6)
     factors(8) = ic * deps * k2 * B01 / eps + B02 * Kop
     positions(8, :) = [4, 6]
@@ -232,7 +232,7 @@ contains
     ! ==================== dCubic * dCubic ====================
     call reset_factor_positions(new_size=2)
     ! A(2, 7)
-    factors(1) = dB03
+    factors(1) = -B03
     positions(1, :) = [2, 7]
     ! A(2, 8)
     factors(2) = eps * B02
@@ -246,6 +246,7 @@ contains
     positions(1, :) = [3, 6]
     ! A(4, 6)
     factors(2) = ic * k2 * B01
+    positions(2, :) = [4, 6]
     call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
 
     ! ==================== dQuadratic * dCubic ====================
@@ -257,7 +258,6 @@ contains
     factors(2) = -ic * B01
     positions(2, :) = [4, 7]
     call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
-
 
   end subroutine add_regular_matrix_terms
 
