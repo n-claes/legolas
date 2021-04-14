@@ -27,7 +27,9 @@ module mod_types
 
   !> type containing all magnetic field related equilibrium variables
   type bfield_type
-    !> equilibrium magnetic field in y or theta-direction
+    !> constant equilibrium magnetic field in x or r direction
+    real(dp)                :: B01
+    !> equilibrium magnetic field in y or theta direction
     real(dp), allocatable   :: B02(:)
     !> equilibrium magnetic field in z direction
     real(dp), allocatable   :: B03(:)
@@ -112,7 +114,7 @@ module mod_types
     !> second derivative equilibrium v03
     real(dp), allocatable    :: dd_v03_dr(:)
   end type viscosity_type
-  
+
   !> type containing Hall related variables
   type hall_type
     !> Hall parameter
@@ -205,6 +207,7 @@ contains
     allocate(type_B % d_B02_dr(gauss_gridpts))
     allocate(type_B % d_B03_dr(gauss_gridpts))
 
+    type_B % B01 = 0.0d0
     type_B % B02 = 0.0d0
     type_B % B03 = 0.0d0
     type_B % B0 = 0.0d0
@@ -423,7 +426,7 @@ contains
     deallocate(type_viscosity % dd_v03_dr)
   end subroutine deallocate_viscosity_type
 
-  
+
   !> Deallocates all attributes contained in the Hall type.
   subroutine deallocate_hall_type(type_hall)
     !> the type containing the density attributes
