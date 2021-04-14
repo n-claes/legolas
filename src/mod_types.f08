@@ -43,12 +43,16 @@ module mod_types
 
   !> type containing all flow related equilibrium variables
   type velocity_type
+    !> equilibrium velocity in the x or r direction
+    real(dp), allocatable   :: v01(:)
+    !> derivative of equilibrium v01
+    real(dp), allocatable   :: d_v01_dr(:)
     !> equilibrium velocity in the y or theta-direction
     real(dp), allocatable   :: v02(:)
-    !> equilibrium velocity in the z direction
-    real(dp), allocatable   :: v03(:)
     !> derivative of equilibrium v02
     real(dp), allocatable   :: d_v02_dr(:)
+    !> equilibrium velocity in the z direction
+    real(dp), allocatable   :: v03(:)
     !> derivative of equilibrium v03
     real(dp), allocatable   :: d_v03_dr(:)
   end type velocity_type
@@ -221,14 +225,18 @@ contains
     !> the type containing the velocity attributes
     type (velocity_type), intent(inout) :: type_v
 
+    allocate(type_v % v01(gauss_gridpts))
+    allocate(type_v % d_v01_dr(gauss_gridpts))
     allocate(type_v % v02(gauss_gridpts))
-    allocate(type_v % v03(gauss_gridpts))
     allocate(type_v % d_v02_dr(gauss_gridpts))
+    allocate(type_v % v03(gauss_gridpts))
     allocate(type_v % d_v03_dr(gauss_gridpts))
 
+    type_v % v01 = 0.0d0
+    type_v % d_v01_dr = 0.0d0
     type_v % v02 = 0.0d0
-    type_v % v03 = 0.0d0
     type_v % d_v02_dr = 0.0d0
+    type_v % v03 = 0.0d0
     type_v % d_v03_dr = 0.0d0
   end subroutine initialise_velocity_type
 
@@ -364,9 +372,11 @@ contains
     !> the type containing the velocity attributes
     type (velocity_type), intent(inout) :: type_v
 
+    deallocate(type_v % v01)
+    deallocate(type_v % d_v01_dr)
     deallocate(type_v % v02)
-    deallocate(type_v % v03)
     deallocate(type_v % d_v02_dr)
+    deallocate(type_v % v03)
     deallocate(type_v % d_v03_dr)
   end subroutine deallocate_velocity_type
 
