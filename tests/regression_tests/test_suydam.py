@@ -15,6 +15,7 @@ suydam_setup = {
             "p1": 0.1,
             "alpha": 2.0,
         },
+        "flow": True,
         "equilibrium_type": "suydam_cluster",
         "logging_level": 0,
         "show_results": False,

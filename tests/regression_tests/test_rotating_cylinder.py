@@ -17,6 +17,7 @@ rotating_cylinder_setup = {
             "cte_p0": 0.1,
             "cte_rho0": 1,
         },
+        "flow": True,
         "equilibrium_type": "rotating_plasma_cylinder",
         "logging_level": 0,
         "show_results": False,

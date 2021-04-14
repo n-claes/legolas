@@ -16,6 +16,7 @@ interchange_modes_setup = {
             "lambda": 0,
             "alpha": 20.0,
         },
+        "external_gravity": True,
         "equilibrium_type": "interchange_modes",
         "logging_level": 0,
         "show_results": False,
