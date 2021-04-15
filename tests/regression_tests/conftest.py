@@ -8,6 +8,13 @@ pylbo.set_loglevel("warning")
 # @note: all fixtures defined here will be accessible to all tests
 #        in the same directory as this file.
 
+@pytest.fixture
+def imagedir():
+    imagedirpath = (Path(__file__).parent / "results/image_comparisons")
+    if not imagedirpath.is_dir():
+        imagedirpath.mkdir()
+    yield imagedirpath
+
 
 @pytest.fixture
 def ds_test(setup):

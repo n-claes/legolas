@@ -1,4 +1,4 @@
-fluxtube_photospheric_config = {
+fluxtube_photospheric_setup = {
     "name": "fluxtube_photospheric",
     "config": {
         "geometry": "cylindrical",
@@ -20,4 +20,10 @@ fluxtube_photospheric_config = {
         "write_matrices": False,
     },
     "all_eigenvalues_real": True,
+    "image_limits": [
+        {"xlims": (-1800, 1800), "ylims": (-0.05, 0.05)},
+        {"xlims": (-600, 600), "ylims": (-0.05, 0.05)},
+        {"xlims": (-15, 15), "ylims": (-0.05, 0.05)},
+    ],
+    "RMS_TOLERANCE": 3,
 }

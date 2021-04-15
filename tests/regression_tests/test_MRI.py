@@ -4,6 +4,7 @@ mri_setup = {
         "gridpoints": 51,
         "parameters": {"k2": 0.0, "k3": 70.0, "beta": 100.0, "tau": 1.0, "nu": 0.1},
         "flow": True,
+        "external_gravity": True,
         "equilibrium_type": "MRI_accretion",
         "logging_level": 0,
         "show_results": False,

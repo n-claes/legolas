@@ -1,18 +1,21 @@
 import pytest
 import numpy as np
 from pathlib import Path
+import pylbo
 
 from regression_tests.suite_utils import (
     output,
     get_filepaths,
     get_answer_filepaths,
-    compare_eigenvalues,
+    get_image_filename,
     compare_eigenfunctions,
+    SAVEFIG_KWARGS,
+    RMS_TOLERANCE,
 )
 from regression_tests.test_adiabatic_homo import adiabatic_homo_setup
 from regression_tests.test_discrete_alfven import discrete_alfven_setup
 from regression_tests.test_fluxtube_coronal import fluxtube_coronal_setup
-from regression_tests.test_fluxtube_photospheric import fluxtube_photospheric_config
+from regression_tests.test_fluxtube_photospheric import fluxtube_photospheric_setup
 from regression_tests.test_gold_hoyle import gold_hoyle_setup
 from regression_tests.test_interchange_modes import interchange_modes_setup
 from regression_tests.test_internal_kink import internal_kink_setup
@@ -42,27 +45,27 @@ tests_to_run = [
     adiabatic_homo_setup,
     # discrete_alfven_setup,
     fluxtube_coronal_setup,
-    fluxtube_photospheric_config,
+    fluxtube_photospheric_setup,
     # gold_hoyle_setup,
     interchange_modes_setup,
-    internal_kink_setup,
-    kh_cd_setup,
-    khi_setup,
+    # internal_kink_setup,
+    # kh_cd_setup,
+    # khi_setup,
     # magnetothermal_setup,
     # magneto_arnoldi_si_setup,
-    mri_setup,
+    # mri_setup,
     # quasimodes_setup,
     # resistive_homo_setup,
     # resistive_homo_arnoldi_si_setup,
     # resistive_tearing_setup,
     # resistive_tearing_flow_setup,
-    rotating_cylinder_setup,
-    rti_setup,
-    rti_khi_setup,
-    rti_thetapinch_hd_setup,
-    rti_thetapinch_mhd_setup,
-    suydam_setup,
-    tokamak_setup,
+    # rotating_cylinder_setup,
+    # rti_setup,
+    # rti_khi_setup,
+    # rti_thetapinch_hd_setup,
+    # rti_thetapinch_mhd_setup,
+    # suydam_setup,
+    # tokamak_setup,
 ]
 # configure test setup
 for _setup in tests_to_run:
@@ -83,12 +86,33 @@ for _setup in tests_to_run:
 # set test IDs
 ids = [_setup["name"] for _setup in tests_to_run]
 
-
 # ===== GENERAL TESTS =====
 @pytest.mark.parametrize("setup", tests_to_run, ids=ids)
-def test_generation(ds_test, ds_answer, setup):
+def test_generate_datfile(ds_test, ds_answer, setup):
     assert ds_test.datfile == setup["datfile"]
     assert ds_answer.datfile == setup["answer_datfile"]
+
+
+@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
+def test_generate_spectrum_images(ds_test, ds_answer, setup, imagedir):
+    p_test = pylbo.plot_spectrum(ds_test)
+    p_answer = pylbo.plot_spectrum(ds_answer)
+    setup["spectrum_images"] = []
+    # get baseline configurations
+    for image_lims in setup.get("image_limits"):
+        figname = f"{get_image_filename(setup['name'], limits_dict=image_lims)}.png"
+        figname_answer = f"{figname}-baseline.png"
+        xlims = image_lims.get("xlims")
+        ylims = image_lims.get("ylims")
+        # save test image
+        p_test.ax.set_xlim(xlims)
+        p_test.ax.set_ylim(ylims)
+        p_test.fig.savefig(imagedir / figname, **SAVEFIG_KWARGS)
+        # save baseline image
+        p_answer.ax.set_xlim(xlims)
+        p_answer.ax.set_ylim(ylims)
+        p_answer.fig.savefig(imagedir / figname_answer, **SAVEFIG_KWARGS)
+        setup["spectrum_images"].append((figname, figname_answer))
 
 
 @pytest.mark.parametrize("setup", tests_to_run, ids=ids)
@@ -109,9 +133,31 @@ def test_parameters(ds_test, ds_answer, setup):
     assert ds_test.parameters == ds_answer.parameters
 
 
-@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
-def test_eigenvalues(log_test, log_answer, setup):
-    compare_eigenvalues(log_test, log_answer, ds_name=setup["name"])
+# ===== TESTS FOR EIGENVALUES AND SPECTRUM =====
+@pytest.mark.parametrize(
+    argnames="setup,idx",
+    argvalues=[
+        (_s, _idx) for _s in tests_to_run for _idx, _ in enumerate(_s["image_limits"])
+    ],
+    ids=[
+        f"{_s['name']}-[x={lims['xlims']}, y={lims['ylims']}]"
+        for _s in tests_to_run
+        for _idx, lims in enumerate(_s["image_limits"])
+    ],
+)
+def test_eigenvalue_spectrum(imagedir, setup, idx):
+    from matplotlib.testing.compare import compare_images
+
+    test_image, baseline_image = setup["spectrum_images"][idx]
+    tol = setup.get("RMS_TOLERANCE", RMS_TOLERANCE)
+    result = compare_images(
+        str(imagedir / baseline_image),
+        str(imagedir / test_image),
+        tol=tol,
+    )
+    # result will be None if test succeeds
+    if result is not None:
+        pytest.fail(result, pytrace=False)
 
 
 @pytest.mark.parametrize(
