@@ -35,6 +35,8 @@ module mod_global_variables
   real(dp), protected       :: gamma
   !> variable for (gamma - 1)
   real(dp), protected       :: gamma_1
+  !> boolean for incompressible approximation, defaults to <tt>False</tt>
+  logical, save             :: incompressible
   !> boolean for flow, defaults to <tt>False</tt>
   logical, save             :: flow
   !> boolean for radiative cooling, defaults to <tt>False</tt>
@@ -196,7 +198,7 @@ contains
     !! physics variables
     cgs_units = .true.
     gamma = 5.0d0/3.0d0
-    call set_gamma(gamma)
+    incompressible = .false.
     flow = .false.
     radiative_cooling = .false.
     ncool = 4000
@@ -272,7 +274,11 @@ contains
     !> the value for gamma
     real(dp), intent(in)    :: gamma_in
 
-    gamma   = gamma_in
+    if (incompressible) then
+      gamma = 1.0d8
+    else
+      gamma = gamma_in
+    end if
     gamma_1 = gamma - 1.0d0
   end subroutine set_gamma
 
