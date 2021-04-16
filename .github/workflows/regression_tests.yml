@@ -66,11 +66,11 @@ jobs:
     - name: Run regression tests
       run: |
         cd tests/regression_tests
-        pytest regression.py test* -v --mpl --mpl-results-path=results
+        pytest regression.py -v
 
     - name: Archive failed logs
       uses: actions/upload-artifact@v1
       if: failure()
       with:
         name: failed_logs
-        path: tests/regression_tests/results
+        path: tests/regression_tests/image_comparisons
