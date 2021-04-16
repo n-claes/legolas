@@ -23,7 +23,6 @@ fluxtube_coronal_setup = {
     "image_limits": [
         {"xlims": (-6300, 6300), "ylims": (-0.5, 0.5)},
         {"xlims": (-1000, 1000), "ylims": (-0.5, 0.5)},
-        {"xlims": (-50, 50), "ylims": (-0.5, 0.5)},
+        {"xlims": (-50, 50), "ylims": (-0.5, 0.5), "RMS_TOLERANCE": 2.2},
     ],
-    "RMS_TOLERANCE": 2.5,
 }
