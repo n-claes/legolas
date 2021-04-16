@@ -159,7 +159,7 @@ contains
 
 
   !> Calculates the $$\boldsymbol{\mathcal{V}}$$ operator, given as
-  !! $$ \boldsymbol{\mathcal{V}} = \left(\frac{k_2}{\eps}v_{02} + k_3v_{03\right) $$
+  !! $$ \boldsymbol{\mathcal{V}} = \left(\frac{k_2}{\eps}v_{02} + k_3v_{03}\right) $$
   function get_flow_operator(gauss_idx) result(Voperator)
     !> current index in the Gaussian grid
     integer, intent(in) :: gauss_idx
