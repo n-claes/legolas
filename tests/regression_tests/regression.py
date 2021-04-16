@@ -149,15 +149,17 @@ def test_eigenvalue_spectrum(imagedir, setup, idx):
     from matplotlib.testing.compare import compare_images
 
     test_image, baseline_image = setup["spectrum_images"][idx]
-    tol = setup.get("RMS_TOLERANCE", RMS_TOLERANCE)
     result = compare_images(
         str(imagedir / baseline_image),
         str(imagedir / test_image),
-        tol=tol,
+        tol=setup.get("RMS_TOLERANCE", RMS_TOLERANCE),
     )
-    # result will be None if test succeeds
+    # result will be None if test succeeds, if pass we remove the images
     if result is not None:
         pytest.fail(result, pytrace=False)
+    else:
+        Path(imagedir / baseline_image).unlink()
+        Path(imagedir / test_image).unlink()
 
 
 @pytest.mark.parametrize(
@@ -209,6 +211,8 @@ def test_v1_eigenfunction_edges(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
         # v1 must be zero on edges for wall boundary conditions
         for edge in (0, -1):
+            assert ef_answer.get("v1").real[edge] == pytest.approx(0)
+            assert ef_answer.get("v1").imag[edge] == pytest.approx(0)
             assert ef_test.get("v1").real[edge] == pytest.approx(0)
             assert ef_test.get("v1").imag[edge] == pytest.approx(0)
 
@@ -297,6 +301,8 @@ def test_a2_eigenfunction_edges(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
         # a2 must be zero on edges for wall boundary conditions
         for edge in (0, -1):
+            assert ef_answer.get("a2").real[edge] == pytest.approx(0)
+            assert ef_answer.get("a2").imag[edge] == pytest.approx(0)
             assert ef_test.get("a2").real[edge] == pytest.approx(0)
             assert ef_test.get("a2").imag[edge] == pytest.approx(0)
 
@@ -325,5 +331,7 @@ def test_a3_eigenfunction_edges(eigfuncs_test, eigfuncs_answer, setup):
     for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
         # a2 must be zero on edges for wall boundary conditions
         for edge in (0, -1):
+            assert ef_answer.get("a3").real[edge] == pytest.approx(0)
+            assert ef_answer.get("a3").imag[edge] == pytest.approx(0)
             assert ef_test.get("a3").real[edge] == pytest.approx(0)
             assert ef_test.get("a3").imag[edge] == pytest.approx(0)

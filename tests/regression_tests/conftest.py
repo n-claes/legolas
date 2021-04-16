@@ -5,12 +5,31 @@ import pylbo
 
 pylbo.set_loglevel("warning")
 
+imagedirpath = (Path(__file__).parent / "image_comparisons")
+
 # @note: all fixtures defined here will be accessible to all tests
 #        in the same directory as this file.
 
+@pytest.fixture(scope="session", autouse=True)
+def cleanup(request):
+    def remove_results_dir():
+        resultsdirpath = (Path(__file__).parent / "results").resolve()
+        if resultsdirpath.is_dir():
+            shutil.rmtree(resultsdirpath)
+
+    def remove_image_dir():
+        # only remove this directory if contents are empty (all tests passed)
+        try:
+            imagedirpath.rmdir()
+        except OSError:
+            pass
+
+    request.addfinalizer(remove_results_dir)
+    request.addfinalizer(remove_image_dir)
+
+
 @pytest.fixture
-def imagedir():
-    imagedirpath = (Path(__file__).parent / "results/image_comparisons")
+def imagedir(scope="session", autouse=True):
     if not imagedirpath.is_dir():
         imagedirpath.mkdir()
     yield imagedirpath
