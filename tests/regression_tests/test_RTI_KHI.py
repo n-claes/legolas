@@ -28,6 +28,13 @@ rti_khi_setup = {
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-1.3e4, 1.3e4), "ylims": (-4, 4)},
+        {"xlims": (-350, 350), "ylims": (-4, 4)},
+        {"xlims": (-5, 5), "ylims": (-4, 4)},
+        {"xlims": (-2, 3.5), "ylims": (-4, 4)},
+        {"xlims": (-1, 3), "ylims": (-0.6, 0.6)},
+    ]
 }
 parametrisation = dict(
     argnames="setup",

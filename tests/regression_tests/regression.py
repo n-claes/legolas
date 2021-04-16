@@ -59,13 +59,13 @@ tests_to_run = [
     # resistive_homo_arnoldi_si_setup,
     # resistive_tearing_setup,
     # resistive_tearing_flow_setup,
-    # rotating_cylinder_setup,
-    # rti_setup,
-    # rti_khi_setup,
-    # rti_thetapinch_hd_setup,
-    # rti_thetapinch_mhd_setup,
-    # suydam_setup,
-    # tokamak_setup,
+    rotating_cylinder_setup,
+    rti_setup,
+    rti_khi_setup,
+    rti_thetapinch_hd_setup,
+    rti_thetapinch_mhd_setup,
+    suydam_setup,
+    tokamak_setup,
 ]
 # configure test setup
 for _setup in tests_to_run:

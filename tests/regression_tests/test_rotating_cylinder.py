@@ -24,4 +24,10 @@ rotating_cylinder_setup = {
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-2400, 2400), "ylims": (-2, 2)},
+        {"xlims": (-100, 120), "ylims": (-2, 2)},
+        {"xlims": (-5, 20), "ylims": (-2, 2)},
+        {"xlims": (4.5, 9.5), "ylims": (-2, 2)},
+    ]
 }
