@@ -11,6 +11,7 @@ from regression_tests.suite_utils import (
     compare_eigenfunctions,
     SAVEFIG_KWARGS,
     RMS_TOLERANCE,
+    KEEP_FILES_OPTION,
 )
 from regression_tests.test_adiabatic_homo import adiabatic_homo_setup
 from regression_tests.test_discrete_alfven import discrete_alfven_setup
@@ -145,21 +146,22 @@ def test_parameters(ds_test, ds_answer, setup):
         for _idx, lims in enumerate(_s["image_limits"])
     ],
 )
-def test_eigenvalue_spectrum(imagedir, setup, idx):
+def test_eigenvalue_spectrum(imagedir, setup, idx, keep_files):
     from matplotlib.testing.compare import compare_images
 
     test_image, baseline_image = setup["spectrum_images"][idx]
     result = compare_images(
         str(imagedir / baseline_image),
         str(imagedir / test_image),
-        tol=setup.get("RMS_TOLERANCE", RMS_TOLERANCE),
+        tol=setup["image_limits"][idx].get("RMS_TOLERANCE", RMS_TOLERANCE),
     )
     # result will be None if test succeeds, if pass we remove the images
     if result is not None:
         pytest.fail(result, pytrace=False)
     else:
-        Path(imagedir / baseline_image).unlink()
-        Path(imagedir / test_image).unlink()
+        if not keep_files:
+            Path(imagedir / baseline_image).unlink()
+            Path(imagedir / test_image).unlink()
 
 
 @pytest.mark.parametrize(

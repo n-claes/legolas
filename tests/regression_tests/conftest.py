@@ -6,6 +6,7 @@ import pylbo
 pylbo.set_loglevel("warning")
 
 imagedirpath = (Path(__file__).parent / "image_comparisons")
+KEEP_FILES_OPTION = "--keep-files"
 
 # @note: all fixtures defined here will be accessible to all tests
 #        in the same directory as this file.
@@ -15,7 +16,8 @@ def cleanup(request):
     def remove_results_dir():
         resultsdirpath = (Path(__file__).parent / "results").resolve()
         if resultsdirpath.is_dir():
-            shutil.rmtree(resultsdirpath)
+            if not request.config.getoption(KEEP_FILES_OPTION):
+                shutil.rmtree(resultsdirpath)
 
     def remove_image_dir():
         # only remove this directory if contents are empty (all tests passed)
@@ -26,6 +28,18 @@ def cleanup(request):
 
     request.addfinalizer(remove_results_dir)
     request.addfinalizer(remove_image_dir)
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        KEEP_FILES_OPTION,
+        action="store_true",
+        help="if supplied, does not remove files after test completion."
+    )
+
+@pytest.fixture()
+def keep_files(request):
+    return request.config.getoption(KEEP_FILES_OPTION)
 
 
 @pytest.fixture
