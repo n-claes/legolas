@@ -69,8 +69,9 @@ jobs:
         pytest regression.py -v
 
     - name: Archive failed logs
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       if: failure()
       with:
         name: failed_logs
         path: tests/regression_tests/image_comparisons
+        if-no-files-found: warn
