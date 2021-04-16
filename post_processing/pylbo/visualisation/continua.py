@@ -44,7 +44,11 @@ def calculate_continua(ds):
 
     # Thermal continuum calculation
     # wave vector parallel to magnetic field, uses vector projection and scale factor
-    kpara = (k2 * B02 / ds.scale_factor + k3 * B03) / B0
+    if not all(np.isclose(B0, 0, atol=1e-10)):
+        # take care of hydro cases, this will throw a division by 0 warning
+        kpara = (k2 * B02 / ds.scale_factor + k3 * B03) / B0
+    else:
+        kpara = 0
     cs2 = gamma * p / rho  # sound speed
     vA2 = B0 ** 2 / rho  # Alfvén speed
     ci2 = p / rho  # isothermal sound speed
