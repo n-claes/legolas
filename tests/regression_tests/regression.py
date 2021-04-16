@@ -11,7 +11,6 @@ from regression_tests.suite_utils import (
     compare_eigenfunctions,
     SAVEFIG_KWARGS,
     RMS_TOLERANCE,
-    KEEP_FILES_OPTION,
 )
 from regression_tests.test_adiabatic_homo import adiabatic_homo_setup
 from regression_tests.test_discrete_alfven import discrete_alfven_setup
@@ -50,8 +49,8 @@ tests_to_run = [
     # gold_hoyle_setup,
     interchange_modes_setup,
     # internal_kink_setup,
-    # kh_cd_setup,
-    # khi_setup,
+    kh_cd_setup,
+    khi_setup,
     # magnetothermal_setup,
     # magneto_arnoldi_si_setup,
     # mri_setup,
