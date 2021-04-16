@@ -20,8 +20,8 @@ kh_cd_setup = {
         "write_matrices": False,
     },
     "image_limits": [
-        {"xlims": (-200, 200), "ylims": (-1, 1), "RMS_TOLERANCE": 2.1},
+        {"xlims": (-200, 200), "ylims": (-1, 1), "RMS_TOLERANCE": 2.9},
         {"xlims": (-20, 20), "ylims": (-1, 1)},
-        {"xlims": (-4, 4), "ylims": (-1, 1)},
+        {"xlims": (-4, 4), "ylims": (-1, 1), "RMS_TOLERANCE": 2.6},
     ],
 }

@@ -1,5 +1,7 @@
 import pytest
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.testing.compare import compare_images
 from pathlib import Path
 import pylbo
 
@@ -108,10 +110,12 @@ def test_generate_spectrum_images(ds_test, ds_answer, setup, imagedir):
         p_test.ax.set_xlim(xlims)
         p_test.ax.set_ylim(ylims)
         p_test.fig.savefig(imagedir / figname, **SAVEFIG_KWARGS)
+        plt.close(p_test.fig)
         # save baseline image
         p_answer.ax.set_xlim(xlims)
         p_answer.ax.set_ylim(ylims)
         p_answer.fig.savefig(imagedir / figname_answer, **SAVEFIG_KWARGS)
+        plt.close(p_answer.fig)
         setup["spectrum_images"].append((figname, figname_answer))
 
 
@@ -146,8 +150,6 @@ def test_parameters(ds_test, ds_answer, setup):
     ],
 )
 def test_eigenvalue_spectrum(imagedir, setup, idx, keep_files):
-    from matplotlib.testing.compare import compare_images
-
     test_image, baseline_image = setup["spectrum_images"][idx]
     result = compare_images(
         str(imagedir / baseline_image),

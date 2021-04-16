@@ -22,7 +22,7 @@ fluxtube_photospheric_setup = {
     "all_eigenvalues_real": True,
     "image_limits": [
         {"xlims": (-1800, 1800), "ylims": (-0.05, 0.05)},
-        {"xlims": (-600, 600), "ylims": (-0.05, 0.05), "RMS_TOLERANCE": 2.8},
-        {"xlims": (-15, 15), "ylims": (-0.05, 0.05)},
+        {"xlims": (-600, 600), "ylims": (-0.05, 0.05), "RMS_TOLERANCE": 4},
+        {"xlims": (-15, 15), "ylims": (-0.05, 0.05), "RMS_TOLERANCE": 2.6},
     ],
 }

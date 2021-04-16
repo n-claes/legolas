@@ -19,7 +19,7 @@ tokamak_setup = {
         "write_matrices": False,
     },
     "image_limits": [
-        {"xlims": (-350, 350), "ylims": (-0.01, 0.01)},
-        {"xlims": (-0.01, 0.01), "ylims": (-0.01, 0.01), "RMS_TOLERANCE": 3.1},
+        {"xlims": (-350, 350), "ylims": (-0.01, 0.01), "RMS_TOLERANCE": 2.2},
+        {"xlims": (-0.01, 0.01), "ylims": (-0.01, 0.01), "RMS_TOLERANCE": 3.81},
     ]
 }

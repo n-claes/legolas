@@ -22,6 +22,6 @@ rti_thetapinch_mhd_setup = {
         {"xlims": (-200, 200), "ylims": (-0.35, 0.35)},
         {"xlims": (-2.5, 5), "ylims": (-0.35, 0.35)},
         {"xlims": (0.05, 1.2), "ylims": (-0.35, 0.35)},
-        {"xlims": (0.85, 1.06), "ylims": (-0.35, 0.35), "RMS_TOLERANCE": 2.1},
+        {"xlims": (0.85, 1.06), "ylims": (-0.35, 0.35), "RMS_TOLERANCE": 2.9},
     ]
 }

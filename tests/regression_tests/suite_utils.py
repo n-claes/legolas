@@ -12,7 +12,7 @@ PIX_TOL = 1
 # dpi for image-based comparison
 FIG_DPI = 200
 
-SAVEFIG_KWARGS = {"dpi": FIG_DPI}
+SAVEFIG_KWARGS = {"dpi": FIG_DPI, "transparent": True}
 RMS_TOLERANCE = 2
 
 regression_test_dir = Path(__file__).parent
