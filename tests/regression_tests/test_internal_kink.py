@@ -20,5 +20,11 @@ internal_kink_setup = {
         "write_eigenfunctions": True,
         "write_matrices": False,
     },
-    "ev_guesses": [0.470629 + 0.00607j, 0.470629 + 0.00607j],
+    "ev_guesses": [0.470629 + 0.0607j, 0.470629 - 0.0607j],
+    "image_limits": [
+        {"xlims": (-7000, 7000), "ylims": (-0.08, 0.08)},
+        {"xlims": (-150, 150), "ylims": (-0.08, 0.08)},
+        {"xlims": (-4, 5), "ylims": (-0.08, 0.08), "RMS_TOLERANCE": 2.3},
+        {"xlims": (-0.05, 1.2), "ylims": (-0.08, 0.08)},
+    ]
 }
