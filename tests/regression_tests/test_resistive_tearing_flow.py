@@ -16,6 +16,7 @@ resistive_tearing_flow_setup = {
             "cte_rho0": 1.0,
         },
         "equilibrium_type": "resistive_tearing_flow",
+        "flow": True,
         "resistivity": True,
         "use_fixed_resistivity": True,
         "fixed_eta_value": 10 ** (-4.0),
@@ -24,6 +25,13 @@ resistive_tearing_flow_setup = {
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-375, 375), "ylims": (-11, 0.5)},
+        {"xlims": (-30, 30), "ylims": (-3, 0.3)},
+        {"xlims": (-4, 4), "ylims": (-2.2, 0.2)},
+        {"xlims": (-1.6, 1.6), "ylims": (-1.6, 0.1)},
+        {"xlims": (-0.6, 0.6), "ylims": (-0.38, 0.05)},
+    ],
 }
 parametrisation = dict(
     argnames="setup",

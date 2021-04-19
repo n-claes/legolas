@@ -37,6 +37,10 @@ resistive_homo_arnoldi_si_setup = {
         4.152e-01 - 1.365e-02j,
     ],
     "relax_ef_test": True,
+    "image_limits": [
+        {"xlims": (-0.6, 1.6), "ylims": (-3, 0.1), "RMS_TOLERANCE": 2.3},
+        {"xlims": (-0.07, 1.04), "ylims": (-1.1, 0.1), "RMS_TOLERANCE": 2.55},
+    ],
 }
 parametrisation = dict(
     argnames="setup",

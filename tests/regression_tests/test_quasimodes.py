@@ -27,6 +27,11 @@ quasimodes_setup = {
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-60, 60), "ylims": (-8, 0.5)},
+        {"xlims": (-0.5, 0.5), "ylims": (-1, 0.5)},
+        {"xlims": (-0.18, 0.18), "ylims": (-0.15, 0.03)},
+    ],
 }
 parametrisation = dict(
     argnames="setup",
