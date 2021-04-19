@@ -44,6 +44,12 @@ module mod_matrix_manager
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
     end subroutine add_resistive_matrix_terms
+
+    module subroutine add_cooling_matrix_terms(gauss_idx, current_weight, quadblock)
+      integer, intent(in)   :: gauss_idx
+      real(dp), intent(in)  :: current_weight
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_cooling_matrix_terms
   end interface
 
   private
@@ -58,7 +64,7 @@ contains
 
   subroutine build_matrices(matrix_B, matrix_A)
     use mod_global_variables, only: gridpts, dim_quadblock, dim_subblock, &
-        n_gauss, gaussian_weights, flow, resistivity
+        n_gauss, gaussian_weights, flow, resistivity, radiative_cooling
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
     use mod_boundary_conditions, only: apply_boundary_conditions
@@ -119,6 +125,9 @@ contains
         end if
         if (resistivity) then
           call add_resistive_matrix_terms(gauss_idx, current_weight, quadblock_A)
+        end if
+        if (radiative_cooling) then
+          call add_cooling_matrix_terms(gauss_idx, current_weight, quadblock_A)
         end if
       end do
 
