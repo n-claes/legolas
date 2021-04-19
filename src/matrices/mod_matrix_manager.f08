@@ -38,6 +38,12 @@ module mod_matrix_manager
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
     end subroutine add_flow_matrix_terms
+
+    module subroutine add_resistive_matrix_terms(gauss_idx, current_weight, quadblock)
+      integer, intent(in)   :: gauss_idx
+      real(dp), intent(in)  :: current_weight
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_resistive_matrix_terms
   end interface
 
   private
@@ -52,7 +58,7 @@ contains
 
   subroutine build_matrices(matrix_B, matrix_A)
     use mod_global_variables, only: gridpts, dim_quadblock, dim_subblock, &
-        n_gauss, gaussian_weights, flow
+        n_gauss, gaussian_weights, flow, resistivity
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
     use mod_boundary_conditions, only: apply_boundary_conditions
@@ -111,6 +117,9 @@ contains
         if (flow) then
           call add_flow_matrix_terms(gauss_idx, current_weight, quadblock_A)
         end if
+        if (resistivity) then
+          call add_resistive_matrix_terms(gauss_idx, current_weight, quadblock_A)
+        end if
       end do
 
       ! dx from integral
@@ -158,8 +167,10 @@ contains
 
 
   !> Calculates the $$\boldsymbol{\mathcal{F}}$$ operator, given as
-  !! $$ \boldsymbol{\mathcal{F}} =
-  !!      \left(\frac{k_2}{\varepsilon}B_{03} + k_3B_{02}\right) $$
+  !! $$
+  !! \boldsymbol{\mathcal{F}} =
+  !!      \left(\frac{k_2}{\varepsilon}B_{03} \pm k_3B_{02}\right)
+  !! $$
   function get_F_operator(gauss_idx, which) result(Foperator)
     !> current index in the Gaussian grid
     integer, intent(in) :: gauss_idx
@@ -187,8 +198,10 @@ contains
 
 
   !> Calculates the $$\boldsymbol{\mathcal{G}}$$ operator, given as
-  !! $$ \boldsymbol{\mathcal{G}} =
-  !!      \left(k_3 B_{02} - \frac{k_2}{\varepsilon}B_{03}\right) $$
+  !! $$
+  !! \boldsymbol{\mathcal{G}} =
+  !!      \left(k_3 B_{02} \mp \frac{k_2}{\varepsilon}B_{03}\right)
+  !! $$
   function get_G_operator(gauss_idx, which) result(Goperator)
     !> current index in the Gaussian grid
     integer, intent(in) :: gauss_idx
@@ -216,7 +229,10 @@ contains
 
 
   !> Calculates the $$\boldsymbol{\mathcal{K}}$$ operator, given as
-  !! $$ \boldsymbol{\mathcal{K}} = \left(\frac{k_2^2}{\eps} + \eps k_3^2\right) $$
+  !! $$
+  !! \boldsymbol{\mathcal{K}} =
+  !!      \left(\frac{k_2^2}{\varepsilon} + \varepsilon k_3^2\right)
+  !! $$
   function get_K_operator(gauss_idx) result(Koperator)
     !> current index in the Gaussian grid
     integer, intent(in) :: gauss_idx
