@@ -59,6 +59,9 @@ set (sources
         matrices/smod_flow_matrix.f08
         matrices/smod_resistive_matrix.f08
         matrices/smod_cooling_matrix.f08
+        matrices/smod_conduction_matrix.f08
+        matrices/smod_viscosity_matrix.f08
+        matrices/smod_hall_matrix.f08
         # physics/mod_viscosity.f08
         mod_boundary_conditions.f08
         solvers/mod_solvers.f08

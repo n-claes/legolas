@@ -50,6 +50,30 @@ module mod_matrix_manager
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
     end subroutine add_cooling_matrix_terms
+
+    module subroutine add_conduction_matrix_terms(gauss_idx, current_weight, quadblock)
+      integer, intent(in)   :: gauss_idx
+      real(dp), intent(in)  :: current_weight
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_conduction_matrix_terms
+
+    module subroutine add_viscosity_matrix_terms(gauss_idx, current_weight, quadblock)
+      integer, intent(in)   :: gauss_idx
+      real(dp), intent(in)  :: current_weight
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_viscosity_matrix_terms
+
+    module subroutine add_hall_matrix_terms(gauss_idx, current_weight, quadblock)
+      integer, intent(in)   :: gauss_idx
+      real(dp), intent(in)  :: current_weight
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_hall_matrix_terms
+
+    module subroutine add_hall_bmatrix_terms(gauss_idx, current_weight, quadblock)
+      integer, intent(in)   :: gauss_idx
+      real(dp), intent(in)  :: current_weight
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_hall_bmatrix_terms
   end interface
 
   private
@@ -64,7 +88,8 @@ contains
 
   subroutine build_matrices(matrix_B, matrix_A)
     use mod_global_variables, only: gridpts, dim_quadblock, dim_subblock, &
-        n_gauss, gaussian_weights, flow, resistivity, radiative_cooling
+        n_gauss, gaussian_weights, flow, resistivity, radiative_cooling, &
+        thermal_conduction, viscosity, hall_mhd
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
     use mod_boundary_conditions, only: apply_boundary_conditions
@@ -128,6 +153,16 @@ contains
         end if
         if (radiative_cooling) then
           call add_cooling_matrix_terms(gauss_idx, current_weight, quadblock_A)
+        end if
+        if (thermal_conduction) then
+          call add_conduction_matrix_terms(gauss_idx, current_weight, quadblock_A)
+        end if
+        if (viscosity) then
+          call add_viscosity_matrix_terms(gauss_idx, current_weight, quadblock_A)
+        end if
+        if (hall_mhd) then
+          call add_hall_matrix_terms(gauss_idx, current_weight, quadblock_A)
+          call add_hall_bmatrix_terms(gauss_idx, current_weight, quadblock_B)
         end if
       end do
 
