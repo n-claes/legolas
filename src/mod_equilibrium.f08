@@ -58,6 +58,8 @@ module mod_equilibrium
     module subroutine couette_flow_eq; end subroutine
     module subroutine taylor_couette_eq; end subroutine
     module subroutine harris_sheet_eq; end subroutine
+    module subroutine tc_pinch_eq; end subroutine
+    module subroutine tc_hmri_eq; end subroutine
     module subroutine user_defined_eq; end subroutine
   end interface
 
@@ -226,6 +228,10 @@ contains
       set_equilibrium_values => taylor_couette_eq
     case("harris_sheet")
       set_equilibrium_values => harris_sheet_eq
+    case("tc_pinch")
+      set_equilibrium_values => tc_pinch_eq
+    case("tc_HMRI")
+      set_equilibrium_values => tc_hmri_eq
     case("user_defined")
       set_equilibrium_values => user_defined_eq
     case default

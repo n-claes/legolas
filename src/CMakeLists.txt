@@ -52,6 +52,8 @@ set (sources
         equilibria/smod_equil_couette_flow.f08
         equilibria/smod_equil_taylor_couette.f08
         equilibria/smod_equil_harris_sheet.f08
+        equilibria/smod_equil_tc_pinch.f08
+        equilibria/smod_equil_tc_hmri.f08
         ${USR_SMOD_LOC}/smod_user_defined.f08
         boundaries/mod_boundary_manager.f08
         boundaries/smod_essential_boundaries.f08
