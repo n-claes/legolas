@@ -12,6 +12,7 @@ New additions should go at the bottom of the file and follow the format already 
 4) added length of eigenvalues array before eigenvalues are written
 Changes 1-4 needed an update of the pylbo reader
 
-=== version 1.0.2 --> 1.0.3 ===
-1) added ddv02 and ddv03 to equil_names at the end after "grav"
-2) added viscosity_field (dd_v02_dr and dd_v03_dr) to the data after grav_field and before the eigenfunctions
+=== version 1.0.3 --> 1.0.4 ===
+1) added ddv02 and ddv03 to equil_names
+2) added dd_v02_dr and dd_v03_dr to the data
+No update of the pylbo reader needed

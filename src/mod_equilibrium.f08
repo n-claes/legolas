@@ -12,7 +12,7 @@ module mod_equilibrium
   use mod_units
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
                        gravity_type, resistivity_type, cooling_type, conduction_type, &
-                       viscosity_type, hall_type
+                       hall_type
   use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
                                   flow, resistivity, external_gravity, radiative_cooling, &
                                   thermal_conduction, viscosity, geometry, use_defaults, cgs_units
@@ -77,8 +77,6 @@ module mod_equilibrium
   type (cooling_type)     :: rc_field
   !> type containing all thermal conduction-related equilibrium variables
   type (conduction_type)  :: kappa_field
-  !> type containing all viscosity-related equilibrium variables
-  type (viscosity_type)  :: viscosity_field
   !> type containing all Hall related variables
   type (hall_type)        :: hall_field
 
@@ -90,7 +88,6 @@ module mod_equilibrium
   public :: eta_field
   public :: rc_field
   public :: kappa_field
-  public :: viscosity_field
   public :: hall_field
 
   public :: initialise_equilibrium
@@ -114,7 +111,6 @@ contains
     call initialise_type(eta_field)
     call initialise_type(rc_field)
     call initialise_type(kappa_field)
-    call initialise_type(viscosity_field)
     call initialise_type(hall_field)
   end subroutine initialise_equilibrium
 
@@ -300,7 +296,6 @@ contains
     call deallocate_type(eta_field)
     call deallocate_type(rc_field)
     call deallocate_type(kappa_field)
-    call deallocate_type(viscosity_field)
     call deallocate_type(hall_field)
   end subroutine equilibrium_clean
 

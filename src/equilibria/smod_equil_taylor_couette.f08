@@ -65,7 +65,7 @@ contains
       v_field % d_v02_dr(i) = A - B / r**2
       T_field % d_T0_dr(i)  = (v_field % v02(i))**2 / r
 
-      viscosity_field % dd_v02_dr(i) = 2.0d0 * B / r**3
+      v_field % dd_v02_dr(i) = 2.0d0 * B / r**3
     end do
 
     Ta = (cte_rho0 * (v_field % v02(int(gauss_gridpts/2))) * h / viscosity_value)**2 &

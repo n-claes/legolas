@@ -47,14 +47,20 @@ module mod_types
     real(dp), allocatable   :: v01(:)
     !> derivative of equilibrium v01
     real(dp), allocatable   :: d_v01_dr(:)
+    !> second derivative of equilibrium v01
+    real(dp), allocatable   :: dd_v01_dr(:)
     !> equilibrium velocity in the y or theta-direction
     real(dp), allocatable   :: v02(:)
     !> derivative of equilibrium v02
     real(dp), allocatable   :: d_v02_dr(:)
+    !> second derivative of equilibrium v02
+    real(dp), allocatable   :: dd_v02_dr(:)
     !> equilibrium velocity in the z direction
     real(dp), allocatable   :: v03(:)
     !> derivative of equilibrium v03
     real(dp), allocatable   :: d_v03_dr(:)
+    !> second derivative of equilibrium v03
+    real(dp), allocatable   :: dd_v03_dr(:)
   end type velocity_type
 
   !> type containing all gravity related equilibrium variables
@@ -111,14 +117,6 @@ module mod_types
     complex(dp), allocatable :: eigenfunctions(:, :)
   end type ef_type
 
-  !> type containing viscosity related variables
-  type viscosity_type
-    !> second derivative equilibrium v02
-    real(dp), allocatable    :: dd_v02_dr(:)
-    !> second derivative equilibrium v03
-    real(dp), allocatable    :: dd_v03_dr(:)
-  end type viscosity_type
-
   !> type containing Hall related variables
   type hall_type
     !> Hall parameter
@@ -138,7 +136,6 @@ module mod_types
     module procedure initialise_resistivity_type
     module procedure initialise_cooling_type
     module procedure initialise_conduction_type
-    module procedure initialise_viscosity_type
     module procedure initialise_hall_type
   end interface initialise_type
 
@@ -152,7 +149,6 @@ module mod_types
     module procedure deallocate_resistivity_type
     module procedure deallocate_cooling_type
     module procedure deallocate_conduction_type
-    module procedure deallocate_viscosity_type
     module procedure deallocate_hall_type
   end interface deallocate_type
 
@@ -165,7 +161,6 @@ module mod_types
   public :: cooling_type
   public :: conduction_type
   public :: ef_type
-  public :: viscosity_type
   public :: hall_type
 
   public :: initialise_type
@@ -227,17 +222,23 @@ contains
 
     allocate(type_v % v01(gauss_gridpts))
     allocate(type_v % d_v01_dr(gauss_gridpts))
+    allocate(type_v % dd_v01_dr(gauss_gridpts))
     allocate(type_v % v02(gauss_gridpts))
     allocate(type_v % d_v02_dr(gauss_gridpts))
+    allocate(type_v % dd_v02_dr(gauss_gridpts))
     allocate(type_v % v03(gauss_gridpts))
     allocate(type_v % d_v03_dr(gauss_gridpts))
+    allocate(type_v % dd_v03_dr(gauss_gridpts))
 
     type_v % v01 = 0.0d0
     type_v % d_v01_dr = 0.0d0
+    type_v % dd_v01_dr = 0.0d0
     type_v % v02 = 0.0d0
     type_v % d_v02_dr = 0.0d0
+    type_v % dd_v02_dr = 0.0d0
     type_v % v03 = 0.0d0
     type_v % d_v03_dr = 0.0d0
+    type_v % dd_v03_dr = 0.0d0
   end subroutine initialise_velocity_type
 
 
@@ -321,19 +322,6 @@ contains
   end subroutine initialise_conduction_type
 
 
-  !> Allocates the viscosity type and initialises all values to zero.
-  subroutine initialise_viscosity_type(type_viscosity)
-    !> the type containing the viscosity attributes
-    type (viscosity_type), intent(inout) :: type_viscosity
-
-    allocate(type_viscosity % dd_v02_dr(gauss_gridpts))
-    allocate(type_viscosity % dd_v03_dr(gauss_gridpts))
-
-    type_viscosity % dd_v02_dr = 0.0d0
-    type_viscosity % dd_v03_dr = 0.0d0
-  end subroutine initialise_viscosity_type
-
-
   !> Deallocates all attributes contained in the  density type.
   subroutine deallocate_density_type(type_rho)
     !> the type containing the density attributes
@@ -374,10 +362,13 @@ contains
 
     deallocate(type_v % v01)
     deallocate(type_v % d_v01_dr)
+    deallocate(type_v % dd_v01_dr)
     deallocate(type_v % v02)
     deallocate(type_v % d_v02_dr)
+    deallocate(type_v % dd_v02_dr)
     deallocate(type_v % v03)
     deallocate(type_v % d_v03_dr)
+    deallocate(type_v % dd_v03_dr)
   end subroutine deallocate_velocity_type
 
 
@@ -425,16 +416,6 @@ contains
     deallocate(type_kappa % d_kappa_perp_dT)
     deallocate(type_kappa % d_kappa_perp_dB2)
   end subroutine deallocate_conduction_type
-
-
-  !> Deallocates all attributes contained in the viscosity type.
-  subroutine deallocate_viscosity_type(type_viscosity)
-    !> the type containing the viscosity attributes
-    type (viscosity_type), intent(inout) :: type_viscosity
-
-    deallocate(type_viscosity % dd_v02_dr)
-    deallocate(type_viscosity % dd_v03_dr)
-  end subroutine deallocate_viscosity_type
 
 
   !> Deallocates all attributes contained in the Hall type.

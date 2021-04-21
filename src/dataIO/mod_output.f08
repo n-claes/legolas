@@ -69,7 +69,7 @@ contains
     use mod_logging, only: log_message
     use mod_grid, only: grid, grid_gauss
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
-      kappa_field, eta_field, grav_field, viscosity_field, hall_field
+      kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions, only: ef_grid, ef_names, ef_array
     use mod_check_values, only: value_is_zero
     use mod_equilibrium_params
@@ -93,10 +93,16 @@ contains
       "rc", "rj", "Bth0", "Bz0", "V", "j0", "g" &
     ]
     equil_names = [ &
-      character(len=str_len_arr) :: "rho0", "drho0", "T0", "dT0", "B02", "B03", &
-      "dB02", "dB03", "ddB02", "ddB03", "B0", "v02", "v03", "dv02", "dv03", &
-      "dLdT", "dLdrho", "kappa_para", "kappa_perp", "eta", "detadT", "detadr", "grav", &
-      "ddv02", "ddv03", 'Hall', 'inertia' &
+      character(len=str_len_arr) :: &
+        "rho0", "drho0", &
+        "T0", "dT0", &
+        "B02", "B03", "dB02", "dB03", "ddB02", "ddB03", "B0", &
+        "v02", "v03", "dv02", "dv03", "ddv02", "ddv03", &
+        "dLdT", "dLdrho", &
+        "kappa_para", "kappa_perp", &
+        "eta", "detadT", "detadr", &
+        "grav", &
+        "Hall", "inertia" &
     ]
     unit_names = [ &
       character(len=2*str_len_arr) :: "unit_length", "unit_time", "unit_density", &
@@ -126,15 +132,19 @@ contains
     ! Next write the data itself
     ! General data: eigenvalues, grids, equilibrium configuration
     write(dat_fh) size(eigenvalues), eigenvalues, grid, grid_gauss
-    write(dat_fh) rho_field % rho0, rho_field % d_rho0_dr, &
+    write(dat_fh) &
+      rho_field % rho0, rho_field % d_rho0_dr, &
       T_field % T0, T_field % d_T0_dr, &
-      B_field % B02, B_field % B03, B_field % d_B02_dr, B_field % d_B03_dr, &
+      B_field % B02, B_field % B03, &
+      B_field % d_B02_dr, B_field % d_B03_dr, &
       eta_field % dd_B02_dr, eta_field % dd_B03_dr, B_field % B0, &
-      v_field % v02, v_field % v03, v_field % d_v02_dr, v_field % d_v03_dr, &
+      v_field % v02, v_field % v03, &
+      v_field % d_v02_dr, v_field % d_v03_dr, &
+      v_field % dd_v02_dr, v_field % dd_v03_dr, &
       rc_field % d_L_dT, rc_field % d_L_drho, &
       kappa_field % kappa_para, kappa_field % kappa_perp, &
-      eta_field % eta, eta_field % d_eta_dT, eta_field % d_eta_dr, grav_field % grav, &
-      viscosity_field % dd_v02_dr, viscosity_field % dd_v03_dr, &
+      eta_field % eta, eta_field % d_eta_dT, eta_field % d_eta_dr, &
+      grav_field % grav, &
       hall_field % hallfactor, hall_field % inertiafactor
 
     ! Eigenfunction data [optional]
