@@ -54,9 +54,9 @@ contains
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, matrix_gridpts, &
-      solver, number_of_eigenvalues, write_eigenfunctions, hall_mhd
+      solver, number_of_eigenvalues, write_eigenfunctions!, hall_mhd
     use mod_input, only: read_parfile, get_parfile
-    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
+    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium!, hall_field
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_logging, only: print_logo
     ! use mod_hallmhd, only: set_hallfactor

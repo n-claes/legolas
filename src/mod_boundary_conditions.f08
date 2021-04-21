@@ -20,23 +20,20 @@ contains
   !! @note  Perpendicular thermal conduction is hard-checked, that is, not just the
   !!        global logical. There must be a value in the corresponding array that is non-zero.
   subroutine apply_boundary_conditions(matrix_A, matrix_B)
-    use mod_global_variables, only: dp_LIMIT, viscosity
     use mod_equilibrium, only: kappa_field
     ! use mod_viscosity, only: viscosity_boundaries
-    use mod_global_variables, only: dp_LIMIT, hall_mhd, gauss_gridpts
+    use mod_global_variables, only: dp_LIMIT
     use mod_equilibrium, only: kappa_field
-    ! use mod_hallmhd, only: hall_boundaries
-    use mod_equilibrium, only: hall_field
 
     !> the A-matrix with boundary conditions imposed on exit
     complex(dp), intent(inout)  :: matrix_A(matrix_gridpts, matrix_gridpts)
     !> the B-matrix with boundary conditions imposed on exit
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
     complex(dp)                 :: quadblock(dim_quadblock, dim_quadblock)
-    complex(dp)                 :: quadblock_visc(dim_quadblock, dim_quadblock)
-    complex(dp)                 :: quadblock_Hall(dim_quadblock, dim_quadblock)
+    ! complex(dp)                 :: quadblock_visc(dim_quadblock, dim_quadblock)
+    ! complex(dp)                 :: quadblock_Hall(dim_quadblock, dim_quadblock)
     integer                     :: idx_end_left, idx_start_right
-    real(dp)                    :: hf
+    ! real(dp)                    :: hf
 
     ! check if perpendicular thermal conduction is present
     kappa_perp_is_zero = .true.
