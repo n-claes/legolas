@@ -92,7 +92,7 @@ contains
         thermal_conduction, viscosity, hall_mhd
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
-    use mod_boundary_conditions, only: apply_boundary_conditions
+    use mod_boundary_manager, only: apply_boundary_conditions
 
     !> the B-matrix
     real(dp), intent(inout) :: matrix_B(:, :)

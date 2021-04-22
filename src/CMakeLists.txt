@@ -53,6 +53,8 @@ set (sources
         equilibria/smod_equil_taylor_couette.f08
         equilibria/smod_equil_harris_sheet.f08
         ${USR_SMOD_LOC}/smod_user_defined.f08
+        boundaries/mod_boundary_manager.f08
+        boundaries/smod_essential_boundaries.f08
         matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
         matrices/smod_regular_matrix.f08
@@ -63,7 +65,7 @@ set (sources
         matrices/smod_viscosity_matrix.f08
         matrices/smod_hall_matrix.f08
         # physics/mod_viscosity.f08
-        mod_boundary_conditions.f08
+        # mod_boundary_conditions.f08
         solvers/mod_solvers.f08
         solvers/mod_arpack_type.f08
         solvers/smod_qr_invert.f08
