@@ -3,7 +3,7 @@ module mod_test_boundaries
   use funit
   use mod_equilibrium, only: set_equilibrium
   use mod_global_variables, only: matrix_gridpts
-  use mod_boundary_conditions, only: apply_boundary_conditions
+  use mod_boundary_manager, only: apply_boundary_conditions
   implicit none
 
   complex(dp), allocatable :: matA(:, :), matA_expect(:, :)
@@ -84,6 +84,8 @@ contains
     zero_idxs = [1, 5, 7, 9, 11]
     do i = 1, size(zero_idxs)
       j = zero_idxs(i)
+      matB_expect(j, :) = (0.0d0, 0.0d0)
+      matB_expect(:, j) = (0.0d0, 0.0d0)
       matB_expect(j, j) = 1.0d0
     end do
     ! left + right boundary conditions
@@ -112,6 +114,8 @@ contains
     zero_idxs = [1, 5, 7, 9, 11]
     do i = 1, size(zero_idxs)
       j = zero_idxs(i)
+      matB_expect(j, :) = (0.0d0, 0.0d0)
+      matB_expect(:, j) = (0.0d0, 0.0d0)
       matB_expect(j, j) = 1.0d0
     end do
     ! left + right boundary conditions
@@ -140,6 +144,8 @@ contains
     zero_idxs = [1, 5, 7, 9, 11]
     do i = 1, size(zero_idxs)
       j = zero_idxs(i)
+      matA_expect(j, :) = (0.0d0, 0.0d0)
+      matA_expect(:, j) = (0.0d0, 0.0d0)
       matA_expect(j, j) = (1.0d20, 0.0d0)
     end do
     ! left + right boundary conditions
@@ -168,6 +174,8 @@ contains
     zero_idxs = [1, 5, 7, 9, 11]
     do i = 1, size(zero_idxs)
       j = zero_idxs(i)
+      matA_expect(j, :) = (0.0d0, 0.0d0)
+      matA_expect(:, j) = (0.0d0, 0.0d0)
       matA_expect(j, j) = (1.0d20, 0.0d0)
     end do
     ! left + right boundary conditions
@@ -201,6 +209,8 @@ contains
     zero_idxs = [1, 5, 7, 9, 11]
     do i = 1, size(zero_idxs)
       j = zero_idxs(i)
+      matA_expect(j, :) = (0.0d0, 0.0d0)
+      matA_expect(:, j) = (0.0d0, 0.0d0)
       matA_expect(j, j) = (1.0d20, 0.0d0)
     end do
     ! left + right boundary conditions
@@ -234,6 +244,8 @@ contains
     zero_idxs = [1, 5, 7, 9, 11]
     do i = 1, size(zero_idxs)
       j = zero_idxs(i)
+      matA_expect(j, :) = (0.0d0, 0.0d0)
+      matA_expect(:, j) = (0.0d0, 0.0d0)
       matA_expect(j, j) = (1.0d20, 0.0d0)
     end do
     ! left + right boundary conditions
