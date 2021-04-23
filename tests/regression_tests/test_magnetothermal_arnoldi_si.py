@@ -38,6 +38,10 @@ magneto_arnoldi_si_setup = {
         2.022e-2 + 4.418e-2j,
     ],
     "relax_ef_test": True,
+    "image_limits": [
+        {"xlims": (-0.002, 0.025), "ylims": (-0.002, 0.046)},
+        {"xlims": (-0.0015, 0.0175), "ylims": (-0.001, 0.02)},
+    ]
 }
 parametrisation = dict(
     argnames="setup",
