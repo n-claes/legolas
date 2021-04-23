@@ -55,6 +55,9 @@ set (sources
         ${USR_SMOD_LOC}/smod_user_defined.f08
         boundaries/mod_boundary_manager.f08
         boundaries/smod_essential_boundaries.f08
+        boundaries/smod_natural_boundaries.f08
+        boundaries/smod_natural_bounds_regular.f08
+        boundaries/smod_natural_bounds_resistive.f08
         matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
         matrices/smod_regular_matrix.f08
