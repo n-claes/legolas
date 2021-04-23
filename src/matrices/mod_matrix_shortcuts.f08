@@ -11,6 +11,7 @@ module mod_matrix_shortcuts
   public :: get_F_operator
   public :: get_G_operator
   public :: get_wv_operator
+  public :: get_Kp_operator
 
 contains
 
@@ -90,4 +91,47 @@ contains
     wvoperator = k2**2 / eps_grid(gauss_idx) + eps_grid(gauss_idx) * k3**2
   end function get_wv_operator
 
+
+  !> Calculates the (modified) conduction prefactor, given as
+  !! $$ \boldsymbol{K_p} = \frac{\kappa_{\parallel,0} - \kappa_{\perp,0}}{B_0^2} $$
+  !! $$
+  !! \boldsymbol{K_p^+} =
+  !!      \left(\boldsymbol{K_p} + \frac{\partial \kappa_\perp}{\partial(B^2)}\right)
+  !! $$
+  !! $$ \boldsymbol{K_p^{++}} = \left(
+  !!    \frac{\partial \kappa_\perp}{\partial(B^2)}
+  !!    - \frac{B_{01}^2}{B_0^2}\boldsymbol{K_p^+}
+  !! \right)
+  !! $$
+  function get_Kp_operator(gauss_idx, which) result(Kp_operator)
+    use mod_equilibrium, only: B_field, kappa_field
+
+    !> current index in the Gaussian grid
+    integer, intent(in) :: gauss_idx
+    !> which operator to calculate, <tt>"regular", "+", "++"</tt>
+    character(len=*), intent(in)  :: which
+    !> the (modified) $K_p$ operator on return
+    real(dp)  :: Kp_operator
+
+    real(dp)  :: Kp_regular, Kp_plus, Kp_plusplus
+
+    Kp_regular = ( &
+      kappa_field % kappa_para(gauss_idx) - kappa_field % kappa_perp(gauss_idx) &
+    ) / B_field % B0(gauss_idx)**2
+    Kp_plus = Kp_regular + kappa_field % d_kappa_perp_dB2(gauss_idx)
+    Kp_plusplus = ( &
+      kappa_field % d_kappa_perp_dB2(gauss_idx) &
+      - (B_field % B01**2 * Kp_plus / B_field % B0(gauss_idx)**2) &
+    )
+
+    if (which == "regular") then
+      Kp_operator = Kp_regular
+    else if (which == "+") then
+      Kp_operator = Kp_plus
+    else if (which == "++") then
+      Kp_operator = Kp_plusplus
+    else
+      call log_message("requesting invalid Kp-operator: " // trim(which), level="error")
+    end if
+  end function get_Kp_operator
 end module mod_matrix_shortcuts
