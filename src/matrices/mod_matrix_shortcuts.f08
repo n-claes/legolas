@@ -9,6 +9,7 @@ module mod_matrix_shortcuts
   private
 
   public :: get_F_operator
+  public :: get_diffF_operator
   public :: get_G_operator
   public :: get_wv_operator
   public :: get_Kp_operator
@@ -18,7 +19,7 @@ contains
   !> Calculates the $$\boldsymbol{\mathcal{F}}$$ operator, given as
   !! $$
   !! \boldsymbol{\mathcal{F}} =
-  !!      \left(\frac{k_2}{\varepsilon}B_{03} \pm k_3B_{02}\right)
+  !!      \left(\frac{k_2}{\varepsilon}B_{02} \pm k_3B_{03}\right)
   !! $$
   function get_F_operator(gauss_idx, which) result(Foperator)
     !> current index in the Gaussian grid
@@ -44,6 +45,45 @@ contains
       )
     end if
   end function get_F_operator
+
+
+  !> Calculates the derivative of the $$\boldsymbol{\mathcal{F}}$$ operator, given as
+  !! $$
+  !! \boldsymbol{\mathcal{F}}' = \left[\frac{k_2}{\varepsilon}\left(
+  !!    B_{02}' - \frac{\varepsilon'}{\varepsilon}B_{02}
+  !! \right) + k_3B_{02}\right]
+  !! $$
+  function get_diffF_operator(gauss_idx, which) result(dFoperator)
+    !> current index in the Gaussian grid
+    integer, intent(in) :: gauss_idx
+    !> which operator to calculate, <tt>"plus"</tt> or <tt>"minus"</tt>
+    character(len=*), intent(in)  :: which
+    !> the F operator on return
+    real(dp)  :: dFoperator
+    real(dp)  :: eps, deps
+
+    eps = eps_grid(gauss_idx)
+    deps = d_eps_grid_dr(gauss_idx)
+
+
+    if (which == "plus") then
+      dFoperator = ( &
+        (k2 / eps) * ( &
+          B_field % d_B02_dr(gauss_idx) - deps * B_field % B02(gauss_idx) / eps &
+        ) + k3 * B_field % d_B03_dr(gauss_idx) &
+      )
+    else if (which == "minus") then
+      dFoperator = ( &
+        (k2 / eps) * ( &
+          B_field % d_B02_dr(gauss_idx) - deps * B_field % B02(gauss_idx) / eps &
+        ) - k3 * B_field % d_B03_dr(gauss_idx) &
+      )
+    else
+      call log_message( &
+        "requesting invalid dF-operator sign: " // trim(which), level="error" &
+      )
+    end if
+  end function get_diffF_operator
 
 
   !> Calculates the $$\boldsymbol{\mathcal{G}}$$ operator, given as

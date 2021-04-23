@@ -5,8 +5,6 @@ submodule (mod_matrix_manager) smod_resistive_matrix
 contains
 
   module procedure add_resistive_matrix_terms
-    use mod_matrix_shortcuts, only: get_wv_operator
-
     real(dp)  :: eps, deps
     real(dp)  :: B02, dB02, drB02, ddB02
     real(dp)  :: B03, dB03, ddB03

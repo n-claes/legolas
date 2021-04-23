@@ -6,8 +6,6 @@ submodule (mod_matrix_manager) smod_viscosity_matrix
 contains
 
   module procedure add_viscosity_matrix_terms
-    use mod_matrix_shortcuts, only: get_wv_operator
-
     real(dp)  :: eps, deps
     real(dp)  :: v01, dv01, ddv01
     real(dp)  :: v02, dv02

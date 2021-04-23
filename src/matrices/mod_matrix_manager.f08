@@ -5,6 +5,7 @@ module mod_matrix_manager
   use mod_equilibrium, only: rho_field, T_field, B_field
   use mod_equilibrium_params, only: k2, k3
   use mod_logging, only: log_message, str
+  use mod_matrix_shortcuts, only: get_G_operator, get_F_operator, get_wv_operator
   implicit none
 
   !> quadratic basis functions

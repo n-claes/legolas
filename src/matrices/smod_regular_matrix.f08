@@ -46,7 +46,6 @@ contains
   module procedure add_regular_matrix_terms
     use mod_global_variables, only: external_gravity
     use mod_equilibrium, only: grav_field
-    use mod_matrix_shortcuts, only: get_G_operator, get_F_operator, get_wv_operator
 
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
