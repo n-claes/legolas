@@ -51,6 +51,7 @@ contains
     call set_basis_functions(edge="left")
 
     call add_natural_regular_terms(quadblock)
+    call add_natural_flow_terms(quadblock)
     call add_natural_resistive_terms(quadblock)
   end procedure apply_natural_boundaries_left
 
@@ -59,6 +60,7 @@ contains
     call set_basis_functions(edge="right")
 
     call add_natural_regular_terms(quadblock)
+    call add_natural_flow_terms(quadblock)
     call add_natural_resistive_terms(quadblock)
   end procedure apply_natural_boundaries_right
 

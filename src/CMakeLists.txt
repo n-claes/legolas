@@ -57,6 +57,7 @@ set (sources
         boundaries/smod_essential_boundaries.f08
         boundaries/smod_natural_boundaries.f08
         boundaries/smod_natural_bounds_regular.f08
+        boundaries/smod_natural_bounds_flow.f08
         boundaries/smod_natural_bounds_resistive.f08
         matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
