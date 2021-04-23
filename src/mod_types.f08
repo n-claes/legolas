@@ -23,6 +23,8 @@ module mod_types
     real(dp), allocatable   :: T0(:)
     !> derivative of the equilibrium temperature
     real(dp), allocatable   :: d_T0_dr(:)
+    !> second derivative of the equilibrium temperature
+    real(dp), allocatable   :: dd_T0_dr(:)
   end type temperature_type
 
   !> type containing all magnetic field related equilibrium variables
@@ -191,9 +193,11 @@ contains
 
     allocate(type_T % T0(gauss_gridpts))
     allocate(type_T % d_T0_dr(gauss_gridpts))
+    allocate(type_T % dd_T0_dr(gauss_gridpts))
 
     type_T % T0 = 0.0d0
     type_T % d_T0_dr = 0.0d0
+    type_T % dd_T0_dr = 0.0d0
   end subroutine initialise_temperature_type
 
 
@@ -343,6 +347,7 @@ contains
 
     deallocate(type_T % T0)
     deallocate(type_T % d_T0_dr)
+    deallocate(type_T % dd_T0_dr)
   end subroutine deallocate_temperature_type
 
 
