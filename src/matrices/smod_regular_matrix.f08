@@ -46,12 +46,13 @@ contains
   module procedure add_regular_matrix_terms
     use mod_global_variables, only: external_gravity
     use mod_equilibrium, only: grav_field
+    use mod_matrix_shortcuts, only: get_G_operator, get_F_operator, get_wv_operator
 
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
     real(dp)  :: T0, dT0
     real(dp)  :: B01, B02, dB02, drB02, B03, db03
-    real(dp)  :: Fop_plus, Gop_plus, Gop_min, Kop
+    real(dp)  :: Fop_plus, Gop_plus, Gop_min, WVop
 
     ! grid variables
     eps = eps_grid(gauss_idx)
@@ -73,7 +74,7 @@ contains
     Fop_plus = get_F_operator(gauss_idx, which="plus")
     Gop_plus = get_G_operator(gauss_idx, which="plus")
     Gop_min = get_G_operator(gauss_idx, which="minus")
-    Kop = get_K_operator(gauss_idx)
+    WVop = get_wv_operator(gauss_idx)
 
     ! ==================== Quadratic * Cubic ====================
     call reset_factor_positions(new_size=6)
@@ -134,7 +135,7 @@ contains
     factors(4) = k2 * rho / eps
     positions(4, :) = [3, 5]
     ! A(3, 6)
-    factors(5) = -Kop * B03
+    factors(5) = -WVop * B03
     positions(5, :) = [3, 6]
     ! A(4, 1)
     factors(6) = k3 * T0
@@ -143,7 +144,7 @@ contains
     factors(7) = k3 * rho
     positions(7, :) = [4, 5]
     ! A(4, 6)
-    factors(8) = ic * deps * k2 * B01 / eps + B02 * Kop
+    factors(8) = ic * deps * k2 * B01 / eps + B02 * WVop
     positions(8, :) = [4, 6]
     ! A(5, 3)
     factors(9) = gamma_1 * k2 * rho * T0

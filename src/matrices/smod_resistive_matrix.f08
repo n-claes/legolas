@@ -5,11 +5,13 @@ submodule (mod_matrix_manager) smod_resistive_matrix
 contains
 
   module procedure add_resistive_matrix_terms
+    use mod_matrix_shortcuts, only: get_wv_operator
+
     real(dp)  :: eps, deps
     real(dp)  :: B02, dB02, drB02, ddB02
     real(dp)  :: B03, dB03, ddB03
     real(dp)  :: eta, detadT, deta
-    real(dp)  :: Kop, Rop_pos, Rop_neg
+    real(dp)  :: WVop, Rop_pos, Rop_neg
 
     ! grid variables
     eps = eps_grid(gauss_idx)
@@ -27,7 +29,7 @@ contains
     detadT = eta_field % d_eta_dT(gauss_idx)
     deta = get_deta(gauss_idx)
 
-    Kop = get_K_operator(gauss_idx)
+    WVop = get_wv_operator(gauss_idx)
     Rop_pos = get_R_operator(gauss_idx, which="plus")
     Rop_neg = get_R_operator(gauss_idx, which="minus")
 
@@ -43,7 +45,7 @@ contains
     )
     positions(2, :) = [5, 6]
     ! R(6, 6)
-    factors(3) = -ic * eta * Kop
+    factors(3) = -ic * eta * WVop
     positions(3, :) = [6, 6]
     call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
 

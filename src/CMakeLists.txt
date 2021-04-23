@@ -60,6 +60,7 @@ set (sources
         boundaries/smod_natural_bounds_flow.f08
         boundaries/smod_natural_bounds_resistive.f08
         boundaries/smod_natural_bounds_viscosity.f08
+        matrices/mod_matrix_shortcuts.f08
         matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
         matrices/smod_regular_matrix.f08

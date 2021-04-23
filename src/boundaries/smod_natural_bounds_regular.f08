@@ -4,7 +4,7 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_reg
 contains
 
   module procedure add_natural_regular_terms
-    use mod_matrix_manager, only: get_G_operator
+    use mod_matrix_shortcuts, only: get_G_operator
 
     real(dp)  :: eps
     real(dp)  :: rho, T0

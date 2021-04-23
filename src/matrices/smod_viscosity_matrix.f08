@@ -6,12 +6,14 @@ submodule (mod_matrix_manager) smod_viscosity_matrix
 contains
 
   module procedure add_viscosity_matrix_terms
+    use mod_matrix_shortcuts, only: get_wv_operator
+
     real(dp)  :: eps, deps
     real(dp)  :: v01, dv01, ddv01
     real(dp)  :: v02, dv02
     real(dp)  :: v03, dv03, ddv03
     real(dp)  :: mu
-    real(dp)  :: Kop
+    real(dp)  :: WVop
 
     ! grid variables
     eps = eps_grid(gauss_idx)
@@ -28,11 +30,11 @@ contains
     ! viscosity value
     mu = viscosity_value
     ! operators
-    Kop = get_K_operator(gauss_idx)
+    WVop = get_wv_operator(gauss_idx)
 
     ! ==================== Cubic * Cubic ====================
     call reset_factor_positions(new_size=1)
-    factors(1) = -ic * mu * (deps / eps + Kop) / eps
+    factors(1) = -ic * mu * (deps / eps + WVop) / eps
     positions(1, :) = [2, 2]
     call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
 
