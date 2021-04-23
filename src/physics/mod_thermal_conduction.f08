@@ -24,7 +24,7 @@ contains
   !!          are all zero if that value is taken to be fixed.
   subroutine set_conduction_values(rho_field, T_field, B_field, kappa_field)
     use mod_types, only: density_type, temperature_type, bfield_type, conduction_type
-    use mod_global_variables, only: use_fixed_tc_perp
+    use mod_global_variables, only: use_fixed_tc_para, use_fixed_tc_perp
 
     !> the type containing the density attributes
     type(density_type), intent(in)        :: rho_field
@@ -45,13 +45,23 @@ contains
     end if
 
     call get_kappa_para(T_field % T0, kappa_field % kappa_para)
-    call get_kappa_perp(T_field % T0, rho_field % rho0, B_field % B0, kappa_field % kappa_perp)
+    call get_kappa_perp( &
+      T_field % T0, rho_field % rho0, B_field % B0, kappa_field % kappa_perp &
+    )
+
+    if (.not. use_fixed_tc_para) then
+      call get_kappa_para_derivatives(T_field % T0, kappa_field % d_kappa_para_dT)
+    end if
 
     if (.not. use_fixed_tc_perp) then
-      call get_kappa_perp_derivatives(T_field % T0, rho_field % rho0, B_field % B0, &
-                                      kappa_field % d_kappa_perp_drho, &
-                                      kappa_field % d_kappa_perp_dB2, &
-                                      kappa_field % d_kappa_perp_dT)
+      call get_kappa_perp_derivatives( &
+        T_field % T0, &
+        rho_field % rho0, &
+        B_field % B0, &
+        kappa_field % d_kappa_perp_drho, &
+        kappa_field % d_kappa_perp_dB2, &
+        kappa_field % d_kappa_perp_dT &
+      )
     end if
   end subroutine set_conduction_values
 
@@ -77,7 +87,7 @@ contains
     end if
 
     T0_dimfull = T0_eq * unit_temperature
-    tc_para = pf_kappa_para * T0_dimfull**2.5 / coulomb_log
+    tc_para = pf_kappa_para * T0_dimfull**2.5d0 / coulomb_log
     tc_para = tc_para / unit_conduction
   end subroutine get_kappa_para
 
@@ -117,12 +127,31 @@ contains
   end subroutine get_kappa_perp
 
 
+  !> Calculates the temperature derivative of the parallel thermal conduction component.
+  !! @note    All variables should be normalised when calling this routine,
+  !!          values are normalised on exit.
+  subroutine get_kappa_para_derivatives(T0_eq, d_tcpara_dT)
+    !> equilibrium temperature
+    real(dp), intent(in)  :: T0_eq(:)
+    !> temperature derivative of parallel thermal conduction, normalised on exit
+    real(dp), intent(out) :: d_tcpara_dT(size(T0_eq))
+
+    real(dp)  :: T0_dimfull(size(T0_eq))
+
+    T0_dimfull = T0_eq * unit_temperature
+    d_tcpara_dT = pf_kappa_para * 2.5d0 * T0_dimfull**1.5d0 / coulomb_log
+    d_tcpara_dT = d_tcpara_dT / unit_conduction / unit_temperature
+  end subroutine get_kappa_para_derivatives
+
+
   !> Calculates the thermal conduction derivatives.
   !! Returns the derivative of the perpendicular thermal conduction with respect to
   !! density, magnetic field squared and temperature.
   !! @note    All variables should be normalised when calling this routine.
   !!          The thermal conduction derivatives are normalised on exit.
-  subroutine get_kappa_perp_derivatives(T0_eq, rho0_eq, B0_eq, d_tc_drho, d_tc_dB2, d_tc_dT)
+  subroutine get_kappa_perp_derivatives( &
+    T0_eq, rho0_eq, B0_eq, d_tc_drho, d_tc_dB2, d_tc_dT &
+  )
     use mod_units, only: unit_dtc_drho, unit_dtc_dB2, unit_dtc_dT
 
     !> equilibrium temperature

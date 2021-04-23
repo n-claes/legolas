@@ -97,6 +97,8 @@ module mod_types
   type conduction_type
     !> equilibrium parallel thermal conduction
     real(dp), allocatable   :: kappa_para(:)
+    !> derivative d(kappa_para)/dT
+    real(dp), allocatable   :: d_kappa_para_dT(:)
     !> equilibrium perpendicular thermal conduction
     real(dp), allocatable   :: kappa_perp(:)
     !> derivative d(kappa_perp)/drho
@@ -309,12 +311,14 @@ contains
     type (conduction_type), intent(inout) :: type_kappa
 
     allocate(type_kappa % kappa_para(gauss_gridpts))
+    allocate(type_kappa % d_kappa_para_dT(gauss_gridpts))
     allocate(type_kappa % kappa_perp(gauss_gridpts))
     allocate(type_kappa % d_kappa_perp_drho(gauss_gridpts))
     allocate(type_kappa % d_kappa_perp_dT(gauss_gridpts))
     allocate(type_kappa % d_kappa_perp_dB2(gauss_gridpts))
 
     type_kappa % kappa_para = 0.0d0
+    type_kappa % d_kappa_para_dT = 0.0d0
     type_kappa % kappa_perp = 0.0d0
     type_kappa % d_kappa_perp_drho = 0.0d0
     type_kappa % d_kappa_perp_dT = 0.0d0
@@ -411,6 +415,7 @@ contains
     type (conduction_type), intent(inout)  :: type_kappa
 
     deallocate(type_kappa % kappa_para)
+    deallocate(type_kappa % d_kappa_para_dT)
     deallocate(type_kappa % kappa_perp)
     deallocate(type_kappa % d_kappa_perp_drho)
     deallocate(type_kappa % d_kappa_perp_dT)
