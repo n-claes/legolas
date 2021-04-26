@@ -192,7 +192,7 @@ contains
 
   @test
   subroutine test_bcs_cart_wall_A_kappa()
-    use mod_equilibrium, only: kappa_field
+    use mod_equilibrium, only: kappa_field, B_field
     use mod_global_variables, only: thermal_conduction
 
     integer     :: zero_idxs(5), idxs(8)
@@ -201,6 +201,7 @@ contains
     write(*, *) "Testing boundaries A-matrix: fixed wall Cartesian + conduction"
     thermal_conduction = .true.
     kappa_field % kappa_perp = 1.0d0
+    B_field % B0 = 1.0d0  ! avoid 1/B0 error in natural boundaries
     call reset_matrices(bvals=0.0d0, avals=(1.0d0, 2.0d0))
     call create_test_grid(pts=31, geom='Cartesian')
     call apply_boundary_conditions(matA, matB)
@@ -227,7 +228,7 @@ contains
 
   @test
   subroutine test_bcs_cyl_wall_A_kappa()
-    use mod_equilibrium, only: kappa_field
+    use mod_equilibrium, only: kappa_field, B_field
     use mod_global_variables, only: thermal_conduction
 
     integer     :: zero_idxs(5), idxs(8)
@@ -236,6 +237,7 @@ contains
     write(*, *) "Testing boundaries A-matrix: fixed wall cylindrical + conduction"
     thermal_conduction = .true.
     kappa_field % kappa_perp = 1.0d0
+    B_field % B0 = 1.0d0  ! avoid 1/B0 error in natural boundaries
     call reset_matrices(bvals=0.0d0, avals=(1.0d0, 2.0d0))
     call create_test_grid(pts=31, geom='cylindrical')
     call apply_boundary_conditions(matA, matB)
