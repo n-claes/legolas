@@ -1,5 +1,5 @@
 submodule (mod_boundary_manager) smod_natural_boundaries
-  use mod_global_variables, only: ic
+  use mod_global_variables, only: ic, boundary_type_left, boundary_type_right
   use mod_make_subblock, only: subblock
   use mod_grid, only: grid, eps_grid, d_eps_grid_dr
   use mod_equilibrium, only: rho_field, T_field, B_field
@@ -43,6 +43,10 @@ submodule (mod_boundary_manager) smod_natural_boundaries
     module subroutine add_natural_viscosity_terms(quadblock)
       complex(dp), intent(inout)  :: quadblock(:, :)
     end subroutine add_natural_viscosity_terms
+
+    module subroutine add_natural_regular_terms_vacuum(quadblock)
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_natural_regular_terms_vacuum
   end interface
 
 contains
@@ -50,20 +54,32 @@ contains
   module procedure apply_natural_boundaries_left
     call set_basis_functions(edge="left")
 
-    call add_natural_regular_terms(quadblock)
-    call add_natural_flow_terms(quadblock)
-    call add_natural_resistive_terms(quadblock)
-    call add_natural_viscosity_terms(quadblock)
+    if (boundary_type_left == 'wall') then
+      call add_natural_regular_terms(quadblock)
+      call add_natural_flow_terms(quadblock)
+      call add_natural_resistive_terms(quadblock)
+      call add_natural_viscosity_terms(quadblock)
+    else if (boundary_type_left == 'vacuum') then
+      call add_natural_regular_terms_vacuum(quadblock)
+    else
+      call log_message('left boundary type not recognised', level='error')
+    end if
   end procedure apply_natural_boundaries_left
 
 
   module procedure apply_natural_boundaries_right
     call set_basis_functions(edge="right")
 
-    call add_natural_regular_terms(quadblock)
-    call add_natural_flow_terms(quadblock)
-    call add_natural_resistive_terms(quadblock)
-    call add_natural_viscosity_terms(quadblock)
+    if (boundary_type_right == 'wall') then
+      call add_natural_regular_terms(quadblock)
+      call add_natural_flow_terms(quadblock)
+      call add_natural_resistive_terms(quadblock)
+      call add_natural_viscosity_terms(quadblock)
+    else if (boundary_type_right == 'vacuum') then
+      call add_natural_regular_terms_vacuum(quadblock)
+    else
+      call log_message('right boundary type not recognised', level='error')
+    end if
   end procedure apply_natural_boundaries_right
 
 

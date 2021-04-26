@@ -82,7 +82,7 @@ contains
     !> the B-matrix
     real(dp), intent(in)          :: matrix_B(:, :)
 
-    character(len=str_len_arr)    :: param_names(32), equil_names(27)
+    character(len=str_len_arr)    :: param_names(34), equil_names(27)
     character(len=2*str_len_arr)  :: unit_names(11)
     integer                       :: i, j, nonzero_A_values, nonzero_B_values
 
@@ -90,7 +90,7 @@ contains
       character(len=str_len_arr) :: "k2", "k3", "cte_rho0", "cte_T0", "cte_B02", &
       "cte_B03", "cte_v02", "cte_v03", "cte_p0", "p1", "p2", "p3", "p4", "p5", "p6", &
       "p7", "p8", "alpha", "beta", "delta", "theta", "tau", "lambda", "nu", "r0", &
-      "rc", "rj", "Bth0", "Bz0", "V", "j0", "g" &
+      "rc", "rj", "Bth0", "Bz0", "V", "j0", "g", "cte_Bv2", "cte_Bv3" &
     ]
     equil_names = [ &
       character(len=str_len_arr) :: &
@@ -121,7 +121,7 @@ contains
     write(dat_fh) size(param_names), len(param_names(1)), param_names
     write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, &
       cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, &
-      lambda, nu, r0, rc, rj, Bth0, Bz0, V, j0, g
+      lambda, nu, r0, rc, rj, Bth0, Bz0, V, j0, g, cte_Bv2, cte_Bv3
     write(dat_fh) size(equil_names), len(equil_names(1)), equil_names
     write(dat_fh) cgs_units
     write(dat_fh) size(unit_names), len(unit_names(1)), unit_names

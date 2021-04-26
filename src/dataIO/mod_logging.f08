@@ -207,7 +207,12 @@ contains
       use_prefix=.false. &
     )
     call log_message( &
-      "boundary conditions  : " // trim(adjustl(boundary_type)), &
+      "left boundary        : " // trim(adjustl(boundary_type_left)), &
+      level="info", &
+      use_prefix=.false. &
+    )
+    call log_message( &
+      "right boundary       : " // trim(adjustl(boundary_type_right)), &
       level="info", &
       use_prefix=.false. &
     )

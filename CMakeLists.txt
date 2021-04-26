@@ -74,4 +74,7 @@ set(LEGOLASLIB lego)
 set(LEGOLASEXEC legolas)
 # location of default user-defined submodule
 set(USR_SMOD_LOC equilibria)
+# name of amos library
+set(AMOSLIB amos)
+add_subdirectory(${LIBS} ${BIN})
 add_subdirectory(${SRC} ${BIN})

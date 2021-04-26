@@ -5,8 +5,10 @@ module mod_boundary_manager
 
   private
 
-  !> flag to apply essential boundary conditions on T
-  logical, save, protected :: apply_T_bounds
+  !> flag to apply essential boundary conditions on T on the left
+  logical, save, protected :: apply_T_bounds_left
+  !> flag to apply essential boundary conditions on T on the right
+  logical, save, protected :: apply_T_bounds_right
   ! flag to apply no-slip boundary conditions on left side (viscosity only)
   logical, save, protected :: apply_noslip_bounds_left
   !> flag to apply no-slip boundary conditions on right side (viscosity only)
@@ -79,24 +81,31 @@ contains
 
   subroutine set_boundary_flags()
     use mod_equilibrium, only: kappa_field
-    use mod_global_variables, only: &
+    use mod_global_variables, only: boundary_type_left, boundary_type_right, &
       thermal_conduction, viscosity, coaxial, dp_LIMIT, geometry
 
-    apply_T_bounds = .false.
-    apply_noslip_bounds_left = .false.
+    apply_T_bounds_left  = .false.
+    apply_T_bounds_right = .false.
+    apply_noslip_bounds_left  = .false.
     apply_noslip_bounds_right = .false.
 
-    ! check if we need regularity conditions on T, this is the case if we have
-    ! perpendicular thermal conduction
-    if (thermal_conduction .and. any(abs(kappa_field % kappa_perp) > dp_LIMIT)) then
-      apply_T_bounds = .true.
+    ! check if we need regularity conditions on T (left and right), this is the
+    ! case if we have perpendicular thermal conduction
+    if (thermal_conduction .and. any(abs(kappa_field % kappa_perp) > dp_LIMIT) &
+        .and. (boundary_type_left == 'wall' .or. &
+        (geometry == 'cylindrical' .and. .not. coaxial))) then
+      apply_T_bounds_left = .true.
+    end if
+    if (thermal_conduction .and. any(abs(kappa_field % kappa_perp) > dp_LIMIT) &
+        .and. boundary_type_right == 'wall') then
+      apply_T_bounds_right = .true.
     end if
 
     ! for viscosity, check if we need a no-slip condition.
-    if (viscosity) then
+    if (viscosity .and. boundary_type_right == 'wall') then
       apply_noslip_bounds_right = .true.
       ! does not apply on-axis for cylindrical, unless two coaxial walls are present
-      if (coaxial .or. geometry == "Cartesian") then
+      if ((coaxial .or. geometry == "Cartesian") .and. boundary_type_left == 'wall') then
         apply_noslip_bounds_left = .true.
       end if
     end if

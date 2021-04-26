@@ -80,6 +80,10 @@ module mod_equilibrium_params
   real(dp)  :: g
   !> general boolean for varied use, defaults to False
   logical   :: eq_bool
+  !> general constant usually used for the 02 magnetic field component of the vacuum
+  real(dp)  :: cte_Bv2
+  !> general constant usually used for the 03 magnetic field component of the vacuum
+  real(dp)  :: cte_Bv3
 
 contains
 
@@ -128,6 +132,9 @@ contains
     g = NaN
 
     eq_bool = .false.
+
+    cte_Bv2 = NaN
+    cte_Bv3 = NaN
   end subroutine init_equilibrium_params
 
 end module mod_equilibrium_params

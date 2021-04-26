@@ -131,8 +131,10 @@ module mod_global_variables
 
   !> name of the equilibrium to set up, determines the submodule, defaults to \p "adiabatic_homo"
   character(len=str_len)       :: equilibrium_type
-  !> type of boundary conditions, defaults to \p "wall"
-  character(len=str_len)       :: boundary_type
+  !> type of boundary conditions on the left, defaults to \p "wall"
+  character(len=str_len)       :: boundary_type_left
+  !> type of boundary conditions on the right, defaults to \p "wall"
+  character(len=str_len)       :: boundary_type_right
   !> use default values for parameters in the chosen submodule, defaults to <tt>True</tt>
   logical, save                :: use_defaults
   !> boolean for spurious eigenvalue removal, defaults to <tt>False</tt>
@@ -239,7 +241,8 @@ contains
 
     !! equilibrium variables
     equilibrium_type = 'adiabatic_homo'
-    boundary_type = 'wall'
+    boundary_type_left = 'wall'
+    boundary_type_right = 'wall'
     use_defaults = .true.
     remove_spurious_eigenvalues = .false.
     nb_spurious_eigenvalues = 1

@@ -4,6 +4,8 @@ submodule (mod_boundary_manager) smod_essential_boundaries
 contains
 
   module procedure apply_essential_boundaries_left
+    use mod_global_variables, only: geometry, coaxial, boundary_type_left
+
     complex(dp) :: diagonal_factor
 
     diagonal_factor = get_diagonal_factor(matrix)
@@ -13,11 +15,13 @@ contains
     ! element on the diagonal for these indices as well. The odd numbered indices for
     ! the quadratic elements correspond to rho, v2, v2, T, a1 = 1, 5, 6, 9, 11.
     call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[1, 5, 7, 9, 11])
-    ! wall or regularity conditions: v1, a2 and a3 have to be zero. These are cubic
-    ! elements, so we force non-zero basis functions (odd rows & columns) to zero.
-    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3, 13, 15])
-    ! if T boundary conditions are needed, set even row/colum (quadratic)
-    if (apply_T_bounds) then
+    if (boundary_type_left == 'wall' .or. (geometry == 'cylindrical' .and. .not. coaxial)) then
+      ! wall or regularity conditions: v1, a2 and a3 have to be zero. These are cubic
+      ! elements, so we force non-zero basis functions (odd rows & columns) to zero.
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3, 13, 15])
+    end if
+    ! if T boundary conditions are needed, set even row/column (quadratic)
+    if (apply_T_bounds_left) then
       call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[10])
     end if
     ! if no-slip boundary conditions are needed, then v2 and v3 should equal the
@@ -29,14 +33,18 @@ contains
 
 
   module procedure apply_essential_boundaries_right
+    use mod_global_variables, only: boundary_type_right
+
     complex(dp) :: diagonal_factor
 
     diagonal_factor = get_diagonal_factor(matrix)
 
-    ! for a fixed wall v1, a2 and a3 should be zero, same reasoning as for left side.
-    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[19, 29, 31])
+    if (boundary_type_right == 'wall') then
+      ! for a fixed wall v1, a2 and a3 should be zero, same reasoning as for left side.
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[19, 29, 31])
+    end if
     ! T condition
-    if (apply_T_bounds) then
+    if (apply_T_bounds_right) then
       call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[26])
     end if
     ! no-slip condition

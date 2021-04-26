@@ -15,7 +15,8 @@ namelist_items = {
     ],
     "equilibriumlist": [
         ("equilibrium_type", str),
-        ("boundary_type", str),
+        ("boundary_type_left", str),
+        ("boundary_type_right", str),
         ("use_defaults", bool),
         ("remove_spurious_eigenvalues", bool),
         ("nb_spurious_eigenvalues", (int, np.integer)),

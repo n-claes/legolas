@@ -48,7 +48,8 @@
   ! equilibrium_type = "harris_sheet"
   ! equilibrium_type = "user_defined"
 
-  ! boundary_type = "wall"
+  ! boundary_type_left  = "wall"
+  ! boundary_type_right = "wall"
 /
 
 &savelist
