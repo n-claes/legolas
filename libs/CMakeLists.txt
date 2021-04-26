@@ -32,3 +32,12 @@ set (amos_sources
 
 set_source_files_properties(${amos_sources} PROPERTIES LANGUAGE Fortran)
 add_library(${AMOSLIB} ${amos_sources})
+# compile with legacy Fortran + suppress a ton of ugly warnings...
+target_compile_options(
+        ${AMOSLIB}
+        PRIVATE
+        -std=legacy
+        -Wno-compare-reals
+        -Wno-do-subscript
+        -Wno-unused-dummy-argument
+)

@@ -95,5 +95,6 @@ set(LIBSTOLINK
 )
 
 add_library(${LEGOLASLIB} ${sources})
+target_link_libraries(${LEGOLASLIB} ${AMOSLIB})
 add_executable(${LEGOLASEXEC} main.f08)
 target_link_libraries(${LEGOLASEXEC} ${LEGOLASLIB} ${LIBSTOLINK})

@@ -19,6 +19,7 @@ endif()
 
 if (DEFINED ENV{LEGOLASDIR})
     set(SRC $ENV{LEGOLASDIR}/src)
+    set(LIBS $ENV{LEGOLASDIR}/libs)
     set(setup_tools $ENV{LEGOLASDIR}/setup_tools)
     set(BUILD $ENV{LEGOLASDIR}/build)
     file(MAKE_DIRECTORY ${BUILD})
@@ -27,6 +28,7 @@ else()
             "\nEnvironment variable LEGOLASDIR is not defined! \nTrying to use current source directory."
             )
     set(SRC ${CMAKE_SOURCE_DIR}/src)
+    set(LIBS ${CMAKE_SOURCE_DIR/libs})
     set(setup_tools "${CMAKE_SOURCE_DIR}/setup_tools")
     set(BUILD ${CMAKE_CURRENT_BINARY_DIR})
 endif()
@@ -68,13 +70,15 @@ add_definitions(
     -D _PARPACK_FOUND=${_PARPACK_FOUND}
 )
 
+# amos library compilation
+# name of amos library
+set(AMOSLIB amos)
+add_subdirectory(${LIBS} ${BIN}/libamos)
+
 # name of library
 set(LEGOLASLIB lego)
 # name of executable
 set(LEGOLASEXEC legolas)
 # location of default user-defined submodule
 set(USR_SMOD_LOC equilibria)
-# name of amos library
-set(AMOSLIB amos)
-add_subdirectory(${LIBS} ${BIN})
 add_subdirectory(${SRC} ${BIN})
