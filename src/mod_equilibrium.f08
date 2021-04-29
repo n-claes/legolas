@@ -15,7 +15,8 @@ module mod_equilibrium
                        hall_type
   use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
                                   flow, resistivity, external_gravity, radiative_cooling, &
-                                  thermal_conduction, viscosity, geometry, use_defaults, cgs_units
+                                  thermal_conduction, viscosity, hall_mhd, &
+                                  geometry, use_defaults, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
@@ -129,6 +130,7 @@ contains
     use mod_resistivity, only: set_resistivity_values
     use mod_radiative_cooling, only: initialise_radiative_cooling, set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
+    use mod_hall, only: set_hall_factors
 
     ! Set equilibrium submodule to use
     call set_equilibrium_pointer()
@@ -161,6 +163,9 @@ contains
     end if
     if (thermal_conduction) then
       call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+    end if
+    if (hall_mhd) then
+      call set_hall_factors(hall_field)
     end if
   end subroutine set_equilibrium
 

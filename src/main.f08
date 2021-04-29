@@ -56,10 +56,9 @@ contains
     use mod_global_variables, only: initialise_globals, matrix_gridpts, &
       solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma
     use mod_input, only: read_parfile, get_parfile
-    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium!, hall_field
+    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_logging, only: print_logo
-    ! use mod_hallmhd, only: set_hallfactor
 
     character(len=str_len)  :: parfile
     integer   :: nb_evs
@@ -84,11 +83,6 @@ contains
 
     call initialise_equilibrium()
     call set_equilibrium()
-
-    ! ! Set Hall factor if needed
-    ! if (hall_mhd) then
-    !   call set_hallfactor(hall_field)
-    ! end if
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
     if (write_eigenfunctions .or. solver == "arnoldi") then

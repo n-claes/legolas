@@ -21,6 +21,7 @@ set (sources
         physics/mod_solar_atmosphere.f08
         physics/mod_radiative_cooling.f08
         physics/mod_thermal_conduction.f08
+        physics/mod_hall.f08
         mod_inspections.f08
         mod_equilibrium.f08
         equilibria/smod_equil_adiabatic_homo.f08
@@ -63,6 +64,7 @@ set (sources
         boundaries/smod_natural_bounds_resistive.f08
         boundaries/smod_natural_bounds_conduction.f08
         boundaries/smod_natural_bounds_viscosity.f08
+        boundaries/smod_natural_bounds_hall.f08
         matrices/mod_matrix_shortcuts.f08
         matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
@@ -82,7 +84,6 @@ set (sources
         solvers/smod_arnoldi.f08
         mod_eigenfunctions.f08
         dataIO/mod_output.f08
-        # mod_hallmhd.f08
 )
 
 set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)

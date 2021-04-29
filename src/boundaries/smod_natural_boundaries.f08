@@ -43,6 +43,10 @@ submodule (mod_boundary_manager) smod_natural_boundaries
     module subroutine add_natural_viscosity_terms(quadblock)
       complex(dp), intent(inout)  :: quadblock(:, :)
     end subroutine add_natural_viscosity_terms
+
+    module subroutine add_natural_hall_terms(quadblock)
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_natural_hall_terms
   end interface
 
 contains
@@ -55,6 +59,7 @@ contains
     call add_natural_resistive_terms(quadblock)
     call add_natural_conduction_terms(quadblock)
     call add_natural_viscosity_terms(quadblock)
+    call add_natural_hall_terms(quadblock)
   end procedure apply_natural_boundaries_left
 
 
@@ -66,6 +71,7 @@ contains
     call add_natural_resistive_terms(quadblock)
     call add_natural_conduction_terms(quadblock)
     call add_natural_viscosity_terms(quadblock)
+    call add_natural_hall_terms(quadblock)
   end procedure apply_natural_boundaries_right
 
 
