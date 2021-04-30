@@ -19,7 +19,8 @@ contains
     use mod_grid, only: grid_gauss
     use mod_physical_constants, only: dpi
     use mod_global_variables, only: cgs_units, gauss_gridpts, dropoff_edge_dist, &
-                                    dropoff_width, hall_dropoff, inertia_dropoff
+                                    dropoff_width, hall_dropoff, inertia_dropoff, &
+                                    elec_inertia
     use mod_physical_constants, only: mp_cgs, mp_si, ec_cgs, ec_si, me_cgs, me_si
     use mod_units, only: unit_velocity, unit_length, unit_magneticfield
     use mod_types, only: hall_type
@@ -62,24 +63,26 @@ contains
       hall_field % hallfactor = hallval
     end if
 
-    if (inertia_dropoff) then
-      shift2 = inertiaval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
-      stretch2 = inertiaval / (tanh(dpi) - tanh(-dpi))
+    if (elec_inertia) then
+      if (inertia_dropoff) then
+        shift2 = inertiaval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
+        stretch2 = inertiaval / (tanh(dpi) - tanh(-dpi))
 
-      do i = 1, gauss_gridpts
-        x = grid_gauss(i)
-        if (sleft - 0.5d0*width <= x .and. x <= sleft + 0.5d0*width) then
-          hall_field % inertiafactor(i) = shift2 + stretch2 * tanh(2.0d0 * dpi * (x - sleft) / width)
-        else if (sleft + 0.5d0*width < x .and. x < sright - 0.5d0*width) then
-          hall_field % inertiafactor(i) = inertiaval
-        else if (sright - 0.5d0*width <= x .and. x <= sright + 0.5d0*width) then
-          hall_field % inertiafactor(i) = shift2 + stretch2 * tanh(2.0d0 * dpi * (sright - x) / width)
-        else
-          hall_field % inertiafactor(i) = 0.0d0
-        end if
-      end do
-    else
-      hall_field % inertiafactor = inertiaval
+        do i = 1, gauss_gridpts
+          x = grid_gauss(i)
+          if (sleft - 0.5d0*width <= x .and. x <= sleft + 0.5d0*width) then
+            hall_field % inertiafactor(i) = shift2 + stretch2 * tanh(2.0d0 * dpi * (x - sleft) / width)
+          else if (sleft + 0.5d0*width < x .and. x < sright - 0.5d0*width) then
+            hall_field % inertiafactor(i) = inertiaval
+          else if (sright - 0.5d0*width <= x .and. x <= sright + 0.5d0*width) then
+            hall_field % inertiafactor(i) = shift2 + stretch2 * tanh(2.0d0 * dpi * (sright - x) / width)
+          else
+            hall_field % inertiafactor(i) = 0.0d0
+          end if
+        end do
+      else
+        hall_field % inertiafactor = inertiaval
+      end if
     end if
   end subroutine set_hall_factors
 
