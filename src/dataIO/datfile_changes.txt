@@ -16,3 +16,7 @@ Changes 1-4 needed an update of the pylbo reader
 1) added ddv02 and ddv03 to equil_names
 2) added dd_v02_dr and dd_v03_dr to the data
 No update of the pylbo reader needed
+
+=== version 1.0.4 --> 1.0.5 ===
+1) added cte_B01 to param_names between cte_T0 and cte_B02
+2) added cte_B01 to the data between cte_T0 and cte_B02

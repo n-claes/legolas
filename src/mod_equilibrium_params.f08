@@ -22,6 +22,8 @@ module mod_equilibrium_params
   real(dp)  :: cte_rho0
   !> general constant usually used for temperature
   real(dp)  :: cte_T0
+  !> general constant usually used for the 01 magnetic field component
+  real(dp)  :: cte_B01
   !> general constant usually used for the 02 magnetic field component
   real(dp)  :: cte_B02
   !> general constant usually used for the 03 magnetic field component
@@ -95,6 +97,7 @@ contains
 
     cte_rho0 = NaN
     cte_T0 = NaN
+    cte_B01 = NaN
     cte_B02 = NaN
     cte_B03 = NaN
     cte_v02 = NaN
