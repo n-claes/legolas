@@ -113,9 +113,9 @@ contains
     )
     positions(1, :) = [5, 7]
     ! K(5, 8)
-    factors(2) = gamma_1 * k2 * ( &
-      -Kp * (B01 * ddT0 + ic * dT0 * Fop_plus) &
-      + B01 * dT0 * (diffKp + 2.0d0 * ic * B01 * Kp_plus * Fop_B01 / B0**2) &
+    factors(2) = -gamma_1 * k2 * ( &
+      Kp * (B01 * ddT0 + ic * dT0 * Fop_plus) &
+      + B01 * dT0 * (diffKp - 2.0d0 * ic * B01 * Kp_plus * Fop_B01 / B0**2) &
     )
     positions(2, :) = [5, 8]
     call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
