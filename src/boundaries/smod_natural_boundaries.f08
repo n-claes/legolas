@@ -47,6 +47,10 @@ submodule (mod_boundary_manager) smod_natural_boundaries
     module subroutine add_natural_hall_terms(quadblock)
       complex(dp), intent(inout)  :: quadblock(:, :)
     end subroutine add_natural_hall_terms
+
+    module subroutine add_natural_hall_Bterms(quadblock)
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_natural_hall_Bterms
   end interface
 
 contains
@@ -54,24 +58,32 @@ contains
   module procedure apply_natural_boundaries_left
     call set_basis_functions(edge="left")
 
-    call add_natural_regular_terms(quadblock)
-    call add_natural_flow_terms(quadblock)
-    call add_natural_resistive_terms(quadblock)
-    call add_natural_conduction_terms(quadblock)
-    call add_natural_viscosity_terms(quadblock)
-    call add_natural_hall_terms(quadblock)
+    if (matrix == "A") then
+      call add_natural_regular_terms(quadblock)
+      call add_natural_flow_terms(quadblock)
+      call add_natural_resistive_terms(quadblock)
+      call add_natural_conduction_terms(quadblock)
+      call add_natural_viscosity_terms(quadblock)
+      call add_natural_hall_terms(quadblock)
+    else if (matrix == "B") then
+      call add_natural_hall_Bterms(quadblock)
+    end if
   end procedure apply_natural_boundaries_left
 
 
   module procedure apply_natural_boundaries_right
     call set_basis_functions(edge="right")
 
-    call add_natural_regular_terms(quadblock)
-    call add_natural_flow_terms(quadblock)
-    call add_natural_resistive_terms(quadblock)
-    call add_natural_conduction_terms(quadblock)
-    call add_natural_viscosity_terms(quadblock)
-    call add_natural_hall_terms(quadblock)
+    if (matrix == "A") then
+      call add_natural_regular_terms(quadblock)
+      call add_natural_flow_terms(quadblock)
+      call add_natural_resistive_terms(quadblock)
+      call add_natural_conduction_terms(quadblock)
+      call add_natural_viscosity_terms(quadblock)
+      call add_natural_hall_terms(quadblock)
+    else if (matrix == "B") then
+      call add_natural_hall_Bterms(quadblock)
+    end if
   end procedure apply_natural_boundaries_right
 
 

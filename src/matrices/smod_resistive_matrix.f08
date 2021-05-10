@@ -55,20 +55,17 @@ contains
     call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
 
     ! ==================== Quadratic * Cubic ====================
-    call reset_factor_positions(new_size=3)
+    call reset_factor_positions(new_size=2)
     ! R(5, 7)
     factors(1) = -2.0d0 * ic * gamma_1 * eta * (drB02 * k2 * k3 / eps**2 + k3**2 * dB03)
     positions(1, :) = [5, 7]
     ! R(5, 8)
     factors(2) = 2.0d0 * ic * gamma_1 * eta * (drB02 * k2**2 / eps**2 + k2 * k3 * dB03)
     positions(2, :) = [5, 8]
-    ! R(6, 8)
-    factors(3) = ic * eta * eps * k3
-    positions(3, :) = [6, 8]
     call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
 
     ! ==================== Quadratic * dCubic ====================
-    call reset_factor_positions(new_size=3)
+    call reset_factor_positions(new_size=4)
     ! R(5, 7)
     factors(1) = -2.0d0 * ic * gamma_1 * (dB03 * Rop_pos + ddB03 * eta)
     positions(1, :) = [5, 7]
@@ -80,6 +77,9 @@ contains
     ! R(6, 7)
     factors(3) = ic * eta * k2 / eps
     positions(3, :) = [6, 7]
+    ! R(6, 8)
+    factors(4) = ic * eta * eps * k3
+    positions(4, :) = [6, 8]
     call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
 
     ! ==================== dQuadratic * dCubic ====================

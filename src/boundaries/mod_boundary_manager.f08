@@ -23,12 +23,14 @@ module mod_boundary_manager
       character, intent(in) :: matrix
     end subroutine apply_essential_boundaries_right
 
-    module subroutine apply_natural_boundaries_left(quadblock)
+    module subroutine apply_natural_boundaries_left(quadblock, matrix)
       complex(dp), intent(inout)  :: quadblock(:, :)
+      character, intent(in) :: matrix
     end subroutine apply_natural_boundaries_left
 
-    module subroutine apply_natural_boundaries_right(quadblock)
+    module subroutine apply_natural_boundaries_right(quadblock, matrix)
       complex(dp), intent(inout)  :: quadblock(:, :)
+      character, intent(in) :: matrix
     end subroutine apply_natural_boundaries_right
   end interface
 
@@ -55,23 +57,25 @@ contains
 
     ! handle left side boundary conditions B-matrix
     quadblock = matrixB(:l_end, :l_end)
+    call apply_natural_boundaries_left(quadblock, matrix="B")
     call apply_essential_boundaries_left(quadblock, matrix="B")
     matrixB(:l_end, :l_end) = real(quadblock)
 
     ! handle left side boundary conditions A-matrix
     quadblock = matrixA(:l_end, :l_end)
-    call apply_natural_boundaries_left(quadblock)
+    call apply_natural_boundaries_left(quadblock, matrix="A")
     call apply_essential_boundaries_left(quadblock, matrix="A")
     matrixA(:l_end, :l_end) = quadblock
 
     ! handle right side boundary conditions B-matrix
     quadblock = matrixB(r_start:, r_start:)
+    call apply_natural_boundaries_right(quadblock, matrix="B")
     call apply_essential_boundaries_right(quadblock, matrix="B")
     matrixB(r_start:, r_start:) = real(quadblock)
 
     ! handle right side boundary conditions A-matrix
     quadblock = matrixA(r_start:, r_start:)
-    call apply_natural_boundaries_right(quadblock)
+    call apply_natural_boundaries_right(quadblock, matrix="A")
     call apply_essential_boundaries_right(quadblock, matrix="A")
     matrixA(r_start:, r_start:) = quadblock
   end subroutine apply_boundary_conditions

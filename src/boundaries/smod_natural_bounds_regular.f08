@@ -52,18 +52,14 @@ contains
     positions(2, :) = [4, 6]
     call subblock(quadblock, factors, positions, weight, h_quad, h_quad)
 
-    ! ==================== Cubic * dQuadratic ====================
-    call reset_factor_positions(new_size=1)
+    ! ==================== Quadratic * dCubic ====================
+    call reset_factor_positions(new_size=2)
     ! A(3, 8)
     factors(1) = -ic * eps * B01
     positions(1, :) = [3, 8]
-    call subblock(quadblock, factors, positions, weight, h_cubic, dh_quad)
-
-    ! ==================== Quadratic * dcubic ====================
-    call reset_factor_positions(new_size=1)
     ! A(4, 7)
-    factors(1) = ic * B01
-    positions(1, :) = [4, 7]
+    factors(2) = ic * B01
+    positions(2, :) = [4, 7]
     call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic)
   end procedure add_natural_regular_terms
 

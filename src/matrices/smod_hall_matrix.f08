@@ -180,18 +180,14 @@ contains
     positions(2, :) = [6, 8]
     call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
 
-    ! ==================== dQuadratic * Cubic ====================
-    call reset_factor_positions(new_size=1)
+    ! ==================== Quadratic * dCubic ====================
+    call reset_factor_positions(new_size=2)
     ! H(6, 7)
     factors(1) = eta_H * B03 * (deps / eps - drho / rho) / rho
     positions(1, :) = [6, 7]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_cubic)
-
-    ! ==================== Quadratic * dCubic ====================
-    call reset_factor_positions(new_size=1)
     ! H(6, 8)
-    factors(1) = eta_H * eps * B02 * (deps / eps + drho / rho) / rho
-    positions(1, :) = [6, 8]
+    factors(2) = eta_H * eps * B02 * (deps / eps + drho / rho) / rho
+    positions(2, :) = [6, 8]
     call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
 
     ! ==================== dQuadratic * dCubic ====================

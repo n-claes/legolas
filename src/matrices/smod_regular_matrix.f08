@@ -165,7 +165,7 @@ contains
     factors(1) = -deps * T0 / eps
     if (external_gravity) then
       ! adds gravity term to A(2, 1) matrix element
-      factors(1) = factors(1) + grav_field % grav(gauss_idx)
+      factors(1) = factors(1) + grav_field % grav(gauss_idx) / eps
     end if
     positions(1, :) = [2, 1]
     ! A(2, 5)
