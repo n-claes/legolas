@@ -64,7 +64,7 @@ contains
     factors(1) = 7.0d0 * deps * ic * mu * k2 / (3.0d0 * eps)
     positions(1, :) = [2, 3]
     ! Sigma(2, 4)
-    factors(2) = ic * mu * deps / (3.0d0 * eps)
+    factors(2) = ic * mu * deps * k3 / (3.0d0 * eps)
     positions(2, :) = [2, 4]
     call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
 
