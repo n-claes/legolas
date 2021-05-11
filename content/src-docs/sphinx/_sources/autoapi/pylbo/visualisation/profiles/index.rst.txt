@@ -1,0 +1,214 @@
+:mod:`pylbo.visualisation.profiles`
+===================================
+
+.. py:module:: pylbo.visualisation.profiles
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.profiles.EquilibriumProfile
+   pylbo.visualisation.profiles.ContinuumProfile
+   pylbo.visualisation.profiles.EquilibriumBalance
+
+
+
+
+.. class:: EquilibriumProfile(data, figsize, interactive, **kwargs)
+
+
+   Bases: :py:obj:`pylbo.visualisation.figure_manager.FigureWindow`
+
+   Subclass responsible for drawing the equilibrium profiles.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: draw(self)
+
+      Draws the figure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _add_equilibria(self)
+
+      Adds the equilibria to the figure. Also sets the legend handler items
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+
+.. class:: ContinuumProfile(data, figsize, interactive, **kwargs)
+
+
+   Bases: :py:obj:`pylbo.visualisation.figure_manager.FigureWindow`
+
+   Subclass responsible for drawing the continuum profiles.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: draw(self)
+
+      Draws the continua.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _draw_continua(self)
+
+      Adds the continua to the plot, also sets the legend handlers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+
+.. class:: EquilibriumBalance(data, figsize, **kwargs)
+
+
+   Bases: :py:obj:`pylbo.visualisation.figure_manager.FigureWindow`
+
+   Subclass responsible for plotting the equilibrium balance equations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: draw(self)
+
+      Draws the equilibrium balance equations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+

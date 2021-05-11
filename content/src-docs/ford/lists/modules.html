@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Legolas is a novel finite-element based code that allows for realistic MHD spectroscopy of one-dimensional plasmas.">
+    
+    <meta name="author" content="" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>
+All Modules &ndash; Legolas
+</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">Legolas </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/legolas.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/legolas.html">Program</a></li>
+
+          </ul>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+
+      <div class="row">
+        <div class="col-lg-12" id='text'>
+			 <h1>Modules</h1>
+			 <table class="table">
+			 <thead><tr><th>Module</th><th>Source File</th><th>Description</th></tr></thead>
+			 <tbody>
+             
+			 
+			   <tr class="active"><td><a href='../module/mod_arpack_type.html'>mod_arpack_type</a></td><td><a href='../sourcefile/mod_arpack_type.f08.html'>mod_arpack_type.f08</a></td><td><p>Module containing a dedicated type for the ARPACK solvers.
+ All needed variables are defined and allocated here, along with sanity
+ checks when setting certain values.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_atmosphere_curves.html'>mod_atmosphere_curves</a></td><td><a href='../sourcefile/mod_atmosphere_curves.f08.html'>mod_atmosphere_curves.f08</a></td><td><p>Contains data for a realistic solar atmosphere model taken from
+ Avrett, E. H., &amp; Loeser, R. (2008).
+ <em>Models of the solar chromosphere and transition region from SUMER and HRTS
+ observations: formation of the extreme-ultraviolet spectrum of hydrogen, carbon,
+ and oxygen.</em> ApJS, 175(1), 229.
+ <a href="https://iopscience.iop.org/article/10.1086/523671/pdf">link</a>.</p></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_boundary_conditions.html'>mod_boundary_conditions</a></td><td><a href='../sourcefile/mod_boundary_conditions.f08.html'>mod_boundary_conditions.f08</a></td><td><p>Imposes boundary conditions on the finite element matrices after assembly.
+ Both natural and essential conditions are handled.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td><a href='../sourcefile/mod_check_values.f08.html'>mod_check_values.f08</a></td><td><p>This module performs sanity checks on given values. Methods are implemented to check for
+ small, NaN or negative values in arrays. We also have single-value checks against
+ zero or NaN, along with a double-precision equality check.</p></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_cooling_curves.html'>mod_cooling_curves</a></td><td><a href='../sourcefile/mod_cooling_curves.f08.html'>mod_cooling_curves.f08</a></td><td><p>All data of the different cooling curves is contained in this module,
+ along with handling piecewise cooling curves.
+ </p><a href="../module/mod_cooling_curves.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_eigenfunctions.html'>mod_eigenfunctions</a></td><td><a href='../sourcefile/mod_eigenfunctions.f08.html'>mod_eigenfunctions.f08</a></td><td><p>This module composes the eigenfunctions based on the eigenvectors
+ coming out of the solver routines. Assembling the eigenfunctions is needed
+ because of the finite element matrix representation.
+ In every interval of the base grid <script type="math/tex">(i, i+1)</script> eigenfunctions are saved at the
+ left and right edges, as well as in the centre of the interval.
+ This results in eigenfunction arrays with a size <script type="math/tex">2*gridpts - 1</script>.</p></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td><a href='../sourcefile/mod_equilibrium.f08.html'>mod_equilibrium.f08</a></td><td><p>Parent module governing all equilibrium types and submodules.
+ This module contains all equilibrium types and the initial
+ declarations of the module subroutines. Every equilibrium submodule
+ extends this module, implementing one of the module subroutines declared here.
+ All 'main' equilibrium configurations are set in the submodules. The ones that
+ depend on 'main' arrays, like radiative cooling, are set here through calls to their
+ respective modules.
+ </p><a href="../module/mod_equilibrium.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+                  
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_adiabatic_homo.html'>smod_equil_adiabatic_homo</a></td><td><a href='../sourcefile/smod_equil_adiabatic_homo.f08.html'>smod_equil_adiabatic_homo.f08</a></td><td><p>This submodule defines a simple, adiabatic homogeneous medium in Cartesian
+ geometry. The geometry can be overridden using the parfile.
+ </p><a href="../module/smod_equil_adiabatic_homo.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_constant_current.html'>smod_equil_constant_current</a></td><td><a href='../sourcefile/smod_equil_constant_current.f08.html'>smod_equil_constant_current.f08</a></td><td><p>This submodule defines an equilibrium in cylindrical geometry with
+ a constant axial current. The geometry can be overridden using the parfile.</p><a href="../module/smod_equil_constant_current.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_coronal_flux_tube.html'>smod_equil_coronal_flux_tube</a></td><td><a href='../sourcefile/smod_equil_coronal_flux_tube.f08.html'>smod_equil_coronal_flux_tube.f08</a></td><td><p>This submodule defines a magnetic flux tube embedded in a uniform magnetic
+ environment. In this case the flux tube is under coronal conditions
+ <script type="math/tex"> c_s < c_A < c_{Ae} </script> where the subscript e denotes the outer region.
+ More specifically the equilibrium is defined as
+ <script type="math/tex"> c_{Ae} = 5c_s, c_{se} = c_s/2, c_A = 2c_s </script>. The geometry can be overridden
+ in the parfile, and is cylindrical by default for <script type="math/tex"> r \in [0, 10] </script>.</p><a href="../module/smod_equil_coronal_flux_tube.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_discrete_alfven.html'>smod_equil_discrete_alfven</a></td><td><a href='../sourcefile/smod_equil_discrete_alfven.f08.html'>smod_equil_discrete_alfven.f08</a></td><td><p>This submodule defines an equilibrium in cylindrical geometry with
+ an axial current profile (<script type="math/tex">\nu = 2</script>), modelling a solar coronal loop
+ in which discrete Alfvén waves are present. The geometry can be overridden in the parfile.</p><a href="../module/smod_equil_discrete_alfven.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_flow_driven_instabilities.html'>smod_equil_flow_driven_instabilities</a></td><td><a href='../sourcefile/smod_equil_flow_driven_instabilities.f08.html'>smod_equil_flow_driven_instabilities.f08</a></td><td><p>This submodule defines flow driven instabilities in a Cartesian geometry.
+ This equilibrium can not be called explicitly from the parfile, but rather acts
+ as a "parent setup" for the Rayleigh-Taylor and Kelvin-Helmholtz submodules which
+ use this specific kind of equilibrium but with different parameters.
+ This submodule is called within its implicit children.</p><a href="../module/smod_equil_flow_driven_instabilities.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_gold_hoyle.html'>smod_equil_gold_hoyle</a></td><td><a href='../sourcefile/smod_equil_gold_hoyle.f08.html'>smod_equil_gold_hoyle.f08</a></td><td><p>This submodule defines a Gold-Hoyle equilibrium in cylindrical geometry.
+ This equilibrium configuration models a flament with a uniform twist
+ such that all fieldlines perform an equal amount of turns around the cylinder axis.
+ The geometry can be overridden in the parfile.</p><a href="../module/smod_equil_gold_hoyle.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_gravito_acoustic.html'>smod_equil_gravito_acoustic</a></td><td><a href='../sourcefile/smod_equil_gravito_acoustic.f08.html'>smod_equil_gravito_acoustic.f08</a></td><td><p>This submodule defines an equilibrium in Cartesian geometry with a
+ stratified equilibrium profile, giving rise to gravito-acoustic waves.
+ No magnetic fields are included, such that this treats the hydrodynamic regime.
+ The geometry can be overridden using the parfile.</p><a href="../module/smod_equil_gravito_acoustic.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_gravito_mhd.html'>smod_equil_gravito_mhd</a></td><td><a href='../sourcefile/smod_equil_gravito_mhd.f08.html'>smod_equil_gravito_mhd.f08</a></td><td><p>This submodule defines an equilibrium in Cartesian geometry with a
+ stratified equilibrium profile, giving rise to gravito-MHD waves.
+ The geometry can be overridden using the parfile.</p><a href="../module/smod_equil_gravito_mhd.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_interchange_modes.html'>smod_equil_interchange_modes</a></td><td><a href='../sourcefile/smod_equil_interchange_modes.f08.html'>smod_equil_interchange_modes.f08</a></td><td><p>This submodule defines an exponentially stratified medium in
+ Cartesian geometry with a constant gravity term and magnetic shear.
+ The geometry can be overridden in the parfile.</p><a href="../module/smod_equil_interchange_modes.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_internal_kink_instability.html'>smod_equil_internal_kink_instability</a></td><td><a href='../sourcefile/smod_equil_internal_kink_instability.f08.html'>smod_equil_internal_kink_instability.f08</a></td><td><p>This submodule defines internal kink modes in force-free magnetic fields.
+ The geometry is cylindrical with parabolic density and velocity profiles,
+ The geometry can be overridden in the parfile.</p><a href="../module/smod_equil_internal_kink_instability.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_isothermal_atmosphere.html'>smod_equil_isothermal_atmosphere</a></td><td><a href='../sourcefile/smod_equil_isothermal_atmosphere.f08.html'>smod_equil_isothermal_atmosphere.f08</a></td><td><p>This submodule defines an equilibrium in Cartesian geometry with a
+ stratified equilibrium profile, representing a solar magnetic atmosphere.
+ The equilibrium is isothermal with a constant magnetic field.
+ The scale height is given by
+ <script type="math/tex; mode=display"> H = \frac{\text{cte_T0}}{g}  </script>
+ The geometry is fixed to Cartesian, boundaries can be overridden using the parfile.</p><a href="../module/smod_equil_isothermal_atmosphere.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_kelvin_helmholtz_cd.html'>smod_equil_kelvin_helmholtz_cd</a></td><td><a href='../sourcefile/smod_equil_kelvin_helmholtz_cd.f08.html'>smod_equil_kelvin_helmholtz_cd.f08</a></td><td><p>This submodule defines an unperturbed magnetised jet model in cylindrical
+ geometry, giving rise to Kelvin-Helmholtz and current-driven instabilities.
+ The geometry is fixed for this problem; the cylinder wall is dependent
+ on the equilibrium parameters and is given by <tt>2rj</tt>.</p><a href="../module/smod_equil_kelvin_helmholtz_cd.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_khi.html'>smod_equil_KHI</a></td><td><a href='../sourcefile/smod_equil_khi.f08.html'>smod_equil_KHI.f08</a></td><td><p>This submodule defines Kelvin-Helmholtz instabilities in Cartesian geometry.
+ This equilibrium is a specific case of the flow driven instabilities.
+ No magnetic fields are considered in this case (pure HD).</p><a href="../module/smod_equil_khi.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_magnetothermal_instabilities.html'>smod_equil_magnetothermal_instabilities</a></td><td><a href='../sourcefile/smod_equil_magnetothermal_instabilities.f08.html'>smod_equil_magnetothermal_instabilities.f08</a></td><td><p>This submodule defines an equilibrium containing magnetothermal instabilities
+ in a cylindrical geometry. The geometry can be overridden in the parfile.</p><a href="../module/smod_equil_magnetothermal_instabilities.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_mri.html'>smod_equil_MRI</a></td><td><a href='../sourcefile/smod_equil_mri_accretion.f08.html'>smod_equil_MRI_accretion.f08</a></td><td><p>This submodule defines magneto-rotational instabilities in an accretion disk.
+ Due to the special nature of this equilibrium <tt>x_start</tt> is hardcoded
+ to one and can not be overridden in the parfile, the same goes for the geometry
+ which is hardcoded to <tt>'cylindrical'</tt>. The outer edge can be chosen freely.
+ This equilibrium is chosen in such a way that the angular rotation is of order unity,
+ implying Keplerian rotation. The thin-disk approximation is valid with small magnetic
+ fields, but still large enough to yield magneto-rotational instabilities.
+ Gravity is assumed to go like <script type="math/tex">g \thicksim 1/r^2</script>.</p><a href="../module/smod_equil_mri.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_photospheric_flux_tube.html'>smod_equil_photospheric_flux_tube</a></td><td><a href='../sourcefile/smod_equil_photospheric_flux_tube.f08.html'>smod_equil_photospheric_flux_tube.f08</a></td><td><p>This submodule defines a magnetic flux tube embedded in a uniform magnetic
+ environment. In this case the flux tube is under photospheric conditions
+ <script type="math/tex"> c_{Ae} < c_s < c_{se} < c_A </script> where the subscript e denotes the outer region.
+ More specifically the equilibrium is defined as
+ <script type="math/tex"> c_{Ae} = c_s/2, c_{se} = 3c_s/2, c_A = 2c_s </script>. The geometry can be overridden
+ in the parfile, and is cylindrical by default for <script type="math/tex"> r \in [0, 10] </script>.</p><a href="../module/smod_equil_photospheric_flux_tube.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_resistive_homo.html'>smod_equil_resistive_homo</a></td><td><a href='../sourcefile/smod_equil_resistive_homo.f08.html'>smod_equil_resistive_homo.f08</a></td><td><p>This submodule defines a simple, homogeneous medium in Cartesian
+ geometry with a constant resistivity value. The geometry can be overridden using the parfile.</p><a href="../module/smod_equil_resistive_homo.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_resistive_tearing.html'>smod_equil_resistive_tearing</a></td><td><a href='../sourcefile/smod_equil_resistive_tearing.f08.html'>smod_equil_resistive_tearing.f08</a></td><td><p>This submodule defines an equilibrium in Cartesian geometry with a constant
+ resistivity value. Parameters are taken in such a way as to allow for
+ resistive tearing modes. The geometry can be overridden using the parfile.</p><a href="../module/smod_equil_resistive_tearing.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_resistive_tearing_flow.html'>smod_equil_resistive_tearing_flow</a></td><td><a href='../sourcefile/smod_equil_resistive_tearing_flow.f08.html'>smod_equil_resistive_tearing_flow.f08</a></td><td><p>This submodule defines an equilibrium in Cartesian geometry with a
+ flow profile and a constant resistivity value. Parameters are taken in such a way
+ as to allow for resistive tearing modes. The geometry can be overridden using the parfile.</p><a href="../module/smod_equil_resistive_tearing_flow.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_resonant_absorption.html'>smod_equil_resonant_absorption</a></td><td><a href='../sourcefile/smod_equil_resonant_absorption.f08.html'>smod_equil_resonant_absorption.f08</a></td><td><p>This submodule defines an inhomogeneous medium in Cartesian geometry with
+ a constant resistivity value. Two (constant) density profiles are defined
+ which are connected by a sine profile, representing the interface inbetween.
+ This density profile allows for resonant absorption, the geometry
+ can be overridden in the parfile.</p><a href="../module/smod_equil_resonant_absorption.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_rotating_plasma_cylinder.html'>smod_equil_rotating_plasma_cylinder</a></td><td><a href='../sourcefile/smod_equil_rotating_plasma_cylinder.f08.html'>smod_equil_rotating_plasma_cylinder.f08</a></td><td><p>This submodule defines a cylindrical equilibrium, resembling a
+ rotating plasma cylinder. The geometry can be overridden using the parfile.</p><a href="../module/smod_equil_rotating_plasma_cylinder.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_rti.html'>smod_equil_RTI</a></td><td><a href='../sourcefile/smod_equil_rti.f08.html'>smod_equil_RTI.f08</a></td><td><p>This submodule defines Rayleigh-Taylor instabilities in Cartesian geometry.
+ This equilibrium is a specific case of the flow driven instabilities.</p><a href="../module/smod_equil_rti.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_rti_khi.html'>smod_equil_RTI_KHI</a></td><td><a href='../sourcefile/smod_equil_rti_khi.f08.html'>smod_equil_RTI_KHI.f08</a></td><td><p>This submodule defines Rayleigh-Taylor and Kelvin-Helmholtz instabilities in Cartesian geometry.
+ This equilibrium is a specific case of the flow driven instabilities.</p><a href="../module/smod_equil_rti_khi.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_rti_theta_pinch.html'>smod_equil_RTI_theta_pinch</a></td><td><a href='../sourcefile/smod_equil_rti_theta_pinch.f08.html'>smod_equil_RTI_theta_pinch.f08</a></td><td><p>This submodule defines Rayleigh-Taylor instabilities in rotating theta pinches.
+ The straight cylinder approximation is used with a constant angular frequency.
+ Density and pressure profiles decrease over the domain, with a uni-directional
+ increasing magnetic field profile. Mode numbers <script type="math/tex">k = 0</script> correspond to
+ HD Rayleigh-Taylor instabilities, while <script type="math/tex"> k \neq 0 </script> represent MHD RTIs.
+ The geometry is hardcoded to <tt>'cylindrical'</tt>, the domain is forced to
+ <script type="math/tex">0 <= r <= 1</script> through division by <tt>x_end</tt>.</p><a href="../module/smod_equil_rti_theta_pinch.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_equil_suydam_cluster.html'>smod_equil_suydam_cluster</a></td><td><a href='../sourcefile/smod_equil_suydam_cluster.f08.html'>smod_equil_suydam_cluster.f08</a></td><td><p>This submodule defines a cylindrical equilibrium in which a Suydam surface
+ is present, such that this gives rises to Suydam cluster modes.
+ The geometry can be overriden using the parfile.</p><a href="../module/smod_equil_suydam_cluster.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+			   <tr class="active submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_user_defined.html'>smod_user_defined</a></td><td><a href='../sourcefile/smod_user_defined.f08.html'>smod_user_defined.f08</a></td><td></td></tr>
+               
+               
+			 
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_equilibrium_params.html'>mod_equilibrium_params</a></td><td><a href='../sourcefile/mod_equilibrium_params.f08.html'>mod_equilibrium_params.f08</a></td><td><p>Module containing all equilibrium parameters.
+ All parameters used in the equilibrium submodules are defined here
+ for convenience, including the wave numbers <script type="math/tex">k_2</script> and <script type="math/tex">k_3</script>.
+ All of these values are NaN initially, such that variables that are
+ not properly set propagate their value and are easy to spot in follow-up checks.
+ </p><a href="../module/mod_equilibrium_params.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_exceptions.html'>mod_exceptions</a></td><td><a href='../sourcefile/mod_exceptions.f08.html'>mod_exceptions.f08</a></td><td><p>Module to explicitly handle exceptions. Depending on the application at hand
+ we override what happens when an exception is raised, which is useful for
+ testing purposes (no error stop if we <em>expect</em> something to fail).
+ Loosely based on an example given in
+ https://github.com/Goddard-Fortran-Ecosystem/pFUnit_demos/blob/main/Basic/src/throw.F90</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_global_variables.html'>mod_global_variables</a></td><td><a href='../sourcefile/mod_global_variables.f08.html'>mod_global_variables.f08</a></td><td><p>All global variables are defined in this module, and can be accessed
+ throughout the entire code. Most variables are first initialised
+ to a default value, and are properly set either in the parfile
+ or in an equilibrium submodule.</p></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_grid.html'>mod_grid</a></td><td><a href='../sourcefile/mod_grid.f08.html'>mod_grid.f08</a></td><td><p>Module containing all grid-related things.
+ Contains subroutines to create the base grid, Gaussian grid and
+ scale factors. Also handles mesh accumulation.
+ An integral of <script type="math/tex">f(x)</script> in <script type="math/tex">[a, b]</script> can be approximated with
+ <script type="math/tex; mode=display"> f(x) \approx 0.5(b-a)\sum_{i=1}^n\bigl[w_i f\bigl(0.5(b-a)x_i + 0.5(a+b)\bigr)\bigr] </script>
+ where <script type="math/tex">w_i</script> and <script type="math/tex">x_i</script> are the weights and nodes of the Gaussian quadrature.
+ The Gaussian grid is hence set up in every interval <script type="math/tex">[a, b]</script> across the
+ four nodes <script type="math/tex">j</script> as
+ <script type="math/tex; mode=display"> x_i(j) = 0.5 * dx * w_i(j) + 0.5(a + b) </script>
+</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_input.html'>mod_input</a></td><td><a href='../sourcefile/mod_input.f08.html'>mod_input.f08</a></td><td><p>Module to handle parfile reading.
+ Contains subroutines to retrieve the parfile based on the commandline arguments
+ and to read the parfile, setting the global variables.</p></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_inspections.html'>mod_inspections</a></td><td><a href='../sourcefile/mod_inspections.f08.html'>mod_inspections.f08</a></td><td><p>Module to inspect if certain conditions are fulfilled by doing
+ additional sanity checks on the equilibrium configuration.
+ For cylindrical geometries we check if <script type="math/tex">k_2</script> is an integer and if the
+ on-axis values obey regularity conditions. Equilibrium balance
+ for both the Cartesian and cylindrical cases is checked.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_integration.html'>mod_integration</a></td><td><a href='../sourcefile/mod_integration.f08.html'>mod_integration.f08</a></td><td><p>Module responsible for integration of differential equations, useful
+ when setting equilibria or integrating the equilibrium equation.
+ Contains subroutines to numerically solve the following systems
+ of differential equations:
+ <script type="math/tex; mode=display"> y'(x) = A(x)y(x) + B(x) </script>
+ These are solved using a fifth-order Runge-Kutta method.</p></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_interpolation.html'>mod_interpolation</a></td><td><a href='../sourcefile/mod_interpolation.f08.html'>mod_interpolation.f08</a></td><td><p>Module responsible for table interpolations and array lookups.
+ Contains subroutines for table interpolations, numerical derivatives
+ of arrays and lookup functions.
+ Subroutines are loosely based on routines implemented in the
+ <a href="amrvac.org">MPI-AMRVAC</a> code.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_logging.html'>mod_logging</a></td><td><a href='../sourcefile/mod_logging.f08.html'>mod_logging.f08</a></td><td><p>Main handler for console print statements. The level of information
+ printed to the console depends on the corresponding global variable
+ called <tt>logging_level</tt> defined in the parfile.
+ </p><a href="../module/mod_logging.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_make_subblock.html'>mod_make_subblock</a></td><td><a href='../sourcefile/mod_make_subblock.f08.html'>mod_make_subblock.f08</a></td><td><p>Module to build a single quadblock by creating the four comprising subblocks.
+ This is done for every grid interval, for specific integral elements
+ and spline functions.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_matrix_creation.html'>mod_matrix_creation</a></td><td><a href='../sourcefile/mod_matrix_creation.f08.html'>mod_matrix_creation.f08</a></td><td><p>Assembly of the finite element matrices <script type="math/tex">\mathcal{A}</script> and <script type="math/tex">\mathcal{B}</script> in the matrix
+ eigenvalue problem <script type="math/tex">\mathcal{A}\textbf{X} = \omega\mathcal{B}\textbf{X}</script>.
+ Matrix creation proceeds by first assembling a quadblock at every grid interval
+ using the integrals and finite element basis functions, after which this quadblock
+ is shifted along the main diagonal.
+ </p><a href="../module/mod_matrix_creation.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_matrix_operations.html'>mod_matrix_operations</a></td><td><a href='../sourcefile/mod_matrix_operations.f08.html'>mod_matrix_operations.f08</a></td><td><p>Module containing various matrix operations (inverting, multiplying, etc).
+ Does calls to relevant BLAS or LAPACK routines.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_output.html'>mod_output</a></td><td><a href='../sourcefile/mod_output.f08.html'>mod_output.f08</a></td><td><p>This module contains all routines for file opening and file writing.</p></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_painting.html'>mod_painting</a></td><td><a href='../sourcefile/mod_painting.f08.html'>mod_painting.f08</a></td><td><p>This module handles formatting of terminal-printed strings.
+ Contains subroutines to colourise strings.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_physical_constants.html'>mod_physical_constants</a></td><td><a href='../sourcefile/mod_physical_constants.f08.html'>mod_physical_constants.f08</a></td><td><p>All physical constants used in the code are defined in this module.
+ We include values both in SI units and in cgs units for convenience.
+ All values are taken from the
+ <a href="https://www.nrl.navy.mil/ppd/content/nrl-plasma-formulary">NRL Plasma Formulary</a>.</p></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_radiative_cooling.html'>mod_radiative_cooling</a></td><td><a href='../sourcefile/mod_radiative_cooling.f08.html'>mod_radiative_cooling.f08</a></td><td><p>Module containing radiative cooling-related routines.
+ This module is responsible for initialising the radiative cooling
+ variables and a correct handling of the cooling curves.
+ If an interpolated cooling curve is selected this module calls the
+ interpolation module to create one.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_resistivity.html'>mod_resistivity</a></td><td><a href='../sourcefile/mod_resistivity.f08.html'>mod_resistivity.f08</a></td><td><p>Module containing resistivity-related routines, calculates
+ and sets the resistivity values based on the equilibrium configuration.</p></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_solar_atmosphere.html'>mod_solar_atmosphere</a></td><td><a href='../sourcefile/mod_solar_atmosphere.f08.html'>mod_solar_atmosphere.f08</a></td><td><p>Module to set a realistic solar atmosphere, using tabulated density and
+ temperature profiles (see <tt>mod_atmosphere_curves</tt>), in Cartesian
+ geometries only.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_solvers.html'>mod_solvers</a></td><td><a href='../sourcefile/mod_solvers.f08.html'>mod_solvers.f08</a></td><td><p>Parent module for everything solver-related. Interfaces to the different
+ submodules are defined here, and the <tt>solve_evp</tt> routine calls the
+ correct solver based on parfile settings.</p></td></tr>
+               
+                  
+			   <tr class=" submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_arnoldi.html'>smod_arnoldi</a></td><td><a href='../sourcefile/smod_arnoldi.f08.html'>smod_arnoldi.f08</a></td><td><p>Submodule containing the implementation of the various ARPACK solvers.
+ Preprocessor directives are used here, if ARPACK was not found during compilation
+ most of this submodule will not be compiled to avoid unknown calls to methods.
+ We first cycle through the possible modes, set up the relevant matrix operators and
+ call the corresponding methods. Then the reverse communication interface
+ <tt>znaupd</tt> is called, which will keep iterating until either
+ everything is converged or the maximum number of iterations <tt>maxiter</tt>
+ is reached. Then eigenvalues are extracted using <tt>zneupd</tt>, eigenvectors
+ are calculated and the residual of each eigenvalue is computed
+ which should be small for converged values.</p></td></tr>
+               
+               
+			 
+			   <tr class=" submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_qr_invert.html'>smod_qr_invert</a></td><td><a href='../sourcefile/smod_qr_invert.f08.html'>smod_qr_invert.f08</a></td><td><p>Submodule containing the implementation of the QR-invert algorithm.
+ The original problem is written as a standard eigenvalue problem through
+ <script type="math/tex; mode=display"> \mathcal{B}^{-1}\mathcal{A}\textbf{X} = \omega\textbf{X}\ </script>
+ where <script type="math/tex">\mathcal{B}</script> is always properly conditioned.
+ Various calls to <tt>mod_matrix_operations</tt> are done to invert the
+ B-matrix and to do matrix multiplications.
+ Eventually a call to LAPACK's <tt>zgeev</tt> routine is done to obtain
+ all eigenvalues and eigenvectors.</p></td></tr>
+               
+               
+			 
+			   <tr class=" submod"><td>&nbsp;&nbsp;&nbsp;<a href='../module/smod_qz_direct.html'>smod_qz_direct</a></td><td><a href='../sourcefile/smod_qz_direct.f08.html'>smod_qz_direct.f08</a></td><td><p>Submodule containing the implementation of the QZ-direct algorithm.
+ We keep the general form of the eigenvalue problem
+ <script type="math/tex; mode=display"> \mathcal{A}\textbf{X} = \omega\mathcal{B}\textbf{X}\ </script>
+ and solve this directly by calling LAPACK's <tt>zggev</tt> routine.
+ </p><a href="../module/smod_qz_direct.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               
+			 
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_spline_functions.html'>mod_spline_functions</a></td><td><a href='../sourcefile/mod_spline_functions.f08.html'>mod_spline_functions.f08</a></td><td><p>Module that calculates the finite element basis functions.
+ The different basis functions and their derivatives
+ used throughout the code are calculated here. All routines defined in
+ this module simply return the basis functions for a specific point <tt>r</tt>
+ in the interval <tt>(rj_lo, rj_hi)</tt>.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_thermal_conduction.html'>mod_thermal_conduction</a></td><td><a href='../sourcefile/mod_thermal_conduction.f08.html'>mod_thermal_conduction.f08</a></td><td><p>This module is responsible for calculating and setting the
+ thermal conduction values based on the equilibrium configuration.</p></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_types.html'>mod_types</a></td><td><a href='../sourcefile/mod_types.f08.html'>mod_types.f08</a></td><td><p>Module containing the different types used in the code.
+ All types are defined here, this includes all types where the
+ equilibrium arrays are set as attributes, as well as a type
+ to handle eigenfunctions.</p></td></tr>
+               
+               <!--active-->
+			 
+			   <tr class=""><td><a href='../module/mod_units.html'>mod_units</a></td><td><a href='../sourcefile/mod_units.f08.html'>mod_units.f08</a></td><td><p>This module handles checking and setting all unit normalisations.
+ When setting the normalisations, one should always specify a unit length
+ and a unit magneticfield. The normalisations use a reference value of 2 for plasma beta
+ as is common practice, such that we can write <script type="math/tex">\beta/2 = \mu * p / B^2 = 1 </script>.
+ The pressure unit is then calculated as
+ <script type="math/tex; mode=display"> p_{unit} = \frac{B_{unit}^2}{\mu} </script>
+ Then, if a unit density is specified this fixes the unit temperature and vice-versa,
+ through use of the ideal gas law
+ <script type="math/tex; mode=display"> p_{unit} = \mathcal{R}_{specific}T_{unit}\rho_{unit} </script>
+ The other normalisations are then fixed, and are set through
+ <script type="math/tex; mode=display"> n_{unit} = \frac{\rho_{unit}}{m_p}, ~~~~~~~
+    v_{unit} = \frac{B_{unit}}{\sqrt{\mu\rho_{unit}}},  </script>
+<script type="math/tex; mode=display"> t_{unit} = \frac{L_{unit}}{v_{unit}},  ~~~~~~~~~
+    \mathscr{L}_{unit} = \frac{p_{unit}}{t_{unit}n_{unit}^2}, </script>
+<script type="math/tex; mode=display"> \kappa_{unit} = \frac{\rho_{unit}L_{unit}v_{unit}^3}{T_{unit}} </script>
+ Where the latter two denote the luminosity and thermal conduction normalisations.
+ </p><a href="../module/mod_units.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               <!---->
+			 
+			   <tr class="active"><td><a href='../module/mod_version.html'>mod_version</a></td><td><a href='../sourcefile/mod_version.f08.html'>mod_version.f08</a></td><td><p>Simple module, containing only version-related stuff. Versioning is done in a
+ separate module to avoid cluttering the commit history of for example
+ <tt>mod_global_variables</tt> or <tt>mod_output</tt> every time an update
+ to the code is done.
+ The Legolas version is added to the datfile as a string and has
+ common MAJOR.MINOR.PATCH formatting.
+ This means:</p><a href="../module/mod_version.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+               
+               <!--active-->
+			 
+			 </tbody></table>
+             
+        </div>
+      </div>
+
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> Legolas was developed by </p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    
+  </body>
+</html>

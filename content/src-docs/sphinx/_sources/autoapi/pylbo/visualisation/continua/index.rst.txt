@@ -1,0 +1,192 @@
+:mod:`pylbo.visualisation.continua`
+===================================
+
+.. py:module:: pylbo.visualisation.continua
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.continua.ContinuaHandler
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.continua.calculate_continua
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.continua.CONTINUA_NAMES
+   pylbo.visualisation.continua.CONTINUA_COLORS
+
+
+.. data:: CONTINUA_NAMES
+   :annotation: = ['slow-', 'slow+', 'alfven-', 'alfven+', 'thermal', 'doppler']
+
+   
+
+.. data:: CONTINUA_COLORS
+   :annotation: = ['red', 'red', 'cyan', 'cyan', 'green', 'grey']
+
+   
+
+.. function:: calculate_continua(ds)
+
+   Calculates the different continua for a given dataset.
+
+   :param ds: The Legolas dataset.
+   :type ds: ~pylbo.data_containers.LegolasDataSet
+
+   :returns: **continua** -- Dictonary containing the various continua as numpy arrays.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. class:: ContinuaHandler(interactive)
+
+
+   Bases: :py:obj:`pylbo.visualisation.legend_interface.LegendHandler`
+
+   Handler to draw continua regions on the plots and make them interactive.
+
+   :param interactive: If `True`, makes the legend pickable and continuum plotting interactive.
+   :type interactive: bool
+
+   .. attribute:: continua_names
+
+      The list of continua names
+
+      :type: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: continua_colors(self)
+      :property:
+
+      Returns the list of continua colors.
+
+      :returns:
+      :rtype: The continua colors as a list.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: check_if_collapsed(continuum)
+      :staticmethod:
+
+      Checks if a given continuum is "collapsed" to a single point.
+
+      :param continuum: Array with values.
+      :type continuum: numpy.ndarray
+
+      :returns:
+      :rtype: True if all values are the same, false otherwise.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: check_if_all_zero(continuum)
+      :staticmethod:
+
+      Checks if a given continuum is pure zero.
+
+      :param continuum: Array with values.
+      :type continuum: numpy.ndarray
+
+      :returns:
+      :rtype: True if all values are zero, false otherwise.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+

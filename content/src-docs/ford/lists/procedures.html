@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Legolas is a novel finite-element based code that allows for realistic MHD spectroscopy of one-dimensional plasmas.">
+    
+    <meta name="author" content="" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>
+All Procedures &ndash; Legolas
+</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">Legolas </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/legolas.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/legolas.html">Program</a></li>
+
+          </ul>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+      <div class="row">
+        <div class="col-lg-12" id='text'>
+			 <h1>Procedures</h1>
+			 <table class="table table-striped">
+			 <thead><tr><th>Procedure</th><th>Location</th><th>Procedure Type</th><th>Description</th></tr></thead>
+			 <tbody>
+			 
+			   <tr><td><a href='../proc/accumulate_mesh.html'>accumulate_mesh</a></td><td><a href='../module/mod_grid.html'>mod_grid</a></td><td>Subroutine</td><td><p>Re-grids the mesh to a non-uniform spacing using mesh accumulation.
+ This is based on two Gaussian curves with known widths, the grid is
+ accumulated near each Gaussian maximum using equidistribution based
+ on the integral under the curve defined by the function <tt>gaussian()</tt>.
+ </p><a href="../proc/accumulate_mesh.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/accumulate_mesh_special_fluxtube.html'>accumulate_mesh_special_fluxtube</a></td><td><a href='../module/mod_grid.html'>mod_grid</a></td><td>Subroutine</td><td><p>Special mesh accumulation routine for flux tubes. Instead of a Gaussian
+ a 60-30-10 percentage-distribution is used, meaning that 60% of the gridpoints
+ are located between the axis and <script type="math/tex">(a - width/2)</script>, 30% of the gridpoints are
+ located at a <script type="math/tex">width=0.1</script> centered at the inner fluxtube radius <script type="math/tex">a</script>,
+ and the remaining 10% is located in the outside region.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/adiabatic_homo_eq.html'>adiabatic_homo_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/allow_geometry_override.html'>allow_geometry_override</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Subroutine</td><td><p>Allows overriding geometry and grid-related parameters.
+ Sets default values for the geometry and grid start/end. If this subroutine is
+ used to set geometry/grid values in the submodule it becomes possible to override
+ them through the parfile. Warnings will always be printed if this happens.
+ </p><a href="../proc/allow_geometry_override.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/apply_boundary_conditions.html'>apply_boundary_conditions</a></td><td><a href='../module/mod_boundary_conditions.html'>mod_boundary_conditions</a></td><td>Subroutine</td><td><p>Main routine to handle the boundary conditions. This subroutine first performs some checks
+ and then handles the natural and essential boundary conditions.
+ </p><a href="../proc/apply_boundary_conditions.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../interface/arnoldi.html'>arnoldi</a></td><td><a href='../module/mod_solvers.html'>mod_solvers</a></td><td>Interface</td><td><p>interface to the different solution methods implemented in submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/calculate_eigenfunctions.html'>calculate_eigenfunctions</a></td><td><a href='../module/mod_eigenfunctions.html'>mod_eigenfunctions</a></td><td>Subroutine</td><td><p>Calculates the eigenfunctions for every eigenvalue and variable,
+ based on the right eigenvectors. The eigenfunctions are transformed
+ back to their 'actual' values</p></td></tr>
+			 
+			   <tr><td><a href='../proc/check_if_normalisations_set.html'>check_if_normalisations_set</a></td><td><a href='../module/mod_units.html'>mod_units</a></td><td>Subroutine</td><td><p>Checks if normalisations are set.
+ If normalisations are not set, set them to default values.
+ These are 1 MK as unit temperature, 10 Gauss as unit magnetic field and
+ <tt>1e9</tt> cm as a unit length. If normalisations are already set through
+ the equilibrium submodule or parfiles nothing is done.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/check_matrix_compatibility.html'>check_matrix_compatibility</a></td><td><a href='../module/mod_matrix_operations.html'>mod_matrix_operations</a></td><td>Subroutine</td><td><p>Checks if two matrices (or a matrix and a vector) are compatible
+ for matrix multiplication.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/check_nan_values.html'>check_nan_values</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Interface</td><td><p>Interface to check NaN values in the equilibrium types.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/check_nan_values_bfield.html'>check_nan_values_bfield</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Checks if one of the array attributes of the magnetic field type contains NaN.
+ </p><a href="../proc/check_nan_values_bfield.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/check_nan_values_density.html'>check_nan_values_density</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Checks if one of the array attributes of the density type contains NaN.
+ </p><a href="../proc/check_nan_values_density.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/check_nan_values_gravity.html'>check_nan_values_gravity</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Checks if one of the array attributes of the gravity type contains NaN.
+ </p><a href="../proc/check_nan_values_gravity.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/check_nan_values_temperature.html'>check_nan_values_temperature</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Checks if one of the array attributes of the temperature type contains NaN.
+ </p><a href="../proc/check_nan_values_temperature.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/check_nan_values_velocity.html'>check_nan_values_velocity</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Checks if one of the array attributes of the velocity type contains NaN.
+ </p><a href="../proc/check_nan_values_velocity.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/check_negative_array.html'>check_negative_array</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Negative value checks on a real array.
+ Checks a real double-precision array for negative values.
+ This is meant to check density, temperature, etc.
+ </p><a href="../proc/check_negative_array.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/check_on_axis_values.html'>check_on_axis_values</a></td><td><a href='../module/mod_inspections.html'>mod_inspections</a></td><td>Subroutine</td><td><p>Checks if on-axis regularity conditions are satisfied in cylindrical geometry.
+ We check if <script type="math/tex">B_\theta, B_z', v_\theta</script> and <script type="math/tex">v_z'</script> are smaller than <tt>1e-3</tt> on-axis.
+ Nothing is checked if the geometry is Cartesian.
+ </p><a href="../proc/check_on_axis_values.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../interface/check_small_values.html'>check_small_values</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Interface</td><td><p>Interface to check small values in a real or complex array/matrix.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/check_wavenumbers.html'>check_wavenumbers</a></td><td><a href='../module/mod_inspections.html'>mod_inspections</a></td><td>Subroutine</td><td><p>Sanity check on the wavenumbers.
+ Checks if k2 is an integer in cylindrical geometry.
+ </p><a href="../proc/check_wavenumbers.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/cleanup.html'>cleanup</a></td><td><a href='../program/legolas.html'>legolas</a></td><td>Subroutine</td><td><p>Deallocates all main variables, then calls the cleanup
+ routines of all relevant subroutines to do the same thing.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/cmat_x_cvec.html'>cmat_x_cvec</a></td><td><a href='../module/mod_matrix_operations.html'>mod_matrix_operations</a></td><td>Subroutine</td><td><p>Matrix multiplication using the LAPACK routine <tt>zgemm</tt>,
+ multiplies a complex matrix with a complex vector</p></td></tr>
+			 
+			   <tr><td><a href='../proc/cmat_x_rmat.html'>cmat_x_rmat</a></td><td><a href='../module/mod_matrix_operations.html'>mod_matrix_operations</a></td><td>Subroutine</td><td><p>Matrix multiplication using the LAPACK routine <tt>zgemm</tt>,
+ multiplies a complex with a real matrix.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/complex_is_inf.html'>complex_is_inf</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Function</td><td><p>Infinity check for complex values.
+ Returns <tt>True</tt> if value equals Infinity, <tt>False</tt> otherwise</p></td></tr>
+			 
+			   <tr><td><a href='../proc/complex_is_zero.html'>complex_is_zero</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Function</td><td><p>Double-precision complex check for zero.
+ Checks if a given double-precision complex value equals zero
+ within a <tt>DP_LIMIT</tt> margin.
+ Returns <tt>True</tt> if value equals zero, <tt>False</tt> otherwise.
+ </p><a href="../proc/complex_is_zero.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/complex_tostr.html'>complex_tostr</a></td><td><a href='../module/mod_logging.html'>mod_logging</a></td><td>Function</td><td><p>Converts a given complex number to a string, the default format is "f20.8".
+ This will be printed in the form xxxx + xxxxi.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/constant_current_eq.html'>constant_current_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/coronal_flux_tube_eq.html'>coronal_flux_tube_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/create_atmosphere_curves.html'>create_atmosphere_curves</a></td><td><a href='../module/mod_solar_atmosphere.html'>mod_solar_atmosphere</a></td><td>Subroutine</td><td><p>Interpolates the atmospheric tables to the desired resolution. The temperature
+ derivative is obtained numerically.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/create_cooling_curve.html'>create_cooling_curve</a></td><td><a href='../module/mod_radiative_cooling.html'>mod_radiative_cooling</a></td><td>Subroutine</td><td><p>Creates an interpolated cooling curve based on the chosen table.
+ Calls a second-order polynomial interpolation routine and takes
+ care of normalisations.
+ </p><a href="../proc/create_cooling_curve.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/create_datfile.html'>create_datfile</a></td><td><a href='../module/mod_output.html'>mod_output</a></td><td>Subroutine</td><td><p>Writes the datfile, where eigenfunctions and matrices are optionally
+ included. First a header is written containing default information
+ on the configuration, then the actual data.
+ </p><a href="../proc/create_datfile.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/create_logfile.html'>create_logfile</a></td><td><a href='../module/mod_output.html'>mod_output</a></td><td>Subroutine</td><td><p>Creates a logfile. If <tt>basename_logfile</tt> is specified in the datfile,
+ a logfile is written.
+ This is a pure textfile containing the real and imaginary parts of the
+ eigenvalues, written in an exponential format. This is mainly used for testing
+ purposes but may come in handy to do some quick inspections on the data.
+ </p><a href="../proc/create_logfile.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/create_matrices.html'>create_matrices</a></td><td><a href='../module/mod_matrix_creation.html'>mod_matrix_creation</a></td><td>Subroutine</td><td><p>Main subroutine to assemble the matrices A and B, which are
+ already allocated when entering this subroutine but not yet initialised.
+ The quadblock is calculated for every grid interval and used to assemble
+ both matrices. On exit, both matrices are fully assembled and
+ boundary conditions are imposed.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/cubic_factors.html'>cubic_factors</a></td><td><a href='../module/mod_spline_functions.html'>mod_spline_functions</a></td><td>Subroutine</td><td><p>Calculates the cubic basis functions.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/cubic_factors_deriv.html'>cubic_factors_deriv</a></td><td><a href='../module/mod_spline_functions.html'>mod_spline_functions</a></td><td>Subroutine</td><td><p>@brief Calculates the derivatives of the cubic basis functions.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/deallocate_bfield_type.html'>deallocate_bfield_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Deallocates all attributes contained in the magnetic field type.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/deallocate_conduction_type.html'>deallocate_conduction_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Deallocates all attributes contained in the thermal conduction type.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/deallocate_cooling_type.html'>deallocate_cooling_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Deallocates all attributes contained in the radiative cooling type.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/deallocate_density_type.html'>deallocate_density_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Deallocates all attributes contained in the  density type.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/deallocate_gravity_type.html'>deallocate_gravity_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Deallocates all attributes contained in the gravity type.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/deallocate_resistivity_type.html'>deallocate_resistivity_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Deallocates all attributes contained in the resistivity type.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/deallocate_temperature_type.html'>deallocate_temperature_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Deallocates all attributes contained in the temperature type.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/deallocate_type.html'>deallocate_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Interface</td><td><p>interface to deallocate all the different types</p></td></tr>
+			 
+			   <tr><td><a href='../proc/deallocate_velocity_type.html'>deallocate_velocity_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Deallocates all attributes contained in the velocity type.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/default_b02_profile.html'>default_b02_profile</a></td><td><a href='../module/mod_solar_atmosphere.html'>mod_solar_atmosphere</a></td><td>Function</td><td><p>Sets the default profile for B02, taken to be zero.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/default_b03_profile.html'>default_b03_profile</a></td><td><a href='../module/mod_solar_atmosphere.html'>mod_solar_atmosphere</a></td><td>Function</td><td><p>Sets the default profile for B03, taken to be a uniform field of 10 Gauss.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/default_db02_profile.html'>default_db02_profile</a></td><td><a href='../module/mod_solar_atmosphere.html'>mod_solar_atmosphere</a></td><td>Function</td><td><p>Sets the default profile for dB02, taken to be zero.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/default_db03_profile.html'>default_db03_profile</a></td><td><a href='../module/mod_solar_atmosphere.html'>mod_solar_atmosphere</a></td><td>Function</td><td><p>Sets the default profile for dB03, taken to be zero.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/default_gravity_profile.html'>default_gravity_profile</a></td><td><a href='../module/mod_solar_atmosphere.html'>mod_solar_atmosphere</a></td><td>Function</td><td><p>Sets the default profile for the gravitational field, taken to be
+ <script type="math/tex; mode=display"> g(x) = g_\odot \left(\frac{R_\odot}{(R_\odot + x)}\right)^2 </script>
+</p></td></tr>
+			 
+			   <tr><td><a href='../interface/discrete_alfven_eq.html'>discrete_alfven_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/eigenfunctions_clean.html'>eigenfunctions_clean</a></td><td><a href='../module/mod_eigenfunctions.html'>mod_eigenfunctions</a></td><td>Subroutine</td><td><p>Cleaning routine, deallocates the eigenfunction arrays.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/equilibrium_clean.html'>equilibrium_clean</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Subroutine</td><td><p>Cleaning routine, deallocates the equilibrium types.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/essential_boundaries.html'>essential_boundaries</a></td><td><a href='../module/mod_boundary_conditions.html'>mod_boundary_conditions</a></td><td>Subroutine</td><td><p>Imposes essential boundary conditions on a given matrix, that is,
+ the ones that have to be implemented explicitly.
+ For a wall, that means handling <script type="math/tex">v1, a2</script> and <script type="math/tex">a3</script> (and <script type="math/tex">T1</script> if there is
+ perpendicular thermal conduction).
+ </p><a href="../proc/essential_boundaries.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/finalise_results.html'>finalise_results</a></td><td><a href='../program/legolas.html'>legolas</a></td><td>Subroutine</td><td><p>Wraps up results and writes output.
+ Makes a call to the eigenfunctions subroutine if specified in the parfile,
+ then calls the output routines to write the datfile.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/float_tostr.html'>float_tostr</a></td><td><a href='../module/mod_logging.html'>mod_logging</a></td><td>Function</td><td><p>Converts a given float to a string, the default format is "f20.8".</p></td></tr>
+			 
+			   <tr><td><a href='../interface/flow_driven_instabilities_eq.html'>flow_driven_instabilities_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/gaussian.html'>gaussian</a></td><td><a href='../module/mod_grid.html'>mod_grid</a></td><td>Function</td><td><p>Function to calculate a Gaussian curve based on known widths and
+ expected values. Returns the value of the Gaussian function,
+ evaluated in x.
+ </p><a href="../proc/gaussian.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_a_elements.html'>get_A_elements</a></td><td><a href='../module/mod_matrix_creation.html'>mod_matrix_creation</a></td><td>Subroutine</td><td><p>Retrieves the A-matrix elements for a given quadblock corresponding
+ to a particular point in the grid and a particular Gaussian weight.
+ This routine is called <tt>n_gauss</tt> times for every grid interval.
+ </p><a href="../proc/get_a_elements.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_b_elements.html'>get_B_elements</a></td><td><a href='../module/mod_matrix_creation.html'>mod_matrix_creation</a></td><td>Subroutine</td><td><p>Retrieves the B-matrix elements for a given quadblock corresponding
+ to a particular point in the grid and a particular Gaussian weight.
+ This routine is called <tt>n_gauss</tt> times for every grid interval.
+ </p><a href="../proc/get_b_elements.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_constants.html'>get_constants</a></td><td><a href='../module/mod_units.html'>mod_units</a></td><td>Subroutine</td><td><p>Returns the Boltzmann constant, proton mass, magnetic constant
+ and gas constant in either cgs (default) or SI units.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/get_constants~2.html'>get_constants</a></td><td><a href='../module/mod_resistivity.html'>mod_resistivity</a></td><td>Subroutine</td><td><p>Retrieves resistivity constants.
+ Returns all physical constants used to calculate the Spitzer resistivity,
+ either in cgs (default) or SI depending on the unit system chosen.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/get_deta_dt.html'>get_deta_dT</a></td><td><a href='../module/mod_resistivity.html'>mod_resistivity</a></td><td>Subroutine</td><td><p>Calculates the derivative of the resistivity.
+ Returns the derivative of the full Spitzer resistivity with respect
+ to the equilibrium temperature, if a fixed resistivity was set instead
+ this routine returns zero.
+ </p><a href="../proc/get_deta_dt.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_eigenfunction.html'>get_eigenfunction</a></td><td><a href='../module/mod_eigenfunctions.html'>mod_eigenfunctions</a></td><td>Subroutine</td><td><p>Calculates a single eigenfunction based on an eigenvector.
+ Assembles the eigenfunction corresponding to <tt>ef_idx</tt> and the
+ given eigenvector. The eigenvector supplied is the one
+ corresponding to one particular eigenvalue.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/get_eta.html'>get_eta</a></td><td><a href='../module/mod_resistivity.html'>mod_resistivity</a></td><td>Subroutine</td><td><p>Calculates the resistivity. Returns either the full Spitzer resistivity
+ based on the equilibrium parameters, or a fixed resistivity value if
+ specified in the global variables module. The unit resistivity is also set in this routine.
+ If a fixed resistivity is used, eta is assumed to be normalised and
+ the unit resistivity remains unity.
+ </p><a href="../proc/get_eta.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_kappa_para.html'>get_kappa_para</a></td><td><a href='../module/mod_thermal_conduction.html'>mod_thermal_conduction</a></td><td>Subroutine</td><td><p>Calculates the parallel thermal conduction.
+ Returns either the full parallel thermal conduction based on
+ the equilibrium parameters, or a fixed value if specified
+ in the global variables module.
+ </p><a href="../proc/get_kappa_para.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_kappa_perp.html'>get_kappa_perp</a></td><td><a href='../module/mod_thermal_conduction.html'>mod_thermal_conduction</a></td><td>Subroutine</td><td><p>Calculates the perpendicular thermal conduction.
+ Returns either the full perpendicular thermal conduction based on
+ the equilibrium parameters, or a fixed value if specified
+ in the global variables module.
+ </p><a href="../proc/get_kappa_perp.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_kappa_perp_derivatives.html'>get_kappa_perp_derivatives</a></td><td><a href='../module/mod_thermal_conduction.html'>mod_thermal_conduction</a></td><td>Subroutine</td><td><p>Calculates the thermal conduction derivatives.
+ Returns the derivative of the perpendicular thermal conduction with respect to
+ density, magnetic field squared and temperature.
+ </p><a href="../proc/get_kappa_perp_derivatives.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_numerical_derivative.html'>get_numerical_derivative</a></td><td><a href='../module/mod_interpolation.html'>mod_interpolation</a></td><td>Subroutine</td><td><p>Calculates the numerical derivative of a given array.
+ A sixth-order accurate central difference stencil is used to calculate the
+ derivative. Near the edges a sixth-order accurate forward and backward
+ difference stencil is used for the left and right boundary, respectively.
+ It is assumed that the x values are all equally spaced. If this is not the case,
+ a polynomial interpolation on a uniform grid can be done and that one can be
+ differentiated instead. The stencils are as follows:</p><a href="../proc/get_numerical_derivative.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_parfile.html'>get_parfile</a></td><td><a href='../module/mod_input.html'>mod_input</a></td><td>Subroutine</td><td><p>Parses the command line arguments and retrieves the parfile passed.
+ </p><a href="../proc/get_parfile.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_rosner_cooling.html'>get_rosner_cooling</a></td><td><a href='../module/mod_cooling_curves.html'>mod_cooling_curves</a></td><td>Subroutine</td><td><p>Uses the piecewise rosner cooling curve to calculate the radiative cooling values
+ based on the equilibrium temperature.
+ </p><a href="../proc/get_rosner_cooling.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/get_spline.html'>get_spline</a></td><td><a href='../module/mod_eigenfunctions.html'>mod_eigenfunctions</a></td><td>Subroutine</td><td><p>Retrieves the spline for a particular variable by
+ calling the correct finite element basis function depending on the
+ variable passed.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/gold_hoyle_eq.html'>gold_hoyle_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/gravito_acoustic_eq.html'>gravito_acoustic_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/gravito_mhd_eq.html'>gravito_mhd_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/grid_clean.html'>grid_clean</a></td><td><a href='../module/mod_grid.html'>mod_grid</a></td><td>Subroutine</td><td><p>Cleanup routine, deallocates the arrays at module scope.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/handle_spurious_eigenvalues.html'>handle_spurious_eigenvalues</a></td><td><a href='../module/mod_inspections.html'>mod_inspections</a></td><td>Subroutine</td><td><p>Handles spurious eigenvalue through removal.
+ If requested, this can remove spurious eigenvalues on the edges
+ of the spectrum. This usually only occurs in cylindrical geometries
+ with forced on-axis conditions. The amount of eigenvalues to handle on every side
+ of the imaginary axis is specified in the parfile.
+ Example: <tt>nb_spurious_eigenvalues = 1</tt> removes the outermost
+ eigenvalue on each side of the imaginary axis (so two in total).
+ </p><a href="../proc/handle_spurious_eigenvalues.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/init_equilibrium_params.html'>init_equilibrium_params</a></td><td><a href='../module/mod_equilibrium_params.html'>mod_equilibrium_params</a></td><td>Subroutine</td><td><p>Initialises all variables defined at module scope to NaN,
+ including the wave numbers. This ensures that these have to
+ be explicitly set.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialisation.html'>initialisation</a></td><td><a href='../program/legolas.html'>legolas</a></td><td>Subroutine</td><td><p>Subroutine responsible for all initialisations.
+ Allocates and initialises main and global variables, then the equilibrium state
+ and eigenfunctions are initialised and the equilibrium is set.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise.html'>initialise</a></td><td><a href='../module/mod_arpack_type.html'>mod_arpack_type</a></td><td>Subroutine</td><td><p>Initialises the derived type based on the given dimension
+ of the eigenvalue problem. Everything is allocated and the variables
+ (<tt>nev, which, maxiter, iparam, ido</tt> etc.)
+ are prepared for their calls in the ARPACK routines.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_bfield_type.html'>initialise_bfield_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Allocates the magnetic field type and initialises all values to zero.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_conduction_type.html'>initialise_conduction_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Allocates the thermal conduction type and initialises all values to zero.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_cooling_type.html'>initialise_cooling_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Allocates the radiative cooling type and initialises all values to zero.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_density_type.html'>initialise_density_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Allocates the density type and initialises all values to zero.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_eigenfunctions.html'>initialise_eigenfunctions</a></td><td><a href='../module/mod_eigenfunctions.html'>mod_eigenfunctions</a></td><td>Subroutine</td><td><p>Main initialisations of this module.
+ Allocates and initialises the eigenfunction grid, types and names.
+ Passing the optional argument <tt>nb_evs</tt> sets the number of eigenvalues
+ that are calculated and limits the size of the eigenfunction arrays accordingly.
+ This routine is only called if <tt>write_eigenfunctions = .true.</tt>.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_equilibrium.html'>initialise_equilibrium</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Subroutine</td><td><p>Initialises the equilibrium types by calling the corresponding
+ subroutine, which allocates all necessary attributes.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_exceptions.html'>initialise_exceptions</a></td><td><a href='../module/mod_exceptions.html'>mod_exceptions</a></td><td>Subroutine</td><td><p>Private subroutine, sets the pointer to the default
+ method to be used when raising exceptions.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_globals.html'>initialise_globals</a></td><td><a href='../module/mod_global_variables.html'>mod_global_variables</a></td><td>Subroutine</td><td><p>Initialises the global variables in this module.
+ All variables in this module are first set to their default values.
+ These are either regular values or NaN, the latter in case variables
+ must be explicitly set in the parfile or equilibrium submodule.
+ </p><a href="../proc/initialise_globals.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_gravity_type.html'>initialise_gravity_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Allocates the gravity type and initialises all values to zero.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_grid.html'>initialise_grid</a></td><td><a href='../module/mod_grid.html'>mod_grid</a></td><td>Subroutine</td><td><p>General grid initialisations.
+ Initialises both the regular grid and the Gaussian grid.
+ Does calls to the mesh accumulation routines if needed,
+ and sets the scale factor and its derivative.
+ </p><a href="../proc/initialise_grid.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_radiative_cooling.html'>initialise_radiative_cooling</a></td><td><a href='../module/mod_radiative_cooling.html'>mod_radiative_cooling</a></td><td>Subroutine</td><td><p>Initialises the radiative cooling variables.
+ This routine first selects and allocates the correct cooling
+ tables, depending on the desired curve. These tables are used
+ to interpolate the final cooling curve using \p ncool points.
+ </p><a href="../proc/initialise_radiative_cooling.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_resistivity_type.html'>initialise_resistivity_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Allocates the resistivity type and initialises all values to zero.
+ </p><a href="../proc/initialise_resistivity_type.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_temperature_type.html'>initialise_temperature_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Allocates the temperature type and initialises all values to zero.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/initialise_type.html'>initialise_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Interface</td><td><p>interface to initialise all the different types</p></td></tr>
+			 
+			   <tr><td><a href='../proc/initialise_velocity_type.html'>initialise_velocity_type</a></td><td><a href='../module/mod_types.html'>mod_types</a></td><td>Subroutine</td><td><p>Allocates the velocity type and initialises all values to zero.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/int_tostr.html'>int_tostr</a></td><td><a href='../module/mod_logging.html'>mod_logging</a></td><td>Function</td><td><p>Converts a given integer to a string, the default format is "i8".</p></td></tr>
+			 
+			   <tr><td><a href='../proc/integrate_ode_rk.html'>integrate_ode_rk</a></td><td><a href='../module/mod_integration.html'>mod_integration</a></td><td>Subroutine</td><td><p>Integrates a first order differential equation of the form
+ <script type="math/tex; mode=display"> y'(x) = A(x)y(x) + B(x) </script> using a fifth-order Runge-Kutta
+ method. The argument <tt>nbpoints</tt> determines the stepsize through
+ <script type="math/tex; mode=display"> dh = \frac{xvalues(N) - xvalues(1)}{nbpoints} </script>
+ If the arrays <script type="math/tex">A(x), B(x)</script> are not of size <tt>nbpoints</tt>, then these are
+ interpolated to that resolution. The differential equation is then integrated,
+ the solution will also be of size <tt>nbpoints</tt> and can be downsampled using
+ the appropriate subroutine.
+ If desired the optional argument <tt>dyvalues</tt> can be provided,
+ which contains the (numerical) derivative of y.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/interchange_modes_eq.html'>interchange_modes_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/internal_kink_eq.html'>internal_kink_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/interpolate_table.html'>interpolate_table</a></td><td><a href='../module/mod_interpolation.html'>mod_interpolation</a></td><td>Subroutine</td><td><p>Interpolates a given set of tables (x, y(x)) into a smooth curve.
+ Assumes that x_table is an array with a monotone increase in values.
+ Interpolation is done using <tt>n_interp</tt> points, in general a second
+ order polynomial approximation is used except near sharp jumps.
+ </p><a href="../proc/interpolate_table.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../interface/invert_matrix.html'>invert_matrix</a></td><td><a href='../module/mod_matrix_operations.html'>mod_matrix_operations</a></td><td>Interface</td><td><p>Interface to invert a matrix</p></td></tr>
+			 
+			   <tr><td><a href='../proc/invert_matrix_complex.html'>invert_matrix_complex</a></td><td><a href='../module/mod_matrix_operations.html'>mod_matrix_operations</a></td><td>Subroutine</td><td><p>Handles the inversion of a complex square matrix using LAPACK routines.
+ First a LU-factorisation is performed using <tt>zgetrf</tt>, then inversion is
+ done using <tt>zgetri</tt>.
+ </p><a href="../proc/invert_matrix_complex.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/invert_matrix_real.html'>invert_matrix_real</a></td><td><a href='../module/mod_matrix_operations.html'>mod_matrix_operations</a></td><td>Subroutine</td><td><p>Handles the inversion of a real square matrix using LAPACK routines.
+ First a LU-factorisation is performed using <tt>dgetrf</tt>, then inversion is
+ done using <tt>dgetri</tt>.
+ </p><a href="../proc/invert_matrix_real.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../interface/isothermal_atmosphere_eq.html'>isothermal_atmosphere_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/kh_cd_instability_eq.html'>kh_cd_instability_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/khi_eq.html'>KHI_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/load_profile_from_file.html'>load_profile_from_file</a></td><td><a href='../module/mod_solar_atmosphere.html'>mod_solar_atmosphere</a></td><td>Subroutine</td><td><p>Loads a previously calculated profile and uses that to set the resolution,
+ density and density derivatives.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/log_message.html'>log_message</a></td><td><a href='../module/mod_logging.html'>mod_logging</a></td><td>Subroutine</td><td><p>Logs messages to the console. Every message will be prepended by
+ [  LEVEL  ] to indicate its type. If this is not desired, set
+ <tt>use_prefix = .false.</tt>.
+ </p><a href="../proc/log_message.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/logical_tostring.html'>logical_tostring</a></td><td><a href='../module/mod_logging.html'>mod_logging</a></td><td>Subroutine</td><td><p>Converts a given Fortran logical to a string "true" or "false".</p></td></tr>
+			 
+			   <tr><td><a href='../proc/lookup_table_value.html'>lookup_table_value</a></td><td><a href='../module/mod_interpolation.html'>mod_interpolation</a></td><td>Function</td><td><p>Function for fast table-lookup, returns the corresponding y-value
+ in <tt>y_values</tt> based on a given based on a given <script type="math/tex">x0</script>.
+ Uses simple linear interpolation.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/magnetothermal_instability_eq.html'>magnetothermal_instability_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/make_filename.html'>make_filename</a></td><td><a href='../module/mod_output.html'>mod_output</a></td><td>Subroutine</td><td><p>Builds a filename based on a given base filename and the
+ output folder defined in the global variables module.
+ The output folder is prepended to the base filename.
+ </p><a href="../proc/make_filename.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/matrix_complex_is_square.html'>matrix_complex_is_square</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Function</td><td><p>Checks if a given complex matrix is square.
+ Returns <tt>.true.</tt> if dimensions are equal, <tt>.false.</tt> otherwise.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/matrix_is_square.html'>matrix_is_square</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Interface</td><td><p>Interface to check if a given matrix is square</p></td></tr>
+			 
+			   <tr><td><a href='../proc/matrix_real_is_square.html'>matrix_real_is_square</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Function</td><td><p>Checks if a given real matrix is square.
+ Returns <tt>.true.</tt> if dimensions are equal, <tt>.false.</tt> otherwise.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/mri_accretion_eq.html'>MRI_accretion_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/multiply_matrices.html'>multiply_matrices</a></td><td><a href='../module/mod_matrix_operations.html'>mod_matrix_operations</a></td><td>Interface</td><td><p>Interface to do matrix multiplication</p></td></tr>
+			 
+			   <tr><td><a href='../proc/natural_boundaries.html'>natural_boundaries</a></td><td><a href='../module/mod_boundary_conditions.html'>mod_boundary_conditions</a></td><td>Subroutine</td><td><p>Imposes the natural boundary conditions, that is, the ones originating
+ from the weak formulation. This is only applicable for the A-matrix.
+ </p><a href="../proc/natural_boundaries.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/needs_resampling.html'>needs_resampling</a></td><td><a href='../module/mod_integration.html'>mod_integration</a></td><td>Function</td><td><p>Checks if an array needs resampling.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/nonadiab_equil_conditions.html'>nonadiab_equil_conditions</a></td><td><a href='../module/mod_inspections.html'>mod_inspections</a></td><td>Subroutine</td><td><p>Checks the non-adiabatic force-balance equation for the equilibrium state.
+ This is given by
+ <script type="math/tex; mode=display"> \frac{1}{\varepsilon}\bigl(\varepsilon \kappa_\bot T_0'\bigr)'
+    - \rho_0\mathscr{L}_0 = 0 </script>
+ The second derivative of the equilibrium temperature is evaluated numerically
+ and does not have to be explicitly specified.
+ </p><a href="../proc/nonadiab_equil_conditions.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/on_exception_raised.html'>on_exception_raised</a></td><td><a href='../module/mod_exceptions.html'>mod_exceptions</a></td><td>Subroutine</td><td><p>Workflow that is executed by default when
+ an exception is raised. The argument <tt>message</tt>
+ is printed to the console and program execution
+ is terminated.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/open_file.html'>open_file</a></td><td><a href='../module/mod_output.html'>mod_output</a></td><td>Subroutine</td><td><p>Opens a file with a given IO unit and filename.
+ All files are opened using <tt>access='stream'</tt>,
+ <tt>status='unknown'</tt> and <tt>action='write'</tt>.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/paint_string.html'>paint_string</a></td><td><a href='../module/mod_painting.html'>mod_painting</a></td><td>Subroutine</td><td><p>Subroutine to paint a given string to the desired colour,
+ returns a new string with ANSI escape sequences prepended
+ and appended. If the 'colour' argument is not known, simply
+ returns the string itself.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/parse_znaupd_info.html'>parse_znaupd_info</a></td><td><a href='../module/mod_arpack_type.html'>mod_arpack_type</a></td><td>Subroutine</td><td><p>Parses the info parameter that comes out of ARPACK's <tt>znaupd</tt> method.
+ If info = 0, everything behaved nicely the reverse communication subroutines
+ exited properly. If info is any other value something went wrong and
+ we handle it accordingly.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/parse_zneupd_info.html'>parse_zneupd_info</a></td><td><a href='../module/mod_arpack_type.html'>mod_arpack_type</a></td><td>Subroutine</td><td><p>Parses the info parameter that comes out of ARPACK's <tt>zneupd</tt> method.
+ If info = 0, the eigenvalues extraction routines exited properly, if info
+ is any other value something went wrong and we handle it accordingly.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/perform_sanity_checks.html'>perform_sanity_checks</a></td><td><a href='../module/mod_inspections.html'>mod_inspections</a></td><td>Subroutine</td><td><p>General routine to do sanity checks on the different equilibrium types.
+ We check the wavenumbers and on-axis values, as well as standard
+ and non-adiabatic equilibrium force balance.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/photospheric_flux_tube_eq.html'>photospheric_flux_tube_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/print_console_info.html'>print_console_info</a></td><td><a href='../module/mod_logging.html'>mod_logging</a></td><td>Subroutine</td><td><p>Prints various console messages showing geometry, grid parameters,
+ equilibrium parameters etc. Only for logging level "info" or above.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/print_logo.html'>print_logo</a></td><td><a href='../module/mod_logging.html'>mod_logging</a></td><td>Subroutine</td><td><p>Prints the Legolas logo to the console.
+ The logo is wrapped in 1 whitespace at the top and
+ two at the bottom. Only for logging level 'warning' (1) and above</p></td></tr>
+			 
+			   <tr><td><a href='../proc/print_whitespace.html'>print_whitespace</a></td><td><a href='../module/mod_logging.html'>mod_logging</a></td><td>Subroutine</td><td><p>Prints an empty line to the console.
+ Only if logging level is 'warning' or above.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/qr_invert.html'>qr_invert</a></td><td><a href='../module/mod_solvers.html'>mod_solvers</a></td><td>Interface</td><td><p>interface to the different solution methods implemented in submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/quadratic_factors.html'>quadratic_factors</a></td><td><a href='../module/mod_spline_functions.html'>mod_spline_functions</a></td><td>Subroutine</td><td><p>Calculates the quadratic basis functions.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/quadratic_factors_deriv.html'>quadratic_factors_deriv</a></td><td><a href='../module/mod_spline_functions.html'>mod_spline_functions</a></td><td>Subroutine</td><td><p>Calculates the derivatives of the quadratic basis functions.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/qz_direct.html'>qz_direct</a></td><td><a href='../module/mod_solvers.html'>mod_solvers</a></td><td>Interface</td><td><p>interface to the different solution methods implemented in submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/radiative_cooling_clean.html'>radiative_cooling_clean</a></td><td><a href='../module/mod_radiative_cooling.html'>mod_radiative_cooling</a></td><td>Subroutine</td><td><p>Cleanup routine, deallocates all variables allocated at module-scope.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/raise_exception.html'>raise_exception</a></td><td><a href='../module/mod_exceptions.html'>mod_exceptions</a></td><td>Subroutine</td><td><p>Raises an exception with a given message.
+ By default, exceptions terminate program execution.
+ Calls the initialisation routine if not already done.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/read_parfile.html'>read_parfile</a></td><td><a href='../module/mod_input.html'>mod_input</a></td><td>Subroutine</td><td><p>Reads in the supplied parfile and sets the equilibrium parameters and
+ global variables to their specified values.
+ </p><a href="../proc/read_parfile.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/real_array_is_equal.html'>real_array_is_equal</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Function</td><td><p>Checks if two real arrays are equal.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/real_array_is_equal_to_value.html'>real_array_is_equal_to_value</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Function</td><td><p>Checks if all values of a given array are equal to a given value.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/real_is_inf.html'>real_is_inf</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Function</td><td><p>Infinity check for real values.
+ Returns <tt>True</tt> if value equals Infinity, <tt>False</tt> otherwise</p></td></tr>
+			 
+			   <tr><td><a href='../proc/real_is_zero.html'>real_is_zero</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Function</td><td><p>Double-precision check for zero.
+ Checks if a given double-precision real value equals zero
+ within a <tt>DP_LIMIT</tt> margin.
+ Returns <tt>True</tt> if value equals zero, <tt>False</tt> otherwise.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/real_value_is_equal.html'>real_value_is_equal</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Function</td><td><p>Equality check between variables.
+ Checks if two real double-precision values are equal to
+ each other within <tt>DP_LIMIT</tt>.
+ Returns <tt>True</tt> if <em>value == value_base</em>, <tt>False</tt> otherwise.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/reset_factors.html'>reset_factors</a></td><td><a href='../module/mod_make_subblock.html'>mod_make_subblock</a></td><td>Subroutine</td><td><p>Resets the <tt>factors</tt> array.
+ If <tt>factors</tt> is allocated, it is deallocated and reallocated
+ with size <tt>size_factors</tt>. Afterwards it is initialised to zero.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/reset_positions.html'>reset_positions</a></td><td><a href='../module/mod_make_subblock.html'>mod_make_subblock</a></td><td>Subroutine</td><td><p>Resets the <tt>positions</tt> array.
+ If <tt>positions</tt> is allocated, it is deallocated and reallocated
+ using <tt>size_positions</tt>. Afterwards it is initialised to zero.
+ The new size is always <tt> (size_positions, 2) </tt>.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/resistive_homo_eq.html'>resistive_homo_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/resistive_tearing_modes_eq.html'>resistive_tearing_modes_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/resistive_tearing_modes_flow_eq.html'>resistive_tearing_modes_flow_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/resonant_absorption_eq.html'>resonant_absorption_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/rk45.html'>rk45</a></td><td><a href='../module/mod_integration.html'>mod_integration</a></td><td>Subroutine</td><td><p>Calculates the Runge-Kutta coefficients and calculates the fourth and fifth
+ order solutions for step i+1 based on the values at step i.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/rmat_x_cmat.html'>rmat_x_cmat</a></td><td><a href='../module/mod_matrix_operations.html'>mod_matrix_operations</a></td><td>Subroutine</td><td><p>Matrix multiplication using the LAPACK routine <tt>zgemm</tt>, multiplies
+ a real with a complex matrix.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/rmat_x_cvec.html'>rmat_x_cvec</a></td><td><a href='../module/mod_matrix_operations.html'>mod_matrix_operations</a></td><td>Subroutine</td><td><p>Matrix multiplication using the LAPACK routine <tt>zgemm</tt>,
+ multiplies a real matrix with a complex vector</p></td></tr>
+			 
+			   <tr><td><a href='../interface/rotating_plasma_cyl_eq.html'>rotating_plasma_cyl_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/rti_eq.html'>RTI_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/rti_khi_eq.html'>RTI_KHI_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/rti_theta_pinch_eq.html'>RTI_theta_pinch_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/save_profile_to_file.html'>save_profile_to_file</a></td><td><a href='../module/mod_solar_atmosphere.html'>mod_solar_atmosphere</a></td><td>Subroutine</td><td><p>Saves the density and density derivatives to the given filename. These can be
+ used later on to set the values instead of solving the differential equation.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/set_conduction_values.html'>set_conduction_values</a></td><td><a href='../module/mod_thermal_conduction.html'>mod_thermal_conduction</a></td><td>Subroutine</td><td><p>This routines sets all thermal conduction values in <tt>kappa_field</tt>,
+ and calls all other relevant subroutines defined in this module.
+ </p><a href="../proc/set_conduction_values.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_equilibrium.html'>set_equilibrium</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Subroutine</td><td><p>Calls the routine to set the equilibrium pointer, then calls the correct
+ submodule. Performs some sanity checks (negative values, NaNs etc.) when
+ the equilibrium is set, then calls additional physics modules if needed.
+ </p><a href="../proc/set_equilibrium.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_equilibrium_pointer.html'>set_equilibrium_pointer</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Subroutine</td><td><p>Selects the submodule based on the specified equilibrium
+ in the parfile. Works on a case-select basis.
+ </p><a href="../proc/set_equilibrium_pointer.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_eta_dropoff.html'>set_eta_dropoff</a></td><td><a href='../module/mod_resistivity.html'>mod_resistivity</a></td><td>Subroutine</td><td><p>Sets a hyperbolic tangent profile for the resistivity so it goes smoothly to zero
+ near the edges. The location and width of the dropoff profile can be controlled
+ through <tt>dropoff_edge_dist</tt> and <tt>dropoff_width</tt>.
+ </p><a href="../proc/set_eta_dropoff.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_gamma.html'>set_gamma</a></td><td><a href='../module/mod_global_variables.html'>mod_global_variables</a></td><td>Subroutine</td><td><p>Sets the ratio of specific heats gamma and its corresponding
+ value gamma - 1.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/set_grid_gauss.html'>set_grid_gauss</a></td><td><a href='../module/mod_grid.html'>mod_grid</a></td><td>Subroutine</td><td><p>Sets up grid_gauss, that is, the grid evaluated in the four
+ Gaussian points. This is done by evaluating the weights
+ at the four Gaussian nodes.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/set_gridpts.html'>set_gridpts</a></td><td><a href='../module/mod_global_variables.html'>mod_global_variables</a></td><td>Subroutine</td><td><p>Sets all gridpoint-related variables: sets the base number of gridpoints,
+ the gridpoints of the Gaussian grid, matrix sizes and size of the
+ eigenfunction arrays.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/set_matrix_gridpts.html'>set_matrix_gridpts</a></td><td><a href='../module/mod_global_variables.html'>mod_global_variables</a></td><td>Subroutine</td><td><p>Sets the size of the matrix.
+ Manually forces the size of the matrices to the given value.
+ This is only used for testing purposes, as the matrix sizes are
+ dependent on the base number of gridpoints.
+ </p><a href="../proc/set_matrix_gridpts.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_maxiter.html'>set_maxiter</a></td><td><a href='../module/mod_arpack_type.html'>mod_arpack_type</a></td><td>Subroutine</td><td><p>Setter for the maximum number of iterations that ARPACK can take,
+ defaults to 10N with N the dimension of the eigenvalue problem.
+ </p><a href="../proc/set_maxiter.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_mode.html'>set_mode</a></td><td><a href='../module/mod_arpack_type.html'>mod_arpack_type</a></td><td>Subroutine</td><td><p>Sets the mode for the ARPACK solver and passes this on
+ to the <tt>iparam</tt> array.
+ </p><a href="../proc/set_mode.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_nev.html'>set_nev</a></td><td><a href='../module/mod_arpack_type.html'>mod_arpack_type</a></td><td>Subroutine</td><td><p>Setter for the number of eigenvalues that should be calculated.
+ The requested number of eigenvalues should be positive and smaller than
+ the dimension of the eigenvalue problem.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/set_normalisations.html'>set_normalisations</a></td><td><a href='../module/mod_units.html'>mod_units</a></td><td>Subroutine</td><td><p>Defines unit normalisations based on a magnetic field unit, length unit,
+ and a density OR temperature unit. Calling this routine automatically
+ sets <tt>normalisations_are_set</tt> to <tt>True</tt>.
+ </p><a href="../proc/set_normalisations.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_radiative_cooling_values.html'>set_radiative_cooling_values</a></td><td><a href='../module/mod_radiative_cooling.html'>mod_radiative_cooling</a></td><td>Subroutine</td><td><p>Sets the radiative cooling attributes of the corresponding types.
+ This is called <em>after</em> the equilibrium is initialised in the submodule.
+ </p><a href="../proc/set_radiative_cooling_values.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_raise_method.html'>set_raise_method</a></td><td><a href='../module/mod_exceptions.html'>mod_exceptions</a></td><td>Subroutine</td><td><p>Subroutine meant to be publicly called, sets the
+ routine to be used when raising exceptions.
+ Calls the initialisation routine if not already done.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/set_resistivity_values.html'>set_resistivity_values</a></td><td><a href='../module/mod_resistivity.html'>mod_resistivity</a></td><td>Subroutine</td><td><p>This routines sets all resistivity values in \p eta_field,
+ and calls all other relevant subroutines defined in this module.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/set_scale_factor.html'>set_scale_factor</a></td><td><a href='../module/mod_grid.html'>mod_grid</a></td><td>Subroutine</td><td><p>The scale factor to switch between Cartesian and cylindrical geometries
+ is set here, along with its derivative. For cylindrical the scale factor
+ is simply equal to the Gaussian grid, and its derivative is unity.
+ For Cartesian the scale factor is unity and its derivative is zero.
+ </p><a href="../proc/set_scale_factor.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_sigma.html'>set_sigma</a></td><td><a href='../module/mod_arpack_type.html'>mod_arpack_type</a></td><td>Subroutine</td><td><p>Sets the sigma value for the shift-invert mode of ARPACK.
+ Sigma can't be zero since the A-matrix can have zero rows, and then
+ we run into troubles.
+ </p><a href="../proc/set_sigma.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_solar_atmosphere.html'>set_solar_atmosphere</a></td><td><a href='../module/mod_solar_atmosphere.html'>mod_solar_atmosphere</a></td><td>Subroutine</td><td><p>Sets the density, temperature, gravity and magnetic field attributes of
+ the respective fields to a realistic solar atmosphere profile.
+ This routine first interpolates the temperature and numberdensity table at
+ <tt>n_interp</tt> resolution, then solves the following ODE for the density:
+ <script type="math/tex; mode=display"> \rho'(x) = -\frac{T'(x) + g(x)}{T(x)}\rho(x) -
+               \frac{B_{02}(x)B'_{02}(x) + B_{03}(x)B'_{03}(x)}{T(x)} </script>
+ using a fifth order Runge-Kutta method.
+ If the optional argument <tt>save_to</tt> is provided then the density profiles
+ are saved to that file, which can be loaded back in on subsequent runs through
+ the optional argument <tt>load_from</tt>. The integration is done over the entire
+ table, the curve is sampled on the Gaussian grid, meaning that grid variations
+ can all use the same result.
+ </p><a href="../proc/set_solar_atmosphere.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/set_unit_resistivity.html'>set_unit_resistivity</a></td><td><a href='../module/mod_units.html'>mod_units</a></td><td>Subroutine</td><td><p>Sets the unit resistivity.
+ This routine is called by the resistivity module and is used to set the
+ resistivity unit in such a way that eta equals 0.1 when the temperature is 1 MK.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/set_which.html'>set_which</a></td><td><a href='../module/mod_arpack_type.html'>mod_arpack_type</a></td><td>Subroutine</td><td><p>Setter for the 'which' argument of ARPACK routines.
+ Should be one of the following: "LM", "SM", "LR", "SR", "LI" or "SI".</p></td></tr>
+			 
+			   <tr><td><a href='../proc/small_values_complex_array.html'>small_values_complex_array</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Small value checks on a complex array.
+ Checks a complex double-precision array for small values.
+ Values that are smaller than the specified tolerance <tt>tol</tt> are set to zero.
+ The real and imaginary parts are checked (and set) separately.
+ If <tt>tol</tt> is not present, <tt>DP_LIMIT</tt> is used as tolerance.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/small_values_complex_matrix.html'>small_values_complex_matrix</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Small value checks on a complex matrix.
+ Checks a complex double-precision matrix for small values.
+ Values that are smaller than the specified tolerance <tt>tol</tt> are set to zero.
+ The real and imaginary parts are checked (and set) separately.
+ If <tt>tol</tt> is not present, <tt>DP_LIMIT</tt> is used as tolerance.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/small_values_real_array.html'>small_values_real_array</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Small value checks on a real array.
+ Checks a real double-precision array for small values.
+ Values that are smaller than the specified tolerance <tt>tol</tt> are set to zero.
+ If <tt>tol</tt> is not present, <tt>DP_LIMIT</tt> is used as tolerance.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/small_values_real_matrix.html'>small_values_real_matrix</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Small value checks on a real matrix.
+ Checks a real double-precision matrix for small values.
+ Values that are smaller than the specified tolerance <tt>tol</tt> are set to zero.
+ If <tt>tol</tt> is not present, <tt>DP_LIMIT</tt> is used as tolerance.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/solve_evp.html'>solve_evp</a></td><td><a href='../module/mod_solvers.html'>mod_solvers</a></td><td>Subroutine</td><td><p>Main subroutine to solve the eigenvalue problem. Depending on the solvelist
+ passed in the parfile, different solvers are called.
+ </p><a href="../proc/solve_evp.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/solvers_clean.html'>solvers_clean</a></td><td><a href='../module/mod_solvers.html'>mod_solvers</a></td><td>Subroutine</td><td><p>Cleanup routine.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/standard_equil_conditions.html'>standard_equil_conditions</a></td><td><a href='../module/mod_inspections.html'>mod_inspections</a></td><td>Subroutine</td><td><p>Checks the standard force-balance equation for the equilibrium state. This is given by
+ <script type="math/tex; mode=display"> \Bigl(p_0 + \frac{1}{2}B_0^2\Bigr)' + \rho_0 g
+    - \frac{\varepsilon'}{\varepsilon}\bigl(\rho_0 v_{02}^2 - B_{02}^2\bigr) </script>
+ and should be fulfilled.
+ </p><a href="../proc/standard_equil_conditions.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../proc/stop_if_nan.html'>stop_if_nan</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Subroutine</td><td><p>Stops program if NaN is encountered in a real double-precision array.
+ </p><a href="../proc/stop_if_nan.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../interface/str.html'>str</a></td><td><a href='../module/mod_logging.html'>mod_logging</a></td><td>Interface</td><td><p>a convenient "tostring" interface, used for easy console writing</p></td></tr>
+			 
+			   <tr><td><a href='../proc/subblock.html'>subblock</a></td><td><a href='../module/mod_make_subblock.html'>mod_make_subblock</a></td><td>Subroutine</td><td><p>Builds the quadblock.
+ The four subblocks are calculated based on the specified
+ factors, positions in the block, weights and basis functions.
+ These four subblocks are then added to the quadblock that is
+ passed along, and the filled quadblock is returned.
+ </p><a href="../proc/subblock.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../interface/suydam_cluster_eq.html'>suydam_cluster_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../proc/tear_down.html'>tear_down</a></td><td><a href='../module/mod_arpack_type.html'>mod_arpack_type</a></td><td>Subroutine</td><td><p>Cleanup routine, deallocates type attributes.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/transform_eigenfunction.html'>transform_eigenfunction</a></td><td><a href='../module/mod_eigenfunctions.html'>mod_eigenfunctions</a></td><td>Subroutine</td><td><p>Re-transformation of the eigenfunction.
+ Transforms the eigenfunction back to its 'actual' value.
+ For example, <script type="math/tex">\rho</script> is defined as <script type="math/tex">\varepsilon\rho</script> in the equations,
+ in this case the eigenfunction is divided by the scale factor.
+ </p><a href="../proc/transform_eigenfunction.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			 
+			   <tr><td><a href='../interface/user_defined_eq.html'>user_defined_eq</a></td><td><a href='../module/mod_equilibrium.html'>mod_equilibrium</a></td><td>Interface</td><td><p>interface to the different equilibrium submodules</p></td></tr>
+			 
+			   <tr><td><a href='../interface/value_is_equal.html'>value_is_equal</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Interface</td><td><p>Interface to check if a value is equal to another value.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/value_is_inf.html'>value_is_inf</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Interface</td><td><p>Interface to check if a real or complex value is infinity.</p></td></tr>
+			 
+			   <tr><td><a href='../proc/value_is_nan.html'>value_is_nan</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Function</td><td><p>NaN check for real values.
+ Checks if a real double-precision value is equal to NaN.
+ Returns <tt>True</tt> if value equals NaN, <tt>False</tt> otherwise.</p></td></tr>
+			 
+			   <tr><td><a href='../interface/value_is_zero.html'>value_is_zero</a></td><td><a href='../module/mod_check_values.html'>mod_check_values</a></td><td>Interface</td><td><p>Interface to check if a real or complex value is zero.</p></td></tr>
+			 
+			 </tbody></table>
+             
+        </div>
+      </div>
+
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> Legolas was developed by </p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    
+  </body>
+</html>

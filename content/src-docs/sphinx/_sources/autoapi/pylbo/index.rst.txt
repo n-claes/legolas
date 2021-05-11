@@ -1,0 +1,628 @@
+:mod:`pylbo`
+============
+
+.. py:module:: pylbo
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   automation/index.rst
+   utilities/index.rst
+   visualisation/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   _version/index.rst
+   data_containers/index.rst
+   exceptions/index.rst
+   file_handler/index.rst
+
+
+Package Contents
+----------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.set_loglevel
+   pylbo.disable_logging
+   pylbo.load
+   pylbo.load_series
+   pylbo.load_logfile
+   pylbo.plot_spectrum
+   pylbo.plot_spectrum_multi
+   pylbo.plot_merged_spectrum
+   pylbo.plot_spectrum_comparison
+   pylbo.plot_equilibrium
+   pylbo.plot_equilibrium_balance
+   pylbo.plot_continua
+   pylbo.plot_matrices
+   pylbo.generate_parfiles
+   pylbo.run_legolas
+
+
+
+.. function:: set_loglevel(level)
+
+   Sets the logging level.
+
+   :param level: The level for logging. See :class:`~logging.Logger`, or the
+                 `allowed levels <https://docs.python.org/3/library/logging.html#levels>`_.
+                 Both the string and integer values can be set, case-insensitive.
+   :type level: int, str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: disable_logging()
+
+   Completely disables logging.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: load(datfile)
+
+   Loads a single Legolas datfile.
+
+   :param datfile: Path to the datfile.
+   :type datfile: str, ~os.PathLike
+
+   :raises ValueError: If `datfile` is not a single file.
+
+   :returns: **ds** -- A dataset instance for the given datfile.
+   :rtype: ~pylbo.data_containers.LegolasDataSet
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: load_series(datfiles)
+
+   Loads multiple Legolas datfiles.
+
+   :param datfiles: Paths to the datfiles that should be loaded, in list/array form. Every element
+                    should be a string or a ~os.PathLike object.
+   :type datfiles: list, numpy.ndarray
+
+   :raises ValueError: If an empty list or array is supplied.
+
+   :returns: **series** -- A dataseries instance for the given datfiles.
+   :rtype: ~pylbo.data_containers.LegolasDataSeries
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: load_logfile(logfile, sort=False)
+
+   Reads a Legolas log file.
+
+   :param logfile: The path to the logfile.
+   :type logfile: str, ~os.PathLike
+   :param sort: If `True`, sorts the eigenvalues in the logfile. Sorting is done first
+                on the real part, then on the imaginary part.
+   :type sort: bool
+
+   :returns: **eigenvalues** -- Array containing the eigenvalues from the logfile.
+   :rtype: numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_spectrum(data, figsize=None, custom_figure=None, **kwargs)
+
+   Plots the spectrum of a single dataset.
+
+   :param data: The dataset that should be used.
+   :type data: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param custom_figure: Optional, in the form (fig, ax). If supplied no new figure will be created
+                         but this one will be used instead. `fig` refers to the matplotlib figure and
+                         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+   :type custom_figure: tuple
+
+   :returns: **p** -- The spectrum instance which can be used further to add continua,
+             eigenfunctions, etc.
+   :rtype: ~pylbo.visualisation.spectra.SingleSpectrumPlot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_spectrum_multi(data, xdata, use_squared_omega=False, use_real_parts=True, figsize=None, custom_figure=None, **kwargs)
+
+   Plots the spectrum of a dataset series.
+
+   :param data: The dataseries that should be used.
+   :type data: ~pylbo.data_containers.LegolasDataSeries
+   :param xdata: Data to use for the horizontal axis. This can either be a key from the
+                 parameters dictionary, or a list/numpy array containing actual data.
+   :type xdata: str, list, numpy.ndarray
+   :param use_squared_omega: If `True`, this will square the eigenvalues when they are plotted on the
+                             vertical axis. If `False` (default), either the real or imaginary part of the
+                             eigenvalues will be plotted depending on the value of `use_real_parts`.
+   :type use_squared_omega: bool
+   :param use_real_parts: If `True` (default), this will plot the real part of the eigenvalues on the
+                          vertical axis. If `False` the imaginary part will be used.
+   :type use_real_parts: bool
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param custom_figure: Optional, in the form (fig, ax). If supplied no new figure will be created
+                         but this one will be used instead. `fig` refers to the matplotlib figure and
+                         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+   :type custom_figure: tuple
+
+   :returns: **p** -- The spectrum instance which can be used further to add continua,
+             eigenfunctions, etc.
+   :rtype: ~pylbo.visualisation.spectra.MultiSpectrumPlot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_merged_spectrum(data, figsize=None, custom_figure=None, interactive=True, legend=True, **kwargs)
+
+   Creates a merged spectrum from various datasets, useful in plotting multiple
+   results from the shift-invert solver, for example. This draws every dataset
+   in a different color by default, and creates a corresponding legend. Supply the
+   optional argument `color` to draw all points in the same color.
+
+   :param data:
+   :type data: ~pylbo.data_containers.LegolasDataSeries
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param custom_figure: Optional, in the form (fig, ax). If supplied no new figure will be created
+                         but this one will be used instead. `fig` refers to the matplotlib figure and
+                         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+   :type custom_figure: tuple
+   :param interactive: If `True` (default), enables an interactive legend.
+   :type interactive: bool
+   :param legend: If `True` (default), draws a legend.
+   :type legend: bool
+
+   :returns: **p** -- The spectrumfigure instance, containing the plot.
+   :rtype: ~pylbo.visualisation.spectra.MultiSpectrumPlot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_spectrum_comparison(ds1, ds2, figsize=None, custom_figure=None, lock_zoom=False, **kwargs)
+
+   Compares two spectra.
+
+   :param ds1: The first dataset, this one is put on the left panel.
+   :type ds1: ~pylbo.data_containers.LegolasDataSet
+   :param ds2: The second dataset, this one is put on the right panel.
+   :type ds2: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param custom_figure: The custom figure to use in the form (fig, axes).
+   :type custom_figure: tuple
+   :param lock_zoom: If `True` (`False` by default), locks the zoom of both axis. When locked,
+                     zoomin in on one of the axis automatically scales the zoom on the other one
+                     as well.
+   :type lock_zoom: bool
+
+   :returns: **p** -- The figure instance containing the compared spectrum plot.
+   :rtype: ~pylbo.visualisation.spectra.SpectrumComparisonPlot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_equilibrium(data, figsize=None, interactive=True, **kwargs)
+
+   Plots the equilibrium profiles.
+
+   :param data: The dataset or series that should be used.
+   :type data: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param interactive: If `True` (default), enables an interactive legend.
+   :type interactive: bool
+
+   :returns: **p** -- The profile instance containing the equilibrium plots.
+   :rtype: ~pylbo.visualisation.profiles.EquilibriumProfile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_equilibrium_balance(data, figsize=None, **kwargs)
+
+   Creates a plot of the force balance equation and non-adiabatic equilibrium
+   equation. These should be as close to zero as possible over the entire grid.
+   All values smaller than 1e-16 are set to zero.
+
+   :param data: The dataset that should be used
+   :type data: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+
+   :returns: **p** -- The profile instance containing the equilibrium balance plots.
+   :rtype: ~pylbo.visualisation.profiles.EquilibriumBalance
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_continua(data, figsize=None, interactive=True, **kwargs)
+
+   Plots the continua profiles.
+
+   :param data: The dataset or series that should be used.
+   :type data: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param interactive: If `True` (default), enables an interactive legend.
+   :type interactive: bool
+
+   :returns: **p** -- The profile instance containing the continua plots.
+   :rtype: ~pylbo.visualisation.profiles.ContinuumProfile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_matrices(data, figsize=None, **kwargs)
+
+   Plots the continua profiles.
+
+   :param data: The dataset that should be used.
+   :type data: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+
+   :returns: **p** -- The instance containing the matrix plots.
+   :rtype: ~pylbo.visualisation.matrices.MatrixFigure
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: generate_parfiles(parfile_dict, basename=None, output_dir=None)
+
+   Generates parfiles based on a given configuration dictionary.
+   The separate namelists do not have to be taken into account, and a normal
+   dictionary should be supplied where the keys correspond to the namelist
+   items that are required. Typechecking is done automatically during parfile
+   generation.
+
+   :param parfile_dict: Dictionary containing the keys to be placed in the parfile.
+   :type parfile_dict: dict
+   :param basename: The basename for the parfile, the `.par` suffix is added automatically and is
+                    not needed. If multiple parfiles are generated, these
+                    will be prepended by a 4-digit number (e.g. 0003myparfile.par).
+                    If not provided, the basename will default to `parfile`.
+   :type basename: str
+   :param output_dir: Output directory where the parfiles are saved, defaults to the current
+                      working directory if not specified. A subdirectory called `parfiles` will be
+                      created in which the parfiles will be saved.
+   :type output_dir: str, ~os.PathLike
+
+   .. rubric:: Notes
+
+   This routine is quite flexible and specifically designed for parametric studies.
+   You can specify both single values and list-like items as dictionary items.
+   This routine will automatically generate multiple parfiles if lists/numpy arrays
+   are present.
+
+   :returns: **parfiles** -- A list with the paths to the parfiles that were generated. This list can be
+             passed immediately to :func:`pylbo.run_legolas`.
+   :rtype: list
+
+   .. rubric:: Examples
+
+   This will generate a single parfile in a subdirectory `parfile` of the
+   current working directory.
+
+   >>> import pylbo
+   >>> config = {
+   >>>    "geometry": "Cartesian",
+   >>>    "x_start": 0,
+   >>>    "x_end": 1,
+   >>>    "equilibrium_type": "resistive_homo",
+   >>>    "gridpoints": 100,
+   >>>    "write_eigenfunctions": True,
+   >>>    "basename_datfile": "my_run",
+   >>>    "output_folder": "output",
+   >>> }
+   >>> parfile = pylbo.generate_parfiles(config)
+
+   This will generate 10 parfiles in the directory `my_parfiles` relative to
+   the current working directory. The first parfile will have `x_end = 1.0` and 100
+   gridpoints, the second one will have `x_end = 2.0` and 150 gridpoints, etc.
+
+   >>> import pylbo
+   >>> import numpy as np
+   >>> config = {
+   >>>    "geometry": "Cartesian",
+   >>>    "x_start": 0,
+   >>>    "x_end": np.arange(1, 11)
+   >>>    "number_of_runs": 10
+   >>>    "equilibrium_type": "resistive_homo",
+   >>>    "gridpoints": np.arange(100, 600, 50),
+   >>>    "write_eigenfunctions": True,
+   >>>    "basename_datfile": "my_run",
+   >>>    "output_folder": "output",
+   >>> }
+   >>> parfile_list = pylbo.generate_parfiles(config, output_dir="my_parfiles")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: run_legolas(parfiles, remove_parfiles=False, nb_cpus=1, executable=None)
+
+   Runs the legolas executable for a given list of parfiles. If more than one parfile
+   is passed, the runs can be performed in parallel using the multiprocessing module.
+   Parallelisation can be enabled by setting the `nb_cpus` kwarg to a number greater
+   than one, and is disabled by default.
+   Every CPU will have a single legolas executable subprocess associated
+   with it.
+
+   :param parfiles: A string, list or array containing the paths to the parfile(s).
+                    Accepts the output of :func:`pylbo.generate_parfiles`.
+   :type parfiles: str, list, numpy.ndarray
+   :param remove_parfiles: If `True`, removes the parfiles after running Legolas. This will also remove
+                           the containing folder if it turns out to be empty after the parfiles are
+                           removed. If there are other files still in the folder it remains untouched.
+   :type remove_parfiles: bool
+   :param nb_cpus: The number of CPUs to use when running Legolas. If equal to 1 then
+                   parallelisation is disabled. Defaults to the maximum number of CPUs available
+                   if a number larger than the available number is specified.
+   :type nb_cpus: int
+   :param executable: The path to the legolas executable. If not specified, defaults to the
+                      standard one in the legolas home directory.
+   :type executable: str, ~os.PathLike
+
+   .. rubric:: Notes
+
+   If multiprocessing is enabled, it is usually a good idea to have the number
+   of runs requested divisible by the number of CPUs that are available. For example,
+   if 24 runs are requested it is good practice to use either 2, 4, 6 or 8 CPUs,
+   and avoid numbers like 3, 5 and 7.
+
+   .. rubric:: Examples
+
+   The example below will run a list of parfiles using using a local legolas
+   executable from the current directory, on 4 CPU's.
+
+   >>> import pylbo
+   >>> from pathlib import Path
+   >>> files = sorted(Path("parfiles").glob("*.dat"))
+   >>> pylbo.run_legolas(files, nb_cpus=4, executable="legolas")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

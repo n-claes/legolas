@@ -1,0 +1,61 @@
+main:
+  - title: "Home"
+    url: /index
+  - title: "About"
+    url: /content/about/
+  - title: "Code paper"
+    url: "https://arxiv.org/abs/2010.14148"
+  - title: "Detailed guide"
+    url: /content/getting-started/installation/
+  - title: "Source docs"
+    url: /content/src-docs/source_docs/
+
+leftcontents:
+  - title: Getting started
+    children:
+      - title: "Installation"
+        url: /content/getting-started/installation/
+      - title: "Running the code"
+        url: /content/getting-started/running/
+      - title: "Examples"
+        url: /content/getting-started/examples/
+  - title: General
+    children:
+      - title: "Equations & Physics"
+        url: /content/general/equations_physics/
+      - title: "Parameter file"
+        url: /content/general/parameter_file/
+      - title: "Equilibria"
+        url: /content/general/equilibria/
+      - title: "Solvers"
+        url: /content/general/solvers/
+      - title: "Running your own setup"
+        url: /content/general/own_setup/
+  - title: Data-analysis with Pylbo
+    children:
+      - title: "About Pylbo"
+        url: /content/pylbo/about_pylbo/
+      - title: "Installing Pylbo"
+        url: /content/pylbo/installing_pylbo/
+      - title: "Interfacing with Legolas"
+        url: /content/pylbo/legolas_interface/
+      - title: "Using Pylbo"
+        url: /content/pylbo/using_pylbo/
+  - title: Testing
+    children:
+      - title: "Code coverage"
+        url: /content/testing/coverage/
+      - title: "Core routines"
+        url: /content/testing/test_core/
+      - title: "Regression"
+        url: /content/testing/test_regression/
+      - title: "Pylbo"
+        url: /content/testing/test_pylbo/
+  - title: Misc
+    children:
+      - title: "Legolas changelog"
+        url: /content/misc/legolas_changelog/
+      - title: "Pylbo changelog"
+        url: /content/misc/pylbo_changelog/
+      - title: "Contributing"
+        url: /content/misc/contributing/

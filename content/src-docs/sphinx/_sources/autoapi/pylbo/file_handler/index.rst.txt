@@ -1,0 +1,170 @@
+:mod:`pylbo.file_handler`
+=========================
+
+.. py:module:: pylbo.file_handler
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.file_handler._validate_file
+   pylbo.file_handler.load
+   pylbo.file_handler.load_series
+   pylbo.file_handler.load_logfile
+   pylbo.file_handler.select_files
+
+
+
+.. function:: _validate_file(file)
+
+   Checks the file validity of a given logfile or datfile.
+
+   :param file: The path to the datfile, either as a :class:`str` or
+                :class:`~os.PathLike` object.
+   :type file: str, ~os.PathLike
+
+   :raises FileNotFoundError: If the datfile can not be found.
+   :raises InvalidLegolasFile: If the datfile is not a valid Legolas output file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: load(datfile)
+
+   Loads a single Legolas datfile.
+
+   :param datfile: Path to the datfile.
+   :type datfile: str, ~os.PathLike
+
+   :raises ValueError: If `datfile` is not a single file.
+
+   :returns: **ds** -- A dataset instance for the given datfile.
+   :rtype: ~pylbo.data_containers.LegolasDataSet
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: load_series(datfiles)
+
+   Loads multiple Legolas datfiles.
+
+   :param datfiles: Paths to the datfiles that should be loaded, in list/array form. Every element
+                    should be a string or a ~os.PathLike object.
+   :type datfiles: list, numpy.ndarray
+
+   :raises ValueError: If an empty list or array is supplied.
+
+   :returns: **series** -- A dataseries instance for the given datfiles.
+   :rtype: ~pylbo.data_containers.LegolasDataSeries
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: load_logfile(logfile, sort=False)
+
+   Reads a Legolas log file.
+
+   :param logfile: The path to the logfile.
+   :type logfile: str, ~os.PathLike
+   :param sort: If `True`, sorts the eigenvalues in the logfile. Sorting is done first
+                on the real part, then on the imaginary part.
+   :type sort: bool
+
+   :returns: **eigenvalues** -- Array containing the eigenvalues from the logfile.
+   :rtype: numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: select_files()
+
+   Opens an interactive window to select files to open.
+   Requires a visual interface.
+
+   :returns: **files** -- A list containing the paths to the files selected.
+   :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

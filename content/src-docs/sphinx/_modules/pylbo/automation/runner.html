@@ -1,0 +1,447 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pylbo.automation.runner &mdash; Pylbo 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Pylbo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Package structure:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Pylbo</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pylbo.automation.runner</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pylbo.automation.runner</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">psutil</span>
+<span class="kn">import</span> <span class="nn">tqdm</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span> <span class="nn">pylbo.utilities.logger</span> <span class="kn">import</span> <span class="n">pylboLogger</span>
+<span class="kn">from</span> <span class="nn">pylbo.utilities.toolbox</span> <span class="kn">import</span> <span class="n">transform_to_list</span>
+
+
+<div class="viewcode-block" id="_validate_executable"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/runner/index.html#pylbo.automation.runner._validate_executable">[docs]</a><span class="k">def</span> <span class="nf">_validate_executable</span><span class="p">(</span><span class="n">executable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validates the given executable, then returns it. If the argument passed is</span>
+<span class="sd">    None, defaults to the executable in the legolas home directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    executable : str, ~os.PathLike</span>
+<span class="sd">        The path to the legolas executable to use.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    FileNotFoundError</span>
+<span class="sd">        If the executable was not found.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    executable : ~os.PathLike</span>
+<span class="sd">        The (resolved) path to the executable to use.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">executable</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">exec_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">executable</span> <span class="o">=</span> <span class="p">(</span><span class="n">exec_dir</span> <span class="o">/</span> <span class="s2">&quot;legolas&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="n">executable</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">executable</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">executable</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Executable was not found: </span><span class="si">{</span><span class="n">executable</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">executable</span></div>
+
+
+<div class="viewcode-block" id="_validate_nb_cpus"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/runner/index.html#pylbo.automation.runner._validate_nb_cpus">[docs]</a><span class="k">def</span> <span class="nf">_validate_nb_cpus</span><span class="p">(</span><span class="n">cpus</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validates the number of cpus passed to the multiprocessing pool.</span>
+<span class="sd">    Defaults to the maximum available number if exceeded.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cpus : int</span>
+<span class="sd">        The number of cpus to use.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cpus : int</span>
+<span class="sd">        The number of cpus to use, limited to the maximum number available.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cpus_available</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">cpus</span> <span class="o">&gt;</span> <span class="n">cpus_available</span><span class="p">:</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Requested more than the available number of cpus (</span><span class="si">{</span><span class="n">cpus</span><span class="si">}</span><span class="s2">). &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Setting nb_cpus to maximum available (</span><span class="si">{</span><span class="n">cpus_available</span><span class="si">}</span><span class="s2">).&quot;</span>
+        <span class="p">)</span>
+        <span class="n">cpus</span> <span class="o">=</span> <span class="n">cpus_available</span>
+    <span class="k">return</span> <span class="n">cpus</span></div>
+
+
+<div class="viewcode-block" id="_validate_parfiles"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/runner/index.html#pylbo.automation.runner._validate_parfiles">[docs]</a><span class="k">def</span> <span class="nf">_validate_parfiles</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validates a list of parfiles.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    files : (list of) str, (list of) ~os.PathLike</span>
+<span class="sd">        Paths to the parfiles.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    FileNotFoundError</span>
+<span class="sd">        If one of the parfiles is not found.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    files_list : list</span>
+<span class="sd">        A list of resolved filepaths for the parfiles.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">files_list</span> <span class="o">=</span> <span class="n">transform_to_list</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+    <span class="n">files_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_list</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parfile was not found: </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">files_list</span></div>
+
+
+<div class="viewcode-block" id="LegolasRunner"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/runner/index.html#pylbo.automation.runner.LegolasRunner">[docs]</a><span class="k">class</span> <span class="nc">LegolasRunner</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles running legolas.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parfiles : list, numpy.ndarray</span>
+<span class="sd">        A list or array containing the names or paths to the parfiles.</span>
+<span class="sd">    remove_parfiles : bool</span>
+<span class="sd">        If `True`, removes the parfiles after running Legolas. This will also remove</span>
+<span class="sd">        the containing folder if it turns out to be empty after the parfiles are</span>
+<span class="sd">        removed. If there are other files still in the folder it remains untouched.</span>
+<span class="sd">    nb_cpus : int</span>
+<span class="sd">        The number of CPUs to use when running Legolas. If equal to 1 then</span>
+<span class="sd">        parallelisation is disabled. Defaults to the maximum number of CPUs available</span>
+<span class="sd">        if a number larger than the available number is specified.</span>
+<span class="sd">    executable : str, ~os.PathLike</span>
+<span class="sd">        The path to the legolas executable. If not specified, defaults to the</span>
+<span class="sd">        standard one in the legolas home directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parfiles</span><span class="p">,</span> <span class="n">remove_parfiles</span><span class="p">,</span> <span class="n">nb_cpus</span><span class="p">,</span> <span class="n">executable</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span> <span class="o">=</span> <span class="n">_validate_parfiles</span><span class="p">(</span><span class="n">parfiles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parfile_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">executable</span> <span class="o">=</span> <span class="n">_validate_executable</span><span class="p">(</span><span class="n">executable</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nb_cpus</span> <span class="o">=</span> <span class="n">_validate_nb_cpus</span><span class="p">(</span><span class="n">nb_cpus</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_parfiles</span> <span class="o">=</span> <span class="n">remove_parfiles</span>
+
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;initialising runner, using executable </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="LegolasRunner._init_worker"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/runner/index.html#pylbo.automation.runner.LegolasRunner._init_worker">[docs]</a>    <span class="k">def</span> <span class="nf">_init_worker</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Worker initialisation for the multiprocessing module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_IGN</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LegolasRunner._activate_worker"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/runner/index.html#pylbo.automation.runner.LegolasRunner._activate_worker">[docs]</a>    <span class="k">def</span> <span class="nf">_activate_worker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parfile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Worker activation for the multiprocessing module.</span>
+<span class="sd">        Calls the legolas executable as a subprocess with the parfile as argument.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parfile : str, ~os.PathLike</span>
+<span class="sd">            The path to the parfile</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        call : :func:`subprocess.call`</span>
+<span class="sd">            A call to a subprocess to run legolas.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;./</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">parfile</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="LegolasRunner._terminate_workers"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/runner/index.html#pylbo.automation.runner.LegolasRunner._terminate_workers">[docs]</a>    <span class="k">def</span> <span class="nf">_terminate_workers</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Terminates the multiprocessing workers after a forced interruption.</span>
+<span class="sd">        Simply giving an interrupt terminates only the Python processes, but still</span>
+<span class="sd">        keeps the Legolas calls running since those are subprocesses. This method first</span>
+<span class="sd">        terminates all child processes (legolas), then the parents (workers).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;interrupting processes...&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">process</span> <span class="ow">in</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">active_children</span><span class="p">():</span>
+            <span class="n">pid</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">pid</span>
+            <span class="n">pylboLogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;terminating PID: </span><span class="si">{</span><span class="n">pid</span><span class="si">}</span><span class="s2"> -- </span><span class="si">{</span><span class="n">process</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+            <span class="n">children</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+                <span class="n">pylboLogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;terminating child process </span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">pid</span><span class="si">}</span><span class="s2"> -- </span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="n">child</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+            <span class="n">gone</span><span class="p">,</span> <span class="n">alive</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">wait_procs</span><span class="p">(</span><span class="n">children</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">killed_proc</span> <span class="ow">in</span> <span class="n">gone</span><span class="p">:</span>
+                <span class="n">pylboLogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">killed_proc</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">parent</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+            <span class="n">parent</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;all Legolas processes terminated.&quot;</span><span class="p">)</span>
+        <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LegolasRunner.execute"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/runner/index.html#pylbo.automation.runner.LegolasRunner.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the legolas executables and initialises the multiprocessing</span>
+<span class="sd">        pool if requested.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">update_pbar</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+        <span class="c1"># original working directory</span>
+        <span class="n">owd</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
+        <span class="c1"># change to parent directory of executable</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="c1"># no parallelisation if there is only one parfile</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;running legolas...&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_activate_worker</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_terminate_workers</span><span class="p">()</span>
+                <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># initialise progressbar and multiprocessing pool</span>
+            <span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">pbar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;running legolas [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_cpus</span><span class="si">}</span><span class="s2"> CPUS]&quot;</span><span class="p">)</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span>
+                <span class="n">processes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_cpus</span><span class="p">,</span> <span class="n">initializer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_worker</span>
+            <span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">parfile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span><span class="p">:</span>
+                    <span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_activate_worker</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">parfile</span><span class="p">,),</span> <span class="n">callback</span><span class="o">=</span><span class="n">update_pbar</span>
+                    <span class="p">)</span>
+                <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">&quot;INTERRUPTED&quot;</span><span class="p">)</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span><span class="p">))</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_terminate_workers</span><span class="p">()</span>
+                <span class="n">pool</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                <span class="n">pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+                <span class="k">return</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;all runs completed&quot;</span><span class="p">)</span>
+
+        <span class="c1"># change back to the original directory</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">owd</span><span class="p">)</span>
+        <span class="c1"># if requested, remove parfiles</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_parfiles</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;parfiles removed.&quot;</span><span class="p">)</span>
+            <span class="c1"># if directory is empty, also remove it</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">Path</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parfile_dir</span><span class="p">)</span>
+                <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;parfile containing folder &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">parfile_dir</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;was empty and is also removed.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="k">pass</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Niels Claes, Jordi De Jonghe and Rony Keppens (2020).
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

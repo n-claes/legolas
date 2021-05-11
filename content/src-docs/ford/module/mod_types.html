@@ -1,0 +1,3101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Legolas is a novel finite-element based code that allows for realistic MHD spectroscopy of one-dimensional plasmas.">
+    
+    <meta name="author" content="" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>mod_types &ndash; Legolas</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">Legolas </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/legolas.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/legolas.html">Program</a></li>
+
+          </ul>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>mod_types 
+    <small>Module</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title=" 4.1% of total for modules and submodules.">214 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/mod_types.f08"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+     <li><a href='../sourcefile/mod_types.f08.html'>mod_types.f08</a></li>
+    
+  
+     <li class="active">mod_types</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#inters-0">Interfaces</a></h3></div>
+  <div id="inters-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/mod_types.html#interface-initialise_type">initialise_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#interface-deallocate_type">deallocate_type</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#types-0">Derived Types</a></h3></div>
+  <div id="types-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-density_type">density_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-temperature_type">temperature_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-bfield_type">bfield_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-velocity_type">velocity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-gravity_type">gravity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-resistivity_type">resistivity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-cooling_type">cooling_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-conduction_type">conduction_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-ef_type">ef_type</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#subs-0">Subroutines</a></h3></div>
+  <div class="list-group">
+    <div id="subs-0" class="panel-collapse collapse">
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_density_type">initialise_density_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_temperature_type">initialise_temperature_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_bfield_type">initialise_bfield_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_velocity_type">initialise_velocity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_gravity_type">initialise_gravity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_resistivity_type">initialise_resistivity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_cooling_type">initialise_cooling_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_conduction_type">initialise_conduction_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_density_type">deallocate_density_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_temperature_type">deallocate_temperature_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_bfield_type">deallocate_bfield_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_velocity_type">deallocate_velocity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_gravity_type">deallocate_gravity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_resistivity_type">deallocate_resistivity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_cooling_type">deallocate_cooling_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_conduction_type">deallocate_conduction_type</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+</div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <p>Module containing the different types used in the code.
+ All types are defined here, this includes all types where the
+ equilibrium arrays are set as attributes, as well as a type
+ to handle eigenfunctions.</p>
+      <br>
+    
+  
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Uses</h3>
+      </div>
+      <ul class="list-group">
+      
+      <li class="list-group-item">
+  <ul class="list-inline">
+    
+    <li><a href='../module/mod_global_variables.html'>mod_global_variables</a></li>
+    
+  </ul>
+      </li>
+      
+      
+      
+      </ul>
+    </div>
+    
+
+    
+    
+
+    <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#inters-1">Interfaces</a></h3></div>
+  <div id="inters-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/mod_types.html#interface-initialise_type">initialise_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#interface-deallocate_type">deallocate_type</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#types-1">Derived Types</a></h3></div>
+  <div id="types-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-density_type">density_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-temperature_type">temperature_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-bfield_type">bfield_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-velocity_type">velocity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-gravity_type">gravity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-resistivity_type">resistivity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-cooling_type">cooling_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-conduction_type">conduction_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#type-ef_type">ef_type</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#subs-1">Subroutines</a></h3></div>
+  <div class="list-group">
+    <div id="subs-1" class="panel-collapse collapse">
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_density_type">initialise_density_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_temperature_type">initialise_temperature_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_bfield_type">initialise_bfield_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_velocity_type">initialise_velocity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_gravity_type">initialise_gravity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_resistivity_type">initialise_resistivity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_cooling_type">initialise_cooling_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-initialise_conduction_type">initialise_conduction_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_density_type">deallocate_density_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_temperature_type">deallocate_temperature_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_bfield_type">deallocate_bfield_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_velocity_type">deallocate_velocity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_gravity_type">deallocate_gravity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_resistivity_type">deallocate_resistivity_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_cooling_type">deallocate_cooling_type</a>
+      
+      <a class="list-group-item" href="../module/mod_types.html#proc-deallocate_conduction_type">deallocate_conduction_type</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    
+
+    
+    
+    
+    
+    
+    <section>
+   <h2>Interfaces</h2>
+   
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-initialise_type"></span><h3>public interface <a href='../interface/initialise_type.html'>initialise_type</a>
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+    <p>interface to initialise all the different types</p>
+  </div>
+  
+  <ul class="list-group">
+  
+  
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/initialise_density_type.html'>initialise_density_type</a>(type_rho)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Allocates the density type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/density_type.html'>density_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_rho</strong></td><td><p>the type containing the density attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/initialise_temperature_type.html'>initialise_temperature_type</a>(type_T)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Allocates the temperature type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/temperature_type.html'>temperature_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_T</strong></td><td><p>the type containing the temperature attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/initialise_bfield_type.html'>initialise_bfield_type</a>(type_B)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Allocates the magnetic field type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/bfield_type.html'>bfield_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_B</strong></td><td><p>the type containing the magnetic field attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/initialise_velocity_type.html'>initialise_velocity_type</a>(type_v)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Allocates the velocity type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/velocity_type.html'>velocity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_v</strong></td><td><p>the type containing the velocity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/initialise_gravity_type.html'>initialise_gravity_type</a>(type_grav)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Allocates the gravity type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/gravity_type.html'>gravity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_grav</strong></td><td><p>the type containing the gravity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/initialise_resistivity_type.html'>initialise_resistivity_type</a>(type_eta)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Allocates the resistivity type and initialises all values to zero.
+ </p><a href="../proc/initialise_resistivity_type.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/resistivity_type.html'>resistivity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_eta</strong></td><td><p>the type containing the resistivity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/initialise_cooling_type.html'>initialise_cooling_type</a>(type_rc)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Allocates the radiative cooling type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/cooling_type.html'>cooling_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_rc</strong></td><td><p>the type containing the radiative cooling attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/initialise_conduction_type.html'>initialise_conduction_type</a>(type_kappa)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Allocates the thermal conduction type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/conduction_type.html'>conduction_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_kappa</strong></td><td><p>the type containing the thermal conduction attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-deallocate_type"></span><h3>public interface <a href='../interface/deallocate_type.html'>deallocate_type</a>
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+    <p>interface to deallocate all the different types</p>
+  </div>
+  
+  <ul class="list-group">
+  
+  
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/deallocate_density_type.html'>deallocate_density_type</a>(type_rho)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the  density type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/density_type.html'>density_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_rho</strong></td><td><p>the type containing the density attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/deallocate_temperature_type.html'>deallocate_temperature_type</a>(type_T)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the temperature type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/temperature_type.html'>temperature_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_T</strong></td><td><p>the type containing the temperature attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/deallocate_bfield_type.html'>deallocate_bfield_type</a>(type_B)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the magnetic field type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/bfield_type.html'>bfield_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_B</strong></td><td><p>the type containing the magnetic field attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/deallocate_velocity_type.html'>deallocate_velocity_type</a>(type_v)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the velocity type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/velocity_type.html'>velocity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_v</strong></td><td><p>the type containing the velocity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/deallocate_gravity_type.html'>deallocate_gravity_type</a>(type_grav)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the gravity type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/gravity_type.html'>gravity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_grav</strong></td><td><p>the type containing the gravity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/deallocate_resistivity_type.html'>deallocate_resistivity_type</a>(type_eta)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the resistivity type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/resistivity_type.html'>resistivity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_eta</strong></td><td><p>the type containing the resistivity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/deallocate_cooling_type.html'>deallocate_cooling_type</a>(type_rc)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the radiative cooling type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/cooling_type.html'>cooling_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_rc</strong></td><td><p>the type containing the radiative cooling attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private subroutine <a href='../proc/deallocate_conduction_type.html'>deallocate_conduction_type</a>(type_kappa)
+    
+    
+   
+</h3>
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the thermal conduction type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/conduction_type.html'>conduction_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_kappa</strong></td><td><p>the type containing the thermal conduction attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  
+  </ul>
+</div>
+
+    
+    </section>
+  <br>
+    
+
+    
+    
+    
+    <section>
+     <h2>Derived Types</h2>
+   
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-density_type"></span><h3>type, public :: <a href='../type/density_type.html'>density_type</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>type containing all density related equilibrium variables</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rho0"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>rho0</strong>(:)</td><td></td><td></td><td><p>equilibrium density</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_rho0_dr"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_rho0_dr</strong>(:)</td><td></td><td></td><td><p>derivative of the equilibrium density</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-temperature_type"></span><h3>type, public :: <a href='../type/temperature_type.html'>temperature_type</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>type containing all temperature related equilibrium variables</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-t0"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>T0</strong>(:)</td><td></td><td></td><td><p>equilibrium temperature</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_t0_dr"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_T0_dr</strong>(:)</td><td></td><td></td><td><p>derivative of the equilibrium temperature</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-bfield_type"></span><h3>type, public :: <a href='../type/bfield_type.html'>bfield_type</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>type containing all magnetic field related equilibrium variables</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-b02"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>B02</strong>(:)</td><td></td><td></td><td><p>equilibrium magnetic field in y or theta-direction</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-b03"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>B03</strong>(:)</td><td></td><td></td><td><p>equilibrium magnetic field in z direction</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-b0"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>B0</strong>(:)</td><td></td><td></td><td><p>equilibrium magnetic field (total)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_b02_dr"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_B02_dr</strong>(:)</td><td></td><td></td><td><p>derivative of equilibrium B02</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_b03_dr"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_B03_dr</strong>(:)</td><td></td><td></td><td><p>derivative of equilibrium B03</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-velocity_type"></span><h3>type, public :: <a href='../type/velocity_type.html'>velocity_type</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>type containing all flow related equilibrium variables</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-v02"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>v02</strong>(:)</td><td></td><td></td><td><p>equilibrium velocity in the y or theta-direction</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-v03"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>v03</strong>(:)</td><td></td><td></td><td><p>equilibrium velocity in the z direction</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_v02_dr"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_v02_dr</strong>(:)</td><td></td><td></td><td><p>derivative of equilibrium v02</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_v03_dr"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_v03_dr</strong>(:)</td><td></td><td></td><td><p>derivative of equilibrium v03</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-gravity_type"></span><h3>type, public :: <a href='../type/gravity_type.html'>gravity_type</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>type containing all gravity related equilibrium variables</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-grav"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>grav</strong>(:)</td><td></td><td></td><td><p>equilibrium gravity</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-resistivity_type"></span><h3>type, public :: <a href='../type/resistivity_type.html'>resistivity_type</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>type containing all resistivity related equilibrium variables</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-eta"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>eta</strong>(:)</td><td></td><td></td><td><p>equilibrium resistivity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_eta_dt"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_eta_dT</strong>(:)</td><td></td><td></td><td><p>derivative of eta with respect to temperature</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_eta_dr"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_eta_dr</strong>(:)</td><td></td><td></td><td><p>derivative of eta with respect to radius</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dd_b02_dr"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>dd_B02_dr</strong>(:)</td><td></td><td></td><td><p>second derivative equilibrium B02</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dd_b03_dr"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>dd_B03_dr</strong>(:)</td><td></td><td></td><td><p>second derivative equilibrium B03</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-cooling_type"></span><h3>type, public :: <a href='../type/cooling_type.html'>cooling_type</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>type containing all radiative cooling related equilibrium variables</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-heat_loss"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>heat_loss</strong>(:)</td><td></td><td></td><td><p>equilibrium heat-loss function L0 (losses - gains)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_l_dt"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_L_dT</strong>(:)</td><td></td><td></td><td><p>derivative dL/dT</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_l_drho"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_L_drho</strong>(:)</td><td></td><td></td><td><p>derivative dL/drho</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-conduction_type"></span><h3>type, public :: <a href='../type/conduction_type.html'>conduction_type</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>Type containing all conduction related equilibrium variables</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-kappa_para"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>kappa_para</strong>(:)</td><td></td><td></td><td><p>equilibrium parallel thermal conduction</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-kappa_perp"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>kappa_perp</strong>(:)</td><td></td><td></td><td><p>equilibrium perpendicular thermal conduction</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_kappa_perp_drho"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_kappa_perp_drho</strong>(:)</td><td></td><td></td><td><p>derivative d(kappa_perp)/drho</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_kappa_perp_dt"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_kappa_perp_dT</strong>(:)</td><td></td><td></td><td><p>derivative d(kappa_perp)/dT</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-d_kappa_perp_db2"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>d_kappa_perp_dB2</strong>(:)</td><td></td><td></td><td><p>derivative d(kappa_perp)/d(B**2)</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-ef_type"></span><h3>type, public :: <a href='../type/ef_type.html'>ef_type</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>type containing all eigenfuction related variables</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-index"></span>integer,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>index</strong></td><td></td><td></td><td><p>index of the variable in the state vector</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-name"></span>character(len=str_len_arr),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>name</strong></td><td></td><td></td><td><p>name of the eigenfunction (rho, v1, etc.)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-eigenfunctions"></span>complex(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>eigenfunctions</strong>(:,:)</td><td></td><td></td><td><p>array containing all eigenfunctions for this index</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+  </div>
+</div>
+
+     
+    </section>
+  <br>
+    
+    
+    
+
+    
+    <section>
+    <h2>Subroutines</h2>
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-initialise_density_type"></span><h3>
+private subroutine <a href='../proc/initialise_density_type.html'>initialise_density_type</a>(type_rho)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Allocates the density type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/density_type.html'>density_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_rho</strong></td><td><p>the type containing the density attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-initialise_temperature_type"></span><h3>
+private subroutine <a href='../proc/initialise_temperature_type.html'>initialise_temperature_type</a>(type_T)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Allocates the temperature type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/temperature_type.html'>temperature_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_T</strong></td><td><p>the type containing the temperature attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-initialise_bfield_type"></span><h3>
+private subroutine <a href='../proc/initialise_bfield_type.html'>initialise_bfield_type</a>(type_B)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Allocates the magnetic field type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/bfield_type.html'>bfield_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_B</strong></td><td><p>the type containing the magnetic field attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-initialise_velocity_type"></span><h3>
+private subroutine <a href='../proc/initialise_velocity_type.html'>initialise_velocity_type</a>(type_v)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Allocates the velocity type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/velocity_type.html'>velocity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_v</strong></td><td><p>the type containing the velocity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-initialise_gravity_type"></span><h3>
+private subroutine <a href='../proc/initialise_gravity_type.html'>initialise_gravity_type</a>(type_grav)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Allocates the gravity type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/gravity_type.html'>gravity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_grav</strong></td><td><p>the type containing the gravity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-initialise_resistivity_type"></span><h3>
+private subroutine <a href='../proc/initialise_resistivity_type.html'>initialise_resistivity_type</a>(type_eta)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Allocates the resistivity type and initialises all values to zero.
+ </p><a href="../proc/initialise_resistivity_type.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/resistivity_type.html'>resistivity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_eta</strong></td><td><p>the type containing the resistivity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-initialise_cooling_type"></span><h3>
+private subroutine <a href='../proc/initialise_cooling_type.html'>initialise_cooling_type</a>(type_rc)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Allocates the radiative cooling type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/cooling_type.html'>cooling_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_rc</strong></td><td><p>the type containing the radiative cooling attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-initialise_conduction_type"></span><h3>
+private subroutine <a href='../proc/initialise_conduction_type.html'>initialise_conduction_type</a>(type_kappa)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Allocates the thermal conduction type and initialises all values to zero.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/conduction_type.html'>conduction_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_kappa</strong></td><td><p>the type containing the thermal conduction attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-deallocate_density_type"></span><h3>
+private subroutine <a href='../proc/deallocate_density_type.html'>deallocate_density_type</a>(type_rho)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the  density type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/density_type.html'>density_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_rho</strong></td><td><p>the type containing the density attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-deallocate_temperature_type"></span><h3>
+private subroutine <a href='../proc/deallocate_temperature_type.html'>deallocate_temperature_type</a>(type_T)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the temperature type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/temperature_type.html'>temperature_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_T</strong></td><td><p>the type containing the temperature attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-deallocate_bfield_type"></span><h3>
+private subroutine <a href='../proc/deallocate_bfield_type.html'>deallocate_bfield_type</a>(type_B)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the magnetic field type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/bfield_type.html'>bfield_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_B</strong></td><td><p>the type containing the magnetic field attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-deallocate_velocity_type"></span><h3>
+private subroutine <a href='../proc/deallocate_velocity_type.html'>deallocate_velocity_type</a>(type_v)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the velocity type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/velocity_type.html'>velocity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_v</strong></td><td><p>the type containing the velocity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-deallocate_gravity_type"></span><h3>
+private subroutine <a href='../proc/deallocate_gravity_type.html'>deallocate_gravity_type</a>(type_grav)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the gravity type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/gravity_type.html'>gravity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_grav</strong></td><td><p>the type containing the gravity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-deallocate_resistivity_type"></span><h3>
+private subroutine <a href='../proc/deallocate_resistivity_type.html'>deallocate_resistivity_type</a>(type_eta)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the resistivity type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/resistivity_type.html'>resistivity_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_eta</strong></td><td><p>the type containing the resistivity attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-deallocate_cooling_type"></span><h3>
+private subroutine <a href='../proc/deallocate_cooling_type.html'>deallocate_cooling_type</a>(type_rc)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the radiative cooling type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/cooling_type.html'>cooling_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_rc</strong></td><td><p>the type containing the radiative cooling attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-deallocate_conduction_type"></span><h3>
+private subroutine <a href='../proc/deallocate_conduction_type.html'>deallocate_conduction_type</a>(type_kappa)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Deallocates all attributes contained in the thermal conduction type.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>type(<a href='../type/conduction_type.html'>conduction_type</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>type_kappa</strong></td><td><p>the type containing the thermal conduction attributes</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    </section>    
+    <br>
+    
+    
+    
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> Legolas was developed by </p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    
+  </body>
+</html>

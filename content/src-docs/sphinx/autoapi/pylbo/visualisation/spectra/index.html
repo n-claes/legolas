@@ -1,0 +1,709 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pylbo.visualisation.spectra &mdash; Pylbo 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="pylbo._version" href="../../_version/index.html" />
+    <link rel="prev" title="pylbo.visualisation.profiles" href="../profiles/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> Pylbo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Package structure:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo</span></code></a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../automation/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.automation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utilities/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.utilities</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation</span></code></a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation.api</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../continua/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation.continua</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eigenfunctions/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation.eigenfunctions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../figure_manager/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation.figure_manager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../legend_interface/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation.legend_interface</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../matrices/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation.matrices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../profiles/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation.profiles</span></code></a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation.spectra</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../_version/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo._version</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../data_containers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.data_containers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../exceptions/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.exceptions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../file_handler/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.file_handler</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Pylbo</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">API Reference</a> &raquo;</li>
+        
+          <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo</span></code></a> &raquo;</li>
+        
+          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation</span></code></a> &raquo;</li>
+        
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation.spectra</span></code></li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../../../_sources/autoapi/pylbo/visualisation/spectra/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pylbo.visualisation.spectra">
+<span id="pylbo-visualisation-spectra"></span><h1><a class="reference internal" href="#module-pylbo.visualisation.spectra" title="pylbo.visualisation.spectra"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation.spectra</span></code></a><a class="headerlink" href="#module-pylbo.visualisation.spectra" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.visualisation.spectra.SpectrumFigure" title="pylbo.visualisation.spectra.SpectrumFigure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpectrumFigure</span></code></a></p></td>
+<td><p>Superclass of both single and multispectra.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pylbo.visualisation.spectra.SingleSpectrumPlot" title="pylbo.visualisation.spectra.SingleSpectrumPlot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SingleSpectrumPlot</span></code></a></p></td>
+<td><p>Creates a plot of a single spectrum based on a given dataset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.visualisation.spectra.MultiSpectrumPlot" title="pylbo.visualisation.spectra.MultiSpectrumPlot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiSpectrumPlot</span></code></a></p></td>
+<td><p>Subclass that draws the multispectra.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pylbo.visualisation.spectra.MergedSpectrumPlot" title="pylbo.visualisation.spectra.MergedSpectrumPlot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MergedSpectrumPlot</span></code></a></p></td>
+<td><p>Merges the datasets from a given series into a single plot.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.visualisation.spectra.SpectrumComparisonPlot" title="pylbo.visualisation.spectra.SpectrumComparisonPlot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpectrumComparisonPlot</span></code></a></p></td>
+<td><p>Subclass to compare two spectra.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumFigure">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pylbo.visualisation.spectra.</span></span><span class="sig-name descname"><span class="pre">SpectrumFigure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_figure</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumFigure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumFigure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow" title="pylbo.visualisation.figure_manager.FigureWindow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pylbo.visualisation.figure_manager.FigureWindow</span></code></a></p>
+<p>Superclass of both single and multispectra.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumFigure.draw">
+<span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumFigure.draw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumFigure.draw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draws everything, checks for continua/eigenfunctions. Overridden by subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumFigure._set_plot_properties">
+<span class="sig-name descname"><span class="pre">_set_plot_properties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumFigure._set_plot_properties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumFigure._set_plot_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets all relevant plot properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>properties</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary containing the usual matplotlib properties (marker, color,
+markersize, alpha, etc.)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumFigure._add_spectrum">
+<span class="sig-name descname"><span class="pre">_add_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumFigure._add_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumFigure._add_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the spectrum, is overridden in subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumFigure.add_continua">
+<span class="sig-name descname"><span class="pre">add_continua</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumFigure.add_continua"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumFigure.add_continua" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the continua to the plot, overridden by subclasses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>interactive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If <cite>True</cite>, makes the legend interactive.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumFigure.add_eigenfunctions">
+<span class="sig-name descname"><span class="pre">add_eigenfunctions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumFigure.add_eigenfunctions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumFigure.add_eigenfunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add eigenfunctions, should be partially overridden by subclass and
+then called through <cite>super()</cite> to connect the figure events.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pylbo.visualisation.spectra.</span></span><span class="sig-name descname"><span class="pre">SingleSpectrumPlot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_figure</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SingleSpectrumPlot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pylbo.visualisation.spectra.SpectrumFigure" title="pylbo.visualisation.spectra.SpectrumFigure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpectrumFigure</span></code></a></p>
+<p>Creates a plot of a single spectrum based on a given dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<a class="reference internal" href="../../data_containers/index.html#pylbo.data_containers.LegolasDataSet" title="pylbo.data_containers.LegolasDataSet"><em>LegolasDataSet</em></a>) – The dataset used to create the spectrum.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – Figure size used when creating a window, analogous to matplotlib.</p></li>
+<li><p><strong>custom_figure</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – The custom figure to use in the form (fig, axes).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot.dataset">
+<span class="sig-name descname"><span class="pre">dataset</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot.dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dataset passed as parameter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../../data_containers/index.html#pylbo.data_containers.LegolasDataSet" title="pylbo.data_containers.LegolasDataSet">LegolasDataSet</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot.w_real">
+<span class="sig-name descname"><span class="pre">w_real</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot.w_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>Real part of the eigenvalues as a numpy array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a>(dtype=float, ndim=1)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot.w_imag">
+<span class="sig-name descname"><span class="pre">w_imag</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot.w_imag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Imaginary part of the eigenvalues as a numpy array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a>(dtype=float, ndim=1)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot.marker">
+<span class="sig-name descname"><span class="pre">marker</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot.marker" title="Permalink to this definition">¶</a></dt>
+<dd><p>The marker used to draw the points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>markers</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot.markersize">
+<span class="sig-name descname"><span class="pre">markersize</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot.markersize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of the marker.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot.alpha">
+<span class="sig-name descname"><span class="pre">alpha</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot.alpha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alpha value of the points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot._add_spectrum">
+<span class="sig-name descname"><span class="pre">_add_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SingleSpectrumPlot._add_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot._add_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the spectrum to the plot, makes the points pickable.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot.add_continua">
+<span class="sig-name descname"><span class="pre">add_continua</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SingleSpectrumPlot.add_continua"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot.add_continua" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the continua to the spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>interactive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If <cite>True</cite>, makes the legend pickable.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>c_handler</strong> – The legendhandler used to plot the continua.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ContinuaHandler</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot.add_eigenfunctions">
+<span class="sig-name descname"><span class="pre">add_eigenfunctions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SingleSpectrumPlot.add_eigenfunctions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot.add_eigenfunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the eigenfunctions to the plot, sets the eigenfunction handler.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot._ensure_smooth_continuum">
+<span class="sig-name descname"><span class="pre">_ensure_smooth_continuum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuum</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SingleSpectrumPlot._ensure_smooth_continuum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot._ensure_smooth_continuum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot.ef_ax">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ef_ax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SingleSpectrumPlot.ef_ax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot.ef_ax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property, returns the eigenfunction axes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SingleSpectrumPlot.ef_handler">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ef_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SingleSpectrumPlot.ef_handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SingleSpectrumPlot.ef_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property, returns the eigenfunction handler.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MultiSpectrumPlot">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pylbo.visualisation.spectra.</span></span><span class="sig-name descname"><span class="pre">MultiSpectrumPlot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataseries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xdata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_squared_omega</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_real_parts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_figure</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MultiSpectrumPlot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MultiSpectrumPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pylbo.visualisation.spectra.SpectrumFigure" title="pylbo.visualisation.spectra.SpectrumFigure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpectrumFigure</span></code></a></p>
+<p>Subclass that draws the multispectra.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataseries</strong> (<a class="reference internal" href="../../data_containers/index.html#pylbo.data_containers.LegolasDataSeries" title="pylbo.data_containers.LegolasDataSeries"><em>LegolasDataSeries</em></a>) – The dataseries that should be used.</p></li>
+<li><p><strong>xdata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – Data to use for the horizontal axis. This can either be a key from the
+parameters dictionary, or a list/numpy array containing actual data.</p></li>
+<li><p><strong>use_squared_omega</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If <cite>True</cite>, this will square the eigenvalues when they are plotted on the
+vertical axis. If <cite>False</cite> (default), either the real or imaginary part of the
+eigenvalues will be plotted depending on the value of <cite>use_real_parts</cite>.</p></li>
+<li><p><strong>use_real_parts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If <cite>True</cite> (default), this will plot the real part of the eigenvalues on the
+vertical axis. If <cite>False</cite> the imaginary part will be used.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – Optional figure size like the usual matplotlib (x, x) size.</p></li>
+<li><p><strong>custom_figure</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – Optional, in the form (fig, ax). If supplied no new figure will be created
+but this one will be used instead. <cite>fig</cite> refers to the matplotlib figure and
+<cite>ax</cite> to a (single) axes instance, meaning that you can pass a subplot as well.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MultiSpectrumPlot._validate_xdata">
+<span class="sig-name descname"><span class="pre">_validate_xdata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xdata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MultiSpectrumPlot._validate_xdata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MultiSpectrumPlot._validate_xdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates the xdata passed, does typechecking and necessary casting.
+If a string is passed, this will request the proper values based on the
+parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>xdata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – The xdata used as x values on the spectrum plot.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>xdata_values</strong> – The xdata values of proper length and casted to a Numpy array.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MultiSpectrumPlot._get_ydata">
+<span class="sig-name descname"><span class="pre">_get_ydata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MultiSpectrumPlot._get_ydata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MultiSpectrumPlot._get_ydata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the y data based on the value of <code class="xref py py-attr docutils literal notranslate"><span class="pre">use_squared_omega</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>ydata_values</strong> – The y data values, either the real or imaginary parts based on
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">use_real_parts</span></code>.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MultiSpectrumPlot.set_x_scaling">
+<span class="sig-name descname"><span class="pre">set_x_scaling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_scaling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MultiSpectrumPlot.set_x_scaling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MultiSpectrumPlot.set_x_scaling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the x scaling, properly adjusted to the dataseries length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x_scaling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.9)"><em>complex</em></a><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – Values to use for the x-scaling.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MultiSpectrumPlot.set_y_scaling">
+<span class="sig-name descname"><span class="pre">set_y_scaling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_scaling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MultiSpectrumPlot.set_y_scaling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MultiSpectrumPlot.set_y_scaling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the y scaling, properly adjusted to the dataseries length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>y_scaling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.9)"><em>complex</em></a><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – Values to use for the y-scaling.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MultiSpectrumPlot._add_spectrum">
+<span class="sig-name descname"><span class="pre">_add_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MultiSpectrumPlot._add_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MultiSpectrumPlot._add_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw method, creates the spectrum.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MultiSpectrumPlot.add_continua">
+<span class="sig-name descname"><span class="pre">add_continua</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MultiSpectrumPlot.add_continua"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MultiSpectrumPlot.add_continua" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the continua to the plot, either interactive or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>interactive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If <cite>True</cite>, makes the legend interactive.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MultiSpectrumPlot.add_eigenfunctions">
+<span class="sig-name descname"><span class="pre">add_eigenfunctions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MultiSpectrumPlot.add_eigenfunctions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MultiSpectrumPlot.add_eigenfunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the eigenfunctions to the current figure.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MergedSpectrumPlot">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pylbo.visualisation.spectra.</span></span><span class="sig-name descname"><span class="pre">MergedSpectrumPlot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MergedSpectrumPlot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MergedSpectrumPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pylbo.visualisation.spectra.SpectrumFigure" title="pylbo.visualisation.spectra.SpectrumFigure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpectrumFigure</span></code></a></p>
+<p>Merges the datasets from a given series into a single plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<a class="reference internal" href="../../data_containers/index.html#pylbo.data_containers.LegolasDataSeries" title="pylbo.data_containers.LegolasDataSeries"><em>LegolasDataSeries</em></a>) – The dataseries which will be merged.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – Figure size used when creating a window, analogous to matplotlib.</p></li>
+<li><p><strong>custom_figure</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – The custom figure to use in the form (fig, axes).</p></li>
+<li><p><strong>interactive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If <cite>True</cite> an interactive legend is enabled.</p></li>
+<li><p><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If <cite>False</cite> no legend will be drawn.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MergedSpectrumPlot.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.MergedSpectrumPlot.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dataseries passed as parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../../data_containers/index.html#pylbo.data_containers.LegolasDataSeries" title="pylbo.data_containers.LegolasDataSeries">LegolasDataSeries</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MergedSpectrumPlot.leg_handle">
+<span class="sig-name descname"><span class="pre">leg_handle</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.MergedSpectrumPlot.leg_handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>The handler for the legend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../legend_interface/index.html#pylbo.visualisation.legend_interface.LegendHandler" title="pylbo.visualisation.legend_interface.LegendHandler">LegendHandler</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MergedSpectrumPlot._add_spectrum">
+<span class="sig-name descname"><span class="pre">_add_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MergedSpectrumPlot._add_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MergedSpectrumPlot._add_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the spectrum to the plot, makes the points pickable.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MergedSpectrumPlot.add_eigenfunctions">
+<span class="sig-name descname"><span class="pre">add_eigenfunctions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MergedSpectrumPlot.add_eigenfunctions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MergedSpectrumPlot.add_eigenfunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the eigenfunctions to the current figure.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.MergedSpectrumPlot.add_continua">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">add_continua</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#MergedSpectrumPlot.add_continua"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.MergedSpectrumPlot.add_continua" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the continua to the plot, overridden by subclasses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>interactive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If <cite>True</cite>, makes the legend interactive.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumComparisonPlot">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pylbo.visualisation.spectra.</span></span><span class="sig-name descname"><span class="pre">SpectrumComparisonPlot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock_zoom</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumComparisonPlot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumComparisonPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pylbo.visualisation.spectra.SpectrumFigure" title="pylbo.visualisation.spectra.SpectrumFigure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpectrumFigure</span></code></a></p>
+<p>Subclass to compare two spectra.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ds1</strong> (<a class="reference internal" href="../../data_containers/index.html#pylbo.data_containers.LegolasDataSet" title="pylbo.data_containers.LegolasDataSet"><em>LegolasDataSet</em></a>) – First dataset, will be placed on the left side.</p></li>
+<li><p><strong>ds2</strong> (<a class="reference internal" href="../../data_containers/index.html#pylbo.data_containers.LegolasDataSet" title="pylbo.data_containers.LegolasDataSet"><em>LegolasDataSet</em></a>) – Second dataset for comparison, will be placed on the right side.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – Figure size used when creating a window, analogous to matplotlib.</p></li>
+<li><p><strong>custom_figure</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – The custom figure to use in the form (fig, axes).</p></li>
+<li><p><strong>lock_zoom</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If <cite>True</cite>, locks the zoom for both spectrum plots.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumComparisonPlot.ax2">
+<span class="sig-name descname"><span class="pre">ax2</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumComparisonPlot.ax2" title="Permalink to this definition">¶</a></dt>
+<dd><p>The (top)right axes object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.4.1)">Axes</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumComparisonPlot.panel1">
+<span class="sig-name descname"><span class="pre">panel1</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumComparisonPlot.panel1" title="Permalink to this definition">¶</a></dt>
+<dd><p>The spectrum instance associated with the left side.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pylbo.visualisation.spectra.SingleSpectrumPlot" title="pylbo.visualisation.spectra.SingleSpectrumPlot">SingleSpectrumPlot</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumComparisonPlot.panel2">
+<span class="sig-name descname"><span class="pre">panel2</span></span><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumComparisonPlot.panel2" title="Permalink to this definition">¶</a></dt>
+<dd><p>The spectrum instance associated with the right side.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pylbo.visualisation.spectra.SingleSpectrumPlot" title="pylbo.visualisation.spectra.SingleSpectrumPlot">SingleSpectrumPlot</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumComparisonPlot.set_x_scaling">
+<span class="sig-name descname"><span class="pre">set_x_scaling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_scaling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumComparisonPlot.set_x_scaling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumComparisonPlot.set_x_scaling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overloads parent method, calls x scaling setter for each panel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x_scaling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.9)"><em>complex</em></a><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – The scaling to apply to the x-axis</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumComparisonPlot.set_y_scaling">
+<span class="sig-name descname"><span class="pre">set_y_scaling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_scaling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumComparisonPlot.set_y_scaling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumComparisonPlot.set_y_scaling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overloads parent method, calls y scaling setter for each panel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>y_scaling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.9)"><em>complex</em></a><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – The scaling to apply to the y-axis</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumComparisonPlot._use_custom_axes">
+<span class="sig-name descname"><span class="pre">_use_custom_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumComparisonPlot._use_custom_axes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumComparisonPlot._use_custom_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the original 1x2 plot into a 2x2 plot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumComparisonPlot.add_eigenfunctions">
+<span class="sig-name descname"><span class="pre">add_eigenfunctions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumComparisonPlot.add_eigenfunctions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumComparisonPlot.add_eigenfunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the eigenfunctions for both datasets and merges the mpl callbacks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.visualisation.spectra.SpectrumComparisonPlot.add_continua">
+<span class="sig-name descname"><span class="pre">add_continua</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/visualisation/spectra.html#SpectrumComparisonPlot.add_continua"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.visualisation.spectra.SpectrumComparisonPlot.add_continua" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the continua for both datasets and merges the mpl callbacks.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../../_version/index.html" class="btn btn-neutral float-right" title="pylbo._version" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../profiles/index.html" class="btn btn-neutral float-left" title="pylbo.visualisation.profiles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Niels Claes, Jordi De Jonghe and Rony Keppens (2020).
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

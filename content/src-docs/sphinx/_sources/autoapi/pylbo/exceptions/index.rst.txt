@@ -1,0 +1,149 @@
+:mod:`pylbo.exceptions`
+=======================
+
+.. py:module:: pylbo.exceptions
+
+
+Module Contents
+---------------
+
+.. exception:: LegolasException(message=None)
+
+
+   Bases: :py:obj:`Exception`
+
+   Exception superclass to handle Legolas exceptions.
+
+   :param message: The message to pass as error message.
+   :type message: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. exception:: InvalidLegolasFile(file)
+
+
+   Bases: :py:obj:`LegolasException`
+
+   Handles trying to load invalid Legolas files.
+
+   :param file: The path to the file.
+   :type file: str, ~os.PathLike
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. exception:: EigenfunctionsNotPresent(msg)
+
+
+   Bases: :py:obj:`LegolasException`
+
+   Handles trying to query for eigenfunctions when these
+   are not present in the datfile.
+
+   :param msg: The error message to pass on.
+   :type msg: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. exception:: MatricesNotPresent(file)
+
+
+   Bases: :py:obj:`LegolasException`
+
+   Handles trying to query for matrices when these
+   are not present in the datfile.
+
+   :param file: The path to the file.
+   :type file: str, ~os.PathLike
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. exception:: ParfileGenerationError(file, nb_runs=None, key=None)
+
+
+   Bases: :py:obj:`LegolasException`
+
+   Gets thrown when something went wrong during parfile generation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

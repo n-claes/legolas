@@ -1,0 +1,355 @@
+:mod:`pylbo.utilities.datfile_utils`
+====================================
+
+.. py:module:: pylbo.utilities.datfile_utils
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.utilities.datfile_utils.get_header
+   pylbo.utilities.datfile_utils.read_grid
+   pylbo.utilities.datfile_utils.read_grid_gauss
+   pylbo.utilities.datfile_utils.read_ef_grid
+   pylbo.utilities.datfile_utils.read_eigenvalues
+   pylbo.utilities.datfile_utils.read_equilibrium_arrays
+   pylbo.utilities.datfile_utils.read_eigenfunction
+   pylbo.utilities.datfile_utils.read_matrix_B
+   pylbo.utilities.datfile_utils.read_matrix_A
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.utilities.datfile_utils.SIZE_CHAR
+   pylbo.utilities.datfile_utils.SIZE_INT
+   pylbo.utilities.datfile_utils.SIZE_BOOL
+   pylbo.utilities.datfile_utils.SIZE_DOUBLE
+   pylbo.utilities.datfile_utils.SIZE_COMPLEX
+   pylbo.utilities.datfile_utils.ALIGN
+
+
+.. data:: SIZE_CHAR
+   
+
+   
+
+.. data:: SIZE_INT
+   
+
+   
+
+.. data:: SIZE_BOOL
+   
+
+   
+
+.. data:: SIZE_DOUBLE
+   
+
+   
+
+.. data:: SIZE_COMPLEX
+   
+
+   
+
+.. data:: ALIGN
+   :annotation: = =
+
+   
+
+.. function:: get_header(istream)
+
+   Retrieves the header from a given datfile.
+
+   :param istream: Datfile opened in binary mode.
+   :type istream: ~io.BufferedReader
+
+   :returns: **h** -- Dictionary containing all header information.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: read_grid(istream, header)
+
+   Retrieves the base grid from the datfile.
+
+   :param istream: Datfile opened in binary mode.
+   :type istream: ~io.BufferedReader
+   :param header: Dictionary containing the datfile header, output from :func:`get_header`.
+   :type header: dict
+
+   :returns: **grid** -- The base grid from the datfile.
+   :rtype: numpy.ndarray(dtype=float, ndim=1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: read_grid_gauss(istream, header)
+
+   Retrieves the Gaussian grid from the datfile.
+
+   :param istream: Datfile opened in binary mode.
+   :type istream: ~io.BufferedReader
+   :param header: Dictionary containing the datfile header, output from :func:`get_header`.
+   :type header: dict
+
+   :returns: **grid_gauss** -- The Gaussian grid from the datfile.
+   :rtype: numpy.ndarray(dtype=float, ndim=1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: read_ef_grid(istream, header)
+
+   Retrieves the eigenfunction grid from the datfile.
+
+   :param istream: Datfile opened in binary mode.
+   :type istream: ~io.BufferedReader
+   :param header: Dictionary containing the datfile header, output from :func:`get_header`.
+   :type header: dict
+
+   :returns: **ef_grid** -- The eigenfunction grid from the datfile.
+   :rtype: numpy.ndarray(dtype=float, ndim=1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: read_eigenvalues(istream, header, omit_large_evs=True)
+
+   Reads the eigenvalues from the datfile, and optionally omits
+   the large (larger than `1e15`) values.
+
+   :param istream: Datfile opened in binary mode.
+   :type istream: ~io.BufferedReader
+   :param header: Dictionary containing the datfile header, output from :func:`get_header`.
+   :type header: dict
+   :param omit_large_evs: If `True`, all eigenvalues with a modulus larger than `1e15` are set to NaN.
+   :type omit_large_evs: bool
+
+   :returns: **eigenvalues** -- The eigenvalues from the datfile, with optionally omitted large values.
+   :rtype: numpy.ndarray(dtype=complex, ndim=1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: read_equilibrium_arrays(istream, header)
+
+   Reads the equilibrium arrays from the datfile.
+
+   :param istream: Datfile opened in binary mode.
+   :type istream: ~io.BufferedReader
+   :param header: Dictionary containing the datfile header, output from :func:`get_header`.
+   :type header: dict
+
+   :returns: **equil_arrays** -- Dictionary containing the equilibrium arrays, with keys given by
+             `header['equil_names']`.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: read_eigenfunction(istream, header, ef_index)
+
+   Reads a single eigenfunction from the datfile.
+   Eigenfunctions are read in on-the-fly, to prevent having to load the
+   entire array into memory (which can quickly be a few 100 Mb for larger datasets).
+
+   :param istream: Datfile opened in binary mode.
+   :type istream: ~io.BufferedReader
+   :param header: Dictionary containing the datfile header, output from :func:`get_header`.
+   :type header: dict
+   :param ef_index: The index of the eigenfunction in the matrix. This value corresponds to the
+                    index of the accompanying eigenvalue in the
+                    :class:`~pylbo.data_containers.LegolasDataSet` eigenvalues attribute.
+   :type ef_index: int
+
+   :returns: **eigenfunctions** -- A dictionary containing the eigenfunctions for all variables with keys given
+             by the names of `header['ef_names']`.
+             The eigenfunctions correspond to a specific
+             eigenvalue, associated with the same `ef_index`.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: read_matrix_B(istream, header)
+
+   Reads the B-matrix from the datfile.
+
+   :param istream: Datfile opened in binary mode.
+   :type istream: ~io.BufferedReader
+   :param header: Dictionary containing the datfile header, output from :func:`get_header`.
+   :type header: dict
+
+   :returns: * **rows** (*numpy.ndarray(dtype=int, ndim=1)*) -- Array containing the row indices of the non-zero matrix entries.
+             * **cols** (*numpy.ndarray(dtype=int, ndim=1)*) -- Array containing the column indices of the non-zero matrix entries.
+             * **vals** (*numpy.ndarray(dtype=float, ndim=1)*) -- Array containing the non-zero B-matrix values corresponding to
+               the rows and column indices.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: read_matrix_A(istream, header)
+
+   Reads the A-matrix from the datfile.
+
+   :param istream: Datfile opened in binary mode.
+   :type istream: ~io.BufferedReader
+   :param header: Dictionary containing the datfile header, output from :func:`get_header`.
+   :type header: dict
+
+   :returns: * **rows** (*numpy.ndarray(dtype=int, ndim=1)*) -- Array containing the row indices of the non-zero matrix entries.
+             * **cols** (*numpy.ndarray(dtype=int, ndim=1)*) -- Array containing the column indices of the non-zero matrix entries.
+             * **vals** (*numpy.ndarray(dtype=complex, ndim=1)*) -- Array containing the non-zero A-matrix values corresponding to
+               the row and column indices.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

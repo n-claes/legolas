@@ -1,0 +1,334 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pylbo.automation.api &mdash; Pylbo 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Pylbo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Package structure:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Pylbo</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pylbo.automation.api</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pylbo.automation.api</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">pylbo.automation.generator</span> <span class="kn">import</span> <span class="n">ParfileGenerator</span>
+<span class="kn">from</span> <span class="nn">pylbo.automation.runner</span> <span class="kn">import</span> <span class="n">LegolasRunner</span>
+
+
+<div class="viewcode-block" id="generate_parfiles"><a class="viewcode-back" href="../../../autoapi/pylbo/index.html#pylbo.automation.api.generate_parfiles">[docs]</a><span class="k">def</span> <span class="nf">generate_parfiles</span><span class="p">(</span><span class="n">parfile_dict</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates parfiles based on a given configuration dictionary.</span>
+<span class="sd">    The separate namelists do not have to be taken into account, and a normal</span>
+<span class="sd">    dictionary should be supplied where the keys correspond to the namelist</span>
+<span class="sd">    items that are required. Typechecking is done automatically during parfile</span>
+<span class="sd">    generation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parfile_dict : dict</span>
+<span class="sd">        Dictionary containing the keys to be placed in the parfile.</span>
+<span class="sd">    basename : str</span>
+<span class="sd">        The basename for the parfile, the `.par` suffix is added automatically and is</span>
+<span class="sd">        not needed. If multiple parfiles are generated, these</span>
+<span class="sd">        will be prepended by a 4-digit number (e.g. 0003myparfile.par).</span>
+<span class="sd">        If not provided, the basename will default to `parfile`.</span>
+<span class="sd">    output_dir : str, ~os.PathLike</span>
+<span class="sd">        Output directory where the parfiles are saved, defaults to the current</span>
+<span class="sd">        working directory if not specified. A subdirectory called `parfiles` will be</span>
+<span class="sd">        created in which the parfiles will be saved.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This routine is quite flexible and specifically designed for parametric studies.</span>
+<span class="sd">    You can specify both single values and list-like items as dictionary items.</span>
+<span class="sd">    This routine will automatically generate multiple parfiles if lists/numpy arrays</span>
+<span class="sd">    are present.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    parfiles : list</span>
+<span class="sd">        A list with the paths to the parfiles that were generated. This list can be</span>
+<span class="sd">        passed immediately to :func:`pylbo.run_legolas`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    This will generate a single parfile in a subdirectory `parfile` of the</span>
+<span class="sd">    current working directory.</span>
+
+<span class="sd">    &gt;&gt;&gt; import pylbo</span>
+<span class="sd">    &gt;&gt;&gt; config = {</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;geometry&quot;: &quot;Cartesian&quot;,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;x_start&quot;: 0,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;x_end&quot;: 1,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;equilibrium_type&quot;: &quot;resistive_homo&quot;,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;gridpoints&quot;: 100,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;write_eigenfunctions&quot;: True,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;basename_datfile&quot;: &quot;my_run&quot;,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;output_folder&quot;: &quot;output&quot;,</span>
+<span class="sd">    &gt;&gt;&gt; }</span>
+<span class="sd">    &gt;&gt;&gt; parfile = pylbo.generate_parfiles(config)</span>
+
+<span class="sd">    This will generate 10 parfiles in the directory `my_parfiles` relative to</span>
+<span class="sd">    the current working directory. The first parfile will have `x_end = 1.0` and 100</span>
+<span class="sd">    gridpoints, the second one will have `x_end = 2.0` and 150 gridpoints, etc.</span>
+
+<span class="sd">    &gt;&gt;&gt; import pylbo</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; config = {</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;geometry&quot;: &quot;Cartesian&quot;,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;x_start&quot;: 0,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;x_end&quot;: np.arange(1, 11)</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;number_of_runs&quot;: 10</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;equilibrium_type&quot;: &quot;resistive_homo&quot;,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;gridpoints&quot;: np.arange(100, 600, 50),</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;write_eigenfunctions&quot;: True,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;basename_datfile&quot;: &quot;my_run&quot;,</span>
+<span class="sd">    &gt;&gt;&gt;    &quot;output_folder&quot;: &quot;output&quot;,</span>
+<span class="sd">    &gt;&gt;&gt; }</span>
+<span class="sd">    &gt;&gt;&gt; parfile_list = pylbo.generate_parfiles(config, output_dir=&quot;my_parfiles&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pfgen</span> <span class="o">=</span> <span class="n">ParfileGenerator</span><span class="p">(</span><span class="n">parfile_dict</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">pfgen</span><span class="o">.</span><span class="n">create_namelist_from_dict</span><span class="p">()</span>
+    <span class="n">parfiles</span> <span class="o">=</span> <span class="n">pfgen</span><span class="o">.</span><span class="n">generate_parfiles</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">parfiles</span></div>
+
+
+<div class="viewcode-block" id="run_legolas"><a class="viewcode-back" href="../../../autoapi/pylbo/index.html#pylbo.automation.api.run_legolas">[docs]</a><span class="k">def</span> <span class="nf">run_legolas</span><span class="p">(</span><span class="n">parfiles</span><span class="p">,</span> <span class="n">remove_parfiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nb_cpus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">executable</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs the legolas executable for a given list of parfiles. If more than one parfile</span>
+<span class="sd">    is passed, the runs can be performed in parallel using the multiprocessing module.</span>
+<span class="sd">    Parallelisation can be enabled by setting the `nb_cpus` kwarg to a number greater</span>
+<span class="sd">    than one, and is disabled by default.</span>
+<span class="sd">    Every CPU will have a single legolas executable subprocess associated</span>
+<span class="sd">    with it.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parfiles : str, list, numpy.ndarray</span>
+<span class="sd">        A string, list or array containing the paths to the parfile(s).</span>
+<span class="sd">        Accepts the output of :func:`pylbo.generate_parfiles`.</span>
+<span class="sd">    remove_parfiles : bool</span>
+<span class="sd">        If `True`, removes the parfiles after running Legolas. This will also remove</span>
+<span class="sd">        the containing folder if it turns out to be empty after the parfiles are</span>
+<span class="sd">        removed. If there are other files still in the folder it remains untouched.</span>
+<span class="sd">    nb_cpus : int</span>
+<span class="sd">        The number of CPUs to use when running Legolas. If equal to 1 then</span>
+<span class="sd">        parallelisation is disabled. Defaults to the maximum number of CPUs available</span>
+<span class="sd">        if a number larger than the available number is specified.</span>
+<span class="sd">    executable : str, ~os.PathLike</span>
+<span class="sd">        The path to the legolas executable. If not specified, defaults to the</span>
+<span class="sd">        standard one in the legolas home directory.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    If multiprocessing is enabled, it is usually a good idea to have the number</span>
+<span class="sd">    of runs requested divisible by the number of CPUs that are available. For example,</span>
+<span class="sd">    if 24 runs are requested it is good practice to use either 2, 4, 6 or 8 CPUs,</span>
+<span class="sd">    and avoid numbers like 3, 5 and 7.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    The example below will run a list of parfiles using using a local legolas</span>
+<span class="sd">    executable from the current directory, on 4 CPU&#39;s.</span>
+
+<span class="sd">    &gt;&gt;&gt; import pylbo</span>
+<span class="sd">    &gt;&gt;&gt; from pathlib import Path</span>
+<span class="sd">    &gt;&gt;&gt; files = sorted(Path(&quot;parfiles&quot;).glob(&quot;*.dat&quot;))</span>
+<span class="sd">    &gt;&gt;&gt; pylbo.run_legolas(files, nb_cpus=4, executable=&quot;legolas&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">runner</span> <span class="o">=</span> <span class="n">LegolasRunner</span><span class="p">(</span><span class="n">parfiles</span><span class="p">,</span> <span class="n">remove_parfiles</span><span class="p">,</span> <span class="n">nb_cpus</span><span class="p">,</span> <span class="n">executable</span><span class="p">)</span>
+    <span class="n">runner</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Niels Claes, Jordi De Jonghe and Rony Keppens (2020).
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

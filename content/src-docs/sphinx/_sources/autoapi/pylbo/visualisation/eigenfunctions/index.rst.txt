@@ -1,0 +1,222 @@
+:mod:`pylbo.visualisation.eigenfunctions`
+=========================================
+
+.. py:module:: pylbo.visualisation.eigenfunctions
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.eigenfunctions.EigenfunctionHandler
+
+
+
+
+.. class:: EigenfunctionHandler(data, ef_ax)
+
+
+   Main handler for eigenfunctions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: on_point_pick(self, event)
+
+      Determines what happens when a pickable artist is selected.
+
+      :param event: The pick event.
+      :type event: ~matplotlib.backend_bases.PickEvent
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: on_key_press(self, event)
+
+      Determines what happens when a key is pressed.
+
+      :param event: The key event.
+      :type event: ~matplotlib.backend_bases.KeyEvent
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: update_plot(self)
+
+      Updates the plot when an event is triggered, clears and then redraws
+      the eigenfunctions. Rescaling of the axes is done automatically.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _select_next_eigenfunction(self)
+
+      Increments the eigenfunction index by one.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _select_previous_eigenfunction(self)
+
+      Decrements the eigenfunction index by one.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _get_title(self, ef_name)
+
+      Creates the title of the eigenfunction plot.
+      If the eigenfunction is retransformed an 'r' is prepended if appropriate,
+      along with Re/Im depending on the real/imaginary part shown.
+      Additionally, LaTeX formatting is used and numbers are replaced with the
+      corresponding suffix: :math:`(1, 2, 3)`
+      becomes :math:`(x, y, z)` or :math:`(r, \theta, z)`.
+
+      :param ef_name: The name of the eigenfunction as present in the datfile.
+      :type ef_name: str
+
+      :returns: **name** -- The 'new' name for the eigenfunction, used as title.
+      :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: mark_points_without_eigenfunctions(self)
+
+      For dataseries, it is possible that not all datasets in the series
+      have eigenfunctions associated with them. This routine will toggle a change
+      in the opacity value for datapoints with no eigenfunctions, so they are
+      clearly distinguishable from those who do have them.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+

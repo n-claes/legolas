@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pylbo.visualisation.legend_interface &mdash; Pylbo 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Pylbo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Package structure:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Pylbo</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pylbo.visualisation.legend_interface</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pylbo.visualisation.legend_interface</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.collections</span> <span class="k">as</span> <span class="nn">mpl_collections</span>
+<span class="kn">import</span> <span class="nn">matplotlib.lines</span> <span class="k">as</span> <span class="nn">mpl_lines</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pylbo.utilities.toolbox</span> <span class="kn">import</span> <span class="n">add_pickradius_to_item</span>
+
+
+<div class="viewcode-block" id="LegendHandler"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/legend_interface/index.html#pylbo.visualisation.legend_interface.LegendHandler">[docs]</a><span class="k">class</span> <span class="nc">LegendHandler</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main handler for legend stuff.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    legend : ~matplotlib.legend.Legend</span>
+<span class="sd">        The matplotlib legend to use.</span>
+<span class="sd">    alpha_point : int, float</span>
+<span class="sd">        Alpha value for non-hidden lines or points.</span>
+<span class="sd">    alpha_region : int, float</span>
+<span class="sd">        Alpha value for non-hidden regions.</span>
+<span class="sd">    alpha_hidden : int, float</span>
+<span class="sd">        Alpha value for hidden artists.</span>
+<span class="sd">    marker : ~matplotlib.markers</span>
+<span class="sd">        The marker to use for points.</span>
+<span class="sd">    markersize : int, float</span>
+<span class="sd">        Size of the marker.</span>
+<span class="sd">    pickradius : int, float</span>
+<span class="sd">        Radius around pickable items so pickevents are triggered.</span>
+<span class="sd">    linewidth : int, float</span>
+<span class="sd">        Width of drawn lines.</span>
+<span class="sd">    legend_properties : dict</span>
+<span class="sd">        Additional properties used when setting the legend.</span>
+<span class="sd">    interactive : bool</span>
+<span class="sd">        If `True`, makes the legend interactive</span>
+<span class="sd">    autoscale : bool</span>
+<span class="sd">        If `True`, will check if autoscale is needed when clicking the legend.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interactive</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">legend</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha_point</span> <span class="o">=</span> <span class="mf">0.8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha_region</span> <span class="o">=</span> <span class="mf">0.2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha_hidden</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">marker</span> <span class="o">=</span> <span class="s2">&quot;p&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">markersize</span> <span class="o">=</span> <span class="mi">64</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pickradius</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linewidth</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">legend_properties</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">interactive</span> <span class="o">=</span> <span class="n">interactive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">autoscale</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_drawn_items</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_legend_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_make_visible_by_default</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="LegendHandler.on_legend_pick"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/legend_interface/index.html#pylbo.visualisation.legend_interface.LegendHandler.on_legend_pick">[docs]</a>    <span class="k">def</span> <span class="nf">on_legend_pick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determines what happens when the legend gets picked.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        event : ~matplotlib.backend_bases.PickEvent</span>
+<span class="sd">            The matplotlib pick event.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">artist</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">artist</span>
+        <span class="k">if</span> <span class="n">artist</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_legend_mapping</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">drawn_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_legend_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">artist</span><span class="p">)</span>
+        <span class="n">visible</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">drawn_item</span><span class="o">.</span><span class="n">get_visible</span><span class="p">()</span>
+        <span class="n">drawn_item</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="n">visible</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">visible</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">artist</span><span class="p">,</span> <span class="p">(</span><span class="n">mpl_collections</span><span class="o">.</span><span class="n">PathCollection</span><span class="p">,</span> <span class="n">mpl_lines</span><span class="o">.</span><span class="n">Line2D</span><span class="p">)):</span>
+                <span class="n">artist</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_point</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">artist</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_region</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">artist</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_hidden</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_autoscaling</span><span class="p">()</span>
+        <span class="n">artist</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">artist</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LegendHandler.make_legend_pickable"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/legend_interface/index.html#pylbo.visualisation.legend_interface.LegendHandler.make_legend_pickable">[docs]</a>    <span class="k">def</span> <span class="nf">make_legend_pickable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Makes the legend pickable, only used if interactive.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">legend_handles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">legendHandles</span>
+        <span class="n">handle_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">handle</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="k">for</span> <span class="n">handle</span> <span class="ow">in</span> <span class="n">legend_handles</span><span class="p">]</span>
+        <span class="c1"># we need a mapping of the legend item to the actual item that was drawn</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">drawn_item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_drawn_items</span><span class="p">):</span>
+            <span class="c1"># TODO: for some reason fill_between returns empty handles such that</span>
+            <span class="c1">#       the code below errors out. The try-except clause is an attempt</span>
+            <span class="c1">#       to fix it and _should_ work. This relies on the ordening of the</span>
+            <span class="c1">#       legend items when they are drawn, but should be thorougly tested.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">handle_labels</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">drawn_item</span><span class="o">.</span><span class="n">get_label</span><span class="p">())</span>
+                <span class="n">legend_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">legendHandles</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">legend_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">legendHandles</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+                <span class="c1"># fix empty label</span>
+                <span class="n">legend_item</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">drawn_item</span><span class="o">.</span><span class="n">get_label</span><span class="p">())</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">drawn_item</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="o">==</span> <span class="n">legend_item</span><span class="o">.</span><span class="n">get_label</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;something went wrong in mapping legend items to drawn items. </span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Tried to map </span><span class="si">{</span><span class="n">legend_item</span><span class="si">}</span><span class="s2"> (label &#39;</span><span class="si">{</span><span class="n">legend_item</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span><span class="si">}</span><span class="s2">&#39;)&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; to </span><span class="si">{</span><span class="n">drawn_item</span><span class="si">}</span><span class="s2"> (label &#39;</span><span class="si">{</span><span class="n">drawn_item</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span><span class="si">}</span><span class="s2">&#39;) </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="n">add_pickradius_to_item</span><span class="p">(</span><span class="n">item</span><span class="o">=</span><span class="n">legend_item</span><span class="p">,</span> <span class="n">pickradius</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pickradius</span><span class="p">)</span>
+            <span class="c1"># add an attribute to this artist to tell it&#39;s from a legend</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">legend_item</span><span class="p">,</span> <span class="s2">&quot;is_legend_item&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># we make the regions invisible until clicked, or set visible as default</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_visible_by_default</span><span class="p">:</span>
+                <span class="n">legend_item</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_point</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">legend_item</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_hidden</span><span class="p">)</span>
+            <span class="n">drawn_item</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_make_visible_by_default</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_legend_mapping</span><span class="p">[</span><span class="n">legend_item</span><span class="p">]</span> <span class="o">=</span> <span class="n">drawn_item</span></div>
+
+<div class="viewcode-block" id="LegendHandler.add"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/legend_interface/index.html#pylbo.visualisation.legend_interface.LegendHandler.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds an item to the list of drawn items on the canvas.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        item : object</span>
+<span class="sd">            A single object, usually a return from the matplotlib plot or scatter</span>
+<span class="sd">            methods.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;object expected, not something list-like&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_drawn_items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LegendHandler._check_autoscaling"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/legend_interface/index.html#pylbo.visualisation.legend_interface.LegendHandler._check_autoscaling">[docs]</a>    <span class="k">def</span> <span class="nf">_check_autoscaling</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if autoscaling is needed and if so, rescales the y-axis to the min-max</span>
+<span class="sd">        value of the currently visible legend items.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoscale</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">visible_items</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drawn_items</span> <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get_visible</span><span class="p">()]</span>
+        <span class="c1"># check scaling for visible items. This explicitly implements the equilibria,</span>
+        <span class="c1"># but works for general cases as well. If needed we can simply subclass</span>
+        <span class="c1"># and override.</span>
+        <span class="n">ymin1</span><span class="p">,</span> <span class="n">ymax1</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="n">ymin2</span><span class="p">,</span> <span class="n">ymax2</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">visible_items</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;d&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ymin1</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ymax1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">ymin1</span><span class="p">,</span> <span class="n">ymax1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get_ydata</span><span class="p">()),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get_ydata</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ymin1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ymin1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get_ydata</span><span class="p">()))</span>
+                    <span class="n">ymax1</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ymax1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get_ydata</span><span class="p">()))</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ymin1</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">ymin1</span><span class="p">),</span> <span class="n">ymax1</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">ymax1</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ymin2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ymax2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">ymin2</span><span class="p">,</span> <span class="n">ymax2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get_ydata</span><span class="p">()),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get_ydata</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ymin2</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ymin2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get_ydata</span><span class="p">()))</span>
+                    <span class="n">ymax2</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ymax2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get_ydata</span><span class="p">()))</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ymin2</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="mf">0.2</span> <span class="o">*</span> <span class="n">ymin2</span><span class="p">),</span> <span class="n">ymax2</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="mf">0.2</span> <span class="o">*</span> <span class="n">ymax2</span><span class="p">))</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Niels Claes, Jordi De Jonghe and Rony Keppens (2020).
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,260 @@
+:mod:`pylbo.automation.runner`
+==============================
+
+.. py:module:: pylbo.automation.runner
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.automation.runner.LegolasRunner
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.automation.runner._validate_executable
+   pylbo.automation.runner._validate_nb_cpus
+   pylbo.automation.runner._validate_parfiles
+
+
+
+.. function:: _validate_executable(executable)
+
+   Validates the given executable, then returns it. If the argument passed is
+   None, defaults to the executable in the legolas home directory.
+
+   :param executable: The path to the legolas executable to use.
+   :type executable: str, ~os.PathLike
+
+   :raises FileNotFoundError: If the executable was not found.
+
+   :returns: **executable** -- The (resolved) path to the executable to use.
+   :rtype: ~os.PathLike
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: _validate_nb_cpus(cpus)
+
+   Validates the number of cpus passed to the multiprocessing pool.
+   Defaults to the maximum available number if exceeded.
+
+   :param cpus: The number of cpus to use.
+   :type cpus: int
+
+   :returns: **cpus** -- The number of cpus to use, limited to the maximum number available.
+   :rtype: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: _validate_parfiles(files)
+
+   Validates a list of parfiles.
+
+   :param files: Paths to the parfiles.
+   :type files: (list of) str, (list of) ~os.PathLike
+
+   :raises FileNotFoundError: If one of the parfiles is not found.
+
+   :returns: **files_list** -- A list of resolved filepaths for the parfiles.
+   :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. class:: LegolasRunner(parfiles, remove_parfiles, nb_cpus, executable)
+
+
+   Handles running legolas.
+
+   :param parfiles: A list or array containing the names or paths to the parfiles.
+   :type parfiles: list, numpy.ndarray
+   :param remove_parfiles: If `True`, removes the parfiles after running Legolas. This will also remove
+                           the containing folder if it turns out to be empty after the parfiles are
+                           removed. If there are other files still in the folder it remains untouched.
+   :type remove_parfiles: bool
+   :param nb_cpus: The number of CPUs to use when running Legolas. If equal to 1 then
+                   parallelisation is disabled. Defaults to the maximum number of CPUs available
+                   if a number larger than the available number is specified.
+   :type nb_cpus: int
+   :param executable: The path to the legolas executable. If not specified, defaults to the
+                      standard one in the legolas home directory.
+   :type executable: str, ~os.PathLike
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: _init_worker()
+      :staticmethod:
+
+      Worker initialisation for the multiprocessing module.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _activate_worker(self, parfile)
+
+      Worker activation for the multiprocessing module.
+      Calls the legolas executable as a subprocess with the parfile as argument.
+
+      :param parfile: The path to the parfile
+      :type parfile: str, ~os.PathLike
+
+      :returns: **call** -- A call to a subprocess to run legolas.
+      :rtype: :func:`subprocess.call`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _terminate_workers()
+      :staticmethod:
+
+      Terminates the multiprocessing workers after a forced interruption.
+      Simply giving an interrupt terminates only the Python processes, but still
+      keeps the Legolas calls running since those are subprocesses. This method first
+      terminates all child processes (legolas), then the parents (workers).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: execute(self)
+
+      Executes the legolas executables and initialises the multiprocessing
+      pool if requested.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+

@@ -1,0 +1,430 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pylbo.automation.generator &mdash; Pylbo 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Pylbo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Package structure:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Pylbo</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pylbo.automation.generator</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pylbo.automation.generator</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">f90nml</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">pylbo.automation.defaults</span> <span class="kn">import</span> <span class="n">namelist_items</span>
+<span class="kn">from</span> <span class="nn">pylbo.utilities.toolbox</span> <span class="kn">import</span> <span class="n">transform_to_list</span>
+<span class="kn">from</span> <span class="nn">pylbo.utilities.logger</span> <span class="kn">import</span> <span class="n">pylboLogger</span>
+<span class="kn">from</span> <span class="nn">pylbo.exceptions</span> <span class="kn">import</span> <span class="n">ParfileGenerationError</span>
+
+
+<div class="viewcode-block" id="_validate_basename"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/generator/index.html#pylbo.automation.generator._validate_basename">[docs]</a><span class="k">def</span> <span class="nf">_validate_basename</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validates the basename for a given parfile.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    basename : str</span>
+<span class="sd">        The basename for a parfile. If not given, defaults to &quot;parfile&quot;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    basename : str</span>
+<span class="sd">        The basename for a parfile.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">basename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">basename</span> <span class="o">=</span> <span class="s2">&quot;parfile&quot;</span>
+    <span class="k">return</span> <span class="n">basename</span></div>
+
+
+<div class="viewcode-block" id="_validate_output_dir"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/generator/index.html#pylbo.automation.generator._validate_output_dir">[docs]</a><span class="k">def</span> <span class="nf">_validate_output_dir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validates and returns the output directory for the parfiles.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    output_dir : str, ~os.PathLike</span>
+<span class="sd">        The output directory to store the parfiles in. If not given, defaults to</span>
+<span class="sd">        the current working directory.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    NotADirectoryError</span>
+<span class="sd">        If the output directory is not found.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    output : ~os.PathLike</span>
+<span class="sd">        The resolved path to the output directory with &quot;parfiles&quot; appended.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">output</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">NotADirectoryError</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="n">output</span> <span class="o">/</span> <span class="s2">&quot;parfiles&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">output</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="n">Path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="ParfileGenerator"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/generator/index.html#pylbo.automation.generator.ParfileGenerator">[docs]</a><span class="k">class</span> <span class="nc">ParfileGenerator</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles parfile generation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parfile_dict : dict</span>
+<span class="sd">        Dictionary containing the keys to be placed in the parfile.</span>
+<span class="sd">    basename : str</span>
+<span class="sd">        The basename for the parfile, the `.par` suffix is added automatically and is</span>
+<span class="sd">        not needed. If multiple parfiles are generated, these</span>
+<span class="sd">        will be prepended by a 4-digit number (e.g. 0003myparfile.par).</span>
+<span class="sd">        If not provided, the basename will default to `parfile`.</span>
+<span class="sd">    output_dir : str, ~os.PathLike</span>
+<span class="sd">        Output directory where the parfiles are saved, defaults to the current</span>
+<span class="sd">        working directory if not specified. A subdirectory called `parfiles` will be</span>
+<span class="sd">        created in which the parfiles will be saved.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parfile_dict</span><span class="p">,</span> <span class="n">basename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parfile_dict</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">parfile_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basename</span> <span class="o">=</span> <span class="n">_validate_basename</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="n">_validate_output_dir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nb_runs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parfile_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;number_of_runs&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="ParfileGenerator._get_and_check_item"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/generator/index.html#pylbo.automation.generator.ParfileGenerator._get_and_check_item">[docs]</a>    <span class="k">def</span> <span class="nf">_get_and_check_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namelist</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">allowed_dtypes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Does typechecking on the various dictionary keys supplied to the parfile</span>
+<span class="sd">        generator. Pops the key from the dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        namelist : str</span>
+<span class="sd">            One of the namelists (&quot;gridlist&quot;, &quot;savelist&quot;, etc.)</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The key to check.</span>
+<span class="sd">        allowed_dtypes : class, tuple</span>
+<span class="sd">            Allowed types for that particular key. Either a single value or a tuple.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        TypeError</span>
+<span class="sd">            If the types do not match, e.g. if &quot;gridpoints&quot; is specified as a float</span>
+<span class="sd">            value when it should be an integer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        item : any</span>
+<span class="sd">            The item popped from the dictionary corresponding to the given key.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parfile_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">item_aslist</span> <span class="o">=</span> <span class="n">transform_to_list</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">item_aslist</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">allowed_dtypes</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;namelist &#39;</span><span class="si">{</span><span class="n">namelist</span><span class="si">}</span><span class="s2">&#39; expected item &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; to be of &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;type </span><span class="si">{</span><span class="n">allowed_dtypes</span><span class="si">}</span><span class="s2"> but got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2">. </span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;item value = </span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+        <span class="k">return</span> <span class="n">item</span></div>
+
+<div class="viewcode-block" id="ParfileGenerator.create_namelist_from_dict"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/generator/index.html#pylbo.automation.generator.ParfileGenerator.create_namelist_from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">create_namelist_from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates one major namelist from the given dictionary.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ParfileGenerationError</span>
+<span class="sd">            - If the original dictionary is not empty after everything should be popped</span>
+<span class="sd">            - If there is an inconsistency between array sizes of dictionary items</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">namelist</span><span class="p">,</span> <span class="n">items</span> <span class="ow">in</span> <span class="n">namelist_items</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># update container</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">namelist</span><span class="p">:</span> <span class="p">{}})</span>
+            <span class="c1"># loop over names for this specific namelist</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">dtypes</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_and_check_item</span><span class="p">(</span><span class="n">namelist</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">dtypes</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">transform_to_list</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">[</span><span class="n">namelist</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">name</span><span class="p">:</span> <span class="n">obj</span><span class="p">})</span>
+            <span class="c1"># if this namelist is still empty, remove it</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">[</span><span class="n">namelist</span><span class="p">]</span> <span class="o">==</span> <span class="p">{}:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">namelist</span><span class="p">)</span>
+        <span class="c1"># account for parameters separately</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parfile_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;parameters&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">[</span><span class="s2">&quot;equilibriumlist&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;use_defaults&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">False</span><span class="p">]})</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">name</span><span class="p">:</span> <span class="n">transform_to_list</span><span class="p">(</span><span class="n">param</span><span class="p">)})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;paramlist&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">})</span>
+
+        <span class="c1"># here the original dictionary should be empty,</span>
+        <span class="c1"># something went wrong if it isn&#39;t</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parfile_dict</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ParfileGenerationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parfile_dict</span><span class="p">)</span>
+
+        <span class="c1"># update container for number of runs, all items are lists</span>
+        <span class="k">for</span> <span class="n">namelist</span><span class="p">,</span> <span class="n">items</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">items</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">values_list</span> <span class="o">=</span> <span class="n">values</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_runs</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_runs</span><span class="p">:</span>
+                    <span class="n">values_list</span> <span class="o">=</span> <span class="n">values</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ParfileGenerationError</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_runs</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="c1"># make sure that sigma has complex values</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;sigma&quot;</span><span class="p">:</span>
+                    <span class="n">values_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">complex</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values_list</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">namelist</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">values_list</span><span class="p">})</span></div>
+
+<div class="viewcode-block" id="ParfileGenerator.generate_parfiles"><a class="viewcode-back" href="../../../autoapi/pylbo/automation/generator/index.html#pylbo.automation.generator.ParfileGenerator.generate_parfiles">[docs]</a>    <span class="k">def</span> <span class="nf">generate_parfiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates separate parfiles from the main namelist container and writes</span>
+<span class="sd">        the individual parfiles to disk.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        parfiles : list of str</span>
+<span class="sd">            List containing the paths of the parfiles, can be passed to the legolas</span>
+<span class="sd">            runner.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">run_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+        <span class="c1"># savelist must be present</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">run_dict</span><span class="p">[</span><span class="s2">&quot;savelist&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">run_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;savelist&quot;</span><span class="p">:</span> <span class="p">{}})</span>
+
+        <span class="k">for</span> <span class="n">current_run</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_runs</span><span class="p">):</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{:04d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">current_run</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_runs</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="c1"># generate dictionary for this specific run</span>
+            <span class="k">for</span> <span class="n">namelist</span><span class="p">,</span> <span class="n">items</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">items</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">run_dict</span><span class="p">[</span><span class="n">namelist</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">values</span><span class="p">[</span><span class="n">current_run</span><span class="p">]})</span>
+            <span class="c1"># parfile name</span>
+            <span class="n">parfile_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="si">}</span><span class="s2">.par&quot;</span>
+            <span class="c1"># datfile name (no extension .dat needed)</span>
+            <span class="n">datfile_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">run_dict</span><span class="p">[</span><span class="s2">&quot;savelist&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;basename_datfile&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">run_dict</span><span class="p">[</span><span class="s2">&quot;savelist&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;basename_datfile&quot;</span><span class="p">:</span> <span class="n">datfile_name</span><span class="p">})</span>
+            <span class="c1"># logfile name (no extension .log needed)</span>
+            <span class="n">logfile_name</span> <span class="o">=</span> <span class="n">run_dict</span><span class="p">[</span><span class="s2">&quot;savelist&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;basename_logfile&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">logfile_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logfile_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">logfile_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">run_dict</span><span class="p">[</span><span class="s2">&quot;savelist&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;basename_logfile&quot;</span><span class="p">:</span> <span class="n">logfile_name</span><span class="p">})</span>
+
+            <span class="c1"># set paths and write parfile</span>
+            <span class="n">parfile_path</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">/</span> <span class="n">parfile_name</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">parfile_path</span><span class="p">))</span>
+            <span class="n">f90nml</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">run_dict</span><span class="p">,</span> <span class="n">parfile_path</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;parfiles generated and saved to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parfiles</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Niels Claes, Jordi De Jonghe and Rony Keppens (2020).
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

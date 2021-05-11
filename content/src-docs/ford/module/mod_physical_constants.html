@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Legolas is a novel finite-element based code that allows for realistic MHD spectroscopy of one-dimensional plasmas.">
+    
+    <meta name="author" content="" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>mod_physical_constants &ndash; Legolas</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">Legolas </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/legolas.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/legolas.html">Program</a></li>
+
+          </ul>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>mod_physical_constants 
+    <small>Module</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title=" 0.6% of total for modules and submodules.">31 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/mod_physical_constants.f08"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+     <li><a href='../sourcefile/mod_physical_constants.f08.html'>mod_physical_constants.f08</a></li>
+    
+  
+     <li class="active">mod_physical_constants</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-0">Variables</a></h3></div>
+  <div id="vars-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-dpi">dpi</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-coulomb_log">coulomb_log</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mp_cgs">mp_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mp_si">mp_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mh_cgs">mH_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mh_si">mH_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-me_cgs">me_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-me_si">me_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-ec_cgs">ec_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-ec_si">ec_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-kb_cgs">kB_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-kb_si">kB_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mu0_si">mu0_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mu0_cgs">mu0_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-e0_si">e0_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-z_ion">Z_ion</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-r_si">R_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-r_cgs">R_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-msun_cgs">msun_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-rsun_cgs">Rsun_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-gsun_cgs">gsun_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-vesc_sun">Vesc_sun</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-teff_sun">Teff_sun</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-lsun_cgs">Lsun_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-au_cgs">AU_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-fsun_cgs">fsun_cgs</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <p>All physical constants used in the code are defined in this module.
+ We include values both in SI units and in cgs units for convenience.
+ All values are taken from the
+ <a href="https://www.nrl.navy.mil/ppd/content/nrl-plasma-formulary">NRL Plasma Formulary</a>.</p>
+      <br>
+    
+  
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Uses</h3>
+      </div>
+      <ul class="list-group">
+      
+      <li class="list-group-item">
+  <ul class="list-inline">
+    
+    <li><a href='../module/mod_global_variables.html'>mod_global_variables</a></li>
+    
+  </ul>
+      </li>
+      
+      
+      
+      </ul>
+    </div>
+    
+
+    
+    
+
+    <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-1">Variables</a></h3></div>
+  <div id="vars-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-dpi">dpi</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-coulomb_log">coulomb_log</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mp_cgs">mp_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mp_si">mp_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mh_cgs">mH_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mh_si">mH_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-me_cgs">me_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-me_si">me_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-ec_cgs">ec_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-ec_si">ec_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-kb_cgs">kB_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-kb_si">kB_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mu0_si">mu0_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-mu0_cgs">mu0_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-e0_si">e0_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-z_ion">Z_ion</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-r_si">R_si</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-r_cgs">R_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-msun_cgs">msun_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-rsun_cgs">Rsun_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-gsun_cgs">gsun_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-vesc_sun">Vesc_sun</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-teff_sun">Teff_sun</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-lsun_cgs">Lsun_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-au_cgs">AU_cgs</a>
+      
+      <a class="list-group-item" href="../module/mod_physical_constants.html#variable-fsun_cgs">fsun_cgs</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    
+
+    
+    <section>
+    <h2>Variables</h2>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dpi"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>dpi</strong></td><td> =</td><td>3.141592653589793238462643383279d0</td><td><p>value for pi</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-coulomb_log"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>coulomb_log</strong></td><td> =</td><td>22.0d0</td><td><p>coulomb logarithm</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mp_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>mp_cgs</strong></td><td> =</td><td>1.672621777d-24</td><td><p>proton mass in g</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mp_si"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>mp_si</strong></td><td> =</td><td>1.672621777d-27</td><td><p>proton mass in kg</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mh_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>mH_cgs</strong></td><td> =</td><td>1.6733d-24</td><td><p>hydrogen mass in g</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mh_si"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>mH_si</strong></td><td> =</td><td>1.6733d-27</td><td><p>hydrogen mass in kg</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-me_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>me_cgs</strong></td><td> =</td><td>9.1094d-28</td><td><p>electron mass in g</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-me_si"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>me_si</strong></td><td> =</td><td>9.1094d-31</td><td><p>electron mass in kg</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ec_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>ec_cgs</strong></td><td> =</td><td>4.8032d-10</td><td><p>elementary charge in statcoul</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ec_si"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>ec_si</strong></td><td> =</td><td>1.6022d-19</td><td><p>elementary charge in C</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-kb_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>kB_cgs</strong></td><td> =</td><td>1.3806488d-16</td><td><p>Boltzmann constant in erg/K</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-kb_si"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>kB_si</strong></td><td> =</td><td>1.3806488d-23</td><td><p>Boltzmann constant in J/K</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mu0_si"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>mu0_si</strong></td><td> =</td><td>1.2566370614d-6</td><td><p>magnetic constant in H/m</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mu0_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>mu0_cgs</strong></td><td> =</td><td>4.0d0*dpi</td><td><p>magnetic constant</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-e0_si"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>e0_si</strong></td><td> =</td><td>8.8542d-12</td><td><p>permittivity of free space in F/m</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-z_ion"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>Z_ion</strong></td><td> =</td><td>1.0d0</td><td><p>degree of ionization (assumed fully ionized)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-r_si"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>R_si</strong></td><td> =</td><td>8.3145d0</td><td><p>gas constant in J/K</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-r_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>R_cgs</strong></td><td> =</td><td>8.3145d7</td><td><p>gas constant in erg/deg</p>
+<p>Solar physics parameters</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-msun_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>msun_cgs</strong></td><td> =</td><td>1.99d33</td><td><p>solar mass in g</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rsun_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>Rsun_cgs</strong></td><td> =</td><td>6.96d10</td><td><p>solar radius in cm</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gsun_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>gsun_cgs</strong></td><td> =</td><td>2.74d4</td><td><p>solar gravity in cm/s^2</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vesc_sun"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>Vesc_sun</strong></td><td> =</td><td>6.18d7</td><td><p>solar escape velocity in cm/s</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-teff_sun"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>Teff_sun</strong></td><td> =</td><td>5770.0d0</td><td><p>solar effective temperature in K</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lsun_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>Lsun_cgs</strong></td><td> =</td><td>3.83d33</td><td><p>solar luminosity in erg/s</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-au_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>AU_cgs</strong></td><td> =</td><td>1.50d13</td><td><p>astronomical unit in cm</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-fsun_cgs"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>fsun_cgs</strong></td><td> =</td><td>1.36d6</td><td><p>solar constant (intensity at 1 AU) in erg/cm^2/s</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+    </section>
+    <br>
+    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+
+    
+    
+    
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> Legolas was developed by </p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    
+  </body>
+</html>

@@ -1,0 +1,91 @@
+:mod:`pylbo.visualisation.matrices`
+===================================
+
+.. py:module:: pylbo.visualisation.matrices
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.matrices.MatrixFigure
+
+
+
+
+.. class:: MatrixFigure(dataset, figsize, **kwargs)
+
+
+   Bases: :py:obj:`pylbo.visualisation.figure_manager.FigureWindow`
+
+   Figure showing both matrices from a dataset.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: draw(self)
+
+      Draws the matrices.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _add_matrices(self)
+
+      Adds the matrices to the figure windows.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+

@@ -1,0 +1,33 @@
+title: The Legolas Code
+subtitle: A novel tool for MHD spectroscopy
+email: niels.claes@kuleuven.be
+baseurl: /
+description: >-
+  The Legolas code
+permalink: pretty
+
+minimal_mistakes_skin: "air"
+search: true
+
+footer:
+  links:
+    - label: "The Legolas code on GitHub"
+      icon: "fab fa-fw fa-github"
+      url: https://github.com/n-claes/legolas
+
+# Build settings
+remote_theme: mmistakes/minimal-mistakes
+plugins:
+  - jekyll-feed
+  - jekyll-include-cache
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+
+# this is needed because Sphinx creates directories with _ prepended, which
+# are not copied by Jekyll. Just the folder name is sufficient, full path doesn't work.
+include:
+  - _static
+  - _modules
+  - _sources

@@ -1,0 +1,597 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pylbo.visualisation.figure_manager &mdash; Pylbo 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Pylbo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Package structure:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Pylbo</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pylbo.visualisation.figure_manager</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pylbo.visualisation.figure_manager</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">pylbo.utilities.logger</span> <span class="kn">import</span> <span class="n">pylboLogger</span>
+
+
+<div class="viewcode-block" id="refresh_plot"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.refresh_plot">[docs]</a><span class="k">def</span> <span class="nf">refresh_plot</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple decorator, when a routine is wrapped with this the plot will be</span>
+<span class="sd">    cleared and redrawn, useful for when the scaling is changed or artists are</span>
+<span class="sd">    added/removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">f</span>
+
+    <span class="k">return</span> <span class="n">refresh</span></div>
+
+
+<div class="viewcode-block" id="FigureContainer"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureContainer">[docs]</a><span class="k">class</span> <span class="nc">FigureContainer</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A special dictionary containing the currently active figures.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    stack_is_enabled : bool</span>
+<span class="sd">        If `True` (default), the dictionary is unlocked and figures are drawn</span>
+<span class="sd">        when calling `plt.show()`.</span>
+<span class="sd">        If `False`, the figures in the dictionary will remain</span>
+<span class="sd">        closed and will not be drawn.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stack_is_enabled</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="FigureContainer.add"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureContainer.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figure</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a new figure to the stack.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        figure : ~pylbo.visualisation.figure_manager.FigureWindow</span>
+<span class="sd">            The figure to add.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        -------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the figure id is already present in the stack.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">figure</span><span class="o">.</span><span class="n">figure_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">figure_id_list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;id = &#39;</span><span class="si">{</span><span class="n">figure</span><span class="o">.</span><span class="n">figure_id</span><span class="si">}</span><span class="s2">&#39; already in existing list: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">figure_id_list</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">figure</span><span class="o">.</span><span class="n">figure_id</span><span class="p">:</span> <span class="n">figure</span><span class="p">})</span></div>
+
+<div class="viewcode-block" id="FigureContainer.pop"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureContainer.pop">[docs]</a>    <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figure_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes and returns the figure corresponding to the given id from the stack.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        figure_id : str</span>
+<span class="sd">            The figure id, corresponds to the dictionary key.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        figure : ~pylbo.visualisation.figure_manager.FigureWindow</span>
+<span class="sd">            The figure corresponding to `figure_id`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_figure_id</span><span class="p">(</span><span class="n">figure_id</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">figure_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">figure_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FigureContainer._validate_figure_id"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureContainer._validate_figure_id">[docs]</a>    <span class="k">def</span> <span class="nf">_validate_figure_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figure_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if the current id is present, needed to avoid matplotlib errors</span>
+<span class="sd">        when trying to close.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        figure_id : str</span>
+<span class="sd">            The figure id, corresponds to the dictionary key.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        -------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the given id is not present in the list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">figure_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">figure_id_list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;id=&#39;</span><span class="si">{</span><span class="n">figure_id</span><span class="si">}</span><span class="s2">&#39; not in existing list </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">figure_id_list</span><span class="si">}</span><span class="s2">&quot;</span></div>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="FigureContainer.disable_stack"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureContainer.disable_stack">[docs]</a>    <span class="k">def</span> <span class="nf">disable_stack</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This disables the figurestack by closing the figures: this prevents them</span>
+<span class="sd">        from showing when calling `plt.show()`.</span>
+<span class="sd">        Later on we reconstruct the figuremanagers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">[</span><span class="n">figure</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span> <span class="k">for</span> <span class="n">figure</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">figure_list</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stack_is_enabled</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="FigureContainer.enable_stack"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureContainer.enable_stack">[docs]</a>    <span class="k">def</span> <span class="nf">enable_stack</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This enables the figurestack so figures are again accessible through</span>
+<span class="sd">        the plt.show() methods. When we lock the stack those figures are closed,</span>
+<span class="sd">        which essentially destroys the figuremanager but keeps the figure references</span>
+<span class="sd">        alive. Here we simply reconstruct the figuremanager for every disabled figure</span>
+<span class="sd">        in the stack, allowing for multiple calls to show(), save(), etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">[</span><span class="n">figure</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span> <span class="k">for</span> <span class="n">figure</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">figure_list</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stack_is_enabled</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="FigureContainer.number_of_figures"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureContainer.number_of_figures">[docs]</a>    <span class="k">def</span> <span class="nf">number_of_figures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the total number of figures in the stack.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="FigureContainer.figure_id_list"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureContainer.figure_id_list">[docs]</a>    <span class="k">def</span> <span class="nf">figure_id_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the list of figure ids in the stack.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="FigureContainer.figure_list"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureContainer.figure_list">[docs]</a>    <span class="k">def</span> <span class="nf">figure_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the list of figures in the stack.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="FigureContainer.is_empty"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureContainer.is_empty">[docs]</a>    <span class="k">def</span> <span class="nf">is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns `True` if there are no active figures.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span></div></div>
+
+
+<div class="viewcode-block" id="FigureWindow"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow">[docs]</a><span class="k">class</span> <span class="nc">FigureWindow</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to handle drawing different types of plots.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    figure_type : str</span>
+<span class="sd">        The type of figure to create, links to the figure id.</span>
+<span class="sd">    figsize : tuple</span>
+<span class="sd">        The figuresize as a matplotlib (x, x) tuple.</span>
+<span class="sd">    custom_figure : tuple</span>
+<span class="sd">        A custom figure to use, in the form (fig, ax) corresponding to the figure</span>
+<span class="sd">        and axis objects from matplotlib.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fig : ~matplotlib.figure.Figure</span>
+<span class="sd">        The figure on which to draw.</span>
+<span class="sd">    ax : ~matplotlib.axes.Axes</span>
+<span class="sd">        The axes on which to draw.</span>
+<span class="sd">    custom_figure : tuple</span>
+<span class="sd">        The (fig, ax) custom figure that was passed, `None` by default.</span>
+<span class="sd">    figsize : tuple</span>
+<span class="sd">        The size of the figure.</span>
+<span class="sd">    figure_id : str</span>
+<span class="sd">        A unique id associated with the figure.</span>
+<span class="sd">    x_scaling : int, float, complex, np.ndarray</span>
+<span class="sd">        Scaling to apply to the x-axis.</span>
+<span class="sd">    y_scaling : int, float, complex, np.ndarray</span>
+<span class="sd">        Scaling to apply to the y-axis.</span>
+<span class="sd">    enabled : bool</span>
+<span class="sd">        If `False` (default), the current figure will not be plotted at plt.show().</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FigureWindow.figure_stack"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.figure_stack">[docs]</a>    <span class="n">figure_stack</span> <span class="o">=</span> <span class="n">FigureContainer</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figure_type</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">custom_figure</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">custom_figure</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">custom_figure</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">custom_figure</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">figsize</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">get_size_inches</span><span class="p">())</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">figure_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_figure_id</span><span class="p">(</span><span class="n">figure_type</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">figure_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_figure_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">get_label</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">figsize</span> <span class="o">=</span> <span class="n">figsize</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">figsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">figure_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_figure_id</span><span class="p">(</span><span class="n">figure_type</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figure_id</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_scaling</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_scaling</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mpl_callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">figure_stack</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="FigureWindow._generate_figure_id"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow._generate_figure_id">[docs]</a>    <span class="k">def</span> <span class="nf">_generate_figure_id</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">figure_type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a unique figure id.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        figure_type : str</span>
+<span class="sd">            The type of figure to create</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        figure_id : str</span>
+<span class="sd">            The unique figure id of the form &quot;figure_type-x&quot; where x is an integer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># count occurences of this type of id in the list</span>
+        <span class="n">occurences</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">figure_type</span> <span class="ow">in</span> <span class="n">fig_id</span> <span class="k">for</span> <span class="n">fig_id</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">figure_stack</span><span class="o">.</span><span class="n">figure_id_list</span>
+        <span class="p">)</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">occurences</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">figure_type</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+<div class="viewcode-block" id="FigureWindow.disable"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.disable">[docs]</a>    <span class="k">def</span> <span class="nf">disable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Disables the current figure.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figure_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FigureWindow.enable"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.enable">[docs]</a>    <span class="k">def</span> <span class="nf">enable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enables the current figure, reconstructs the figuremanagers&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figure_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">manager</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">figure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">set_canvas</span><span class="p">(</span><span class="n">manager</span><span class="o">.</span><span class="n">canvas</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FigureWindow.connect_callbacks"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.connect_callbacks">[docs]</a>    <span class="k">def</span> <span class="nf">connect_callbacks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connects all callbacks to the canvas&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpl_callbacks</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="n">callback</span><span class="p">[</span><span class="s2">&quot;kind&quot;</span><span class="p">],</span> <span class="n">callback</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="FigureWindow.disconnect_callbacks"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.disconnect_callbacks">[docs]</a>    <span class="k">def</span> <span class="nf">disconnect_callbacks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Disconnects all callbacks from the canvas&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpl_callbacks</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_disconnect</span><span class="p">(</span><span class="n">callback</span><span class="p">[</span><span class="s2">&quot;cid&quot;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="FigureWindow._enable_interactive_legend"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow._enable_interactive_legend">[docs]</a>    <span class="k">def</span> <span class="nf">_enable_interactive_legend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Makes the current legendhandler interactive.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        handle : ~pylbo.visualisation.legend_interface.LegendHandler</span>
+<span class="sd">            The legendhandler (or a subclass thereof)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">handle</span><span class="o">.</span><span class="n">make_legend_pickable</span><span class="p">()</span>
+        <span class="n">callback_kind</span> <span class="o">=</span> <span class="s2">&quot;pick_event&quot;</span>
+        <span class="n">callback_method</span> <span class="o">=</span> <span class="n">handle</span><span class="o">.</span><span class="n">on_legend_pick</span>
+        <span class="n">callback_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="n">callback_kind</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mpl_callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;cid&quot;</span><span class="p">:</span> <span class="n">callback_id</span><span class="p">,</span>
+                <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="n">callback_kind</span><span class="p">,</span>
+                <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">callback_method</span><span class="p">,</span></div>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="FigureWindow._add_subplot_axes"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow._add_subplot_axes">[docs]</a>    <span class="k">def</span> <span class="nf">_add_subplot_axes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">share</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a new subplot to the given axes object, depending on the loc argument.</span>
+<span class="sd">        On return, `tight_layout()` is called to update the figure&#39;s gridspec.</span>
+<span class="sd">        This is meant to split a single axis, and should not be used for multiple</span>
+<span class="sd">        subplots.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ax : ~matplotlib.axes.Axes</span>
+<span class="sd">            The axes object, this will be &quot;split&quot; and a new axes will be added</span>
+<span class="sd">            to the figure.</span>
+<span class="sd">        loc : str</span>
+<span class="sd">            The location of the new subplot to add, should be &quot;right&quot;, &quot;left&quot;, &quot;top&quot;</span>
+<span class="sd">            or &quot;bottom&quot;. Equal to &quot;right&quot; by default, so the original figure is shifted</span>
+<span class="sd">            to the left and the new axis is added on the right.</span>
+<span class="sd">        share : str</span>
+<span class="sd">            Can be &quot;x&quot;, &quot;y&quot; or &quot;all&quot;. This locks axes zooming between both subplots.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            - If the subplot is not a single axis</span>
+<span class="sd">            - If the loc argument is invalid.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        new_ax : ~matplotlib.axes.Axes</span>
+<span class="sd">            The axes instance that was added.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_geometry</span><span class="p">()</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Something went wrong when adding a subplot. Expected &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;axes with geometry (1, 1, 1) but got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">get_geometry</span><span class="p">()</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">loc</span> <span class="o">==</span> <span class="s2">&quot;top&quot;</span><span class="p">:</span>
+            <span class="n">geom_ax</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">geom_new_ax</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">loc</span> <span class="o">==</span> <span class="s2">&quot;right&quot;</span><span class="p">:</span>
+            <span class="n">geom_ax</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">geom_new_ax</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">loc</span> <span class="o">==</span> <span class="s2">&quot;bottom&quot;</span><span class="p">:</span>
+            <span class="n">geom_ax</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">geom_new_ax</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">loc</span> <span class="o">==</span> <span class="s2">&quot;left&quot;</span><span class="p">:</span>
+            <span class="n">geom_ax</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">geom_new_ax</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;invalid loc = </span><span class="si">{</span><span class="n">loc</span><span class="si">}</span><span class="s2">, expected &#39;top&#39;, &#39;right&#39;, &#39;bottom&#39; or &#39;left&#39;&quot;</span>
+            <span class="p">)</span>
+        <span class="n">sharex</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">sharey</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">share</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">):</span>
+            <span class="n">sharex</span> <span class="o">=</span> <span class="n">ax</span>
+        <span class="k">if</span> <span class="n">share</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">):</span>
+            <span class="n">sharey</span> <span class="o">=</span> <span class="n">ax</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">change_geometry</span><span class="p">(</span><span class="o">*</span><span class="n">geom_ax</span><span class="p">)</span>
+        <span class="n">new_ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="o">*</span><span class="n">geom_new_ax</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="n">sharex</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">sharey</span><span class="p">)</span>
+        <span class="c1"># this will update the figure&#39;s gridspec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">new_ax</span></div>
+
+<div class="viewcode-block" id="FigureWindow.draw"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.draw">[docs]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Draws everything on the figure. This method is meant to be overriden by</span>
+<span class="sd">        a subclass, where a `super()` call can be done to this method to clear the</span>
+<span class="sd">        figure first.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disconnect_callbacks</span><span class="p">()</span></div>
+
+    <span class="nd">@refresh_plot</span>
+<div class="viewcode-block" id="FigureWindow.set_x_scaling"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.set_x_scaling">[docs]</a>    <span class="k">def</span> <span class="nf">set_x_scaling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_scaling</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the x scaling, should be overridden by a subclass.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x_scaling : int, float, complex, numpy.ndarray</span>
+<span class="sd">            The scaling to apply to the x-axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_scaling</span> <span class="o">=</span> <span class="n">x_scaling</span></div>
+
+    <span class="nd">@refresh_plot</span>
+<div class="viewcode-block" id="FigureWindow.set_y_scaling"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.set_y_scaling">[docs]</a>    <span class="k">def</span> <span class="nf">set_y_scaling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_scaling</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the y scaling, should be overridden by a subclass.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        y_scaling : int, float, complex, numpy.ndarray</span>
+<span class="sd">            The scaling to apply to the y-axis</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_scaling</span> <span class="o">=</span> <span class="n">y_scaling</span></div>
+
+<div class="viewcode-block" id="FigureWindow.show"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Shows the current figure.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">figure_stack</span><span class="o">.</span><span class="n">disable_stack</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_callbacks</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="FigureWindow.showall"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.showall">[docs]</a>    <span class="k">def</span> <span class="nf">showall</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Shows all active figures at once through a call to plt.show().&quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">figure_stack</span><span class="o">.</span><span class="n">disable_stack</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">figure</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">figure_stack</span><span class="o">.</span><span class="n">figure_list</span><span class="p">:</span>
+            <span class="n">figure</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>
+            <span class="n">figure</span><span class="o">.</span><span class="n">connect_callbacks</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FigureWindow.save"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/figure_manager/index.html#pylbo.visualisation.figure_manager.FigureWindow.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Saves the current figure.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str, ~os.PathLike</span>
+<span class="sd">            The filename to which the current figure is saved.</span>
+<span class="sd">        kwargs</span>
+<span class="sd">            Default keyword arguments passed to :meth:`~matplotlib.pyplot.savefig`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;figure saved to </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Niels Claes, Jordi De Jonghe and Rony Keppens (2020).
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,380 @@
+:mod:`pylbo.visualisation.api`
+==============================
+
+.. py:module:: pylbo.visualisation.api
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.api._ensure_dataset
+   pylbo.visualisation.api._ensure_dataseries
+   pylbo.visualisation.api.plot_spectrum
+   pylbo.visualisation.api.plot_spectrum_multi
+   pylbo.visualisation.api.plot_merged_spectrum
+   pylbo.visualisation.api.plot_spectrum_comparison
+   pylbo.visualisation.api.plot_equilibrium
+   pylbo.visualisation.api.plot_equilibrium_balance
+   pylbo.visualisation.api.plot_continua
+   pylbo.visualisation.api.plot_matrices
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.api.forbidden_args
+
+
+.. data:: forbidden_args
+   :annotation: = ['linestyle', 'linewidth', 'lw']
+
+   
+
+.. function:: _ensure_dataset(data)
+
+   Ensures that the data object passed is a LegolasDataSet
+
+   :param data: The data object to check.
+   :type data: object
+
+   :raises ValueError: If data is not a :class:`LegolasDataSet`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: _ensure_dataseries(data)
+
+   Ensures that the data object passed is a LegolasDataSeries
+
+   :param data: The data object to check.
+   :type data: object
+
+   :raises ValueError: If data is not a :class:`LegolasDataSeries`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_spectrum(data, figsize=None, custom_figure=None, **kwargs)
+
+   Plots the spectrum of a single dataset.
+
+   :param data: The dataset that should be used.
+   :type data: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param custom_figure: Optional, in the form (fig, ax). If supplied no new figure will be created
+                         but this one will be used instead. `fig` refers to the matplotlib figure and
+                         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+   :type custom_figure: tuple
+
+   :returns: **p** -- The spectrum instance which can be used further to add continua,
+             eigenfunctions, etc.
+   :rtype: ~pylbo.visualisation.spectra.SingleSpectrumPlot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_spectrum_multi(data, xdata, use_squared_omega=False, use_real_parts=True, figsize=None, custom_figure=None, **kwargs)
+
+   Plots the spectrum of a dataset series.
+
+   :param data: The dataseries that should be used.
+   :type data: ~pylbo.data_containers.LegolasDataSeries
+   :param xdata: Data to use for the horizontal axis. This can either be a key from the
+                 parameters dictionary, or a list/numpy array containing actual data.
+   :type xdata: str, list, numpy.ndarray
+   :param use_squared_omega: If `True`, this will square the eigenvalues when they are plotted on the
+                             vertical axis. If `False` (default), either the real or imaginary part of the
+                             eigenvalues will be plotted depending on the value of `use_real_parts`.
+   :type use_squared_omega: bool
+   :param use_real_parts: If `True` (default), this will plot the real part of the eigenvalues on the
+                          vertical axis. If `False` the imaginary part will be used.
+   :type use_real_parts: bool
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param custom_figure: Optional, in the form (fig, ax). If supplied no new figure will be created
+                         but this one will be used instead. `fig` refers to the matplotlib figure and
+                         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+   :type custom_figure: tuple
+
+   :returns: **p** -- The spectrum instance which can be used further to add continua,
+             eigenfunctions, etc.
+   :rtype: ~pylbo.visualisation.spectra.MultiSpectrumPlot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_merged_spectrum(data, figsize=None, custom_figure=None, interactive=True, legend=True, **kwargs)
+
+   Creates a merged spectrum from various datasets, useful in plotting multiple
+   results from the shift-invert solver, for example. This draws every dataset
+   in a different color by default, and creates a corresponding legend. Supply the
+   optional argument `color` to draw all points in the same color.
+
+   :param data:
+   :type data: ~pylbo.data_containers.LegolasDataSeries
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param custom_figure: Optional, in the form (fig, ax). If supplied no new figure will be created
+                         but this one will be used instead. `fig` refers to the matplotlib figure and
+                         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+   :type custom_figure: tuple
+   :param interactive: If `True` (default), enables an interactive legend.
+   :type interactive: bool
+   :param legend: If `True` (default), draws a legend.
+   :type legend: bool
+
+   :returns: **p** -- The spectrumfigure instance, containing the plot.
+   :rtype: ~pylbo.visualisation.spectra.MultiSpectrumPlot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_spectrum_comparison(ds1, ds2, figsize=None, custom_figure=None, lock_zoom=False, **kwargs)
+
+   Compares two spectra.
+
+   :param ds1: The first dataset, this one is put on the left panel.
+   :type ds1: ~pylbo.data_containers.LegolasDataSet
+   :param ds2: The second dataset, this one is put on the right panel.
+   :type ds2: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param custom_figure: The custom figure to use in the form (fig, axes).
+   :type custom_figure: tuple
+   :param lock_zoom: If `True` (`False` by default), locks the zoom of both axis. When locked,
+                     zoomin in on one of the axis automatically scales the zoom on the other one
+                     as well.
+   :type lock_zoom: bool
+
+   :returns: **p** -- The figure instance containing the compared spectrum plot.
+   :rtype: ~pylbo.visualisation.spectra.SpectrumComparisonPlot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_equilibrium(data, figsize=None, interactive=True, **kwargs)
+
+   Plots the equilibrium profiles.
+
+   :param data: The dataset or series that should be used.
+   :type data: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param interactive: If `True` (default), enables an interactive legend.
+   :type interactive: bool
+
+   :returns: **p** -- The profile instance containing the equilibrium plots.
+   :rtype: ~pylbo.visualisation.profiles.EquilibriumProfile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_equilibrium_balance(data, figsize=None, **kwargs)
+
+   Creates a plot of the force balance equation and non-adiabatic equilibrium
+   equation. These should be as close to zero as possible over the entire grid.
+   All values smaller than 1e-16 are set to zero.
+
+   :param data: The dataset that should be used
+   :type data: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+
+   :returns: **p** -- The profile instance containing the equilibrium balance plots.
+   :rtype: ~pylbo.visualisation.profiles.EquilibriumBalance
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_continua(data, figsize=None, interactive=True, **kwargs)
+
+   Plots the continua profiles.
+
+   :param data: The dataset or series that should be used.
+   :type data: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param interactive: If `True` (default), enables an interactive legend.
+   :type interactive: bool
+
+   :returns: **p** -- The profile instance containing the continua plots.
+   :rtype: ~pylbo.visualisation.profiles.ContinuumProfile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: plot_matrices(data, figsize=None, **kwargs)
+
+   Plots the continua profiles.
+
+   :param data: The dataset that should be used.
+   :type data: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+
+   :returns: **p** -- The instance containing the matrix plots.
+   :rtype: ~pylbo.visualisation.matrices.MatrixFigure
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

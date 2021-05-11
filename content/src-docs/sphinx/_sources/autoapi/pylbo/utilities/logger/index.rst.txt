@@ -1,0 +1,107 @@
+:mod:`pylbo.utilities.logger`
+=============================
+
+.. py:module:: pylbo.utilities.logger
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.utilities.logger.init_logger
+   pylbo.utilities.logger.set_loglevel
+   pylbo.utilities.logger.disable_logging
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.utilities.logger.pylboLogger
+
+
+.. data:: pylboLogger
+   
+
+   
+
+.. function:: init_logger()
+
+   Initialises the pylbo logger.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: set_loglevel(level)
+
+   Sets the logging level.
+
+   :param level: The level for logging. See :class:`~logging.Logger`, or the
+                 `allowed levels <https://docs.python.org/3/library/logging.html#levels>`_.
+                 Both the string and integer values can be set, case-insensitive.
+   :type level: int, str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: disable_logging()
+
+   Completely disables logging.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

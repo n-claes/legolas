@@ -1,0 +1,14 @@
+:mod:`pylbo.automation.defaults`
+================================
+
+.. py:module:: pylbo.automation.defaults
+
+
+Module Contents
+---------------
+
+.. data:: namelist_items
+   
+
+   
+

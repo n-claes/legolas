@@ -1,0 +1,737 @@
+:mod:`pylbo.visualisation.figure_manager`
+=========================================
+
+.. py:module:: pylbo.visualisation.figure_manager
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.figure_manager.FigureContainer
+   pylbo.visualisation.figure_manager.FigureWindow
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.figure_manager.refresh_plot
+
+
+
+.. function:: refresh_plot(f)
+
+   Simple decorator, when a routine is wrapped with this the plot will be
+   cleared and redrawn, useful for when the scaling is changed or artists are
+   added/removed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. class:: FigureContainer
+
+
+   Bases: :py:obj:`dict`
+
+   A special dictionary containing the currently active figures.
+
+   .. attribute:: stack_is_enabled
+
+      If `True` (default), the dictionary is unlocked and figures are drawn
+      when calling `plt.show()`.
+      If `False`, the figures in the dictionary will remain
+      closed and will not be drawn.
+
+      :type: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: add(self, figure)
+
+      Adds a new figure to the stack.
+
+      :param figure: The figure to add.
+      :type figure: ~pylbo.visualisation.figure_manager.FigureWindow
+
+      :raises ValueError: If the figure id is already present in the stack.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: pop(self, figure_id)
+
+      Removes and returns the figure corresponding to the given id from the stack.
+
+      :param figure_id: The figure id, corresponds to the dictionary key.
+      :type figure_id: str
+
+      :returns: **figure** -- The figure corresponding to `figure_id`.
+      :rtype: ~pylbo.visualisation.figure_manager.FigureWindow
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _validate_figure_id(self, figure_id)
+
+      Checks if the current id is present, needed to avoid matplotlib errors
+      when trying to close.
+
+      :param figure_id: The figure id, corresponds to the dictionary key.
+      :type figure_id: str
+
+      :raises ValueError: If the given id is not present in the list.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: disable_stack(self)
+
+      This disables the figurestack by closing the figures: this prevents them
+      from showing when calling `plt.show()`.
+      Later on we reconstruct the figuremanagers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: enable_stack(self)
+
+      This enables the figurestack so figures are again accessible through
+      the plt.show() methods. When we lock the stack those figures are closed,
+      which essentially destroys the figuremanager but keeps the figure references
+      alive. Here we simply reconstruct the figuremanager for every disabled figure
+      in the stack, allowing for multiple calls to show(), save(), etc.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: number_of_figures(self)
+      :property:
+
+      Returns the total number of figures in the stack.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: figure_id_list(self)
+      :property:
+
+      Returns the list of figure ids in the stack.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: figure_list(self)
+      :property:
+
+      Returns the list of figures in the stack.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: is_empty(self)
+      :property:
+
+      Returns `True` if there are no active figures.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+
+.. class:: FigureWindow(figure_type, figsize=None, custom_figure=None)
+
+
+   Class to handle drawing different types of plots.
+
+   :param figure_type: The type of figure to create, links to the figure id.
+   :type figure_type: str
+   :param figsize: The figuresize as a matplotlib (x, x) tuple.
+   :type figsize: tuple
+   :param custom_figure: A custom figure to use, in the form (fig, ax) corresponding to the figure
+                         and axis objects from matplotlib.
+   :type custom_figure: tuple
+
+   .. attribute:: fig
+
+      The figure on which to draw.
+
+      :type: ~matplotlib.figure.Figure
+
+   .. attribute:: ax
+
+      The axes on which to draw.
+
+      :type: ~matplotlib.axes.Axes
+
+   .. attribute:: custom_figure
+
+      The (fig, ax) custom figure that was passed, `None` by default.
+
+      :type: tuple
+
+   .. attribute:: figsize
+
+      The size of the figure.
+
+      :type: tuple
+
+   .. attribute:: figure_id
+
+      A unique id associated with the figure.
+
+      :type: str
+
+   .. attribute:: x_scaling
+
+      Scaling to apply to the x-axis.
+
+      :type: int, float, complex, np.ndarray
+
+   .. attribute:: y_scaling
+
+      Scaling to apply to the y-axis.
+
+      :type: int, float, complex, np.ndarray
+
+   .. attribute:: enabled
+
+      If `False` (default), the current figure will not be plotted at plt.show().
+
+      :type: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. attribute:: figure_stack
+      
+
+      
+
+   .. method:: _generate_figure_id(cls, figure_type)
+      :classmethod:
+
+      Generates a unique figure id.
+
+      :param figure_type: The type of figure to create
+      :type figure_type: str
+
+      :returns: **figure_id** -- The unique figure id of the form "figure_type-x" where x is an integer.
+      :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: disable(self)
+
+      Disables the current figure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: enable(self)
+
+      Enables the current figure, reconstructs the figuremanagers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: connect_callbacks(self)
+
+      Connects all callbacks to the canvas
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: disconnect_callbacks(self)
+
+      Disconnects all callbacks from the canvas
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _enable_interactive_legend(self, handle)
+
+      Makes the current legendhandler interactive.
+
+      :param handle: The legendhandler (or a subclass thereof)
+      :type handle: ~pylbo.visualisation.legend_interface.LegendHandler
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _add_subplot_axes(self, ax, loc='right', share=None)
+
+      Adds a new subplot to the given axes object, depending on the loc argument.
+      On return, `tight_layout()` is called to update the figure's gridspec.
+      This is meant to split a single axis, and should not be used for multiple
+      subplots.
+
+      :param ax: The axes object, this will be "split" and a new axes will be added
+                 to the figure.
+      :type ax: ~matplotlib.axes.Axes
+      :param loc: The location of the new subplot to add, should be "right", "left", "top"
+                  or "bottom". Equal to "right" by default, so the original figure is shifted
+                  to the left and the new axis is added on the right.
+      :type loc: str
+      :param share: Can be "x", "y" or "all". This locks axes zooming between both subplots.
+      :type share: str
+
+      :raises ValueError: - If the subplot is not a single axis
+          - If the loc argument is invalid.
+
+      :returns: **new_ax** -- The axes instance that was added.
+      :rtype: ~matplotlib.axes.Axes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: draw(self)
+
+      Draws everything on the figure. This method is meant to be overriden by
+      a subclass, where a `super()` call can be done to this method to clear the
+      figure first.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: set_x_scaling(self, x_scaling)
+
+      Sets the x scaling, should be overridden by a subclass.
+
+      :param x_scaling: The scaling to apply to the x-axis.
+      :type x_scaling: int, float, complex, numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: set_y_scaling(self, y_scaling)
+
+      Sets the y scaling, should be overridden by a subclass.
+
+      :param y_scaling: The scaling to apply to the y-axis
+      :type y_scaling: int, float, complex, numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: show(self)
+
+      Shows the current figure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: showall(cls)
+      :classmethod:
+
+      Shows all active figures at once through a call to plt.show().
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: save(self, filename, **kwargs)
+
+      Saves the current figure.
+
+      :param filename: The filename to which the current figure is saved.
+      :type filename: str, ~os.PathLike
+      :param kwargs: Default keyword arguments passed to :meth:`~matplotlib.pyplot.savefig`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+

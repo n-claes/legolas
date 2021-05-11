@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Legolas is a novel finite-element based code that allows for realistic MHD spectroscopy of one-dimensional plasmas.">
+    
+    <meta name="author" content="" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>mod_global_variables &ndash; Legolas</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">Legolas </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/legolas.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/legolas.html">Program</a></li>
+
+          </ul>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>mod_global_variables 
+    <small>Module</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title=" 2.7% of total for modules and submodules.">141 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/mod_global_variables.f08"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+     <li><a href='../sourcefile/mod_global_variables.f08.html'>mod_global_variables.f08</a></li>
+    
+  
+     <li class="active">mod_global_variables</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-0">Variables</a></h3></div>
+  <div id="vars-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-sp">sp</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dp">dp</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-qp">qp</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-str_len">str_len</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-str_len_arr">str_len_arr</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dp_limit">dp_LIMIT</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-nan">NaN</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ic">ic</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ir">ir</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-cgs_units">cgs_units</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gamma">gamma</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gamma_1">gamma_1</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-flow">flow</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-radiative_cooling">radiative_cooling</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ncool">ncool</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-cooling_curve">cooling_curve</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-external_gravity">external_gravity</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-thermal_conduction">thermal_conduction</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-use_fixed_tc_para">use_fixed_tc_para</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-fixed_tc_para_value">fixed_tc_para_value</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-use_fixed_tc_perp">use_fixed_tc_perp</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-fixed_tc_perp_value">fixed_tc_perp_value</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-resistivity">resistivity</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-use_fixed_resistivity">use_fixed_resistivity</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-fixed_eta_value">fixed_eta_value</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-use_eta_dropoff">use_eta_dropoff</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dropoff_edge_dist">dropoff_edge_dist</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dropoff_width">dropoff_width</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-geometry">geometry</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-x_start">x_start</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-x_end">x_end</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gridpts">gridpts</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-force_r0">force_r0</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gauss_gridpts">gauss_gridpts</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-matrix_gridpts">matrix_gridpts</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ef_gridpts">ef_gridpts</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-mesh_accumulation">mesh_accumulation</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ev_1">ev_1</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ev_2">ev_2</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-sigma_1">sigma_1</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-sigma_2">sigma_2</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-n_gauss">n_gauss</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gaussian_nodes">gaussian_nodes</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gaussian_weights">gaussian_weights</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-equilibrium_type">equilibrium_type</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-boundary_type">boundary_type</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-use_defaults">use_defaults</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-remove_spurious_eigenvalues">remove_spurious_eigenvalues</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-nb_spurious_eigenvalues">nb_spurious_eigenvalues</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-nb_eqs">nb_eqs</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dim_integralblock">dim_integralblock</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dim_subblock">dim_subblock</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dim_quadblock">dim_quadblock</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-write_matrices">write_matrices</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-write_eigenfunctions">write_eigenfunctions</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-show_results">show_results</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-basename_datfile">basename_datfile</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-basename_logfile">basename_logfile</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-output_folder">output_folder</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-logging_level">logging_level</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dry_run">dry_run</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-solver">solver</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-arpack_mode">arpack_mode</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-number_of_eigenvalues">number_of_eigenvalues</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-which_eigenvalues">which_eigenvalues</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-maxiter~2">maxiter</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-sigma~3">sigma</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#subs-0">Subroutines</a></h3></div>
+  <div class="list-group">
+    <div id="subs-0" class="panel-collapse collapse">
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#proc-initialise_globals">initialise_globals</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#proc-set_gamma">set_gamma</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#proc-set_gridpts">set_gridpts</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#proc-set_matrix_gridpts">set_matrix_gridpts</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+</div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <p>All global variables are defined in this module, and can be accessed
+ throughout the entire code. Most variables are first initialised
+ to a default value, and are properly set either in the parfile
+ or in an equilibrium submodule.</p>
+      <br>
+    
+  
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Uses</h3>
+      </div>
+      <ul class="list-group">
+      
+      <li class="list-group-item">
+  <ul class="list-inline">
+    
+    <li><a href="http://fortranwiki.org/fortran/show/ISO_FORTRAN_ENV">iso_fortran_env</a></li>
+    
+  </ul>
+      </li>
+      
+      
+      
+      </ul>
+    </div>
+    
+
+    
+    
+
+    <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-1">Variables</a></h3></div>
+  <div id="vars-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-sp">sp</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dp">dp</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-qp">qp</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-str_len">str_len</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-str_len_arr">str_len_arr</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dp_limit">dp_LIMIT</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-nan">NaN</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ic">ic</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ir">ir</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-cgs_units">cgs_units</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gamma">gamma</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gamma_1">gamma_1</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-flow">flow</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-radiative_cooling">radiative_cooling</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ncool">ncool</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-cooling_curve">cooling_curve</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-external_gravity">external_gravity</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-thermal_conduction">thermal_conduction</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-use_fixed_tc_para">use_fixed_tc_para</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-fixed_tc_para_value">fixed_tc_para_value</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-use_fixed_tc_perp">use_fixed_tc_perp</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-fixed_tc_perp_value">fixed_tc_perp_value</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-resistivity">resistivity</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-use_fixed_resistivity">use_fixed_resistivity</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-fixed_eta_value">fixed_eta_value</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-use_eta_dropoff">use_eta_dropoff</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dropoff_edge_dist">dropoff_edge_dist</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dropoff_width">dropoff_width</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-geometry">geometry</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-x_start">x_start</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-x_end">x_end</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gridpts">gridpts</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-force_r0">force_r0</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gauss_gridpts">gauss_gridpts</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-matrix_gridpts">matrix_gridpts</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ef_gridpts">ef_gridpts</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-mesh_accumulation">mesh_accumulation</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ev_1">ev_1</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-ev_2">ev_2</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-sigma_1">sigma_1</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-sigma_2">sigma_2</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-n_gauss">n_gauss</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gaussian_nodes">gaussian_nodes</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-gaussian_weights">gaussian_weights</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-equilibrium_type">equilibrium_type</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-boundary_type">boundary_type</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-use_defaults">use_defaults</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-remove_spurious_eigenvalues">remove_spurious_eigenvalues</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-nb_spurious_eigenvalues">nb_spurious_eigenvalues</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-nb_eqs">nb_eqs</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dim_integralblock">dim_integralblock</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dim_subblock">dim_subblock</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dim_quadblock">dim_quadblock</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-write_matrices">write_matrices</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-write_eigenfunctions">write_eigenfunctions</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-show_results">show_results</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-basename_datfile">basename_datfile</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-basename_logfile">basename_logfile</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-output_folder">output_folder</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-logging_level">logging_level</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-dry_run">dry_run</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-solver">solver</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-arpack_mode">arpack_mode</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-number_of_eigenvalues">number_of_eigenvalues</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-which_eigenvalues">which_eigenvalues</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-maxiter~2">maxiter</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#variable-sigma~3">sigma</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#subs-1">Subroutines</a></h3></div>
+  <div class="list-group">
+    <div id="subs-1" class="panel-collapse collapse">
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#proc-initialise_globals">initialise_globals</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#proc-set_gamma">set_gamma</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#proc-set_gridpts">set_gridpts</a>
+      
+      <a class="list-group-item" href="../module/mod_global_variables.html#proc-set_matrix_gridpts">set_matrix_gridpts</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    
+
+    
+    <section>
+    <h2>Variables</h2>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-sp"></span>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>sp</strong></td><td> =</td><td>real32</td><td><p>single-precision value</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dp"></span>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>dp</strong></td><td> =</td><td>real64</td><td><p>double-precision value</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-qp"></span>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>qp</strong></td><td> =</td><td>real128</td><td><p>quadruple-precision value</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-str_len"></span>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>str_len</strong></td><td> =</td><td>125</td><td><p>default length for strings</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-str_len_arr"></span>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>str_len_arr</strong></td><td> =</td><td>16</td><td><p>default length for strings in arrays</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dp_limit"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>dp_LIMIT</strong></td><td> =</td><td>1.0d-12</td><td><p>values smaller than this are forced to zero</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nan"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>NaN</strong></td><td></td><td></td><td><p>NaN value (ieee_quiet_nan)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ic"></span>complex(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>ic</strong></td><td> =</td><td>(0.0d0, 1.0d0)</td><td><p>complex number i</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ir"></span>complex(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>ir</strong></td><td> =</td><td>(1.0d0, 0.0d0)</td><td><p>complex real</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-cgs_units"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>cgs_units</strong></td><td></td><td></td><td><p>boolean for cgs units, defaults to <tt>True</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gamma"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>gamma</strong></td><td></td><td></td><td><p>ratio of specific heats gamma, defaults to 5/3</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gamma_1"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>gamma_1</strong></td><td></td><td></td><td><p>variable for (gamma - 1)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-flow"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>flow</strong></td><td></td><td></td><td><p>boolean for flow, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-radiative_cooling"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>radiative_cooling</strong></td><td></td><td></td><td><p>boolean for radiative cooling, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ncool"></span>integer,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>ncool</strong></td><td></td><td></td><td><p>number of points to interpolate the radiative cooling curve, defaults to 4000</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-cooling_curve"></span>character(len=str_len),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>cooling_curve</strong></td><td></td><td></td><td><p>name of the cooling curve to use, defaults to \p jc_corona</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-external_gravity"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>external_gravity</strong></td><td></td><td></td><td><p>boolean for external gravity, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-thermal_conduction"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>thermal_conduction</strong></td><td></td><td></td><td><p>boolean for thermal conduction, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-use_fixed_tc_para"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>use_fixed_tc_para</strong></td><td></td><td></td><td><p>boolean to set a fixed value for parallel conduction, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-fixed_tc_para_value"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>fixed_tc_para_value</strong></td><td></td><td></td><td><p>defines the fixed value for parallel conduction, defaults to 0</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-use_fixed_tc_perp"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>use_fixed_tc_perp</strong></td><td></td><td></td><td><p>boolean to set a fixed value for perpendicular conduction, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-fixed_tc_perp_value"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>fixed_tc_perp_value</strong></td><td></td><td></td><td><p>defines the fixed value for perpendicular conduction, defaults to 0</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-resistivity"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>resistivity</strong></td><td></td><td></td><td><p>boolean for resistivity, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-use_fixed_resistivity"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>use_fixed_resistivity</strong></td><td></td><td></td><td><p>boolean to set a fixed value for the resistivity, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-fixed_eta_value"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>fixed_eta_value</strong></td><td></td><td></td><td><p>defines the fixed value for the resistivity, defaults to 0</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-use_eta_dropoff"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>use_eta_dropoff</strong></td><td></td><td></td><td><p>boolean for a resistivity profile that goes to zero on edges, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dropoff_edge_dist"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>dropoff_edge_dist</strong></td><td></td><td></td><td><p>distance between the grid edge and start of dropoff, defaults to <tt>0.05</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dropoff_width"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>dropoff_width</strong></td><td></td><td></td><td><p>width of the dropoff region, defaults to <tt>0.1</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-geometry"></span>character(len=str_len),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>geometry</strong></td><td></td><td></td><td><p>defines the geometry of the problem, defaults depend on chosen equilibrium</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-x_start"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>x_start</strong></td><td></td><td></td><td><p>start value of the base grid, defaults depend on chosen equilibrium</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-x_end"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>x_end</strong></td><td></td><td></td><td><p>end value of the base grid, defaults depend on chosen equilibrium</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gridpts"></span>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>gridpts</strong></td><td></td><td></td><td><p>number of gridpoints in the base grid, defaults to 31</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-force_r0"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>force_r0</strong></td><td></td><td></td><td><p>boolean to force r=0 in cylindrical geometry, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gauss_gridpts"></span>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>gauss_gridpts</strong></td><td></td><td></td><td><p>number of gridpoints in the gaussian grid, automatically set by \p gridpts</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-matrix_gridpts"></span>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>matrix_gridpts</strong></td><td></td><td></td><td><p>size of the A and B matrices, automatically set by \p gridpts</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ef_gridpts"></span>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>ef_gridpts</strong></td><td></td><td></td><td><p>size of a single eigenfunction array, automatically set by \p gridpts</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mesh_accumulation"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>mesh_accumulation</strong></td><td></td><td></td><td><p>boolean for mesh accumulation, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ev_1"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>ev_1</strong></td><td></td><td></td><td><p>expected value for the 1st Gaussian function used in accumulation, defaults to 1.25</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ev_2"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>ev_2</strong></td><td></td><td></td><td><p>expected value for the 2nd Gaussian function used in accumulation, defaults to 1.25</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-sigma_1"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>sigma_1</strong></td><td></td><td></td><td><p>standard deviation for the 1st Gaussian function used in accumulation, defaults to 1</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-sigma_2"></span>real(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>sigma_2</strong></td><td></td><td></td><td><p>standard deviation for the 2nd Gaussian function used in accumulation, defaults to 2</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-n_gauss"></span>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>n_gauss</strong></td><td> =</td><td>4</td><td><p>number of Gaussian nodes</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gaussian_nodes"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>dimension(n_gauss)</td><td>::</td>
+  <td><strong>gaussian_nodes</strong></td><td> =</td><td>(/-0.861136311594053, -0.339981043584856, 0.339981043584856, 0.861136311594053/)</td><td><p>values for the Gaussian nodes in [-1, 1]</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gaussian_weights"></span>real(kind=dp),</td>
+  
+  <td>public,</td>
+  <td>dimension(n_gauss)</td><td>::</td>
+  <td><strong>gaussian_weights</strong></td><td> =</td><td>(/0.347854845137454, 0.652145154862546, 0.652145154862546, 0.347854845137454/)</td><td><p>weights for the Gaussian nodes in [-1, 1]</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-equilibrium_type"></span>character(len=str_len),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>equilibrium_type</strong></td><td></td><td></td><td><p>name of the equilibrium to set up, determines the submodule, defaults to \p "adiabatic_homo"</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-boundary_type"></span>character(len=str_len),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>boundary_type</strong></td><td></td><td></td><td><p>type of boundary conditions, defaults to \p "wall"</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-use_defaults"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>use_defaults</strong></td><td></td><td></td><td><p>use default values for parameters in the chosen submodule, defaults to <tt>True</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-remove_spurious_eigenvalues"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>remove_spurious_eigenvalues</strong></td><td></td><td></td><td><p>boolean for spurious eigenvalue removal, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nb_spurious_eigenvalues"></span>integer,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>nb_spurious_eigenvalues</strong></td><td></td><td></td><td><p>amount of eigenvalues to remove on each side of the imaginary axis, defaults to 1</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nb_eqs"></span>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>nb_eqs</strong></td><td> =</td><td>8</td><td><p>total number of equations</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dim_integralblock"></span>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>dim_integralblock</strong></td><td> =</td><td>2</td><td><p>dimension of one finite element integral block, e.g. A(1, 2)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dim_subblock"></span>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>dim_subblock</strong></td><td> =</td><td>nb_eqs*dim_integralblock</td><td><p>dimension of one subblock, 4 of these define a quadblock</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dim_quadblock"></span>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>dim_quadblock</strong></td><td> =</td><td>2*dim_subblock</td><td><p>dimension of one quadblock, this is the block shifted along the main diagonal</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-write_matrices"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>write_matrices</strong></td><td></td><td></td><td><p>boolean to write both matrices to the datfile, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-write_eigenfunctions"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>write_eigenfunctions</strong></td><td></td><td></td><td><p>boolean to write the eigenfunctions to the datfile, defaults to <tt>True</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-show_results"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>show_results</strong></td><td></td><td></td><td><p>boolean to call the Python wrapper and plot the results, defaults to <tt>True</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-basename_datfile"></span>character(len=str_len),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>basename_datfile</strong></td><td></td><td></td><td><p>base name for the datfile, defaults to \p "datfile"</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-basename_logfile"></span>character(len=str_len),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>basename_logfile</strong></td><td></td><td></td><td><p>base name for the logfile, defaults to ""</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-output_folder"></span>character(len=str_len),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>output_folder</strong></td><td></td><td></td><td><p>path to the output folder, defaults to "."</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-logging_level"></span>integer,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>logging_level</strong></td><td></td><td></td><td><p>sets the logging level, defaults to 2 (errors, warnings and info)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dry_run"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>save</td><td>::</td>
+  <td><strong>dry_run</strong></td><td></td><td></td><td><p>boolean for doing a dry run, defaults to <tt>False</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-solver"></span>character(len=str_len),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>solver</strong></td><td></td><td></td><td><p>method to solve the eigenvalue problem, defaults to <tt>"QR-invert"</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-arpack_mode"></span>character(len=str_len),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>arpack_mode</strong></td><td></td><td></td><td><p>selected mode for ARPACK, defaults to <tt>"standard"</tt></p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-number_of_eigenvalues"></span>integer,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>number_of_eigenvalues</strong></td><td></td><td></td><td><p>number of eigenvalues to calculate with ARPACK, defaults to 100</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-which_eigenvalues"></span>character(len=2),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>which_eigenvalues</strong></td><td></td><td></td><td><p>which eigenvalues to calculate, defaults to <tt>"LM"<tt> (largest magnitude)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-maxiter~2"></span>integer,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>maxiter</strong></td><td></td><td></td><td><p>maximum number of Arnoldi iterations</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-sigma~3"></span>complex(kind=dp),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>sigma</strong></td><td></td><td></td><td><p>sigma value, only used in shift-invert mode</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+    </section>
+    <br>
+    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+
+    
+    <section>
+    <h2>Subroutines</h2>
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-initialise_globals"></span><h3>
+public subroutine <a href='../proc/initialise_globals.html'>initialise_globals</a>()
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Initialises the global variables in this module.
+ All variables in this module are first set to their default values.
+ These are either regular values or NaN, the latter in case variables
+ must be explicitly set in the parfile or equilibrium submodule.
+ </p><a href="../proc/initialise_globals.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+    
+    <h4>Arguments</h4>
+    
+      <em>None</em>
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-set_gamma"></span><h3>
+public subroutine <a href='../proc/set_gamma.html'>set_gamma</a>(gamma_in)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Sets the ratio of specific heats gamma and its corresponding
+ value gamma - 1.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=dp),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>gamma_in</strong></td><td><p>the value for gamma</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-set_gridpts"></span><h3>
+public subroutine <a href='../proc/set_gridpts.html'>set_gridpts</a>(gridpts_in)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Sets all gridpoint-related variables: sets the base number of gridpoints,
+ the gridpoints of the Gaussian grid, matrix sizes and size of the
+ eigenfunction arrays.</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>gridpts_in</strong></td><td><p>amount of gridpoints for the base grid</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-set_matrix_gridpts"></span><h3>
+public subroutine <a href='../proc/set_matrix_gridpts.html'>set_matrix_gridpts</a>(matrix_size_in)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Sets the size of the matrix.
+ Manually forces the size of the matrices to the given value.
+ This is only used for testing purposes, as the matrix sizes are
+ dependent on the base number of gridpoints.
+ </p><a href="../proc/set_matrix_gridpts.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>matrix_size_in</strong></td><td><p>value for the matrix size</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    </section>    
+    <br>
+    
+    
+    
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> Legolas was developed by </p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    
+  </body>
+</html>

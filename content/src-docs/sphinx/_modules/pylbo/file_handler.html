@@ -1,0 +1,413 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pylbo.file_handler &mdash; Pylbo 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Pylbo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Package structure:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Pylbo</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pylbo.file_handler</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pylbo.file_handler</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">tkinter</span> <span class="kn">import</span> <span class="n">filedialog</span>
+<span class="kn">from</span> <span class="nn">pylbo.exceptions</span> <span class="kn">import</span> <span class="n">InvalidLegolasFile</span>
+<span class="kn">from</span> <span class="nn">pylbo.data_containers</span> <span class="kn">import</span> <span class="n">LegolasDataSet</span><span class="p">,</span> <span class="n">LegolasDataSeries</span>
+<span class="kn">from</span> <span class="nn">pylbo.utilities.toolbox</span> <span class="kn">import</span> <span class="n">transform_to_list</span>
+<span class="kn">from</span> <span class="nn">pylbo.utilities.logger</span> <span class="kn">import</span> <span class="n">pylboLogger</span>
+
+
+<div class="viewcode-block" id="_validate_file"><a class="viewcode-back" href="../../autoapi/pylbo/file_handler/index.html#pylbo.file_handler._validate_file">[docs]</a><span class="k">def</span> <span class="nf">_validate_file</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks the file validity of a given logfile or datfile.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file : str, ~os.PathLike</span>
+<span class="sd">        The path to the datfile, either as a :class:`str` or</span>
+<span class="sd">        :class:`~os.PathLike` object.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    -------</span>
+<span class="sd">    FileNotFoundError</span>
+<span class="sd">        If the datfile can not be found.</span>
+<span class="sd">    InvalidLegolasFile</span>
+<span class="sd">        If the datfile is not a valid Legolas output file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path_to_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path_to_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path_to_file</span><span class="o">.</span><span class="n">suffix</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.dat&quot;</span><span class="p">,</span> <span class="s2">&quot;.log&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">InvalidLegolasFile</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load"><a class="viewcode-back" href="../../autoapi/pylbo/index.html#pylbo.file_handler.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">datfile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loads a single Legolas datfile.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    datfile : str, ~os.PathLike</span>
+<span class="sd">        Path to the datfile.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If `datfile` is not a single file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ds : ~pylbo.data_containers.LegolasDataSet</span>
+<span class="sd">        A dataset instance for the given datfile.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datfile</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;load() takes a single datfile.&quot;</span><span class="p">)</span>
+    <span class="n">_validate_file</span><span class="p">(</span><span class="n">datfile</span><span class="p">)</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">LegolasDataSet</span><span class="p">(</span><span class="n">datfile</span><span class="p">)</span>
+    <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Legolas version  : </span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">legolas_version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;file loaded      : </span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">datfile</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> -- </span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">datfile</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;gridpoints       : </span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">gridpoints</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;geometry         : </span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">geometry</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">x_start</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">x_end</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;equilibrium      : </span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">eq_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ds</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;matrices_written&quot;</span><span class="p">]:</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;matrices present in datfile&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ds</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;eigenfuncs_written&quot;</span><span class="p">]:</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;eigenfunctions present in datfile&quot;</span><span class="p">)</span>
+    <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">75</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ds</span></div>
+
+
+<div class="viewcode-block" id="load_series"><a class="viewcode-back" href="../../autoapi/pylbo/index.html#pylbo.file_handler.load_series">[docs]</a><span class="k">def</span> <span class="nf">load_series</span><span class="p">(</span><span class="n">datfiles</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loads multiple Legolas datfiles.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    datfiles : list, numpy.ndarray</span>
+<span class="sd">        Paths to the datfiles that should be loaded, in list/array form. Every element</span>
+<span class="sd">        should be a string or a ~os.PathLike object.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If an empty list or array is supplied.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    series : ~pylbo.data_containers.LegolasDataSeries</span>
+<span class="sd">        A dataseries instance for the given datfiles.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">transform_to_list</span><span class="p">(</span><span class="n">datfiles</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">datfiles</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;load_series: supplied an empty list&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">datfile</span> <span class="ow">in</span> <span class="n">datfiles</span><span class="p">:</span>
+        <span class="n">_validate_file</span><span class="p">(</span><span class="n">datfile</span><span class="p">)</span>
+    <span class="n">series</span> <span class="o">=</span> <span class="n">LegolasDataSeries</span><span class="p">(</span><span class="n">datfiles</span><span class="p">)</span>
+
+    <span class="c1"># handle version printing</span>
+    <span class="n">versions</span> <span class="o">=</span> <span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">legolas_version</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">series</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
+    <span class="n">minversion</span><span class="p">,</span> <span class="n">maxversion</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">versions</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">versions</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">minversion</span> <span class="o">==</span> <span class="n">maxversion</span><span class="p">:</span>
+        <span class="n">info_msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">minversion</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">info_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">minversion</span><span class="si">}</span><span class="s2"> --&gt; </span><span class="si">{</span><span class="n">maxversion</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Legolas_version  : </span><span class="si">{</span><span class="n">info_msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># handle file information printing</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">ds</span><span class="o">.</span><span class="n">datfile</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">series</span><span class="o">.</span><span class="n">datasets</span><span class="p">])</span>
+    <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;files loaded     : </span><span class="si">{</span><span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> --&gt; </span><span class="si">{</span><span class="n">names</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># handle gridpoints printing</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">gridpoints</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">series</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
+    <span class="n">minpts</span><span class="p">,</span> <span class="n">maxpts</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">pts</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">minpts</span> <span class="o">==</span> <span class="n">maxpts</span><span class="p">:</span>
+        <span class="n">info_msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">minpts</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">info_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">minpts</span><span class="si">}</span><span class="s2"> --&gt; </span><span class="si">{</span><span class="n">maxpts</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;gridpoints       : </span><span class="si">{</span><span class="n">info_msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># handle geometry printing</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;multiple geometries detected!&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;geometries       : </span><span class="si">{</span><span class="n">series</span><span class="o">.</span><span class="n">geometry</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># handle equilibrium printing</span>
+    <span class="n">equils</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">ds</span><span class="o">.</span><span class="n">eq_type</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">series</span><span class="o">.</span><span class="n">datasets</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">equils</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;multiple equilibria detected! -- </span><span class="si">{</span><span class="n">equils</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;equilibria       : </span><span class="si">{</span><span class="n">equils</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># check presence of matrices</span>
+    <span class="n">matrices_present</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">ds</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;matrices_written&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">series</span><span class="o">.</span><span class="n">datasets</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matrices_present</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;matrices present in some datfiles, but not all&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">matrices_present</span><span class="o">.</span><span class="n">pop</span><span class="p">():</span>
+            <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;matrices present in all datfiles&quot;</span><span class="p">)</span>
+
+    <span class="c1"># check presence of eigenfunctions</span>
+    <span class="n">efs_present</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">ds</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;eigenfuncs_written&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">series</span><span class="o">.</span><span class="n">datasets</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">efs_present</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;eigenfunctions present in some datfiles, but not all&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">efs_present</span><span class="o">.</span><span class="n">pop</span><span class="p">():</span>
+            <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;eigenfunctions present in all datfiles&quot;</span><span class="p">)</span>
+    <span class="n">pylboLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">75</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">series</span></div>
+
+
+<div class="viewcode-block" id="load_logfile"><a class="viewcode-back" href="../../autoapi/pylbo/index.html#pylbo.file_handler.load_logfile">[docs]</a><span class="k">def</span> <span class="nf">load_logfile</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a Legolas log file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    logfile : str, ~os.PathLike</span>
+<span class="sd">       The path to the logfile.</span>
+<span class="sd">    sort : bool</span>
+<span class="sd">       If `True`, sorts the eigenvalues in the logfile. Sorting is done first</span>
+<span class="sd">       on the real part, then on the imaginary part.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    eigenvalues : numpy.ndarray</span>
+<span class="sd">       Array containing the eigenvalues from the logfile.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_validate_file</span><span class="p">(</span><span class="n">logfile</span><span class="p">)</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">logfile</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="n">eigenvalues</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">logfile</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">logfile</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">line</span>
+            <span class="n">eigenvalues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">complex</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span>
+    <span class="n">eigenvalues</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sort</span><span class="p">:</span>
+        <span class="n">eigenvalues</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">eigenvalues</span></div>
+
+
+<div class="viewcode-block" id="select_files"><a class="viewcode-back" href="../../autoapi/pylbo/file_handler/index.html#pylbo.file_handler.select_files">[docs]</a><span class="k">def</span> <span class="nf">select_files</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Opens an interactive window to select files to open.</span>
+<span class="sd">    Requires a visual interface.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    files : list</span>
+<span class="sd">        A list containing the paths to the files selected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
+    <span class="n">root</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>
+    <span class="n">root</span><span class="o">.</span><span class="n">lift</span><span class="p">()</span>
+    <span class="n">root</span><span class="o">.</span><span class="n">focus_set</span><span class="p">()</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="n">filedialog</span><span class="o">.</span><span class="n">askopenfilenames</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">root</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Legolas file(s)&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">root</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">exit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">files</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Niels Claes, Jordi De Jonghe and Rony Keppens (2020).
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

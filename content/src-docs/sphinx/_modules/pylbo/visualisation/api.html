@@ -1,0 +1,501 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pylbo.visualisation.api &mdash; Pylbo 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Pylbo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Package structure:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Pylbo</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pylbo.visualisation.api</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pylbo.visualisation.api</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">pylbo.data_containers</span> <span class="kn">import</span> <span class="n">LegolasDataSet</span><span class="p">,</span> <span class="n">LegolasDataSeries</span>
+<span class="kn">from</span> <span class="nn">pylbo.visualisation.spectra</span> <span class="kn">import</span> <span class="n">SingleSpectrumPlot</span>
+<span class="kn">from</span> <span class="nn">pylbo.visualisation.spectra</span> <span class="kn">import</span> <span class="n">MultiSpectrumPlot</span>
+<span class="kn">from</span> <span class="nn">pylbo.visualisation.spectra</span> <span class="kn">import</span> <span class="n">MergedSpectrumPlot</span>
+<span class="kn">from</span> <span class="nn">pylbo.visualisation.spectra</span> <span class="kn">import</span> <span class="n">SpectrumComparisonPlot</span>
+<span class="kn">from</span> <span class="nn">pylbo.visualisation.profiles</span> <span class="kn">import</span> <span class="n">EquilibriumProfile</span>
+<span class="kn">from</span> <span class="nn">pylbo.visualisation.profiles</span> <span class="kn">import</span> <span class="n">EquilibriumBalance</span>
+<span class="kn">from</span> <span class="nn">pylbo.visualisation.profiles</span> <span class="kn">import</span> <span class="n">ContinuumProfile</span>
+<span class="kn">from</span> <span class="nn">pylbo.visualisation.matrices</span> <span class="kn">import</span> <span class="n">MatrixFigure</span>
+<span class="kn">from</span> <span class="nn">pylbo.utilities.logger</span> <span class="kn">import</span> <span class="n">pylboLogger</span>
+
+<div class="viewcode-block" id="forbidden_args"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo.forbidden_args">[docs]</a><span class="n">forbidden_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;linestyle&quot;</span><span class="p">,</span> <span class="s2">&quot;linewidth&quot;</span><span class="p">,</span> <span class="s2">&quot;lw&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="_ensure_dataset"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo._ensure_dataset">[docs]</a><span class="k">def</span> <span class="nf">_ensure_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensures that the data object passed is a LegolasDataSet</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : object</span>
+<span class="sd">        The data object to check.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If data is not a :class:`LegolasDataSet`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">LegolasDataSet</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;expected a LegolasDataSet, but got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="_ensure_dataseries"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo._ensure_dataseries">[docs]</a><span class="k">def</span> <span class="nf">_ensure_dataseries</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensures that the data object passed is a LegolasDataSeries</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : object</span>
+<span class="sd">        The data object to check.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If data is not a :class:`LegolasDataSeries`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">LegolasDataSeries</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;expected a LegolasDataSeries object, but got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_spectrum"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo.plot_spectrum">[docs]</a><span class="k">def</span> <span class="nf">plot_spectrum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">custom_figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots the spectrum of a single dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ~pylbo.data_containers.LegolasDataSet</span>
+<span class="sd">        The dataset that should be used.</span>
+<span class="sd">    figsize : tuple</span>
+<span class="sd">        Optional figure size like the usual matplotlib (x, x) size.</span>
+<span class="sd">    custom_figure : tuple</span>
+<span class="sd">        Optional, in the form (fig, ax). If supplied no new figure will be created</span>
+<span class="sd">        but this one will be used instead. `fig` refers to the matplotlib figure and</span>
+<span class="sd">        `ax` to a (single) axes instance, meaning that you can pass a subplot as well.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    p : ~pylbo.visualisation.spectra.SingleSpectrumPlot</span>
+<span class="sd">        The spectrum instance which can be used further to add continua,</span>
+<span class="sd">        eigenfunctions, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_ensure_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">forbidden_args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pylboLogger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;plot_spectrum does not accept the &#39;</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&#39; argument.&quot;</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">SingleSpectrumPlot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="p">,</span> <span class="n">custom_figure</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">p</span></div>
+
+
+<div class="viewcode-block" id="plot_spectrum_multi"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo.plot_spectrum_multi">[docs]</a><span class="k">def</span> <span class="nf">plot_spectrum_multi</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">xdata</span><span class="p">,</span>
+    <span class="n">use_squared_omega</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">use_real_parts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">custom_figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots the spectrum of a dataset series.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ~pylbo.data_containers.LegolasDataSeries</span>
+<span class="sd">        The dataseries that should be used.</span>
+<span class="sd">    xdata : str, list, numpy.ndarray</span>
+<span class="sd">        Data to use for the horizontal axis. This can either be a key from the</span>
+<span class="sd">        parameters dictionary, or a list/numpy array containing actual data.</span>
+<span class="sd">    use_squared_omega : bool</span>
+<span class="sd">        If `True`, this will square the eigenvalues when they are plotted on the</span>
+<span class="sd">        vertical axis. If `False` (default), either the real or imaginary part of the</span>
+<span class="sd">        eigenvalues will be plotted depending on the value of `use_real_parts`.</span>
+<span class="sd">    use_real_parts : bool</span>
+<span class="sd">        If `True` (default), this will plot the real part of the eigenvalues on the</span>
+<span class="sd">        vertical axis. If `False` the imaginary part will be used.</span>
+<span class="sd">    figsize : tuple</span>
+<span class="sd">        Optional figure size like the usual matplotlib (x, x) size.</span>
+<span class="sd">    custom_figure : tuple</span>
+<span class="sd">        Optional, in the form (fig, ax). If supplied no new figure will be created</span>
+<span class="sd">        but this one will be used instead. `fig` refers to the matplotlib figure and</span>
+<span class="sd">        `ax` to a (single) axes instance, meaning that you can pass a subplot as well.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    p : ~pylbo.visualisation.spectra.MultiSpectrumPlot</span>
+<span class="sd">        The spectrum instance which can be used further to add continua,</span>
+<span class="sd">        eigenfunctions, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_ensure_dataseries</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">forbidden_args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pylboLogger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;plot_spectrum_multi does not accept the &#39;</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&#39; argument.&quot;</span>
+            <span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">MultiSpectrumPlot</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">xdata</span><span class="p">,</span>
+        <span class="n">use_squared_omega</span><span class="p">,</span>
+        <span class="n">use_real_parts</span><span class="p">,</span>
+        <span class="n">figsize</span><span class="p">,</span>
+        <span class="n">custom_figure</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">p</span></div>
+
+
+<div class="viewcode-block" id="plot_merged_spectrum"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo.plot_merged_spectrum">[docs]</a><span class="k">def</span> <span class="nf">plot_merged_spectrum</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">custom_figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a merged spectrum from various datasets, useful in plotting multiple</span>
+<span class="sd">    results from the shift-invert solver, for example. This draws every dataset</span>
+<span class="sd">    in a different color by default, and creates a corresponding legend. Supply the</span>
+<span class="sd">    optional argument `color` to draw all points in the same color.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ~pylbo.data_containers.LegolasDataSeries</span>
+<span class="sd">    figsize : tuple</span>
+<span class="sd">        Optional figure size like the usual matplotlib (x, x) size.</span>
+<span class="sd">    custom_figure : tuple</span>
+<span class="sd">        Optional, in the form (fig, ax). If supplied no new figure will be created</span>
+<span class="sd">        but this one will be used instead. `fig` refers to the matplotlib figure and</span>
+<span class="sd">        `ax` to a (single) axes instance, meaning that you can pass a subplot as well.</span>
+<span class="sd">    interactive : bool</span>
+<span class="sd">        If `True` (default), enables an interactive legend.</span>
+<span class="sd">    legend : bool</span>
+<span class="sd">        If `True` (default), draws a legend.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    p : ~pylbo.visualisation.spectra.MultiSpectrumPlot</span>
+<span class="sd">        The spectrumfigure instance, containing the plot.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_ensure_dataseries</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">MergedSpectrumPlot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="p">,</span> <span class="n">custom_figure</span><span class="p">,</span> <span class="n">interactive</span><span class="p">,</span> <span class="n">legend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">p</span></div>
+
+
+<div class="viewcode-block" id="plot_spectrum_comparison"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo.plot_spectrum_comparison">[docs]</a><span class="k">def</span> <span class="nf">plot_spectrum_comparison</span><span class="p">(</span>
+    <span class="n">ds1</span><span class="p">,</span>
+    <span class="n">ds2</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">custom_figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">lock_zoom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compares two spectra.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ds1 : ~pylbo.data_containers.LegolasDataSet</span>
+<span class="sd">        The first dataset, this one is put on the left panel.</span>
+<span class="sd">    ds2 : ~pylbo.data_containers.LegolasDataSet</span>
+<span class="sd">        The second dataset, this one is put on the right panel.</span>
+<span class="sd">    figsize : tuple</span>
+<span class="sd">        Optional figure size like the usual matplotlib (x, x) size.</span>
+<span class="sd">    custom_figure : tuple</span>
+<span class="sd">        The custom figure to use in the form (fig, axes).</span>
+<span class="sd">    lock_zoom : bool</span>
+<span class="sd">        If `True` (`False` by default), locks the zoom of both axis. When locked,</span>
+<span class="sd">        zoomin in on one of the axis automatically scales the zoom on the other one</span>
+<span class="sd">        as well.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    p : ~pylbo.visualisation.spectra.SpectrumComparisonPlot</span>
+<span class="sd">        The figure instance containing the compared spectrum plot.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_ensure_dataset</span><span class="p">(</span><span class="n">ds1</span><span class="p">)</span>
+    <span class="n">_ensure_dataset</span><span class="p">(</span><span class="n">ds2</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">SpectrumComparisonPlot</span><span class="p">(</span><span class="n">ds1</span><span class="p">,</span> <span class="n">ds2</span><span class="p">,</span> <span class="n">figsize</span><span class="p">,</span> <span class="n">custom_figure</span><span class="p">,</span> <span class="n">lock_zoom</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">p</span></div>
+
+
+<div class="viewcode-block" id="plot_equilibrium"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo.plot_equilibrium">[docs]</a><span class="k">def</span> <span class="nf">plot_equilibrium</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots the equilibrium profiles.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ~pylbo.data_containers.LegolasDataSet</span>
+<span class="sd">        The dataset or series that should be used.</span>
+<span class="sd">    figsize : tuple</span>
+<span class="sd">        Optional figure size like the usual matplotlib (x, x) size.</span>
+<span class="sd">    interactive : bool</span>
+<span class="sd">        If `True` (default), enables an interactive legend.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    p : ~pylbo.visualisation.profiles.EquilibriumProfile</span>
+<span class="sd">        The profile instance containing the equilibrium plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_ensure_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">EquilibriumProfile</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="p">,</span> <span class="n">interactive</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">p</span></div>
+
+
+<div class="viewcode-block" id="plot_equilibrium_balance"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo.plot_equilibrium_balance">[docs]</a><span class="k">def</span> <span class="nf">plot_equilibrium_balance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a plot of the force balance equation and non-adiabatic equilibrium</span>
+<span class="sd">    equation. These should be as close to zero as possible over the entire grid.</span>
+<span class="sd">    All values smaller than 1e-16 are set to zero.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ~pylbo.data_containers.LegolasDataSet</span>
+<span class="sd">        The dataset that should be used</span>
+<span class="sd">    figsize : tuple</span>
+<span class="sd">        Optional figure size like the usual matplotlib (x, x) size.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    p : ~pylbo.visualisation.profiles.EquilibriumBalance</span>
+<span class="sd">        The profile instance containing the equilibrium balance plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">EquilibriumBalance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">p</span></div>
+
+
+<div class="viewcode-block" id="plot_continua"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo.plot_continua">[docs]</a><span class="k">def</span> <span class="nf">plot_continua</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots the continua profiles.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ~pylbo.data_containers.LegolasDataSet</span>
+<span class="sd">        The dataset or series that should be used.</span>
+<span class="sd">    figsize : tuple</span>
+<span class="sd">        Optional figure size like the usual matplotlib (x, x) size.</span>
+<span class="sd">    interactive : bool</span>
+<span class="sd">        If `True` (default), enables an interactive legend.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    p : ~pylbo.visualisation.profiles.ContinuumProfile</span>
+<span class="sd">        The profile instance containing the continua plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_ensure_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">ContinuumProfile</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="p">,</span> <span class="n">interactive</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">p</span></div>
+
+
+<div class="viewcode-block" id="plot_matrices"><a class="viewcode-back" href="../../../autoapi/pylbo/visualisation/api/index.html#pylbo.plot_matrices">[docs]</a><span class="k">def</span> <span class="nf">plot_matrices</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots the continua profiles.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ~pylbo.data_containers.LegolasDataSet</span>
+<span class="sd">        The dataset that should be used.</span>
+<span class="sd">    figsize : tuple</span>
+<span class="sd">        Optional figure size like the usual matplotlib (x, x) size.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    p : ~pylbo.visualisation.matrices.MatrixFigure</span>
+<span class="sd">        The instance containing the matrix plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_ensure_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">MatrixFigure</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">figsize</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">p</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Niels Claes, Jordi De Jonghe and Rony Keppens (2020).
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

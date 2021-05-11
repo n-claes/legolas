@@ -1,0 +1,206 @@
+:mod:`pylbo.visualisation.legend_interface`
+===========================================
+
+.. py:module:: pylbo.visualisation.legend_interface
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.legend_interface.LegendHandler
+
+
+
+
+.. class:: LegendHandler(interactive)
+
+
+   Main handler for legend stuff.
+
+   .. attribute:: legend
+
+      The matplotlib legend to use.
+
+      :type: ~matplotlib.legend.Legend
+
+   .. attribute:: alpha_point
+
+      Alpha value for non-hidden lines or points.
+
+      :type: int, float
+
+   .. attribute:: alpha_region
+
+      Alpha value for non-hidden regions.
+
+      :type: int, float
+
+   .. attribute:: alpha_hidden
+
+      Alpha value for hidden artists.
+
+      :type: int, float
+
+   .. attribute:: marker
+
+      The marker to use for points.
+
+      :type: ~matplotlib.markers
+
+   .. attribute:: markersize
+
+      Size of the marker.
+
+      :type: int, float
+
+   .. attribute:: pickradius
+
+      Radius around pickable items so pickevents are triggered.
+
+      :type: int, float
+
+   .. attribute:: linewidth
+
+      Width of drawn lines.
+
+      :type: int, float
+
+   .. attribute:: legend_properties
+
+      Additional properties used when setting the legend.
+
+      :type: dict
+
+   .. attribute:: interactive
+
+      If `True`, makes the legend interactive
+
+      :type: bool
+
+   .. attribute:: autoscale
+
+      If `True`, will check if autoscale is needed when clicking the legend.
+
+      :type: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: on_legend_pick(self, event)
+
+      Determines what happens when the legend gets picked.
+
+      :param event: The matplotlib pick event.
+      :type event: ~matplotlib.backend_bases.PickEvent
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: make_legend_pickable(self)
+
+      Makes the legend pickable, only used if interactive.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add(self, item)
+
+      Adds an item to the list of drawn items on the canvas.
+
+      :param item: A single object, usually a return from the matplotlib plot or scatter
+                   methods.
+      :type item: object
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _check_autoscaling(self)
+
+      Checks if autoscaling is needed and if so, rescales the y-axis to the min-max
+      value of the currently visible legend items.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+

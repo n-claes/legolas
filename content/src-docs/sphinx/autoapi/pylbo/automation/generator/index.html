@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pylbo.automation.generator &mdash; Pylbo 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="pylbo.automation.runner" href="../runner/index.html" />
+    <link rel="prev" title="pylbo.automation.defaults" href="../defaults/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> Pylbo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Package structure:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo</span></code></a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.automation</span></code></a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.automation.api</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../defaults/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.automation.defaults</span></code></a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.automation.generator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../runner/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.automation.runner</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../utilities/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.utilities</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../visualisation/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_version/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo._version</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../data_containers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.data_containers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../exceptions/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.exceptions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../file_handler/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.file_handler</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Pylbo</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">API Reference</a> &raquo;</li>
+        
+          <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo</span></code></a> &raquo;</li>
+        
+          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.automation</span></code></a> &raquo;</li>
+        
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.automation.generator</span></code></li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../../../_sources/autoapi/pylbo/automation/generator/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pylbo.automation.generator">
+<span id="pylbo-automation-generator"></span><h1><a class="reference internal" href="#module-pylbo.automation.generator" title="pylbo.automation.generator"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.automation.generator</span></code></a><a class="headerlink" href="#module-pylbo.automation.generator" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.automation.generator.ParfileGenerator" title="pylbo.automation.generator.ParfileGenerator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParfileGenerator</span></code></a></p></td>
+<td><p>Handles parfile generation.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.automation.generator._validate_basename" title="pylbo.automation.generator._validate_basename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_validate_basename</span></code></a>(basename)</p></td>
+<td><p>Validates the basename for a given parfile.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pylbo.automation.generator._validate_output_dir" title="pylbo.automation.generator._validate_output_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_validate_output_dir</span></code></a>(output_dir)</p></td>
+<td><p>Validates and returns the output directory for the parfiles.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.automation.generator._validate_basename">
+<span class="sig-prename descclassname"><span class="pre">pylbo.automation.generator.</span></span><span class="sig-name descname"><span class="pre">_validate_basename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/automation/generator.html#_validate_basename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.automation.generator._validate_basename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates the basename for a given parfile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>basename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The basename for a parfile. If not given, defaults to “parfile”.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>basename</strong> – The basename for a parfile.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.automation.generator._validate_output_dir">
+<span class="sig-prename descclassname"><span class="pre">pylbo.automation.generator.</span></span><span class="sig-name descname"><span class="pre">_validate_output_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/automation/generator.html#_validate_output_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.automation.generator._validate_output_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates and returns the output directory for the parfiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.9)"><em>PathLike</em></a>) – The output directory to store the parfiles in. If not given, defaults to
+the current working directory.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotADirectoryError" title="(in Python v3.9)"><strong>NotADirectoryError</strong></a> – If the output directory is not found.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>output</strong> – The resolved path to the output directory with “parfiles” appended.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.9)">PathLike</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pylbo.automation.generator.ParfileGenerator">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pylbo.automation.generator.</span></span><span class="sig-name descname"><span class="pre">ParfileGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parfile_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/automation/generator.html#ParfileGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.automation.generator.ParfileGenerator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles parfile generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parfile_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary containing the keys to be placed in the parfile.</p></li>
+<li><p><strong>basename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The basename for the parfile, the <cite>.par</cite> suffix is added automatically and is
+not needed. If multiple parfiles are generated, these
+will be prepended by a 4-digit number (e.g. 0003myparfile.par).
+If not provided, the basename will default to <cite>parfile</cite>.</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.9)"><em>PathLike</em></a>) – Output directory where the parfiles are saved, defaults to the current
+working directory if not specified. A subdirectory called <cite>parfiles</cite> will be
+created in which the parfiles will be saved.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.automation.generator.ParfileGenerator._get_and_check_item">
+<span class="sig-name descname"><span class="pre">_get_and_check_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namelist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_dtypes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/automation/generator.html#ParfileGenerator._get_and_check_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.automation.generator.ParfileGenerator._get_and_check_item" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does typechecking on the various dictionary keys supplied to the parfile
+generator. Pops the key from the dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>namelist</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – One of the namelists (“gridlist”, “savelist”, etc.)</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The key to check.</p></li>
+<li><p><strong>allowed_dtypes</strong> (<em>class</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – Allowed types for that particular key. Either a single value or a tuple.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.9)"><strong>TypeError</strong></a> – If the types do not match, e.g. if “gridpoints” is specified as a float
+value when it should be an integer.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>item</strong> – The item popped from the dictionary corresponding to the given key.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.automation.generator.ParfileGenerator.create_namelist_from_dict">
+<span class="sig-name descname"><span class="pre">create_namelist_from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/automation/generator.html#ParfileGenerator.create_namelist_from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.automation.generator.ParfileGenerator.create_namelist_from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates one major namelist from the given dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../../exceptions/index.html#pylbo.exceptions.ParfileGenerationError" title="pylbo.exceptions.ParfileGenerationError"><strong>ParfileGenerationError</strong></a> – <ul class="simple">
+<li><p>If the original dictionary is not empty after everything should be popped</p></li>
+<li><p>If there is an inconsistency between array sizes of dictionary items</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pylbo.automation.generator.ParfileGenerator.generate_parfiles">
+<span class="sig-name descname"><span class="pre">generate_parfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/automation/generator.html#ParfileGenerator.generate_parfiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.automation.generator.ParfileGenerator.generate_parfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates separate parfiles from the main namelist container and writes
+the individual parfiles to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>parfiles</strong> – List containing the paths of the parfiles, can be passed to the legolas
+runner.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list of str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../runner/index.html" class="btn btn-neutral float-right" title="pylbo.automation.runner" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../defaults/index.html" class="btn btn-neutral float-left" title="pylbo.automation.defaults" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Niels Claes, Jordi De Jonghe and Rony Keppens (2020).
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

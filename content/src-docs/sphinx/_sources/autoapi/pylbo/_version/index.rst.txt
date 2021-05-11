@@ -1,0 +1,65 @@
+:mod:`pylbo._version`
+=====================
+
+.. py:module:: pylbo._version
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pylbo._version.VersionHandler
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo._version._mpl_version
+
+
+.. class:: VersionHandler(version_number)
+
+
+   Dedicated parser for a version number, allows for direct comparison.
+
+   :param version_number: The version number in the form "x.x.x".
+   :type version_number: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: parse(self)
+
+
+   .. method:: _validate_version(version_number)
+      :staticmethod:
+
+
+
+.. data:: _mpl_version
+   
+
+   
+

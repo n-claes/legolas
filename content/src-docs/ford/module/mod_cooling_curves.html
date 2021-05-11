@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Legolas is a novel finite-element based code that allows for realistic MHD spectroscopy of one-dimensional plasmas.">
+    
+    <meta name="author" content="" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>mod_cooling_curves &ndash; Legolas</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">Legolas </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/legolas.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/legolas.html">Program</a></li>
+
+          </ul>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>mod_cooling_curves 
+    <small>Module</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title=" 1.3% of total for modules and submodules.">69 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/mod_cooling_curves.f08"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+     <li><a href='../sourcefile/mod_cooling_curves.f08.html'>mod_cooling_curves.f08</a></li>
+    
+  
+     <li class="active">mod_cooling_curves</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-0">Variables</a></h3></div>
+  <div id="vars-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_jc_corona">n_jc_corona</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_dalgarno">n_dalgarno</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_ml_solar">n_ml_solar</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_spex">n_spex</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_dalgarno2">n_dalgarno2</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-t_jc_corona">t_jc_corona</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-t_dalgarno">t_dalgarno</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-t_ml_solar">t_ml_solar</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-t_spex">t_spex</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-t_dalgarno2">t_dalgarno2</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-l_jc_corona">l_jc_corona</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-l_dalgarno">l_dalgarno</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-l_ml_solar">l_ml_solar</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-l_spex">l_spex</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-l_dalgarno2">l_dalgarno2</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_spex_enh">n_spex_enh</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-rosner_log10_t">rosner_log10_T</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-rosner_log10_xi">rosner_log10_xi</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-rosner_alpha">rosner_alpha</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#subs-0">Subroutines</a></h3></div>
+  <div class="list-group">
+    <div id="subs-0" class="panel-collapse collapse">
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#proc-get_rosner_cooling">get_rosner_cooling</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+</div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <p>All data of the different cooling curves is contained in this module,
+ along with handling piecewise cooling curves.
+ </p><div class="alert alert-info" role="alert"><h4>Note</h4><p>The currently implemented cooling curves are</p>
+<ul>
+<li><em>"jc_corona"</em>: Colgan et al. (2008)</li>
+<li><em>"dalgarno"</em>: Dalgarno and McCray (1978)</li>
+<li><em>"ml_solar"</em>: Mellema and Lundqvist (2002), solar metallicity</li>
+<li><em>"spex"</em>: Schure et al. (2009)</li>
+<li><em>"spex_dalgarno"</em>: spex curve extended by the dalgarno one at low temperatures.</li>
+<li><em>"rosner"</em>: piecewise analytical cooling curve by Rosner, Tucker and Vaiana (1978),
+               extended by Priest (1982)  </p></div>
+<p></p><div class="alert alert-info" role="alert"><h4>Note</h4><p>The spex_dalgarno curve assumes an ionisation fraction of <tt>1e-3</tt>. </p></div>
+<p></p><div class="alert alert-info" role="alert"><h4>Note</h4><p>Original values for xi in the rosner curve are given in SI, these here are scaled to cgs.
+       <script type="math/tex"> 1 Wm^{-3} = 10^{-13} erg/(s*cm^3) </script>, and since these are in a log10 scale
+       that means a -13 difference. </p></div>
+<p></li>
+</ul>
+      <br>
+    
+  
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Uses</h3>
+      </div>
+      <ul class="list-group">
+      
+      <li class="list-group-item">
+  <ul class="list-inline">
+    
+    <li><a href='../module/mod_global_variables.html'>mod_global_variables</a></li>
+    
+  </ul>
+      </li>
+      
+      
+      
+      </ul>
+    </div>
+    
+
+    
+    
+
+    <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-1">Variables</a></h3></div>
+  <div id="vars-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_jc_corona">n_jc_corona</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_dalgarno">n_dalgarno</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_ml_solar">n_ml_solar</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_spex">n_spex</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_dalgarno2">n_dalgarno2</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-t_jc_corona">t_jc_corona</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-t_dalgarno">t_dalgarno</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-t_ml_solar">t_ml_solar</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-t_spex">t_spex</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-t_dalgarno2">t_dalgarno2</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-l_jc_corona">l_jc_corona</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-l_dalgarno">l_dalgarno</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-l_ml_solar">l_ml_solar</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-l_spex">l_spex</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-l_dalgarno2">l_dalgarno2</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-n_spex_enh">n_spex_enh</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-rosner_log10_t">rosner_log10_T</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-rosner_log10_xi">rosner_log10_xi</a>
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#variable-rosner_alpha">rosner_alpha</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#subs-1">Subroutines</a></h3></div>
+  <div class="list-group">
+    <div id="subs-1" class="panel-collapse collapse">
+      
+      <a class="list-group-item" href="../module/mod_cooling_curves.html#proc-get_rosner_cooling">get_rosner_cooling</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    
+
+    
+    <section>
+    <h2>Variables</h2>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-n_jc_corona"></span>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>n_jc_corona</strong></td><td></td><td></td><td><p>amount of points in the jc_corona curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-n_dalgarno"></span>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>n_dalgarno</strong></td><td></td><td></td><td><p>amount of points in the dalgarno curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-n_ml_solar"></span>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>n_ml_solar</strong></td><td></td><td></td><td><p>amount of points in the ml_solar curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-n_spex"></span>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>n_spex</strong></td><td></td><td></td><td><p>amount of points in the spex curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-n_dalgarno2"></span>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>n_dalgarno2</strong></td><td></td><td></td><td><p>amount of points to enhance the spex_dalgarno curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-t_jc_corona"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>t_jc_corona</strong>(45)</td><td></td><td></td><td><p>log temperature datapoints in the jc_corona curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-t_dalgarno"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>t_dalgarno</strong>(71)</td><td></td><td></td><td><p>log temperature datapoints in the dalgarno curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-t_ml_solar"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>t_ml_solar</strong>(71)</td><td></td><td></td><td><p>log temperature datapoints in the ml_solar curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-t_spex"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>t_spex</strong>(110)</td><td></td><td></td><td><p>log temperature datapoints in the spex curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-t_dalgarno2"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>t_dalgarno2</strong>(76)</td><td></td><td></td><td><p>log temperature datapoints to enhance the spex_dalgarno curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-l_jc_corona"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>l_jc_corona</strong>(45)</td><td></td><td></td><td><p>log luminosity datapoints in the jc_corona curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-l_dalgarno"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>l_dalgarno</strong>(71)</td><td></td><td></td><td><p>log luminosity datapoints in the dalgarno curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-l_ml_solar"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>l_ml_solar</strong>(71)</td><td></td><td></td><td><p>log luminosity datapoints in the ml_solar curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-l_spex"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>l_spex</strong>(110)</td><td></td><td></td><td><p>log luminosity datapoints in the spex curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-l_dalgarno2"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>l_dalgarno2</strong>(76)</td><td></td><td></td><td><p>log luminosity datapoints to enhance the spex_dalgarno curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-n_spex_enh"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>n_spex_enh</strong>(110)</td><td></td><td></td><td><p>log luminosity datapoints in the spex_dalgarno curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rosner_log10_t"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rosner_log10_T</strong>(8)</td><td></td><td></td><td><p>datapoints for the piecewise rosner curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rosner_log10_xi"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rosner_log10_xi</strong>(9)</td><td></td><td></td><td><p>log xi values for the rosner cooling curve</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rosner_alpha"></span>real(kind=dp),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rosner_alpha</strong>(9)</td><td></td><td></td><td><p>alpha values for the rosner cooling curve</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+    </section>
+    <br>
+    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+
+    
+    <section>
+    <h2>Subroutines</h2>
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="proc-get_rosner_cooling"></span><h3>
+public subroutine <a href='../proc/get_rosner_cooling.html'>get_rosner_cooling</a>(T0, lambda_T, dlambda_dT)
+    
+    
+   
+</h3></div>
+  <div class="panel-body">
+       
+    
+
+
+
+
+
+
+
+<p>Uses the piecewise rosner cooling curve to calculate the radiative cooling values
+ based on the equilibrium temperature.
+ </p><a href="../proc/get_rosner_cooling.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=dp),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>T0</strong>(gauss_gridpts)</td><td><p>the equilibrium temperature, normalised</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=dp),</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>lambda_T</strong>(gauss_gridpts)</td><td><p>the cooling values corresponding to T0</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=dp),</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dlambda_dT</strong>(gauss_gridpts)</td><td><p>the derivative of the cooling values corresponding to T0</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  </div>
+  </div>
+
+    
+    </section>    
+    <br>
+    
+    
+    
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> Legolas was developed by </p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    
+  </body>
+</html>

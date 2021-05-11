@@ -1,0 +1,18 @@
+:mod:`pylbo.automation`
+=======================
+
+.. py:module:: pylbo.automation
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   api/index.rst
+   defaults/index.rst
+   generator/index.rst
+   runner/index.rst
+
+

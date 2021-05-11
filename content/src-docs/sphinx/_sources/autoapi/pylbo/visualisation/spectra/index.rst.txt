@@ -1,0 +1,877 @@
+:mod:`pylbo.visualisation.spectra`
+==================================
+
+.. py:module:: pylbo.visualisation.spectra
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.visualisation.spectra.SpectrumFigure
+   pylbo.visualisation.spectra.SingleSpectrumPlot
+   pylbo.visualisation.spectra.MultiSpectrumPlot
+   pylbo.visualisation.spectra.MergedSpectrumPlot
+   pylbo.visualisation.spectra.SpectrumComparisonPlot
+
+
+
+
+.. class:: SpectrumFigure(figure_type, figsize, custom_figure)
+
+
+   Bases: :py:obj:`pylbo.visualisation.figure_manager.FigureWindow`
+
+   Superclass of both single and multispectra.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: draw(self)
+
+      Draws everything, checks for continua/eigenfunctions. Overridden by subclasses.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _set_plot_properties(self, properties)
+
+      Sets all relevant plot properties.
+
+      :param properties: Dictionary containing the usual matplotlib properties (marker, color,
+                         markersize, alpha, etc.)
+      :type properties: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _add_spectrum(self)
+
+      Adds the spectrum, is overridden in subclasses.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add_continua(self, interactive)
+
+      Adds the continua to the plot, overridden by subclasses.
+
+      :param interactive: If `True`, makes the legend interactive.
+      :type interactive: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add_eigenfunctions(self)
+
+      Method to add eigenfunctions, should be partially overridden by subclass and
+      then called through `super()` to connect the figure events.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+
+.. class:: SingleSpectrumPlot(dataset, figsize, custom_figure, **kwargs)
+
+
+   Bases: :py:obj:`SpectrumFigure`
+
+   Creates a plot of a single spectrum based on a given dataset.
+
+   :param dataset: The dataset used to create the spectrum.
+   :type dataset: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Figure size used when creating a window, analogous to matplotlib.
+   :type figsize: tuple
+   :param custom_figure: The custom figure to use in the form (fig, axes).
+   :type custom_figure: tuple
+
+   .. attribute:: dataset
+
+      The dataset passed as parameter
+
+      :type: ~pylbo.data_containers.LegolasDataSet
+
+   .. attribute:: w_real
+
+      Real part of the eigenvalues as a numpy array.
+
+      :type: numpy.ndarray(dtype=float, ndim=1)
+
+   .. attribute:: w_imag
+
+      Imaginary part of the eigenvalues as a numpy array.
+
+      :type: numpy.ndarray(dtype=float, ndim=1)
+
+   .. attribute:: marker
+
+      The marker used to draw the points.
+
+      :type: ~matplotlib.markers
+
+   .. attribute:: markersize
+
+      Size of the marker.
+
+      :type: int, float
+
+   .. attribute:: alpha
+
+      Alpha value of the points.
+
+      :type: int, float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: _add_spectrum(self)
+
+      Adds the spectrum to the plot, makes the points pickable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add_continua(self, interactive=True)
+
+      Adds the continua to the spectrum.
+
+      :param interactive: If `True`, makes the legend pickable.
+      :type interactive: bool
+
+      :returns: **c_handler** -- The legendhandler used to plot the continua.
+      :rtype: ~pylbo.continua.ContinuaHandler
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add_eigenfunctions(self)
+
+      Adds the eigenfunctions to the plot, sets the eigenfunction handler.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _ensure_smooth_continuum(self, continuum)
+
+
+   .. method:: ef_ax(self)
+      :property:
+
+      Property, returns the eigenfunction axes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: ef_handler(self)
+      :property:
+
+      Property, returns the eigenfunction handler.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+
+.. class:: MultiSpectrumPlot(dataseries, xdata, use_squared_omega, use_real_parts, figsize, custom_figure, **kwargs)
+
+
+   Bases: :py:obj:`SpectrumFigure`
+
+   Subclass that draws the multispectra.
+
+   :param dataseries: The dataseries that should be used.
+   :type dataseries: ~pylbo.data_containers.LegolasDataSeries
+   :param xdata: Data to use for the horizontal axis. This can either be a key from the
+                 parameters dictionary, or a list/numpy array containing actual data.
+   :type xdata: str, list, numpy.ndarray
+   :param use_squared_omega: If `True`, this will square the eigenvalues when they are plotted on the
+                             vertical axis. If `False` (default), either the real or imaginary part of the
+                             eigenvalues will be plotted depending on the value of `use_real_parts`.
+   :type use_squared_omega: bool
+   :param use_real_parts: If `True` (default), this will plot the real part of the eigenvalues on the
+                          vertical axis. If `False` the imaginary part will be used.
+   :type use_real_parts: bool
+   :param figsize: Optional figure size like the usual matplotlib (x, x) size.
+   :type figsize: tuple
+   :param custom_figure: Optional, in the form (fig, ax). If supplied no new figure will be created
+                         but this one will be used instead. `fig` refers to the matplotlib figure and
+                         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+   :type custom_figure: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: _validate_xdata(self, xdata)
+
+      Validates the xdata passed, does typechecking and necessary casting.
+      If a string is passed, this will request the proper values based on the
+      parameters.
+
+      :param xdata: The xdata used as x values on the spectrum plot.
+      :type xdata: str, list, numpy.ndarray
+
+      :returns: **xdata_values** -- The xdata values of proper length and casted to a Numpy array.
+      :rtype: numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _get_ydata(self)
+
+      Gets the y data based on the value of :attr:`use_squared_omega`.
+
+      :returns: **ydata_values** -- The y data values, either the real or imaginary parts based on
+                :attr:`use_real_parts`.
+      :rtype: numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: set_x_scaling(self, x_scaling)
+
+      Sets the x scaling, properly adjusted to the dataseries length.
+
+      :param x_scaling: Values to use for the x-scaling.
+      :type x_scaling: int, float, complex, numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: set_y_scaling(self, y_scaling)
+
+      Sets the y scaling, properly adjusted to the dataseries length.
+
+      :param y_scaling: Values to use for the y-scaling.
+      :type y_scaling: int, float, complex, numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _add_spectrum(self)
+
+      Draw method, creates the spectrum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add_continua(self, interactive=True)
+
+      Adds the continua to the plot, either interactive or not.
+
+      :param interactive: If `True`, makes the legend interactive.
+      :type interactive: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add_eigenfunctions(self)
+
+      Adds the eigenfunctions to the current figure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+
+.. class:: MergedSpectrumPlot(data, figsize, custom_figure, interactive, legend, **kwargs)
+
+
+   Bases: :py:obj:`SpectrumFigure`
+
+   Merges the datasets from a given series into a single plot.
+
+   :param data: The dataseries which will be merged.
+   :type data: ~pylbo.data_containers.LegolasDataSeries
+   :param figsize: Figure size used when creating a window, analogous to matplotlib.
+   :type figsize: tuple
+   :param custom_figure: The custom figure to use in the form (fig, axes).
+   :type custom_figure: tuple
+   :param interactive: If `True` an interactive legend is enabled.
+   :type interactive: bool
+   :param legend: If `False` no legend will be drawn.
+   :type legend: bool
+
+   .. attribute:: data
+
+      The dataseries passed as parameter.
+
+      :type: ~pylbo.data_containers.LegolasDataSeries
+
+   .. attribute:: leg_handle
+
+      The handler for the legend.
+
+      :type: ~pylbo.visualisation.legend_interface.LegendHandler
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: _add_spectrum(self)
+
+      Adds the spectrum to the plot, makes the points pickable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add_eigenfunctions(self)
+
+      Adds the eigenfunctions to the current figure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add_continua(self, interactive=True)
+      :abstractmethod:
+
+      Adds the continua to the plot, overridden by subclasses.
+
+      :param interactive: If `True`, makes the legend interactive.
+      :type interactive: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+
+.. class:: SpectrumComparisonPlot(ds1, ds2, figsize, custom_figure, lock_zoom, **kwargs)
+
+
+   Bases: :py:obj:`SpectrumFigure`
+
+   Subclass to compare two spectra.
+
+   :param ds1: First dataset, will be placed on the left side.
+   :type ds1: ~pylbo.data_containers.LegolasDataSet
+   :param ds2: Second dataset for comparison, will be placed on the right side.
+   :type ds2: ~pylbo.data_containers.LegolasDataSet
+   :param figsize: Figure size used when creating a window, analogous to matplotlib.
+   :type figsize: tuple
+   :param custom_figure: The custom figure to use in the form (fig, axes).
+   :type custom_figure: tuple
+   :param lock_zoom: If `True`, locks the zoom for both spectrum plots.
+   :type lock_zoom: bool
+
+   .. attribute:: ax2
+
+      The (top)right axes object.
+
+      :type: ~matplotlib.axes.Axes
+
+   .. attribute:: panel1
+
+      The spectrum instance associated with the left side.
+
+      :type: ~pylbo.visualisation.spectra.SingleSpectrumPlot
+
+   .. attribute:: panel2
+
+      The spectrum instance associated with the right side.
+
+      :type: ~pylbo.visualisation.spectra.SingleSpectrumPlot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. method:: set_x_scaling(self, x_scaling)
+
+      Overloads parent method, calls x scaling setter for each panel.
+
+      :param x_scaling: The scaling to apply to the x-axis
+      :type x_scaling: int, float, complex, numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: set_y_scaling(self, y_scaling)
+
+      Overloads parent method, calls y scaling setter for each panel.
+
+      :param y_scaling: The scaling to apply to the y-axis
+      :type y_scaling: int, float, complex, numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: _use_custom_axes(self)
+
+      Splits the original 1x2 plot into a 2x2 plot.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add_eigenfunctions(self)
+
+      Adds the eigenfunctions for both datasets and merges the mpl callbacks.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. method:: add_continua(self, interactive=True)
+
+      Adds the continua for both datasets and merges the mpl callbacks.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+

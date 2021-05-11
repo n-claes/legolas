@@ -1,0 +1,140 @@
+:mod:`pylbo.utilities.toolbox`
+==============================
+
+.. py:module:: pylbo.utilities.toolbox
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pylbo.utilities.toolbox.add_pickradius_to_item
+   pylbo.utilities.toolbox.custom_enumerate
+   pylbo.utilities.toolbox.transform_to_list
+   pylbo.utilities.toolbox.transform_to_numpy
+
+
+
+.. function:: add_pickradius_to_item(item, pickradius)
+
+   Makes a matplotlib artist pickable and adds a pickradius.
+   We have to handle this separately, because for line2D items the method
+   :meth:`~matplotlib.axes.Axes.set_picker` is deprecated from version 3.3 onwards.
+
+   :param item: The artist which will be made pickable
+   :type item: ~matplotlib.artist.Artist
+   :param pickradius: Sets the pickradius, which determines if something is "on" the picked point.
+   :type pickradius: int, float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: custom_enumerate(iterable, start=0, step=1)
+
+   Does a custom enumeration with a given stepsize.
+
+   :param iterable: The iterable to iterate over.
+   :type iterable: ~typing.Iterable
+   :param start: The starting value for enumerate.
+   :type start: int
+   :param step: The stepsize between enumerate values.
+   :type step: int
+
+   :Yields: * **start** (*int*) -- The current index in `iterable`, incremented with `step`.
+            * **itr** (*~typing.Iterable*) -- The corresponding entry of `iterable`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: transform_to_list(obj: any) -> list
+
+   Transforms a given input argument `obj` to a list. If `obj`
+   is a Numpy-array or tuple, a cast to `list()` is invoked.
+
+   :param obj: The object to transform.
+   :type obj: any
+
+   :returns: The object converted to a list.
+   :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. function:: transform_to_numpy(obj: any) -> numpy.ndarray
+
+   Transforms a given input argument `obj` to a numpy array.
+
+   :param obj: The object to transform.
+   :type obj: any
+
+   :returns: The object transformed to a numpy array.
+   :rtype: numpy.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

@@ -1,0 +1,22 @@
+:mod:`pylbo.visualisation`
+==========================
+
+.. py:module:: pylbo.visualisation
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   api/index.rst
+   continua/index.rst
+   eigenfunctions/index.rst
+   figure_manager/index.rst
+   legend_interface/index.rst
+   matrices/index.rst
+   profiles/index.rst
+   spectra/index.rst
+
+

@@ -1,0 +1,534 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pylbo.utilities.datfile_utils &mdash; Pylbo 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="pylbo.utilities.logger" href="../logger/index.html" />
+    <link rel="prev" title="pylbo.utilities" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> Pylbo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Package structure:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo</span></code></a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../automation/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.automation</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.utilities</span></code></a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.utilities.datfile_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../logger/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.utilities.logger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../toolbox/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.utilities.toolbox</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../visualisation/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.visualisation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_version/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo._version</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../data_containers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.data_containers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../exceptions/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.exceptions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../file_handler/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.file_handler</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Pylbo</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">API Reference</a> &raquo;</li>
+        
+          <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo</span></code></a> &raquo;</li>
+        
+          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.utilities</span></code></a> &raquo;</li>
+        
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.utilities.datfile_utils</span></code></li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../../../_sources/autoapi/pylbo/utilities/datfile_utils/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pylbo.utilities.datfile_utils">
+<span id="pylbo-utilities-datfile-utils"></span><h1><a class="reference internal" href="#module-pylbo.utilities.datfile_utils" title="pylbo.utilities.datfile_utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylbo.utilities.datfile_utils</span></code></a><a class="headerlink" href="#module-pylbo.utilities.datfile_utils" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.get_header" title="pylbo.utilities.datfile_utils.get_header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_header</span></code></a>(istream)</p></td>
+<td><p>Retrieves the header from a given datfile.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.read_grid" title="pylbo.utilities.datfile_utils.read_grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_grid</span></code></a>(istream, header)</p></td>
+<td><p>Retrieves the base grid from the datfile.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.read_grid_gauss" title="pylbo.utilities.datfile_utils.read_grid_gauss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_grid_gauss</span></code></a>(istream, header)</p></td>
+<td><p>Retrieves the Gaussian grid from the datfile.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.read_ef_grid" title="pylbo.utilities.datfile_utils.read_ef_grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_ef_grid</span></code></a>(istream, header)</p></td>
+<td><p>Retrieves the eigenfunction grid from the datfile.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.read_eigenvalues" title="pylbo.utilities.datfile_utils.read_eigenvalues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_eigenvalues</span></code></a>(istream, header, omit_large_evs=True)</p></td>
+<td><p>Reads the eigenvalues from the datfile, and optionally omits</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.read_equilibrium_arrays" title="pylbo.utilities.datfile_utils.read_equilibrium_arrays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_equilibrium_arrays</span></code></a>(istream, header)</p></td>
+<td><p>Reads the equilibrium arrays from the datfile.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.read_eigenfunction" title="pylbo.utilities.datfile_utils.read_eigenfunction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_eigenfunction</span></code></a>(istream, header, ef_index)</p></td>
+<td><p>Reads a single eigenfunction from the datfile.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.read_matrix_B" title="pylbo.utilities.datfile_utils.read_matrix_B"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_matrix_B</span></code></a>(istream, header)</p></td>
+<td><p>Reads the B-matrix from the datfile.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.read_matrix_A" title="pylbo.utilities.datfile_utils.read_matrix_A"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_matrix_A</span></code></a>(istream, header)</p></td>
+<td><p>Reads the A-matrix from the datfile.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.SIZE_CHAR" title="pylbo.utilities.datfile_utils.SIZE_CHAR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIZE_CHAR</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.SIZE_INT" title="pylbo.utilities.datfile_utils.SIZE_INT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIZE_INT</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.SIZE_BOOL" title="pylbo.utilities.datfile_utils.SIZE_BOOL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIZE_BOOL</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.SIZE_DOUBLE" title="pylbo.utilities.datfile_utils.SIZE_DOUBLE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIZE_DOUBLE</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.SIZE_COMPLEX" title="pylbo.utilities.datfile_utils.SIZE_COMPLEX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIZE_COMPLEX</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pylbo.utilities.datfile_utils.ALIGN" title="pylbo.utilities.datfile_utils.ALIGN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ALIGN</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.SIZE_CHAR">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">SIZE_CHAR</span></span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#SIZE_CHAR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.SIZE_CHAR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.SIZE_INT">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">SIZE_INT</span></span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#SIZE_INT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.SIZE_INT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.SIZE_BOOL">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">SIZE_BOOL</span></span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#SIZE_BOOL"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.SIZE_BOOL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.SIZE_DOUBLE">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">SIZE_DOUBLE</span></span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#SIZE_DOUBLE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.SIZE_DOUBLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.SIZE_COMPLEX">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">SIZE_COMPLEX</span></span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#SIZE_COMPLEX"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.SIZE_COMPLEX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.ALIGN">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">ALIGN</span></span><em class="property"> <span class="pre">=</span> <span class="pre">=</span></em><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#ALIGN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.ALIGN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.get_header">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">get_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">istream</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#get_header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.get_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the header from a given datfile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>istream</strong> (<a class="reference external" href="https://docs.python.org/3/library/io.html#io.BufferedReader" title="(in Python v3.9)"><em>BufferedReader</em></a>) – Datfile opened in binary mode.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>h</strong> – Dictionary containing all header information.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.read_grid">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">read_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">istream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#read_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.read_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the base grid from the datfile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>istream</strong> (<a class="reference external" href="https://docs.python.org/3/library/io.html#io.BufferedReader" title="(in Python v3.9)"><em>BufferedReader</em></a>) – Datfile opened in binary mode.</p></li>
+<li><p><strong>header</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary containing the datfile header, output from <a class="reference internal" href="#pylbo.utilities.datfile_utils.get_header" title="pylbo.utilities.datfile_utils.get_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_header()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>grid</strong> – The base grid from the datfile.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a>(dtype=float, ndim=1)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.read_grid_gauss">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">read_grid_gauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">istream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#read_grid_gauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.read_grid_gauss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the Gaussian grid from the datfile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>istream</strong> (<a class="reference external" href="https://docs.python.org/3/library/io.html#io.BufferedReader" title="(in Python v3.9)"><em>BufferedReader</em></a>) – Datfile opened in binary mode.</p></li>
+<li><p><strong>header</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary containing the datfile header, output from <a class="reference internal" href="#pylbo.utilities.datfile_utils.get_header" title="pylbo.utilities.datfile_utils.get_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_header()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>grid_gauss</strong> – The Gaussian grid from the datfile.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a>(dtype=float, ndim=1)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.read_ef_grid">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">read_ef_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">istream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#read_ef_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.read_ef_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the eigenfunction grid from the datfile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>istream</strong> (<a class="reference external" href="https://docs.python.org/3/library/io.html#io.BufferedReader" title="(in Python v3.9)"><em>BufferedReader</em></a>) – Datfile opened in binary mode.</p></li>
+<li><p><strong>header</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary containing the datfile header, output from <a class="reference internal" href="#pylbo.utilities.datfile_utils.get_header" title="pylbo.utilities.datfile_utils.get_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_header()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>ef_grid</strong> – The eigenfunction grid from the datfile.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a>(dtype=float, ndim=1)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.read_eigenvalues">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">read_eigenvalues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">istream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omit_large_evs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#read_eigenvalues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.read_eigenvalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the eigenvalues from the datfile, and optionally omits
+the large (larger than <cite>1e15</cite>) values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>istream</strong> (<a class="reference external" href="https://docs.python.org/3/library/io.html#io.BufferedReader" title="(in Python v3.9)"><em>BufferedReader</em></a>) – Datfile opened in binary mode.</p></li>
+<li><p><strong>header</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary containing the datfile header, output from <a class="reference internal" href="#pylbo.utilities.datfile_utils.get_header" title="pylbo.utilities.datfile_utils.get_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_header()</span></code></a>.</p></li>
+<li><p><strong>omit_large_evs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If <cite>True</cite>, all eigenvalues with a modulus larger than <cite>1e15</cite> are set to NaN.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>eigenvalues</strong> – The eigenvalues from the datfile, with optionally omitted large values.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a>(dtype=complex, ndim=1)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.read_equilibrium_arrays">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">read_equilibrium_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">istream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#read_equilibrium_arrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.read_equilibrium_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the equilibrium arrays from the datfile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>istream</strong> (<a class="reference external" href="https://docs.python.org/3/library/io.html#io.BufferedReader" title="(in Python v3.9)"><em>BufferedReader</em></a>) – Datfile opened in binary mode.</p></li>
+<li><p><strong>header</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary containing the datfile header, output from <a class="reference internal" href="#pylbo.utilities.datfile_utils.get_header" title="pylbo.utilities.datfile_utils.get_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_header()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>equil_arrays</strong> – Dictionary containing the equilibrium arrays, with keys given by
+<cite>header[‘equil_names’]</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.read_eigenfunction">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">read_eigenfunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">istream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ef_index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#read_eigenfunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.read_eigenfunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a single eigenfunction from the datfile.
+Eigenfunctions are read in on-the-fly, to prevent having to load the
+entire array into memory (which can quickly be a few 100 Mb for larger datasets).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>istream</strong> (<a class="reference external" href="https://docs.python.org/3/library/io.html#io.BufferedReader" title="(in Python v3.9)"><em>BufferedReader</em></a>) – Datfile opened in binary mode.</p></li>
+<li><p><strong>header</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary containing the datfile header, output from <a class="reference internal" href="#pylbo.utilities.datfile_utils.get_header" title="pylbo.utilities.datfile_utils.get_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_header()</span></code></a>.</p></li>
+<li><p><strong>ef_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The index of the eigenfunction in the matrix. This value corresponds to the
+index of the accompanying eigenvalue in the
+<a class="reference internal" href="../../data_containers/index.html#pylbo.data_containers.LegolasDataSet" title="pylbo.data_containers.LegolasDataSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">LegolasDataSet</span></code></a> eigenvalues attribute.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>eigenfunctions</strong> – A dictionary containing the eigenfunctions for all variables with keys given
+by the names of <cite>header[‘ef_names’]</cite>.
+The eigenfunctions correspond to a specific
+eigenvalue, associated with the same <cite>ef_index</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.read_matrix_B">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">read_matrix_B</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">istream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#read_matrix_B"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.read_matrix_B" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the B-matrix from the datfile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>istream</strong> (<a class="reference external" href="https://docs.python.org/3/library/io.html#io.BufferedReader" title="(in Python v3.9)"><em>BufferedReader</em></a>) – Datfile opened in binary mode.</p></li>
+<li><p><strong>header</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary containing the datfile header, output from <a class="reference internal" href="#pylbo.utilities.datfile_utils.get_header" title="pylbo.utilities.datfile_utils.get_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_header()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rows</strong> (<em>numpy.ndarray(dtype=int, ndim=1)</em>) – Array containing the row indices of the non-zero matrix entries.</p></li>
+<li><p><strong>cols</strong> (<em>numpy.ndarray(dtype=int, ndim=1)</em>) – Array containing the column indices of the non-zero matrix entries.</p></li>
+<li><p><strong>vals</strong> (<em>numpy.ndarray(dtype=float, ndim=1)</em>) – Array containing the non-zero B-matrix values corresponding to
+the rows and column indices.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylbo.utilities.datfile_utils.read_matrix_A">
+<span class="sig-prename descclassname"><span class="pre">pylbo.utilities.datfile_utils.</span></span><span class="sig-name descname"><span class="pre">read_matrix_A</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">istream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/pylbo/utilities/datfile_utils.html#read_matrix_A"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylbo.utilities.datfile_utils.read_matrix_A" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the A-matrix from the datfile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>istream</strong> (<a class="reference external" href="https://docs.python.org/3/library/io.html#io.BufferedReader" title="(in Python v3.9)"><em>BufferedReader</em></a>) – Datfile opened in binary mode.</p></li>
+<li><p><strong>header</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary containing the datfile header, output from <a class="reference internal" href="#pylbo.utilities.datfile_utils.get_header" title="pylbo.utilities.datfile_utils.get_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_header()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rows</strong> (<em>numpy.ndarray(dtype=int, ndim=1)</em>) – Array containing the row indices of the non-zero matrix entries.</p></li>
+<li><p><strong>cols</strong> (<em>numpy.ndarray(dtype=int, ndim=1)</em>) – Array containing the column indices of the non-zero matrix entries.</p></li>
+<li><p><strong>vals</strong> (<em>numpy.ndarray(dtype=complex, ndim=1)</em>) – Array containing the non-zero A-matrix values corresponding to
+the row and column indices.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../logger/index.html" class="btn btn-neutral float-right" title="pylbo.utilities.logger" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../index.html" class="btn btn-neutral float-left" title="pylbo.utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Niels Claes, Jordi De Jonghe and Rony Keppens (2020).
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
