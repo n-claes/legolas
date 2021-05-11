@@ -156,7 +156,7 @@ contains
     ! ==================== dQuadratic * Quadratic ====================
     call reset_factor_positions(new_size=1)
     ! H(6, 6)
-    factors(1) = eta_H * eps * Gop_min /rho
+    factors(1) = eta_H * eps * Gop_min / rho
     positions(1, :) = [6, 6]
     call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
     if (elec_pressure) then

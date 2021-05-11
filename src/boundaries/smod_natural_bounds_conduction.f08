@@ -44,7 +44,7 @@ contains
     positions(1, :) = [5, 1]
     ! K(5, 5)
     factors(2) = gamma_1 * ( &
-      -B01 * Kp * (2.0d0 * deps / eps * ic * B01 + 3.0d0 * Fop) &
+      -B01 * Kp * (2.0d0 * (deps / eps) * ic * B01 + 3.0d0 * Fop) &
       - deps * ic * kappa_perp / eps &
       + ic * dT0 * ( &
         B01**2 * dkappa_para_dT / B0**2 + dkappa_perp_dT * (1.0d0 - B01**2 / B0**2) &

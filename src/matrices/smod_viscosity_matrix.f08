@@ -79,28 +79,28 @@ contains
     call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad)
 
     ! ==================== Quadratic * Cubic ====================
-    call reset_factor_positions(new_size=3)
+    call reset_factor_positions(new_size=2)
     ! Sigma(3, 2)
     factors(1) = ic * mu * deps * 2.0d0 * k2 / eps**2
+    positions(1, :) = [3, 2]
+    ! Sigma(5, 2)
+    factors(2) = (0.0d0, 0.0d0)
+    if (viscous_heating) then
+      factors(2) = factors(2) + 2.0d0 * mu * ( &
+        (deps**2 * v01 - ic * deps * k2 * v02) / eps**2 - deps * dv01 / eps - ddv01 &
+      )
+    end if
+    positions(2, :) = [5, 2]
+    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
+
+    ! ==================== Quadratic * dCubic ====================
+    call reset_factor_positions(new_size=2)
+    ! Sigma(3, 2)
+    factors(1) = ic * mu * k2 / (3.0d0 * eps)
     positions(1, :) = [3, 2]
     ! Sigma(4, 2)
     factors(2) = ic * mu * k3 / 3.0d0
     positions(2, :) = [4, 2]
-    ! Sigma(5, 2)
-    factors(3) = (0.0d0, 0.0d0)
-    if (viscous_heating) then
-      factors(3) = factors(3) + 2.0d0 * mu * ( &
-        deps**2 * v01 - ic * deps * k2 * v02 - deps * eps * dv01 - ddv01 * eps**2 &
-      ) / eps**2
-    end if
-    positions(3, :) = [5, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
-
-    ! ==================== Quadratic * dCubic ====================
-    call reset_factor_positions(new_size=1)
-    ! Sigma(3, 2)
-    factors(1) = ic * mu * k2 / (3.0d0 * eps)
-    positions(1, :) = [3, 2]
     call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
 
     ! ==================== Quadratic * Quadratic ====================

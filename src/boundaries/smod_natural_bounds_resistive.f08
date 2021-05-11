@@ -34,18 +34,14 @@ contains
     call subblock(quadblock, factors, positions, weight, h_quad, h_quad)
 
     ! ==================== Quadratic * dCubic ====================
-    call reset_factor_positions(new_size=1)
+    call reset_factor_positions(new_size=2)
     ! R(5, 7)
     factors(1) = 2.0d0 * ic * gamma_1 * eta * dB03
     positions(1, :) = [5, 7]
-    call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic)
-
-    ! ==================== Quadratic * Cubic ====================
-    call reset_factor_positions(new_size=1)
     ! R(5, 8)
-    factors(1) = -2.0d0 * ic * gamma_1 * eta * drB02
-    positions(1, :) = [5, 8]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_cubic)
+    factors(2) = -2.0d0 * ic * gamma_1 * eta * drB02
+    positions(2, :) = [5, 8]
+    call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic)
 
     ! ==================== Cubic * Quadratic ====================
     call reset_factor_positions(new_size=2)

@@ -88,7 +88,7 @@ contains
     factors(1) = -2.0d0 * ic * gamma_1 * eta * dB03
     positions(1, :) = [5, 7]
     ! R(5, 8)
-    factors(2) = 2 * ic * gamma_1 * drB02 * eta
+    factors(2) = 2.0d0 * ic * gamma_1 * drB02 * eta
     positions(2, :) = [5, 8]
     call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
 
@@ -101,7 +101,7 @@ contains
     factors(2) = ic * k2 * Rop_pos
     positions(2, :) = [7, 6]
     ! R(8, 5)
-    factors(3) = -ic * drB02 / eps * detadT
+    factors(3) = -ic * drB02 * detadT / eps
     positions(3, :) = [8, 5]
     ! R(8, 6)
     factors(4) = ic * deta * eps * k3

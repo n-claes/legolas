@@ -52,7 +52,7 @@ contains
     ! ==================== Quadratic * Quadratic ====================
     call reset_factor_positions(new_size=3)
     ! K(5, 1)
-    factors(1) = gamma_1 * dT0 * B01 / B0**2 * dkappa_perp_drho * Fop_B01
+    factors(1) = gamma_1 * dT0 * (B01 / B0**2) * dkappa_perp_drho * Fop_B01
     positions(1, :) = [5, 1]
     ! K(5, 5)
     factors(2) = gamma_1 * ( &
@@ -81,7 +81,7 @@ contains
       B01 * Kp * (2.0d0 * deps * ic * B01 / eps + 3.0d0 * Fop_plus) &
       + ic * deps * kappa_perp / eps &
       - ic * dT0 * ( &
-        B01**2 * dkappa_para_dT / B0**2 + dkappa_perp_dT * (1 - B01**2 / B0**2) &
+        B01**2 * dkappa_para_dT / B0**2 + dkappa_perp_dT * (1.0d0 - B01**2 / B0**2) &
       ) &
     )
     positions(2, :) = [5, 5]
