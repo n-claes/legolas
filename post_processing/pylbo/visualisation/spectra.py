@@ -340,11 +340,13 @@ class MultiSpectrumPlot(SpectrumFigure):
         ydata_values = np.array(
             [ds.eigenvalues ** self._w_pow for ds in self.dataseries]
         )
-        ydata_values[np.where(np.abs(ydata_values) < 1e-12)] = np.nan
         if self.use_real_parts:
-            return ydata_values.real
+            ydata = ydata_values.real
         else:
-            return ydata_values.imag
+            ydata = ydata_values.imag
+        # omit zeros from data
+        ydata[np.where(np.isclose(ydata, 0, atol=1e-12))] = np.nan
+        return ydata
 
     def set_x_scaling(self, x_scaling):
         """
@@ -428,7 +430,7 @@ class MultiSpectrumPlot(SpectrumFigure):
             # when continua are collapsed then min = max and we draw a line instead
             if all(np.isclose(abs(max_values - min_values), 0)):
                 (item,) = self.ax.plot(
-                    self.xdata,
+                    self.xdata * self.x_scaling,
                     min_values * self.y_scaling,
                     color=color,
                     alpha=self._c_handler.alpha_point,
@@ -436,7 +438,7 @@ class MultiSpectrumPlot(SpectrumFigure):
                 )
             else:
                 item = self.ax.fill_between(
-                    self.xdata,
+                    self.xdata * self.x_scaling,
                     min_values * self.y_scaling,
                     max_values * self.y_scaling,
                     facecolor=colors.to_rgba(color, self._c_handler.alpha_region),
@@ -593,6 +595,30 @@ class SpectrumComparisonPlot(SpectrumFigure):
         )
         self.panel2.ax.set_title(ds2.datfile.stem)
         self._axes_set = False
+
+    def set_x_scaling(self, x_scaling):
+        """
+        Overloads parent method, calls x scaling setter for each panel.
+
+        Parameters
+        ----------
+        x_scaling : int, float, complex, numpy.ndarray
+            The scaling to apply to the x-axis
+        """
+        for panel in (self.panel1, self.panel2):
+            panel.set_x_scaling(x_scaling)
+
+    def set_y_scaling(self, y_scaling):
+        """
+        Overloads parent method, calls y scaling setter for each panel.
+
+        Parameters
+        ----------
+        y_scaling : int, float, complex, numpy.ndarray
+            The scaling to apply to the y-axis
+        """
+        for panel in (self.panel1, self.panel2):
+            panel.set_y_scaling(y_scaling)
 
     def _use_custom_axes(self):
         """Splits the original 1x2 plot into a 2x2 plot."""

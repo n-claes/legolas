@@ -55,70 +55,84 @@ contains
   !> Writes the datfile, where eigenfunctions and matrices are optionally
   !! included. First a header is written containing default information
   !! on the configuration, then the actual data.
-  !! @note    Eigenfunctions are only written if this is enabled in the global variables. @endnote
+  !! @note    Eigenfunctions are only written if this is enabled in the
+  !!          global variables. @endnote
   !! @note    Matrices are only written if this is enabled in the global variables.
-  !!          The matrices are not written entirely to save diskspace: a first pass is performed
-  !!          locating the non-zero values, and then the values are saved to file in the format
+  !!          The matrices are not written entirely to save diskspace: a
+  !!          first pass is performed locating the non-zero values, and then the
+  !!          values are saved to file in the format
   !!          <tt>(row_idx, column_idx, value)</tt>. @endnote
   !! @note    The extension <tt>".dat"</tt> is appended to the filename. @endnote
   subroutine create_datfile(eigenvalues, matrix_A, matrix_B)
-    use mod_global_variables, only: geometry, x_start, x_end, gridpts, gauss_gridpts, &
-                                    matrix_gridpts, ef_gridpts, gamma, equilibrium_type, &
-                                    nb_eqs, cgs_units, str_len_arr, write_matrices, write_eigenfunctions, &
-                                    basename_datfile
+    use mod_global_variables
     use mod_version, only: LEGOLAS_VERSION
     use mod_logging, only: log_message
     use mod_grid, only: grid, grid_gauss
-    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, kappa_field, eta_field, grav_field
+    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
+      kappa_field, eta_field, grav_field
     use mod_eigenfunctions, only: ef_grid, ef_names, ef_array
     use mod_check_values, only: value_is_zero
     use mod_equilibrium_params
     use mod_units
 
     !> the eigenvalues
-    complex(dp), intent(in)       :: eigenvalues(matrix_gridpts)
+    complex(dp), intent(in)       :: eigenvalues(:)
     !> the A-matrix
-    complex(dp), intent(in)       :: matrix_A(matrix_gridpts, matrix_gridpts)
+    complex(dp), intent(in)       :: matrix_A(:, :)
     !> the B-matrix
-    real(dp), intent(in)          :: matrix_B(matrix_gridpts, matrix_gridpts)
+    real(dp), intent(in)          :: matrix_B(:, :)
 
-    character(len=16)             :: param_names(32), equil_names(23)
+    character(len=str_len_arr)    :: param_names(32), equil_names(23)
+    character(len=2*str_len_arr)  :: unit_names(11)
     integer                       :: i, j, nonzero_A_values, nonzero_B_values
 
-    param_names = [character(len=str_len_arr) :: 'k2', 'k3', 'cte_rho0', 'cte_T0', 'cte_B02', 'cte_B03', &
-                   'cte_v02', 'cte_v03', 'cte_p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', &
-                   'alpha', 'beta', 'delta', 'theta', 'tau', 'lambda', 'nu', 'r0', 'rc', 'rj', &
-                   'Bth0', 'Bz0', 'V', 'j0', 'g']
-    equil_names = [character(len=str_len_arr) :: 'rho0', 'drho0', 'T0', 'dT0', 'B02', 'B03', 'dB02', 'dB03', &
-                   'ddB02', 'ddB03', 'B0', 'v02', 'v03', 'dv02', 'dv03', 'dLdT', 'dLdrho', &
-                   'kappa_para', 'kappa_perp', 'eta', 'detadT', 'detadr', 'grav']
+    param_names = [ &
+      character(len=str_len_arr) :: "k2", "k3", "cte_rho0", "cte_T0", "cte_B02", &
+      "cte_B03", "cte_v02", "cte_v03", "cte_p0", "p1", "p2", "p3", "p4", "p5", "p6", &
+      "p7", "p8", "alpha", "beta", "delta", "theta", "tau", "lambda", "nu", "r0", &
+      "rc", "rj", "Bth0", "Bz0", "V", "j0", "g" &
+    ]
+    equil_names = [ &
+      character(len=str_len_arr) :: "rho0", "drho0", "T0", "dT0", "B02", "B03", &
+      "dB02", "dB03", "ddB02", "ddB03", "B0", "v02", "v03", "dv02", "dv03", &
+      "dLdT", "dLdrho", "kappa_para", "kappa_perp", "eta", "detadT", "detadr", "grav" &
+    ]
+    unit_names = [ &
+      character(len=2*str_len_arr) :: "unit_length", "unit_time", "unit_density", &
+      "unit_velocity", "unit_temperature", "unit_pressure", "unit_magneticfield", &
+      "unit_numberdensity", "unit_lambdaT", "unit_conduction", "unit_resistivity" &
+    ]
 
     call make_filename(trim(basename_datfile) // ".dat", datfile_name)
     call open_file(dat_fh, datfile_name)
 
     ! First we write all header information
     write(dat_fh) "legolas_version", LEGOLAS_VERSION
-    write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, gauss_gridpts, matrix_gridpts, &
-                  ef_gridpts, gamma, equilibrium_type, write_eigenfunctions, write_matrices
-    write(dat_fh) size(param_names), param_names
-    write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, cte_p0, &
-                  p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, lambda, nu, &
-                  r0, rc, rj, Bth0, Bz0, V, j0, g
-    write(dat_fh) size(equil_names), equil_names
+    write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
+      gauss_gridpts, matrix_gridpts, ef_gridpts, gamma, equilibrium_type, &
+      write_eigenfunctions, write_matrices
+    write(dat_fh) size(param_names), len(param_names(1)), param_names
+    write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, &
+      cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, &
+      lambda, nu, r0, rc, rj, Bth0, Bz0, V, j0, g
+    write(dat_fh) size(equil_names), len(equil_names(1)), equil_names
     write(dat_fh) cgs_units
-    write(dat_fh) unit_length, unit_time, unit_density, unit_velocity, unit_temperature, &
-                  unit_pressure, unit_magneticfield, unit_numberdensity, unit_lambdaT, &
-                  unit_conduction, unit_resistivity
+    write(dat_fh) size(unit_names), len(unit_names(1)), unit_names
+    write(dat_fh) unit_length, unit_time, unit_density, unit_velocity, &
+      unit_temperature, unit_pressure, unit_magneticfield, unit_numberdensity, &
+      unit_lambdaT, unit_conduction, unit_resistivity
 
     ! Next write the data itself
     ! General data: eigenvalues, grids, equilibrium configuration
-    write(dat_fh) eigenvalues, grid, grid_gauss
-    write(dat_fh) rho_field % rho0, rho_field % d_rho0_dr, T_field % T0, T_field % d_T0_dr, &
-                  B_field % B02, B_field % B03, B_field % d_B02_dr, B_field % d_B03_dr, &
-                  eta_field % dd_B02_dr, eta_field % dd_B03_dr, &
-                  B_field % B0, v_field % v02, v_field % v03, v_field % d_v02_dr, v_field % d_v03_dr, &
-                  rc_field % d_L_dT, rc_field % d_L_drho, kappa_field % kappa_para, kappa_field % kappa_perp, &
-                  eta_field % eta, eta_field % d_eta_dT, eta_field % d_eta_dr, grav_field % grav
+    write(dat_fh) size(eigenvalues), eigenvalues, grid, grid_gauss
+    write(dat_fh) rho_field % rho0, rho_field % d_rho0_dr, &
+      T_field % T0, T_field % d_T0_dr, &
+      B_field % B02, B_field % B03, B_field % d_B02_dr, B_field % d_B03_dr, &
+      eta_field % dd_B02_dr, eta_field % dd_B03_dr, B_field % B0, &
+      v_field % v02, v_field % v03, v_field % d_v02_dr, v_field % d_v03_dr, &
+      rc_field % d_L_dT, rc_field % d_L_drho, &
+      kappa_field % kappa_para, kappa_field % kappa_perp, &
+      eta_field % eta, eta_field % d_eta_dT, eta_field % d_eta_dr, grav_field % grav
 
     ! Eigenfunction data [optional]
     if (write_eigenfunctions) then
@@ -176,19 +190,20 @@ contains
   end subroutine create_datfile
 
 
-  !> Creates a logfile. If <tt>basename_logfile</tt> is specified in the datfile, a logfile is written.
+  !> Creates a logfile. If <tt>basename_logfile</tt> is specified in the datfile,
+  !! a logfile is written.
   !! This is a pure textfile containing the real and imaginary parts of the
-  !! eigenvalues, written in an exponential format. This is mainly used
-  !! for testing purposes, but may come in handy to do some quick inspections on the data.
+  !! eigenvalues, written in an exponential format. This is mainly used for testing
+  !! purposes but may come in handy to do some quick inspections on the data.
   !! @note    If <tt>basename_logfile</tt> is unspecified in the parfile,
   !!          no logfile is written. @endnote
   !! @note    The extension <tt>".log"</tt> is appended to the filename. @endnote
   subroutine create_logfile(eigenvalues)
-    use mod_global_variables, only: matrix_gridpts, basename_logfile
+    use mod_global_variables, only: basename_logfile
     use mod_logging, only: log_message, exp_fmt
 
     !> the eigenvalues
-    complex(dp), intent(in)   :: eigenvalues(matrix_gridpts)
+    complex(dp), intent(in)   :: eigenvalues(:)
     character(20)             :: real_part, imag_part
     integer   :: i
 
@@ -199,7 +214,7 @@ contains
     call make_filename(trim(basename_logfile) // ".log", logfile_name)
     ! open manually since this is not a binary file
     open(unit=log_fh, file=logfile_name, status='unknown', action='write')
-    do i = 1, matrix_gridpts
+    do i = 1, size(eigenvalues)
       write(real_part, exp_fmt) real(eigenvalues(i))
       write(imag_part, exp_fmt) aimag(eigenvalues(i))
       write(log_fh, *) real_part, ',', imag_part

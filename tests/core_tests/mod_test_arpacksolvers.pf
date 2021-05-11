@@ -10,7 +10,7 @@ module mod_test_arpacksolvers
   type(arpack_type)         :: arpackparams
   complex(dp), allocatable  :: amat(:, :)
   real(dp), allocatable     :: bmat(:, :)
-  complex(dp), allocatable  :: vl(:, :), vr(:, :)
+  complex(dp), allocatable  :: vr(:, :)
   complex(dp), allocatable  :: eigenvals(:)
   complex(dp), allocatable  :: expected(:, :)
   real(dp)  :: custom_tol
@@ -31,10 +31,6 @@ contains
       deallocate(bmat)
     end if
     allocate(bmat(ndim, ndim))
-    if (allocated(vl)) then
-      deallocate(vl)
-    end if
-    allocate(vl(ndim, ndim))
     if (allocated(vr)) then
       deallocate(vr)
     end if
@@ -111,7 +107,7 @@ contains
   subroutine test_arpack_bad_arpackmode()
     write(*, *) "Testing ARPACK: invalid arpack_mode"
     arpack_mode = "test_fail"
-    call solve_evp(amat, bmat, eigenvals, vl, vr)
+    call solve_evp(amat, bmat, eigenvals, vr)
     @assertExceptionRaised("unknown mode for ARPACK: test_fail")
   end subroutine test_arpack_bad_arpackmode
 
@@ -214,7 +210,7 @@ contains
     do i = 1, size(which_to_test)
       which_eigenvalues = which_to_test(i)
       write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
-      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call solve_evp(amat, bmat, eigenvals, vr)
       call sort_complex_array(eigenvals)
       ! specify custom tolerance for comparison Python-Fortran (1e-12 is a bit strict)
       custom_tol = 1.0d-10
@@ -316,7 +312,7 @@ contains
     do i = 1, size(which_to_test)
       which_eigenvalues = which_to_test(i)
       write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
-      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call solve_evp(amat, bmat, eigenvals, vr)
       call sort_complex_array(eigenvals)
       custom_tol = 1.0d-10
       @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)
@@ -399,7 +395,7 @@ contains
     do i = 1, size(which_to_test)
       which_eigenvalues = which_to_test(i)
       write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
-      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call solve_evp(amat, bmat, eigenvals, vr)
       call sort_complex_array(eigenvals)
       custom_tol = 1.0d-10
       @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)
@@ -481,7 +477,7 @@ contains
     do i = 1, size(which_to_test)
       which_eigenvalues = which_to_test(i)
       write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
-      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call solve_evp(amat, bmat, eigenvals, vr)
       call sort_complex_array(eigenvals)
       custom_tol = 1.0d-10
       @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)
@@ -579,7 +575,7 @@ contains
     do i = 1, size(which_to_test)
       which_eigenvalues = which_to_test(i)
       write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
-      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call solve_evp(amat, bmat, eigenvals, vr)
       call sort_complex_array(eigenvals)
       custom_tol = 1.0d-10
       @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)
@@ -677,7 +673,7 @@ contains
     do i = 1, size(which_to_test)
       which_eigenvalues = which_to_test(i)
       write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
-      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call solve_evp(amat, bmat, eigenvals, vr)
       call sort_complex_array(eigenvals)
       custom_tol = 1.0d-10
       @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)
@@ -775,7 +771,7 @@ contains
     do i = 1, size(which_to_test)
       which_eigenvalues = which_to_test(i)
       write(*, *) " - Testing '" // adjustl(trim(which_eigenvalues)) // "' eigenvalues"
-      call solve_evp(amat, bmat, eigenvals, vl, vr)
+      call solve_evp(amat, bmat, eigenvals, vr)
       call sort_complex_array(eigenvals)
       custom_tol = 1.0d-10
       @assertEqual(expected(i, :), eigenvals, tolerance=custom_tol)

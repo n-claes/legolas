@@ -59,6 +59,8 @@ class EigenfunctionHandler:
         ylim = ax.get_ylim()
         # Retrieves the dataset associated with the current points.
         # This attribute has been set when the spectrum was added to the plot.
+        if not hasattr(artist, "dataset"):
+            return
         associated_ds = artist.dataset
         # This retrieves the indices of the clicked points. Multiple indices are
         # possible depending on an overlapping pickradius. Look which point corresponds
@@ -159,6 +161,12 @@ class EigenfunctionHandler:
         # pressing "t" retransforms the eigenfunctions
         if event.key == "t":
             self._retransform_efs = not self._retransform_efs
+        if event.key == "w":
+            if self._selected_idxs:
+                print("Currently selected eigenvalues: ")
+                for ds, points in self._selected_idxs.items():
+                    idxs = np.array([int(idx) for idx in points.keys()])
+                    print(f"{ds.datfile.stem} | {ds.eigenvalues[idxs]}")
         # pressing one of these keys updates the plot
         if event.key in ("enter", "up", "down", "i", "t"):
             self.update_plot()

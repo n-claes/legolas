@@ -24,7 +24,7 @@ contains
 
   @test
   subroutine test_lapack_qr_simple()
-    complex(dp) :: amat(5, 5), vl(5, 5), vr(5, 5)
+    complex(dp) :: amat(5, 5), vr(5, 5)
     real(dp)    :: bmat(5, 5)
     complex(dp) :: eigenvals(5), expected(5)
     integer     :: i
@@ -55,7 +55,7 @@ contains
     do i = 1, 5
       bmat(i, i) = 1.0d0
     end do
-    call solve_evp(amat, bmat, eigenvals, vl, vr)
+    call solve_evp(amat, bmat, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected, eigenvals, tolerance=TOL)
   end subroutine test_lapack_qr_simple
@@ -63,7 +63,7 @@ contains
 
   @test
   subroutine test_lapack_qr_general()
-    complex(dp) :: amat(5, 5), vl(5, 5), vr(5, 5)
+    complex(dp) :: amat(5, 5), vr(5, 5)
     real(dp)    :: bmat(5, 5)
     complex(dp) :: eigenvals(5), expected(5)
 
@@ -73,10 +73,10 @@ contains
     amat = reshape( &
       (/ &
         1.0d0*ir, 2.0d0*ir, 3.0d0*ir, 1.0d0*ir, 0.0d0*ir, &
-          2.0d0*ic, 1.0d0*ic, -1.0d0*ir, 0.0d0*ir, -1.0d0*ic, &
-          -3.0d0*ir, 3.0d0*ir, -2.0d0*ic, 0.0d0*ir, 3.0d0*ic, &
-          0.0d0*ir, 5.0d0*ic, 4.0d0*ir, -3.0d0*ic, 2.0d0*ic, &
-          1.0d0*ir, 0.0d0*ir, 2.0d0*ir, 2.0d0*ic, -5.0d0*ir &
+        2.0d0*ic, 1.0d0*ic, -1.0d0*ir, 0.0d0*ir, -1.0d0*ic, &
+        -3.0d0*ir, 3.0d0*ir, -2.0d0*ic, 0.0d0*ir, 3.0d0*ic, &
+        0.0d0*ir, 5.0d0*ic, 4.0d0*ir, -3.0d0*ic, 2.0d0*ic, &
+        1.0d0*ir, 0.0d0*ir, 2.0d0*ir, 2.0d0*ic, -5.0d0*ir &
         /), &
       shape(amat) &
     )
@@ -98,7 +98,7 @@ contains
       (0.6276596796722511d0, 0.48642862257574954d0), &
       (0.6282488405860116d0, -0.23788823614350615d0) &
     /)
-    call solve_evp(amat, bmat, eigenvals, vl, vr)
+    call solve_evp(amat, bmat, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected, eigenvals, tolerance=TOL)
   end subroutine test_lapack_qr_general
@@ -106,7 +106,7 @@ contains
 
   @test
   subroutine test_lapack_qz_simple()
-    complex(dp) :: amat(5, 5), vl(5, 5), vr(5, 5)
+    complex(dp) :: amat(5, 5), vr(5, 5)
     real(dp)    :: bmat(5, 5)
     complex(dp) :: eigenvals(5), expected(5)
     integer     :: i
@@ -138,7 +138,7 @@ contains
     do i = 1, 5
       bmat(i, i) = 1.0d0
     end do
-    call solve_evp(amat, bmat, eigenvals, vl, vr)
+    call solve_evp(amat, bmat, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected, eigenvals, tolerance=TOL)
   end subroutine test_lapack_qz_simple
@@ -146,7 +146,7 @@ contains
 
   @test
   subroutine test_lapack_qz_general()
-    complex(dp) :: amat(5, 5), vl(5, 5), vr(5, 5)
+    complex(dp) :: amat(5, 5), vr(5, 5)
     real(dp)    :: bmat(5, 5)
     complex(dp) :: eigenvals(5), expected(5)
 
@@ -182,7 +182,7 @@ contains
       (0.6276596796722511d0, 0.48642862257574954d0), &
       (0.6282488405860116d0, -0.23788823614350615d0) &
     /)
-    call solve_evp(amat, bmat, eigenvals, vl, vr)
+    call solve_evp(amat, bmat, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected, eigenvals, tolerance=TOL)
   end subroutine test_lapack_qz_general

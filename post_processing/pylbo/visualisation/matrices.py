@@ -44,43 +44,43 @@ class MatrixFigure(FigureWindow):
         self.fig.canvas.draw()
 
         for ax in (self.ax, self.ax2):
-            maingrid_ticks = np.arange(0.5, self.dataset.matrix_gridpts + 16.5, 16)
+            maingrid_ticks = np.arange(0.5, self.dataset.matrix_gridpoints + 16.5, 16)
             for i in maingrid_ticks:
                 ax.vlines(
                     x=i,
                     color="grey",
                     alpha=0.6,
                     ymin=0.5,
-                    ymax=self.dataset.matrix_gridpts + 0.5,
+                    ymax=self.dataset.matrix_gridpoints + 0.5,
                 )
                 ax.hlines(
                     y=i,
                     color="grey",
                     alpha=0.6,
                     xmin=0.5,
-                    xmax=self.dataset.matrix_gridpts + 0.5,
+                    xmax=self.dataset.matrix_gridpoints + 0.5,
                 )
-            minorgrid_ticks = np.arange(0.5, self.dataset.matrix_gridpts + 0.5, 2)
+            minorgrid_ticks = np.arange(0.5, self.dataset.matrix_gridpoints + 0.5, 2)
             for i in minorgrid_ticks:
                 ax.vlines(
                     x=i,
                     color="grey",
                     alpha=0.1,
                     ymin=0.5,
-                    ymax=self.dataset.matrix_gridpts + 0.5,
+                    ymax=self.dataset.matrix_gridpoints + 0.5,
                 )
                 ax.hlines(
                     y=i,
                     color="grey",
                     alpha=0.1,
                     xmin=0.5,
-                    xmax=self.dataset.matrix_gridpts + 0.5,
+                    xmax=self.dataset.matrix_gridpoints + 0.5,
                 )
-            visualticks = np.arange(0, self.dataset.matrix_gridpts + 0.1, 32)
+            visualticks = np.arange(0, self.dataset.matrix_gridpoints + 0.1, 32)
             ax.set_xticks(visualticks)
             ax.set_yticks(visualticks)
-            ax.set_xlim(0, self.dataset.matrix_gridpts + 1)
-            ax.set_ylim(0, self.dataset.matrix_gridpts + 1)
+            ax.set_xlim(0, self.dataset.matrix_gridpoints + 1)
+            ax.set_ylim(0, self.dataset.matrix_gridpoints + 1)
             ax.tick_params(which="both", labelsize=13)
             ax.set_aspect("equal")
             ax.invert_yaxis()

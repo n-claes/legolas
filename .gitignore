@@ -30,3 +30,6 @@ test_legolas
 *.inc
 *.a
 *.egg*
+!/tests/regression_tests/answers/*.dat
+!/tests/regression_tests/answers/*.log
+

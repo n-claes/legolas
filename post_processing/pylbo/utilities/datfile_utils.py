@@ -48,7 +48,8 @@ def get_header(istream):
     except ValueError:
         istream.seek(0)
         VERSION = "0.0.0"
-    h["legolas_version"] = VersionHandler(VERSION)
+    legolas_version = VersionHandler(VERSION)
+    h["legolas_version"] = legolas_version
 
     # read maximal string length and length of strings in arrays
     fmt = ALIGN + 2 * "i"
@@ -94,12 +95,17 @@ def get_header(istream):
     # read number of parameters saved
     fmt = ALIGN + "i"
     (nb_params,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
-    # read parameter names, there are 'nb_params' of them each with size str_len_arr
-    fmt = ALIGN + nb_params * str_len_arr * "c"
+    # >= 1.0.2 read length of parameter names
+    if legolas_version >= "1.0.2":
+        (len_param_name,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+    else:
+        len_param_name = str_len_arr
+    # read parameter names, there are 'nb_params' of them each with size len_param_name
+    fmt = ALIGN + nb_params * len_param_name * "c"
     param_names = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     param_names = [
-        b"".join(param_names[i : i + str_len_arr]).strip().decode()
-        for i in range(0, len(param_names), str_len_arr)
+        b"".join(param_names[i : i + len_param_name]).strip().decode()
+        for i in range(0, len(param_names), len_param_name)
     ]
     # read parameter values, these are all floats (including NaN)
     fmt = ALIGN + nb_params * "d"
@@ -115,13 +121,17 @@ def get_header(istream):
     # read names for saved equilibrium arrays
     fmt = ALIGN + "i"
     (nb_equilvars,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
-    # read equilibrium array names, 'nb_equilvars' each with size
-    # str_len_arr (see mod_output)
-    fmt = ALIGN + nb_equilvars * str_len_arr * "c"
+    # >= 1.0.2 read length of equilibrium names
+    if legolas_version >= "1.0.2":
+        (len_equil_name,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+    else:
+        len_equil_name = str_len_arr
+    # read equilibrium array names, 'nb_equilvars' each with size len_equil_name
+    fmt = ALIGN + nb_equilvars * len_equil_name * "c"
     equil_names = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     equil_names = [
-        b"".join(equil_names[i : i + str_len_arr]).strip().decode()
-        for i in range(0, len(equil_names), str_len_arr)
+        b"".join(equil_names[i : i + len_equil_name]).strip().decode()
+        for i in range(0, len(equil_names), len_equil_name)
     ]
     h["equil_names"] = equil_names
 
@@ -129,21 +139,35 @@ def get_header(istream):
     units = {}
     fmt = ALIGN + "i"
     h["cgs"] = bool(struct.unpack(fmt, istream.read(struct.calcsize(fmt))))
-    fmt = ALIGN + 11 * "d"  # there are 11 unit normalisations in total
+    # >= 1.0.2 read length of names + names
+    if legolas_version >= "1.0.2":
+        fmt = ALIGN + "i"
+        (nb_unitvars,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        (len_unit_name,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        fmt = ALIGN + nb_unitvars * len_unit_name * "c"
+        unit_names = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        unit_names = [
+            b"".join(unit_names[i : i + len_unit_name]).strip().decode()
+            for i in range(0, len(unit_names), len_unit_name)
+        ]
+    else:
+        nb_unitvars = 11
+        len_unit_name = str_len_arr
+        unit_names = [
+            "unit_length",
+            "unit_time",
+            "unit_density",
+            "unit_velocity",
+            "unit_temperature",
+            "unit_pressure",
+            "unit_magneticfield",
+            "unit_numberdensity",
+            "unit_lambdaT",
+            "unit_conduction",
+            "unit_resistivity",
+        ]
+    fmt = ALIGN + nb_unitvars * "d"
     unit_values = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
-    unit_names = [
-        "unit_length",
-        "unit_time",
-        "unit_density",
-        "unit_velocity",
-        "unit_temperature",
-        "unit_pressure",
-        "unit_magneticfield",
-        "unit_numberdensity",
-        "unit_lambdaT",
-        "unit_conduction",
-        "unit_resistivity",
-    ]
     for name, value in zip(unit_names, unit_values):
         units[name] = value
     h["units"] = units
@@ -152,8 +176,15 @@ def get_header(istream):
     # in the binary file. These offsets are later used to actually read in the data
     # and immediately set it as class attributes. This prevents double loading.
 
+    # >= 1.0.2 read length of eigenvalue array
+    if legolas_version >= "1.0.2":
+        fmt = ALIGN + "i"
+        (nb_eigenvals,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+    else:
+        nb_eigenvals = h["matrix_gridpts"]
+    h["nb_eigenvals"] = nb_eigenvals
     # eigenvalue offset
-    byte_size = h["matrix_gridpts"] * SIZE_COMPLEX  # eigenvalues are complex
+    byte_size = nb_eigenvals * SIZE_COMPLEX  # eigenvalues are complex
     offsets = {"eigenvalues": istream.tell()}
     istream.seek(istream.tell() + byte_size)
     # grid offset
@@ -186,7 +217,7 @@ def get_header(istream):
         offsets.update({"ef_grid": istream.tell()})
         istream.seek(istream.tell() + byte_size)
         # eigenfunction offsets
-        byte_size = h["ef_gridpts"] * h["matrix_gridpts"] * nb_eigenfuncs * SIZE_COMPLEX
+        byte_size = h["ef_gridpts"] * nb_eigenvals * nb_eigenfuncs * SIZE_COMPLEX
         offsets.update({"ef_arrays": istream.tell()})
         istream.seek(istream.tell() + byte_size)
 
@@ -284,7 +315,7 @@ def read_eigenvalues(istream, header, omit_large_evs=True):
     header : dict
         Dictionary containing the datfile header, output from :func:`get_header`.
     omit_large_evs : bool
-        If `True`, all eigenvalues with a modulus larger than `1e15` are omitted.
+        If `True`, all eigenvalues with a modulus larger than `1e15` are set to NaN.
 
     Returns
     -------
@@ -292,14 +323,14 @@ def read_eigenvalues(istream, header, omit_large_evs=True):
         The eigenvalues from the datfile, with optionally omitted large values.
     """
     istream.seek(header["offsets"]["eigenvalues"])
-    fmt = ALIGN + 2 * header["matrix_gridpts"] * "d"
+    fmt = ALIGN + 2 * header["nb_eigenvals"] * "d"
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     # hdr is a 1D list with [real, imag, real, imag, real, imag...]
     reals = hdr[::2]
     imags = hdr[1::2]
     eigenvalues = np.asarray([complex(x, y) for x, y in zip(reals, imags)])
     if omit_large_evs:
-        eigenvalues = eigenvalues[np.where(np.absolute(eigenvalues) < 1e15)]
+        eigenvalues[np.where(np.absolute(eigenvalues) > 1e15)] = np.nan
     return eigenvalues
 
 
@@ -356,12 +387,12 @@ def read_eigenfunction(istream, header, ef_index):
     """
     ef_offset = header["offsets"]["ef_arrays"]
     ef_gridpts = header["ef_gridpts"]
-    matrix_gridpts = header["matrix_gridpts"]
+    nb_eigenfuncs = header["nb_eigenvals"]
     eigenfunctions = {}
 
     # Fortran writes in column-major order, meaning column per column.
     # This makes it quite convenient to extract a single eigenfunction from the datfile
-    matrix_bytesize = ef_gridpts * matrix_gridpts * SIZE_COMPLEX
+    matrix_bytesize = ef_gridpts * nb_eigenfuncs * SIZE_COMPLEX
     ef_bytesize = ef_gridpts * SIZE_COMPLEX
     for name in header["ef_names"]:
         name_idx = header["ef_names"].index(name)
@@ -376,6 +407,8 @@ def read_eigenfunction(istream, header, ef_index):
         reals = hdr[::2]
         imags = hdr[1::2]
         ef_values = np.asarray([complex(x, y) for x, y in zip(reals, imags)])
+        # omit very small values
+        ef_values[np.where(np.isclose(ef_values, 0, atol=1e-12))] = 0.0
         eigenfunctions.update({name: ef_values})
     return eigenfunctions
 

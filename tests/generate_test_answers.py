@@ -28,7 +28,7 @@ def main():
             {
                 "basename_datfile": test["answer_datfile"].stem,
                 "basename_logfile": test["answer_logfile"].stem,
-                "output_folder": output_folder
+                "output_folder": output_folder,
             }
         )
         if overwrite_files(test["answer_datfile"]):
@@ -44,7 +44,8 @@ def main():
     if parfiles:
         print("=" * 50)
         print(
-            f"Generator will overwrite the following files: {[name for name in names]}"
+            f"Generator will create or overwrite the "
+            f"following files: {[name for name in names]}"
         )
         force = input("Are you sure? ")
         if force.lower() in ("yes", "y"):
@@ -53,5 +54,5 @@ def main():
             pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

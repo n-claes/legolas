@@ -18,15 +18,13 @@ contains
   !! through inversion of the B-matrix.
   !! @warning Throws an error if <tt>matrix_A</tt> or <tt>matrix_B</tt>
   !!          is not a square matrix. @endwarning
-  module subroutine qr_invert(matrix_A, matrix_B, omega, vl, vr)
+  module subroutine qr_invert(matrix_A, matrix_B, omega, vr)
     !> matrix A
     complex(dp), intent(in)   :: matrix_A(:, :)
     !> matrix B
     real(dp), intent(in)      :: matrix_B(:, :)
     !> array with calculated eigenvalues
     complex(dp), intent(out)  :: omega(:)
-    !> array with left eigenvectors
-    complex(dp), intent(out)  :: vl(:, :)
     !> array with right eigenvectors
     complex(dp), intent(out)  :: vr(:, :)
 
@@ -54,6 +52,8 @@ contains
     integer     :: info
     !> second work array
     real(dp), allocatable     :: rwork(:)
+    !> dummy for left eigenvectors, jobvl = "N" so this is never referenced
+    complex(dp) :: vl(2, 2)
 
     ! check that we have square matrices
     if (.not. matrix_is_square(matrix_A)) then
