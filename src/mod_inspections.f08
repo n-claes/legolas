@@ -189,7 +189,7 @@ contains
   !! and they should all be fulfilled.
   !! @warning   Throws a warning if force-balance is not satisfied.
   subroutine standard_equil_conditions(rho_field, T_field, B_field, v_field, grav_field)
-    use mod_global_variables, only: gauss_gridpts, dp_LIMIT
+    use mod_global_variables, only: gauss_gridpts, dp_LIMIT, geometry
     use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
 
     !> the type containing the density attributes
@@ -210,10 +210,15 @@ contains
     integer   :: i, j, counter(3)
     logical   :: satisfied
 
+    B01 = B_field % B01
+    if ((geometry == 'cylindrical') .and. (B01 > dp_LIMIT)) then
+      call log_message('B01 component currently not supported for cylindrical &
+                        &geometries !', level='error')
+    end if
+
     satisfied = .true.
     discrepancy = 0.0d0
     counter = 0
-    B01 = B_field % B01
     do i = 1, gauss_gridpts
       rho = rho_field % rho0(i)
       drho = rho_field % d_rho0_dr(i)
@@ -287,8 +292,8 @@ contains
   !! This is given by
   !! $$ \frac{1}{\varepsilon}\bigl(\varepsilon \kappa_\bot T_0'\bigr)'
   !!    - \rho_0 \mathscr{L}_0 - \frac{1}{\gamma-1} \rho_0 v_{01} T_0'
-  !!    - p_0 \frac{1}{\varepsilon} (\varepsilon v_{01})' + \frac{B_{01}}{\varepsilon}
-  !!    \bigl[ \varepsilon (\kappa_\parallel - \kappa_\bot)
+  !!    - p_0 \frac{1}{\varepsilon} (\varepsilon v_{01})'
+  !!    + B_{01} \bigl[ (\kappa_\parallel - \kappa_\bot)
   !!    \frac{B_{01}}{B_0^2} T_0' \bigr]' = 0 $$
   !! The second derivative of the equilibrium temperature is evaluated numerically
   !! and does not have to be explicitly specified.
@@ -346,10 +351,10 @@ contains
 
       eq_cond(i) = -rho * v01 * dT0 / gamma_1 - rho * T0 * (v01 * d_eps / eps + dv01) &
                 - rho * L0 + (d_eps * kperp * dT0 / eps + dkperpdT * dT0**2 + kperp * ddT0) &
-                + (kpara - kperp) * dT0 * B01**2 * d_eps / (eps * B0**2) &
-                + (dkparadT - dkperpdT) * dT0**2 * B01**2 / B0**2 &
-                + (kpara - kperp) * ddT0 * B01**2 / B0**2 &
-                - (kpara - kperp) * dT0 * B01**2 * (B02 * dB02 + B03 * dB03) / B0**4
+                + B01**2 * ( &
+                (dkparadT - dkperpdT) * dT0**2 + (kpara - kperp) * ddT0 &
+                - (kpara - kperp) * dT0 * (B02 * dB02 + B03 * dB03) / B0**2 &
+                ) / B0**2
 
       if (abs(eq_cond(i)) > dp_LIMIT) then
         counter = counter + 1
