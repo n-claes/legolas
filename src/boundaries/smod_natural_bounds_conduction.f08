@@ -34,7 +34,7 @@ contains
 
     Gop_min = get_G_operator(grid_idx, which="minus")
     Fop = get_F_operator(grid_idx, which="plus")
-    Kp = get_Kp_operator(grid_idx, which="regular")
+    Kp = kappa_field % prefactor(grid_idx)
     Kp_plusplus = get_Kp_operator(grid_idx, which="++")
 
     ! ==================== Quadratic * Quadratic ====================
