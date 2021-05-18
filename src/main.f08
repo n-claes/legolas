@@ -59,6 +59,7 @@ contains
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_logging, only: print_logo
+    use mod_global_variables, only: viscosity, hall_mhd
 
     character(len=str_len)  :: parfile
     integer   :: nb_evs
@@ -83,6 +84,18 @@ contains
 
     call initialise_equilibrium()
     call set_equilibrium()
+
+    ! TODO: remove this warning when fully tested
+    if (viscosity) then
+      call log_message( &
+        "using viscous MHD, note that this is not yet fully tested!", level="warning" &
+      )
+    end if
+    if (hall_mhd) then
+      call log_message( &
+        "using Hall MHD, note that this does not yet work properly!", level="warning" &
+      )
+    end if
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
     if (write_eigenfunctions .or. solver == "arnoldi") then
