@@ -150,8 +150,6 @@ contains
     call check_nan_values(B_field)
     call check_nan_values(v_field)
     call check_nan_values(grav_field)
-    ! Do final sanity checks on values
-    call perform_sanity_checks(rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field)
 
     ! Setup additional physics
     if (resistivity) then
@@ -167,6 +165,11 @@ contains
     if (hall_mhd) then
       call set_hall_factors(hall_field)
     end if
+
+    ! Do final sanity checks on values
+    call perform_sanity_checks( &
+      rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field &
+    )
   end subroutine set_equilibrium
 
 
