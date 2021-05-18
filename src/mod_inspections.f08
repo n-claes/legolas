@@ -305,9 +305,9 @@ contains
   !! This subroutine essentially sets $\mathscr{L}_0$ in such a way that this equation
   !! is satisfied. If the heating is assumed to only depend on the equilibrium,
   !! and if there is no $B_{01}$, $v_{01}$ or perpendicular thermal conduction,
-  !! then $\mathscr{L}_0 = 0$. If one (or more) of these effects are present,
-  !! $\mathscr{L}_0$ is no longer true. The <tt>rc_field % heat_loss</tt> attribute is
-  !! modified on exit.
+  !! then $\mathscr{L}_0 = 0$. If one (or more) of these effects are present, then
+  !! $\mathscr{L}_0 = 0$ is no longer true.
+  !!  The <tt>rc_field % heat_loss</tt> attribute is modified on exit.
   subroutine set_energy_balance( &
     rho_field, T_field, B_field, v_field, rc_field, kappa_field &
   )
@@ -376,6 +376,17 @@ contains
         "encountered non-zero B01, v01 or kappa_perp, energy balance has been set", &
         level="info" &
       )
+    end if
+    ! double check if L0=0 holds
+    if ( &
+      abs(B01) < dp_LIMIT .and. &
+      all(abs(v_field % v01) < dp_LIMIT) .and. &
+      all(abs(kappa_field % kappa_perp) < dp_LIMIT) &
+    ) then
+      ! if B01 = v01 = kappa_perp = 0, then L0 must be zero
+      if (any(abs(rc_field % heat_loss) > dp_LIMIT)) then
+        call log_message("expected L0 = 0 but got non-zero values!", level="error")
+      end if
     end if
   end subroutine set_energy_balance
 
