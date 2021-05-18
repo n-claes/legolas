@@ -28,8 +28,8 @@ contains
     B02 = B_field % B02(gauss_idx)
     B03 = B_field % B03(gauss_idx)
     ! prefactors
-    diffKp = get_diff_conduction_prefactor(gauss_idx)
-    Kp = get_Kp_operator(gauss_idx, which="regular")
+    Kp = kappa_field % prefactor(gauss_idx)
+    diffKp = kappa_field % d_prefactor_dr(gauss_idx)
     Kp_plus = get_Kp_operator(gauss_idx, which="+")
     Kp_plusplus = get_Kp_operator(gauss_idx, which="++")
     ! parallel thermal conduction variables
@@ -154,54 +154,5 @@ contains
     positions(2, :) = [5, 8]
     call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
   end procedure add_conduction_matrix_terms
-
-
-  !> Calculates the derivative of the conduction prefactor with respect to the grid.
-  function get_diff_conduction_prefactor(gauss_idx) result(dKp)
-    !> current index in the Gaussian grid
-    integer, intent(in) :: gauss_idx
-    !> coordinate derivative of the conduction prefactor
-    real(dp)  :: dKp
-
-    real(dp)  :: drho, dT0
-    real(dp)  :: B0, dB0, B01, B02, dB02, B03, dB03
-    real(dp)  :: kappa_para, kappa_perp
-    real(dp)  :: d_kappapara_dT
-    real(dp)  :: d_kappaperp_drho, d_kappaperp_dT, d_kappaperp_dB2
-    real(dp)  :: d_kappapara_dr, d_kappaperp_dr
-
-    drho = rho_field % d_rho0_dr(gauss_idx)
-    dT0 = T_field % d_T0_dr(gauss_idx)
-    B0 = B_field % B0(gauss_idx)
-    B01 = B_field % B01
-    B02 = B_field % B02(gauss_idx)
-    dB02 = B_field % d_B02_dr(gauss_idx)
-    B03 = B_field % B03(gauss_idx)
-    dB03 = B_field % d_B03_dr(gauss_idx)
-    ! magnetic field derivative
-    dB0 = (B02 * dB02 + B03 * dB03) / B0
-
-    kappa_para = kappa_field % kappa_para(gauss_idx)
-    kappa_perp = kappa_field % kappa_perp(gauss_idx)
-
-    d_kappapara_dT = kappa_field % d_kappa_para_dT(gauss_idx)
-    d_kappaperp_drho = kappa_field % d_kappa_perp_drho(gauss_idx)
-    d_kappaperp_dT = kappa_field % d_kappa_perp_dT(gauss_idx)
-    d_kappaperp_dB2 = kappa_field % d_kappa_perp_dB2(gauss_idx)
-
-    ! coordinate derivative of kappa_parallel
-    d_kappapara_dr = d_kappapara_dT * dT0
-    ! coordinate derivative of kappa_perp
-    d_kappaperp_dr = ( &
-      d_kappaperp_drho * drho &
-      + d_kappaperp_dT * dT0 &
-      + d_kappaperp_dB2 * 2.0d0 * B0 * dB0 &
-    )
-    ! full coordinate derivative of prefactor
-    dKp = ( &
-      (d_kappapara_dr - d_kappaperp_dr) * B0 &
-      - 2.0d0 * (kappa_para - kappa_perp) * dB0 &
-    ) / B0**3
-  end function get_diff_conduction_prefactor
 
 end submodule smod_conduction_matrix

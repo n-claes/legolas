@@ -109,6 +109,12 @@ module mod_types
     real(dp), allocatable   :: d_kappa_perp_dT(:)
     !> derivative d(kappa_perp)/d(B**2)
     real(dp), allocatable   :: d_kappa_perp_dB2(:)
+    !> derivative d(kappa_perp)/dr
+    real(dp), allocatable   :: d_kappa_perp_dr(:)
+    !> conduction prefactor (kappa_para - kappa_perp) / B**2
+    real(dp), allocatable   :: prefactor(:)
+    !> derivative conduction prefactor with respect to r
+    real(dp), allocatable   :: d_prefactor_dr(:)
   end type conduction_type
 
   !> type containing all eigenfuction related variables
@@ -320,6 +326,9 @@ contains
     allocate(type_kappa % d_kappa_perp_drho(gauss_gridpts))
     allocate(type_kappa % d_kappa_perp_dT(gauss_gridpts))
     allocate(type_kappa % d_kappa_perp_dB2(gauss_gridpts))
+    allocate(type_kappa % d_kappa_perp_dr(gauss_gridpts))
+    allocate(type_kappa % prefactor(gauss_gridpts))
+    allocate(type_kappa % d_prefactor_dr(gauss_gridpts))
 
     type_kappa % kappa_para = 0.0d0
     type_kappa % d_kappa_para_dT = 0.0d0
@@ -327,6 +336,9 @@ contains
     type_kappa % d_kappa_perp_drho = 0.0d0
     type_kappa % d_kappa_perp_dT = 0.0d0
     type_kappa % d_kappa_perp_dB2 = 0.0d0
+    type_kappa % d_kappa_perp_dr = 0.0d0
+    type_kappa % prefactor = 0.0d0
+    type_kappa % d_prefactor_dr = 0.0d0
   end subroutine initialise_conduction_type
 
 
@@ -425,6 +437,9 @@ contains
     deallocate(type_kappa % d_kappa_perp_drho)
     deallocate(type_kappa % d_kappa_perp_dT)
     deallocate(type_kappa % d_kappa_perp_dB2)
+    deallocate(type_kappa % d_kappa_perp_dr)
+    deallocate(type_kappa % prefactor)
+    deallocate(type_kappa % d_prefactor_dr)
   end subroutine deallocate_conduction_type
 
 

@@ -133,8 +133,6 @@ contains
 
 
   !> Calculates the (modified) conduction prefactor, given as
-  !! $$ \boldsymbol{K_p} = \frac{\kappa_{\parallel,0} - \kappa_{\perp,0}}{B_0^2} $$
-  !! $$
   !! \boldsymbol{K_p^+} =
   !!      \left(\boldsymbol{K_p} + \frac{\partial \kappa_\perp}{\partial(B^2)}\right)
   !! $$
@@ -148,25 +146,21 @@ contains
 
     !> current index in the Gaussian grid
     integer, intent(in) :: gauss_idx
-    !> which operator to calculate, <tt>"regular", "+", "++"</tt>
+    !> which operator to calculate, <tt>"+", "++"</tt>
     character(len=*), intent(in)  :: which
     !> the (modified) $K_p$ operator on return
     real(dp)  :: Kp_operator
 
-    real(dp)  :: Kp_regular, Kp_plus, Kp_plusplus
+    real(dp)  :: Kp, Kp_plus, Kp_plusplus
 
-    Kp_regular = ( &
-      kappa_field % kappa_para(gauss_idx) - kappa_field % kappa_perp(gauss_idx) &
-    ) / B_field % B0(gauss_idx)**2
-    Kp_plus = Kp_regular + kappa_field % d_kappa_perp_dB2(gauss_idx)
+    Kp = kappa_field % prefactor(gauss_idx)
+    Kp_plus = Kp + kappa_field % d_kappa_perp_dB2(gauss_idx)
     Kp_plusplus = ( &
       kappa_field % d_kappa_perp_dB2(gauss_idx) &
       - (B_field % B01**2 * Kp_plus / B_field % B0(gauss_idx)**2) &
     )
 
-    if (which == "regular") then
-      Kp_operator = Kp_regular
-    else if (which == "+") then
+    if (which == "+") then
       Kp_operator = Kp_plus
     else if (which == "++") then
       Kp_operator = Kp_plusplus
