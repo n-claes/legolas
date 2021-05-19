@@ -34,8 +34,8 @@ magneto_arnoldi_si_setup = {
         "sigma": 0.1 + 0.05j,
     },
     "image_limits": [
-        {"xlims": (-0.002, 0.025), "ylims": (-0.002, 0.046), "RMS_TOLERANCE": 4.1},
-        {"xlims": (-0.0015, 0.0175), "ylims": (-0.001, 0.02), "RMS_TOLERANCE": 5.7},
+        {"xlims": (-0.002, 0.025), "ylims": (-0.002, 0.046), "RMS_TOLERANCE": 4.3},
+        {"xlims": (-0.0015, 0.0175), "ylims": (-0.001, 0.02), "RMS_TOLERANCE": 6},
     ],
     "eigenfunctions": [
         {"eigenvalue": 2.799e-2j},

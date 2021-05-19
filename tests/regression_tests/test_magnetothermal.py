@@ -33,7 +33,7 @@ magnetothermal_setup = {
         {"xlims": (-40, 40), "ylims": (-0.15, 0.12)},
         {"xlims": (-5, 5), "ylims": (-0.15, 0.12)},
         {"xlims": (-0.1, 0.1), "ylims": (-0.15, 0.12)},
-        {"xlims": (-0.025, 0.025), "ylims": (-0.015, 0.12)},
+        {"xlims": (-0.025, 0.025), "ylims": (-0.015, 0.12), "RMS_TOLERANCE": 2.2},
     ]
 }
 parametrisation = dict(
