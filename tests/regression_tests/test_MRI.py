@@ -11,16 +11,16 @@ mri_setup = {
         "write_eigenfunctions": True,
         "write_matrices": False,
     },
-    "ev_guesses": [
-        -0.002028 + 0.627722j,
-        -0.00186038 + 0.5804956j,
-        -0.0017397 + 0.5443967j,
-    ],
     "image_limits": [
         {"xlims": (-45, 45), "ylims": (-0.7, 0.7)},
         {"xlims": (-10, 10), "ylims": (-0.7, 0.7)},
         {"xlims": (-1.5, 1.5), "ylims": (-0.7, 0.7)},
         {"xlims": (-0.05, 0.05), "ylims": (-0.7, 0.7)},
         {"xlims": (-0.01, 0.01), "ylims": (-0.01, 0.7)},
-    ]
+    ],
+    "eigenfunctions": [
+        {"eigenvalue": -0.002028 + 0.627722j},
+        {"eigenvalue": -0.00186038 + 0.5804956j},
+        {"eigenvalue": -0.0017397 + 0.5443967j},
+    ],
 }

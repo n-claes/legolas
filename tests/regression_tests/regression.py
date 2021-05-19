@@ -10,9 +10,10 @@ from regression_tests.suite_utils import (
     get_filepaths,
     get_answer_filepaths,
     get_image_filename,
-    compare_eigenfunctions,
+    ABS_TOL,
     SAVEFIG_KWARGS,
     RMS_TOLERANCE,
+    EF_NAMES,
 )
 from regression_tests.test_adiabatic_homo import adiabatic_homo_setup
 from regression_tests.test_discrete_alfven import discrete_alfven_setup
@@ -100,23 +101,73 @@ def test_generate_spectrum_images(ds_test, ds_answer, setup, imagedir):
     p_test = pylbo.plot_spectrum(ds_test)
     p_answer = pylbo.plot_spectrum(ds_answer)
     setup["spectrum_images"] = []
-    # get baseline configurations
     for image_lims in setup.get("image_limits"):
         figname = f"{get_image_filename(setup['name'], limits_dict=image_lims)}.png"
-        figname_answer = f"{figname}-baseline.png"
+        figname_answer = f"{figname[:-4]}-baseline.png"
         xlims = image_lims.get("xlims")
         ylims = image_lims.get("ylims")
         # save test image
         p_test.ax.set_xlim(xlims)
         p_test.ax.set_ylim(ylims)
         p_test.fig.savefig(imagedir / figname, **SAVEFIG_KWARGS)
-        plt.close(p_test.fig)
         # save baseline image
         p_answer.ax.set_xlim(xlims)
         p_answer.ax.set_ylim(ylims)
         p_answer.fig.savefig(imagedir / figname_answer, **SAVEFIG_KWARGS)
-        plt.close(p_answer.fig)
         setup["spectrum_images"].append((figname, figname_answer))
+    plt.close(p_test.fig)
+    plt.close(p_answer.fig)
+
+
+@pytest.mark.parametrize(
+    "setup",
+    [s for s in tests_to_run if s.get("eigenfunctions") is not None],
+    ids=[s["name"] for s in tests_to_run if s.get("eigenfunctions") is not None],
+)
+def test_generate_eigenfunction_images(ds_test, ds_answer, setup, imagedir):
+    setup["eigenfunction_images"] = []
+    fig_test, ax_test = plt.subplots(3, 3, figsize=(10, 10), sharex="all")
+    axes_test = ax_test.flatten()
+    fig_test.delaxes(axes_test[-1])
+    fig_answer, ax_answer = plt.subplots(3, 3, figsize=(10, 10), sharex="all")
+    axes_answer = ax_answer.flatten()
+    fig_answer.delaxes(axes_answer[-1])
+    for i, efs in enumerate(setup.get("eigenfunctions")):
+        eigenval = efs.get("eigenvalue")
+        figname = f"{setup['name']}_eigenfunctions_{i}.png"
+        figtitle = f"{setup['name']} -- eigenvalue={eigenval:.6f}"
+        # generate baseline image
+        (efs_answer,) = ds_answer.get_eigenfunctions(ev_guesses=eigenval)
+        figname_answer = f"{figname[:-4]}-baseline.png"
+        for ax, ef_name in zip(axes_answer, EF_NAMES):
+            result = efs_answer[ef_name].real + efs_answer[ef_name].imag
+            # small values to zero
+            result[np.where(abs(result) < ABS_TOL)] = 0
+            ax.plot(ds_answer.ef_grid, abs(result), lw=3)
+            ax.set_yticks([])
+            ax.set_title(ef_name)
+        fig_answer.suptitle(figtitle)
+        fig_answer.tight_layout()
+        fig_answer.savefig(imagedir / figname_answer, **SAVEFIG_KWARGS)
+        [ax.clear() for ax in axes_answer]
+
+        # generate test image
+        (efs_test,) = ds_test.get_eigenfunctions(ev_guesses=eigenval)
+        for ax, ef_name in zip(axes_test, EF_NAMES):
+            result = efs_test[ef_name].real + efs_test[ef_name].imag
+            # small values to zero
+            result[np.where(abs(result) < ABS_TOL)] = 0
+            ax.plot(ds_test.ef_grid, abs(result), lw=3)
+            ax.set_yticks([])
+            ax.set_title(ef_name)
+        fig_test.suptitle(figtitle)
+        fig_test.tight_layout()
+        fig_test.savefig(imagedir / figname, **SAVEFIG_KWARGS)
+        [ax.clear() for ax in axes_test]
+
+        setup["eigenfunction_images"].append((figname, figname_answer))
+    plt.close(fig_answer)
+    plt.close(fig_test)
 
 
 @pytest.mark.parametrize("setup", tests_to_run, ids=ids)
@@ -176,165 +227,59 @@ def test_if_eigenvalues_all_real(ds_test, setup):
 
 # ===== TESTS FOR EIGENFUNCTIONS =====
 @pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
+    argnames="setup,idx",
+    argvalues=[
+        (_s, _idx)
+        for _s in tests_to_run
+        if _s.get("eigenfunctions") is not None
+        for _idx, _ in enumerate(_s["eigenfunctions"])
+    ],
+    ids=[
+        f"{_s['name']}-eigenvalue={efs['eigenvalue']}"
+        for _s in tests_to_run
+        if _s.get("eigenfunctions") is not None
+        for _idx, efs in enumerate(_s["eigenfunctions"])
+    ],
 )
-def test_rho_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(
-            ef_test.get("rho"),
-            ef_answer.get("rho"),
-            use_abs=True,
-            relax=setup.get("relax_ef_test", False),
-        )
+def test_eigenfunction(imagedir, setup, idx, keep_files):
+    test_image, baseline_image = setup["eigenfunction_images"][idx]
+    result = compare_images(
+        str(imagedir / baseline_image),
+        str(imagedir / test_image),
+        tol=setup["eigenfunctions"][idx].get("RMS_TOLERANCE", RMS_TOLERANCE),
+    )
+    # result will be None if test succeeds, if pass we remove images
+    if result is not None:
+        pytest.fail(result, pytrace=False)
+    else:
+        if not keep_files:
+            Path(imagedir / baseline_image).unlink()
+            Path(imagedir / test_image).unlink()
 
 
 @pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
+    argnames="setup,idx",
+    argvalues=[
+        (_s, _idx)
+        for _s in tests_to_run
+        if _s.get("eigenfunctions") is not None
+        for _idx, _ in enumerate(_s["eigenfunctions"])
+    ],
+    ids=[
+        f"{_s['name']}-eigenvalue={efs['eigenvalue']}"
+        for _s in tests_to_run
+        if _s.get("eigenfunctions") is not None
+        for _idx, efs in enumerate(_s["eigenfunctions"])
+    ],
 )
-def test_v1_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(
-            ef_test.get("v1"),
-            ef_answer.get("v1"),
-            use_abs=True,
-            relax=setup.get("relax_ef_test", False),
-        )
-
-
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
-)
-def test_v1_eigenfunction_edges(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        # v1 must be zero on edges for wall boundary conditions
+def test_eigenfunction_edges(ds_test, ds_answer, setup, idx):
+    eigenvalue = setup.get("eigenfunctions")[idx].get("eigenvalue")
+    (efs_test,) = ds_test.get_eigenfunctions(ev_guesses=eigenvalue)
+    (efs_answer,) = ds_answer.get_eigenfunctions(ev_guesses=eigenvalue)
+    # v1, a2 and a3 must be zero on edges for wall boundary conditions
+    for ef_name in ("v1", "a2", "a3"):
         for edge in (0, -1):
-            assert ef_answer.get("v1").real[edge] == pytest.approx(0)
-            assert ef_answer.get("v1").imag[edge] == pytest.approx(0)
-            assert ef_test.get("v1").real[edge] == pytest.approx(0)
-            assert ef_test.get("v1").imag[edge] == pytest.approx(0)
-
-
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
-)
-def test_v2_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(
-            ef_test.get("v2"),
-            ef_answer.get("v2"),
-            use_abs=True,
-            relax=setup.get("relax_ef_test", False),
-        )
-
-
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
-)
-def test_v3_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(
-            ef_test.get("v3"),
-            ef_answer.get("v3"),
-            use_abs=True,
-            relax=setup.get("relax_ef_test", False),
-        )
-
-
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
-)
-def test_T_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(
-            ef_test.get("T"),
-            ef_answer.get("T"),
-            use_abs=True,
-            relax=setup.get("relax_ef_test", False),
-        )
-
-
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
-)
-def test_a1_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(
-            ef_test.get("a1"),
-            ef_answer.get("a1"),
-            use_abs=True,
-            relax=setup.get("relax_ef_test", False),
-        )
-
-
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
-)
-def test_a2_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(
-            ef_test.get("a2"),
-            ef_answer.get("a2"),
-            use_abs=True,
-            relax=setup.get("relax_ef_test", False),
-        )
-
-
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
-)
-def test_a2_eigenfunction_edges(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        # a2 must be zero on edges for wall boundary conditions
-        for edge in (0, -1):
-            assert ef_answer.get("a2").real[edge] == pytest.approx(0)
-            assert ef_answer.get("a2").imag[edge] == pytest.approx(0)
-            assert ef_test.get("a2").real[edge] == pytest.approx(0)
-            assert ef_test.get("a2").imag[edge] == pytest.approx(0)
-
-
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
-)
-def test_a3_eigenfunction(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        compare_eigenfunctions(
-            ef_test.get("a3"),
-            ef_answer.get("a3"),
-            use_abs=True,
-            relax=setup.get("relax_ef_test", False),
-        )
-
-
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("ev_guesses") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("ev_guesses") is not None],
-)
-def test_a3_eigenfunction_edges(eigfuncs_test, eigfuncs_answer, setup):
-    for ef_test, ef_answer in zip(eigfuncs_test, eigfuncs_answer):
-        # a2 must be zero on edges for wall boundary conditions
-        for edge in (0, -1):
-            assert ef_answer.get("a3").real[edge] == pytest.approx(0)
-            assert ef_answer.get("a3").imag[edge] == pytest.approx(0)
-            assert ef_test.get("a3").real[edge] == pytest.approx(0)
-            assert ef_test.get("a3").imag[edge] == pytest.approx(0)
+            assert efs_test.get(ef_name).real[edge] == pytest.approx(0)
+            assert efs_test.get(ef_name).imag[edge] == pytest.approx(0)
+            assert efs_answer.get(ef_name).real[edge] == pytest.approx(0)
+            assert efs_answer.get(ef_name).imag[edge] == pytest.approx(0)

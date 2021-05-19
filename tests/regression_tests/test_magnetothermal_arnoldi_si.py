@@ -33,15 +33,14 @@ magneto_arnoldi_si_setup = {
         "which_eigenvalues": "LM",
         "sigma": 0.1 + 0.05j,
     },
-    "ev_guesses": [
-        2.799e-2j,
-        2.022e-2 + 4.418e-2j,
-    ],
-    "relax_ef_test": True,
     "image_limits": [
-        {"xlims": (-0.002, 0.025), "ylims": (-0.002, 0.046)},
-        {"xlims": (-0.0015, 0.0175), "ylims": (-0.001, 0.02)},
-    ]
+        {"xlims": (-0.002, 0.025), "ylims": (-0.002, 0.046), "RMS_TOLERANCE": 4.1},
+        {"xlims": (-0.0015, 0.0175), "ylims": (-0.001, 0.02), "RMS_TOLERANCE": 5.7},
+    ],
+    "eigenfunctions": [
+        {"eigenvalue": 2.799e-2j},
+        {"eigenvalue": 2.022e-2 + 4.418e-2j, "RMS_TOLERANCE": 6},
+    ],
 }
 parametrisation = dict(
     argnames="setup",

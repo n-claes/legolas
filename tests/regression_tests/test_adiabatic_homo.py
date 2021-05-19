@@ -23,11 +23,17 @@ adiabatic_homo_setup = {
         "write_eigenfunctions": True,
         "write_matrices": False,
     },
-    "ev_guesses": [2.67131, 2.54724, 2.51402, 2.50119, 2.49502],
     "all_eigenvalues_real": True,
     "image_limits": [
         {"xlims": (-600, 600), "ylims": (-0.05, 0.05)},
         {"xlims": (-50, 50), "ylims": (-0.05, 0.05)},
         {"xlims": (-0.5, 5), "ylims": (-0.05, 0.05)},
+    ],
+    "eigenfunctions": [
+        {"eigenvalue": 2.67131},
+        {"eigenvalue": 2.54724},
+        {"eigenvalue": 2.51402},
+        {"eigenvalue": 2.50119},
+        {"eigenvalue": 2.49502},
     ],
 }
