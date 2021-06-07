@@ -106,13 +106,13 @@ contains
           x_start = 0.0d0
         end if
       end if
+      
+      ! minus one here to include x_end
+      dx = (x_end - x_start) / (gridpts-1)
+      do i = 1, gridpts
+        grid(i) = x_start + (i - 1)*dx
+      end do
     end if
-
-    ! minus one here to include x_end
-    dx = (x_end - x_start) / (gridpts-1)
-    do i = 1, gridpts
-      grid(i) = x_start + (i - 1)*dx
-    end do
 
     if (mesh_accumulation) then
       if (equilibrium_type == 'photospheric_flux_tube' .or. equilibrium_type == 'coronal_flux_tube') then
