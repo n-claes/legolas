@@ -1,4 +1,5 @@
 import numpy as np
+import sympy as sp
 import matplotlib.lines as mpl_lines
 from pylbo._version import _mpl_version
 
@@ -95,3 +96,47 @@ def transform_to_numpy(obj: any) -> np.ndarray:
     elif isinstance(obj, np.ndarray):
         return obj
     return np.asarray([obj])
+
+def solve_cubic_exact(a, b, c, d):
+    """
+    Solves a given cubic polynomial of the form
+    :math:`ax^3 + bx^2 + cx + d = 0` using the analytical cubic root formula
+    instead of the general `numpy.roots` routine.
+
+    Parameters
+    ----------
+    a : int, float, complex
+        Cubic coefficient.
+    b : int, float, complex
+        Quadratic coefficient.
+    c : int, float, complex
+        Linear coefficient.
+    d : int, float, complex
+        Constant term
+
+    Returns
+    -------
+    roots : np.ndarray(ndim=3, dtype=complex)
+        The three roots of the cubic polynomial as a Numpy array.
+    """
+    # from https://math.stackexchange.com/questions/15865/why-not-write-the-solutions-of-a-cubic-this-way/18873#18873
+    if a == 0:
+        raise ValueError("cubic coefficient may not be zero")
+    p = b / a
+    q = c / a
+    r = d / a
+    Aterm = (
+        -2 * p**3
+        + 9 * p * q
+        - 27 * r
+        + 3 * np.sqrt(3) * np.sqrt(
+            -p**2 * q**2 + 4 * q**3 + 4 * p**3 * r - 18 * p * q * r + 27 * r**2
+        )
+    )**(1 / 3) / (3 * 2**(1 / 3))
+    Bterm = (-p**2 + 3 * q) / (9 * Aterm)
+    cterm_min = (-1 - np.sqrt(3) * 1j) / 2
+    cterm_pos = (-1 + np.sqrt(3) * 1j) / 2
+    x1 = -p / 3 + Aterm - Bterm
+    x2 = -p / 3 + cterm_min * Aterm - cterm_pos * Bterm
+    x3 = -p / 3 + cterm_pos * Aterm - cterm_min * Bterm
+    return np.array([x1, x2, x3], dtype=complex)
