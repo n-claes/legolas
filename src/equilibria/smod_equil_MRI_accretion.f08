@@ -37,13 +37,14 @@ contains
     real(dp)      :: p0(gauss_gridpts), dp_dr(gauss_gridpts)
     integer       :: i
 
-    flow = .true.
     geometry = 'cylindrical'
     x_start = 1.0d0
     call allow_geometry_override(default_x_end=2.0d0)
     call initialise_grid()
 
     if (use_defaults) then
+      flow = .true.
+      external_gravity = .true.
       k2 = 0.0d0
       k3 = 70.0d0
       beta = 100.0d0

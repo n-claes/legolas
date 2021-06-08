@@ -18,6 +18,7 @@ gravito_mhd_setup = {
             "g": 20,
             "alpha": 20,
         },
+        "external_gravity": True,
         "basename_datfile": "gravito_mhd",
         "write_eigenfunctions": False,
         "show_results": False,

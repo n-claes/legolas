@@ -28,6 +28,12 @@ rti_setup = {
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-1.3e4, 1.3e4), "ylims": (-1.6, 1.6)},
+        {"xlims": (-500, 500), "ylims": (-1.6, 1.6)},
+        {"xlims": (-10, 15), "ylims": (-1.6, 1.6)},
+        {"xlims": (0.01, 0.23), "ylims": (-1.6, 1.6)},
+    ],
 }
 parametrisation = dict(
     argnames="setup",

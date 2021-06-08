@@ -35,6 +35,8 @@ module mod_global_variables
   real(dp), protected       :: gamma
   !> variable for (gamma - 1)
   real(dp), protected       :: gamma_1
+  !> boolean for incompressible approximation, defaults to <tt>False</tt>
+  logical, save             :: incompressible
   !> boolean for flow, defaults to <tt>False</tt>
   logical, save             :: flow
   !> boolean for radiative cooling, defaults to <tt>False</tt>
@@ -67,9 +69,27 @@ module mod_global_variables
   real(dp)                  :: dropoff_edge_dist
   !> width of the dropoff region, defaults to <tt>0.1</tt>
   real(dp)                  :: dropoff_width
-
+  !> boolean for viscosity, defaults to <tt>False</tt>
+  logical, save             :: viscosity
+  !> boolean to include viscoous heating, defaults to <tt>False</tt>
+  logical, save             :: viscous_heating
+  !> defines the fixed value for either the dynamic or kinematic viscosity, defaults to 0
+  real(dp)                  :: viscosity_value
+  !> boolean to use Hall MHD, defaults to <tt>False</tt>
+  logical, save             :: hall_mhd
+  !> boolean to use dropoff profile for Hall parameter, defaults to <tt>False </tt>
+  logical, save             :: hall_dropoff
+  !> boolean to use electron pressure in Ohm's law, defaults to <tt>False</tt>
+  logical, save             :: elec_pressure
+  !> boolean to use electron inertia in Ohm's law, defaults to <tt>False</tt>
+  logical, save             :: elec_inertia
+  !> boolean to use dropoff profile for inertia parameter, defaults to <tt>False </tt>
+  logical, save             :: inertia_dropoff
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
+  !> defines the presence of a coaxial inner boundary for a cylindrical geometry,
+  !! defaults to <tt>False</tt>
+  logical, save             :: coaxial
   !> start value of the base grid, defaults depend on chosen equilibrium
   real(dp)                  :: x_start
   !> end value of the base grid, defaults depend on chosen equilibrium
@@ -178,7 +198,7 @@ contains
     !! physics variables
     cgs_units = .true.
     gamma = 5.0d0/3.0d0
-    call set_gamma(gamma)
+    incompressible = .false.
     flow = .false.
     radiative_cooling = .false.
     ncool = 4000
@@ -195,10 +215,19 @@ contains
     use_eta_dropoff = .false.
     dropoff_edge_dist = 0.05d0
     dropoff_width = 0.1d0
+    viscosity = .false.
+    viscous_heating = .false.
+    viscosity_value = 0.0d0
+    hall_mhd = .false.
+    hall_dropoff = .false.
+    elec_pressure = .false.
+    elec_inertia = .false.
+    inertia_dropoff = .false.
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile
     geometry = ""
+    coaxial = .false.
     x_start = NaN
     x_end = NaN
     gridpts = 31
@@ -245,7 +274,11 @@ contains
     !> the value for gamma
     real(dp), intent(in)    :: gamma_in
 
-    gamma   = gamma_in
+    if (incompressible) then
+      gamma = 1.0d8
+    else
+      gamma = gamma_in
+    end if
     gamma_1 = gamma - 1.0d0
   end subroutine set_gamma
 

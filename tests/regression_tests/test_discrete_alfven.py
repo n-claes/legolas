@@ -24,6 +24,12 @@ discrete_alfven_setup = {
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-700, 700), "ylims": (-0.9, 0.4)},
+        {"xlims": (-100, 100), "ylims": (-0.9, 0.4)},
+        {"xlims": (-0.2, 0.2), "ylims": (-0.9, 0.4)},
+        {"xlims": (-0.01, 0.01), "ylims": (-0.004, 0.009), "RMS_TOLERANCE": 2.1},
+    ],
 }
 parametrisation = dict(
     argnames="setup",

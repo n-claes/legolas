@@ -22,6 +22,8 @@ module mod_equilibrium_params
   real(dp)  :: cte_rho0
   !> general constant usually used for temperature
   real(dp)  :: cte_T0
+  !> general constant usually used for the 01 magnetic field component
+  real(dp)  :: cte_B01
   !> general constant usually used for the 02 magnetic field component
   real(dp)  :: cte_B02
   !> general constant usually used for the 03 magnetic field component
@@ -78,6 +80,8 @@ module mod_equilibrium_params
   real(dp)  :: j0
   !> general constant usually used for gravity
   real(dp)  :: g
+  !> general boolean for varied use, defaults to False
+  logical   :: eq_bool
 
 contains
 
@@ -93,6 +97,7 @@ contains
 
     cte_rho0 = NaN
     cte_T0 = NaN
+    cte_B01 = NaN
     cte_B02 = NaN
     cte_B03 = NaN
     cte_v02 = NaN
@@ -124,6 +129,8 @@ contains
     V = NaN
     j0 = NaN
     g = NaN
+
+    eq_bool = .false.
   end subroutine init_equilibrium_params
 
 end module mod_equilibrium_params

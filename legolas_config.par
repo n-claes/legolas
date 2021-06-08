@@ -7,14 +7,27 @@
   mesh_accumulation = .false.
 /
 
+&solvelist
+  solver = "QR-invert"
+  ! solver = "arnoldi"
+  ! arpack_mode = "shift-invert"
+  ! number_of_eigenvalues = 10
+  ! which_eigenvalues = "LI"
+  ! sigma = (0.0d0, 0.01d0)
+/
+
+&physicslist
+  ! hall_mhd = .true.
+/
+
 &equilibriumlist
   ! equilibrium_type = "adiabatic_homo"               ! Cartesian
   ! equilibrium_type = "resistive_homo"               ! Cartesian
   ! equilibrium_type = "gravito_acoustic"             ! Cartesian
   ! equilibrium_type = "gravito_mhd"                  ! Cartesian
-  ! equilibrium_type = "resistive_tearing"            ! Cartesian
+  equilibrium_type = "resistive_tearing"            ! Cartesian
   ! equilibrium_type = "resistive_tearing_flow"       ! Cartesian
-  equilibrium_type = "suydam_cluster"               ! cylindrical
+  ! equilibrium_type = "suydam_cluster"               ! cylindrical
   ! equilibrium_type = "rotating_plasma_cylinder"     ! cylindrical
   ! equilibrium_type = "kelvin_helmholtz_cd"          ! cylindrical
   ! equilibrium_type = "internal_kink"                ! cylindrical
@@ -32,6 +45,7 @@
   ! equilibrium_type = "kelvin_helmholtz"
   ! equilibrium_type = "RTI_KHI"
   ! equilibrium_type = "isothermal_atmosphere"
+  ! equilibrium_type = "harris_sheet"
   ! equilibrium_type = "user_defined"
 
   ! boundary_type = "wall"

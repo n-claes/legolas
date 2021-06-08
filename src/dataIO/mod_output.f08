@@ -69,7 +69,7 @@ contains
     use mod_logging, only: log_message
     use mod_grid, only: grid, grid_gauss
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
-      kappa_field, eta_field, grav_field
+      kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions, only: ef_grid, ef_names, ef_array
     use mod_check_values, only: value_is_zero
     use mod_equilibrium_params
@@ -82,20 +82,27 @@ contains
     !> the B-matrix
     real(dp), intent(in)          :: matrix_B(:, :)
 
-    character(len=str_len_arr)    :: param_names(32), equil_names(23)
+    character(len=str_len_arr)    :: param_names(33), equil_names(27)
     character(len=2*str_len_arr)  :: unit_names(11)
     integer                       :: i, j, nonzero_A_values, nonzero_B_values
 
     param_names = [ &
-      character(len=str_len_arr) :: "k2", "k3", "cte_rho0", "cte_T0", "cte_B02", &
-      "cte_B03", "cte_v02", "cte_v03", "cte_p0", "p1", "p2", "p3", "p4", "p5", "p6", &
-      "p7", "p8", "alpha", "beta", "delta", "theta", "tau", "lambda", "nu", "r0", &
-      "rc", "rj", "Bth0", "Bz0", "V", "j0", "g" &
+      character(len=str_len_arr) :: "k2", "k3", "cte_rho0", "cte_T0", "cte_B01", &
+      "cte_B02", "cte_B03", "cte_v02", "cte_v03", "cte_p0", "p1", "p2", "p3", &
+      "p4", "p5", "p6", "p7", "p8", "alpha", "beta", "delta", "theta", "tau", &
+      "lambda", "nu", "r0", "rc", "rj", "Bth0", "Bz0", "V", "j0", "g" &
     ]
     equil_names = [ &
-      character(len=str_len_arr) :: "rho0", "drho0", "T0", "dT0", "B02", "B03", &
-      "dB02", "dB03", "ddB02", "ddB03", "B0", "v02", "v03", "dv02", "dv03", &
-      "dLdT", "dLdrho", "kappa_para", "kappa_perp", "eta", "detadT", "detadr", "grav" &
+      character(len=str_len_arr) :: &
+        "rho0", "drho0", &
+        "T0", "dT0", &
+        "B02", "B03", "dB02", "dB03", "ddB02", "ddB03", "B0", &
+        "v02", "v03", "dv02", "dv03", "ddv02", "ddv03", &
+        "dLdT", "dLdrho", &
+        "kappa_para", "kappa_perp", &
+        "eta", "detadT", "detadr", &
+        "grav", &
+        "Hall", "inertia" &
     ]
     unit_names = [ &
       character(len=2*str_len_arr) :: "unit_length", "unit_time", "unit_density", &
@@ -112,9 +119,9 @@ contains
       gauss_gridpts, matrix_gridpts, ef_gridpts, gamma, equilibrium_type, &
       write_eigenfunctions, write_matrices
     write(dat_fh) size(param_names), len(param_names(1)), param_names
-    write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, &
-      cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, &
-      lambda, nu, r0, rc, rj, Bth0, Bz0, V, j0, g
+    write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, &
+      cte_v03, cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, &
+      theta, tau, lambda, nu, r0, rc, rj, Bth0, Bz0, V, j0, g
     write(dat_fh) size(equil_names), len(equil_names(1)), equil_names
     write(dat_fh) cgs_units
     write(dat_fh) size(unit_names), len(unit_names(1)), unit_names
@@ -125,14 +132,20 @@ contains
     ! Next write the data itself
     ! General data: eigenvalues, grids, equilibrium configuration
     write(dat_fh) size(eigenvalues), eigenvalues, grid, grid_gauss
-    write(dat_fh) rho_field % rho0, rho_field % d_rho0_dr, &
+    write(dat_fh) &
+      rho_field % rho0, rho_field % d_rho0_dr, &
       T_field % T0, T_field % d_T0_dr, &
-      B_field % B02, B_field % B03, B_field % d_B02_dr, B_field % d_B03_dr, &
+      B_field % B02, B_field % B03, &
+      B_field % d_B02_dr, B_field % d_B03_dr, &
       eta_field % dd_B02_dr, eta_field % dd_B03_dr, B_field % B0, &
-      v_field % v02, v_field % v03, v_field % d_v02_dr, v_field % d_v03_dr, &
+      v_field % v02, v_field % v03, &
+      v_field % d_v02_dr, v_field % d_v03_dr, &
+      v_field % dd_v02_dr, v_field % dd_v03_dr, &
       rc_field % d_L_dT, rc_field % d_L_drho, &
       kappa_field % kappa_para, kappa_field % kappa_perp, &
-      eta_field % eta, eta_field % d_eta_dT, eta_field % d_eta_dr, grav_field % grav
+      eta_field % eta, eta_field % d_eta_dT, eta_field % d_eta_dr, &
+      grav_field % grav, &
+      hall_field % hallfactor, hall_field % inertiafactor
 
     ! Eigenfunction data [optional]
     if (write_eigenfunctions) then

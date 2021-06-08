@@ -17,4 +17,11 @@ rti_thetapinch_mhd_setup = {
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-1e4, 1e4), "ylims": (-0.35, 0.35)},
+        {"xlims": (-200, 200), "ylims": (-0.35, 0.35)},
+        {"xlims": (-2.5, 5), "ylims": (-0.35, 0.35)},
+        {"xlims": (0.05, 1.2), "ylims": (-0.35, 0.35)},
+        {"xlims": (0.85, 1.06), "ylims": (-0.35, 0.35), "RMS_TOLERANCE": 2.9},
+    ],
 }

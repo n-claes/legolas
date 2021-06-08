@@ -16,12 +16,17 @@ interchange_modes_setup = {
             "lambda": 0,
             "alpha": 20.0,
         },
+        "external_gravity": True,
         "equilibrium_type": "interchange_modes",
         "logging_level": 0,
         "show_results": False,
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-75, 75), "ylims": (-0.4, 0.4)},
+        {"xlims": (-1.5, 1.5), "ylims": (-0.4, 0.4)},
+    ],
 }
 parametrisation = dict(
     argnames="setup",

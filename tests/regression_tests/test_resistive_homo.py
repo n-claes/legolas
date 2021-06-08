@@ -25,12 +25,18 @@ resistive_homo_setup = {
         "write_eigenfunctions": True,
         "write_matrices": False,
     },
-    "ev_guesses": [
-        -0.4180167 - 0.0008883j,
-        -0.4159505 - 0.0034422j,
-        -0.4154890 - 0.0076967j,
-        -0.4151935 - 0.0136528j,
-        -0.4148061 - 0.0213107,
+    "image_limits": [
+        {"xlims": (-375, 375), "ylims": (-110, 5)},
+        {"xlims": (-30, 30), "ylims": (-30, 3)},
+        {"xlims": (-10, 10), "ylims": (-7.5, 1)},
+        {"xlims": (-1.2, 1.2), "ylims": (-1.1, 0.05), "RMS_TOLERANCE": 2.7},
+    ],
+    "eigenfunctions": [
+        {"eigenvalue": -0.4180167 - 0.0008883j},
+        {"eigenvalue": -0.4159505 - 0.0034422j},
+        {"eigenvalue": -0.4154890 - 0.0076967j},
+        {"eigenvalue": -0.4151935 - 0.0136528j},
+        {"eigenvalue": -0.4148061 - 0.0213107j},
     ],
 }
 parametrisation = dict(

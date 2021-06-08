@@ -19,6 +19,7 @@ interchange_setup = {
             "lambda": 0.3,
             "alpha": 20.0,
         },
+        "external_gravity": True,
         "basename_datfile": "interchange",
         "write_eigenfunctions": False,
         "show_results": False,

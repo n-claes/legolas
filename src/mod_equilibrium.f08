@@ -11,14 +11,16 @@
 module mod_equilibrium
   use mod_units
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
-                       gravity_type, resistivity_type, cooling_type, conduction_type
+                       gravity_type, resistivity_type, cooling_type, conduction_type, &
+                       hall_type
   use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
                                   flow, resistivity, external_gravity, radiative_cooling, &
-                                  thermal_conduction, geometry, use_defaults, cgs_units
+                                  thermal_conduction, viscosity, hall_mhd, &
+                                  geometry, use_defaults, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
-  use mod_logging, only: log_message, dp_fmt, char_log
+  use mod_logging, only: log_message, dp_fmt, char_log, str
   implicit none
 
   private
@@ -53,6 +55,12 @@ module mod_equilibrium
     module subroutine RTI_KHI_eq; end subroutine
     module subroutine RTI_theta_pinch_eq; end subroutine
     module subroutine suydam_cluster_eq; end subroutine
+    module subroutine viscoresistive_tube_eq; end subroutine
+    module subroutine couette_flow_eq; end subroutine
+    module subroutine taylor_couette_eq; end subroutine
+    module subroutine harris_sheet_eq; end subroutine
+    module subroutine tc_pinch_eq; end subroutine
+    module subroutine tc_hmri_eq; end subroutine
     module subroutine user_defined_eq; end subroutine
   end interface
 
@@ -72,6 +80,8 @@ module mod_equilibrium
   type (cooling_type)     :: rc_field
   !> type containing all thermal conduction-related equilibrium variables
   type (conduction_type)  :: kappa_field
+  !> type containing all Hall related variables
+  type (hall_type)        :: hall_field
 
   public :: rho_field
   public :: T_field
@@ -81,6 +91,7 @@ module mod_equilibrium
   public :: eta_field
   public :: rc_field
   public :: kappa_field
+  public :: hall_field
 
   public :: initialise_equilibrium
   public :: set_equilibrium
@@ -103,6 +114,7 @@ contains
     call initialise_type(eta_field)
     call initialise_type(rc_field)
     call initialise_type(kappa_field)
+    call initialise_type(hall_field)
   end subroutine initialise_equilibrium
 
 
@@ -113,11 +125,12 @@ contains
   !!          not balanced, contains NaN or if density/temperature contains
   !!          negative values.
   subroutine set_equilibrium()
-    use mod_check_values, only: check_negative_array, check_nan_values
+    use mod_check_values, only: check_negative_array, check_nan_values, check_coax
     use mod_inspections, only: perform_sanity_checks
     use mod_resistivity, only: set_resistivity_values
     use mod_radiative_cooling, only: initialise_radiative_cooling, set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
+    use mod_hall, only: set_hall_factors
 
     ! Set equilibrium submodule to use
     call set_equilibrium_pointer()
@@ -125,6 +138,9 @@ contains
     call set_equilibrium_values()
     ! Set normalisations if needed
     call check_if_normalisations_set()
+
+    ! Check x_start if coaxial is true
+    call check_coax()
 
     ! Check for negative/NaN values
     call check_negative_array(rho_field % rho0, 'density')
@@ -134,8 +150,6 @@ contains
     call check_nan_values(B_field)
     call check_nan_values(v_field)
     call check_nan_values(grav_field)
-    ! Do final sanity checks on values
-    call perform_sanity_checks(rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field)
 
     ! Setup additional physics
     if (resistivity) then
@@ -148,6 +162,14 @@ contains
     if (thermal_conduction) then
       call set_conduction_values(rho_field, T_field, B_field, kappa_field)
     end if
+    if (hall_mhd) then
+      call set_hall_factors(hall_field)
+    end if
+
+    ! Do final sanity checks on values
+    call perform_sanity_checks( &
+      rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field &
+    )
   end subroutine set_equilibrium
 
 
@@ -206,6 +228,18 @@ contains
       set_equilibrium_values => RTI_theta_pinch_eq
     case("suydam_cluster")
       set_equilibrium_values => suydam_cluster_eq
+    case("viscoresistive_tube")
+      set_equilibrium_values => viscoresistive_tube_eq
+    case("couette_flow")
+      set_equilibrium_values => couette_flow_eq
+    case("taylor_couette")
+      set_equilibrium_values => taylor_couette_eq
+    case("harris_sheet")
+      set_equilibrium_values => harris_sheet_eq
+    case("tc_pinch")
+      set_equilibrium_values => tc_pinch_eq
+    case("tc_HMRI")
+      set_equilibrium_values => tc_hmri_eq
     case("user_defined")
       set_equilibrium_values => user_defined_eq
     case default
@@ -276,6 +310,7 @@ contains
     call deallocate_type(eta_field)
     call deallocate_type(rc_field)
     call deallocate_type(kappa_field)
+    call deallocate_type(hall_field)
   end subroutine equilibrium_clean
 
 end module mod_equilibrium

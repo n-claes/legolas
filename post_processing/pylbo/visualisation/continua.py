@@ -44,7 +44,11 @@ def calculate_continua(ds):
 
     # Thermal continuum calculation
     # wave vector parallel to magnetic field, uses vector projection and scale factor
-    kpara = (k2 * B02 / ds.scale_factor + k3 * B03) / B0
+    if not all(np.isclose(B0, 0, atol=1e-10)):
+        # take care of hydro cases, this will throw a division by 0 warning
+        kpara = (k2 * B02 / ds.scale_factor + k3 * B03) / B0
+    else:
+        kpara = 0
     cs2 = gamma * p / rho  # sound speed
     vA2 = B0 ** 2 / rho  # Alfvén speed
     ci2 = p / rho  # isothermal sound speed
@@ -87,36 +91,45 @@ def calculate_continua(ds):
         thermal = np.empty(shape=len(ds.grid_gauss), dtype=complex)
         slow_min = np.empty_like(thermal)
         slow_plus = np.empty_like(thermal)
+        warning_logged = False
         for idx, _ in enumerate(ds.grid_gauss):
             solutions = np.roots([coeff3[idx], coeff2[idx], coeff1[idx], coeff0[idx]])
             # create mask for purely imaginary solutions
             mask = np.isclose(abs(solutions.real), 0)
-            imag_sol = solutions[mask]
-            # extract slow continuum solutions
-            s_neg, s_pos = np.sort_complex(solutions[np.invert(mask)])
+            # this should only have 1 True element, the thermal solution
+            if np.count_nonzero(mask) == 1:
+                s_neg, s_pos = np.sort_complex(solutions[np.invert(mask)])
+            else:
+                if not warning_logged:
+                    pylboLogger.warning(
+                        f"encountered at least 1 point where the slow continuum has a "
+                        f"real value close to zero. \nContinuum solutions: {solutions}"
+                    )
+                    warning_logged = True
+                mask = np.array([False] * 3, dtype=bool)
+                # check if this already happens on the first index
+                if idx == 0:
+                    # if so, assume largest mode is the thermal one and complex sort
+                    # slow+ and slow- solutions
+                    mask[solutions.imag.argmax()] = True
+                    pylboLogger.warning(
+                        f"this happened already at the first gridpoint, so we assumed "
+                        f"{solutions[mask]} to be the thermal mode"
+                    )
+                    s_neg, s_pos = np.sort_complex(solutions[np.invert(mask)])
+                else:
+                    # if not, get solution closest to previous thermal mode
+                    mask[np.abs(solutions - thermal[idx - 1]).argmin()] = True
+                    # retrieve closest slow- solution
+                    slow_solutions = solutions[np.invert(mask)]
+                    idx_neg = np.abs(slow_solutions - slow_min[idx - 1]).argmin()
+                    s_neg = slow_solutions[idx_neg]
+                    # remaining value is slow+ solution, remove slow- from array
+                    (s_pos,) = np.delete(slow_solutions, idx_neg)
+            # extract continuum solutions
+            (thermal[idx],) = solutions[mask]
             slow_min[idx] = s_neg
             slow_plus[idx] = s_pos
-            # process thermal continuum solution
-            if (imag_sol == 0).all():
-                # if all solutions are zero (no thermal continuum), then append zero
-                w = 0
-            else:
-                # else there should be ONE value that is nonzero,
-                # this is the thermal continuum value.
-                # Filter out non-zero solution and try to unpack.
-                # If there is more than one non-zero
-                # value unpacking fails, this is a sanity check so we raise an error.
-                try:
-                    (w,) = imag_sol[imag_sol != 0]  # this is an array, so unpack with ,
-                except ValueError:
-                    pylboLogger.warning(
-                        f"Something went wrong, more than one solution for the thermal "
-                        f"continuum was found (and there should be only one). "
-                        f"Setting value to zero. "
-                        f"Solutions found: {imag_sol[imag_sol != 0]}."
-                    )
-                    w = 0
-            thermal[idx] = w
 
     # get doppler-shifted continua and return
     continua = {

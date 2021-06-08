@@ -5,8 +5,50 @@ import pylbo
 
 pylbo.set_loglevel("warning")
 
+imagedirpath = Path(__file__).parent / "image_comparisons"
+KEEP_FILES_OPTION = "--keep-files"
+
 # @note: all fixtures defined here will be accessible to all tests
 #        in the same directory as this file.
+
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup(request):
+    def remove_results_dir():
+        resultsdirpath = (Path(__file__).parent / "results").resolve()
+        if resultsdirpath.is_dir():
+            if not request.config.getoption(KEEP_FILES_OPTION):
+                shutil.rmtree(resultsdirpath)
+
+    def remove_image_dir():
+        # only remove this directory if contents are empty (all tests passed)
+        try:
+            imagedirpath.rmdir()
+        except OSError:
+            pass
+
+    request.addfinalizer(remove_results_dir)
+    request.addfinalizer(remove_image_dir)
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        KEEP_FILES_OPTION,
+        action="store_true",
+        help="if supplied, does not remove files after test completion.",
+    )
+
+
+@pytest.fixture()
+def keep_files(request):
+    return request.config.getoption(KEEP_FILES_OPTION)
+
+
+@pytest.fixture
+def imagedir(scope="session", autouse=True):
+    if not imagedirpath.is_dir():
+        imagedirpath.mkdir()
+    yield imagedirpath
 
 
 @pytest.fixture
@@ -28,14 +70,6 @@ def log_test(setup):
 
 
 @pytest.fixture
-def eigfuncs_test(ds_test, setup):
-    if setup.get("ev_guesses", None) is not None:
-        return ds_test.get_eigenfunctions(ev_guesses=setup["ev_guesses"])
-    else:
-        return None
-
-
-@pytest.fixture
 def ds_answer(setup):
     return pylbo.load(setup["answer_datfile"])
 
@@ -43,14 +77,6 @@ def ds_answer(setup):
 @pytest.fixture
 def log_answer(setup):
     return pylbo.load_logfile(setup["answer_logfile"], sort=True)
-
-
-@pytest.fixture
-def eigfuncs_answer(ds_answer, setup):
-    if setup.get("ev_guesses", None) is not None:
-        return ds_answer.get_eigenfunctions(ev_guesses=setup["ev_guesses"])
-    else:
-        return None
 
 
 # ===== FIXTURES FOR MULTIRUNS =====

@@ -163,7 +163,6 @@ contains
       if ( &
         .not. use_adaptive_stepping &
         .and. i == nbpoints - 1 &
-        .and. (xend - xi - dh) < dh_min &
       ) then
         dh = xend - xi
       end if

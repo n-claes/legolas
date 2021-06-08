@@ -10,7 +10,7 @@
 !! $$ x_i(j) = 0.5 * dx * w_i(j) + 0.5(a + b) $$
 module mod_grid
   use mod_global_variables, only: dp, gridpts
-  use mod_logging, only: log_message
+  use mod_logging, only: log_message, str
   implicit none
 
   private
@@ -48,15 +48,17 @@ contains
   !!            all kinds of other issues (huge values, division by zero, etc). @endwarning
   !! @warning   Throws an error if the geometry is not set. @endwarning
   !! @warning   Throws a warning if <tt>r = 0</tt> is forced in cylindrical geometry.
-  subroutine initialise_grid()
+  subroutine initialise_grid(custom_grid)
     use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, &
-                                    gauss_gridpts, dp_LIMIT, force_r0, equilibrium_type
+      gauss_gridpts, dp_LIMIT, force_r0, equilibrium_type
 
-    integer                  :: i
-    real(dp)                 :: dx
+    !> custom grid to use instead of the default one, optional
+    real(dp), intent(in), optional  :: custom_grid(:)
+    integer   :: i
+    real(dp)  :: dx
 
     if (geometry == "") then
-      call log_message("geometry must be set in submodule/parfile", level='error')
+      call log_message("geometry must be set in submodule/parfile", level="error")
     end if
 
     allocate(grid(gridpts))
@@ -64,24 +66,53 @@ contains
     allocate(eps_grid(gauss_gridpts))
     allocate(d_eps_grid_dr(gauss_gridpts))
 
-    grid       = 0.0d0
+    grid = 0.0d0
     grid_gauss = 0.0d0
 
-    if (geometry == 'cylindrical' .and. abs(x_start) < dp_LIMIT) then
-      if (.not. force_r0) then
-        x_start = 2.5d-2
-      else
-        call log_message("forcing on-axis r in cylindrical geometry. This may lead to spurious &
-                        &real/imaginary eigenvalues.", level='warning')
-        x_start = 0.0d0
+    if (present(custom_grid)) then
+      call log_message("using a custom base grid", level="info")
+      ! check if size matches gridpoints
+      if (size(custom_grid) /= gridpts) then
+        call log_message( &
+          "custom grid: sizes do not match! Expected "// str(gridpts) // &
+          " points but got " // str(size(custom_grid)), &
+          level="error" &
+        )
+        return
       end if
+      ! check if grid is monotonous
+      do i = 1, size(custom_grid) - 1
+        if (.not. (custom_grid(i + 1) > custom_grid(i))) then
+          call log_message( &
+            "custom grid: supplied array is not monotone! Got x=" // &
+            str(custom_grid(i)) // " at index " // str(i) // " and x=" // &
+            str(custom_grid(i + 1)) // " at index " // str(i + 1), &
+            level="error" &
+          )
+          return
+        end if
+      end do
+      grid = custom_grid
+    else
+      if (geometry == "cylindrical" .and. abs(x_start) < dp_LIMIT) then
+        if (.not. force_r0) then
+          x_start = 2.5d-2
+        else
+          call log_message( &
+            "forcing on-axis r in cylindrical geometry. This may lead to spurious &
+            &real/imaginary eigenvalues.", &
+            level="warning" &
+          )
+          x_start = 0.0d0
+        end if
+      end if
+      
+      ! minus one here to include x_end
+      dx = (x_end - x_start) / (gridpts-1)
+      do i = 1, gridpts
+        grid(i) = x_start + (i - 1)*dx
+      end do
     end if
-
-    ! minus one here to include x_end
-    dx = (x_end - x_start) / (gridpts-1)
-    do i = 1, gridpts
-      grid(i) = x_start + (i - 1)*dx
-    end do
 
     if (mesh_accumulation) then
       if (equilibrium_type == 'photospheric_flux_tube' .or. equilibrium_type == 'coronal_flux_tube') then

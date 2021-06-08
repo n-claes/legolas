@@ -8,7 +8,7 @@
 !! KU Leuven, Belgium.
 program legolas
   use mod_global_variables, only: dp, str_len, show_results, dry_run
-  use mod_matrix_creation, only: create_matrices
+  use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_name
   use mod_logging, only: log_message, str, print_console_info, print_whitespace
@@ -25,7 +25,7 @@ program legolas
   complex(dp), allocatable  :: eigenvecs_right(:, :)
 
   call initialisation()
-  call create_matrices(matrix_B, matrix_A)
+  call build_matrices(matrix_B, matrix_A)
   call print_console_info()
 
   if (.not. dry_run) then
@@ -54,11 +54,12 @@ contains
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, matrix_gridpts, &
-      solver, number_of_eigenvalues, write_eigenfunctions
+      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_logging, only: print_logo
+    use mod_global_variables, only: viscosity, hall_mhd
 
     character(len=str_len)  :: parfile
     integer   :: nb_evs
@@ -66,6 +67,7 @@ contains
     call initialise_globals()
     call get_parfile(parfile)
     call read_parfile(parfile)
+    call set_gamma(gamma)
 
     call print_logo()
 
@@ -82,6 +84,18 @@ contains
 
     call initialise_equilibrium()
     call set_equilibrium()
+
+    ! TODO: remove this warning when fully tested
+    if (viscosity) then
+      call log_message( &
+        "using viscous MHD, note that this is not yet fully tested!", level="warning" &
+      )
+    end if
+    if (hall_mhd) then
+      call log_message( &
+        "using Hall MHD, note that this does not yet work properly!", level="warning" &
+      )
+    end if
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
     if (write_eigenfunctions .or. solver == "arnoldi") then

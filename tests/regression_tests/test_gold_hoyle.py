@@ -30,6 +30,13 @@ gold_hoyle_setup = {
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-275, 275), "ylims": (-0.05, 1.2)},
+        {"xlims": (-0.1, 0.1), "ylims": (0.92, 1)},
+        {"xlims": (-150, 150), "ylims": (-0.005, 0.02)},
+        {"xlims": (-20, 20), "ylims": (-0.0025, 0.018)},
+        {"xlims": (-1.5, 1.5), "ylims": (-0.001, 0.018)},
+    ],
 }
 parametrisation = dict(
     argnames="setup",

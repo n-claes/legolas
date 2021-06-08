@@ -11,3 +11,12 @@ New additions should go at the bottom of the file and follow the format already 
 3) added names of units and length of entry between cgs boolean and unit normalisations
 4) added length of eigenvalues array before eigenvalues are written
 Changes 1-4 needed an update of the pylbo reader
+
+=== version 1.0.3 --> 1.0.4 ===
+1) added ddv02 and ddv03 to equil_names
+2) added dd_v02_dr and dd_v03_dr to the data
+No update of the pylbo reader needed
+
+=== version 1.0.4 --> 1.0.5 ===
+1) added cte_B01 to param_names between cte_T0 and cte_B02
+2) added cte_B01 to the data between cte_T0 and cte_B02

@@ -28,6 +28,7 @@ namelist_items = {
         ("basename_logfile", str),
         ("output_folder", str),
         ("logging_level", (int, np.integer)),
+        ("dry_run", bool),
     ],
     "physicslist": [
         ("mhd_gamma", float),
@@ -47,6 +48,13 @@ namelist_items = {
         ("use_eta_dropoff", bool),
         ("dropoff_edge_dist", (int, np.integer, float)),
         ("dropoff_width", (int, np.integer, float)),
+        ("viscosity", bool),
+        ("viscosity_value", (int, np.integer, float)),
+        ("hall_mhd", bool),
+        ("hall_dropoff", bool),
+        ("elec_pressure", bool),
+        ("elec_inertia", bool),
+        ("inertia_dropoff", bool),
     ],
     "unitslist": [
         ("cgs_units", bool),

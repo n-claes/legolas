@@ -41,22 +41,32 @@ contains
     real(dp)    :: unit_density, unit_temperature, unit_magneticfield, unit_length
     integer     :: gridpoints
 
-    namelist /physicslist/  mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
-                            external_gravity, thermal_conduction, use_fixed_tc_para, fixed_tc_para_value, &
-                            use_fixed_tc_perp, fixed_tc_perp_value, resistivity, use_fixed_resistivity, &
-                            fixed_eta_value, use_eta_dropoff, dropoff_edge_dist, dropoff_width
-    namelist /unitslist/    cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length
-    namelist /gridlist/     geometry, x_start, x_end, gridpoints, force_r0, &
-                            mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2
-    namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults, remove_spurious_eigenvalues, &
-                               nb_spurious_eigenvalues
-    namelist /savelist/     write_matrices, write_eigenfunctions, show_results, basename_datfile, &
-                            basename_logfile, output_folder, logging_level, dry_run
-    namelist /paramlist/    k2, k3, cte_rho0, cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, cte_p0, &
-                            p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, theta, tau, lambda, nu, &
-                            r0, rc, rj, Bth0, Bz0, V, j0, g
-    namelist /solvelist/    solver, arpack_mode, number_of_eigenvalues, &
-                            which_eigenvalues, maxiter, sigma
+    namelist /physicslist/  &
+        mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
+        external_gravity, thermal_conduction, use_fixed_tc_para, &
+        fixed_tc_para_value, use_fixed_tc_perp, fixed_tc_perp_value, &
+        resistivity, use_fixed_resistivity, fixed_eta_value, &
+        use_eta_dropoff, dropoff_edge_dist, dropoff_width, &
+        viscosity, viscous_heating, viscosity_value, incompressible, &
+        hall_mhd, hall_dropoff, elec_pressure, elec_inertia, inertia_dropoff
+    namelist /unitslist/    &
+        cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length
+    namelist /gridlist/ &
+        geometry, x_start, x_end, gridpoints, force_r0, &
+        mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2, coaxial
+    namelist /equilibriumlist/ &
+        equilibrium_type, boundary_type, use_defaults, remove_spurious_eigenvalues, &
+        nb_spurious_eigenvalues
+    namelist /savelist/ &
+        write_matrices, write_eigenfunctions, show_results, basename_datfile, &
+        basename_logfile, output_folder, logging_level, dry_run
+    namelist /paramlist/  &
+        k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, cte_v03, &
+        cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
+        alpha, beta, delta, theta, tau, lambda, nu, &
+        r0, rc, rj, Bth0, Bz0, V, j0, g, eq_bool
+    namelist /solvelist/  &
+        solver, arpack_mode, number_of_eigenvalues, which_eigenvalues, maxiter, sigma
 
     call init_equilibrium_params()
     ! if no parfile supplied, return to keep using defaults

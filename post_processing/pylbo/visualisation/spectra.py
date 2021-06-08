@@ -173,7 +173,7 @@ class SingleSpectrumPlot(SpectrumFigure):
             min_value = np.min(continuum)
             max_value = np.max(continuum)
             # check if continua are complex
-            if np.all(np.iscomplex(continuum)):
+            if np.any(np.iscomplex(continuum)):
                 item = self.ax.scatter(
                     continuum.real * self.x_scaling,
                     continuum.imag * self.y_scaling,

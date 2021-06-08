@@ -59,6 +59,8 @@ module mod_units
   real(dp), protected   :: unit_resistivity = 1.0d0
   !> normalisation for d(eta)/d(T)
   real(dp), protected   :: unit_deta_dT = 1.0d0
+  !> mass normalisation
+  real(dp), protected   :: unit_mass = 1.0d0
 
   !> boolean to check if normalisations are set
   logical, protected    :: normalisations_are_set = .false.
@@ -171,6 +173,7 @@ contains
       call log_message("no unit density or unit temperature specified.", level='error')
     end if
 
+    unit_mass = unit_density * unit_length**3
     unit_numberdensity = unit_density / mp
     unit_velocity = unit_magneticfield / sqrt(mu0 * unit_density)
     unit_time = unit_length / unit_velocity
