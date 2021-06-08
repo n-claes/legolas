@@ -3,12 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pylbo.utilities.datfile_utils import ALIGN
 
+
 def get_debug_coolingcurves(filename):
     coolcurves = {}
     with open(filename, "rb") as istream:
         istream.seek(0)
         fmt = ALIGN + "i"
-        size_tables, = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        (size_tables,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         fmt = ALIGN + size_tables * "d"
         coolcurves["T_table"] = np.asarray(
             struct.unpack(fmt, istream.read(struct.calcsize(fmt))),
@@ -19,7 +20,7 @@ def get_debug_coolingcurves(filename):
             dtype=float,
         )
         fmt = ALIGN + "i"
-        size_curves, = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        (size_curves,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         fmt = ALIGN + size_curves * "d"
         coolcurves["T_curve"] = np.asarray(
             struct.unpack(fmt, istream.read(struct.calcsize(fmt))),
@@ -29,7 +30,7 @@ def get_debug_coolingcurves(filename):
             struct.unpack(fmt, istream.read(struct.calcsize(fmt))),
             dtype=float,
         )
-        coolcurves["dLdT_curve"]= np.asarray(
+        coolcurves["dLdT_curve"] = np.asarray(
             struct.unpack(fmt, istream.read(struct.calcsize(fmt))),
             dtype=float,
         )
@@ -41,7 +42,7 @@ def get_debug_atmocurves(filename):
     with open(filename, "rb") as istream:
         istream.seek(0)
         fmt = ALIGN + "i"
-        size_tables, = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        (size_tables,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         fmt = ALIGN + size_tables * "d"
         atmocurves["h_table"] = np.asarray(
             struct.unpack(fmt, istream.read(struct.calcsize(fmt))),
@@ -56,7 +57,7 @@ def get_debug_atmocurves(filename):
             dtype=float,
         )
         fmt = ALIGN + "i"
-        size_curves, = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        (size_curves,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         fmt = ALIGN + size_curves * "d"
         atmocurves["h_curve"] = np.asarray(
             struct.unpack(fmt, istream.read(struct.calcsize(fmt))),
@@ -118,7 +119,7 @@ def plot_debug_atmocurves(filename):
         atmocurves["h_curve"],
         atmocurves["dTdr_curve"],
         color="red",
-        label="legolas 6th O"
+        label="legolas 6th O",
     )
     axr.plot(
         atmocurves["h_curve"],

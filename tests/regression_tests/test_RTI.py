@@ -33,7 +33,7 @@ rti_setup = {
         {"xlims": (-500, 500), "ylims": (-1.6, 1.6)},
         {"xlims": (-10, 15), "ylims": (-1.6, 1.6)},
         {"xlims": (0.01, 0.23), "ylims": (-1.6, 1.6)},
-    ]
+    ],
 }
 parametrisation = dict(
     argnames="setup",

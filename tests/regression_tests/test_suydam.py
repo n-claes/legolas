@@ -27,5 +27,5 @@ suydam_setup = {
         {"xlims": (-1, 1), "ylims": (-0.01, 0.01)},
         {"xlims": (-0.2, -0.02), "ylims": (-0.01, 0.01), "RMS_TOLERANCE": 3.15},
         {"xlims": (-0.16, -0.08), "ylims": (-0.01, 0.01), "RMS_TOLERANCE": 2.2},
-    ]
+    ],
 }

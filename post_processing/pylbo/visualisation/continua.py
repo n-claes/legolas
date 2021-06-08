@@ -1,6 +1,5 @@
 import numpy as np
 from pylbo.utilities.logger import pylboLogger
-from pylbo.utilities.toolbox import solve_cubic_exact
 from pylbo.visualisation.legend_interface import LegendHandler
 
 CONTINUA_NAMES = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]

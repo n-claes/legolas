@@ -1,6 +1,4 @@
-import pytest
 import numpy as np
-import pylbo
 
 adiabatic_homo_setup = {
     "name": "adiabatic_homo",

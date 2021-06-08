@@ -2,7 +2,7 @@ name: legolas-core
 
 on:
   push:
-    branches: [master, develop, feature/matrix_rework]
+    branches: [master, develop]
   pull_request:
     branches: [master, develop]
 

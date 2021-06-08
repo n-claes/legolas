@@ -25,8 +25,8 @@ interchange_modes_setup = {
     },
     "image_limits": [
         {"xlims": (-75, 75), "ylims": (-0.4, 0.4)},
-        {"xlims": (-1.5, 1.5), "ylims": (-0.4, 0.4)}
-    ]
+        {"xlims": (-1.5, 1.5), "ylims": (-0.4, 0.4)},
+    ],
 }
 parametrisation = dict(
     argnames="setup",

@@ -29,5 +29,5 @@ rotating_cylinder_setup = {
         {"xlims": (-100, 120), "ylims": (-2, 2)},
         {"xlims": (-5, 20), "ylims": (-2, 2)},
         {"xlims": (4.5, 9.5), "ylims": (-2, 2)},
-    ]
+    ],
 }
