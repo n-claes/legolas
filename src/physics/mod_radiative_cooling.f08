@@ -6,6 +6,7 @@
 !! interpolation module to create one.
 module mod_radiative_cooling
   use mod_global_variables, only: dp, ncool
+  use mod_logging, only: log_message
   implicit none
 
   private
@@ -175,8 +176,9 @@ contains
   !! care of normalisations.
   !! @note    The interpolated cooling curves are normalised on exit.
   subroutine create_cooling_curve(table_T, table_L)
-    use mod_units, only: unit_temperature, unit_lambdaT
+    use mod_units, only: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
     use mod_interpolation, only: interpolate_table, get_numerical_derivative
+    use mod_global_variables, only: logging_level
 
     !> temperature values in the cooling table
     real(dp), intent(in)  :: table_T(:)
@@ -207,6 +209,28 @@ contains
     interp_table_T = 10.0d0**interp_table_T
     ! and hence dL(T)/dT = dL(T) / dlogT * (1 / T)
     interp_table_dLdT = interp_table_dLdT / interp_table_T
+
+    ! save these curves to a file if we're in debug mode
+    if (logging_level >= 3) then
+      open( &
+        unit=1002, &
+        file="debug_coolingcurves", &
+        access="stream", &
+        status="unknown", &
+        action="write" &
+      )
+      write(1002) size(table_T)
+      write(1002) 10.0d0**table_T
+      write(1002) 10.0d0**table_L
+      write(1002) size(interp_table_T)
+      write(1002) interp_table_T * unit_temperature
+      write(1002) interp_table_L * unit_lambdaT
+      write(1002) interp_table_dLdT * unit_dlambdaT_dT
+      close(1002)
+      call log_message( &
+        "cooling curves saved to file 'debug_coolingcurves", level="debug" &
+      )
+    end if
   end subroutine create_cooling_curve
 
 

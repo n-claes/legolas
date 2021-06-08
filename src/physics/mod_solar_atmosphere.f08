@@ -227,11 +227,12 @@ contains
     use mod_atmosphere_curves, only: h_alc7, T_alc7, nh_alc7
     use mod_interpolation, only: interpolate_table, get_numerical_derivative
     use mod_units, only: unit_length, unit_temperature, unit_numberdensity
+    use mod_global_variables, only: logging_level
 
-    ! interpolate T vs height
-    call interpolate_table(nbpoints, h_alc7, T_alc7, h_interp, T_interp)
     ! interpolate nh vs height
     call interpolate_table(nbpoints, h_alc7, nh_alc7, h_interp, nh_interp)
+    ! interpolate T vs height
+    call interpolate_table(nbpoints, h_alc7, T_alc7, h_interp, T_interp)
 
     ! rescale interpolated tables to actual values and normalise
     h_interp = h_interp * 1.0d5 / unit_length ! height is in km, so scale to cm first
@@ -240,6 +241,29 @@ contains
 
     ! find temperature derivative
     call get_numerical_derivative(h_interp, T_interp, dT_interp)
+    ! save these curves to a file if we're in debug mode
+    if (logging_level >= 3) then
+      open( &
+        unit=1002, &
+        file="debug_atmocurves", &
+        access="stream", &
+        status="unknown", &
+        action="write" &
+      )
+      write(1002) size(h_alc7)
+      write(1002) h_alc7 * 1.0d5  ! save dimensionfull in cm
+      write(1002) T_alc7
+      write(1002) nh_alc7
+      write(1002) size(h_interp)
+      write(1002) h_interp * unit_length
+      write(1002) T_interp * unit_temperature
+      write(1002) nh_interp * unit_numberdensity
+      write(1002) dT_interp * (unit_temperature / unit_length)
+      close(1002)
+      call log_message( &
+        "atmo curves saved to file 'debug_atmocurves", level="debug" &
+      )
+    end if
   end subroutine create_atmosphere_curves
 
 
