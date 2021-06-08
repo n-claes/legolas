@@ -28,6 +28,7 @@ namelist_items = {
         ("basename_logfile", str),
         ("output_folder", str),
         ("logging_level", (int, np.integer)),
+        ("dry_run", bool),
     ],
     "physicslist": [
         ("mhd_gamma", float),
