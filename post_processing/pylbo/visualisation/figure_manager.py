@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from pathlib import Path
 from functools import wraps
 from pylbo.utilities.logger import pylboLogger
+from pylbo._version import _mpl_version
 
 
 def refresh_plot(f):
@@ -291,10 +293,15 @@ class FigureWindow:
         new_ax : ~matplotlib.axes.Axes
             The axes instance that was added.
         """
-        if ax.get_geometry() != (1, 1, 1):
+        if _mpl_version >= "3.4":
+            axes_geometry = ax.get_subplotspec().get_geometry()[0:2]
+        else:
+            axes_geometry = ax.get_geometry()[0:2]
+
+        if axes_geometry != (1, 1):
             raise ValueError(
                 f"Something went wrong when adding a subplot. Expected "
-                f"axes with geometry (1, 1, 1) but got {self.ax.get_geometry()}."
+                f"axes with geometry (1, 1) but got {axes_geometry}."
             )
         if loc == "top":
             geom_ax = (2, 1, 2)
@@ -318,10 +325,17 @@ class FigureWindow:
             sharex = ax
         if share in ("y", "all"):
             sharey = ax
-        ax.change_geometry(*geom_ax)
-        new_ax = self.fig.add_subplot(*geom_new_ax, sharex=sharex, sharey=sharey)
-        # this will update the figure's gridspec
-        self.fig.tight_layout()
+        # handle deprecation of `change_geometry` in mpl 3.4
+        if _mpl_version >= "3.4":
+            spec = gridspec.GridSpec(*geom_ax[0:2], figure=self.fig)
+            # geom_ax[-1] - 1 determines position of plot in window, index 0 based
+            ax.set_subplotspec(gridspec.SubplotSpec(spec, geom_ax[-1] - 1))
+            new_ax = self.fig.add_subplot(spec[geom_new_ax[-1] - 1])
+        else:
+            ax.change_geometry(*geom_ax)
+            new_ax = self.fig.add_subplot(*geom_new_ax, sharex=sharex, sharey=sharey)
+            # this will update the figure's gridspec
+            self.fig.tight_layout()
         return new_ax
 
     def draw(self):
@@ -362,7 +376,6 @@ class FigureWindow:
         self.__class__.figure_stack.disable_stack()
         self.enable()
         self.connect_callbacks()
-        self.fig.tight_layout()
         plt.show()
 
     @classmethod
