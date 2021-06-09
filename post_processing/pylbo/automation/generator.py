@@ -191,6 +191,8 @@ class ParfileGenerator:
         except KeyError:
             run_dict.update({"savelist": {}})
 
+        basename_datfile = run_dict["savelist"].get("basename_datfile", self.basename)
+
         for current_run in range(self.nb_runs):
             prefix = "{:04d}".format(current_run + 1)
             if self.nb_runs == 1:
@@ -202,12 +204,7 @@ class ParfileGenerator:
             # parfile name
             parfile_name = f"{prefix}{self.basename}.par"
             # datfile name (no extension .dat needed)
-            datfile_name = "".join(
-                [
-                    f"{prefix}",
-                    run_dict["savelist"].get("basename_datfile", self.basename),
-                ]
-            )
+            datfile_name = f"{prefix}{basename_datfile}"
             run_dict["savelist"].update({"basename_datfile": datfile_name})
             # logfile name (no extension .log needed)
             logfile_name = run_dict["savelist"].get("basename_logfile", None)
