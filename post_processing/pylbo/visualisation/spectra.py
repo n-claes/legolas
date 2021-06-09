@@ -333,19 +333,20 @@ class MultiSpectrumPlot(SpectrumFigure):
 
         Returns
         -------
-        ydata_values : numpy.ndarray
+        ydata : numpy.ndarray
             The y data values, either the real or imaginary parts based on
-            :attr:`use_real_parts`.
+            :attr:`use_real_parts`. Every element is an array in itself corresponding
+            to the various datasets, hence depending on the gridpoints in every dataset
+            the elements themselves may be of different length.
         """
-        ydata_values = np.array(
-            [ds.eigenvalues ** self._w_pow for ds in self.dataseries]
-        )
-        if self.use_real_parts:
-            ydata = ydata_values.real
-        else:
-            ydata = ydata_values.imag
-        # omit zeros from data
-        ydata[np.where(np.isclose(ydata, 0, atol=1e-12))] = np.nan
+        ydata = np.empty(len(self.dataseries), dtype=object)
+        for i, ds in enumerate(self.dataseries):
+            ydata[i] = ds.eigenvalues ** self._w_pow
+            if self.use_real_parts:
+                ydata[i] = ydata[i].real
+            else:
+                ydata[i] = ydata[i].imag
+            ydata[i][np.where(np.isclose(ydata[i], 0, atol=1e-15))] = np.nan
         return ydata
 
     def set_x_scaling(self, x_scaling):
