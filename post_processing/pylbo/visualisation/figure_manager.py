@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from pathlib import Path
 from functools import wraps
 from pylbo.utilities.logger import pylboLogger
+from pylbo._version import _mpl_version
 
 
 def refresh_plot(f):
@@ -97,26 +99,6 @@ class FigureContainer(dict):
                 f"id='{figure_id}' not in existing list {self.figure_id_list}"
             )
 
-    def disable_stack(self):
-        """
-        This disables the figurestack by closing the figures: this prevents them
-        from showing when calling `plt.show()`.
-        Later on we reconstruct the figuremanagers.
-        """
-        [figure.disable() for figure in self.figure_list]
-        self.stack_is_enabled = False
-
-    def enable_stack(self):
-        """
-        This enables the figurestack so figures are again accessible through
-        the plt.show() methods. When we lock the stack those figures are closed,
-        which essentially destroys the figuremanager but keeps the figure references
-        alive. Here we simply reconstruct the figuremanager for every disabled figure
-        in the stack, allowing for multiple calls to show(), save(), etc.
-        """
-        [figure.enable() for figure in self.figure_list]
-        self.stack_is_enabled = True
-
     @property
     def number_of_figures(self):
         """Returns the total number of figures in the stack."""
@@ -192,7 +174,6 @@ class FigureWindow:
             self.ax = self.fig.add_subplot(111)
         self.x_scaling = 1.0
         self.y_scaling = 1.0
-        self.enabled = False
         self._mpl_callbacks = []
         self.__class__.figure_stack.add(self)
 
@@ -217,18 +198,6 @@ class FigureWindow:
         )
         suffix = 1 + occurences
         return f"{figure_type}-{suffix}"
-
-    def disable(self):
-        """Disables the current figure."""
-        self.enabled = False
-        plt.close(self.figure_id)
-
-    def enable(self):
-        """Enables the current figure, reconstructs the figuremanagers"""
-        self.enabled = True
-        manager = plt.figure(self.figure_id, self.figsize).canvas.manager
-        manager.canvas.figure = self.fig
-        self.fig.set_canvas(manager.canvas)
 
     def connect_callbacks(self):
         """Connects all callbacks to the canvas"""
@@ -291,10 +260,15 @@ class FigureWindow:
         new_ax : ~matplotlib.axes.Axes
             The axes instance that was added.
         """
-        if ax.get_geometry() != (1, 1, 1):
+        if _mpl_version >= "3.4":
+            axes_geometry = ax.get_subplotspec().get_geometry()[0:2]
+        else:
+            axes_geometry = ax.get_geometry()[0:2]
+
+        if axes_geometry != (1, 1):
             raise ValueError(
                 f"Something went wrong when adding a subplot. Expected "
-                f"axes with geometry (1, 1, 1) but got {self.ax.get_geometry()}."
+                f"axes with geometry (1, 1) but got {axes_geometry}."
             )
         if loc == "top":
             geom_ax = (2, 1, 2)
@@ -318,10 +292,17 @@ class FigureWindow:
             sharex = ax
         if share in ("y", "all"):
             sharey = ax
-        ax.change_geometry(*geom_ax)
-        new_ax = self.fig.add_subplot(*geom_new_ax, sharex=sharex, sharey=sharey)
-        # this will update the figure's gridspec
-        self.fig.tight_layout()
+        # handle deprecation of `change_geometry` in mpl 3.4
+        if _mpl_version >= "3.4":
+            spec = gridspec.GridSpec(*geom_ax[0:2], figure=self.fig)
+            # geom_ax[-1] - 1 determines position of plot in window, index 0 based
+            ax.set_subplotspec(gridspec.SubplotSpec(spec, geom_ax[-1] - 1))
+            new_ax = self.fig.add_subplot(spec[geom_new_ax[-1] - 1])
+        else:
+            ax.change_geometry(*geom_ax)
+            new_ax = self.fig.add_subplot(*geom_new_ax, sharex=sharex, sharey=sharey)
+            # this will update the figure's gridspec
+            self.fig.tight_layout()
         return new_ax
 
     def draw(self):
@@ -358,19 +339,13 @@ class FigureWindow:
         self.y_scaling = y_scaling
 
     def show(self):
-        """Shows the current figure."""
-        self.__class__.figure_stack.disable_stack()
-        self.enable()
-        self.connect_callbacks()
-        self.fig.tight_layout()
-        plt.show()
+        """Shows the figures, wrapper to `showall()` for backwards compatibility."""
+        self.showall()
 
     @classmethod
     def showall(cls):
         """Shows all active figures at once through a call to plt.show()."""
-        cls.figure_stack.disable_stack()
         for figure in cls.figure_stack.figure_list:
-            figure.enable()
             figure.connect_callbacks()
         plt.show()
 
