@@ -6,6 +6,13 @@ module mod_suite_utils
 
 contains
 
+  subroutine set_name(name)
+    character(len=*), intent(in)  :: name
+
+    write(*, *)
+    write(*, "('" // " [Test]: " // name // "')")
+  end subroutine set_name
+
   subroutine reset_globals()
     use mod_global_variables, only: initialise_globals, logging_level
     use mod_equilibrium_params, only: init_equilibrium_params, k2, k3

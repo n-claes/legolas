@@ -6,7 +6,7 @@ rm -rf pylbo_tests/results
 rm -rf pylbo_tests/tmp
 rm -rf pylbo_tests/.pytest_cache
 echo ">> pylbo tests cleaned"
-cd core_tests || exit
+cd unit_tests || exit
 rm -rf build
 rm -f test_legolas
-echo ">> core tests cleaned"
+echo ">> unit tests cleaned"

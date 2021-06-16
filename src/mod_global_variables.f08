@@ -296,17 +296,4 @@ contains
     ef_gridpts     = 2*gridpts - 1
   end subroutine set_gridpts
 
-
-  !> Sets the size of the matrix.
-  !> Manually forces the size of the matrices to the given value.
-  !! This is only used for testing purposes, as the matrix sizes are
-  !! dependent on the base number of gridpoints.
-  !> @warning Should **ONLY** be used for testing purposes!
-  subroutine set_matrix_gridpts(matrix_size_in)
-    !> value for the matrix size
-    integer, intent(in) :: matrix_size_in
-
-    matrix_gridpts = matrix_size_in
-  end subroutine set_matrix_gridpts
-
 end module mod_global_variables
