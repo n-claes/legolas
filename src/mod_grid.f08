@@ -59,6 +59,7 @@ contains
 
     if (geometry == "") then
       call log_message("geometry must be set in submodule/parfile", level="error")
+      return
     end if
 
     allocate(grid(gridpts))
@@ -106,7 +107,7 @@ contains
           x_start = 0.0d0
         end if
       end if
-      
+
       ! minus one here to include x_end
       dx = (x_end - x_start) / (gridpts-1)
       do i = 1, gridpts
@@ -115,7 +116,10 @@ contains
     end if
 
     if (mesh_accumulation) then
-      if (equilibrium_type == 'photospheric_flux_tube' .or. equilibrium_type == 'coronal_flux_tube') then
+      if ( &
+        equilibrium_type == 'photospheric_flux_tube' &
+        .or. equilibrium_type == 'coronal_flux_tube' &
+      ) then
         call accumulate_mesh_special_fluxtube()
       else
         call accumulate_mesh()
@@ -143,8 +147,8 @@ contains
       dx   = x_hi - x_lo
 
       do j = 1, n_gauss
-        xi(j) = 0.5 * dx * gaussian_nodes(j) + 0.5*(x_lo + x_hi)
-        idx   = (i - 1)*n_gauss + j
+        xi(j) = 0.5d0 * dx * gaussian_nodes(j) + 0.5d0 * (x_lo + x_hi)
+        idx   = (i - 1) * n_gauss + j
         grid_gauss(idx) = xi(j)
       end do
     end do
@@ -166,7 +170,9 @@ contains
       eps_grid = grid_gauss
       d_eps_grid_dr = 1.0d0
     else
-      call log_message("geometry not defined correctly: " // trim(geometry), level='error')
+      call log_message( &
+        "geometry not defined correctly: " // trim(geometry), level="error" &
+      )
     end if
   end subroutine set_scale_factor
 

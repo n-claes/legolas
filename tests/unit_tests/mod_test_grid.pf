@@ -1,7 +1,10 @@
 module mod_test_grid
   use mod_suite_utils
   use funit
+  use mod_grid, only: grid, initialise_grid
   implicit none
+
+  integer   :: i
 
 contains
 
@@ -21,69 +24,149 @@ contains
 
 
   @test
-  subroutine test_cart_grid()
-    use mod_grid, only: grid
-
-    write(*, *) "Testing Cartesian grid edges"
-    call create_test_grid(pts=31, geom='Cartesian', &
-                          start=0.0d0, end=1.0d0)
-    @assertEqual(grid(1), 0.0d0, tolerance=TOL)
-    @assertEqual(grid(31), 1.0d0, tolerance=TOL)
-  end subroutine test_cart_grid
+  subroutine test_cartesian_grid()
+    call set_name("cartesian grid")
+    call create_test_grid(pts=51, geom="Cartesian", start=1.0d0, end=3.0d0)
+    @assertEqual(1.0d0, grid(1), tolerance=TOL)
+    @assertEqual(3.0d0, grid(51), tolerance=TOL)
+    do i = 1, 50
+      @assertLessThan(grid(i), grid(i + 1))
+    end do
+  end subroutine test_cartesian_grid
 
 
   @test
-  subroutine test_cyl_grid()
-    use mod_grid, only: grid
-
-    write(*, *) "Testing cylindrical grid edges"
-    call create_test_grid(pts=31, geom='cylindrical', &
-                          start=0.0d0, end=1.0d0)
+  subroutine test_cylindrical_grid()
+    call set_name("cylindrical grid")
+    call create_test_grid(pts=31, geom="cylindrical", start=0.0d0, end=1.0d0)
     @assertGreaterThan(grid(1), 2.0d-2)
-    @assertEqual(grid(31), 1.0d0, tolerance=TOL)
-  end subroutine test_cyl_grid
+    @assertEqual(1.0d0, grid(31), tolerance=TOL)
+    do i = 1, 30
+      @assertLessThan(grid(i), grid(i + 1))
+    end do
+  end subroutine test_cylindrical_grid
 
 
   @test
-  subroutine test_cyl_grid_force()
+  subroutine test_cylindrical_grid_force_r0()
     use mod_global_variables, only: force_r0, logging_level
-    use mod_grid, only: grid
 
-    write(*, *) "Testing cylindrical grid edges (forced)"
+    call set_name("cylindrical grid, force r=0")
     force_r0 = .true.
     logging_level = 0
-    call create_test_grid(pts=31, geom='cylindrical', &
-                          start=0.0d0, end=1.0d0)
-    @assertEqual(grid(1), 0.0d0, tolerance=TOL)
-    @assertEqual(grid(31), 1.0d0, tolerance=TOL)
-  end subroutine test_cyl_grid_force
-
-
-  @test
-  subroutine test_grid_mono()
-    use mod_grid, only: grid
-
-    integer   :: idx
-
-    write(*, *) "Testing grid monotonicity"
-    call create_test_grid(pts=31, geom='Cartesian')
-    do idx = 1, 30
-      @assertLessThan(grid(idx), grid(idx+1))
+    call create_test_grid(pts=31, geom="cylindrical", start=0.0d0, end=2.0d0)
+    @assertEqual(0.0d0, grid(1), tolerance=TOL)
+    @assertEqual(2.0d0, grid(31), tolerance=TOL)
+    do i = 1, 30
+      @assertLessThan(grid(i), grid(i + 1))
     end do
-  end subroutine test_grid_mono
+  end subroutine test_cylindrical_grid_force_r0
 
 
   @test
-  subroutine test_grid_gauss_mono()
+  subroutine test_grid_gauss_monotonicity()
     use mod_global_variables, only: gauss_gridpts
     use mod_grid, only: grid_gauss
 
-    integer   :: idx
-
-    write(*, *) "Testing grid_gauss monotonicity"
-    call create_test_grid(pts=31, geom='Cartesian')
-    do idx = 1, gauss_gridpts-1
-      @assertLessThan(grid_gauss(idx), grid_gauss(idx+1))
+    call set_name("monotonicity grid_gauss")
+    call create_test_grid(pts=31, geom="Cartesian")
+    do i = 1, gauss_gridpts - 1
+      @assertLessThan(grid_gauss(i), grid_gauss(i + 1))
     end do
-  end subroutine test_grid_gauss_mono
+  end subroutine test_grid_gauss_monotonicity
+
+
+  @test
+  subroutine test_grid_no_geometry_set()
+    call set_name("setting grid without geometry")
+    call initialise_grid()
+    @assertExceptionRaised("geometry must be set in submodule/parfile")
+  end subroutine test_grid_no_geometry_set
+
+
+  @test
+  subroutine test_grid_wrong_geometry_set()
+    use mod_global_variables, only: geometry
+
+    call set_name("setting grid with unknown geometry")
+    geometry = "unknown"
+    call initialise_grid()
+    @assertExceptionRaised("geometry not defined correctly: unknown")
+  end subroutine test_grid_wrong_geometry_set
+
+
+  @test
+  subroutine test_custom_grid()
+    use mod_global_variables, only: set_gridpts, geometry
+
+    real(dp)  :: custom_grid(50)
+
+    call set_name("setting custom grid")
+    geometry = "Cartesian"
+    call set_gridpts(50)
+    custom_grid = linspace(x0=0.0d0, x1=3.0d0, xvals=50)
+    call initialise_grid(custom_grid=custom_grid)
+    @assertEqual(0.0d0, grid(1), tolerance=TOL)
+    @assertEqual(3.0d0, grid(50), tolerance=TOL)
+  end subroutine test_custom_grid
+
+
+  @test
+  subroutine test_custom_grid_wrong_size()
+    use mod_global_variables, only: set_gridpts, geometry
+
+    real(dp)  :: custom_grid(50)
+    character(len=125) :: error_msg
+
+    call set_name("setting custom grid, wrong size")
+    geometry = "Cartesian"
+    call set_gridpts(100)
+    call initialise_grid(custom_grid=custom_grid)
+    error_msg = "custom grid: sizes do not match! Expected 100 points but got 50"
+    @assertExceptionRaised(trim(error_msg))
+  end subroutine test_custom_grid_wrong_size
+
+
+  @test
+  subroutine test_custom_grid_not_monotone()
+    use mod_global_variables, only: set_gridpts, geometry
+
+    real(dp)  :: custom_grid(50)
+    character(len=125) :: error_msg
+
+    call set_name("setting custom grid, not monotone")
+    geometry = "Cartesian"
+    call set_gridpts(50)
+    custom_grid = linspace(x0=0.0d0, x1=2.0d0, xvals=50)
+    custom_grid(15) = 1.2d0
+    call initialise_grid(custom_grid=custom_grid)
+    error_msg = ( &
+      "custom grid: supplied array is not monotone! &
+      &Got x=1.20000000 at index 15 and x=0.61224490 at index 16" &
+    )
+    @assertExceptionRaised(trim(error_msg))
+  end subroutine test_custom_grid_not_monotone
+
+
+  @test
+  subroutine test_scale_factor_Cartesian()
+    use mod_grid, only: eps_grid, d_eps_grid_dr
+
+    call set_name("scale factor Cartesian")
+    call create_test_grid(pts=51, geom="Cartesian", start=0.0d0, end=2.0d0)
+    @assertEqual(1.0d0, eps_grid, tolerance=TOL)
+    @assertEqual(0.0d0, d_eps_grid_dr, tolerance=TOL)
+  end subroutine test_scale_factor_Cartesian
+
+
+  @test
+  subroutine test_scale_factor_cylindrical()
+    use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
+
+    call set_name("scale factor cylindrical")
+    call create_test_grid(pts=51, geom="cylindrical", start=0.0d0, end=2.0d0)
+    @assertEqual(grid_gauss, eps_grid, tolerance=TOL)
+    @assertEqual(1.0d0, d_eps_grid_dr, tolerance=TOL)
+  end subroutine test_scale_factor_cylindrical
+
 end module mod_test_grid

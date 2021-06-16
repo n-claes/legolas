@@ -7,7 +7,8 @@ option(Coverage "Coverage" OFF)
 
 get_filename_component(Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 set(CMAKE_Fortran_FLAGS "-fcheck=all -fbounds-check -Wall \
-                         -Wextra -Wconversion -pedantic -fbacktrace -cpp")
+                         -Wextra -Wconversion -pedantic -fbacktrace -cpp \
+                         -ffree-line-length-256")
 
 find_package(PFUNIT REQUIRED)
 enable_testing()
@@ -55,20 +56,20 @@ target_link_libraries(suite ${LEGOLASLIB} ${LIBSTOLINK})
 set( test_sources
         mod_test_variables.pf
         mod_test_grid.pf
-        mod_test_input.pf
-        mod_test_valuechecks.pf
-        mod_test_units.pf
-        mod_test_cooling.pf
-        mod_test_resistivity.pf
-        mod_test_conduction.pf
-        mod_test_boundaries.pf
-        mod_test_splines.pf
-        mod_test_subblock.pf
-        mod_test_matrixoperations.pf
-        mod_test_interpolation.pf
-        mod_test_integration.pf
-        mod_test_lapacksolvers.pf
-        mod_test_arpacksolvers.pf
+        # mod_test_input.pf
+        # mod_test_valuechecks.pf
+        # mod_test_units.pf
+        # mod_test_cooling.pf
+        # mod_test_resistivity.pf
+        # mod_test_conduction.pf
+        # mod_test_boundaries.pf
+        # mod_test_splines.pf
+        # mod_test_subblock.pf
+        # mod_test_matrixoperations.pf
+        # mod_test_interpolation.pf
+        # mod_test_integration.pf
+        # mod_test_lapacksolvers.pf
+        # mod_test_arpacksolvers.pf
 )
 add_pfunit_ctest (test_legolas
         TEST_SOURCES ${test_sources}
