@@ -52,8 +52,7 @@ contains
     namelist /unitslist/    &
         cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length
     namelist /gridlist/ &
-        geometry, x_start, x_end, gridpoints, force_r0, &
-        mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2, coaxial
+        geometry, x_start, x_end, gridpoints, force_r0, coaxial
     namelist /equilibriumlist/ &
         equilibrium_type, boundary_type, use_defaults, remove_spurious_eigenvalues, &
         nb_spurious_eigenvalues

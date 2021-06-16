@@ -49,8 +49,8 @@ contains
   !! @warning   Throws an error if the geometry is not set. @endwarning
   !! @warning   Throws a warning if <tt>r = 0</tt> is forced in cylindrical geometry.
   subroutine initialise_grid(custom_grid)
-    use mod_global_variables, only: geometry, mesh_accumulation, x_start, x_end, &
-      gauss_gridpts, dp_LIMIT, force_r0, equilibrium_type
+    use mod_global_variables, only: geometry, x_start, x_end, &
+      gauss_gridpts, dp_LIMIT, force_r0
 
     !> custom grid to use instead of the default one, optional
     real(dp), intent(in), optional  :: custom_grid(:)
@@ -115,17 +115,6 @@ contains
       end do
     end if
 
-    if (mesh_accumulation) then
-      if ( &
-        equilibrium_type == 'photospheric_flux_tube' &
-        .or. equilibrium_type == 'coronal_flux_tube' &
-      ) then
-        call accumulate_mesh_special_fluxtube()
-      else
-        call accumulate_mesh()
-      end if
-    end if
-
     call set_grid_gauss()
     call set_scale_factor()
   end subroutine initialise_grid
@@ -175,154 +164,6 @@ contains
       )
     end if
   end subroutine set_scale_factor
-
-
-  !> Special mesh accumulation routine for flux tubes. Instead of a Gaussian
-  !! a 60-30-10 percentage-distribution is used, meaning that 60% of the gridpoints
-  !! are located between the axis and \((a - width/2)\), 30% of the gridpoints are
-  !! located at a \(width=0.1\) centered at the inner fluxtube radius \(a\),
-  !! and the remaining 10% is located in the outside region.
-  subroutine accumulate_mesh_special_fluxtube()
-    use mod_global_variables, only: x_start, x_end
-    use mod_equilibrium_params, only: r0
-
-    real(dp)  :: width, a_l, a_r
-    real(dp)  :: pct1, pct2, pct3
-    real(dp)  :: dx, dx1, dx2, dx3
-    integer   :: i, N1, N2, N3
-
-    ! reset the grid
-    grid = 0.0d0
-    ! width of transition region
-    width = 0.1d0
-    ! start of transition region
-    a_l = r0 - width / 2.0d0
-    ! end of transition region
-    a_r = a_l + width
-
-    pct1 = 0.6d0  ! percentage of points in inner tube
-    pct2 = 0.3d0  ! percentage of points in transition region
-    pct3 = 0.1d0  ! percentage of points in outer tube
-
-    N1 = int(pct1 * gridpts)
-    dx1 = (a_l - x_start) / (N1 - 1)  ! -1 since first point is x0
-    N2 = int(pct2 * gridpts)
-    dx2 = (a_r - a_l) / N2
-    N3 = int(pct3 * gridpts)
-    dx3 = (x_end - a_r) / N3
-
-    ! fill the grid
-    grid(1) = x_start
-    do i = 2, gridpts
-      if (i <= N1) then
-        dx = dx1
-      else if (N1 < i .and. i <= N1 + N2) then
-        dx = dx2
-      else
-        dx = dx3
-      end if
-      grid(i) = grid(i - 1) + dx
-    end do
-    call log_message("special mesh refinement for flux tubes, 60%-30%-10%", level='info')
-  end subroutine accumulate_mesh_special_fluxtube
-
-
-  !> Re-grids the mesh to a non-uniform spacing using mesh accumulation.
-  !! This is based on two Gaussian curves with known widths, the grid is
-  !! accumulated near each Gaussian maximum using equidistribution based
-  !! on the integral under the curve defined by the function <tt>gaussian()</tt>.
-  !! @todo  This method will most likely change in the future.
-  subroutine accumulate_mesh()
-    use mod_global_variables, only: x_start, x_end
-
-    integer                  :: i, integral_gridpts
-    integer                  :: integral_gridpts_1, integral_gridpts_2
-    real(dp)                 :: dx, dx_0, xi, bgf, fact, dx_eq
-    real(dp)                 :: gauss_xi, gauss_xi_eq
-    real(dp)                 :: x_sum, x_sum_prev, x_norm
-    real(dp)                 :: xi_weighted
-
-    call log_message("redefining grid with mesh accumulation", level='info')
-
-    integral_gridpts = gridpts - 1
-
-    bgf  = 0.3d0 !background
-    fact = 1.0d0
-
-    ! first evaluation of integral to get weighted values
-    integral_gridpts_1 = 2*integral_gridpts + 1
-    dx = (grid(gridpts) - grid(1)) / float(integral_gridpts_1 - 1)
-    xi = grid(1)
-    x_sum = 0.0d0
-
-    do i = 1, integral_gridpts_1
-      gauss_xi = gaussian(xi, bgf, fact)
-      x_sum   = x_sum + (gauss_xi * dx)
-      xi      = xi + dx
-    end do
-    x_norm = (grid(gridpts) - grid(1)) / x_sum
-
-    ! second evaluation of integral using weighted points
-    integral_gridpts_2 = 50*integral_gridpts
-    dx_eq    = (grid(gridpts) - grid(1)) / float(integral_gridpts)
-    xi       = grid(1)
-    x_sum    = 0.0d0           ! x0 here
-    gauss_xi = gaussian(xi, bgf, fact) * x_norm   ! This is at x0 for now
-    dx_0     = (grid(gridpts) - grid(1)) * gauss_xi / float(integral_gridpts_2)
-
-
-    do i = 2, integral_gridpts
-      gauss_xi_eq = float(i - 1) * dx_eq + grid(1)
-      do while (gauss_xi_eq > x_sum)  !x_sum is 0 at first pass
-       dx         = dx_0 / gauss_xi
-       xi         = xi + dx
-       x_sum_prev = x_sum
-       gauss_xi   = gaussian(xi, bgf, fact)
-       gauss_xi   = gauss_xi * x_norm
-       x_sum      = x_sum + (gauss_xi * dx)
-      end do
-
-      xi_weighted = (gauss_xi_eq - x_sum_prev) / (x_sum - x_sum_prev)
-
-      ! Re-define grid
-      grid(i) = xi - dx*(1.0d0 - xi_weighted)
-    end do
-
-    ! Ensure correct end points and final spacing
-    grid(1) = x_start
-    grid(integral_gridpts+1) = x_end
-    grid(integral_gridpts) = 0.5 * (grid(integral_gridpts - 1) &
-                                    + grid(integral_gridpts + 1))
-  end subroutine accumulate_mesh
-
-
-
-  !> Function to calculate a Gaussian curve based on known widths and
-  !! expected values. Returns the value of the Gaussian function,
-  !! evaluated in x.
-  !! @todo  This method will most likely change in the future.
-  function gaussian(x, bgf, fact) result(f_gauss)
-    use mod_global_variables, only: ev_1, ev_2, sigma_1, sigma_2
-    use mod_physical_constants, only: dpi
-
-    !> value for x in the Gaussian function
-    real(dp), intent(in)    :: x
-    !> value for the background field, 0.3 by default
-    real(dp), intent(in)    :: bgf
-    !> division factor in the Gaussian function, 1.0 by default
-    real(dp), intent(in)    :: fact
-    real(dp)                :: f_gauss
-    real(dp)                :: gauss_1, gauss_2, norm_1, norm_2
-
-    norm_1 = 1.0d0 / (sigma_1 * sqrt(2*dpi))
-    norm_2 = 1.0d0 / (sigma_2 * sqrt(2*dpi))
-
-    gauss_1 = norm_1 * exp(-0.5d0 * ((x - ev_1) / sigma_1)**2)
-    gauss_2 = norm_2 * exp(-0.5d0 * ((x - ev_2) / sigma_2)**2)
-
-    f_gauss = bgf + (1.0d0 - bgf) * (gauss_1 + fact*gauss_2) / fact
-
-  end function gaussian
 
 
   !> Cleanup routine, deallocates the arrays at module scope.

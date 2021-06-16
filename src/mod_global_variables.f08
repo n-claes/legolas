@@ -105,17 +105,6 @@ module mod_global_variables
   !> size of a single eigenfunction array, automatically set by \p gridpts
   integer, protected        :: ef_gridpts
 
-  !> boolean for mesh accumulation, defaults to <tt>False</tt>
-  logical, save             :: mesh_accumulation
-  !> expected value for the 1st Gaussian function used in accumulation, defaults to 1.25
-  real(dp)                  :: ev_1
-  !> expected value for the 2nd Gaussian function used in accumulation, defaults to 1.25
-  real(dp)                  :: ev_2
-  !> standard deviation for the 1st Gaussian function used in accumulation, defaults to 1
-  real(dp)                  :: sigma_1
-  !> standard deviation for the 2nd Gaussian function used in accumulation, defaults to 2
-  real(dp)                  :: sigma_2
-
   !> number of Gaussian nodes
   integer, parameter           :: n_gauss = 4
   !> values for the Gaussian nodes in [-1, 1]
@@ -233,11 +222,6 @@ contains
     gridpts = 31
     force_r0 = .false.
     call set_gridpts(gridpts)
-    mesh_accumulation = .false.
-    ev_1 = 1.25d0
-    ev_2 = 1.25d0
-    sigma_1 = 1.0d0
-    sigma_2 = 2.0d0
 
     !! equilibrium variables
     equilibrium_type = 'adiabatic_homo'
