@@ -25,7 +25,7 @@ jobs:
           - name: unit-tests
             coverage: true
           - name: regression
-            coverage: false
+            coverage: true
 
     steps:
     - uses: actions/checkout@v2
