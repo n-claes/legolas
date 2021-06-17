@@ -66,6 +66,7 @@ module mod_units
   logical, protected    :: normalisations_are_set = .false.
 
   public  :: check_if_normalisations_set
+  public  :: normalisations_are_set
   public  :: set_normalisations
   public  :: set_unit_resistivity
 
@@ -85,11 +86,15 @@ contains
   !! the equilibrium submodule or parfiles nothing is done.
   subroutine check_if_normalisations_set()
     if (normalisations_are_set) then
-      call log_message("normalisations are already set", level='debug')
+      call log_message("normalisations are already set", level="debug")
       return
     else
       cgs_units = .true.
-      call set_normalisations(new_unit_temperature=1.0d6, new_unit_magneticfield=10.0d0, new_unit_length=1.0d9)
+      call set_normalisations( &
+        new_unit_temperature=1.0d6, &
+        new_unit_magneticfield=10.0d0, &
+        new_unit_length=1.0d9 &
+      )
     end if
   end subroutine check_if_normalisations_set
 
@@ -109,13 +114,13 @@ contains
     real(dp), intent(out) :: Rgas
 
     if (cgs_units) then
-      call log_message("getting constants in cgs units", level='debug')
+      call log_message("getting constants in cgs units", level="debug")
       kB = kB_cgs
       mp = mp_cgs
       mu0 = mu0_cgs
       Rgas = R_cgs
     else
-      call log_message("getting constants in SI units", level='debug')
+      call log_message("getting constants in SI units", level="debug")
       kB = kB_si
       mp = mp_si
       mu0 = mu0_si
@@ -133,7 +138,9 @@ contains
   !!
   !! - the unit density and unit temperature are both specified.
   !! - neither unit density or unit temperature is specified.  @endwarning
-  subroutine set_normalisations(new_unit_density, new_unit_temperature, new_unit_magneticfield, new_unit_length)
+  subroutine set_normalisations( &
+    new_unit_density, new_unit_temperature, new_unit_magneticfield, new_unit_length &
+  )
     !> new value for the unit density
     real(dp), intent(in), optional  :: new_unit_density
     !> new value for the unit temperature
@@ -147,7 +154,9 @@ contains
     call get_constants(kB, mp, mu0, Rgas)
 
     if (present(new_unit_density) .and. present(new_unit_temperature)) then
-      call log_message("unit density and unit temperature can not both be set.", level='error')
+      call log_message( &
+        "unit density and unit temperature can not both be set.", level="error" &
+      )
     end if
 
     ! TODO (niels):
@@ -156,7 +165,9 @@ contains
     ! cgs units, so I think if SI units are specified we first have to scale
     ! the tables to SI and THEN normalise using SI normalisations.
     if (.not. cgs_units) then
-      call log_message("possible inconsistency in SI units, use cgs for now!", level="error")
+      call log_message( &
+        "possible inconsistency in SI units, use cgs for now!", level="error" &
+      )
     end if
 
     unit_magneticfield = new_unit_magneticfield
@@ -170,7 +181,7 @@ contains
       unit_temperature = new_unit_temperature
       unit_density = unit_pressure * mp / (kB * unit_temperature)
     else
-      call log_message("no unit density or unit temperature specified.", level='error')
+      call log_message("no unit density or unit temperature specified.", level="error")
     end if
 
     unit_mass = unit_density * unit_length**3
