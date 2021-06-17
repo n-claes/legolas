@@ -2,6 +2,7 @@ module mod_test_units
   use funit
   use mod_suite_utils
   use mod_units
+  implicit none
 
 contains
 
