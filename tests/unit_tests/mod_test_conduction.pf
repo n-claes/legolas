@@ -4,13 +4,23 @@ module mod_test_conduction
   use mod_thermal_conduction, only: set_conduction_values
   use mod_equilibrium, only: rho_field, T_field, B_field, kappa_field
   use mod_global_variables, only: use_fixed_tc_para, fixed_tc_para_value, &
-                                  use_fixed_tc_perp, fixed_tc_perp_value
+    use_fixed_tc_perp, fixed_tc_perp_value, gauss_gridpts, gridpts
+  use mod_physical_constants, only: coulomb_log
+  use mod_units
+  use mod_grid, only: grid_gauss
+  implicit none
+
+  real(dp), parameter   :: pf_para = 1.8d-5
+  real(dp), parameter   :: pf_perp = 8.2d-10
+  integer   :: array_size
 
 contains
 
   @before
   subroutine init_test()
     call reset_globals()
+    call create_test_grid(pts=51, geom="Cartesian", start=0.0d0, end=1.0d0)
+    array_size = size(T_field % T0)
     call reset_fields(init_fields=.true.)
     call reset_eigenfunctions(init_efs=.false.)
     call set_default_units()
@@ -25,85 +35,219 @@ contains
 
   @test
   subroutine test_kappa_para_cte()
-    write(*, *) "Testing thermal conduction: kappa parallel constant"
+    call set_name("thermal conduction (kappa_para cte)")
     use_fixed_tc_para = .true.
     fixed_tc_para_value = 1.0d0
     use_fixed_tc_perp = .true.
     fixed_tc_perp_value = 0.0d0
     call set_conduction_values(rho_field, T_field, B_field, kappa_field)
 
-    @assertEqual(fixed_tc_para_value, kappa_field % kappa_para(:), tolerance=TOL)
-    @assertEqual(0.0d0, kappa_field % kappa_perp(:), tolerance=TOL)
-    @assertEqual(0.0d0, kappa_field % d_kappa_perp_drho(:), tolerance=TOL)
-    @assertEqual(0.0d0, kappa_field % d_kappa_perp_dB2(:), tolerance=TOL)
-    @assertEqual(0.0d0, kappa_field % d_kappa_perp_dT(:), tolerance=TOL)
+    @assertEqual(fixed_tc_para_value, kappa_field % kappa_para, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % d_kappa_para_dT, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % kappa_perp, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % d_kappa_perp_drho, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % d_kappa_perp_dB2, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % d_kappa_perp_dT, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % d_kappa_perp_dr, tolerance=TOL)
   end subroutine test_kappa_para_cte
 
 
   @test
   subroutine test_kappa_perp_cte()
-    write(*, *) "Testing thermal conduction: kappa perpendicular constant"
+    call set_name("thermal conduction (kappa_perp cte)")
     use_fixed_tc_para = .true.
     fixed_tc_para_value = 0.0d0
     use_fixed_tc_perp = .true.
     fixed_tc_perp_value = 1.0d0
     call set_conduction_values(rho_field, T_field, B_field, kappa_field)
 
-    @assertEqual(fixed_tc_perp_value, kappa_field % kappa_perp(:), tolerance=TOL)
-    @assertEqual(0.0d0, kappa_field % kappa_para(:), tolerance=TOL)
-    @assertEqual(0.0d0, kappa_field % d_kappa_perp_drho(:), tolerance=TOL)
-    @assertEqual(0.0d0, kappa_field % d_kappa_perp_dB2(:), tolerance=TOL)
-    @assertEqual(0.0d0, kappa_field % d_kappa_perp_dT(:), tolerance=TOL)
+    @assertEqual(fixed_tc_perp_value, kappa_field % kappa_perp, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % kappa_para, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % d_kappa_para_dT, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % d_kappa_perp_drho, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % d_kappa_perp_dB2, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % d_kappa_perp_dT, tolerance=TOL)
+    @assertEqual(0.0d0, kappa_field % d_kappa_perp_dr, tolerance=TOL)
   end subroutine test_kappa_perp_cte
 
 
   @test
   subroutine test_kappa_para()
-    use mod_global_variables, only: set_gridpts
-    use mod_units, only: unit_conduction
+    real(dp)  :: actual(array_size), expected(array_size)
 
-    real(dp)  :: kappavals(4)
-
-    write(*, *) "Testing thermal conduction: kappa parallel varying"
-    call set_gridpts(2)
-    call reset_fields(init_fields=.true.)
-    T_field % T0 = [0.5d0, 1.0d0, 1.5d0, 3.0d0]
-    kappavals = [1.44635478d8, 8.18181818d8, 2.25464397d9, 1.27541923d10] / unit_conduction
-    use_fixed_tc_perp = .true.
-    fixed_tc_perp_value = 0.0d0
+    call set_name("thermal conduction (kappa_para)")
+    T_field % T0 = grid_gauss
     call set_conduction_values(rho_field, T_field, B_field, kappa_field)
-
-    @assertEqual(kappavals, kappa_field % kappa_para, tolerance=1.0d-8)
-    @assertEqual(0.0d0, kappa_field % kappa_perp, tolerance=TOL)
+    expected = ( &
+      pf_para * (grid_gauss * unit_temperature) ** 2.5d0 / coulomb_log &
+    )
+    actual = kappa_field % kappa_para * unit_conduction
+    @assertEqual(0.0d0, abs(expected - actual), tolerance=1.0d-6)
   end subroutine test_kappa_para
 
 
   @test
+  subroutine test_kappa_para_dT()
+    real(dp)  :: actual(array_size), expected(array_size)
+
+    call set_name("thermal conduction (kappa_para dT)")
+    T_field % T0 = 2.0d0 * grid_gauss
+    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+    expected = ( &
+      pf_para * 2.5d0 * (2.0d0 * grid_gauss * unit_temperature) ** 1.5d0 / coulomb_log &
+    )
+    actual = kappa_field % d_kappa_para_dT * unit_conduction * unit_temperature
+    @assertEqual(0.0d0, abs(expected - actual), tolerance=1.0d-12)
+  end subroutine test_kappa_para_dT
+
+
+  @test
   subroutine test_kappa_perp()
-    use mod_global_variables, only: set_gridpts
-    use mod_units, only: unit_conduction, unit_dtc_dT, unit_dtc_drho, unit_dtc_dB2
+    real(dp)  :: actual(array_size), expected(array_size)
+    real(dp)  :: rho(array_size), temp(array_size), B0(array_size)
 
-    real(dp)  :: kappavals(4), dkappadTvals(4), dkappadB2vals(4), dkappadrhovals(4)
+    call set_name("thermal conduction (kappa_perp)")
+    rho = 3.0d0 * grid_gauss
+    temp = sqrt(grid_gauss)
+    B0 = 0.5d0 * grid_gauss**2
 
-    write(*, *) "Testing thermal conduction: kappa perpendicular varying"
-    call set_gridpts(2)
-    call reset_fields(init_fields=.true.)
-    T_field % T0 = [0.5d0, 1.0d0, 1.5d0, 3.0d0]
-    rho_field % rho0 = [0.8d0, 0.9d0, 1.0d0, 1.5d0]
-    B_field % B0 = [2.0d0, 5.0d0, 8.0d0, 10.0d0]
-    kappavals = [601.44584699,  86.12050348,  33.91063688,  34.52895546] / unit_conduction
-    dkappadTvals = [-6.01445847d-04, -4.30602517d-05, -1.13035456d-05, -5.75482591d-06] / unit_dtc_dT
-    dkappadrhovals = [1.05109091d-07, 1.33782031d-08, 4.74099702d-09, 3.21829549d-09] / unit_dtc_drho
-    dkappadB2vals = [-6.01445847d0, -0.13779281d0, -0.02119415d0, -0.01381158d0] / unit_dtc_dB2
-    use_fixed_tc_para = .true.
-    fixed_tc_para_value = 0.0d0
+    rho_field % rho0 = rho
+    T_field % T0 = temp
+    B_field % B0 = B0
     call set_conduction_values(rho_field, T_field, B_field, kappa_field)
 
-    @assertEqual(kappavals, kappa_field % kappa_perp, tolerance=1.0d-8)
-    @assertEqual(dkappadrhovals, kappa_field % d_kappa_perp_drho, tolerance=1.0d-8)
-    @assertEqual(dkappadB2vals, kappa_field % d_kappa_perp_dB2, tolerance=1.0d-8)
-    @assertEqual(dkappadTvals, kappa_field % d_kappa_perp_dT, tolerance=1.0d-8)
-    @assertEqual(0.0d0, kappa_field % kappa_para, tolerance=TOL)
+    expected = ( &
+      pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
+      / ((B0 * unit_magneticfield) ** 2 * sqrt(temp * unit_temperature)) &
+    )
+    actual = kappa_field % kappa_perp * unit_conduction
+    @assertEqual(0.0d0, abs(expected - actual), tolerance=1.0d-6)
   end subroutine test_kappa_perp
+
+
+  @test
+  subroutine test_kappa_perp_drho()
+    real(dp)  :: actual(array_size), expected(array_size)
+    real(dp)  :: rho(array_size), temp(array_size), B0(array_size)
+
+    call set_name("thermal conduction (kappa_perp drho)")
+    rho = 5.0d0 * grid_gauss
+    temp = 0.2d0 * sqrt(grid_gauss)
+    B0 = grid_gauss**2
+
+    rho_field % rho0 = rho
+    T_field % T0 = temp
+    B_field % B0 = B0
+    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+
+    expected = ( &
+      2.0d0 * pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) &
+      / ((B0 * unit_magneticfield) ** 2 * sqrt(temp * unit_temperature)) &
+    )
+    actual = kappa_field % d_kappa_perp_drho * unit_dtc_drho
+    @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
+  end subroutine test_kappa_perp_drho
+
+
+  @test
+  subroutine test_kappa_perp_dT()
+    real(dp)  :: actual(array_size), expected(array_size)
+    real(dp)  :: rho(array_size), temp(array_size), B0(array_size)
+
+    call set_name("thermal conduction (kappa_perp dT)")
+    rho = grid_gauss**2
+    temp = 5.0d0 * grid_gauss**2
+    B0 = 0.25d0 * grid_gauss
+
+    rho_field % rho0 = rho
+    T_field % T0 = temp
+    B_field % B0 = B0
+    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+
+    expected = ( &
+      -0.5d0 * pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
+      / ((B0 * unit_magneticfield) ** 2 * (temp * unit_temperature) ** 1.5d0) &
+    )
+    actual = kappa_field % d_kappa_perp_dT * unit_dtc_dT
+    @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
+  end subroutine test_kappa_perp_dT
+
+
+  @test
+  subroutine test_kappa_perp_dB2()
+    real(dp)  :: actual(array_size), expected(array_size)
+    real(dp)  :: rho(array_size), temp(array_size), B0(array_size)
+
+    call set_name("thermal conduction (kappa_perp dB2)")
+    rho = grid_gauss**3
+    temp = 5.0d0 * grid_gauss
+    B0 = 3.0d0 * sqrt(grid_gauss)
+
+    rho_field % rho0 = rho
+    T_field % T0 = temp
+    B_field % B0 = B0
+    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+
+    expected = ( &
+      -pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
+      / ((B0 * unit_magneticfield) ** 4 * sqrt(temp * unit_temperature)) &
+    )
+    actual = kappa_field % d_kappa_perp_dB2 * unit_dtc_dB2
+    @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
+  end subroutine test_kappa_perp_db2
+
+
+  @test
+  subroutine test_kappa_perp_dr()
+    real(dp)  :: actual(array_size), expected(array_size)
+    real(dp)  :: rho(array_size), temp(array_size), B0(array_size)
+    real(dp)  :: drho(array_size), dtemp(array_size), dB0(array_size)
+    real(dp)  :: B02(array_size), dB02(array_size), B03(array_size), dB03(array_size)
+    real(dp)  :: B01
+    real(dp)  :: dkrho(array_size), dkT(array_size), dkB2(array_size)
+
+    call set_name("thermal conduction (kappa_perp dr)")
+    rho = 5.0d0 * grid_gauss
+    drho = 5.0d0
+    temp = grid_gauss ** 2
+    dtemp = 2.0d0 * grid_gauss
+    B01 = 2.5d0
+    B02 = 3.0d0 * grid_gauss ** 2
+    dB02 = 6.0d0 * grid_gauss
+    B03 = 1.5d0 * grid_gauss ** 2
+    dB03 = 3.0d0 * grid_gauss
+    B0 = sqrt(B01**2 + B02**2 + B03**2)
+    dB0 = (B02 * dB02 + B03 * dB03) / B0
+
+    rho_field % rho0 = rho
+    rho_field % d_rho0_dr = drho
+    T_field % T0 = temp
+    T_field % d_T0_dr = dtemp
+    B_field % B01 = B01
+    B_field % B02 = B02
+    B_field % d_B02_dr = dB02
+    B_field % B03 = B03
+    B_field % d_B03_dr = dB03
+    B_field % B0 = B0
+    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+
+    ! kappa derivatives
+    dkrho = ( &
+      2.0d0 * pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) &
+      / ((B0 * unit_magneticfield) ** 2 * sqrt(temp * unit_temperature)) &
+    ) / unit_dtc_drho
+    dkT = ( &
+      -0.5d0 * pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
+      / ((B0 * unit_magneticfield) ** 2 * (temp * unit_temperature) ** 1.5d0) &
+    ) / unit_dtc_dT
+    dkB2 = ( &
+      -pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
+      / ((B0 * unit_magneticfield) ** 4 * sqrt(temp * unit_temperature)) &
+    ) / unit_dtc_dB2
+    ! expected and actual values are approximately 1e-2 after multiplying with 1e8
+    expected = (dkrho * drho + dkT * dtemp + dkB2 * 2.0d0 * B0 * dB0) * 1.0d8
+    actual = kappa_field % d_kappa_perp_dr * 1.0d8
+    @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
+  end subroutine test_kappa_perp_dr
 
 end module mod_test_conduction
