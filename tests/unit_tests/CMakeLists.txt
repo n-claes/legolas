@@ -56,12 +56,12 @@ target_link_libraries(suite ${LEGOLASLIB} ${LIBSTOLINK})
 set( test_sources
         mod_test_variables.pf
         mod_test_grid.pf
-        # mod_test_input.pf
-        # mod_test_valuechecks.pf
-        # mod_test_units.pf
-        # mod_test_cooling.pf
-        # mod_test_resistivity.pf
-        # mod_test_conduction.pf
+        mod_test_input.pf
+        mod_test_valuechecks.pf
+        mod_test_units.pf
+        mod_test_cooling.pf
+        mod_test_resistivity.pf
+        mod_test_conduction.pf
         # mod_test_boundaries.pf
         # mod_test_splines.pf
         # mod_test_subblock.pf
