@@ -3,7 +3,6 @@
 !! Does calls to relevant BLAS or LAPACK routines.
 module mod_matrix_operations
   use mod_global_variables, only: dp
-  use mod_check_values, only: matrix_is_square
   use mod_logging, only: log_message, char_log, char_log2, int_fmt
   implicit none
 
@@ -57,7 +56,7 @@ contains
     !> array for work
     real(dp), allocatable :: work(:)
 
-    if (.not. matrix_is_square(mat)) then
+    if (size(mat, dim=1) /= size(mat, dim=2)) then
       call log_message("trying to invert but matrix is not square!", level="error")
       return
     end if
@@ -107,7 +106,7 @@ contains
     !> array for work
     complex(dp), allocatable :: work(:)
 
-    if (.not. matrix_is_square(mat)) then
+    if (size(mat, dim=1) /= size(mat, dim=2)) then
       call log_message("trying to invert but matrix is not square!", level="error")
       return
     end if

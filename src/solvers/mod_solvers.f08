@@ -5,7 +5,7 @@
 module mod_solvers
   use mod_global_variables, only: dp, matrix_gridpts, write_eigenfunctions
   use mod_logging, only: log_message, char_log, char_log2, dp_fmt, int_fmt
-  use mod_check_values, only: check_small_values
+  use mod_check_values, only: set_small_values_to_zero
   implicit none
 
   !> residual norm || Ax - \(\lambda\)Bx || of the eigenvalue problem

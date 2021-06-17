@@ -108,6 +108,6 @@ contains
     deallocate(work)
     deallocate(rwork)
 
-    call check_small_values(omega)
+    call set_small_values_to_zero(omega)
   end subroutine qz_direct
 end submodule smod_qz_direct

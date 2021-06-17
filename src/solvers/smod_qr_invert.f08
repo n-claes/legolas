@@ -9,7 +9,6 @@
 !! all eigenvalues and eigenvectors.
 submodule (mod_solvers) smod_qr_invert
   use mod_matrix_operations, only: invert_matrix, multiply_matrices
-  use mod_check_values, only: matrix_is_square
   implicit none
 
 contains
@@ -55,16 +54,6 @@ contains
     !> dummy for left eigenvectors, jobvl = "N" so this is never referenced
     complex(dp) :: vl(2, 2)
 
-    ! check that we have square matrices
-    if (.not. matrix_is_square(matrix_A)) then
-      call log_message("qr_invert: A matrix is not square!", level="error")
-      return
-    end if
-    if (.not. matrix_is_square(matrix_B)) then
-      call log_message("qr_invert: B matrix is not square!", level="error")
-      return
-    end if
-
     ! do inversion of B
     call invert_matrix(matrix_B, B_inv)
     ! do matrix multiplication B^{-1}A
@@ -105,7 +94,7 @@ contains
     deallocate(work)
     deallocate(rwork)
 
-    call check_small_values(omega)
+    call set_small_values_to_zero(omega)
   end subroutine qr_invert
 
 end submodule smod_qr_invert

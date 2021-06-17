@@ -299,7 +299,7 @@ contains
   !> Loads a previously calculated profile and uses that to set the resolution,
   !! density and density derivatives.
   subroutine load_profile_from_file(filename)
-    use mod_check_values, only: value_is_equal
+    use mod_check_values, only: is_equal
     use mod_units, only: unit_length, unit_temperature, unit_magneticfield, unit_density
 
     !> values are loaded from this file
@@ -331,28 +331,28 @@ contains
 
     ! check normalisations
     read(unit) length_file, temperature_file, magneticfield_file, density_file
-    if (.not. value_is_equal(length_file, unit_length)) then
+    if (.not. is_equal(length_file, unit_length)) then
       call log_message( &
         "profile inconsistency: length units do not match! Got " // &
         str(length_file) // " but expected " // str(unit_length), &
         level="error" &
       )
     end if
-    if (.not. value_is_equal(temperature_file, unit_temperature)) then
+    if (.not. is_equal(temperature_file, unit_temperature)) then
       call log_message( &
         "profile inconsistency: temperature units do not match! Got " // &
         str(temperature_file) // " but expected " // str(unit_temperature), &
         level="error" &
       )
     end if
-    if (.not. value_is_equal(magneticfield_file, unit_magneticfield)) then
+    if (.not. is_equal(magneticfield_file, unit_magneticfield)) then
       call log_message( &
         "profile inconsistency: magnetic units do not match! Got " // &
         str(magneticfield_file) // " but expected " // str(unit_magneticfield), &
         level="error" &
       )
     end if
-    if (.not. value_is_equal(density_file, unit_density)) then
+    if (.not. is_equal(density_file, unit_density)) then
       call log_message( &
         "profile inconsistency: density units do not match! Got " // &
         str(length_file) // " but expected " // str(unit_length), &
@@ -369,37 +369,33 @@ contains
 
     ! check B02
     read(unit) hfile, profile
-    if (.not. value_is_equal(profile, b02_prof(hfile))) then
+    if (.not. all(is_equal(profile, b02_prof(hfile)))) then
       prof_names = trim(prof_names // " B02")
     end if
     ! check dB02
     read(unit) profile
-    if (.not. value_is_equal(profile, db02_prof(hfile))) then
+    if (.not. all(is_equal(profile, db02_prof(hfile)))) then
       prof_names = trim(prof_names // " dB02")
     end if
     ! dB02 will be zero if B02 is constant
     b02_cte = .false.
-    if ( &
-      value_is_equal(profile, 0.0d0) .and. value_is_equal(db02_prof(hfile), 0.0d0) &
-    ) then
+    if (all(is_equal(profile, 0.0d0)) .and. all(is_equal(db02_prof(hfile), 0.0d0))) then
       b02_cte = .true.
     end if
 
     ! check B03
     read(unit) profile
-    if (.not. value_is_equal(profile, b03_prof(hfile))) then
+    if (.not. all(is_equal(profile, b03_prof(hfile)))) then
       prof_names = trim(prof_names // " B03")
     end if
     ! check dB03
     read(unit) profile
-    if (.not. value_is_equal(profile, db03_prof(hfile))) then
+    if (.not. all(is_equal(profile, db03_prof(hfile)))) then
       prof_names = trim(prof_names // " dB03")
     end if
     ! check if B03 is constant
     b03_cte = .false.
-    if ( &
-      value_is_equal(profile, 0.0d0) .and. value_is_equal(db03_prof(hfile), 0.0d0) &
-    ) then
+    if (all(is_equal(profile, 0.0d0)) .and. all(is_equal(db03_prof(hfile), 0.0d0))) then
       b03_cte = .true.
     end if
 
@@ -414,7 +410,7 @@ contains
 
     ! check gravity
     read(unit) profile
-    if (.not. value_is_equal(profile, gravity_prof(hfile))) then
+    if (.not. all(is_equal(profile, gravity_prof(hfile)))) then
       prof_names = trim(prof_names // " gravity")
     end if
     if (.not. prof_names == "") then

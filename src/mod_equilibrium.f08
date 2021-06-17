@@ -11,12 +11,11 @@
 module mod_equilibrium
   use mod_units
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
-                       gravity_type, resistivity_type, cooling_type, conduction_type, &
-                       hall_type
+    gravity_type, resistivity_type, cooling_type, conduction_type, &
+    hall_type
   use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
-                                  flow, resistivity, external_gravity, radiative_cooling, &
-                                  thermal_conduction, viscosity, hall_mhd, &
-                                  geometry, use_defaults, cgs_units
+    flow, resistivity, external_gravity, radiative_cooling, &
+    thermal_conduction, viscosity, hall_mhd, geometry, use_defaults, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
@@ -125,10 +124,11 @@ contains
   !!          not balanced, contains NaN or if density/temperature contains
   !!          negative values.
   subroutine set_equilibrium()
-    use mod_check_values, only: check_negative_array, check_nan_values, check_coax
-    use mod_inspections, only: perform_sanity_checks
+    use mod_global_variables, only: coaxial, dp_LIMIT
+    use mod_inspections, only: perform_NaN_and_negative_checks, perform_sanity_checks
     use mod_resistivity, only: set_resistivity_values
-    use mod_radiative_cooling, only: initialise_radiative_cooling, set_radiative_cooling_values
+    use mod_radiative_cooling, only: initialise_radiative_cooling, &
+      set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
     use mod_hall, only: set_hall_factors
 
@@ -140,16 +140,17 @@ contains
     call check_if_normalisations_set()
 
     ! Check x_start if coaxial is true
-    call check_coax()
+    if (coaxial .and. x_start <= dp_LIMIT) then
+      call log_message( &
+        "x_start must be > 0 to introduce an inner wall boundary", level="error" &
+      )
+      return
+    end if
 
-    ! Check for negative/NaN values
-    call check_negative_array(rho_field % rho0, 'density')
-    call check_negative_array(T_field % T0, 'temperature')
-    call check_nan_values(rho_field)
-    call check_nan_values(T_field)
-    call check_nan_values(B_field)
-    call check_nan_values(v_field)
-    call check_nan_values(grav_field)
+    ! Do initial checks for NaN and negative density/temperature
+    call perform_NaN_and_negative_checks( &
+      rho_field, T_field, B_field, v_field, grav_field &
+    )
 
     ! Setup additional physics
     if (resistivity) then

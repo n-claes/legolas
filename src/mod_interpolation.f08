@@ -115,7 +115,7 @@ contains
   !! @warning Throws an error if <tt>x_values</tt> and <tt>y_values</tt> differ
   !!          in size. @endwarning
   subroutine get_numerical_derivative(x, y, dy, dxtol)
-    use mod_check_values, only: value_is_equal
+    use mod_check_values, only: is_equal
     use mod_logging, only: str
 
     !> x-values against which to differentiate
@@ -147,7 +147,7 @@ contains
     dx = x(2) - x(1)
     do i = 2, nvals-1
       dxi = x(i) - x(i-1)
-      if (.not. value_is_equal(dx, dxi, tol=tol)) then
+      if (.not. is_equal(dx, dxi, tol=tol)) then
         call log_message( &
           "numerical derivative: x is not equally spaced, derivative may be wrong!", &
           level="warning" &

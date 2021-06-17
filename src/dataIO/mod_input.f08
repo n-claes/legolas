@@ -11,7 +11,7 @@ module mod_input
   private
 
   !> IO unit for the parfile
-  integer       :: unit_par = 101
+  integer :: unit_par = 101
 
   public :: read_parfile
   public :: get_parfile
@@ -31,7 +31,7 @@ contains
   !! @warning If <tt>dry_run</tt> is <tt>True</tt>, this automatically sets eigenfunction
   !!          and matrix saving to <tt>False</tt>, independent of the settings in the parfile! @endwarning
   subroutine read_parfile(parfile)
-    use mod_check_values, only: value_is_zero, value_is_nan
+    use mod_check_values, only: is_equal, is_NaN
     use mod_units, only: set_normalisations
 
     !> the name of the parfile
@@ -111,7 +111,7 @@ contains
     if (.not. gridpoints == 0) then
       call set_gridpts(gridpoints)
     end if
-    if (.not. value_is_zero(mhd_gamma)) then
+    if (.not. is_equal(mhd_gamma, 0.0d0)) then
       call set_gamma(mhd_gamma)
     end if
 
@@ -122,13 +122,13 @@ contains
     end if
 
     ! Provide normalisations, if supplied
-    if (.not. value_is_nan(unit_density) .and. .not. value_is_nan(unit_temperature)) then
+    if (.not. is_NaN(unit_density) .and. .not. is_NaN(unit_temperature)) then
       call log_message( &
         "unit density and unit temperature cannot both be provided in the parfile!", &
         level="error" &
       )
-    else if (.not. value_is_nan(unit_density)) then
-      if (value_is_nan(unit_magneticfield) .or. value_is_nan(unit_length)) then
+    else if (.not. is_NaN(unit_density)) then
+      if (is_NaN(unit_magneticfield) .or. is_NaN(unit_length)) then
         call log_message( &
           "unit_density found, unit_magneticfield and unit_length also required.", &
           level="error" &
@@ -139,8 +139,8 @@ contains
         new_unit_magneticfield=unit_magneticfield, &
         new_unit_length=unit_length &
       )
-    else if (.not. value_is_nan(unit_temperature)) then
-      if (value_is_nan(unit_magneticfield) .or. value_is_nan(unit_length)) then
+    else if (.not. is_NaN(unit_temperature)) then
+      if (is_NaN(unit_magneticfield) .or. is_NaN(unit_length)) then
         call log_message( &
           "unit_temperature found, unit_magneticfield and unit_length also required.", &
           level="error" &
