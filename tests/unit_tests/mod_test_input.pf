@@ -4,8 +4,6 @@ module mod_test_input
   use mod_input, only: read_parfile
   implicit none
 
-  character(len=50) :: parfile
-
 contains
 
   @before
@@ -23,84 +21,107 @@ contains
 
 
   @test
-  subroutine test_pf_gridpts()
+  subroutine test_no_parfile_given()
+    call set_name("no parfile given")
+    call read_parfile(parfile="")
+    @assertExceptionRaised("no parfile supplied!")
+  end subroutine test_no_parfile_given
+
+
+  @test
+  subroutine test_parfile_gridpoints()
     use mod_global_variables, only: gridpts
 
-    write(*, *) "Testing parfile setting of gridpoints"
-    parfile = "test_parfiles/parfile_gridpts.par"
-    call read_parfile(trim(parfile))
-    @assertEqual(gridpts, 100)
-  end subroutine test_pf_gridpts
+    call set_name("setting gridpoints through parfile")
+    call read_parfile("test_parfiles/parfile_gridpts.par")
+    @assertEqual(100, gridpts)
+  end subroutine test_parfile_gridpoints
 
 
   @test
-  subroutine test_pf_gamma()
+  subroutine test_parfile_gamma()
     use mod_global_variables, only: gamma, gamma_1
 
-    write(*, *) "Testing parfile setting of gamma"
-    parfile = "test_parfiles/parfile_gamma.par"
-    call read_parfile(trim(parfile))
-    @assertEqual(gamma, 2.0d0, tolerance=TOL)
-    @assertEqual(gamma_1, 1.0d0, tolerance=TOL)
-  end subroutine test_pf_gamma
+    call set_name("setting gamma through parfile")
+    call read_parfile("test_parfiles/parfile_gamma.par")
+    @assertEqual(2.0d0, gamma, tolerance=TOL)
+    @assertEqual(1.0d0, gamma_1, tolerance=TOL)
+  end subroutine test_parfile_gamma
 
 
   @test
-  subroutine test_pf_doubleunits()
-    write(*, *) "Testing parfile setting of units: rho + T"
-    parfile = "test_parfiles/parfile_doubleunits.par"
-    call read_parfile(trim(parfile))
+  subroutine test_parfile_dryrun()
+    use mod_global_variables, only: write_eigenfunctions, write_matrices
 
-    @assertExceptionRaised("unit density and unit temperature can not both be provided in the par file!")
-  end subroutine test_pf_doubleunits
-
-
-  @test
-  subroutine test_pf_onlyrhounit()
-    write(*, *) "Testing parfile setting of units: only rho"
-    parfile = "test_parfiles/parfile_onlyrhounit.par"
-    call read_parfile(trim(parfile))
-
-    @assertExceptionRaised("unit_density found, but unit_magneticfield and unit_length are also required.")
-  end subroutine test_pf_onlyrhounit
+    call set_name("setting dry run flag")
+    call read_parfile("test_parfiles/parfile_dryrun.par")
+    @assertFalse(write_eigenfunctions)
+    @assertFalse(write_matrices)
+  end subroutine test_parfile_dryrun
 
 
   @test
-  subroutine test_pf_onlytempunit()
-    write(*, *) "Testing parfile setting of units: only T"
-    parfile = "test_parfiles/parfile_onlytempunit.par"
-    call read_parfile(trim(parfile))
+  subroutine test_parfile_doubleunits()
+    character(len=125) :: error_msg
 
-    @assertExceptionRaised("unit_temperature found, but unit_magneticfield and unit_length are also required.")
-  end subroutine test_pf_onlytempunit
+    call set_name("setting rho + T unit in parfile")
+    call read_parfile("test_parfiles/parfile_doubleunits.par")
+    error_msg = ( &
+      "unit density and unit temperature cannot both be provided in the parfile!" &
+    )
+    @assertExceptionRaised(trim(error_msg))
+  end subroutine test_parfile_doubleunits
 
 
   @test
-  subroutine test_pf_units_rho()
+  subroutine test_parfile_onlyrhounit()
+    character(len=125) :: error_msg
+
+    call set_name("setting only rho unit in parfile")
+    call read_parfile("test_parfiles/parfile_onlyrhounit.par")
+    error_msg = "unit_density found, unit_magneticfield and unit_length also required."
+    @assertExceptionRaised(error_msg)
+  end subroutine test_parfile_onlyrhounit
+
+
+  @test
+  subroutine test_parfile_onlyTunit()
+    character(len=125) :: error_msg
+
+    call set_name("setting only T unit in parfile")
+    call read_parfile("test_parfiles/parfile_onlytempunit.par")
+    error_msg = ( &
+      "unit_temperature found, unit_magneticfield and unit_length also required." &
+    )
+    @assertExceptionRaised(error_msg)
+  end subroutine test_parfile_onlyTunit
+
+
+  @test
+  subroutine test_parfile_units_rho()
     use mod_units, only: unit_density, unit_magneticfield, unit_length
+    use mod_global_variables, only: cgs_units
 
-    write(*, *) "Testing parfile setting of units: rho + others"
-    parfile = "test_parfiles/parfile_units_rho.par"
-    call read_parfile(trim(parfile))
-
+    call set_name("setting units through parfile (rho)")
+    call read_parfile("test_parfiles/parfile_units_rho.par")
+    @assertTrue(cgs_units)
     @assertEqual(unit_density, 1.0d-15, tolerance=TOL)
     @assertEqual(unit_magneticfield, 10.0d0, tolerance=TOL)
     @assertEqual(unit_length, 1.0d9, tolerance=TOL)
-  end subroutine test_pf_units_rho
+  end subroutine test_parfile_units_rho
 
 
   @test
-  subroutine test_pf_units_temp()
+  subroutine test_parfile_units_temp()
     use mod_units, only: unit_temperature, unit_magneticfield, unit_length
+    use mod_global_variables, only: cgs_units
 
-    write(*, *) "Testing parfile setting of units: T + others"
-    parfile = "test_parfiles/parfile_units_temp.par"
-    call read_parfile(trim(parfile))
-
+    call set_name("setting units through parfile (T)")
+    call read_parfile("test_parfiles/parfile_units_temp.par")
+    @assertTrue(cgs_units)
     @assertEqual(unit_temperature, 1.0d7, tolerance=TOL)
     @assertEqual(unit_magneticfield, 10.0d0, tolerance=TOL)
     @assertEqual(unit_length, 1.0d9, tolerance=TOL)
-  end subroutine test_pf_units_temp
-
+  end subroutine test_parfile_units_temp
 
 end module mod_test_input
