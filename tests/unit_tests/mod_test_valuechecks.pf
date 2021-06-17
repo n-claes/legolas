@@ -1,6 +1,7 @@
 module mod_test_valuechecks
   use mod_suite_utils
   use funit
+  use mod_check_values, only: set_small_values_to_zero, is_NaN, is_equal, is_negative
   implicit none
 
 contains
@@ -20,209 +21,154 @@ contains
 
 
   @test
-  subroutine test_iszero_real()
-    use mod_check_values, only: value_is_zero
+  subroutine test_small_values_real()
+    real(dp)  :: value
 
-    real(dp), parameter :: var_zero_exact = 0.0d0
-    real(dp), parameter :: var_zero_near = 1.0d-14
-    real(dp), parameter :: var_zero_false = 1.0d-6
-
-    write(*, *) "Testing is_zero real"
-
-    @assertTrue(value_is_zero(var_zero_exact))
-    @assertTrue(value_is_zero(var_zero_near))
-    @assertFalse(value_is_zero(var_zero_false))
-  end subroutine test_iszero_real
-
-
-  @test
-  subroutine test_iszero_cmplx_real()
-    use mod_check_values, only: value_is_zero
-
-    complex(dp), parameter :: var_zero_real_exact = (0.0d0, 1.0d0)
-    complex(dp), parameter :: var_zero_real_near = (1.0d-14, 1.0d0)
-    complex(dp), parameter :: var_zero_real_false = (1.0d0, 1.0d0)
-
-    write(*, *) "Testing is_zero complex: real part"
-
-    @assertFalse(value_is_zero(var_zero_real_exact))
-    @assertFalse(value_is_zero(var_zero_real_near))
-    @assertFalse(value_is_zero(var_zero_real_false))
-  end subroutine test_iszero_cmplx_real
+    call set_name("small values to zero (real)")
+    ! check zero unaffected
+    value = 0.0d0
+    call set_small_values_to_zero(value)
+    @assertEqual(0.0d0, value, tolerance=TOL)
+    ! check small value
+    value = 1.0d-14
+    call set_small_values_to_zero(value)
+    @assertEqual(0.0d0, value, tolerance=TOL)
+    ! check unaffected
+    value = 0.02d0
+    call set_small_values_to_zero(value)
+    @assertEqual(0.02d0, value, tolerance=TOL)
+    ! check with tolerance
+    value = 0.02d0
+    call set_small_values_to_zero(value, tol=0.03d0)
+    @assertEqual(0.0d0, value, tolerance=TOL)
+  end subroutine test_small_values_real
 
 
   @test
-  subroutine test_iszero_cmplx_imag()
-    use mod_check_values, only: value_is_zero
+  subroutine test_small_values_complex_large
+    complex(dp) :: value
 
-    complex(dp), parameter :: var_zero_imag_exact = (1.0d0, 0.0d0)
-    complex(dp), parameter :: var_zero_imag_near = (1.0d0, 1.0d-14)
-    complex(dp), parameter :: var_zero_imag_false = (1.0d0, 1.0d0)
+    call set_name("small values to zero (complex - large)")
+    value = (1.0d0, 0.0d0)  ! real is large
+    call set_small_values_to_zero(value)
+    @assertEqual((1.0d0, 0.0d0), value, tolerance=TOL)
+    value = (0.0d0, 2.0d0)  ! complex is large
+    call set_small_values_to_zero(value)
+    @assertEqual((0.0d0, 2.0d0), value, tolerance=TOL)
+    value = (1.0d0, 3.5d0)  ! both are large
+    call set_small_values_to_zero(value)
+    @assertEqual((1.0d0, 3.5d0), value, tolerance=TOL)
+  end subroutine test_small_values_complex_large
 
-    write(*, *) "Testing is_zero complex: imaginary part"
+  @test
+  subroutine test_small_values_complex_small
+    complex(dp) :: value
 
-    @assertFalse(value_is_zero(var_zero_imag_exact))
-    @assertFalse(value_is_zero(var_zero_imag_near))
-    @assertFalse(value_is_zero(var_zero_imag_false))
-  end subroutine test_iszero_cmplx_imag
+    call set_name("small values to zero (complex - small)")
+    value = (1.0d-14, 0.2d0)  ! real is small
+    call set_small_values_to_zero(value)
+    @assertEqual((0.0d0, 0.2d0), value, tolerance=TOL)
+    value = (0.01d0, 2.0d-15) ! complex is small
+    call set_small_values_to_zero(value)
+    @assertEqual((0.01d0, 0.0d0), value, tolerance=TOL)
+    value = (1.5d-15, 2.0d-14)  ! both are small
+    call set_small_values_to_zero(value)
+    @assertEqual((0.0d0, 0.0d0), value, tolerance=TOL)
+  end subroutine test_small_values_complex_small
+
+  @test
+  subroutine test_small_values_complex_tol
+    complex(dp) :: value
+
+    call set_name("small values to zero (complex - tolerance)")
+    value = (1.0d-8, 0.2d0)  ! real is within tol
+    call set_small_values_to_zero(value, tol=1.0d-7)
+    @assertEqual((0.0d0, 0.2d0), value, tolerance=TOL)
+    value = (0.01d0, 2.0d-5) ! complex is within tol
+    call set_small_values_to_zero(value, tol=5.0d-5)
+    @assertEqual((0.01d0, 0.0d0), value, tolerance=TOL)
+    value = (1.5d-7, 2.0d-8)  ! both are within tol
+    call set_small_values_to_zero(value, tol=2.0d-7)
+    @assertEqual((0.0d0, 0.0d0), value, tolerance=TOL)
+  end subroutine test_small_values_complex_tol
 
 
   @test
-  subroutine test_iszero_cmplx_full()
-    use mod_check_values, only: value_is_zero
-
-    complex(dp), parameter :: var_zero_both_true = (0.0d0, 0.0d0)
-    complex(dp), parameter :: var_zero_real_near = (1.0d-14, 0.0d0)
-    complex(dp), parameter :: var_zero_imag_near = (0.0d0, 1.0d-14)
-    complex(dp), parameter :: var_zero_both_near = (1.0d-14, 1.0d-14)
-    complex(dp), parameter :: var_zero_both_false = (1.0d0, 1.0d0)
-
-    write(*, *) "Testing is_zero complex: both parts"
-
-    @assertTrue(value_is_zero(var_zero_both_true))
-    @assertTrue(value_is_zero(var_zero_real_near))
-    @assertTrue(value_is_zero(var_zero_imag_near))
-    @assertTrue(value_is_zero(var_zero_both_near))
-    @assertFalse(value_is_zero(var_zero_both_false))
-  end subroutine test_iszero_cmplx_full
-
-
-  @test
-  subroutine test_isequal_true()
-    use mod_check_values, only: value_is_equal
-
-    real(dp), parameter :: value1 = 1.0d0
-    real(dp), parameter :: value2 = 1.0d0
-
-    write(*, *) "Testing is_equal: true case"
-
-    @assertTrue(value_is_equal(value1, value2))
-  end subroutine test_isequal_true
-
-
-  @test
-  subroutine test_isequal_false()
-    use mod_check_values, only: value_is_equal
-
-    real(dp), parameter :: value1 = 2.0d0
-    real(dp), parameter :: value2_near = 2.0d0 + 1.0d-9
-    real(dp), parameter :: value2_far = 5.0d0
-
-    write(*, *) "Testing is_equal: false case"
-
-    @assertFalse(value_is_equal(value1, value2_near))
-    @assertFalse(value_is_equal(value1, value2_far))
-  end subroutine test_isequal_false
-
-
-  @test
-  subroutine test_isnan_value_true()
-    use mod_check_values, only: value_is_nan
+  subroutine test_is_nan_real()
     use mod_global_variables, only: NaN
 
-    write(*, *) "Testing value is_nan: true case"
-    @assertTrue(value_is_nan(NaN))
-  end subroutine test_isnan_value_true
+    real(dp)  :: array(20)
 
+    call set_name("check for NaN (real)")
+    ! single value
+    @assertTrue(is_NaN(NaN))
+    @assertFalse(is_NaN(1.0d0))
+    ! array
+    array = linspace(0.0d0, 5.0d0, 20)
+    @assertFalse(any(is_NaN(array)))
+    array(3) = NaN
+    @assertTrue(any(is_NaN(array)))
+  end subroutine test_is_nan_real
 
   @test
-  subroutine test_isnan_value_false()
-    use mod_check_values, only: value_is_nan
-
-    write(*, *) "Testing value is_nan: false case"
-    @assertFalse(value_is_nan(1.0d0))
-  end subroutine test_isnan_value_false
-
-
-  @test
-  subroutine test_isnan_array_true()
-    use mod_check_values, only: check_nan_values
-    use mod_equilibrium, only: rho_field
+  subroutine test_is_nan_complex()
     use mod_global_variables, only: NaN
 
-    write(*, *) "Testing array is_nan: true case"
-    rho_field % rho0(5) = NaN
-    call check_nan_values(rho_field)
-    @assertExceptionRaised("NaN encountered in rho0")
-  end subroutine test_isnan_array_true
+    complex(dp)  :: array(20)
+
+    call set_name("check for NaN (complex)")
+    ! single value
+    @assertFalse(is_NaN((1.0d0, 2.0d0)))
+    @assertTrue(is_NaN(cmplx(1.0d0, NaN, kind=dp)))
+    @assertTrue(is_NaN(cmplx(NaN, 1.0d0, kind=dp)))
+    @assertTrue(is_NaN(cmplx(NaN, NaN, kind=dp)))
+    ! array
+    array = linspace(0.0d0, 5.0d0, 20) * (0.5d0, 2.0d0)
+    @assertFalse(any(is_NaN(array)))
+    array(3) = cmplx(1.0d0, NaN, kind=dp)
+    @assertTrue(any(is_NaN(array)))
+  end subroutine test_is_nan_complex
 
 
   @test
-  subroutine test_isnan_array_false()
-    use mod_check_values, only: check_nan_values
-    use mod_equilibrium, only: rho_field
-
-    write(*, *) "Testing array is_nan: false case"
-    call check_nan_values(rho_field)
-  end subroutine test_isnan_array_false
-
-
-  @test
-  subroutine test_array_negative_false()
-    use mod_check_values, only: check_negative_array
-
-    real(dp) :: array(20)
-    integer  :: i
-
-    write(*, *) "Testing array is_negative: false case"
-
-    do i = 1, size(array)
-      array(i) = i**2
-    end do
-    call check_negative_array(array, variable_name="array")
-  end subroutine test_array_negative_false
+  subroutine test_is_equal_real()
+    call set_name("check is_equal (real)")
+    @assertTrue(is_equal(1.0d0, 1.0d0))
+    @assertFalse(is_equal(1.0d0, 2.0d0))
+    @assertTrue(is_equal(0.01d0, 0.015d0, tol=0.01d0))
+  end subroutine test_is_equal_real
 
 
   @test
-  subroutine test_array_negative_true()
-    use mod_check_values, only: check_negative_array
-    use mod_physical_constants, only: dpi
-
-    real(dp) :: array(20)
-    integer  :: i
-
-    write(*, *) "Testing array is_negative: true case"
-    do i = 1, size(array)
-      array(i) = cos(i * dpi / 2.0d0)
-    end do
-    call check_negative_array(array, variable_name="array")
-
-    @assertExceptionRaised("negative value encountered in array")
-  end subroutine test_array_negative_true
-
-
-  @test
-  subroutine test_cyl_k2_ok()
-    use mod_inspections, only: perform_sanity_checks
-    use mod_equilibrium_params, only: k2, k3
-    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, grav_field, &
-                               rc_field, kappa_field
-    use mod_global_variables, only: geometry
-
-    write(*, *) "Testing k2 integer cylindrical geometry"
-    geometry = "cylindrical"
-    call create_test_grid(pts=31, geom=geometry)
-    k2 = 1.0d0
-    k3 = 0.5d0
-    call perform_sanity_checks(rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field)
-  end subroutine test_cyl_k2_ok
+  subroutine test_is_equal_complex()
+    call set_name("check is_equal (complex)")
+    ! equal
+    @assertTrue(is_equal((1.0d0, 2.0d0), (1.0d0, 2.0d0)))
+    ! real not equal
+    @assertFalse(is_equal((1.0d0, 2.0d0), (1.2d0, 2.0d0)))
+    ! complex not equal
+    @assertFalse(is_equal((1.0d0, 2.0d0), (1.0d0, 2.2d0)))
+    ! both not equal
+    @assertFalse(is_equal((2.0d0, 3.0d0), (1.5d0, 4.0d0)))
+    ! real equal within tolerance
+    @assertTrue(is_equal((1.0d0, 2.0d0), (1.001d0, 2.0d0), tol=5.0d-3))
+    ! complex equal within tolerance
+    @assertTrue(is_equal((2.0d0, 3.04d0), (2.0d0, 3.041d0), tol=2.0d-3))
+    ! both equal within tolerance
+    @assertTrue(is_equal((2.0d0, 5.0d0), (2.01d0, 5.01d0), tol=2d-2))
+    ! both not equal within tolerance
+    @assertFalse(is_equal((4.3d0, 7.1d0), (4.31d0, 7.1001d0), tol=1d-5))
+  end subroutine test_is_equal_complex
 
 
   @test
-  subroutine test_cyl_k2_nonint()
-    use mod_inspections, only: perform_sanity_checks
-    use mod_equilibrium_params, only: k2, k3
-    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, grav_field, &
-                               rc_field, kappa_field
-    use mod_global_variables, only: geometry
+  subroutine test_is_negative()
+    real(dp)  :: array(20)
 
-    write(*, *) "Testing k2 non-integer fail cylindrical geometry"
-    geometry = "cylindrical"
-    call create_test_grid(pts=31, geom=geometry)
-    k2 = 1.5d0
-    k3 = 0.5d0
-    call perform_sanity_checks(rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field)
-    @assertExceptionRaised("cylindrical geometry but k2 is not an integer! Value: 1.50000000")
-  end subroutine test_cyl_k2_nonint
-
+    call set_name("check is_negative")
+    array = 1.0d0
+    @assertFalse(any(is_negative(array)))
+    array(5) = -0.1d0
+    @assertTrue(any(is_negative(array)))
+  end subroutine test_is_negative
 end module mod_test_valuechecks
