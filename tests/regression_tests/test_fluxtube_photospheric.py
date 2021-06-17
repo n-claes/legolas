@@ -4,7 +4,6 @@ fluxtube_photospheric_setup = {
         "geometry": "cylindrical",
         "x_start": 0,
         "x_end": 10,
-        "mesh_accumulation": True,
         "gridpoints": 51,
         "parameters": {
             "k2": 0,
