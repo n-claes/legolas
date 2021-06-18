@@ -322,8 +322,7 @@ class LegolasDataSet(LegolasDataContainer):
             Array with the Alfvén speed at every grid point,
             or a float corresponding to the value of `which_values` if provided.
         """
-        B0 = np.sqrt(self.equilibria["B02"] ** 2 + self.equilibria["B03"] ** 2)
-        cA = B0 / np.sqrt(self.equilibria["rho0"])
+        cA = self.equilibria["B0"] / np.sqrt(self.equilibria["rho0"])
         return self._get_values(cA, which_values)
 
     def get_tube_speed(self, which_values=None):
