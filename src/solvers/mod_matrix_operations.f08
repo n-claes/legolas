@@ -3,7 +3,7 @@
 !! Does calls to relevant BLAS or LAPACK routines.
 module mod_matrix_operations
   use mod_global_variables, only: dp
-  use mod_logging, only: log_message, char_log, char_log2, int_fmt
+  use mod_logging, only: log_message, str
   implicit none
 
   !> integer used to set leading dimension of matrix
@@ -70,9 +70,8 @@ contains
     call log_message("LU factorisation of matrix using dgetrf", level="debug")
     call dgetrf(rows_mat1, rows_mat1, mat_inv, rows_mat1, ipiv, info)
     if (info /= 0) then
-      write(char_log, int_fmt) info
       call log_message( &
-        "LU factorisation of matrix failed. Value info: " // adjustl(char_log), &
+        "LU factorisation of matrix failed. Value info: " // str(info), &
         level="warning" &
       )
     end if
@@ -80,9 +79,8 @@ contains
     call log_message("inverting matrix using dgetri", level="debug")
     call dgetri(rows_mat1, mat_inv, rows_mat1, ipiv, work, lwork, info)
     if (info /= 0) then
-      write(char_log, int_fmt) info
       call log_message( &
-        "inversion of matrix failed. Value info: " // adjustl(char_log), &
+        "inversion of matrix failed. Value info: " // str(info), &
         level="warning" &
       )
     end if
@@ -119,9 +117,8 @@ contains
     call log_message("LU factorisation of matrix using zgetrf", level="debug")
     call zgetrf(rows_mat1, rows_mat1, mat_inv, rows_mat1, ipiv, info)
     if (info /= 0) then
-      write(char_log, int_fmt) info
       call log_message( &
-        "LU factorisation of matrix failed. Value info: " // adjustl(char_log), &
+        "LU factorisation of matrix failed. Value info: " // str(info), &
         level="warning" &
         )
     end if
@@ -129,9 +126,8 @@ contains
     call log_message("inverting matrix using zgetri", level="debug")
     call zgetri(rows_mat1, mat_inv, rows_mat1, ipiv, work, lwork, info)
     if (info /= 0) then
-      write(char_log, int_fmt) info
       call log_message( &
-        "inversion of matrix failed. Value info: " // adjustl(char_log), &
+        "inversion of matrix failed. Value info: " // str(info), &
         level="warning" &
         )
     end if
@@ -264,11 +260,9 @@ contains
     integer, intent(in) :: rows_mat2
 
     if (cols_mat1 /= rows_mat2) then
-      write(char_log, int_fmt) cols_mat1
-      write(char_log2, int_fmt) rows_mat2
       call log_message( &
-        "incompatible matrix multiplication: (. x " &
-        // trim(adjustl(char_log)) // ") x (" // trim(adjustl(char_log2)) // " x .)", &
+        "incompatible matrix multiplication: (. x " // str(cols_mat1) // ") x (" &
+        // str(rows_mat2) // " x .)", &
         level="error" &
       )
     end if
