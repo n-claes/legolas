@@ -20,3 +20,7 @@ No update of the pylbo reader needed
 === version 1.0.4 --> 1.0.5 ===
 1) added cte_B01 to param_names between cte_T0 and cte_B02
 2) added cte_B01 to the data between cte_T0 and cte_B02
+
+=== version 1.0.5 --> 1.1.1 === (PR #71)
+1) added B01, ddT0, v01, dv01, ddv01 to equil_names
+2) added B01, ddT0, v01, dv01, ddv01 to equilibrium data
