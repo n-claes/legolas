@@ -29,3 +29,6 @@ No update of the pylbo reader needed
 1) added mean_molecular_weight to unit_names
 2) added mean molecular weight to units
 added this in a backwards compatible way to the pylbo reader
+
+=== version 1.1.2 --> 1.1.3 ===
+1) postprocessed quantities added after eigenfunctions and before matrices (optional)

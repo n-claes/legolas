@@ -76,6 +76,7 @@ contains
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
       kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions, only: ef_grid, ef_names, ef_array
+    use mod_postprocessing, only: pp_names, pp_array
     use mod_check_values, only: is_equal
     use mod_equilibrium_params
     use mod_units
@@ -163,6 +164,15 @@ contains
       write(dat_fh) ef_grid
       do i = 1, nb_eqs
         write(dat_fh) ef_array(i) % eigenfunctions
+      end do
+    end if
+
+    ! Postprocessed data [optional]
+    if (write_postprocessed) then
+      call log_message("writing postprocessed quantities...", level='info')
+      write(dat_fh) size(pp_names), pp_names
+      do i = 1, nb_eqs
+        write(dat_fh) pp_array(i) % quantities
       end do
     end if
 

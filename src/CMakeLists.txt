@@ -81,6 +81,7 @@ set (sources
         solvers/smod_qz_direct.f08
         solvers/smod_arnoldi.f08
         mod_eigenfunctions.f08
+        mod_postprocessing.f08
         dataIO/mod_output.f08
 )
 

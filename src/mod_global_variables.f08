@@ -144,6 +144,8 @@ module mod_global_variables
   logical, save             :: write_matrices
   !> boolean to write the eigenfunctions to the datfile, defaults to <tt>True</tt>
   logical, save             :: write_eigenfunctions
+  !> boolean to write postprocessed quantities to the datfile, defaults to <tt>True</tt>
+  logical, save             :: write_postprocessed
   !> boolean to call the Python wrapper and plot the results, defaults to <tt>True</tt>
   logical, save             :: show_results
   !> base name for the datfile, defaults to \p "datfile"
