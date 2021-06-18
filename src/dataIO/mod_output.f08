@@ -82,7 +82,8 @@ contains
     !> the B-matrix
     real(dp), intent(in)          :: matrix_B(:, :)
 
-    character(len=str_len_arr)    :: param_names(33), equil_names(27)
+    real(dp)  :: b01_array(size(B_field % B02))
+    character(len=str_len_arr)    :: param_names(33), equil_names(32)
     character(len=2*str_len_arr)  :: unit_names(11)
     integer                       :: i, j, nonzero_A_values, nonzero_B_values
 
@@ -95,9 +96,9 @@ contains
     equil_names = [ &
       character(len=str_len_arr) :: &
         "rho0", "drho0", &
-        "T0", "dT0", &
-        "B02", "B03", "dB02", "dB03", "ddB02", "ddB03", "B0", &
-        "v02", "v03", "dv02", "dv03", "ddv02", "ddv03", &
+        "T0", "dT0", "ddT0", &
+        "B01", "B02", "B03", "dB02", "dB03", "ddB02", "ddB03", "B0", &
+        "v01", "v02", "v03", "dv01", "dv02", "dv03", "ddv01", "ddv02", "ddv03", &
         "dLdT", "dLdrho", &
         "kappa_para", "kappa_perp", &
         "eta", "detadT", "detadr", &
@@ -109,6 +110,8 @@ contains
       "unit_velocity", "unit_temperature", "unit_pressure", "unit_magneticfield", &
       "unit_numberdensity", "unit_lambdaT", "unit_conduction", "unit_resistivity" &
     ]
+    ! fill B01 array
+    b01_array = B_field % B01
 
     call make_filename(trim(basename_datfile) // ".dat", datfile_name)
     call open_file(dat_fh, datfile_name)
@@ -134,13 +137,13 @@ contains
     write(dat_fh) size(eigenvalues), eigenvalues, grid, grid_gauss
     write(dat_fh) &
       rho_field % rho0, rho_field % d_rho0_dr, &
-      T_field % T0, T_field % d_T0_dr, &
-      B_field % B02, B_field % B03, &
+      T_field % T0, T_field % d_T0_dr, T_field % dd_T0_dr, &
+      b01_array, B_field % B02, B_field % B03, &
       B_field % d_B02_dr, B_field % d_B03_dr, &
       eta_field % dd_B02_dr, eta_field % dd_B03_dr, B_field % B0, &
-      v_field % v02, v_field % v03, &
-      v_field % d_v02_dr, v_field % d_v03_dr, &
-      v_field % dd_v02_dr, v_field % dd_v03_dr, &
+      v_field % v01, v_field % v02, v_field % v03, &
+      v_field % d_v01_dr, v_field % d_v02_dr, v_field % d_v03_dr, &
+      v_field % dd_v01_dr, v_field % dd_v02_dr, v_field % dd_v03_dr, &
       rc_field % d_L_dT, rc_field % d_L_drho, &
       kappa_field % kappa_para, kappa_field % kappa_perp, &
       eta_field % eta, eta_field % d_eta_dT, eta_field % d_eta_dr, &

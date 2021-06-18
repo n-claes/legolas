@@ -23,7 +23,7 @@ def calculate_continua(ds):
     rho = ds.equilibria["rho0"]
     B02 = ds.equilibria["B02"]
     B03 = ds.equilibria["B03"]
-    B0 = np.sqrt(B02 ** 2 + B03 ** 2)
+    B0 = ds.equilibria["B0"]
     v02 = ds.equilibria["v02"]
     v03 = ds.equilibria["v03"]
     T = ds.equilibria["T0"]
