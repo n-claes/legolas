@@ -63,7 +63,7 @@ set( test_sources
         mod_test_resistivity.pf
         mod_test_conduction.pf
         mod_test_boundaries.pf
-        # mod_test_splines.pf
+        mod_test_splines.pf
         # mod_test_subblock.pf
         # mod_test_matrixoperations.pf
         # mod_test_interpolation.pf

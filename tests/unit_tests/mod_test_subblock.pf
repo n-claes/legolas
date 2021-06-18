@@ -29,7 +29,7 @@ contains
     real(dp)    :: spline1(4), spline2(4), weight
     integer     :: positions(2, 2), i, idx1(16), idx2(16)
 
-    write(*, *) "Testing subblock filling"
+    call set_name("filling subblock")
     quadblock = (0.0d0, 0.0d0)
     val1 = (3.0d0, 1.0d0)
     val2 = (-1.0d0, 5.0d0)
