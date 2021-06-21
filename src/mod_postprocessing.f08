@@ -10,7 +10,7 @@
 !!    - all 3 components of curl B1
 
 module mod_postprocessing
-  use mod_global_variables, only: dp, ic, matrix_gridpts, ef_gridpts, str_len_arr
+  use mod_global_variables, only: dp, ic, matrix_gridpts, ef_gridpts, str_len_arr, nb_pp
   use mod_equilibrium_params, only: k2, k3
   use mod_eigenfunctions, only: ef_grid, ef_array
   use mod_types, only: pp_type
@@ -18,12 +18,10 @@ module mod_postprocessing
 
   private
 
-  !> number of postprocessing quantities
-  integer                       :: nb_pp = 11
   !> array containing the postprocessed quantity names as strings
-  character(str_len_arr)        :: pp_names(11)
+  character(str_len_arr)        :: pp_names(nb_pp)
   !> type containig all postprocessed quantities
-  type (pp_type)                :: pp_array(11)
+  type (pp_type)                :: pp_array(nb_pp)
 
   public :: pp_names, pp_array
   public :: initialise_postprocessing

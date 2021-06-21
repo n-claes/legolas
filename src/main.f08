@@ -112,6 +112,10 @@ contains
       allocate(eigenvecs_right(matrix_gridpts, nb_evs))
       call initialise_eigenfunctions(nb_evs)
     end if
+
+    if (write_postprocessed) then
+      call initialise_postprocessing(nb_evs)
+    end if
   end subroutine initialisation
 
 
