@@ -48,6 +48,7 @@ contains
         call log_message( &
           "interpolation: x-values are not monotonically increasing!", level="error" &
         )
+        return
       end if
     end do
 
@@ -136,15 +137,17 @@ contains
         "numerical derivative: x and y should have the same size!", &
         level="error" &
       )
+      return
     end if
     nbprints = 0
     tol = 1.0d-10
     if (present(dxtol)) then
-      tol = dxtol
+      tol = dxtol ! GCOVR_EXCL_LINE
     end if
 
     nvals = size(x)
     dx = x(2) - x(1)
+    ! GCOVR_EXCL_START
     do i = 2, nvals-1
       dxi = x(i) - x(i-1)
       if (.not. is_equal(dx, dxi, tol=tol)) then
@@ -170,6 +173,7 @@ contains
         end if
       end if
     end do
+    ! GCOVR_EXCL_STOP
 
     ! left side: 6th order forward differences for first 3 points
     do i = 1, 3
