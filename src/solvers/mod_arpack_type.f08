@@ -144,6 +144,7 @@ contains
         "mode must be 1, 2 or 3 but mode = " // str(mode) // " was given", &
         level="error" &
       )
+      return
     end if
     this % mode = mode
     this % iparam(7) = this % mode
@@ -167,6 +168,7 @@ contains
         "ARPACK shift-invert: sigma can not be equal to zero", &
         level="error" &
       )
+      return
     end if
     this % sigma = sigma
   end subroutine set_sigma
@@ -187,7 +189,7 @@ contains
     select case(this % info)
     case(0)
       converged = .true.
-    case(1)
+    case(1) ! GCOVR_EXCL_START
       call log_message("ARPACK failed to converge! (maxiter reached)", level="warning")
       call log_message( &
         "number of iterations: " // str(this % maxiter), &
@@ -205,6 +207,7 @@ contains
         "znaupd: no shifts could be applied during Arnoldi iteration", &
         level="error" &
       )
+      return
     case(-6)
       call log_message("znaupd: bmat must be 'I' or 'G'", level="error")
     case(-8)
@@ -212,15 +215,19 @@ contains
         "znaupd: error from LAPACK eigenvalue calculation", &
         level="error" &
       )
+      return
     case(-11)
       call log_message("mode = 1 and bmat = 'G' are incompatible", level="error")
+      return
     case(-9999)
       call log_message("ARPACK could not build, something went wrong", level="error")
+      return
     case default
       call log_message( &
         "znaupd: unexpected info = " // str(this % info) // " encountered", &
         level="error" &
       )
+      return ! GCOVR_EXCL_STOP
     end select
   end subroutine parse_znaupd_info
 
@@ -235,31 +242,36 @@ contains
     select case(this % info)
     case(0)
       return
-    case(-8)
+    case(-8) ! GCOVR_EXCL_START
       call log_message( &
         "zneupd: error from LAPACK eigenvalue calculation", &
         level="error" &
       )
+      return
     case(-9)
       call log_message( &
         "zneupd: error from LAPACK eigenvector calculation (ztrevc)", &
         level="error" &
       )
+      return
     case(-14)
       call log_message( &
         "zneupd: no eigenvalues with sufficient accuracy found", &
         level="error" &
       )
+      return
     case(-15)
       call log_message( &
         "zneupd: different count for converged eigenvalues than znaupd", &
         level="error" &
       )
+      return
     case default
       call log_message( &
         "zneupd: unexpected info = " // str(this % info) // " value", &
         level="error" &
       )
+      return ! GCOVR_EXCL_STOP
     end select
   end subroutine parse_zneupd_info
 
@@ -328,13 +340,13 @@ contains
         "maxiter has to be positive, but is equal to " // str(maxiter), level="error" &
       )
       return
-    else if (maxiter < 10 * this % evpdim) then
+    else if (maxiter < 10 * this % evpdim) then ! GCOVR_EXCL_START
       call log_message( &
         "maxiter is below recommended 10*N: (" &
         // str(maxiter) // " < " // str(10 * this % evpdim) // ")", &
         level="warning" &
       )
-    end if
+    end if ! GCOVR_EXCL_STOP
     this % maxiter = maxiter
   end subroutine set_maxiter
 
