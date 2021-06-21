@@ -67,7 +67,7 @@ set( test_sources
         mod_test_subblock.pf
         mod_test_matrixoperations.pf
         mod_test_interpolation.pf
-        # mod_test_integration.pf
+        mod_test_integration.pf
         # mod_test_lapacksolvers.pf
         # mod_test_arpacksolvers.pf
 )
