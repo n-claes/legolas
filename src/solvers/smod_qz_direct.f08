@@ -13,16 +13,7 @@ submodule (mod_solvers) smod_qz_direct
 contains
 
   !> Solves the eigenvalue problem directly.
-  module subroutine qz_direct(matrix_A, matrix_B, omega, vr)
-    !> matrix A
-    complex(dp), intent(in)   :: matrix_A(:, :)
-    !> matrix B
-    real(dp), intent(in)      :: matrix_B(:, :)
-    !> array with calculated eigenvalues
-    complex(dp), intent(out)  :: omega(:)
-    !> array with right eigenvectors
-    complex(dp), intent(out)  :: vr(:, :)
-
+  module procedure qz_direct
     !> calculate left eigenvectors if "V", omit if "N"
     character   :: jobvl
     !> calculate right eigenvectors if "V", omit if "N"
@@ -95,10 +86,9 @@ contains
       alpha, beta, vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )
     if (info /= 0) then
-      write(char_log, int_fmt) info
       call log_message("LAPACK routine zggev failed!", level="warning")
       call log_message( &
-        "value for the info parameter: " // adjustl(char_log), &
+        "value for the info parameter: " // str(info), &
         level="warning", &
         use_prefix=.false. &
       )
@@ -109,5 +99,5 @@ contains
     deallocate(rwork)
 
     call set_small_values_to_zero(omega)
-  end subroutine qz_direct
+  end procedure qz_direct
 end submodule smod_qz_direct

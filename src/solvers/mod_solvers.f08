@@ -4,7 +4,7 @@
 !! correct solver based on parfile settings.
 module mod_solvers
   use mod_global_variables, only: dp, matrix_gridpts, write_eigenfunctions
-  use mod_logging, only: log_message, char_log, char_log2, dp_fmt, int_fmt
+  use mod_logging, only: log_message, str
   use mod_check_values, only: set_small_values_to_zero
   implicit none
 
@@ -16,23 +16,35 @@ module mod_solvers
   !> interface to the different solution methods implemented in submodules
   interface
     module subroutine qr_invert(matrix_A, matrix_B, omega, vr)
+      !> matrix A
       complex(dp), intent(in)   :: matrix_A(:, :)
+      !> matrix B
       real(dp), intent(in)      :: matrix_B(:, :)
+      !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
+      !> array with right eigenvectors
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine
 
     module subroutine qz_direct(matrix_A, matrix_B, omega, vr)
+      !> matrix A
       complex(dp), intent(in)   :: matrix_A(:, :)
+      !> matrix B
       real(dp), intent(in)      :: matrix_B(:, :)
+      !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
+      !> array with right eigenvectors
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine qz_direct
 
     module subroutine arnoldi(matrix_A, matrix_B, omega, vr)
+      !> matrix A
       complex(dp), intent(in)   :: matrix_A(:, :)
+      !> matrix B
       real(dp), intent(in)      :: matrix_B(:, :)
+      !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
+      !> array with right eigenvectors
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine arnoldi
   end interface

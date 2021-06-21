@@ -17,16 +17,7 @@ contains
   !! through inversion of the B-matrix.
   !! @warning Throws an error if <tt>matrix_A</tt> or <tt>matrix_B</tt>
   !!          is not a square matrix. @endwarning
-  module subroutine qr_invert(matrix_A, matrix_B, omega, vr)
-    !> matrix A
-    complex(dp), intent(in)   :: matrix_A(:, :)
-    !> matrix B
-    real(dp), intent(in)      :: matrix_B(:, :)
-    !> array with calculated eigenvalues
-    complex(dp), intent(out)  :: omega(:)
-    !> array with right eigenvectors
-    complex(dp), intent(out)  :: vr(:, :)
-
+  module procedure qr_invert
     !> inverse B-matrix
     real(dp)    :: B_inv(size(matrix_B, dim=1), size(matrix_B, dim=2))
     !> matrix \(B^{-1}A\)
@@ -82,10 +73,9 @@ contains
       vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )
     if (info /= 0) then
-      write(char_log, int_fmt) info
       call log_message("LAPACK routine zgeev failed!", level="warning")
       call log_message( &
-        "value for the info parameter: " // adjustl(char_log), &
+        "value for the info parameter: " // str(info), &
         level="warning", &
         use_prefix=.false. &
       )
@@ -95,6 +85,6 @@ contains
     deallocate(rwork)
 
     call set_small_values_to_zero(omega)
-  end subroutine qr_invert
+  end procedure qr_invert
 
 end submodule smod_qr_invert
