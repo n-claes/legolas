@@ -71,6 +71,7 @@ set( test_sources
         mod_test_lapacksolvers.pf
         mod_test_arpacksolvers.pf
         mod_test_geometry_override.pf
+        mod_test_inspections.pf
 )
 add_pfunit_ctest (test_legolas
         TEST_SOURCES ${test_sources}

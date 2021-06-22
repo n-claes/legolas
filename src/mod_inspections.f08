@@ -15,6 +15,7 @@ module mod_inspections
 
   public :: perform_NaN_and_negative_checks
   public :: perform_sanity_checks
+  public :: check_wavenumbers
   public :: handle_spurious_eigenvalues
 
 contains
@@ -132,7 +133,7 @@ contains
     if (.not. remove_spurious_eigenvalues) then
       return
     end if
-
+    ! LCOV_EXCL_START
     call log_message("handling spurious eigenvalues", level="debug")
     ! For now, the largest real eigenvalues are set to a large number so they
     ! do not appear on the plots.
@@ -149,6 +150,7 @@ contains
       "spurious eigenvalues removed on every side: " // str(nb_spurious_eigenvalues), &
       level="warning" &
     )
+    ! LCOV_EXCL_STOP
   end subroutine handle_spurious_eigenvalues
 
 
@@ -200,6 +202,7 @@ contains
       return
     end if
 
+    ! LCOV_EXCL_START
     if (abs(B_field % B02(1)) > on_axis_limit) then
       call log_message( &
         "B_theta non-zero on axis! Value: " // str(B_field % B02(1)), &
@@ -224,6 +227,7 @@ contains
         level="warning" &
       )
     end if
+    ! LCOV_EXCL_STOP
   end subroutine check_on_axis_values
 
 
@@ -309,6 +313,7 @@ contains
       if (satisfied(j)) then
         cycle
       end if
+      ! LCOV_EXCL_START
       call log_message( &
         "standard equilibrium conditions not satisfied!", level="warning" &
       )
@@ -330,6 +335,7 @@ contains
         use_prefix=.false. &
       )
       write(*,*) ""
+      ! LCOV_EXCL_STOP
     end do
   end subroutine standard_equil_conditions
 
@@ -492,6 +498,7 @@ contains
       if (satisfied(j)) then
         cycle
       end if
+      ! LCOV_EXCL_START
       call log_message( &
         "induction equilibrium conditions not satisfied!", level="warning" &
       )
@@ -513,6 +520,7 @@ contains
         use_prefix=.false. &
       )
     end do
+    ! LCOV_EXCL_STOP
   end subroutine induction_equil_conditions
 
 
@@ -558,6 +566,7 @@ contains
       end if
     end do
 
+    ! LCOV_EXCL_START
     if (.not. satisfied) then
       call log_message( &
         "continuity equilibrium conditions not satisfied!", &
@@ -580,6 +589,7 @@ contains
       )
       write(*,*) ""
     end if
+    ! LCOV_EXCL_STOP
   end subroutine continuity_equil_conditions
 
 end module mod_inspections
