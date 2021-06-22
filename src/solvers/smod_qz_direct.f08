@@ -57,7 +57,7 @@ contains
     !! use <tt>solver = "QR-invert"</tt> if eigenvectors are needed. @endwarning
     jobvl = "N"
     jobvr = "N"
-    if (write_eigenfunctions) then  ! GCOVR_EXCL_START
+    if (write_eigenfunctions) then  ! LCOV_EXCL_START
       call log_message( &
         "eigenvector calculations with the direct QZ solver are disabled for now,", &
         level="warning" &
@@ -67,7 +67,7 @@ contains
         level="warning", &
         use_prefix=.false. &
       )
-    end if  ! GCOVR_EXCL_STOP
+    end if  ! LCOV_EXCL_STOP
     ! set array dimensions
     N = size(matrix_A, dim=1)
     lda = N
@@ -85,14 +85,14 @@ contains
       jobvl, jobvr, N, matrix_A, lda, matB_c, ldb, &
       alpha, beta, vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )
-    if (info /= 0) then ! GCOVR_EXCL_START
+    if (info /= 0) then ! LCOV_EXCL_START
       call log_message("LAPACK routine zggev failed!", level="warning")
       call log_message( &
         "value for the info parameter: " // str(info), &
         level="warning", &
         use_prefix=.false. &
       )
-    end if ! GCOVR_EXCL_STOP
+    end if ! LCOV_EXCL_STOP
     omega = alpha / beta
 
     deallocate(work)

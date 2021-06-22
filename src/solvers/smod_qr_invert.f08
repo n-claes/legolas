@@ -72,14 +72,14 @@ contains
       jobvl, jobvr, N, B_invA, ldB_invA, omega, &
       vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )
-    if (info /= 0) then ! GCOVR_EXCL_START
+    if (info /= 0) then ! LCOV_EXCL_START
       call log_message("LAPACK routine zgeev failed!", level="warning")
       call log_message( &
         "value for the info parameter: " // str(info), &
         level="warning", &
         use_prefix=.false. &
       )
-    end if ! GCOVR_EXCL_STOP
+    end if ! LCOV_EXCL_STOP
 
     deallocate(work)
     deallocate(rwork)

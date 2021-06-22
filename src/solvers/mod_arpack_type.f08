@@ -189,7 +189,7 @@ contains
     select case(this % info)
     case(0)
       converged = .true.
-    case(1) ! GCOVR_EXCL_START
+    case(1) ! LCOV_EXCL_START
       call log_message("ARPACK failed to converge! (maxiter reached)", level="warning")
       call log_message( &
         "number of iterations: " // str(this % maxiter), &
@@ -227,7 +227,7 @@ contains
         "znaupd: unexpected info = " // str(this % info) // " encountered", &
         level="error" &
       )
-      return ! GCOVR_EXCL_STOP
+      return ! LCOV_EXCL_STOP
     end select
   end subroutine parse_znaupd_info
 
@@ -242,7 +242,7 @@ contains
     select case(this % info)
     case(0)
       return
-    case(-8) ! GCOVR_EXCL_START
+    case(-8) ! LCOV_EXCL_START
       call log_message( &
         "zneupd: error from LAPACK eigenvalue calculation", &
         level="error" &
@@ -271,7 +271,7 @@ contains
         "zneupd: unexpected info = " // str(this % info) // " value", &
         level="error" &
       )
-      return ! GCOVR_EXCL_STOP
+      return ! LCOV_EXCL_STOP
     end select
   end subroutine parse_zneupd_info
 
@@ -340,13 +340,13 @@ contains
         "maxiter has to be positive, but is equal to " // str(maxiter), level="error" &
       )
       return
-    else if (maxiter < 10 * this % evpdim) then ! GCOVR_EXCL_START
+    else if (maxiter < 10 * this % evpdim) then ! LCOV_EXCL_START
       call log_message( &
         "maxiter is below recommended 10*N: (" &
         // str(maxiter) // " < " // str(10 * this % evpdim) // ")", &
         level="warning" &
       )
-    end if ! GCOVR_EXCL_STOP
+    end if ! LCOV_EXCL_STOP
     this % maxiter = maxiter
   end subroutine set_maxiter
 

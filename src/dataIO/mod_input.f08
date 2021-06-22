@@ -155,7 +155,7 @@ contains
   end subroutine read_parfile
 
 
-  ! GCOVR_EXCL_START <this routine is excluded from coverage>
+  ! LCOV_EXCL_START <this routine is excluded from coverage>
   !> Parses the command line arguments and retrieves the parfile passed.
   !! @warning Throws an error if
   !!
@@ -197,6 +197,6 @@ contains
       call log_message(("parfile not found: " // trim(filename_par)), level='error')
     end if
   end subroutine get_parfile
-  ! GCOVR_EXCL_STOP
+  ! LCOV_EXCL_STOP
 
 end module mod_input

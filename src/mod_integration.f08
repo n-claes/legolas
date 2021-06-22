@@ -205,15 +205,16 @@ contains
       xi = xi + dh
       xtemp(i) = xi
       ytemp(i) = ysolrk5
-
-      if (mod(i, 10000) == 0) then ! GCOVR_EXCL_START
+      ! LCOV_EXCL_START
+      if (mod(i, 10000) == 0) then
         call log_message( &
           "steps: " // str(i) // " | xi: " // str(xi) // " | dh: " &
           // str(dh, fmt="e20.5"), &
           level="info", &
           use_prefix=.false. &
         )
-      end if ! GCOVR_EXCL_STOP
+      end if
+      ! LCOV_EXCL_STOP
     end do
 
     ! allocate final arrays
@@ -329,12 +330,14 @@ contains
     !> is <tt>.true.</tt> if arrays differ in size
     logical :: resample
 
-    if (target < base) then ! GCOVR_EXCL_START
+    ! LCOV_EXCL_START
+    if (target < base) then
       call log_message( &
         "resampling: target #points is less than size of input arrays!", &
         level="warning" &
       )
-    end if ! GCOVR_EXCL_STOP
+    end if
+    ! LCOV_EXCL_STOP
 
     if (base == target) then
       resample = .false.
