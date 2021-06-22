@@ -87,14 +87,15 @@ def get_header(istream):
     h["eigenfuncs_written"] = bool(
         *hdr
     )  # bool casts 0 to False, everything else to True
-    # read post-processed boolean
-    fmt = ALIGN + "i"  # a fortran logical is a 4 byte integer
-    hdr = struct.unpack(
-        fmt, istream.read(struct.calcsize(fmt))
-    )  # this is either (0,) or (1,) (F or T)
-    h["postprocessed_written"] = bool(
-        *hdr
-    )  # bool casts 0 to False, everything else to True
+    if legolas_version >= "1.1.1":
+        # read post-processed boolean
+        fmt = ALIGN + "i"  # a fortran logical is a 4 byte integer
+        hdr = struct.unpack(
+            fmt, istream.read(struct.calcsize(fmt))
+        )  # this is either (0,) or (1,) (F or T)
+        h["postprocessed_written"] = bool(
+            *hdr
+        )  # bool casts 0 to False, everything else to True
     # read matrices boolean
     fmt = ALIGN + "i"
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
@@ -232,22 +233,23 @@ def get_header(istream):
         offsets.update({"ef_arrays": istream.tell()})
         istream.seek(istream.tell() + byte_size)
 
-    # if post-processed quantities are written, read names and include offsets
-    if h["postprocessed_written"]:
-        # read post-processed quantity names
-        fmt = ALIGN + "i"
-        (nb_pp,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
-        fmt = ALIGN + nb_pp * str_len_arr * "c"
-        pp_names = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
-        pp_names = [
-            b"".join(pp_names[i : i + str_len_arr]).strip().decode()
-            for i in range(0, len(pp_names), str_len_arr)
-        ]
-        h["pp_names"] = pp_names
-        # post-processed quantity offsets
-        byte_size = h["ef_gridpts"] * nb_eigenvals * nb_pp * SIZE_COMPLEX
-        offsets.update({"pp_arrays": istream.tell()})
-        istream.seek(istream.tell() + byte_size)
+    if legolas_version >= "1.1.1":
+        # if post-processed quantities are written, read names and include offsets
+        if h["postprocessed_written"]:
+            # read post-processed quantity names
+            fmt = ALIGN + "i"
+            (nb_pp,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+            fmt = ALIGN + nb_pp * str_len_arr * "c"
+            pp_names = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+            pp_names = [
+                b"".join(pp_names[i : i + str_len_arr]).strip().decode()
+                for i in range(0, len(pp_names), str_len_arr)
+            ]
+            h["pp_names"] = pp_names
+            # post-processed quantity offsets
+            byte_size = h["ef_gridpts"] * nb_eigenvals * nb_pp * SIZE_COMPLEX
+            offsets.update({"pp_arrays": istream.tell()})
+            istream.seek(istream.tell() + byte_size)
 
     # if matrices are written, include amount of nonzero elements and offsets
     if h["matrices_written"]:
