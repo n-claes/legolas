@@ -20,6 +20,8 @@ def _main():
     p.add_continua()
     if ds.header["eigenfuncs_written"]:
         p.add_eigenfunctions()
+    #if ds.header["postprocessed_written"]:
+    #    p.add_postprocessed()
     p.show()
 
 

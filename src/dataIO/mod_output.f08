@@ -127,7 +127,7 @@ contains
     write(dat_fh) "legolas_version", LEGOLAS_VERSION
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
       gauss_gridpts, matrix_gridpts, ef_gridpts, gamma, equilibrium_type, &
-      write_eigenfunctions, write_matrices
+      write_eigenfunctions, write_postprocessed, write_matrices
     write(dat_fh) size(param_names), len(param_names(1)), param_names
     write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, &
       cte_v03, cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, &
@@ -171,7 +171,7 @@ contains
     if (write_postprocessed) then
       call log_message("writing postprocessed quantities...", level='info')
       write(dat_fh) size(pp_names), pp_names
-      do i = 1, nb_eqs
+      do i = 1, nb_pp
         write(dat_fh) pp_array(i) % quantities
       end do
     end if

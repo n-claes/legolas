@@ -53,9 +53,9 @@ contains
     end do
 
     pp_names = [ &
-      character(len=str_len_arr) :: 'div v1', '(curl v1)_1', '(curl v1)_2', &
-                                    '(curl v1)_3', 'B11', 'B12', 'B13', 'div B1', &
-                                    '(curl B1)_1', '(curl B1)_2', '(curl B1)_3' &
+      character(len=str_len_arr) :: 'div v', '(curl v)1', '(curl v)2', &
+                                    '(curl v)3', 'B1', 'B2', 'B3', 'div B', &
+                                    '(curl B)1', '(curl B)2', '(curl B)3' &
     ]
   end subroutine initialise_postprocessing
 
