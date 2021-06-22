@@ -152,8 +152,10 @@ def load_series(datfiles):
             pylboLogger.info("eigenfunctions present in all datfiles")
 
     # check presence of post-processed quantities
-    pp_present = set([ds.header["postprocessed_written"] for ds in series.datasets])
-    if len(pp_present) > 1:
+    pp_present = set([ds.header["postprocessed_written"] for ds in series.datasets if (ds.legolas_version >= "1.1.1")])
+    if len(pp_present)  == 0:
+        pylboLogger.info("no post-processed quantities present")
+    elif len(pp_present) > 1:
         pylboLogger.info("post-processed quantities present in some datfiles, but not all")
     else:
         if pp_present.pop():
