@@ -3,23 +3,21 @@
 !! This module contains all equilibrium types and the initial
 !! declarations of the module subroutines. Every equilibrium submodule
 !! extends this module, implementing one of the module subroutines declared here.
-!! All 'main' equilibrium configurations are set in the submodules. The ones that
-!! depend on 'main' arrays, like radiative cooling, are set here through calls to their
+!! All "main" equilibrium configurations are set in the submodules. The ones that
+!! depend on "main" arrays, like radiative cooling, are set here through calls to their
 !! respective modules.
 !! @note    All use statements specified here at the main module scope
 !!          are automatically accessible in every submodule that extends this one.
 module mod_equilibrium
   use mod_units
-  use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
-    gravity_type, resistivity_type, cooling_type, conduction_type, &
-    hall_type
+  use mod_types
   use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
     flow, resistivity, external_gravity, radiative_cooling, &
     thermal_conduction, viscosity, hall_mhd, geometry, use_defaults, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
-  use mod_logging, only: log_message, dp_fmt, char_log, str
+  use mod_logging, only: log_message, str
   implicit none
 
   private
@@ -103,8 +101,6 @@ contains
   !> Initialises the equilibrium types by calling the corresponding
   !! subroutine, which allocates all necessary attributes.
   subroutine initialise_equilibrium()
-    use mod_types, only: initialise_type
-
     call initialise_type(rho_field)
     call initialise_type(T_field)
     call initialise_type(B_field)
@@ -181,7 +177,7 @@ contains
     use mod_global_variables, only: equilibrium_type
 
     select case(equilibrium_type)
-    case('adiabatic_homo')
+    case("adiabatic_homo")
       set_equilibrium_values => adiabatic_homo_eq
     case("constant_current_tokamak")
       set_equilibrium_values => constant_current_eq
@@ -213,7 +209,7 @@ contains
       set_equilibrium_values => photospheric_flux_tube_eq
     case("rayleigh_taylor")
       set_equilibrium_values => RTI_eq
-    case('resistive_homo')
+    case("resistive_homo")
       set_equilibrium_values => resistive_homo_eq
     case("resistive_tearing")
       set_equilibrium_values => resistive_tearing_modes_eq
@@ -244,7 +240,9 @@ contains
     case("user_defined")
       set_equilibrium_values => user_defined_eq
     case default
-      call log_message("equilibrium not recognised: " // trim(equilibrium_type), level='error')
+      call log_message( &
+        "equilibrium not recognised: " // trim(equilibrium_type), level="error" &
+      )
     end select
   end subroutine set_equilibrium_pointer
 
@@ -261,7 +259,7 @@ contains
   !! - the starting value of the grid specified in the submodule is overridden.
   !! - the end value of the grid specified in the submodule is overridden. @endwarning
   subroutine allow_geometry_override(default_geometry, default_x_start, default_x_end)
-    use, intrinsic  :: ieee_arithmetic, only: ieee_is_nan
+    use mod_check_values, only: is_NaN
     use mod_global_variables, only: dp_LIMIT
 
     !> default geometry to set
@@ -273,25 +271,29 @@ contains
 
     if (present(default_geometry)) then
       if (geometry /= "" .and. geometry /= default_geometry) then
-        call log_message("overriding default geometry with " // trim(geometry), level='warning')
+        call log_message( &
+          "overriding default geometry with " // trim(geometry), level="warning" &
+        )
       else
         geometry = default_geometry
       end if
     end if
 
     if (present(default_x_start)) then
-      if ( (.not. ieee_is_nan(x_start)) .and. abs(x_start - default_x_start) >= dp_LIMIT ) then
-        write(char_log, dp_fmt) x_start
-        call log_message("overriding x_start with " // adjustl(trim(char_log)), level='warning')
+      if ( &
+        (.not. is_NaN(x_start)) .and. abs(x_start - default_x_start) >= dp_LIMIT &
+      ) then
+        call log_message("overriding x_start with " // str(x_start), level="warning")
       else
         x_start = default_x_start
       end if
     end if
 
     if (present(default_x_end)) then
-      if ( (.not. ieee_is_nan(x_end)) .and. abs(x_end - default_x_end) >= dp_LIMIT ) then
-        write(char_log, dp_fmt) x_end
-        call log_message("overriding x_end with " // adjustl(trim(char_log)), level='warning')
+      if ( &
+        (.not. is_NaN(x_end)) .and. abs(x_end - default_x_end) >= dp_LIMIT &
+      ) then
+        call log_message("overriding x_end with " // str(x_end), level="warning")
       else
         x_end = default_x_end
       end if
@@ -301,8 +303,6 @@ contains
 
   !> Cleaning routine, deallocates the equilibrium types.
   subroutine equilibrium_clean()
-    use mod_types, only: deallocate_type
-
     call deallocate_type(rho_field)
     call deallocate_type(T_field)
     call deallocate_type(B_field)
