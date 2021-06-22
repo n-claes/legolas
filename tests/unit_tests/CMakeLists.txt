@@ -61,6 +61,7 @@ set( test_sources
         mod_test_valuechecks.pf
         mod_test_units.pf
         mod_test_cooling.pf
+        mod_test_cooling_tables.pf
         mod_test_resistivity.pf
         mod_test_conduction.pf
         mod_test_boundaries.pf
