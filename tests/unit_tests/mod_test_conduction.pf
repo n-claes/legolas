@@ -20,8 +20,8 @@ contains
   subroutine init_test()
     call reset_globals()
     call create_test_grid(pts=51, geom="Cartesian", start=0.0d0, end=1.0d0)
-    array_size = size(T_field % T0)
     call reset_fields(init_fields=.true.)
+    array_size = size(T_field % T0)
     call reset_eigenfunctions(init_efs=.false.)
     call set_default_units()
   end subroutine init_test

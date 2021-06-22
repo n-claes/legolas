@@ -26,8 +26,7 @@ contains
 
 
   subroutine reset_fields(init_fields)
-    use mod_equilibrium, only: rho_field, equilibrium_clean, &
-                               initialise_equilibrium
+    use mod_equilibrium, only: rho_field, equilibrium_clean, initialise_equilibrium
 
     logical, intent(in) :: init_fields
 
@@ -42,7 +41,7 @@ contains
 
   subroutine reset_eigenfunctions(init_efs)
     use mod_eigenfunctions, only: ef_grid, eigenfunctions_clean, &
-                                  initialise_eigenfunctions
+      initialise_eigenfunctions
 
     logical, intent(in) :: init_efs
 
@@ -102,9 +101,11 @@ contains
     use mod_units, only: set_normalisations
 
     cgs_units = .true.
-    call set_normalisations(new_unit_temperature=1.0d6, &
-                            new_unit_magneticfield=5.0d0, &
-                            new_unit_length=1.0d10)
+    call set_normalisations( &
+      new_unit_temperature=1.0d6, &
+      new_unit_magneticfield=5.0d0, &
+      new_unit_length=1.0d10 &
+    )
   end subroutine set_default_units
 
 

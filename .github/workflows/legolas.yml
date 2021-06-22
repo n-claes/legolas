@@ -42,6 +42,7 @@ jobs:
         sudo apt-get -y install cmake
         sudo apt-get install libblas-dev
         sudo apt-get install liblapack-dev
+        sudo apt-get install lcov
         gfortran-9 --version
         cmake --version
         which gcov
@@ -50,7 +51,7 @@ jobs:
     - name: Install Python dependencies & Pylbo
       run: |
         python -m pip install --upgrade pip
-        pip install pytest numpy matplotlib f90nml tqdm psutil pytest-mpl gcovr
+        pip install pytest numpy matplotlib f90nml tqdm psutil pytest-mpl
         cd post_processing
         python setup.py develop
 
@@ -123,8 +124,10 @@ jobs:
           # generate coverage report
           cd $LEGOLASDIR
           mkdir coverage
-          cd build
-          gcovr . -r $LEGOLASDIR/src --print-summary --gcov-executable=/usr/bin/gcov-9 --xml --output $LEGOLASDIR/coverage/${{ matrix.name }}.xml
+          cd coverage
+          lcov --capture --directory $LEGOLASDIR/build \
+             --output-file ${{ matrix.name }}.info \
+             --gcov-tool /usr/bin/gcov-9
         fi
         # filter out coverage files
         find $LEGOLASDIR/build -name '*.gc*' -delete
@@ -140,4 +143,4 @@ jobs:
       uses: codecov/codecov-action@v1
       if: ${{ matrix.coverage }}
       with:
-        files: ./coverage/${{ matrix.name }}.xml
+        files: ./coverage/${{ matrix.name }}.info
