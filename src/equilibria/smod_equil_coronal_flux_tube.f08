@@ -35,17 +35,17 @@ contains
     integer   :: i, N1, N2, N3
 
     call allow_geometry_override( &
-      default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=10.0d0 &
+      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=10.0d0 &
     )
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       cte_rho0 = 1.0d0
       cte_p0 = 1.0d0
       r0 = 1.0d0
 
       k2 = 0.0d0
       k3 = 2.0d0
-    end if
+    end if ! LCOV_EXCL_STOP
 
     ! width of transition region
     width = 0.1d0
@@ -83,17 +83,21 @@ contains
     rho_e = 4.0d0 * (2.0d0 * gamma + 1.0d0) * cte_rho0 / (50.0d0 * gamma + 1.0d0)
     p_e = (2.0d0 * gamma + 1.0d0) * cte_p0 / (50.0d0 * gamma + 1.0d0)
     B_0 = 2.0d0 * sqrt(gamma * cte_p0)
-    B_e = 10.0d0 * sqrt(gamma * cte_p0 * (2.0d0 * gamma + 1.0d0) / (50.0d0 * gamma + 1.0d0))
+    B_e = 10.0d0 * sqrt( &
+      gamma * cte_p0 * (2.0d0 * gamma + 1.0d0) / (50.0d0 * gamma + 1.0d0) &
+    )
 
     if (r0 > x_end) then
-      call log_message("equilibrium: inner cylinder radius r0 > x_end", level='error')
+      call log_message("equilibrium: inner cylinder radius r0 > x_end", level="error")
     else if (r0 < x_start) then
-      call log_message("equilibrium: inner cylinder radius r0 < x_start", level='error')
+      call log_message("equilibrium: inner cylinder radius r0 < x_start", level="error")
     end if
 
     ! check pressure balance
     if (abs(cte_p0 + 0.5d0 * B_0**2 - p_e - 0.5d0 * B_e**2) > dp_LIMIT) then
-      call log_message("equilibrium: total pressure balance not satisfied", level='error')
+      call log_message( &
+        "equilibrium: total pressure balance not satisfied", level="error" &
+      )
     end if
 
     do i = 1, gauss_gridpts

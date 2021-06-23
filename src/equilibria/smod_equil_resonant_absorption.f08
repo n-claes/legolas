@@ -35,10 +35,12 @@ contains
     real(dp)  :: x, s, r0, rho_left, rho_right, zeta
     integer   :: i
 
-    call allow_geometry_override(default_geometry='Cartesian', default_x_start=0.0d0, default_x_end=1.0d0)
+    call allow_geometry_override( &
+      default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0 &
+    )
     call initialise_grid()
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       resistivity = .true.
       use_fixed_resistivity = .true.
       fixed_eta_value = 10.0d0**(-3.2d0)
@@ -55,7 +57,7 @@ contains
     else
       rho_left = p1
       rho_right = p2
-    end if
+    end if ! LCOV_EXCL_STOP
 
     s = 0.5d0 * (x_start + x_end)
     zeta = rho_left / rho_right
@@ -71,8 +73,11 @@ contains
       if (x >= x_start .and. x < s - 0.5d0*r0) then
         rho_field % rho0(i) = rho_left
       else if (s - 0.5d0*r0 <= x .and. x <= s + 0.5d0*r0) then
-        rho_field % rho0(i) = 0.5d0 * rho_left * (1.0d0 + 1.0d0 / zeta - (1.0d0 - 1.0d0 / zeta) * sin(dpi * (x - s) / r0))
-        rho_field % d_rho0_dr(i) = dpi * rho_left * (1.0d0 / zeta - 1.0d0) * cos(dpi * (x - s) / r0) / (2.0d0 * r0)
+        rho_field % rho0(i) = 0.5d0 * rho_left * ( &
+          1.0d0 + 1.0d0 / zeta - (1.0d0 - 1.0d0 / zeta) * sin(dpi * (x - s) / r0) &
+        )
+        rho_field % d_rho0_dr(i) = dpi * rho_left * (1.0d0 / zeta - 1.0d0) &
+          * cos(dpi * (x - s) / r0) / (2.0d0 * r0)
       else
         rho_field % rho0(i) = rho_right
       end if

@@ -35,17 +35,17 @@ contains
     integer   :: i, N1, N2, N3
 
     call allow_geometry_override( &
-      default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=10.0d0 &
+      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=10.0d0 &
     )
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       cte_rho0 = 1.0d0
       cte_p0 = 1.0d0
       r0 = 1.0d0
 
       k2 = 0.0d0
       k3 = 2.0d0
-    end if
+    end if ! LCOV_EXCL_STOP
 
     ! width of transition region
     width = 0.1d0
@@ -86,9 +86,9 @@ contains
     B_e = sqrt(2.0d0 * gamma * cte_p0 * (2.0d0 * gamma + 1.0d0) / (gamma + 18.0d0))
 
     if (r0 > x_end) then
-      call log_message("equilibrium: inner cylinder radius r0 > x_end", level='error')
+      call log_message("equilibrium: inner cylinder radius r0 > x_end", level="error")
     else if (r0 < x_start) then
-      call log_message("equilibrium: inner cylinder radius r0 < x_start", level='error')
+      call log_message("equilibrium: inner cylinder radius r0 < x_start", level="error")
     end if
 
     ! check pressure balance

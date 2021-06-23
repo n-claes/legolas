@@ -32,7 +32,7 @@ contains
     real(dp)    :: r, a
     integer     :: i
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       flow = .true.
 
       V = 1.63d0
@@ -43,13 +43,13 @@ contains
 
       rc    = 0.5d0
       k2  = -1.0d0
-    end if
+    end if ! LCOV_EXCL_STOP
 
     Bth0  = 0.4d0 * (rc**2+rj**2) / (rj*rc)
     a = 0.1d0 * rj
     k3  = dpi / rj
 
-    geometry = 'cylindrical'
+    geometry = "cylindrical"
     x_start = 0.0d0
     x_end   = 2.0d0 * rj
     call initialise_grid()
@@ -62,12 +62,13 @@ contains
       B_field % B02(i)    = Bth0 * r*rc / (rc**2 + r**2 )
       B_field % B03(i)    = Bz0
       B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      T_field % T0(i)     = cte_p0 / (rho_field % rho0(i)) - (Bth0**2/(2.0d0*(rho_field % rho0(i)))) &
-                              * (1 - rc**4/(rc**2+r**2)**2)
+      T_field % T0(i)     = cte_p0 / (rho_field % rho0(i)) &
+        - (Bth0**2/(2.0d0*(rho_field % rho0(i)))) * (1 - rc**4/(rc**2+r**2)**2)
 
       B_field % d_B02_dr(i) = Bth0 * rc * (rc**2-r**2) / (r**2+rc**2)**2
       v_field % d_v03_dr(i) = - (V/(2.0d0*a)) / cosh((rj-r)/a)**2
-      T_field % d_T0_dr(i)  = - (2.0d0*Bth0**2/(rho_field % rho0(i))) * rc**4*r / (r**2+rc**2)**3
+      T_field % d_T0_dr(i)  = - (2.0d0*Bth0**2/(rho_field % rho0(i))) &
+        * rc**4*r / (r**2+rc**2)**3
     end do
   end subroutine kh_cd_instability_eq
 

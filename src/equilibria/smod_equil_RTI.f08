@@ -30,9 +30,9 @@ contains
 
   module subroutine RTI_eq()
     use mod_equilibrium_params, only: g, delta, theta, p1, p2, p3, tau, &
-                                      p4, alpha, cte_rho0, cte_p0
+      p4, alpha, cte_rho0, cte_p0
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       external_gravity = .true.
 
       k2 = 0.0d0
@@ -48,7 +48,7 @@ contains
       p3 = 0.0d0
       p4 = -0.35d0 * dpi
       tau = 0.0d0
-    end if
+    end if ! LCOV_EXCL_STOP
 
     call flow_driven_instabilities_eq()
   end subroutine RTI_eq

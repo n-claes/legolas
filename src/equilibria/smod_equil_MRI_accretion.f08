@@ -37,12 +37,12 @@ contains
     real(dp)      :: p0(gauss_gridpts), dp_dr(gauss_gridpts)
     integer       :: i
 
-    geometry = 'cylindrical'
+    geometry = "cylindrical"
     x_start = 1.0d0
     call allow_geometry_override(default_x_end=2.0d0)
     call initialise_grid()
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       flow = .true.
       external_gravity = .true.
       k2 = 0.0d0
@@ -50,7 +50,7 @@ contains
       beta = 100.0d0
       tau = 1.0d0
       nu = 0.1d0
-    end if
+    end if ! LCOV_EXCL_STOP
     mu1 = tau
     epsilon = nu
 
@@ -75,8 +75,9 @@ contains
       grav_field % grav(i) = 1.0d0 / r**2
 
       rho_field % d_rho0_dr(i) = -1.5d0 * r**(-2.5d0)
-      T_field % d_T0_dr(i) = (dp_dr(i) * (rho_field % rho0(i)) - (rho_field % d_rho0_dr(i)) * p0(i)) &
-                              / (rho_field % rho0(i))**2
+      T_field % d_T0_dr(i) = ( &
+        dp_dr(i) * (rho_field % rho0(i)) - (rho_field % d_rho0_dr(i)) * p0(i) &
+      ) / (rho_field % rho0(i))**2
       v_field % d_v02_dr(i) = -0.5d0 * vth1 * r**(-1.5d0)
       B_field % d_B02_dr(i) = -1.25d0 * Bth1 * r**(-2.25d0)
       B_field % d_B03_dr(i) = -1.25d0 * Bz1 * r**(-2.25d0)
