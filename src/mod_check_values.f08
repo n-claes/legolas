@@ -33,10 +33,16 @@ module mod_check_values
     module procedure real_is_negative
   end interface is_negative
 
+  !> interface to check if an array is constant
+  interface is_constant
+    module procedure real_array_is_constant
+  end interface is_constant
+
   public :: set_small_values_to_zero
   public :: is_NaN
   public :: is_equal
   public :: is_negative
+  public :: is_constant
 
 contains
 
@@ -156,5 +162,23 @@ contains
 
     real_is_negative = (value < 0.0d0)
   end function real_is_negative
+
+
+  !> Check if an array has constant values
+  logical function real_array_is_constant(array, tol)
+    !> the real array to check
+    real(dp), intent(in) :: array(:)
+    !> optional tolerance
+    real(dp), intent(in), optional :: tol
+    real(dp) :: tolerance
+
+    if (present(tol)) then
+      tolerance=tol
+    else
+      tolerance=dp_LIMIT
+    end if
+
+    real_array_is_constant = all(abs(array - array(1)) <= tolerance)
+  end function real_array_is_constant
 
 end module mod_check_values

@@ -1,7 +1,7 @@
 module mod_test_valuechecks
   use mod_suite_utils
   use funit
-  use mod_check_values, only: set_small_values_to_zero, is_NaN, is_equal, is_negative
+  use mod_check_values
   implicit none
 
 contains
@@ -171,4 +171,17 @@ contains
     array(5) = -0.1d0
     @assertTrue(any(is_negative(array)))
   end subroutine test_is_negative
+
+
+  @test
+  subroutine test_is_constant_fail()
+    real(dp)  :: array(30)
+
+    call set_name("check is_constant")
+    array = 2.0d0
+    array(9) = 3.0d0
+    @assertFalse(is_constant(array))
+    array = 5.0d0
+    @assertTrue(is_constant(array))
+  end subroutine test_is_constant_fail
 end module mod_test_valuechecks
