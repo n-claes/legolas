@@ -76,7 +76,7 @@ contains
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
       kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions, only: ef_grid, ef_names, ef_array
-    use mod_postprocessing, only: pp_names, pp_array
+    use mod_postprocessing, only: pp_names, pp_array, nb_pp
     use mod_check_values, only: is_equal
     use mod_equilibrium_params
     use mod_units

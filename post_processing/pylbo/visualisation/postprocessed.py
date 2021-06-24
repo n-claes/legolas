@@ -236,6 +236,8 @@ class PostprocessedHandler:
             pp_name = pp_name.replace(idx, suffix[i])
         pp_name = pp_name.replace("div", "\\nabla\\cdot")
         pp_name = pp_name.replace("curl", "\\nabla\\times")
+        pp_name = pp_name.replace("para", "\\parallel")
+        pp_name = pp_name.replace("perp", "\\perp")
         name = fr"{part}(${pp_name}$)"
         return name
 

@@ -158,8 +158,6 @@ module mod_global_variables
   integer                   :: logging_level
   !> boolean for doing a dry run, defaults to <tt>False</tt>
   logical, save             :: dry_run
-  !> number of postprocessing quantities
-  integer, parameter        :: nb_pp = 11
 
   !> method to solve the eigenvalue problem, defaults to <tt>"QR-invert"</tt>
   character(len=str_len)    :: solver
