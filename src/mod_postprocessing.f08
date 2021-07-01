@@ -611,9 +611,6 @@ contains
 
     if (allocated(pp_names)) then
       deallocate(pp_names)
-    end if
-
-    if (allocated(pp_array(1) % quantities)) then
       do i = 1, nb_pp
         deallocate(pp_array(i) % quantities)
       end do
