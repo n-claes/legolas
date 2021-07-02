@@ -1,11 +1,11 @@
-name: website
+name: docs
 
 on:
   push:
-    branches: [ master ]
+    branches: [ docs/devdocs ]
 
 jobs:
-  deploy:
+  develop:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,23 +23,18 @@ jobs:
         pip install -U sphinx
         pip install numpydoc sphinx-rtd-theme lazy-object-proxy==1.4 sphinx-autoapi
 
-    - name: Build Fortran docs
+    - name: Generate documentation
       run: |
         cd docs
-        ford build_ford.md
-
-    - name: Build Python docs
-      run: |
-        cd docs
-        sh build_sphinx.sh
+        python generate_docs.py develop
 
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          external_repository: n-claes/legolas.science-dev
+          publish_branch: main
           publish_dir: ./docs
-          cname: legolas.science
+          cname: dev.legolas.science
           enable_jekyll: true
-          full_commit_message: "deploy ${{ github.sha }}: ${{ github.event.head_commit.message }}"
-          force_orphan: true
+          full_commit_message: "dev: deploy n-claes/legolas@${{ github.sha }}"
