@@ -16,6 +16,7 @@ from regression_tests.suite_utils import (
     EF_NAMES,
 )
 from regression_tests.test_adiabatic_homo import adiabatic_homo_setup
+from regression_tests.test_couette_flow import couette_flow_setup
 from regression_tests.test_discrete_alfven import discrete_alfven_setup
 from regression_tests.test_fluxtube_coronal import fluxtube_coronal_setup
 from regression_tests.test_fluxtube_photospheric import fluxtube_photospheric_setup
@@ -46,6 +47,7 @@ from regression_tests.test_tokamak import tokamak_setup
 # retrieve test setups
 tests_to_run = [
     adiabatic_homo_setup,
+    couette_flow_setup,
     discrete_alfven_setup,
     fluxtube_coronal_setup,
     fluxtube_photospheric_setup,

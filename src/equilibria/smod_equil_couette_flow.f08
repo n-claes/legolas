@@ -12,11 +12,13 @@ contains
     real(dp)    :: x, h
     integer     :: i
 
-    call allow_geometry_override(default_geometry='Cartesian', default_x_start=0.0d0, default_x_end=1.0d0)
+    call allow_geometry_override( &
+      default_geometry='Cartesian', default_x_start=0.0d0, default_x_end=1.0d0 &
+    )
     call initialise_grid()
 
     flow = .true.
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       cte_v02  = 0.0d0
       cte_v03  = 1.0d0
       cte_T0   = 1.0d0
@@ -27,7 +29,7 @@ contains
 
       viscosity = .true.
       viscosity_value = 1.0d-3
-    end if
+    end if ! LCOV_EXCL_STOP
 
     h = x_end - x_start
 
