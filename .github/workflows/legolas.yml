@@ -9,7 +9,7 @@ on:
 env:
   CC: /usr/bin/gcc-9
   FC: /usr/bin/gfortran-9
-  PFUNIT_DIR: /home/runner/work/legolas/legolas/tests/core_tests/pFUnit/build/installed
+  PFUNIT_DIR: /home/runner/work/legolas/legolas/tests/pFUnit/build/installed
   LEGOLASDIR: /home/runner/work/legolas/legolas
   ARPACK_ROOT: /home/runner/work/legolas/legolas/tests/arpack-ng
 
@@ -59,13 +59,13 @@ jobs:
       id: pfunit-cache
       uses: actions/cache@v1
       with:
-        path: tests/core_tests/pFUnit/
+        path: tests/pFUnit/
         key: ${{ runner.os }}-pfunitv1
 
     - name: Build pFUnit
       if: steps.pfunit-cache.outputs.cache-hit != 'true'
       run: |
-        cd tests/core_tests
+        cd tests/
         git clone https://github.com/Goddard-Fortran-Ecosystem/pFUnit.git
         cd pFUnit
         mkdir build
