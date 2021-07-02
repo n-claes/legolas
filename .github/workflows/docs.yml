@@ -35,5 +35,6 @@ jobs:
           external_repository: n-claes/legolas.science-dev
           publish_branch: main
           publish_dir: ./docs
+          cname: dev.legolas.science
           enable_jekyll: true
-          full_commit_message: "dev - deploy ${{ github.sha }}: ${{ github.event.head_commit.message }}"
+          full_commit_message: "dev: deploy n-claes/legolas@${{ github.sha }}"
