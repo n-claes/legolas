@@ -44,6 +44,13 @@ from regression_tests.test_suydam import suydam_setup
 from regression_tests.test_taylor_couette import taylor_couette_setup
 from regression_tests.test_tokamak import tokamak_setup
 
+from regression_tests.test_multi_constant_current import constant_current_setup
+from regression_tests.test_multi_coronal_fluxtube import coronal_tube_setup
+from regression_tests.test_multi_gravito_HD import gravito_hd_setup
+from regression_tests.test_multi_gravito_MHD import gravito_mhd_setup
+from regression_tests.test_multi_interchange import interchange_setup
+from regression_tests.test_multi_photospheric_fluxtube import photospheric_tube_setup
+
 
 # retrieve test setups
 tests_to_run = [
@@ -74,6 +81,15 @@ tests_to_run = [
     taylor_couette_setup,
     tokamak_setup,
 ]
+multirun_tests = [
+    constant_current_setup,
+    coronal_tube_setup,
+    gravito_hd_setup,
+    gravito_mhd_setup,
+    interchange_setup,
+    photospheric_tube_setup,
+]
+
 # configure test setup
 for _setup in tests_to_run:
     # get filepaths
@@ -90,17 +106,69 @@ for _setup in tests_to_run:
     _setup["config"]["output_folder"] = str(output)
     # avoid running the same test multipe times
     _setup["test_needs_run"] = True
+# configure multirun test setup
+for _setup in multirun_tests:
+    name = _setup["name"]
+    answer_series, _ = get_answer_filepaths(name)
+    _setup["answer_series"] = answer_series.with_suffix(".pickle")
+    _setup["test_needs_run"] = True
+    _setup["config"]["basename_datfile"] = f"{name}_series"
+    _setup["config"]["output_folder"] = str(output)
+
 # set test IDs
 ids = [_setup["name"] for _setup in tests_to_run]
+multirun_ids = [_setup["name"] for _setup in multirun_tests]
 
 
-# ===== GENERAL TESTS =====
+# ===== EXISTENCE OF ANSWER FILES =====
+# single spectra
+@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
+def test_answer_datfile_exists(setup):
+    if not setup["answer_datfile"].is_file():
+        raise FileNotFoundError(f"{setup['answer_datfile']} does not exist!")
+
+
+# multirun spectra
+@pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
+def test_answer_multirun_file_exists(setup):
+    if not setup["answer_series"].is_file():
+        raise FileNotFoundError(f"{setup['answer_series']} does not exist!")
+
+
+# ===== GENERATION OF SINGLE FILES =====
 @pytest.mark.parametrize("setup", tests_to_run, ids=ids)
 def test_generate_datfile(ds_test, ds_answer, setup):
     assert ds_test.datfile == setup["datfile"]
     assert ds_answer.datfile == setup["answer_datfile"]
 
 
+# ===== EXISTENCE OF SINGLE FILES =====
+@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
+def test_datfile_exists(setup):
+    if not setup["datfile"].is_file():
+        raise FileNotFoundError(f"{setup['datfile']} does not exist!")
+
+
+# ===== GENERATION OF MULTIRUN FILES =====
+@pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
+def test_generate_multirun_file(series_test, series_answer, setup):
+    assert len(series_test) == setup["config"]["number_of_runs"]
+    assert len(series_test) == len(series_answer)
+
+
+# ===== EXISTENCE OF MULTIRUN FILES =====
+@pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
+def test_multirun_file_exists(setup):
+    files = sorted(
+        Path(setup["config"]["output_folder"]).glob(
+            f"*{setup['config']['basename_datfile']}.dat"
+        )
+    )
+    if not files:
+        raise FileNotFoundError(f"No multirun datfiles found for {setup['name']}!")
+
+
+# ===== GENERATION OF SPECTRUM IMAGES =====
 @pytest.mark.parametrize("setup", tests_to_run, ids=ids)
 def test_generate_spectrum_images(ds_test, ds_answer, setup, imagedir):
     p_test = pylbo.plot_spectrum(ds_test)
@@ -124,6 +192,7 @@ def test_generate_spectrum_images(ds_test, ds_answer, setup, imagedir):
     plt.close(p_answer.fig)
 
 
+# ===== GENERATION OF EIGENFUNCTION IMAGES =====
 @pytest.mark.parametrize(
     "setup",
     [s for s in tests_to_run if s.get("eigenfunctions") is not None],
@@ -175,12 +244,36 @@ def test_generate_eigenfunction_images(ds_test, ds_answer, setup, imagedir):
     plt.close(fig_test)
 
 
-@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
-def test_existence(setup):
-    assert Path.is_file(setup["datfile"])
-    assert Path.is_file(setup["logfile"])
-    assert Path.is_file(setup["answer_datfile"])
-    assert Path.is_file(setup["answer_logfile"])
+# ===== GENERATION OF MULTIRUN IMAGES =====
+@pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
+def test_generate_multi_spectra_images(series_test, series_answer, setup, imagedir):
+    setup["spectrum_images"] = []
+    p_test = pylbo.plot_spectrum_multi(
+        series_test, xdata=setup["xdata"], use_squared_omega=setup["use_squared_omega"]
+    )
+    p_answer = pylbo.plot_spectrum_multi(
+        series_answer,
+        xdata=setup["xdata"],
+        use_squared_omega=setup["use_squared_omega"],
+    )
+    xlims = setup["limits"]["xlims"]
+    ylims = setup["limits"]["ylims"]
+    for p in (p_test, p_answer):
+        p.set_x_scaling(setup.get("x_scaling", 1))
+        p.set_y_scaling(setup.get("y_scaling", 1))
+        if setup.get("symlog", None) is not None:
+            p.ax.set_yscale("symlog", linthresh=setup["symlog"])
+        p.ax.set_xlim(xlims)
+        p.ax.set_ylim(ylims)
+    figname = f"{get_image_filename(setup['name'], limits_dict=setup['limits'])}.png"
+    figname_answer = f"{figname[:-4]}-baseline.png"
+    # save test image
+    p_test.fig.savefig(imagedir / figname, **SAVEFIG_KWARGS)
+    # save baseline image
+    p_answer.fig.savefig(imagedir / figname_answer, **SAVEFIG_KWARGS)
+    setup["spectrum_images"].append((figname, figname_answer))
+    plt.close(p_test.fig)
+    plt.close(p_answer.fig)
 
 
 @pytest.mark.parametrize("setup", tests_to_run, ids=ids)
@@ -213,6 +306,22 @@ def test_eigenvalue_spectrum(imagedir, setup, idx, keep_files):
         tol=setup["image_limits"][idx].get("RMS_TOLERANCE", RMS_TOLERANCE),
     )
     # result will be None if test succeeds, if pass we remove the images
+    if result is not None:
+        pytest.fail(result, pytrace=False)
+    else:
+        if not keep_files:
+            Path(imagedir / baseline_image).unlink()
+            Path(imagedir / test_image).unlink()
+
+
+@pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
+def test_multirun_spectrum(imagedir, setup, keep_files):
+    test_image, baseline_image = setup["spectrum_images"][0]
+    result = compare_images(
+        str(imagedir / baseline_image),
+        str(imagedir / test_image),
+        tol=setup.get("RMS_TOLERANCE", RMS_TOLERANCE),
+    )
     if result is not None:
         pytest.fail(result, pytrace=False)
     else:
