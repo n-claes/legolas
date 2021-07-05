@@ -1,0 +1,38 @@
+taylor_couette_setup = {
+    "name": "taylor_couette_QR",
+    "config": {
+        "geometry": "cylindrical",
+        "x_start": 1,
+        "x_end": 2,
+        "gridpoints": 51,
+        "parameters": {
+            "k2": 0,
+            "k3": 1,
+            "cte_rho0": 1.0,
+            "alpha": 1.0,
+            "beta": 2.0,
+        },
+        "flow": True,
+        "coaxial": True,
+        "viscosity": True,
+        "viscosity_value": 1e-3,
+        "equilibrium_type": "taylor_couette",
+        "logging_level": 0,
+        "show_results": False,
+        "write_eigenfunctions": True,
+        "write_matrices": False,
+    },
+    "image_limits": [
+        {"xlims": (-1100, 1100), "ylims": (-155, 5)},
+        {"xlims": (-175, 175), "ylims": (-35, 4)},
+        {"xlims": (-18, 18), "ylims": (-3, 0.3)},
+        {"xlims": (-1.5, 1.5), "ylims": (-1.25, 0.2)},
+    ],
+    "eigenfunctions": [
+        {"eigenvalue": 0.87784 - 0.04820j},
+        {"eigenvalue": 0.49861 - 0.08124j},
+        {"eigenvalue": 0.21295 - 0.31135j},
+        {"eigenvalue": 0.00000 + 0.03457j},
+        {"eigenvalue": 0.00000 + 0.02917j},
+    ],
+}

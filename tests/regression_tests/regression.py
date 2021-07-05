@@ -41,36 +41,38 @@ from regression_tests.test_RTI_KHI import rti_khi_setup
 from regression_tests.test_RTI_theta_pinch_HD import rti_thetapinch_hd_setup
 from regression_tests.test_RTI_theta_pinch_MHD import rti_thetapinch_mhd_setup
 from regression_tests.test_suydam import suydam_setup
+from regression_tests.test_taylor_couette import taylor_couette_setup
 from regression_tests.test_tokamak import tokamak_setup
 
 
 # retrieve test setups
 tests_to_run = [
-    adiabatic_homo_setup,
-    couette_flow_setup,
-    discrete_alfven_setup,
-    fluxtube_coronal_setup,
-    fluxtube_photospheric_setup,
-    gold_hoyle_setup,
-    interchange_modes_setup,
-    internal_kink_setup,
-    kh_cd_setup,
-    khi_setup,
-    magnetothermal_setup,
-    magneto_arnoldi_si_setup,
-    mri_setup,
-    quasimodes_setup,
-    resistive_homo_setup,
-    resistive_homo_arnoldi_si_setup,
-    resistive_tearing_setup,
-    resistive_tearing_flow_setup,
-    rotating_cylinder_setup,
-    rti_setup,
-    rti_khi_setup,
-    rti_thetapinch_hd_setup,
-    rti_thetapinch_mhd_setup,
-    suydam_setup,
-    tokamak_setup,
+    # adiabatic_homo_setup,
+    # couette_flow_setup,
+    # discrete_alfven_setup,
+    # fluxtube_coronal_setup,
+    # fluxtube_photospheric_setup,
+    # gold_hoyle_setup,
+    # interchange_modes_setup,
+    # internal_kink_setup,
+    # kh_cd_setup,
+    # khi_setup,
+    # magnetothermal_setup,
+    # magneto_arnoldi_si_setup,
+    # mri_setup,
+    # quasimodes_setup,
+    # resistive_homo_setup,
+    # resistive_homo_arnoldi_si_setup,
+    # resistive_tearing_setup,
+    # resistive_tearing_flow_setup,
+    # rotating_cylinder_setup,
+    # rti_setup,
+    # rti_khi_setup,
+    # rti_thetapinch_hd_setup,
+    # rti_thetapinch_mhd_setup,
+    # suydam_setup,
+    taylor_couette_setup,
+    # tokamak_setup,
 ]
 # configure test setup
 for _setup in tests_to_run:

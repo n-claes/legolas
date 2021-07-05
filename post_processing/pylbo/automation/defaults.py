@@ -12,6 +12,7 @@ namelist_items = {
         ("sigma_1", (int, np.integer, float)),
         ("sigma_2", (int, np.integer, float)),
         ("force_r0", bool),
+        ("coaxial", bool),
     ],
     "equilibriumlist": [
         ("equilibrium_type", str),
