@@ -49,6 +49,7 @@ from regression_tests.test_multi_coronal_fluxtube import coronal_tube_setup
 from regression_tests.test_multi_gravito_HD import gravito_hd_setup
 from regression_tests.test_multi_gravito_MHD import gravito_mhd_setup
 from regression_tests.test_multi_interchange import interchange_setup
+from regression_tests.test_multi_iso_atmo import iso_atmo_beta_half_setup
 from regression_tests.test_multi_photospheric_fluxtube import photospheric_tube_setup
 
 
@@ -87,6 +88,7 @@ multirun_tests = [
     gravito_hd_setup,
     gravito_mhd_setup,
     interchange_setup,
+    iso_atmo_beta_half_setup,
     photospheric_tube_setup,
 ]
 

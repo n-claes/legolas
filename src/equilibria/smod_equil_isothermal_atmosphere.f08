@@ -37,7 +37,7 @@ contains
     call allow_geometry_override(default_x_start=0.0d0, default_x_end=1.0d0)
     call initialise_grid()
 
-    if (use_defaults) then
+    if (use_defaults) then  ! LCOV_EXCL_START
       external_gravity = .true.
       cte_rho0 = 1.0d0
       cte_B02 = 0.25d0
@@ -47,7 +47,7 @@ contains
 
       k2 = 0.0d0
       k3 = 2.0d0
-    end if
+    end if  ! LCOV_EXCL_STOP
 
     scale_height = cte_T0 / g
 
