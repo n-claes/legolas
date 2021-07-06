@@ -16,7 +16,6 @@
 !! - <tt>g</tt> = 0.5 : used to set the gravity constant.
 !!
 !! and can all be changed in the parfile. @endnote
-!! @warning This equilibrium has no regression test yet! @endwarning
 submodule (mod_equilibrium) smod_equil_gravito_acoustic
   implicit none
 
@@ -28,10 +27,12 @@ contains
     real(dp)  :: x, g
     integer   :: i
 
-    call allow_geometry_override(default_geometry='Cartesian', default_x_start=0.0d0, default_x_end=1.0d0)
+    call allow_geometry_override( &
+      default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0 &
+    )
     call initialise_grid()
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       external_gravity = .true.
 
       k2 = dpi
@@ -39,7 +40,7 @@ contains
       cte_p0 = 1.0d0
       alpha = 20.42d0
       g = 0.5d0
-    end if
+    end if ! LCOV_EXCL_STOP
 
     cte_rho0 = alpha * cte_p0 / g
     T_field % T0      = cte_p0 / cte_rho0

@@ -15,7 +15,6 @@
 !! - <tt>g</tt> = 0.5 : used to set the gravity constant.
 !!
 !! and can all be changed in the parfile. @endnote
-!! @warning This equilibrium has no regression test yet! @endwarning
 submodule (mod_equilibrium) smod_equil_gravito_mhd
   implicit none
 
@@ -28,10 +27,10 @@ contains
     integer   :: i
 
     call allow_geometry_override( &
-      default_geometry='Cartesian', default_x_start=0.0d0, default_x_end=1.0d0 &
+      default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0 &
     )
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       external_gravity = .true.
 
       k2 = dpi
@@ -39,7 +38,7 @@ contains
       cte_p0 = 0.5d0
       g = 0.5d0
       alpha = 20.0d0
-    end if
+    end if ! LCOV_EXCL_END
 
     B0 = 1.0d0
     beta  = 2.0d0*cte_p0 / B0**2
