@@ -39,6 +39,7 @@ contains
 
     real(dp)    :: mhd_gamma
     real(dp)    :: unit_density, unit_temperature, unit_magneticfield, unit_length
+    real(dp)    :: mean_molecular_weight
     integer     :: gridpoints
 
     namelist /physicslist/  &
@@ -50,7 +51,8 @@ contains
         viscosity, viscous_heating, viscosity_value, incompressible, &
         hall_mhd, hall_dropoff, elec_pressure, elec_inertia, inertia_dropoff
     namelist /unitslist/    &
-        cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length
+        cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length, &
+        mean_molecular_weight
     namelist /gridlist/ &
         geometry, x_start, x_end, gridpoints, force_r0, coaxial
     namelist /equilibriumlist/ &
@@ -81,6 +83,7 @@ contains
     unit_temperature = NaN
     unit_magneticfield = NaN
     unit_length = NaN
+    mean_molecular_weight = NaN
 
     open(unit_par, file=trim(parfile), status='old')
     !! Start reading namelists, rewind so they can appear out of order
@@ -127,30 +130,57 @@ contains
         "unit density and unit temperature cannot both be provided in the parfile!", &
         level="error" &
       )
-    else if (.not. is_NaN(unit_density)) then
+      return
+    end if
+
+    ! set normalisations if density is supplied
+    if (.not. is_NaN(unit_density)) then
       if (is_NaN(unit_magneticfield) .or. is_NaN(unit_length)) then
         call log_message( &
           "unit_density found, unit_magneticfield and unit_length also required.", &
           level="error" &
         )
+        return
       end if
-      call set_normalisations( &
-        new_unit_density=unit_density, &
-        new_unit_magneticfield=unit_magneticfield, &
-        new_unit_length=unit_length &
-      )
-    else if (.not. is_NaN(unit_temperature)) then
+      if (is_NaN(mean_molecular_weight)) then
+        call set_normalisations( &
+          new_unit_density=unit_density, &
+          new_unit_magneticfield=unit_magneticfield, &
+          new_unit_length=unit_length &
+        )
+      else
+        call set_normalisations( &
+          new_unit_density=unit_density, &
+          new_unit_magneticfield=unit_magneticfield, &
+          new_unit_length=unit_length, &
+          new_mean_molecular_weight=mean_molecular_weight &
+        )
+      end if
+    end if
+
+    ! set normalisations if temperature is supplied
+    if (.not. is_NaN(unit_temperature)) then
       if (is_NaN(unit_magneticfield) .or. is_NaN(unit_length)) then
         call log_message( &
           "unit_temperature found, unit_magneticfield and unit_length also required.", &
           level="error" &
         )
+        return
       end if
-      call set_normalisations( &
-        new_unit_temperature=unit_temperature, &
-        new_unit_magneticfield=unit_magneticfield, &
-        new_unit_length=unit_length &
-      )
+      if (is_NaN(mean_molecular_weight)) then
+        call set_normalisations( &
+          new_unit_temperature=unit_temperature, &
+          new_unit_magneticfield=unit_magneticfield, &
+          new_unit_length=unit_length &
+        )
+      else
+        call set_normalisations( &
+          new_unit_temperature=unit_temperature, &
+          new_unit_magneticfield=unit_magneticfield, &
+          new_unit_length=unit_length, &
+          new_mean_molecular_weight=mean_molecular_weight &
+        )
+      end if
     end if
   end subroutine read_parfile
 

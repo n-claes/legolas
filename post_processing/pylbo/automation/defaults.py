@@ -63,6 +63,7 @@ namelist_items = {
         ("unit_temperature", (int, np.integer, float)),
         ("unit_magneticfield", (int, np.integer, float)),
         ("unit_length", (int, np.integer, float)),
+        ("mean_molecular_weight", (int, np.integer, float)),
     ],
     "solvelist": [
         ("solver", str),

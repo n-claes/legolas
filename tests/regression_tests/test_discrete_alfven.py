@@ -19,6 +19,7 @@ discrete_alfven_setup = {
         "unit_density": 1.5e-15,
         "unit_magneticfield": 50.0,
         "unit_length": 1.0e10,
+        "mean_molecular_weight": 1.0,
         "logging_level": 0,
         "show_results": False,
         "write_eigenfunctions": False,

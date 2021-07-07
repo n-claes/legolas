@@ -53,7 +53,8 @@ contains
       call set_normalisations( &
         new_unit_temperature=2.6d6, &
         new_unit_magneticfield=10.0d0, &
-        new_unit_length=1.00d8 &
+        new_unit_length=1.00d8, &
+        new_mean_molecular_weight=1.0d0 & ! this work assumes pure proton plasma
       )
 
       cte_T0 = 1.0d0

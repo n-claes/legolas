@@ -25,6 +25,7 @@ gold_hoyle_setup = {
         "unit_density": 1.6727e-15,
         "unit_magneticfield": 22.5,
         "unit_length": 1.0e10,
+        "mean_molecular_weight": 1.0,
         "logging_level": 0,
         "show_results": False,
         "write_eigenfunctions": False,

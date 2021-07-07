@@ -69,19 +69,22 @@ contains
       call set_normalisations( &
         new_unit_density=1.6727d-15, &
         new_unit_magneticfield=22.5d0, &
-        new_unit_length=1.0d10 &
+        new_unit_length=1.0d10, &
+        new_mean_molecular_weight=1.0d0 & ! pure proton plasma
       )
       ! hot plasma: B = 67.0 G, rho = 1.6726e-12 kg/m3, R = 1e9 m, T = 2.6e6 K
       ! call set_normalisations( &
       !   new_unit_density=1.6727d-15, &
       !   new_unit_magneticfield=67.0d0, &
-      !   new_unit_length=1.0d11 &
+      !   new_unit_length=1.0d11, &
+      !   new_mean_molecular_weight=1.0d0 & ! pure proton plasma
       ! )
       ! cold plasma: B = 10.0 G, rho = 1.6726e-12 kg/m3, R = 1e8 m, T = 5.7e4 K
       ! call set_normalisations( &
       !   new_unit_density=1.6727d-15, &
       !   new_unit_magneticfield=10.0d0, &
-      !   new_unit_length=1.0d10 &
+      !   new_unit_length=1.0d10, &
+      !   new_mean_molecular_weight=1.0d0 & ! pure proton plasma
       ! )
     end if ! LCOV_EXCL_STOP
 
