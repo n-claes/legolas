@@ -1,5 +1,5 @@
 src_dir: ../src
-output_dir: content/src-docs/ford
+output_dir: ford
 project: Legolas
 project_github: https://github.com/n-claes/legolas
 project_website: ../../../index.html

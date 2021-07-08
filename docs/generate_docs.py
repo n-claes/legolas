@@ -78,9 +78,7 @@ def generate_sphinx_docs(branch):
         ostream.write(f"version: {_read_pylbo_version()}\n")
         ostream.write(f"release: {branch}")
     # generate documentation
-    subprocess.check_call(
-        ["sphinx-build", "-b", "html", "sphinx_source", "content/src-docs/sphinx"]
-    )
+    subprocess.check_call(["sphinx-build", "-b", "html", "sphinx_source", "sphinx"])
     # remove temporary file
     os.remove(pylbo_tmp)
 

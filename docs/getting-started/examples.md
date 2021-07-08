@@ -11,23 +11,16 @@ paper, and are explained in more detail there.
 
 # Suydam cluster modes
 
-![image-center]({{site.baseurl}}{% link assets/images/example_suydam.png %}){: .align-center}
+![image-center]({% link /assets/images/example_suydam.png %}){: .align-center}
 Single spectrum with eigenfunctions, showing Suydam cluster modes in a cylindrical geometry with shear flow.
-
-
-# Tokamak current profile
-
-![image-center]({{site.baseurl}}{% link assets/images/example_tokamak.png %}){: .align-center}
-Multirun showing unstable interchange modes, for a cylindrical geometry and a magnetic field with constant pitch.
-
 
 # Quasi-modes
 
-![image-center]({{site.baseurl}}{%link assets/images/example_quasimodes.png %}){: .align-center}
+![image-center]({%link /assets/images/example_quasimodes.png %}){: .align-center}
 Single spectrum with eigenfunctions, shows a resistive quasi-mode and its theoretical prediction.
 
 
 # Resistive tearing modes
-![image-center]({{site.baseurl}}{% link assets/images/example_tearing.png %}){: .align-center}
+![image-center]({% link /assets/images/example_tearing.png %}){: .align-center}
 Both single and multiruns of a resistive tearing equilibrium, showing perfect agreement with theoretical predictions.
 Legolas can handle magnetic Reynolds numbers of a few million without any issues.

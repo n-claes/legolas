@@ -14,7 +14,7 @@ example:
              of specific modes, to full-on parametric studies of various equilibrium configurations in different
              geometries. Take a look at the examples to see what the code is capable of.
     title: "Examples"
-    url: /content/getting-started/examples/
+    url: /getting-started/examples/
     btn_label: "Read More"
     btn_class: "btn--primary"
 code_paper:
