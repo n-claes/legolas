@@ -23,6 +23,7 @@ magneto_arnoldi_si_setup = {
         "unit_temperature": 2.6e6,
         "unit_magneticfield": 10.0,
         "unit_length": 1.0e8,
+        "mean_molecular_weight": 1.0,
         "logging_level": 0,
         "show_results": False,
         "write_eigenfunctions": True,

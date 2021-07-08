@@ -104,7 +104,8 @@ contains
     call set_normalisations( &
       new_unit_temperature=1.0d6, &
       new_unit_magneticfield=5.0d0, &
-      new_unit_length=1.0d10 &
+      new_unit_length=1.0d10, &
+      new_mean_molecular_weight=1.0d0 &
     )
   end subroutine set_default_units
 

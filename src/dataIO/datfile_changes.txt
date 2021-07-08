@@ -24,3 +24,8 @@ No update of the pylbo reader needed
 === version 1.0.5 --> 1.1.1 === (PR #71)
 1) added B01, ddT0, v01, dv01, ddv01 to equil_names
 2) added B01, ddT0, v01, dv01, ddv01 to equilibrium data
+
+=== version 1.1.1 --> 1.1.2 ===
+1) added mean_molecular_weight to unit_names
+2) added mean molecular weight to units
+added this in a backwards compatible way to the pylbo reader

@@ -22,7 +22,7 @@
 !!          a way that the normalised resistivity equals 0.1 at 1 MK. @endnote
 module mod_units
   use mod_global_variables, only: dp, cgs_units
-  use mod_logging, only: log_message
+  use mod_logging, only: log_message, str
   implicit none
 
   private
@@ -61,6 +61,9 @@ module mod_units
   real(dp), protected   :: unit_deta_dT = 1.0d0
   !> mass normalisation
   real(dp), protected   :: unit_mass = 1.0d0
+  !> mean molecular weight
+  real(dp), protected   :: mean_molecular_weight = 1.0d0
+
 
   !> boolean to check if normalisations are set
   logical, protected    :: normalisations_are_set = .false.
@@ -75,6 +78,7 @@ module mod_units
   public  :: unit_numberdensity, unit_lambdaT, unit_dlambdaT_dT
   public  :: unit_conduction, unit_dtc_drho, unit_dtc_dT, unit_dtc_dB2
   public  :: unit_resistivity, unit_deta_dT
+  public  :: mean_molecular_weight
 
 contains
 
@@ -132,14 +136,20 @@ contains
   !> Defines unit normalisations based on a magnetic field unit, length unit,
   !! and a density OR temperature unit. Calling this routine automatically
   !! sets <tt>normalisations_are_set</tt> to <tt>True</tt>.
-  !! @note  It is good practice to specify the keyword arguments when calling this routine,
-  !!        to make sure units are not switched. @endnote
+  !! An optional mean molecular weight can be passed, which defaults to 1/2
+  !! corresponding to an electron-proton plasma.
+  !! @note  It is good practice to specify the keyword arguments when calling this
+  !!        routine, to make sure units are not switched. @endnote
   !! @warning Throws an error if:
   !!
   !! - the unit density and unit temperature are both specified.
   !! - neither unit density or unit temperature is specified.  @endwarning
   subroutine set_normalisations( &
-    new_unit_density, new_unit_temperature, new_unit_magneticfield, new_unit_length &
+    new_unit_density, &
+    new_unit_temperature, &
+    new_unit_magneticfield, &
+    new_unit_length, &
+    new_mean_molecular_weight &
   )
     !> new value for the unit density
     real(dp), intent(in), optional  :: new_unit_density
@@ -149,6 +159,8 @@ contains
     real(dp), intent(in)            :: new_unit_magneticfield
     !> new value for the unit length
     real(dp), intent(in)            :: new_unit_length
+    !> new value for the mean molecular weigth
+    real(dp), intent(in), optional  :: new_mean_molecular_weight
     real(dp)  :: kB, mp, mu0, Rgas
 
     call get_constants(kB, mp, mu0, Rgas)
@@ -156,6 +168,13 @@ contains
     if (present(new_unit_density) .and. present(new_unit_temperature)) then
       call log_message( &
         "unit density and unit temperature can not both be set.", level="error" &
+      )
+    end if
+
+    if (present(new_mean_molecular_weight)) then
+      mean_molecular_weight = new_mean_molecular_weight
+      call log_message( &
+        "mean molecular weight set to " // str(mean_molecular_weight), level="info" &
       )
     end if
 
@@ -176,10 +195,14 @@ contains
 
     if (present(new_unit_density)) then
       unit_density = new_unit_density
-      unit_temperature = unit_pressure * mp / (kB * unit_density)
+      unit_temperature = ( &
+        mean_molecular_weight * unit_pressure * mp / (kB * unit_density) &
+      )
     else if (present(new_unit_temperature)) then
       unit_temperature = new_unit_temperature
-      unit_density = unit_pressure * mp / (kB * unit_temperature)
+      unit_density = ( &
+        mean_molecular_weight * unit_pressure * mp / (kB * unit_temperature) &
+      )
     else
       call log_message("no unit density or unit temperature specified.", level="error")
     end if

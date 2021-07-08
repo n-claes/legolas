@@ -89,7 +89,7 @@ contains
 
     real(dp)  :: b01_array(size(B_field % B02))
     character(len=str_len_arr)    :: param_names(33), equil_names(32)
-    character(len=2*str_len_arr)  :: unit_names(11)
+    character(len=2*str_len_arr)  :: unit_names(12)
     integer                       :: i, j, nonzero_A_values, nonzero_B_values
 
     param_names = [ &
@@ -113,7 +113,8 @@ contains
     unit_names = [ &
       character(len=2*str_len_arr) :: "unit_length", "unit_time", "unit_density", &
       "unit_velocity", "unit_temperature", "unit_pressure", "unit_magneticfield", &
-      "unit_numberdensity", "unit_lambdaT", "unit_conduction", "unit_resistivity" &
+      "unit_numberdensity", "unit_lambdaT", "unit_conduction", "unit_resistivity", &
+      "mean_molecular_weight" &
     ]
     ! fill B01 array
     b01_array = B_field % B01
@@ -135,7 +136,7 @@ contains
     write(dat_fh) size(unit_names), len(unit_names(1)), unit_names
     write(dat_fh) unit_length, unit_time, unit_density, unit_velocity, &
       unit_temperature, unit_pressure, unit_magneticfield, unit_numberdensity, &
-      unit_lambdaT, unit_conduction, unit_resistivity
+      unit_lambdaT, unit_conduction, unit_resistivity, mean_molecular_weight
 
     ! Next write the data itself
     ! General data: eigenvalues, grids, equilibrium configuration

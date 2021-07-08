@@ -48,7 +48,12 @@ contains
       use_fixed_tc_perp = .true.
       fixed_tc_perp_value = 0.0d0
       cgs_units = .true.
-      call set_normalisations(new_unit_density=1.5d-15, new_unit_magneticfield=50.0d0, new_unit_length=1.0d10)
+      call set_normalisations( &
+        new_unit_density=1.5d-15, &
+        new_unit_magneticfield=50.0d0, &
+        new_unit_length=1.0d10, &
+        new_mean_molecular_weight=1.0d0 & ! pure proton plasma
+      )
 
       j0 = 0.125d0
       delta = 0.2d0   ! d parameter in density prescription

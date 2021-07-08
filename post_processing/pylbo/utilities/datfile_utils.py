@@ -170,6 +170,9 @@ def get_header(istream):
     unit_values = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     for name, value in zip(unit_names, unit_values):
         units[name] = value
+    # mean molecular weight is added in 1.1.2, before this it defaults to 1
+    if "mean_molecular_weight" not in unit_names:
+        units["mean_molecular_weight"] = 1.0
     h["units"] = units
 
     # @Devnote Niels: do not read in data here but simply determine the data offset
