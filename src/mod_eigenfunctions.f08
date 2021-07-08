@@ -60,8 +60,6 @@ contains
   !! based on the right eigenvectors. The eigenfunctions are transformed
   !! back to their 'actual' values
   subroutine calculate_eigenfunctions(vr)
-    use mod_check_values, only: check_small_values
-
     !> the matrix of right eigenvectors
     complex(dp), intent(in) :: vr(:, :)
     !> eigenfunctio values

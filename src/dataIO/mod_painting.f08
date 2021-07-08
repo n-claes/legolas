@@ -33,6 +33,7 @@ module mod_painting
 contains
 
 
+  ! LCOV_EXCL_START <for convenience, not used when testing>
   !> Subroutine to paint a given string to the desired colour,
   !! returns a new string with ANSI escape sequences prepended
   !! and appended. If the 'colour' argument is not known, simply
@@ -64,4 +65,5 @@ contains
     end select
     msg_painted = fmt // msg // term
   end subroutine paint_string
+  ! LCOV_EXCL_STOP
 end module mod_painting

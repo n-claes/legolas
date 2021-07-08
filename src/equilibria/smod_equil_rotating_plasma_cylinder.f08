@@ -31,10 +31,11 @@ contains
     real(dp)    :: r
     integer     :: i
 
-    call allow_geometry_override(default_geometry='cylindrical', default_x_start=0.0d0, default_x_end=1.0d0)
+    call allow_geometry_override( &
+      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=1.0d0)
     call initialise_grid()
 
-    if (use_defaults) then
+    if (use_defaults) then  ! LCOV_EXCL_START
       flow = .true.
 
       a21 = 8.0d0
@@ -48,7 +49,7 @@ contains
 
       k2  = 1.0d0
       k3  = 0.0d0
-    else
+    else  ! LCOV_EXCL_STOP
       a21 = p1
       a22 = p2
       a3 = p3
@@ -67,17 +68,19 @@ contains
       B_field % B03(i) = b3
       B_field % B0(i)  = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
       T_field % T0(i)  = (1.0d0 / (rho_field % rho0(i))) &
-                          * (cte_p0 + 0.5d0 * (a21**2 - 2.0d0*b21**2)*r**2 &
-                            + (2.0d0/3.0d0)*(a21*a22 - b21*b22)*r**3 &
-                            + (1.0d0/4.0d0)*(a22**2 - b22**2)*r**4)
+        * (cte_p0 + 0.5d0 * (a21**2 - 2.0d0*b21**2)*r**2 &
+        + (2.0d0/3.0d0)*(a21*a22 - b21*b22)*r**3 &
+        + (1.0d0/4.0d0)*(a22**2 - b22**2)*r**4)
 
       B_field % d_B02_dr(i) = b21 + 2.0d0*b22*r
       B_field % d_B03_dr(i) = 0.0d0
       v_field % d_v02_dr(i) = a21 + 2.0d0*a22*r
       v_field % d_v03_dr(i) = 0.0d0
       T_field % d_T0_dr(i)  = (1.0d0 / (rho_field % rho0(i))) * ( &
-                                (a21**2 - 2.0d0*b21**2)*r + 2.0d0*(a21*a22 - b21*b22)*r**2 &
-                                + (a22**2 - b22**2)*r**3   )
+        (a21**2 - 2.0d0*b21**2)*r &
+        + 2.0d0*(a21*a22 - b21*b22)*r**2 &
+        + (a22**2 - b22**2)*r**3 &
+      )
     end do
   end subroutine rotating_plasma_cyl_eq
 

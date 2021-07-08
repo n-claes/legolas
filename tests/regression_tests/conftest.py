@@ -2,6 +2,7 @@ import pytest
 import shutil
 from pathlib import Path
 import pylbo
+import pylbo.testing
 
 pylbo.set_loglevel("warning")
 
@@ -80,27 +81,23 @@ def log_answer(setup):
 
 
 # ===== FIXTURES FOR MULTIRUNS =====
-@pytest.fixture()
-def tempdir():
-    tempdir_path = (Path(__file__).parent / "results/tmp").resolve()
-    if tempdir_path.is_dir():
-        shutil.rmtree(tempdir_path)
-    tempdir_path.mkdir()
-    yield tempdir_path
-    # all code after yield is executed as teardown
-    shutil.rmtree(tempdir_path)
+@pytest.fixture
+def series_test(setup):
+    output_dir = setup["config"]["output_folder"]
+    if setup["test_needs_run"]:
+        parfiles = pylbo.generate_parfiles(
+            parfile_dict=setup["config"],
+            basename=setup["name"],
+            output_dir=output_dir,
+        )
+        pylbo.run_legolas(parfiles, remove_parfiles=True, nb_cpus=2)
+        setup["test_needs_run"] = False
+    datfiles = sorted(
+        Path(output_dir).glob(f"*{setup['config']['basename_datfile']}.dat")
+    )
+    return pylbo.load_series(datfiles)
 
 
 @pytest.fixture
-def series_test(tempdir, setup):
-    nb_cpus = 2
-    setup["config"]["output_folder"] = str(tempdir)
-    parfiles = pylbo.generate_parfiles(
-        parfile_dict=setup["config"],
-        basename=setup["name"],
-        output_dir=tempdir,
-    )
-    print("")
-    pylbo.run_legolas(parfiles, remove_parfiles=True, nb_cpus=nb_cpus)
-    datfiles = sorted(tempdir.glob(f"*{setup['config']['basename_datfile']}.dat"))
-    return pylbo.load_series(datfiles)
+def series_answer(setup):
+    return pylbo.testing.load_pickled_dataseries(setup["answer_series"])

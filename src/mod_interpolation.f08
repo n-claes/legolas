@@ -48,6 +48,7 @@ contains
         call log_message( &
           "interpolation: x-values are not monotonically increasing!", level="error" &
         )
+        return
       end if
     end do
 
@@ -115,7 +116,7 @@ contains
   !! @warning Throws an error if <tt>x_values</tt> and <tt>y_values</tt> differ
   !!          in size. @endwarning
   subroutine get_numerical_derivative(x, y, dy, dxtol)
-    use mod_check_values, only: value_is_equal
+    use mod_check_values, only: is_equal
     use mod_logging, only: str
 
     !> x-values against which to differentiate
@@ -136,18 +137,20 @@ contains
         "numerical derivative: x and y should have the same size!", &
         level="error" &
       )
+      return
     end if
     nbprints = 0
     tol = 1.0d-10
     if (present(dxtol)) then
-      tol = dxtol
+      tol = dxtol ! LCOV_EXCL_LINE
     end if
 
     nvals = size(x)
     dx = x(2) - x(1)
+    ! LCOV_EXCL_START
     do i = 2, nvals-1
       dxi = x(i) - x(i-1)
-      if (.not. value_is_equal(dx, dxi, tol=tol)) then
+      if (.not. is_equal(dx, dxi, tol=tol)) then
         call log_message( &
           "numerical derivative: x is not equally spaced, derivative may be wrong!", &
           level="warning" &
@@ -170,6 +173,7 @@ contains
         end if
       end if
     end do
+    ! LCOV_EXCL_STOP
 
     ! left side: 6th order forward differences for first 3 points
     do i = 1, 3

@@ -1,0 +1,48 @@
+module mod_test_logging
+  use mod_suite_utils
+  use funit
+  use mod_logging, only: str
+  implicit none
+
+contains
+
+  @test
+  subroutine test_int_to_str()
+    call set_name("logging (int -> str)")
+    @assertEqual("2", str(2))
+  end subroutine test_int_to_str
+
+  @test
+  subroutine test_int_to_str_fmt()
+    call set_name("logging (int -> str, fmt)")
+    @assertEqual("12345", str(12345, fmt="i5"))
+  end subroutine test_int_to_str_fmt
+
+
+  @test
+  subroutine test_float_to_str()
+    call set_name("logging (float -> str)")
+    @assertEqual("1.20000000", str(1.2d0))
+  end subroutine test_float_to_str
+
+
+  @test
+  subroutine test_float_to_str_fmt()
+    call set_name("logging (float -> str, fmt)")
+    @assertEqual("2.500", str(2.5d0, fmt="f5.3"))
+  end subroutine test_float_to_str_fmt
+
+
+  @test
+  subroutine test_complex_to_str()
+    call set_name("logging (complex -> str)")
+    @assertEqual("3.50000000-1.20000000i", str((3.5d0, -1.2d0)))
+  end subroutine test_complex_to_str
+
+
+  @test
+  subroutine test_complex_to_str_fmt()
+    call set_name("logging (complex -> str, fmt)")
+    @assertEqual("2.4000-3.1000i", str((2.4d0, -3.1d0), fmt="f9.4"))
+  end subroutine test_complex_to_str_fmt
+end module mod_test_logging

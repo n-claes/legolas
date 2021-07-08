@@ -7,16 +7,76 @@
 module mod_inspections
   use mod_global_variables, only: dp
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
-                       gravity_type, cooling_type, conduction_type
-  use mod_logging, only: log_message, dp_fmt, exp_fmt, int_fmt, char_log, char_log2
+    gravity_type, cooling_type, conduction_type
+  use mod_logging, only: log_message, str
   implicit none
 
   private
 
+  public :: perform_NaN_and_negative_checks
   public :: perform_sanity_checks
+  public :: check_wavenumbers
   public :: handle_spurious_eigenvalues
 
 contains
+
+  !> General routine to do initial sanity checks on the various equilibrium attributes.
+  !! We check the equilibrium arrays for NaN and see if all density and temperature
+  !! values are positive.
+  subroutine perform_NaN_and_negative_checks( &
+    rho_field, T_field, B_field, v_field, grav_field &
+  )
+    use mod_check_values, only: is_NaN, is_negative
+
+    !> the type containing the density attributes
+    type(density_type), intent(in)      :: rho_field
+    !> the type containing the temperature attributes
+    type(temperature_type), intent(in)  :: T_field
+    !> the type containing the magnetic field attributes
+    type(bfield_type), intent(in)       :: B_field
+    !> the type containing the velocity attributes
+    type(velocity_type), intent(in)     :: v_field
+    !> the type containing the gravity attributes
+    type(gravity_type), intent(in)      :: grav_field
+
+    character(50) :: name
+
+    name = ""
+
+    ! TODO: is there an easier way to do this?
+    if (any(is_negative(rho_field % rho0))) then
+      call log_message("negative density encountered!", level="error")
+      return
+    end if
+    if (any(is_negative(T_field % T0))) then
+      call log_message("negative temperature encountered!", level="error")
+      return
+    end if
+    if (any(is_NaN(rho_field % rho0))) then
+      name = "density"
+    else if (any(is_NaN(T_field % T0))) then
+      name = "temperature"
+    else if (is_NaN(B_field % B01)) then
+      name = "B01"
+    else if (any(is_NaN(B_field % B02))) then
+      name = "B02"
+    else if (any(is_NaN(B_field % B03))) then
+      name = "B03"
+    else if (any(is_NaN(v_field % v01))) then
+      name = "v01"
+    else if (any(is_NaN(v_field % v02))) then
+      name = "v02"
+    else if (any(is_NaN(v_field % v03))) then
+      name = "v03"
+    else if (any(is_NaN(grav_field % grav))) then
+      name = "gravity"
+    end if
+
+    if (name /= "") then
+      call log_message("NaN encountered in " // adjustl(trim(name)), level="error")
+      return
+    end if
+  end subroutine perform_NaN_and_negative_checks
 
 
   !> General routine to do sanity checks on the different equilibrium types.
@@ -73,14 +133,12 @@ contains
     if (.not. remove_spurious_eigenvalues) then
       return
     end if
-
-    call log_message("handling spurious eigenvalues", level='debug')
-
+    ! LCOV_EXCL_START
+    call log_message("handling spurious eigenvalues", level="debug")
     ! For now, the largest real eigenvalues are set to a large number so they
     ! do not appear on the plots.
     ! Do NOT sort the eigenvalues, otherwise the order is messed up for the eigenfunctions
     replacement = (1.0d20, 0.0d0)
-
     do i = 1, nb_spurious_eigenvalues
       ! handle real values, take large values from boundaries into account
       idx = maxloc(real(eigenvalues), dim=1, mask=(real(eigenvalues) < 1.0d15))
@@ -88,12 +146,11 @@ contains
       idx = minloc(real(eigenvalues), dim=1, mask=(real(eigenvalues) < 1.0d15))
       eigenvalues(idx) = replacement
     end do
-
-    write(char_log, int_fmt) nb_spurious_eigenvalues
     call log_message( &
-      "spurious eigenvalues removed on every side: " // adjustl(char_log), &
-      level='warning' &
+      "spurious eigenvalues removed on every side: " // str(nb_spurious_eigenvalues), &
+      level="warning" &
     )
+    ! LCOV_EXCL_STOP
   end subroutine handle_spurious_eigenvalues
 
 
@@ -105,18 +162,12 @@ contains
     use mod_global_variables, only: geometry, dp_LIMIT
     use mod_equilibrium_params, only: k2
 
-    integer   :: k2_int
-
-    k2_int = int(k2)
-
-    if (geometry == 'cylindrical') then
+    if (geometry == "cylindrical") then
       ! in cylindrical geometry k2 should be an integer
-      if (abs(k2_int - k2) > dp_LIMIT) then
-        write(char_log, dp_fmt) k2
+      if (abs(int(k2) - k2) > dp_LIMIT) then
         call log_message( &
-          "cylindrical geometry but k2 is not an integer! Value: " &
-            // adjustl(trim(char_log)), &
-          level='error' &
+          "cylindrical geometry but k2 is not an integer! Value: " // str(k2), &
+          level="error" &
         )
       end if
     end if
@@ -142,7 +193,7 @@ contains
 
     real(dp)  :: on_axis_limit
 
-    if (geometry == 'Cartesian') then
+    if (geometry == "Cartesian") then
       return
     end if
 
@@ -151,34 +202,32 @@ contains
       return
     end if
 
+    ! LCOV_EXCL_START
     if (abs(B_field % B02(1)) > on_axis_limit) then
-      write(char_log, exp_fmt) B_field % B02(1)
       call log_message( &
-        "B_theta non-zero on axis! Value: " // trim(char_log), &
-        level='warning' &
+        "B_theta non-zero on axis! Value: " // str(B_field % B02(1)), &
+        level="warning" &
       )
     end if
     if (abs(B_field % d_B03_dr(1)) > on_axis_limit) then
-      write(char_log, exp_fmt) B_field % d_B03_dr(1)
       call log_message( &
-        "dBz/dr non-zero on axis! Value: " // trim(char_log), &
-        level='warning' &
+        "dBz/dr non-zero on axis! Value: " // str(B_field % d_B03_dr(1)), &
+        level="warning" &
       )
     end if
     if (abs(v_field % v02(1)) > on_axis_limit) then
-      write(char_log, exp_fmt) v_field % v02(1)
       call log_message( &
-        "v_theta non-zero on axis! Value: " // trim(char_log), &
-        level='warning' &
+        "v_theta non-zero on axis! Value: " // str(v_field % v02(1)), &
+        level="warning" &
       )
     end if
     if (abs(v_field % d_v03_dr(1)) > on_axis_limit) then
-      write(char_log, exp_fmt) v_field % d_v03_dr(1)
       call log_message( &
-        "dvz_dr non-zero on axis! Value: " // trim(char_log), &
-        level='warning' &
+        "dvz_dr non-zero on axis! Value: " // str(v_field % d_v03_dr(1)), &
+        level="warning" &
       )
     end if
+    ! LCOV_EXCL_STOP
   end subroutine check_on_axis_values
 
 
@@ -214,9 +263,11 @@ contains
     logical   :: satisfied(3)
 
     B01 = B_field % B01
-    if ((geometry == 'cylindrical') .and. (abs(B01) > dp_LIMIT)) then
-      call log_message('B01 component currently not supported for cylindrical &
-                        &geometries !', level='error')
+    if ((geometry == "cylindrical") .and. (abs(B01) > dp_LIMIT)) then
+      call log_message( &
+        "B01 component currently not supported for cylindrical geometries!", &
+        level="error" &
+      )
     end if
 
     satisfied = .true.
@@ -262,33 +313,29 @@ contains
       if (satisfied(j)) then
         cycle
       end if
+      ! LCOV_EXCL_START
       call log_message( &
-        "standard equilibrium conditions not satisfied!", &
-        level="warning" &
+        "standard equilibrium conditions not satisfied!", level="warning" &
       )
-      write(char_log2, int_fmt) j
-      write(char_log, dp_fmt) r(j)
       call log_message( &
-        "location of largest discrepancy (" // trim(adjustl(char_log2)) // &
-                                      "): x = " // adjustl(trim(char_log)), &
-        level='warning', &
+        "location of largest discrepancy (" // str(j) // "): x = " // str(r(j)), &
+        level="warning", &
         use_prefix=.false. &
       )
-      write(char_log, exp_fmt) discrepancy(j)
       call log_message( &
-        "value of largest discrepancy (" // trim(adjustl(char_log2)) // &
-                                      "): " // adjustl(trim(char_log)), &
-        level='warning', &
+        "value of largest discrepancy (" // str(j) // "): " &
+        // str(discrepancy(j), fmt="e20.8"), &
+        level="warning", &
         use_prefix=.false. &
       )
-      write(char_log, int_fmt) counter(j)
       call log_message( &
-        "amount of nodes not satisfying criterion (" // trim(adjustl(char_log2)) // &
-                                          "): " // adjustl(trim(char_log)), &
-        level='warning', &
+        "amount of nodes not satisfying criterion (" // str(j) // "): " &
+        // str(counter(j)), &
+        level="warning", &
         use_prefix=.false. &
       )
       write(*,*) ""
+      ! LCOV_EXCL_STOP
     end do
   end subroutine standard_equil_conditions
 
@@ -451,33 +498,29 @@ contains
       if (satisfied(j)) then
         cycle
       end if
+      ! LCOV_EXCL_START
       call log_message( &
-        "induction equilibrium conditions not satisfied!", &
-        level="warning" &
+        "induction equilibrium conditions not satisfied!", level="warning" &
       )
-      write(char_log2, int_fmt) j
-      write(char_log, dp_fmt) r(j)
       call log_message( &
-        "location of largest discrepancy (" // trim(adjustl(char_log2)) // &
-                                      "): x = " // adjustl(trim(char_log)), &
-        level='warning', &
+        "location of largest discrepancy (" // str(j) // "): x = " // str(r(j)), &
+        level="warning", &
         use_prefix=.false. &
       )
-      write(char_log, exp_fmt) discrepancy(j)
       call log_message( &
-        "value of largest discrepancy (" // trim(adjustl(char_log2)) // &
-                                      "): " // adjustl(trim(char_log)), &
-        level='warning', &
+        "value of largest discrepancy (" // str(j) // "): " &
+        // str(discrepancy(j), fmt="e20.8"), &
+        level="warning", &
         use_prefix=.false. &
       )
-      write(char_log, int_fmt) counter(j)
       call log_message( &
-        "amount of nodes not satisfying criterion (" // trim(adjustl(char_log2)) // &
-                                          "): " // adjustl(trim(char_log)), &
-        level='warning', &
+        "amount of nodes not satisfying criterion (" // str(j) // "): " &
+        // str(counter(j)), &
+        level="warning", &
         use_prefix=.false. &
       )
     end do
+    ! LCOV_EXCL_STOP
   end subroutine induction_equil_conditions
 
 
@@ -523,31 +566,30 @@ contains
       end if
     end do
 
+    ! LCOV_EXCL_START
     if (.not. satisfied) then
       call log_message( &
         "continuity equilibrium conditions not satisfied!", &
-        level='warning' &
+        level="warning" &
       )
-      write(char_log, dp_fmt) r
       call log_message( &
-        "location of largest discrepancy: x = " // adjustl(trim(char_log)), &
-        level='warning', &
+        "location of largest discrepancy: x = " // str(r), &
+        level="warning", &
         use_prefix=.false. &
       )
-      write(char_log, exp_fmt) discrepancy
       call log_message( &
-        "value of largest discrepancy: " // adjustl(trim(char_log)), &
-        level='warning', &
+        "value of largest discrepancy: " // str(discrepancy, fmt="e20.8"), &
+        level="warning", &
         use_prefix=.false. &
       )
-      write(char_log, int_fmt) counter
       call log_message( &
-        "amount of nodes not satisfying criterion: " // adjustl(trim(char_log)), &
-        level='warning', &
+        "amount of nodes not satisfying criterion: " // str(counter), &
+        level="warning", &
         use_prefix=.false. &
       )
       write(*,*) ""
     end if
+    ! LCOV_EXCL_STOP
   end subroutine continuity_equil_conditions
 
 end module mod_inspections

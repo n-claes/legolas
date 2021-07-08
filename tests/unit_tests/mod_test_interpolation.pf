@@ -1,0 +1,249 @@
+module mod_test_interpolation
+  use funit
+  use mod_suite_utils
+  use mod_interpolation, only: interpolate_table, get_numerical_derivative, &
+    lookup_table_value
+  implicit none
+
+  real(dp), allocatable   :: xvalues(:), yvalues(:)
+  real(dp), allocatable   :: xinterp(:), yactual(:), yexpect(:)
+
+contains
+
+  subroutine reset_arrays(size_values, size_interp)
+    integer, intent(in) :: size_values, size_interp
+
+    if (allocated(xvalues)) then
+      deallocate(xvalues)
+    end if
+    if (allocated(yvalues)) then
+      deallocate(yvalues)
+    end if
+    if (allocated(xinterp)) then
+      deallocate(xinterp)
+    end if
+    if (allocated(yactual)) then
+      deallocate(yactual)
+    end if
+    if (allocated(yexpect)) then
+      deallocate(yexpect)
+    end if
+    allocate(xvalues(size_values))
+    allocate(yvalues(size_values))
+    allocate(xinterp(size_interp))
+    allocate(yactual(size_interp))
+    allocate(yexpect(size_interp))
+  end subroutine reset_arrays
+
+
+  @test
+  subroutine test_interpolate_not_monotone()
+    call set_name("interpolation (invalid x values)")
+    call reset_arrays(100, 1000)
+    xvalues = linspace(1.0d0, 10.0d0, 100)
+    yvalues = xvalues + 1.0d0
+    xvalues(50) = 6.0d0
+    call interpolate_table(1000, xvalues, yvalues, xinterp, yactual)
+    @assertExceptionRaised("interpolation: x-values are not monotonically increasing!")
+  end subroutine test_interpolate_not_monotone
+
+
+  @test
+  subroutine test_interpolate_bounds()
+    call set_name("interpolation (boundaries)")
+    call reset_arrays(100, 1000)
+    xvalues = linspace(1.0d0, 10.0d0, 100)
+    yvalues = xvalues - 0.5d0
+    call interpolate_table(1000, xvalues, yvalues, xinterp, yactual)
+    ! boundaries should remain unchanged
+    @assertEqual(xvalues(1), xinterp(1), tolerance=TOL)
+    @assertEqual(xvalues(100), xinterp(1000), tolerance=TOL)
+    @assertEqual(yvalues(1), yactual(1), tolerance=TOL)
+    @assertEqual(yvalues(100), yactual(1000), tolerance=TOL)
+  end subroutine test_interpolate_bounds
+
+
+  @test
+  subroutine test_interpolate_quadratic()
+    call set_name("interpolation (y=x**2, x=[1, 10])")
+    call reset_arrays(100, 4000)
+    xvalues = linspace(1.0d0, 10.0d0, 1000)
+    yvalues = xvalues**2
+    call interpolate_table(4000, xvalues, yvalues, xinterp, yactual)
+    yexpect = xinterp**2
+    @assertEqual(yexpect, yactual, tolerance=1.0d-4)
+  end subroutine test_interpolate_quadratic
+
+
+  @test
+  subroutine test_interpolate_sine()
+    call set_name("interpolation (y=sin(x), x=[0, 4])")
+    call reset_arrays(5000, 10000)
+    xvalues = linspace(0.0d0, 4.0d0, 5000)
+    yvalues = sin(xvalues)
+    call interpolate_table(10000, xvalues, yvalues, xinterp, yactual)
+    yexpect = sin(xinterp)
+    @assertEqual(yexpect, yactual, tolerance=1.0d-7)
+  end subroutine test_interpolate_sine
+
+
+  @test
+  subroutine test_interpolate_poly_negx()
+    call set_name("interpolation (y=x**4 - 2x**2, x=[-1.5, 1.5])")
+    call reset_arrays(1000, 5000)
+    xvalues = linspace(-1.5d0, 1.5d0, 1000)
+    yvalues = xvalues**4 - 2.0d0 * xvalues**2
+    call interpolate_table(5000, xvalues, yvalues, xinterp, yactual)
+    yexpect = xinterp**4 - 2.0d0 * xinterp**2
+    @assertEqual(yexpect, yactual, tolerance=5.0d-4)
+  end subroutine test_interpolate_poly_negx
+
+
+  @test
+  subroutine test_derivative_invalid_sizes()
+    call set_name("derivative (invalid sizes)")
+    call reset_arrays(1000, 1000)
+    call get_numerical_derivative(xvalues, yvalues(10:), yactual)
+    @assertExceptionRaised("numerical derivative: x and y should have the same size!")
+  end subroutine test_derivative_invalid_sizes
+
+
+  @test
+  subroutine test_derivative_parabola()
+    call set_name("derivative (y=x**2, x=[-2, 2])")
+    call reset_arrays(1000, 1000)
+    xvalues = linspace(-2.0d0, 2.0d0, 1000)
+    yvalues = xvalues**2
+    call get_numerical_derivative(xvalues, yvalues, yactual)
+    yexpect = 2.0d0 * xvalues
+    @assertEqual(yexpect, yactual, tolerance=1.0d-9)
+  end subroutine test_derivative_parabola
+
+
+  @test
+  subroutine test_derivative_poly()
+    call set_name("derivative (y=x**3 + 0.2x**2 - 2, x=[-3, 1])")
+    call reset_arrays(2000, 2000)
+    xvalues = linspace(-3.0d0, 1.0d0, 2000)
+    yvalues = xvalues**3 + 0.2d0 * xvalues**2 - 2.0d0
+    call get_numerical_derivative(xvalues, yvalues, yactual)
+    yexpect = 3.0d0 * xvalues**2 + 0.4d0 * xvalues
+    @assertEqual(yexpect, yactual, tolerance=1.0d-9)
+  end subroutine test_derivative_poly
+
+
+  @test
+  subroutine test_derivative_cosine()
+    use mod_physical_constants, only: dpi
+
+    call set_name("derivative (y=cos(x), x=[-2pi, 2pi]")
+    call reset_arrays(2000, 2000)
+    xvalues = linspace(-2.0d0 * dpi, 2.0d0 * dpi, 2000)
+    yvalues = cos(xvalues)
+    call get_numerical_derivative(xvalues, yvalues, yactual)
+    yexpect = -sin(xvalues)
+    @assertEqual(yexpect, yactual, tolerance=1.0d-9)
+  end subroutine test_derivative_cosine
+
+
+  @test
+  subroutine test_derivative_root()
+    call set_name("derivative (y=sqrt(x), x=[0, 24])")
+    call reset_arrays(4000, 4000)
+    xvalues = linspace(1.0d0, 24.0d0, 4000)
+    yvalues = sqrt(xvalues)
+    call get_numerical_derivative(xvalues, yvalues, yactual)
+    yexpect = 1.0d0 / (2.0d0 * sqrt(xvalues))
+    @assertEqual(yexpect, yactual, tolerance=1.0d-9)
+  end subroutine test_derivative_root
+
+
+  @test
+  subroutine test_derivative_trigon()
+    call set_name("derivative (y=3sin(x) + 1/tan(x), x=[0.5, 2.5])")
+    call reset_arrays(4000, 4000)
+    xvalues = linspace(0.5d0, 2.5d0, 4000)
+    yvalues = 3.0d0 * sin(xvalues) + 1.0d0 / tan(xvalues)
+    call get_numerical_derivative(xvalues, yvalues, yactual)
+    yexpect = 3.0d0 * cos(xvalues) - 1 / sin(xvalues)**2
+    @assertEqual(yexpect, yactual, tolerance=1.0d-9)
+  end subroutine test_derivative_trigon
+
+
+  @test
+  subroutine test_lookup_xtoosmall()
+    real(dp)  :: yval
+
+    call set_name("table lookup (small x0 fail)")
+    call reset_arrays(100, 100)
+    xvalues = linspace(5.0d0, 10.0d0, 100)
+    yvalues = xvalues
+    yval = lookup_table_value(2.0d0, xvalues, yvalues)
+    @assertExceptionRaised("lookup_value: x outside x_values (too small)")
+  end subroutine test_lookup_xtoosmall
+
+
+  @test
+  subroutine test_lookup_xtoolarge()
+    real(dp)  :: yval
+
+    call set_name("table lookup (large x0 fail)")
+    call reset_arrays(100, 100)
+    xvalues = linspace(5.0d0, 10.0d0, 100)
+    yvalues = xvalues
+    yval = lookup_table_value(12.0d0, xvalues, yvalues)
+    @assertExceptionRaised("lookup_value: x outside x_values (too large)")
+  end subroutine test_lookup_xtoolarge
+
+
+  @test
+  subroutine test_lookup_edges()
+    real(dp)  :: yval
+
+    call set_name("table lookup (edges)")
+    call reset_arrays(100, 100)
+    xvalues = linspace(1.0d0, 10.0d0, 100)
+    yvalues = xvalues
+    ! left edge
+    yval = lookup_table_value(1.0d0, xvalues, yvalues)
+    @assertEqual(yval, 1.0d0, tolerance=TOL)
+    ! right edge
+    yval = lookup_table_value(10.0d0, xvalues, yvalues)
+    @assertEqual(10.0d0, yval, tolerance=TOL)
+  end subroutine test_lookup_edges
+
+
+  @test
+  subroutine test_lookup_near()
+    real(dp)  :: yval
+
+    call set_name("table lookup (edge near x0)")
+    call reset_arrays(21, 21)
+    xvalues = linspace(0.0d0, 10.0d0, 21)
+    yvalues = xvalues
+    yval = lookup_table_value(2.48d0, xvalues, yvalues)
+    ! should be the same due to linear interpolation
+    @assertEqual(2.48d0, yval, tolerance=TOL)
+  end subroutine test_lookup_near
+
+
+  @test
+  subroutine test_lookup()
+    real(dp)  :: yval, yval_expect
+    real(dp)  :: x0vals(4), x0
+    integer   :: i
+
+    call set_name("table lookup")
+    call reset_arrays(1000, 1000)
+    xvalues = linspace(-5.0d0, 3.0d0, 1000)
+    yvalues = sin(xvalues)**2 + cos(xvalues)
+    x0vals = [-2.1d0, -1.7d0, 0.2d0, 2.6d0]
+    do i = 1, size(x0vals)
+      x0 = x0vals(i)
+      yval = lookup_table_value(x0, xvalues, yvalues)
+      yval_expect = sin(x0)**2 + cos(x0)
+      @assertEqual(yval_expect, yval, tolerance=1.0d-5)
+    end do
+  end subroutine test_lookup
+
+end module mod_test_interpolation

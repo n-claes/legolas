@@ -28,10 +28,12 @@ contains
     real(dp)  :: x, B0
     integer   :: i
 
-    call allow_geometry_override(default_geometry='Cartesian', default_x_start=0.0d0, default_x_end=1.0d0)
+    call allow_geometry_override( &
+      default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0 &
+    )
     call initialise_grid()
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       external_gravity = .true.
 
       k2 = dpi
@@ -41,7 +43,7 @@ contains
       g = 0.5d0
       lambda = 0.0d0
       alpha = 20.0d0
-    end if
+    end if ! LCOV_EXCL_STOP
 
     B0 = 1.0d0
     beta = 2.0d0*cte_p0 / B0**2
@@ -59,10 +61,10 @@ contains
       B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
 
       rho_field % d_rho0_dr(i) = -alpha * (rho_field % rho0(i))
-      B_field % d_B02_dr(i)    = -0.5d0 * alpha * (B_field % B02(i)) &
-                                       + lambda * (B_field % B03(i))
-      B_field % d_B03_dr(i)    = -0.5d0 * alpha * (B_field % B03(i)) &
-                                       - lambda * (B_field % B02(i))
+      B_field % d_B02_dr(i) = -0.5d0 * alpha * (B_field % B02(i)) &
+        + lambda * (B_field % B03(i))
+      B_field % d_B03_dr(i) = -0.5d0 * alpha * (B_field % B03(i)) &
+        - lambda * (B_field % B02(i))
     end do
   end subroutine interchange_modes_eq
 

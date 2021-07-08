@@ -1,0 +1,187 @@
+module mod_test_valuechecks
+  use mod_suite_utils
+  use funit
+  use mod_check_values
+  implicit none
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+    call reset_eigenfunctions(init_efs=.false.)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_small_values_real()
+    real(dp)  :: value
+
+    call set_name("small values to zero (real)")
+    ! check zero unaffected
+    value = 0.0d0
+    call set_small_values_to_zero(value)
+    @assertEqual(0.0d0, value, tolerance=TOL)
+    ! check small value
+    value = 1.0d-14
+    call set_small_values_to_zero(value)
+    @assertEqual(0.0d0, value, tolerance=TOL)
+    ! check unaffected
+    value = 0.02d0
+    call set_small_values_to_zero(value)
+    @assertEqual(0.02d0, value, tolerance=TOL)
+    ! check with tolerance
+    value = 0.02d0
+    call set_small_values_to_zero(value, tol=0.03d0)
+    @assertEqual(0.0d0, value, tolerance=TOL)
+  end subroutine test_small_values_real
+
+
+  @test
+  subroutine test_small_values_complex_large
+    complex(dp) :: value
+
+    call set_name("small values to zero (complex - large)")
+    value = (1.0d0, 0.0d0)  ! real is large
+    call set_small_values_to_zero(value)
+    @assertEqual((1.0d0, 0.0d0), value, tolerance=TOL)
+    value = (0.0d0, 2.0d0)  ! complex is large
+    call set_small_values_to_zero(value)
+    @assertEqual((0.0d0, 2.0d0), value, tolerance=TOL)
+    value = (1.0d0, 3.5d0)  ! both are large
+    call set_small_values_to_zero(value)
+    @assertEqual((1.0d0, 3.5d0), value, tolerance=TOL)
+  end subroutine test_small_values_complex_large
+
+  @test
+  subroutine test_small_values_complex_small
+    complex(dp) :: value
+
+    call set_name("small values to zero (complex - small)")
+    value = (1.0d-14, 0.2d0)  ! real is small
+    call set_small_values_to_zero(value)
+    @assertEqual((0.0d0, 0.2d0), value, tolerance=TOL)
+    value = (0.01d0, 2.0d-15) ! complex is small
+    call set_small_values_to_zero(value)
+    @assertEqual((0.01d0, 0.0d0), value, tolerance=TOL)
+    value = (1.5d-15, 2.0d-14)  ! both are small
+    call set_small_values_to_zero(value)
+    @assertEqual((0.0d0, 0.0d0), value, tolerance=TOL)
+  end subroutine test_small_values_complex_small
+
+  @test
+  subroutine test_small_values_complex_tol
+    complex(dp) :: value
+
+    call set_name("small values to zero (complex - tolerance)")
+    value = (1.0d-8, 0.2d0)  ! real is within tol
+    call set_small_values_to_zero(value, tol=1.0d-7)
+    @assertEqual((0.0d0, 0.2d0), value, tolerance=TOL)
+    value = (0.01d0, 2.0d-5) ! complex is within tol
+    call set_small_values_to_zero(value, tol=5.0d-5)
+    @assertEqual((0.01d0, 0.0d0), value, tolerance=TOL)
+    value = (1.5d-7, 2.0d-8)  ! both are within tol
+    call set_small_values_to_zero(value, tol=2.0d-7)
+    @assertEqual((0.0d0, 0.0d0), value, tolerance=TOL)
+  end subroutine test_small_values_complex_tol
+
+
+  @test
+  subroutine test_is_nan_real()
+    use mod_global_variables, only: NaN
+
+    real(dp)  :: array(20)
+
+    call set_name("check for NaN (real)")
+    ! single value
+    @assertTrue(is_NaN(NaN))
+    @assertFalse(is_NaN(1.0d0))
+    ! array
+    array = linspace(0.0d0, 5.0d0, 20)
+    @assertFalse(any(is_NaN(array)))
+    array(3) = NaN
+    @assertTrue(any(is_NaN(array)))
+  end subroutine test_is_nan_real
+
+  @test
+  subroutine test_is_nan_complex()
+    use mod_global_variables, only: NaN
+
+    complex(dp)  :: array(20)
+
+    call set_name("check for NaN (complex)")
+    ! single value
+    @assertFalse(is_NaN((1.0d0, 2.0d0)))
+    @assertTrue(is_NaN(cmplx(1.0d0, NaN, kind=dp)))
+    @assertTrue(is_NaN(cmplx(NaN, 1.0d0, kind=dp)))
+    @assertTrue(is_NaN(cmplx(NaN, NaN, kind=dp)))
+    ! array
+    array = linspace(0.0d0, 5.0d0, 20) * (0.5d0, 2.0d0)
+    @assertFalse(any(is_NaN(array)))
+    array(3) = cmplx(1.0d0, NaN, kind=dp)
+    @assertTrue(any(is_NaN(array)))
+  end subroutine test_is_nan_complex
+
+
+  @test
+  subroutine test_is_equal_real()
+    call set_name("check is_equal (real)")
+    @assertTrue(is_equal(1.0d0, 1.0d0))
+    @assertFalse(is_equal(1.0d0, 2.0d0))
+    @assertTrue(is_equal(0.01d0, 0.015d0, tol=0.01d0))
+  end subroutine test_is_equal_real
+
+
+  @test
+  subroutine test_is_equal_complex()
+    call set_name("check is_equal (complex)")
+    ! equal
+    @assertTrue(is_equal((1.0d0, 2.0d0), (1.0d0, 2.0d0)))
+    ! real not equal
+    @assertFalse(is_equal((1.0d0, 2.0d0), (1.2d0, 2.0d0)))
+    ! complex not equal
+    @assertFalse(is_equal((1.0d0, 2.0d0), (1.0d0, 2.2d0)))
+    ! both not equal
+    @assertFalse(is_equal((2.0d0, 3.0d0), (1.5d0, 4.0d0)))
+    ! real equal within tolerance
+    @assertTrue(is_equal((1.0d0, 2.0d0), (1.001d0, 2.0d0), tol=5.0d-3))
+    ! complex equal within tolerance
+    @assertTrue(is_equal((2.0d0, 3.04d0), (2.0d0, 3.041d0), tol=2.0d-3))
+    ! both equal within tolerance
+    @assertTrue(is_equal((2.0d0, 5.0d0), (2.01d0, 5.01d0), tol=2d-2))
+    ! both not equal within tolerance
+    @assertFalse(is_equal((4.3d0, 7.1d0), (4.31d0, 7.1001d0), tol=1d-5))
+  end subroutine test_is_equal_complex
+
+
+  @test
+  subroutine test_is_negative()
+    real(dp)  :: array(20)
+
+    call set_name("check is_negative")
+    array = 1.0d0
+    @assertFalse(any(is_negative(array)))
+    array(5) = -0.1d0
+    @assertTrue(any(is_negative(array)))
+  end subroutine test_is_negative
+
+
+  @test
+  subroutine test_is_constant_fail()
+    real(dp)  :: array(30)
+
+    call set_name("check is_constant")
+    array = 2.0d0
+    array(9) = 3.0d0
+    @assertFalse(is_constant(array))
+    array = 5.0d0
+    @assertTrue(is_constant(array))
+  end subroutine test_is_constant_fail
+end module mod_test_valuechecks

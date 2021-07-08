@@ -3,6 +3,8 @@
 !
 ! DESCRIPTION:
 ! Submodule for user defined equilibria or tests
+! This file is excluded from code coverage.
+! LCOV_EXCL_START
 submodule (mod_equilibrium) smod_user_defined
   implicit none
 
@@ -87,5 +89,6 @@ contains
     end do
 
   end subroutine user_defined_eq
+  ! LCOV_EXCL_STOP
 
 end submodule smod_user_defined

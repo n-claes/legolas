@@ -63,6 +63,7 @@ contains
   end subroutine raise_exception
 
 
+  ! LCOV_EXCL_START <this will never run during testing due to the error stop>
   !> Workflow that is executed by default when
   !! an exception is raised. The argument <tt>message</tt>
   !! is printed to the console and program execution
@@ -79,4 +80,5 @@ contains
     write(*, *) msg_painted
     error stop
   end subroutine on_exception_raised
+  ! LCOV_EXCL_STOP
 end module mod_exceptions

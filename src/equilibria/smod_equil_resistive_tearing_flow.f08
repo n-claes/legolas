@@ -28,10 +28,12 @@ contains
     real(dp)    :: x
     integer     :: i
 
-    call allow_geometry_override(default_geometry='Cartesian', default_x_start=-0.5d0, default_x_end=0.5d0)
+    call allow_geometry_override( &
+      default_geometry="Cartesian", default_x_start=-0.5d0, default_x_end=0.5d0 &
+    )
     call initialise_grid()
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       flow = .true.
       resistivity = .true.
       use_fixed_resistivity = .true.
@@ -43,7 +45,7 @@ contains
       alpha = 4.73884d0
       beta  = 0.15d0
       cte_rho0 = 1.0d0
-    end if
+    end if ! LCOV_EXCL_STOP
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)

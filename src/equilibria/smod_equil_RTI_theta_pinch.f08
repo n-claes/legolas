@@ -43,11 +43,11 @@ contains
     integer       :: i
 
     flow = .true.
-    geometry = 'cylindrical'
+    geometry = "cylindrical"
     call allow_geometry_override(default_x_start=0.0d0, default_x_end=1.0d0)
     call initialise_grid()
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       cte_rho0 = 1.0d0
       alpha = 2.0d0
       delta = 1.0d0 / 6.0d0
@@ -55,7 +55,7 @@ contains
 
       k2 = 1.0d0
       k3 = 0.0d0
-    end if
+    end if ! LCOV_EXCL_STOP
 
     a = x_end - x_start
     cte_p0 = 0.5d0 * (1.0d0 - delta)**2

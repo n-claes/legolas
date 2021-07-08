@@ -1,0 +1,227 @@
+module mod_test_matrix_operators
+  use mod_suite_utils
+  use funit
+  use mod_matrix_shortcuts
+  use mod_equilibrium
+  use mod_global_variables, only: set_gridpts, geometry
+  use mod_grid, only: grid_gauss, grid_clean
+  implicit none
+
+  real(dp), parameter :: k2_val = 1.5d0
+  real(dp), parameter :: k3_val = 3.0d0
+
+  integer   :: idx
+  real(dp)  :: x, expected
+
+contains
+
+
+  @before
+  subroutine init_test()
+    use mod_equilibrium_params, only: k2, k3
+
+    call create_test_grid(pts=50, geom="Cartesian", start=0.0d0, end=2.0d0)
+    call reset_fields(init_fields=.true.)
+    idx = 1
+    k2 = k2_val
+    k3 = k3_val
+  end subroutine init_test
+
+
+  @after
+  subroutine tear_down()
+    call clean_up()
+  end subroutine tear_down
+
+
+  @test
+  subroutine test_F_operator_plus()
+    call set_name("getting F operator (+)")
+    B_field % B02 = grid_gauss
+    B_field % B03 = grid_gauss**2
+    idx = 23
+    x = grid_gauss(idx)
+    expected = k2_val * x + k3_val * x**2
+    @assertEqual(expected, get_F_operator(idx, "plus"), tolerance=TOL)
+  end subroutine test_F_operator_plus
+
+
+  @test
+  subroutine test_F_operator_minus()
+    call set_name("getting F operator (+)")
+    B_field % B02 = grid_gauss
+    B_field % B03 = grid_gauss**2
+    idx = 21
+    x = grid_gauss(idx)
+    expected = k2_val * x - k3_val * x**2
+    @assertEqual(expected, get_F_operator(idx, "minus"), tolerance=TOL)
+  end subroutine test_F_operator_minus
+
+
+  @test
+  subroutine test_F_operator_invalid()
+    call set_name("getting F operator (invalid)")
+    expected = get_F_operator(idx, "unknown")
+    @assertExceptionRaised("requesting invalid F-operator sign: unknown")
+  end subroutine test_F_operator_invalid
+
+
+  @test
+  subroutine test_dF_operator_plus_cartesian()
+    call set_name("getting dF operator (+, Cartesian)")
+    B_field % B02 = grid_gauss
+    B_field % d_B02_dr = 0.5d0 * grid_gauss
+    B_field % B03 = sqrt(grid_gauss)
+    B_field % d_B03_dr = 2.0d0
+    idx = 15
+    x = grid_gauss(idx)
+    expected = k2_val * 0.5d0 * x + k3_val * 2.0d0
+    @assertEqual("Cartesian", geometry)
+    @assertEqual(expected, get_diffF_operator(idx, "plus"), tolerance=TOL)
+  end subroutine test_dF_operator_plus_cartesian
+
+
+  @test
+  subroutine test_dF_operator_minus_cartesian()
+    call set_name("getting dF operator (-, Cartesian)")
+    B_field % B02 = grid_gauss
+    B_field % d_B02_dr = 0.5d0 * grid_gauss
+    B_field % B03 = sqrt(grid_gauss)
+    B_field % d_B03_dr = 2.0d0
+    idx = 15
+    x = grid_gauss(idx)
+    expected = k2_val * 0.5d0 * x - k3_val * 2.0d0
+    @assertEqual("Cartesian", geometry)
+    @assertEqual(expected, get_diffF_operator(idx, "minus"), tolerance=TOL)
+  end subroutine test_dF_operator_minus_cartesian
+
+
+  @test
+  subroutine test_dF_operator_plus_cylindrical()
+    call set_name("getting dF operator (+, cylindrical)")
+    call grid_clean()
+    call create_test_grid(pts=50, geom="cylindrical", start=0.0d0, end=1.0d0)
+    B_field % B02 = grid_gauss
+    B_field % d_B02_dr = grid_gauss**2
+    B_field % B03 = -grid_gauss
+    B_field % d_B03_dr = 2.0d0
+    idx = 20
+    x = grid_gauss(idx)
+    expected = (k2_val / x) * (x**2 - 1.0d0) + k3_val * 2.0d0
+    @assertEqual("cylindrical", geometry)
+    @assertEqual(expected, get_diffF_operator(idx, "plus"), tolerance=TOL)
+  end subroutine test_dF_operator_plus_cylindrical
+
+
+  @test
+  subroutine test_dF_operator_minus_cylindrical()
+    call set_name("getting dF operator (-, cylindrical)")
+    call grid_clean()
+    call create_test_grid(pts=50, geom="cylindrical", start=0.0d0, end=1.0d0)
+    B_field % B02 = grid_gauss
+    B_field % d_B02_dr = grid_gauss**2
+    B_field % B03 = -grid_gauss
+    B_field % d_B03_dr = 2.0d0
+    idx = 20
+    x = grid_gauss(idx)
+    expected = (k2_val / x) * (x**2 - 1.0d0) - k3_val * 2.0d0
+    @assertEqual("cylindrical", geometry)
+    @assertEqual(expected, get_diffF_operator(idx, "minus"), tolerance=TOL)
+  end subroutine test_dF_operator_minus_cylindrical
+
+
+  @test
+  subroutine test_dF_operator_invalid()
+    call set_name("getting dF operator (invalid)")
+    expected = get_diffF_operator(idx, "unknown")
+    @assertExceptionRaised("requesting invalid dF-operator sign: unknown")
+  end subroutine test_dF_operator_invalid
+
+
+  @test
+  subroutine test_G_operator_plus()
+    call set_name("getting G operator (+)")
+    B_field % B02 = grid_gauss**3
+    B_field % B03 = grid_gauss
+    idx = 40
+    x = grid_gauss(idx)
+    expected = k3_val * x**3 + k2_val * x
+    @assertEqual(expected, get_G_operator(idx, "plus"), tolerance=TOL)
+  end subroutine test_G_operator_plus
+
+
+  @test
+  subroutine test_G_operator_minus()
+    call set_name("getting G operator (-)")
+    B_field % B02 = grid_gauss**2
+    B_field % B03 = grid_gauss**3
+    idx = 35
+    x = grid_gauss(idx)
+    expected = k3_val * x**2 - k2_val * x**3
+    @assertEqual(expected, get_G_operator(idx, "minus"), tolerance=TOL)
+  end subroutine test_G_operator_minus
+
+
+  @test
+  subroutine test_G_operator_invalid()
+    call set_name("getting G operator (invalid)")
+    expected = get_G_operator(idx, "unknown")
+    @assertExceptionRaised("requesting invalid G-operator sign: unknown")
+  end subroutine test_G_operator_invalid
+
+
+  @test
+  subroutine test_k_operator_cartesian()
+    call set_name("getting K operator (Cartesian)")
+    expected = k2_val**2 + k3_val**2
+    @assertEqual(expected, get_wv_operator(5), tolerance=TOL)
+  end subroutine test_k_operator_cartesian
+
+
+  @test
+  subroutine test_k_operator_cylindrical()
+    call set_name("getting K operator (cylindrical)")
+    call grid_clean()
+    call create_test_grid(pts=50, geom="cylindrical", start=0.0d0, end=2.0d0)
+    idx = 25
+    x = grid_gauss(idx)
+    expected = k2_val**2 / x + x * k3_val**2
+    @assertEqual("cylindrical", geometry)
+    @assertEqual(expected, get_wv_operator(idx), tolerance=TOL)
+  end subroutine test_k_operator_cylindrical
+
+
+  @test
+  subroutine test_Kp_operator_plus()
+    call set_name("getting Kp+ operator")
+    kappa_field % prefactor = grid_gauss
+    kappa_field % d_kappa_perp_dB2 = grid_gauss**2
+    idx = 10
+    x = grid_gauss(idx)
+    expected = x + x**2
+    @assertEqual(expected, get_Kp_operator(idx, "+"), tolerance=TOL)
+  end subroutine test_Kp_operator_plus
+
+
+  @test
+  subroutine test_Kp_operator_plusplus()
+    call set_name("getting Kp++ operator")
+    kappa_field % prefactor = grid_gauss
+    kappa_field % d_kappa_perp_dB2 = grid_gauss**2
+    B_field % B01 = -2.0d0
+    B_field % B0 = sqrt(grid_gauss)
+    idx = 20
+    x = grid_gauss(idx)
+    expected = x**2 - (4.0d0 / x) * (x + x**2)
+    @assertEqual(expected, get_Kp_operator(idx, "++"), tolerance=TOL)
+  end subroutine test_Kp_operator_plusplus
+
+
+  @test
+  subroutine test_Kp_operator_invalid()
+    call set_name("getting Kp operator (invalid)")
+    expected = get_Kp_operator(idx, "unknown")
+    @assertExceptionRaised("requesting invalid Kp-operator: unknown")
+  end subroutine test_Kp_operator_invalid
+
+end module mod_test_matrix_operators

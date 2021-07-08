@@ -31,8 +31,13 @@ contains
     !> the filename of the file to open
     character(len=*), intent(in)  :: filename
 
-    open(unit=file_unit, file=filename, access='stream', &
-         status='unknown', action='write')
+    open( &
+      unit=file_unit, &
+      file=filename, &
+      access="stream", &
+      status="unknown", &
+      action="write" &
+    )
   end subroutine open_file
 
 
@@ -71,7 +76,7 @@ contains
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
       kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions, only: ef_grid, ef_names, ef_array
-    use mod_check_values, only: value_is_zero
+    use mod_check_values, only: is_equal
     use mod_equilibrium_params
     use mod_units
 
@@ -152,7 +157,7 @@ contains
 
     ! Eigenfunction data [optional]
     if (write_eigenfunctions) then
-      call log_message("writing eigenfunctions...", level='info')
+      call log_message("writing eigenfunctions...", level="info")
       write(dat_fh) size(ef_names), ef_names
       write(dat_fh) ef_grid
       do i = 1, nb_eqs
@@ -162,7 +167,7 @@ contains
 
     ! Matrix data [optional]
     if (write_matrices) then
-      call log_message("writing matrices...", level='info')
+      call log_message("writing matrices...", level="info")
       ! Write non-zero matrix indices and values. Since this varies every run, we first
       ! loop through without writing and count the non-zero values. This number is needed
       ! to correctly read in the values later on (we have to know how many there are).
@@ -170,10 +175,10 @@ contains
       nonzero_A_values = 0
       do j = 1, matrix_gridpts
         do i = 1, matrix_gridpts
-          if (.not. value_is_zero(matrix_B(i, j))) then
+          if (.not. is_equal(matrix_B(i, j), 0.0d0)) then
             nonzero_B_values = nonzero_B_values + 1
           end if
-          if (.not. value_is_zero(matrix_A(i, j))) then
+          if (.not. is_equal(matrix_A(i, j), (0.0d0, 0.0d0))) then
             nonzero_A_values = nonzero_A_values + 1
           end if
         end do
@@ -182,7 +187,7 @@ contains
       write(dat_fh) nonzero_B_values, nonzero_A_values
       do j = 1, matrix_gridpts
         do i = 1, matrix_gridpts
-          if (.not. value_is_zero(matrix_B(i, j))) then
+          if (.not. is_equal(matrix_B(i, j), 0.0d0)) then
             write(dat_fh) i, j
             write(dat_fh) matrix_B(i, j)
           end if
@@ -191,7 +196,7 @@ contains
       ! Write non-zero A matrix indices and values
       do j = 1, matrix_gridpts
         do i = 1, matrix_gridpts
-          if (.not. value_is_zero(matrix_A(i, j))) then
+          if (.not. is_equal(matrix_A(i, j), (0.0d0, 0.0d0))) then
             write(dat_fh) i, j
             write(dat_fh) matrix_A(i, j)
           end if
@@ -199,7 +204,7 @@ contains
       end do
     end if
 
-    call log_message("results saved to " // trim(datfile_name), level='info')
+    call log_message("results saved to " // trim(datfile_name), level="info")
     close(dat_fh)
 
     call create_logfile(eigenvalues)
@@ -229,14 +234,14 @@ contains
 
     call make_filename(trim(basename_logfile) // ".log", logfile_name)
     ! open manually since this is not a binary file
-    open(unit=log_fh, file=logfile_name, status='unknown', action='write')
+    open(unit=log_fh, file=logfile_name, status="unknown", action="write")
     do i = 1, size(eigenvalues)
       write(real_part, exp_fmt) real(eigenvalues(i))
       write(imag_part, exp_fmt) aimag(eigenvalues(i))
-      write(log_fh, *) real_part, ',', imag_part
+      write(log_fh, *) real_part, ",", imag_part
     end do
 
-    call log_message("eigenvalues logged to " // trim(logfile_name), level='info')
+    call log_message("eigenvalues logged to " // trim(logfile_name), level="info")
     close(log_fh)
   end subroutine create_logfile
 

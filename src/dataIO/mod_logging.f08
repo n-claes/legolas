@@ -75,7 +75,7 @@ contains
     case("error")
       call raise_exception(msg)
     case("warning")
-      if (logging_level >= 1) then
+      if (logging_level >= 1) then ! LCOV_EXCL_START <we don't print info at testing>
         if (add_prefix) then
           call paint_string(" WARNING | " // msg, "yellow", msg_painted)
         else
@@ -104,11 +104,12 @@ contains
       call raise_exception( &
         "argument 'level' should be 'error', 'warning', 'info' or 'debug'" &
       )
-      error stop
+      error stop ! LCOV_EXCL_STOP
     end select
   end subroutine log_message
 
 
+  ! LCOV_EXCL_START <logo is never printed during testing>
   !> Prints the Legolas logo to the console.
   !! The logo is wrapped in 1 whitespace at the top and
   !! two at the bottom. Only for logging level 'warning' (1) and above
@@ -146,8 +147,10 @@ contains
     end do
     call print_whitespace(2)
   end subroutine print_logo
+  ! LCOV_EXCL_STOP
 
 
+  ! LCOV_EXCL_START <we don't print info to console when testing>
   !> Prints various console messages showing geometry, grid parameters,
   !! equilibrium parameters etc. Only for logging level "info" or above.
   subroutine print_console_info()
@@ -345,8 +348,10 @@ contains
     )
     call print_whitespace(1)
   end subroutine print_console_info
+  ! LCOV_EXCL_STOP
 
 
+  ! LCOV_EXCL_START
   !> Converts a given Fortran logical to a string "true" or "false".
   subroutine logical_tostring(boolean, boolean_string)
     !> logical to convert
@@ -360,6 +365,7 @@ contains
       boolean_string = 'False'
     end if
   end subroutine logical_tostring
+  ! LCOV_EXCL_STOP
 
 
   !> Converts a given integer to a string, the default format is "i8".
@@ -420,14 +426,15 @@ contains
     if (present(fmt)) then
       format = "(" // trim(fmt) // ")"
     else
-      format = dp_fmt
+      format = "(f18.8)"
     end if
     write(char_log, format) real(value)
-    write(char_log2, '(SP,' // format // ',"i")')
-    result_str = trim(adjustl(char_log // char_log2))
+    write(char_log2, '(SP,' // format // ',"i")') aimag(value)
+    result_str = trim(adjustl(char_log)) // trim(adjustl(char_log2))
   end function complex_tostr
 
 
+  ! LCOV_EXCL_START <not used during testing>
   !> Prints an empty line to the console.
   !! Only if logging level is 'warning' or above.
   subroutine print_whitespace(lines)
@@ -441,5 +448,6 @@ contains
       end do
     end if
   end subroutine print_whitespace
+  ! LCOV_EXCL_STOP
 
 end module mod_logging

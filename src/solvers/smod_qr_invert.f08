@@ -9,7 +9,6 @@
 !! all eigenvalues and eigenvectors.
 submodule (mod_solvers) smod_qr_invert
   use mod_matrix_operations, only: invert_matrix, multiply_matrices
-  use mod_check_values, only: matrix_is_square
   implicit none
 
 contains
@@ -18,16 +17,7 @@ contains
   !! through inversion of the B-matrix.
   !! @warning Throws an error if <tt>matrix_A</tt> or <tt>matrix_B</tt>
   !!          is not a square matrix. @endwarning
-  module subroutine qr_invert(matrix_A, matrix_B, omega, vr)
-    !> matrix A
-    complex(dp), intent(in)   :: matrix_A(:, :)
-    !> matrix B
-    real(dp), intent(in)      :: matrix_B(:, :)
-    !> array with calculated eigenvalues
-    complex(dp), intent(out)  :: omega(:)
-    !> array with right eigenvectors
-    complex(dp), intent(out)  :: vr(:, :)
-
+  module procedure qr_invert
     !> inverse B-matrix
     real(dp)    :: B_inv(size(matrix_B, dim=1), size(matrix_B, dim=2))
     !> matrix \(B^{-1}A\)
@@ -54,16 +44,6 @@ contains
     real(dp), allocatable     :: rwork(:)
     !> dummy for left eigenvectors, jobvl = "N" so this is never referenced
     complex(dp) :: vl(2, 2)
-
-    ! check that we have square matrices
-    if (.not. matrix_is_square(matrix_A)) then
-      call log_message("qr_invert: A matrix is not square!", level="error")
-      return
-    end if
-    if (.not. matrix_is_square(matrix_B)) then
-      call log_message("qr_invert: B matrix is not square!", level="error")
-      return
-    end if
 
     ! do inversion of B
     call invert_matrix(matrix_B, B_inv)
@@ -92,20 +72,19 @@ contains
       jobvl, jobvr, N, B_invA, ldB_invA, omega, &
       vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )
-    if (info /= 0) then
-      write(char_log, int_fmt) info
+    if (info /= 0) then ! LCOV_EXCL_START
       call log_message("LAPACK routine zgeev failed!", level="warning")
       call log_message( &
-        "value for the info parameter: " // adjustl(char_log), &
+        "value for the info parameter: " // str(info), &
         level="warning", &
         use_prefix=.false. &
       )
-    end if
+    end if ! LCOV_EXCL_STOP
 
     deallocate(work)
     deallocate(rwork)
 
-    call check_small_values(omega)
-  end subroutine qr_invert
+    call set_small_values_to_zero(omega)
+  end procedure qr_invert
 
 end submodule smod_qr_invert

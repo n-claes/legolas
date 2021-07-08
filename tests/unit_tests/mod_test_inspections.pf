@@ -1,0 +1,164 @@
+module mod_test_inspections
+  use mod_suite_utils
+  use funit
+  use mod_equilibrium
+  use mod_inspections, only: check_wavenumbers
+  use mod_equilibrium_params, only: k2, k3
+  use mod_global_variables, only: NaN, geometry
+  implicit none
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    call reset_fields(init_fields=.true.)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up()
+  end subroutine teardown_test
+
+
+  subroutine do_NaN_negative_check()
+    use mod_inspections, only: perform_NaN_and_negative_checks
+
+    call perform_NaN_and_negative_checks( &
+      rho_field, T_field, B_field, v_field, grav_field &
+    )
+  end subroutine do_NaN_negative_check
+
+
+  @test
+  subroutine test_density_negative()
+    call set_name("negative density")
+    rho_field % rho0(10) = -1.0d0
+    call do_NaN_negative_check()
+    @assertExceptionRaised("negative density encountered!")
+  end subroutine test_density_negative
+
+
+  @test
+  subroutine test_temperature_negative()
+    call set_name("negative temperature")
+    T_field % T0(10) = -1.0d0
+    call do_NaN_negative_check()
+    @assertExceptionRaised("negative temperature encountered!")
+  end subroutine test_temperature_negative
+
+
+  @test
+  subroutine test_density_nan()
+    call set_name("density NaN")
+    rho_field % rho0(5) = NaN
+    call do_NaN_negative_check()
+    @assertExceptionRaised("NaN encountered in density")
+  end subroutine test_density_nan
+
+
+  @test
+  subroutine test_temperature_nan()
+    call set_name("temperature NaN")
+    T_field % T0(15) = NaN
+    call do_NaN_negative_check()
+    @assertExceptionRaised("NaN encountered in temperature")
+  end subroutine test_temperature_nan
+
+
+  @test
+  subroutine test_b01_nan()
+    call set_name("component B01 NaN")
+    B_field % B01 = NaN
+    call do_NaN_negative_check()
+    @assertExceptionRaised("NaN encountered in B01")
+  end subroutine test_b01_nan
+
+
+  @test
+  subroutine test_b02_nan()
+    call set_name("component B02 NaN")
+    B_field % B02(8:15) = NaN
+    call do_NaN_negative_check()
+    @assertExceptionRaised("NaN encountered in B02")
+  end subroutine test_b02_nan
+
+
+  @test
+  subroutine test_b03_nan()
+    call set_name("component B03 NaN")
+    B_field % B03(12) = NaN
+    call do_NaN_negative_check()
+    @assertExceptionRaised("NaN encountered in B03")
+  end subroutine test_b03_nan
+
+
+  @test
+  subroutine test_v01_nan()
+    call set_name("component v01 NaN")
+    v_field % v01(5) = NaN
+    call do_NaN_negative_check()
+    @assertExceptionRaised("NaN encountered in v01")
+  end subroutine test_v01_nan
+
+
+  @test
+  subroutine test_v02_nan()
+    call set_name("component v02 NaN")
+    v_field % v02(15) = NaN
+    call do_NaN_negative_check()
+    @assertExceptionRaised("NaN encountered in v02")
+  end subroutine test_v02_nan
+
+
+  @test
+  subroutine test_v03_nan()
+    call set_name("component v03 NaN")
+    v_field % v03(17:20) = NaN
+    call do_NaN_negative_check()
+    @assertExceptionRaised("NaN encountered in v03")
+  end subroutine test_v03_nan
+
+
+  @test
+  subroutine test_gravity_nan()
+    call set_name("gravity NaN")
+    grav_field % grav = NaN
+    call do_NaN_negative_check()
+    @assertExceptionRaised("NaN encountered in gravity")
+  end subroutine test_gravity_nan
+
+
+  @test
+  subroutine test_invalid_k2()
+    character(len=100) :: error_msg
+    call set_name("wavenumber k2 non-int in cylindrical")
+    geometry = "cylindrical"
+    k2 = 1.2d0
+    call check_wavenumbers()
+    error_msg = "cylindrical geometry but k2 is not an integer! Value: 1.20000000"
+    @assertExceptionRaised(error_msg)
+  end subroutine test_invalid_k2
+
+
+  @test
+  subroutine test_integer_k2()
+    call set_name("wavenumber k2 cylindrical")
+    geometry = "cylindrical"
+    k2 = 2.0d0
+    call check_wavenumbers()
+    @assertEqual(2.0d0, k2, tolerance=TOL)
+  end subroutine test_integer_k2
+
+
+  @test
+  subroutine test_k2_cartesian()
+    call set_name("wavenumber k2 Cartesian")
+    geometry = "Cartesian"
+    k2 = 0.5d0
+    call check_wavenumbers()
+    @assertEqual(0.5d0, k2, tolerance=TOL)
+  end subroutine test_k2_cartesian
+
+end module mod_test_inspections

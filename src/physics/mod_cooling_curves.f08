@@ -262,19 +262,18 @@ contains
   !! @warning To ensure a correct calculation the temperature normalisation must be set
   !!          to the desired value. @endwarning
   subroutine get_rosner_cooling(T0, lambda_T, dlambda_dT)
-    use mod_global_variables, only: gauss_gridpts
     use mod_units, only: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
 
     !> the equilibrium temperature, normalised
-    real(dp), intent(in)  :: T0(gauss_gridpts)
+    real(dp), intent(in)  :: T0(:)
     !> the cooling values corresponding to T0
-    real(dp), intent(out) :: lambda_T(gauss_gridpts)
+    real(dp), intent(out) :: lambda_T(:)
     !> the derivative of the cooling values corresponding to T0
-    real(dp), intent(out) :: dlambda_dT(gauss_gridpts)
+    real(dp), intent(out) :: dlambda_dT(:)
     real(dp)    :: log10_T0
     integer     :: i, j, idx
 
-    do i = 1, gauss_gridpts
+    do i = 1, size(T0)
       log10_T0 = dlog10(T0(i) * unit_temperature)
 
       ! look up value in tables
@@ -293,7 +292,9 @@ contains
       lambda_T(i) = 10.0d0 ** (rosner_log10_xi(idx) + rosner_alpha(idx) * log10_T0)
       ! dlambda_dT = alpha * xi * T**(alpha - 1) hence
       !            = alpha * 10**(log(xi) + (alpha-1)*log(T))
-      dlambda_dT(i) = rosner_alpha(idx) * 10.0d0 ** (rosner_log10_xi(idx) + (rosner_alpha(idx)-1) * log10_T0)
+      dlambda_dT(i) = rosner_alpha(idx) * 10.0d0 ** ( &
+        rosner_log10_xi(idx) + (rosner_alpha(idx)-1) * log10_T0 &
+      )
     end do
 
     ! renormalise variables

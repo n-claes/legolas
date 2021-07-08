@@ -83,10 +83,10 @@ contains
     use mod_global_variables, only: use_fixed_tc_para, fixed_tc_para_value
 
     !> equilibrium temperature
-    real(dp), intent(in)  :: T0_eq(gauss_gridpts)
+    real(dp), intent(in)  :: T0_eq(:)
     !> parallel thermal conduction values, normalised on exit
-    real(dp), intent(out) :: tc_para(gauss_gridpts)
-    real(dp)              :: T0_dimfull(gauss_gridpts)
+    real(dp), intent(out) :: tc_para(size(T0_eq))
+    real(dp)              :: T0_dimfull(size(T0_eq))
 
     if (use_fixed_tc_para) then
       tc_para = fixed_tc_para_value
@@ -109,15 +109,15 @@ contains
     use mod_global_variables, only: use_fixed_tc_perp, fixed_tc_perp_value
 
     !> equilibrium temperature
-    real(dp), intent(in)  :: T0_eq(gauss_gridpts)
+    real(dp), intent(in)  :: T0_eq(:)
     !> equilibrium density
-    real(dp), intent(in)  :: rho0_eq(gauss_gridpts)
+    real(dp), intent(in)  :: rho0_eq(:)
     !> equilibrium magnetic field
-    real(dp), intent(in)  :: B0_eq(gauss_gridpts)
+    real(dp), intent(in)  :: B0_eq(:)
     !> perpendicular thermal conduction values, normalised on exit
-    real(dp), intent(out) :: tc_perp(gauss_gridpts)
-    real(dp)              :: T0_dimfull(gauss_gridpts), B0_dimfull(gauss_gridpts)
-    real(dp)              :: nH_dimfull(gauss_gridpts)
+    real(dp), intent(out) :: tc_perp(size(T0_eq))
+    real(dp) :: T0_dimfull(size(T0_eq)), B0_dimfull(size(T0_eq))
+    real(dp) :: nH_dimfull(size(T0_eq))
 
     if (use_fixed_tc_perp) then
       tc_perp = fixed_tc_perp_value
@@ -129,7 +129,7 @@ contains
     B0_dimfull = B0_eq * unit_magneticfield
 
     tc_perp = pf_kappa_para * pf_kappa_perp * coulomb_log * nH_dimfull**2 &
-              / (B0_dimfull**2 * sqrt(T0_dimfull))
+      / (B0_dimfull**2 * sqrt(T0_dimfull))
     tc_perp = tc_perp / unit_conduction
   end subroutine set_kappa_perp
 
@@ -163,21 +163,21 @@ contains
     use mod_units, only: unit_dtc_drho, unit_dtc_dB2, unit_dtc_dT
 
     !> equilibrium temperature
-    real(dp), intent(in)  :: T0_eq(gauss_gridpts)
+    real(dp), intent(in)  :: T0_eq(:)
     !> equilibrium density
-    real(dp), intent(in)  :: rho0_eq(gauss_gridpts)
+    real(dp), intent(in)  :: rho0_eq(:)
     !> equilibrium magnetic field
-    real(dp), intent(in)  :: B0_eq(gauss_gridpts)
+    real(dp), intent(in)  :: B0_eq(:)
     !> derivative of perpendicular conduction with respect to density
-    real(dp), intent(out) :: d_tc_drho(gauss_gridpts)
+    real(dp), intent(out) :: d_tc_drho(size(T0_eq))
     !> derivative of perpendicular conduction with respect to magnetic field squared
-    real(dp), intent(out) :: d_tc_dB2(gauss_gridpts)
+    real(dp), intent(out) :: d_tc_dB2(size(T0_eq))
     !> derivative of perpendicular conduction with respect to temperature
-    real(dp), intent(out) :: d_tc_dT(gauss_gridpts)
-    real(dp)  :: T0_dimfull(gauss_gridpts)
-    real(dp)  :: rho0_dimfull(gauss_gridpts)
-    real(dp)  :: B0_dimfull(gauss_gridpts)
-    real(dp)  :: nH_dimfull(gauss_gridpts)
+    real(dp), intent(out) :: d_tc_dT(size(T0_eq))
+    real(dp)  :: T0_dimfull(size(T0_eq))
+    real(dp)  :: rho0_dimfull(size(T0_eq))
+    real(dp)  :: B0_dimfull(size(T0_eq))
+    real(dp)  :: nH_dimfull(size(T0_eq))
 
     call log_message("setting kappa_perp rho, T, B derivatives", level="debug")
     ! re-dimensionalise variables, in normalised units nH = rho
@@ -188,13 +188,13 @@ contains
 
     ! density derivative
     d_tc_drho = 2.0d0 * pf_kappa_para * pf_kappa_perp * coulomb_log * nH_dimfull &
-                / (B0_dimfull**2 * sqrt(T0_dimfull))
+      / (B0_dimfull**2 * sqrt(T0_dimfull))
     ! magnetic field derivative
     d_tc_dB2 = -pf_kappa_para * pf_kappa_perp * coulomb_log * nH_dimfull**2 &
-               / (B0_dimfull**4 * sqrt(T0_dimfull))
+      / (B0_dimfull**4 * sqrt(T0_dimfull))
     ! temperature derivative
     d_tc_dT = -0.5d0 * pf_kappa_para * pf_kappa_perp * coulomb_log * nH_dimfull**2 &
-              / (B0_dimfull**2 * T0_dimfull**(3.0d0/2.0d0))
+      / (B0_dimfull**2 * T0_dimfull**(3.0d0/2.0d0))
     d_tc_drho = d_tc_drho / unit_dtc_drho
     d_tc_dB2 = d_tc_dB2 / unit_dtc_dB2
     d_tc_dT = d_tc_dT / unit_dtc_dT
@@ -220,7 +220,7 @@ contains
     !> the type containing the thermal conduction attributes
     type(conduction_type), intent(inout)  :: kappa_field
 
-    real(dp)  :: dB0(gauss_gridpts)
+    real(dp)  :: dB0(size(B_field % B0))
 
     call log_message("setting kappa_perp radial derivative", level="debug")
     ! magnetic field derivative
@@ -254,8 +254,8 @@ contains
     !> the type containing the thermal conduction attributes
     type(conduction_type), intent(inout)  :: kappa_field
 
-    real(dp)  :: d_kappa_para_dr(gauss_gridpts)
-    real(dp)  :: dB0(gauss_gridpts)
+    real(dp)  :: d_kappa_para_dr(size(T_field % T0))
+    real(dp)  :: dB0(size(B_field % B0))
 
     call log_message("setting conduction prefactor", level="debug")
     ! calculate and set conduction prefactor

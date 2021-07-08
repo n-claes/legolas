@@ -11,7 +11,7 @@ module mod_input
   private
 
   !> IO unit for the parfile
-  integer       :: unit_par = 101
+  integer :: unit_par = 101
 
   public :: read_parfile
   public :: get_parfile
@@ -31,7 +31,7 @@ contains
   !! @warning If <tt>dry_run</tt> is <tt>True</tt>, this automatically sets eigenfunction
   !!          and matrix saving to <tt>False</tt>, independent of the settings in the parfile! @endwarning
   subroutine read_parfile(parfile)
-    use mod_check_values, only: value_is_zero, value_is_nan
+    use mod_check_values, only: is_equal, is_NaN
     use mod_units, only: set_normalisations
 
     !> the name of the parfile
@@ -52,8 +52,7 @@ contains
     namelist /unitslist/    &
         cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length
     namelist /gridlist/ &
-        geometry, x_start, x_end, gridpoints, force_r0, &
-        mesh_accumulation, ev_1, ev_2, sigma_1, sigma_2, coaxial
+        geometry, x_start, x_end, gridpoints, force_r0, coaxial
     namelist /equilibriumlist/ &
         equilibrium_type, boundary_type, use_defaults, remove_spurious_eigenvalues, &
         nb_spurious_eigenvalues
@@ -69,8 +68,9 @@ contains
         solver, arpack_mode, number_of_eigenvalues, which_eigenvalues, maxiter, sigma
 
     call init_equilibrium_params()
-    ! if no parfile supplied, return to keep using defaults
+    ! if no parfile supplied flag error
     if (parfile == "") then
+      call log_message("no parfile supplied!", level="error")
       return
     end if
 
@@ -111,7 +111,7 @@ contains
     if (.not. gridpoints == 0) then
       call set_gridpts(gridpoints)
     end if
-    if (.not. value_is_zero(mhd_gamma)) then
+    if (.not. is_equal(mhd_gamma, 0.0d0)) then
       call set_gamma(mhd_gamma)
     end if
 
@@ -122,27 +122,40 @@ contains
     end if
 
     ! Provide normalisations, if supplied
-    if (.not. value_is_nan(unit_density) .and. .not. value_is_nan(unit_temperature)) then
-      call log_message("unit density and unit temperature can not both be provided in the par file!", &
-                       level="error")
-    else if (.not. value_is_nan(unit_density)) then
-      if (value_is_nan(unit_magneticfield) .or. value_is_nan(unit_length)) then
-        call log_message("unit_density found, but unit_magneticfield and unit_length are also required.", &
-                         level="error")
+    if (.not. is_NaN(unit_density) .and. .not. is_NaN(unit_temperature)) then
+      call log_message( &
+        "unit density and unit temperature cannot both be provided in the parfile!", &
+        level="error" &
+      )
+    else if (.not. is_NaN(unit_density)) then
+      if (is_NaN(unit_magneticfield) .or. is_NaN(unit_length)) then
+        call log_message( &
+          "unit_density found, unit_magneticfield and unit_length also required.", &
+          level="error" &
+        )
       end if
-      call set_normalisations(new_unit_density=unit_density, new_unit_magneticfield=unit_magneticfield, &
-                              new_unit_length=unit_length)
-    else if (.not. value_is_nan(unit_temperature)) then
-      if (value_is_nan(unit_magneticfield) .or. value_is_nan(unit_length)) then
-        call log_message("unit_temperature found, but unit_magneticfield and unit_length are also required.", &
-                         level='error')
+      call set_normalisations( &
+        new_unit_density=unit_density, &
+        new_unit_magneticfield=unit_magneticfield, &
+        new_unit_length=unit_length &
+      )
+    else if (.not. is_NaN(unit_temperature)) then
+      if (is_NaN(unit_magneticfield) .or. is_NaN(unit_length)) then
+        call log_message( &
+          "unit_temperature found, unit_magneticfield and unit_length also required.", &
+          level="error" &
+        )
       end if
-      call set_normalisations(new_unit_temperature=unit_temperature, &
-                              new_unit_magneticfield=unit_magneticfield, new_unit_length=unit_length)
+      call set_normalisations( &
+        new_unit_temperature=unit_temperature, &
+        new_unit_magneticfield=unit_magneticfield, &
+        new_unit_length=unit_length &
+      )
     end if
   end subroutine read_parfile
 
 
+  ! LCOV_EXCL_START <this routine is excluded from coverage>
   !> Parses the command line arguments and retrieves the parfile passed.
   !! @warning Throws an error if
   !!
@@ -184,5 +197,6 @@ contains
       call log_message(("parfile not found: " // trim(filename_par)), level='error')
     end if
   end subroutine get_parfile
+  ! LCOV_EXCL_STOP
 
 end module mod_input

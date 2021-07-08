@@ -137,10 +137,14 @@ contains
     ! load pre-existing profiles from file
     if (present(load_from)) then
       ! this allocates and sets rho_values and drho_values
-      call load_profile_from_file(load_from)
-      loaded = .true.
+      call load_profile_from_file(load_from, loading_ok=loaded)
+      if (.not. loaded) then
+        call log_message("solar atmosphere: profile loading failed!", level="error")
+        return
+      end if
     else
       allocate(rho_values(nbpoints), drho_values(nbpoints))
+      loaded = .false.
     end if
 
     ! interpolate atmospheric tables
@@ -242,7 +246,7 @@ contains
     ! find temperature derivative
     call get_numerical_derivative(h_interp, T_interp, dT_interp)
     ! save these curves to a file if we're in debug mode
-    if (logging_level >= 3) then
+    if (logging_level >= 3) then ! LCOV_EXCL_START
       open( &
         unit=1002, &
         file="debug_atmocurves", &
@@ -261,9 +265,9 @@ contains
       write(1002) dT_interp * (unit_temperature / unit_length)
       close(1002)
       call log_message( &
-        "atmo curves saved to file 'debug_atmocurves", level="debug" &
+        "atmo curves saved to file 'debug_atmocurves'", level="debug" &
       )
-    end if
+    end if ! LCOV_EXCL_STOP
   end subroutine create_atmosphere_curves
 
 
@@ -298,19 +302,21 @@ contains
 
   !> Loads a previously calculated profile and uses that to set the resolution,
   !! density and density derivatives.
-  subroutine load_profile_from_file(filename)
-    use mod_check_values, only: value_is_equal
+  subroutine load_profile_from_file(filename, loading_ok)
+    use mod_check_values, only: is_equal, is_constant
     use mod_units, only: unit_length, unit_temperature, unit_magneticfield, unit_density
 
     !> values are loaded from this file
     character(len=*), intent(in) :: filename
+    logical, intent(out) :: loading_ok
 
     integer :: unit, resolution
     real(dp)  :: length_file, temperature_file, magneticfield_file, density_file
-    logical   :: b02_cte, b03_cte
+    logical   :: b02_cte, b03_cte, db02_zero, db03_zero
     character(len=:), allocatable :: prof_names
     real(dp), allocatable :: hfile(:), profile(:)
 
+    loading_ok = .false.
     unit = 1002
     open(unit=unit, file=filename, access="stream", status="old", action="read")
 
@@ -331,33 +337,41 @@ contains
 
     ! check normalisations
     read(unit) length_file, temperature_file, magneticfield_file, density_file
-    if (.not. value_is_equal(length_file, unit_length)) then
+    if (.not. is_equal(length_file, unit_length)) then
       call log_message( &
         "profile inconsistency: length units do not match! Got " // &
         str(length_file) // " but expected " // str(unit_length), &
-        level="error" &
+        level="warning" &
       )
+      close(unit)
+      return
     end if
-    if (.not. value_is_equal(temperature_file, unit_temperature)) then
+    if (.not. is_equal(temperature_file, unit_temperature)) then
       call log_message( &
         "profile inconsistency: temperature units do not match! Got " // &
         str(temperature_file) // " but expected " // str(unit_temperature), &
-        level="error" &
+        level="warning" &
       )
+      close(unit)
+      return
     end if
-    if (.not. value_is_equal(magneticfield_file, unit_magneticfield)) then
+    if (.not. is_equal(magneticfield_file, unit_magneticfield)) then
       call log_message( &
         "profile inconsistency: magnetic units do not match! Got " // &
         str(magneticfield_file) // " but expected " // str(unit_magneticfield), &
-        level="error" &
+        level="warning" &
       )
+      close(unit)
+      return
     end if
-    if (.not. value_is_equal(density_file, unit_density)) then
+    if (.not. is_equal(density_file, unit_density)) then
       call log_message( &
         "profile inconsistency: density units do not match! Got " // &
         str(length_file) // " but expected " // str(unit_length), &
-        level="error" &
+        level="warning" &
       )
+      close(unit)
+      return
     end if
 
     ! Here we check if the profiles that are provided correspond to the ones that
@@ -369,42 +383,35 @@ contains
 
     ! check B02
     read(unit) hfile, profile
-    if (.not. value_is_equal(profile, b02_prof(hfile))) then
+    if (.not. all(is_equal(profile, b02_prof(hfile)))) then
       prof_names = trim(prof_names // " B02")
     end if
+    b02_cte = (is_constant(profile) .and. is_constant(b02_prof(hfile)))
     ! check dB02
     read(unit) profile
-    if (.not. value_is_equal(profile, db02_prof(hfile))) then
+    if (.not. all(is_equal(profile, db02_prof(hfile)))) then
       prof_names = trim(prof_names // " dB02")
     end if
-    ! dB02 will be zero if B02 is constant
-    b02_cte = .false.
-    if ( &
-      value_is_equal(profile, 0.0d0) .and. value_is_equal(db02_prof(hfile), 0.0d0) &
-    ) then
-      b02_cte = .true.
-    end if
-
+    db02_zero = ( &
+      all(is_equal(profile, 0.0d0)) .and. all(is_equal(db02_prof(hfile), 0.0d0)) &
+    )
     ! check B03
     read(unit) profile
-    if (.not. value_is_equal(profile, b03_prof(hfile))) then
+    if (.not. all(is_equal(profile, b03_prof(hfile)))) then
       prof_names = trim(prof_names // " B03")
     end if
+    b03_cte = (is_constant(profile) .and. is_constant(b03_prof(hfile)))
     ! check dB03
     read(unit) profile
-    if (.not. value_is_equal(profile, db03_prof(hfile))) then
+    if (.not. all(is_equal(profile, db03_prof(hfile)))) then
       prof_names = trim(prof_names // " dB03")
     end if
-    ! check if B03 is constant
-    b03_cte = .false.
-    if ( &
-      value_is_equal(profile, 0.0d0) .and. value_is_equal(db03_prof(hfile), 0.0d0) &
-    ) then
-      b03_cte = .true.
-    end if
+    db03_zero = ( &
+      all(is_equal(profile, 0.0d0)) .and. all(is_equal(db03_prof(hfile), 0.0d0)) &
+    )
 
     ! if both B02 and B03 are constant then values do not matter for profile, so skip
-    if (b02_cte .and. b03_cte) then
+    if (b02_cte .and. dB02_zero .and. b03_cte .and. dB03_zero) then
       deallocate(prof_names)
       allocate(prof_names, mold="")
       call log_message( &
@@ -414,14 +421,15 @@ contains
 
     ! check gravity
     read(unit) profile
-    if (.not. value_is_equal(profile, gravity_prof(hfile))) then
+    if (.not. all(is_equal(profile, gravity_prof(hfile)))) then
       prof_names = trim(prof_names // " gravity")
     end if
     if (.not. prof_names == "") then
       call log_message( &
         "profile inconsistency in [" // prof_names // " ] when loading from file", &
-        level="error" &
+        level="warning" &
       )
+      close(unit)
       return
     end if
     deallocate(hfile, profile)
@@ -430,6 +438,7 @@ contains
     allocate(rho_values(nbpoints), drho_values(nbpoints))
     read(unit) rho_values, drho_values
     close(unit)
+    loading_ok = .true.
   end subroutine load_profile_from_file
 
 
