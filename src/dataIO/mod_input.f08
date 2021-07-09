@@ -46,6 +46,7 @@ contains
         mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
         external_gravity, thermal_conduction, use_fixed_tc_para, &
         fixed_tc_para_value, use_fixed_tc_perp, fixed_tc_perp_value, &
+        enhance_tc_perp, tc_perp_enhancement_factor, &
         resistivity, use_fixed_resistivity, fixed_eta_value, &
         use_eta_dropoff, dropoff_edge_dist, dropoff_width, &
         viscosity, viscous_heating, viscosity_value, incompressible, &

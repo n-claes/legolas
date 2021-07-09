@@ -57,6 +57,10 @@ module mod_global_variables
   logical, save             :: use_fixed_tc_perp
   !> defines the fixed value for perpendicular conduction, defaults to 0
   real(dp)                  :: fixed_tc_perp_value
+  !> boolean to optionally enhance tc_para, defaults to <tt>False</tt>
+  logical, save             :: enhance_tc_perp
+  !> defines the enhancement factor for perpendicular thermal conduction, defaults to 1
+  real(dp)                  :: tc_perp_enhancement_factor
   !> boolean for resistivity, defaults to <tt>False</tt>
   logical, save             :: resistivity
   !> boolean to set a fixed value for the resistivity, defaults to <tt>False</tt>
@@ -198,6 +202,8 @@ contains
     fixed_tc_para_value = 0.0d0
     use_fixed_tc_perp = .false.
     fixed_tc_perp_value = 0.0d0
+    enhance_tc_perp = .false.
+    tc_perp_enhancement_factor = 1.0d0
     resistivity = .false.
     use_fixed_resistivity = .false.
     fixed_eta_value = 0.0d0

@@ -43,6 +43,8 @@ namelist_items = {
         ("fixed_tc_para_value", (int, np.integer, float)),
         ("use_fixed_tc_perp", bool),
         ("fixed_tc_perp_value", (int, np.integer, float)),
+        ("enhance_tc_perp", bool),
+        ("tc_perp_enhancement_factor", (int, np.integer, float)),
         ("resistivity", bool),
         ("use_fixed_resistivity", bool),
         ("fixed_eta_value", (int, np.integer, float)),

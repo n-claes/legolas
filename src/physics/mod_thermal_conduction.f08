@@ -25,7 +25,9 @@ contains
   !!          are all zero if that value is taken to be fixed.
   subroutine set_conduction_values(rho_field, T_field, B_field, kappa_field)
     use mod_types, only: density_type, temperature_type, bfield_type, conduction_type
-    use mod_global_variables, only: use_fixed_tc_para, use_fixed_tc_perp
+    use mod_global_variables, only: &
+      use_fixed_tc_para, use_fixed_tc_perp, enhance_tc_perp, tc_perp_enhancement_factor
+    use mod_logging, only: log_message, str
 
     !> the type containing the density attributes
     type(density_type), intent(in)        :: rho_field
@@ -66,6 +68,28 @@ contains
       )
       ! set derivatives with respect to r
       call set_kappa_perp_radial_derivative(rho_field, T_field, B_field, kappa_field)
+    end if
+
+    ! optional enhancement factor, this is simply a constant by which to multiply
+    ! all perpendicular thermal conduction terms (derivatives included)
+    if (enhance_tc_perp) then
+      call log_message( &
+        "enhancing kappa_perp by " // str(tc_perp_enhancement_factor, fmt="e20.8"), &
+        level="info" &
+      )
+      kappa_field % kappa_perp = tc_perp_enhancement_factor * kappa_field % kappa_perp
+      kappa_field % d_kappa_perp_drho = ( &
+        tc_perp_enhancement_factor * kappa_field % d_kappa_perp_drho &
+      )
+      kappa_field % d_kappa_perp_dB2 = ( &
+        tc_perp_enhancement_factor * kappa_field % d_kappa_perp_dB2 &
+      )
+      kappa_field % d_kappa_perp_dT = ( &
+        tc_perp_enhancement_factor * kappa_field % d_kappa_perp_dT &
+      )
+      kappa_field % d_kappa_perp_dr = ( &
+        tc_perp_enhancement_factor * kappa_field % d_kappa_perp_dr &
+      )
     end if
 
     ! set conduction prefactor and its radial derivative
