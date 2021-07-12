@@ -87,7 +87,7 @@ def get_header(istream):
     h["eigenfuncs_written"] = bool(
         *hdr
     )  # bool casts 0 to False, everything else to True
-    if legolas_version >= "1.1.1":
+    if legolas_version >= "1.1.3":
         # read post-processed boolean
         fmt = ALIGN + "i"  # a fortran logical is a 4 byte integer
         hdr = struct.unpack(
@@ -233,7 +233,7 @@ def get_header(istream):
         offsets.update({"ef_arrays": istream.tell()})
         istream.seek(istream.tell() + byte_size)
 
-    if legolas_version >= "1.1.1":
+    if legolas_version >= "1.1.3":
         # if post-processed quantities are written, read names and include offsets
         if h["postprocessed_written"]:
             # read post-processed quantity names
