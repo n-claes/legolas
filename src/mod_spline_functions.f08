@@ -119,8 +119,6 @@ contains
                       + 2.0d0 * (r - rj_lo) ) / (rj_hi - rj_lo)**2
     ddh_cubic_dr(4) = ( 2.0d0 * (r - rj_hi) + 2.0d0 * (r - rj_lo) &
                       + 2.0d0 * (r - rj_hi) ) / (rj_hi - rj_lo)**2
-
-    call check_small_values(ddh_cubic_dr)
   end subroutine cubic_factors_deriv2
 
 end module mod_spline_functions

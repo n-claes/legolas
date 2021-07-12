@@ -113,7 +113,6 @@ contains
 
   !> Calculates the postprocessed quantities for every eigenvalue.
   subroutine calculate_postprocessed(vr)
-    use mod_check_values, only: check_small_values
 
     !> the matrix of right eigenvectors
     complex(dp), intent(in) :: vr(:, :)
