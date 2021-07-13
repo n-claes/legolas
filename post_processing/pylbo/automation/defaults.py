@@ -24,6 +24,7 @@ namelist_items = {
     "savelist": [
         ("write_matrices", bool),
         ("write_eigenfunctions", bool),
+        ("write_postprocessed", bool),
         ("show_results", bool),
         ("basename_datfile", str),
         ("basename_logfile", str),

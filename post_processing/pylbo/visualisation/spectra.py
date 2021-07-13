@@ -3,6 +3,7 @@ from copy import copy
 from matplotlib import colors
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.visualisation.eigenfunctions import EigenfunctionHandler
+from pylbo.visualisation.postprocessed import PostprocessedHandler
 from pylbo.visualisation.continua import ContinuaHandler
 from pylbo.visualisation.legend_interface import LegendHandler
 from pylbo.utilities.toolbox import transform_to_numpy, add_pickradius_to_item
@@ -18,6 +19,8 @@ class SpectrumFigure(FigureWindow):
         self._c_handler = None
         self._ef_handler = None
         self._ef_ax = None
+        self._pp_handler = None
+        self._pp_ax = None
 
         self.plot_props = None
         self.marker = None
@@ -27,7 +30,8 @@ class SpectrumFigure(FigureWindow):
 
     def draw(self):
         """
-        Draws everything, checks for continua/eigenfunctions. Overridden by subclasses.
+        Called on plot refreshing, the super call clears the figure and then redraws
+        everything.
         """
         super().draw()
         self._add_spectrum()
@@ -35,6 +39,8 @@ class SpectrumFigure(FigureWindow):
             self.add_continua(self._c_handler.interactive)
         if self._ef_handler is not None:
             self.add_eigenfunctions()
+        if self._pp_handler is not None:
+            self.add_postprocessed()
 
     def _set_plot_properties(self, properties):
         """
@@ -68,22 +74,6 @@ class SpectrumFigure(FigureWindow):
         """
         if interactive:
             super()._enable_interactive_legend(self._c_handler)
-
-    def add_eigenfunctions(self):
-        """
-        Method to add eigenfunctions, should be partially overridden by subclass and
-        then called through `super()` to connect the figure events.
-        """
-        callback_kinds = ("pick_event", "key_press_event")
-        callback_methods = (
-            self._ef_handler.on_point_pick,
-            self._ef_handler.on_key_press,
-        )
-        for callback_kind, callback_method in zip(callback_kinds, callback_methods):
-            callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
-            self._mpl_callbacks.append(
-                {"cid": callback_id, "kind": callback_kind, "method": callback_method}
-            )
 
 
 class SingleSpectrumPlot(SpectrumFigure):
@@ -220,8 +210,17 @@ class SingleSpectrumPlot(SpectrumFigure):
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax)
-        # connect everything
-        super().add_eigenfunctions()
+        super()._enable_interface(handle=self._ef_handler)
+
+    def add_postprocessed(self):
+        """
+        Adds the post-processed quantities to the plot, sets the post-processed handler.
+        """
+        if self._pp_ax is None:
+            self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
+        if self._pp_handler is None:
+            self._pp_handler = PostprocessedHandler(self.dataset, self._pp_ax)
+        super()._enable_interface(handle=self._pp_handler)
 
     def _ensure_smooth_continuum(self, continuum):
         # TODO: this method should split the continuum into multiple parts, such that
@@ -237,6 +236,16 @@ class SingleSpectrumPlot(SpectrumFigure):
     def ef_handler(self):
         """Property, returns the eigenfunction handler."""
         return self._ef_handler
+
+    @property
+    def pp_ax(self):
+        """Property, returns the post-processed axes."""
+        return self._pp_ax
+
+    @property
+    def pp_handler(self):
+        """Property, returns the post-processed handler."""
+        return self._pp_handler
 
 
 class MultiSpectrumPlot(SpectrumFigure):
@@ -458,8 +467,15 @@ class MultiSpectrumPlot(SpectrumFigure):
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.dataseries, self._ef_ax)
-        # connect everything
-        super().add_eigenfunctions()
+        super()._enable_interface(handle=self._ef_handler)
+
+    def add_postprocessed(self):
+        """Adds the post-processed quantities to the current figure."""
+        if self._pp_ax is None:
+            self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
+        if self._pp_handler is None:
+            self._pp_handler = PostprocessedHandler(self.dataseries, self._pp_ax)
+        super()._enable_interface(handle=self._pp_handler)
 
 
 class MergedSpectrumPlot(SpectrumFigure):
@@ -540,8 +556,15 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax)
-            # connect everything
-        super().add_eigenfunctions()
+        super()._enable_interface(handle=self._ef_handler)
+
+    def add_postprocessed(self):
+        """Adds the post-processed quantities to the current figure."""
+        if self._pp_ax is None:
+            self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
+        if self._pp_handler is None:
+            self._pp_handler = PostprocessedHandler(self.data, self._pp_ax)
+        super()._enable_interface(handle=self._pp_handler)
 
     def add_continua(self, interactive=True):
         raise NotImplementedError("Continua are not supported for this type of figure.")
@@ -641,6 +664,20 @@ class SpectrumComparisonPlot(SpectrumFigure):
             self._mpl_callbacks.extend(panel._mpl_callbacks)
             # add dedicated attribute to prevent mpl from double triggering events
             setattr(panel.ef_handler, "associated_ds_ax", panel.ax)
+
+    def add_postprocessed(self):
+        """
+        Adds the post-processed quantities for both datasets and merges the mpl
+        callbacks.
+        """
+        self._use_custom_axes()
+        for panel in [self.panel1, self.panel2]:
+            panel.add_postprocessed()
+            panel.disconnect_callbacks()
+            # merge callbacks
+            self._mpl_callbacks.extend(panel._mpl_callbacks)
+            # add dedicated attribute to prevent mpl from double triggering events
+            setattr(panel.pp_handler, "associated_ds_ax", panel.ax)
 
     def add_continua(self, interactive=True):
         """Adds the continua for both datasets and merges the mpl callbacks."""

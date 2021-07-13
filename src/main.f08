@@ -54,9 +54,11 @@ contains
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, matrix_gridpts, &
-      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma
+      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma, &
+      write_postprocessed
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
+    use mod_postprocessing, only: initialise_postprocessing
     use mod_eigenfunctions, only: initialise_eigenfunctions
     use mod_logging, only: print_logo
     use mod_global_variables, only: viscosity, hall_mhd
@@ -97,12 +99,22 @@ contains
       )
     end if
 
+    if (write_postprocessed .and. (.not. write_eigenfunctions)) then
+      call log_message('eigenfunctions needed for postprocessing !', level='warning')
+      call log_message('eigenfunctions will be written to the datfile', level='warning')
+      write_eigenfunctions = .true.
+    end if
+
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
     if (write_eigenfunctions .or. solver == "arnoldi") then
       call log_message("allocating eigenvector arrays", level="debug")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
       allocate(eigenvecs_right(matrix_gridpts, nb_evs))
       call initialise_eigenfunctions(nb_evs)
+    end if
+
+    if (write_postprocessed) then
+      call initialise_postprocessing(nb_evs)
     end if
   end subroutine initialisation
 
@@ -111,12 +123,16 @@ contains
   !! Makes a call to the eigenfunctions subroutine if specified in the parfile,
   !! then calls the output routines to write the datfile.
   subroutine finalise_results()
-    use mod_global_variables, only: write_eigenfunctions
+    use mod_global_variables, only: write_eigenfunctions, write_postprocessed
     use mod_output, only: create_datfile
     use mod_eigenfunctions, only: calculate_eigenfunctions
+    use mod_postprocessing, only: calculate_postprocessed
 
     if (write_eigenfunctions) then
       call calculate_eigenfunctions(eigenvecs_right)
+    end if
+    if (write_postprocessed) then
+      call calculate_postprocessed(eigenvecs_right)
     end if
     call create_datfile(omega, matrix_A, matrix_B)
   end subroutine finalise_results
@@ -130,6 +146,7 @@ contains
     use mod_equilibrium, only: equilibrium_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
     use mod_eigenfunctions, only: eigenfunctions_clean
+    use mod_postprocessing, only: postprocessing_clean
 
     deallocate(matrix_A)
     deallocate(matrix_B)
@@ -144,6 +161,7 @@ contains
     if (radiative_cooling) then
       call radiative_cooling_clean()
     end if
+    call postprocessing_clean()
     call eigenfunctions_clean()
   end subroutine cleanup
 

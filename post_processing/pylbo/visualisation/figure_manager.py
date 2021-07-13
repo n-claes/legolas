@@ -230,6 +230,23 @@ class FigureWindow:
             }
         )
 
+    def _enable_interface(self, handle):
+        """
+        Enables the EigenfunctionInterface based on a given handler.
+
+        Parameters
+        ----------
+        handle : ~pylbo.eigenfunction_interface.EigenfunctionInterface
+            The handler to add to the figure.
+        """
+        callback_kinds = ("pick_event", "key_press_event")
+        callback_methods = (handle.on_point_pick, handle.on_key_press)
+        for callback_kind, callback_method in zip(callback_kinds, callback_methods):
+            callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
+            self._mpl_callbacks.append(
+                {"cid": callback_id, "kind": callback_kind, "method": callback_method}
+            )
+
     def _add_subplot_axes(self, ax, loc="right", share=None):
         """
         Adds a new subplot to the given axes object, depending on the loc argument.

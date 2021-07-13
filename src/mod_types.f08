@@ -127,6 +127,16 @@ module mod_types
     complex(dp), allocatable :: eigenfunctions(:, :)
   end type ef_type
 
+  !> type containing all postprocessing related quantities
+  type pp_type
+    !> index of the variable in the state vector
+    integer                  :: index
+    !> name of the quantity (div v1, B1, B2, B3, etc.)
+    character(str_len_arr)   :: name
+    !> array containing all quantities for this index
+    complex(dp), allocatable :: quantities(:, :)
+  end type pp_type
+
   !> type containing Hall related variables
   type hall_type
     !> Hall parameter
@@ -171,6 +181,7 @@ module mod_types
   public :: cooling_type
   public :: conduction_type
   public :: ef_type
+  public :: pp_type
   public :: hall_type
 
   public :: initialise_type

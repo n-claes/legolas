@@ -60,7 +60,7 @@ contains
         nb_spurious_eigenvalues
     namelist /savelist/ &
         write_matrices, write_eigenfunctions, show_results, basename_datfile, &
-        basename_logfile, output_folder, logging_level, dry_run
+        basename_logfile, output_folder, logging_level, dry_run, write_postprocessed
     namelist /paramlist/  &
         k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, cte_v03, &
         cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
