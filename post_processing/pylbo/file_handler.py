@@ -65,9 +65,8 @@ def load(datfile):
         pylboLogger.info("matrices present in datfile")
     if ds.header["eigenfuncs_written"]:
         pylboLogger.info("eigenfunctions present in datfile")
-    if ds.legolas_version >= "1.1.1":
-        if ds.header["postprocessed_written"]:
-            pylboLogger.info("post-processed quantities present in datfile")
+    if ds.header.get("postprocessed_written", False):
+        pylboLogger.info("post-processed quantities present in datfile")
     pylboLogger.info("-" * 75)
     return ds
 
@@ -152,11 +151,15 @@ def load_series(datfiles):
             pylboLogger.info("eigenfunctions present in all datfiles")
 
     # check presence of post-processed quantities
-    pp_present = set([ds.header["postprocessed_written"] for ds in series.datasets if (ds.legolas_version >= "1.1.1")])
-    if len(pp_present)  == 0:
+    pp_present = set(
+        [ds.header.get("postprocessed_written", False) for ds in series.datasets]
+    )
+    if len(pp_present) == 0:
         pylboLogger.info("no post-processed quantities present")
     elif len(pp_present) > 1:
-        pylboLogger.info("post-processed quantities present in some datfiles, but not all")
+        pylboLogger.info(
+            "post-processed quantities present in some datfiles, but not all"
+        )
     else:
         if pp_present.pop():
             pylboLogger.info("post-processed quantities present in all datfiles")
