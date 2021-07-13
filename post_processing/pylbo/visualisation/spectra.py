@@ -30,8 +30,8 @@ class SpectrumFigure(FigureWindow):
 
     def draw(self):
         """
-        Draws everything, checks for continua/eigenfunctions/post-processed
-        quantities. Overridden by subclasses.
+        Called on plot refreshing, the super call clears the figure and then redraws
+        everything.
         """
         super().draw()
         self._add_spectrum()
@@ -74,38 +74,6 @@ class SpectrumFigure(FigureWindow):
         """
         if interactive:
             super()._enable_interactive_legend(self._c_handler)
-
-    def add_eigenfunctions(self):
-        """
-        Method to add eigenfunctions, should be partially overridden by subclass and
-        then called through `super()` to connect the figure events.
-        """
-        callback_kinds = ("pick_event", "key_press_event")
-        callback_methods = (
-            self._ef_handler.on_point_pick,
-            self._ef_handler.on_key_press,
-        )
-        for callback_kind, callback_method in zip(callback_kinds, callback_methods):
-            callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
-            self._mpl_callbacks.append(
-                {"cid": callback_id, "kind": callback_kind, "method": callback_method}
-            )
-
-    def add_postprocessed(self):
-        """
-        Method to add post-processed quantities, should be partially overridden
-        by subclass and then called through `super()` to connect the figure events.
-        """
-        callback_kinds = ("pick_event", "key_press_event")
-        callback_methods = (
-            self._pp_handler.on_point_pick,
-            self._pp_handler.on_key_press,
-        )
-        for callback_kind, callback_method in zip(callback_kinds, callback_methods):
-            callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
-            self._mpl_callbacks.append(
-                {"cid": callback_id, "kind": callback_kind, "method": callback_method}
-            )
 
 
 class SingleSpectrumPlot(SpectrumFigure):
@@ -242,17 +210,17 @@ class SingleSpectrumPlot(SpectrumFigure):
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax)
-        # connect everything
-        super().add_eigenfunctions()
+        super()._enable_interface(handle=self._ef_handler)
 
     def add_postprocessed(self):
-        """Adds the post-processed quantities to the plot, sets the post-processed handler."""
+        """
+        Adds the post-processed quantities to the plot, sets the post-processed handler.
+        """
         if self._pp_ax is None:
             self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._pp_handler is None:
             self._pp_handler = PostprocessedHandler(self.dataset, self._pp_ax)
-        # connect everything
-        super().add_postprocessed()
+        super()._enable_interface(handle=self._pp_handler)
 
     def _ensure_smooth_continuum(self, continuum):
         # TODO: this method should split the continuum into multiple parts, such that
@@ -499,8 +467,7 @@ class MultiSpectrumPlot(SpectrumFigure):
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.dataseries, self._ef_ax)
-        # connect everything
-        super().add_eigenfunctions()
+        super()._enable_interface(handle=self._ef_handler)
 
     def add_postprocessed(self):
         """Adds the post-processed quantities to the current figure."""
@@ -508,8 +475,7 @@ class MultiSpectrumPlot(SpectrumFigure):
             self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._pp_handler is None:
             self._pp_handler = PostprocessedHandler(self.dataseries, self._pp_ax)
-        # connect everything
-        super().add_postprocessed()
+        super()._enable_interface(handle=self._pp_handler)
 
 
 class MergedSpectrumPlot(SpectrumFigure):
@@ -590,8 +556,7 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax)
-            # connect everything
-        super().add_eigenfunctions()
+        super()._enable_interface(handle=self._ef_handler)
 
     def add_postprocessed(self):
         """Adds the post-processed quantities to the current figure."""
@@ -599,8 +564,7 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._pp_handler is None:
             self._pp_handler = PostprocessedHandler(self.data, self._pp_ax)
-            # connect everything
-        super().add_postprocessed()
+        super()._enable_interface(handle=self._pp_handler)
 
     def add_continua(self, interactive=True):
         raise NotImplementedError("Continua are not supported for this type of figure.")
