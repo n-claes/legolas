@@ -2,11 +2,12 @@ import f90nml
 import pytest
 import numpy as np
 from pathlib import Path
+import pylbo
 from pylbo.automation.generator import ParfileGenerator
 
 
-def test_basename_none(tmp_path):
-    gen = ParfileGenerator({}, output_dir=tmp_path)
+def test_basename_none(tmpdir):
+    gen = ParfileGenerator({}, output_dir=tmpdir)
     assert gen.basename == "parfile"
 
 
@@ -31,25 +32,24 @@ def test_invalid_dict_type():
 def test_unknown_namelist_item():
     from pylbo.exceptions import ParfileGenerationError
 
-    gen = ParfileGenerator({"gridpoints": 10, "unknown_item": 5})
     with pytest.raises(ParfileGenerationError):
-        gen.create_namelist_from_dict()
+        pylbo.generate_parfiles(parfile_dict={"gridpoints": 10, "unknown_item": 5})
 
 
 def test_invalid_nb_runs():
     from pylbo.exceptions import ParfileGenerationError
 
-    gen = ParfileGenerator({"gridpoints": [50, 100], "number_of_runs": 1})
     with pytest.raises(ParfileGenerationError):
-        gen.create_namelist_from_dict()
+        pylbo.generate_parfiles(
+            parfile_dict={"gridpoints": [50, 100], "number_of_runs": 1}
+        )
 
 
-def test_savelist_not_present(tmp_path):
-    gen = ParfileGenerator(
-        {"gridpoints": 100, "equilibrium_type": "adiabatic_homo"}, output_dir=tmp_path
+def test_savelist_not_present(tmpdir):
+    parfile = pylbo.generate_parfiles(
+        parfile_dict={"gridpoints": 100, "equilibrium_type": "adiabatic_homo"},
+        output_dir=tmpdir,
     )
-    gen.create_namelist_from_dict()
-    parfile = gen.generate_parfiles()
     parfile_dict = f90nml.read(*parfile)
     assert "savelist" in parfile_dict.keys()
 
@@ -92,16 +92,37 @@ def test_sigma_complex():
     assert np.isclose(sigma, 5.0 + 0j)
 
 
-def test_logfile_name(tmp_path):
+def test_logfile_name(tmpdir):
     gen = ParfileGenerator(
         {
             "gridpoints": 50,
             "equilibrium_type": "user_defined",
             "basename_logfile": "mylog",
         },
-        output_dir=tmp_path,
+        output_dir=tmpdir,
     )
     gen.create_namelist_from_dict()
     parfile = gen.generate_parfiles()
     parfile_dict = f90nml.read(*parfile)
     assert parfile_dict["savelist"].get("basename_logfile") == "mylog"
+
+
+def test_datfile_name_generation_multiruns(tmpdir):
+    # this tests issue #68
+    parfiles = pylbo.generate_parfiles(
+        parfile_dict={
+            "number_of_runs": 10,
+            "gridpoints": 50,
+            "parameters": {
+                "k2": 0.0,
+                "k3": np.pi * np.sin(0.25 * np.pi),
+                "cte_b03": np.linspace(0.001, 3, 10),
+            },
+            "equilibrium_type": "adiabatic_homo",
+        },
+        basename="parfile",
+        output_dir=tmpdir,
+    )
+    container = [f90nml.read(file) for file in parfiles]
+    for i, config in enumerate(container, start=1):
+        assert config["savelist"]["basename_datfile"] == f"{i:04d}parfile"
