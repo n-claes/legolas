@@ -27,6 +27,12 @@ def test_load_series_empty():
 
 
 @pytest.mark.timeout(5)
+def test_load_series_multiple_equils(datv100, datv112, datv112_eta):
+    with pytest.raises(ValueError):
+        pylbo.load_series([datv100, datv112, datv112_eta])
+
+
+@pytest.mark.timeout(5)
 def test_load_logfile_v0(logv0):
     pylbo.load_logfile(logv0)
 

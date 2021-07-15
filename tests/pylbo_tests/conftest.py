@@ -1,10 +1,14 @@
 import pytest
 import shutil
+import matplotlib.pyplot as plt
+import numpy as np
 from pathlib import Path
 import pylbo
 import pylbo.testing
+from pylbo.visualisation.continua import ContinuaHandler
 
-pylbo.set_loglevel("warning")
+
+pylbo.set_loglevel("error")
 
 KEEP_FILES_OPTION = "--keep-files"
 tmpdir_path = Path(__file__).resolve().parent / "tmp"
@@ -21,6 +25,12 @@ def cleanup(request):
     request.addfinalizer(remove_tmp_dir)
 
 
+@pytest.fixture(autouse=True)
+def close_figures_after_test():
+    yield
+    plt.close("all")
+
+
 def pytest_addoption(parser):
     parser.addoption(
         KEEP_FILES_OPTION,
@@ -35,10 +45,48 @@ def keep_files(request):
 
 
 @pytest.fixture
-def tmpdir(scope="session", autouse=True):
+def tmpdir(scope="session"):
     if not tmpdir_path.is_dir():
         tmpdir_path.mkdir()
     yield tmpdir_path
+
+
+@pytest.fixture
+def default_pf_dict(tmpdir):
+    config = {
+        "gridpoints": 10,
+        "equilibrium_type": "suydam_cluster",
+        "show_results": False,
+        "write_eigenfunctions": False,
+        "basename_datfile": "default_ds",
+        "output_folder": str(tmpdir),
+        "logging_level": 0,
+    }
+    return config
+
+
+@pytest.fixture
+def default_parfile(tmpdir, default_pf_dict):
+    return pylbo.generate_parfiles(default_pf_dict, output_dir=tmpdir)
+
+
+@pytest.fixture
+def default_ds(tmpdir, default_pf_dict):
+    filepath = (tmpdir / "default_ds.dat").resolve()
+    if not filepath.is_file():
+        parfile = pylbo.generate_parfiles(default_pf_dict, output_dir=tmpdir)
+        pylbo.run_legolas(parfile)
+    return pylbo.load(filepath)
+
+
+@pytest.fixture
+def fake_ds(datv112):
+    return pylbo.testing.FakeDataSet(datfile=datv112, seed=20210715)
+
+
+@pytest.fixture
+def c_handle():
+    return ContinuaHandler(interactive=True)
 
 
 @pytest.fixture
@@ -67,6 +115,16 @@ def datv112():
 
 
 @pytest.fixture
+def datv112_eta():
+    return utils / "v1.1.2_datfile_eta.dat"
+
+
+@pytest.fixture
+def ds_v090(datv090):
+    return pylbo.load(datv090)
+
+
+@pytest.fixture
 def ds_v100(datv100):
     return pylbo.load(datv100)
 
@@ -74,3 +132,23 @@ def ds_v100(datv100):
 @pytest.fixture
 def ds_v112(datv112):
     return pylbo.load(datv112)
+
+
+@pytest.fixture
+def ds_v112_eta(datv112_eta):
+    return pylbo.load(datv112_eta)
+
+
+@pytest.fixture
+def series_v100(datv100):
+    return pylbo.load_series([datv100] * 3)
+
+
+@pytest.fixture
+def series_v112(datv112):
+    return pylbo.load_series([datv112] * 3)
+
+
+@pytest.fixture
+def series_v112_eta(datv112_eta):
+    return pylbo.load_series([datv112_eta] * 5)
