@@ -75,6 +75,33 @@ class SpectrumFigure(FigureWindow):
         if interactive:
             super()._enable_interactive_legend(self._c_handler)
 
+    def add_eigenfunctions(self):
+        """
+        Adds eigenfunctions to the spectrum, overridden in subclasses.
+        """
+        pass
+
+    def add_postprocessed(self):
+        """
+        Adds postprocessed quantities to the spectrum, overridden in subclasses.
+        """
+        pass
+
+    @property
+    def c_handler(self):
+        """Property, returns the continua handler."""
+        return self._c_handler
+
+    @property
+    def ef_handler(self):
+        """Property, returns the eigenfunction handler."""
+        return self._ef_handler
+
+    @property
+    def ef_ax(self):
+        """Property, returns the eigenfunction axes."""
+        return self._ef_ax
+
 
 class SingleSpectrumPlot(SpectrumFigure):
     """
@@ -226,26 +253,6 @@ class SingleSpectrumPlot(SpectrumFigure):
         # TODO: this method should split the continuum into multiple parts, such that
         #       regions that lie far apart are not connected by a line.
         pass
-
-    @property
-    def ef_ax(self):
-        """Property, returns the eigenfunction axes."""
-        return self._ef_ax
-
-    @property
-    def ef_handler(self):
-        """Property, returns the eigenfunction handler."""
-        return self._ef_handler
-
-    @property
-    def pp_ax(self):
-        """Property, returns the post-processed axes."""
-        return self._pp_ax
-
-    @property
-    def pp_handler(self):
-        """Property, returns the post-processed handler."""
-        return self._pp_handler
 
 
 class MultiSpectrumPlot(SpectrumFigure):
