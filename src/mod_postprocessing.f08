@@ -37,8 +37,8 @@ module mod_postprocessing
   logical, save                         :: B_zero
   !> array containing the interpolated grid
   real(dp), allocatable                 :: grid_ip(:, :)
-  !> array containing the interpolated B0 components
-  real(dp), allocatable                 :: B0ip(:, :)
+  !> array containing the interpolated B0 components, rho0 and T0
+  real(dp), allocatable                 :: eq_ip(:, :)
   !> interpolation gridpoints
   integer                               :: ip_pts
 
@@ -75,15 +75,19 @@ contains
     Bcheck = count(abs(B_field % B02) > dp_LIMIT) + count(abs(B_field % B03) > dp_LIMIT)
 
     B_zero = .true.
-    if (Bcheck == 0 .or. (B_field % B01 > dp_LIMIT)) then
-      nb_pp = 11
+    if (Bcheck == 0 .or. (abs(B_field % B01) > dp_LIMIT)) then
+      nb_pp = 12
     else
       B_zero = .false.
-      nb_pp = 20
+      nb_pp = 21
     end if
 
     allocate(pp_names(nb_pp))
     allocate(pp_array(nb_pp))
+
+    ip_pts = 25 * (gridpts - 1) + 1
+    allocate(grid_ip(ip_pts, 4))
+    allocate(eq_ip(ip_pts, 4))
 
     do i = 1, nb_pp
       allocate(pp_array(i) % quantities(ef_gridpts, nev))
@@ -91,16 +95,13 @@ contains
 
     if (B_zero) then
       pp_names = [ &
-        character(len=str_len_arr) :: 'div v', '(curl v)1', '(curl v)2', &
+        character(len=str_len_arr) :: 'S', 'div v', '(curl v)1', '(curl v)2', &
                                       '(curl v)3', 'B1', 'B2', 'B3', 'div B', &
                                       '(curl B)1', '(curl B)2', '(curl B)3' &
       ]
     else
-      ip_pts = 25 * (gridpts - 1) + 1
-      allocate(grid_ip(ip_pts, 2))
-      allocate(B0ip(ip_pts, 2))
       pp_names = [ &
-        character(len=str_len_arr) :: 'div v', '(curl v)1', '(curl v)2', &
+        character(len=str_len_arr) :: 'S', 'div v', '(curl v)1', '(curl v)2', &
                                       '(curl v)3', 'B1', 'B2', 'B3', 'div B', &
                                       '(curl B)1', '(curl B)2', '(curl B)3', &
                                       'B_para', 'B_perp', '(curl B)_para', &
@@ -127,60 +128,64 @@ contains
       pp_array(j) % name = pp_names(j)
     end do
 
-    if (.not. B_zero) then
-      call interpolate_B0(grid_ip, B0ip)
-    end if
+    call interpolate_equilibrium(grid_ip, eq_ip)
+
+    !! Entropy perturbation S1
+    do i = 1, size(vr, dim=2)
+      call get_entropy(i, single)
+      pp_array(1) % quantities(:, i) = single
+    end do
 
     !! Divergence of v1
     do i = 1, size(vr, dim=2)
       call get_div_velocity(i, vr(:, i), single)
-      pp_array(1) % quantities(:, i) = single
+      pp_array(2) % quantities(:, i) = single
     end do
 
     !! Curl of v1
     do i = 1, size(vr, dim=2)
       call get_curl_velocity(i, vr(:, i), triple, double)
-      pp_array(2) % quantities(:, i) = triple(:, 1)
-      pp_array(3) % quantities(:, i) = triple(:, 2)
-      pp_array(4) % quantities(:, i) = triple(:, 3)
+      pp_array(3) % quantities(:, i) = triple(:, 1)
+      pp_array(4) % quantities(:, i) = triple(:, 2)
+      pp_array(5) % quantities(:, i) = triple(:, 3)
       !! In parallel/perpendicular components w.r.t B0 (no B01, so set becomes
       !! (curlv1)1, (curlv1)para, (curlv1)perp)
       if (.not. B_zero) then
-        pp_array(19) % quantities(:, i) = double(:, 1)
-        pp_array(20) % quantities(:, i) = double(:, 2)
+        pp_array(20) % quantities(:, i) = double(:, 1)
+        pp_array(21) % quantities(:, i) = double(:, 2)
       end if
     end do
 
     !! Magnetic field B1
     do i = 1, size(vr, dim=2)
       call get_magnetic_field(i, vr(:, i), triple, double)
-      pp_array(5) % quantities(:, i) = triple(:, 1)
-      pp_array(6) % quantities(:, i) = triple(:, 2)
-      pp_array(7) % quantities(:, i) = triple(:, 3)
+      pp_array(6) % quantities(:, i) = triple(:, 1)
+      pp_array(7) % quantities(:, i) = triple(:, 2)
+      pp_array(8) % quantities(:, i) = triple(:, 3)
       !! In parallel/perpendicular components w.r.t B0 (no B01, so set becomes B1, Bpara, Bperp)
       if (.not. B_zero) then
-        pp_array(12) % quantities(:, i) = double(:, 1)
-        pp_array(13) % quantities(:, i) = double(:, 2)
+        pp_array(13) % quantities(:, i) = double(:, 1)
+        pp_array(14) % quantities(:, i) = double(:, 2)
       end if
     end do
 
     !! Divergence of B1
     do i = 1, size(vr, dim=2)
       call get_div_magnetic(i, vr(:, i), single)
-      pp_array(8) % quantities(:, i) = single
+      pp_array(9) % quantities(:, i) = single
     end do
 
     !! Curl of B1
     do i = 1, size(vr, dim=2)
       call get_curl_magnetic(i, vr(:, i), triple, double)
-      pp_array(9) % quantities(:, i) = triple(:, 1)
-      pp_array(10) % quantities(:, i) = triple(:, 2)
-      pp_array(11) % quantities(:, i) = triple(:, 3)
+      pp_array(10) % quantities(:, i) = triple(:, 1)
+      pp_array(11) % quantities(:, i) = triple(:, 2)
+      pp_array(12) % quantities(:, i) = triple(:, 3)
       !! In parallel/perpendicular components w.r.t B0 (no B01, so set becomes
       !! (curlB1)1, (curlB1)para, (curlB1)perp)
       if (.not. B_zero) then
-        pp_array(14) % quantities(:, i) = double(:, 1)
-        pp_array(15) % quantities(:, i) = double(:, 2)
+        pp_array(15) % quantities(:, i) = double(:, 1)
+        pp_array(16) % quantities(:, i) = double(:, 2)
       end if
     end do
 
@@ -189,12 +194,46 @@ contains
     if (.not. B_zero) then
       do i = 1, size(vr, dim=2)
         call get_v_paraperp(i, triple)
-        pp_array(16) % quantities(:, i) = triple(:, 1)
-        pp_array(17) % quantities(:, i) = triple(:, 2)
-        pp_array(18) % quantities(:, i) = triple(:, 3)
+        pp_array(17) % quantities(:, i) = triple(:, 1)
+        pp_array(18) % quantities(:, i) = triple(:, 2)
+        pp_array(19) % quantities(:, i) = triple(:, 3)
       end do
     end if
   end subroutine calculate_postprocessed
+
+
+  !> Calculates the perturbed magnetic field B1
+  subroutine get_entropy(index, field)
+    use mod_global_variables, only: gauss_gridpts
+    use mod_equilibrium, only: T_field, rho_field
+
+    integer, intent(in)       :: index
+    complex(dp), intent(out)  :: field(ef_gridpts)
+
+    complex(dp) :: rho(ef_gridpts), T(ef_gridpts)
+    integer     :: m
+    real(dp)    :: x
+    complex(dp) :: T0, rho0
+
+    rho = ef_array(1) % eigenfunctions(:, index)
+    T   = ef_array(5) % eigenfunctions(:, index)
+
+    do m = 1, ef_gridpts
+      if (m == 1) then
+        rho0 = rho_field % rho0(1)
+        T0   = T_field % T0(1)
+      else if (m == ef_gridpts) then
+        rho0 = rho_field % rho0(gauss_gridpts)
+        T0   = T_field % T0(gauss_gridpts)
+      else
+        x    = ef_grid(m)
+        rho0 = lookup_table_value(x, grid_ip(:, 3), eq_ip(:, 3))
+        T0   = lookup_table_value(x, grid_ip(:, 4), eq_ip(:, 4))
+      end if
+
+      field(m) = T(m) / rho0**(2.0d0/3.0d0) - (2.0d0/3.0d0) * rho(m) * T0 / rho0**(5.0d0/3.0d0)
+    end do
+  end subroutine get_entropy
 
 
   !> Calculates the divergence of the perturbed velocity v1
@@ -261,8 +300,8 @@ contains
           B02 = B_field % B02(gauss_gridpts)
           B03 = B_field % B03(gauss_gridpts)
         else
-          B02 = lookup_table_value(x, grid_ip(:, 1), B0ip(:, 1))
-          B03 = lookup_table_value(x, grid_ip(:, 2), B0ip(:, 2))
+          B02 = lookup_table_value(x, grid_ip(:, 1), eq_ip(:, 1))
+          B03 = lookup_table_value(x, grid_ip(:, 2), eq_ip(:, 2))
         end if
         B0 = sqrt(B02**2 + B03**2)
 
@@ -314,8 +353,8 @@ contains
           B02 = B_field % B02(gauss_gridpts)
           B03 = B_field % B03(gauss_gridpts)
         else
-          B02 = lookup_table_value(x, grid_ip(:, 1), B0ip(:, 1))
-          B03 = lookup_table_value(x, grid_ip(:, 2), B0ip(:, 2))
+          B02 = lookup_table_value(x, grid_ip(:, 1), eq_ip(:, 1))
+          B03 = lookup_table_value(x, grid_ip(:, 2), eq_ip(:, 2))
         end if
         B0 = sqrt(B02**2 + B03**2)
 
@@ -402,8 +441,8 @@ contains
          B02 = B_field % B02(gauss_gridpts)
          B03 = B_field % B03(gauss_gridpts)
        else
-         B02 = lookup_table_value(x, grid_ip(:, 1), B0ip(:, 1))
-         B03 = lookup_table_value(x, grid_ip(:, 2), B0ip(:, 2))
+         B02 = lookup_table_value(x, grid_ip(:, 1), eq_ip(:, 1))
+         B03 = lookup_table_value(x, grid_ip(:, 2), eq_ip(:, 2))
        end if
        B0 = sqrt(B02**2 + B03**2)
 
@@ -439,8 +478,8 @@ contains
         B02 = B_field % B02(gauss_gridpts)
         B03 = B_field % B03(gauss_gridpts)
       else
-        B02 = lookup_table_value(x, grid_ip(:, 1), B0ip(:, 1))
-        B03 = lookup_table_value(x, grid_ip(:, 2), B0ip(:, 2))
+        B02 = lookup_table_value(x, grid_ip(:, 1), eq_ip(:, 1))
+        B03 = lookup_table_value(x, grid_ip(:, 2), eq_ip(:, 2))
       end if
       B0 = sqrt(B02**2 + B03**2)
 
@@ -585,23 +624,29 @@ contains
   end subroutine set_eps
 
 
-  subroutine interpolate_B0(grid, B0)
+  subroutine interpolate_equilibrium(grid, eq)
     use mod_interpolation, only: interpolate_table
-    use mod_equilibrium, only: B_field
+    use mod_equilibrium, only: B_field, T_field, rho_field
     use mod_grid, only: grid_gauss
 
-    real(dp), intent(out)   :: grid(ip_pts, 2)
-    real(dp), intent(out)   :: B0(ip_pts, 2)
-    real(dp)                :: x_grid2(ip_pts), x_grid3(ip_pts)
-    real(dp)                :: B02(ip_pts), B03(ip_pts)
+    real(dp), intent(out)   :: grid(ip_pts, 4)
+    real(dp), intent(out)   :: eq(ip_pts, 4)
+    real(dp)                :: x_grid(ip_pts)
+    real(dp)                :: var(ip_pts)
 
-    call interpolate_table(ip_pts, grid_gauss, B_field % B02, x_grid2, B02)
-    grid(:, 1) = x_grid2
-    B0(:, 1) = B02
-    call interpolate_table(ip_pts, grid_gauss, B_field % B03, x_grid3, B03)
-    grid(:, 2) = x_grid3
-    B0(:, 2) = B03
-  end subroutine interpolate_B0
+    call interpolate_table(ip_pts, grid_gauss, B_field % B02, x_grid, var)
+    grid(:, 1) = x_grid
+    eq(:, 1) = var
+    call interpolate_table(ip_pts, grid_gauss, B_field % B03, x_grid, var)
+    grid(:, 2) = x_grid
+    eq(:, 2) = var
+    call interpolate_table(ip_pts, grid_gauss, rho_field % rho0, x_grid, var)
+    grid(:, 3) = x_grid
+    eq(:, 3) = var
+    call interpolate_table(ip_pts, grid_gauss, T_field % T0, x_grid, var)
+    grid(:, 4) = x_grid
+    eq(:, 4) = var
+  end subroutine interpolate_equilibrium
 
 
   !> Cleaning routine, deallocates the postprocessing arrays.
@@ -613,11 +658,8 @@ contains
       do i = 1, nb_pp
         deallocate(pp_array(i) % quantities)
       end do
-    end if
-
-    if (allocated(B0ip)) then
       deallocate(grid_ip)
-      deallocate(B0ip)
+      deallocate(eq_ip)
     end if
   end subroutine postprocessing_clean
 
