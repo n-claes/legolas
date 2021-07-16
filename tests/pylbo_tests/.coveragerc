@@ -1,0 +1,20 @@
+# controls coverage report
+# this file has to be copied to the same directory as the data_file
+
+[run]
+data_file = $LEGOLASDIR/tests/coverage/pylbo/.coverage
+omit =
+    *testing.py
+    *__init__.py*
+    *debug.py*
+
+[report]
+exclude_lines =
+    pylboLogger.info
+    pylboLogger.warning
+    def __str__
+    def select_files
+    def disable_logging
+    except KeyboardInterrupt:
+    def _terminate_workers
+    pass
