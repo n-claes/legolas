@@ -1,7 +1,6 @@
 import pytest
 import shutil
 import matplotlib.pyplot as plt
-import numpy as np
 from pathlib import Path
 import pylbo
 import pylbo.testing
