@@ -7,23 +7,16 @@ sidebar:
 toc: true
 toc_icon: "tools"
 toc_label: "User submodule configuration"
-last_modified_at: 2020-09-03
+last_modified_at: 2021-07-26
 ---
 
-This page explains how to configure the custom user submodule to your needs and run your own setup.
-To start navigate to any directory of your choosing and call the `setuplegolas.py` setup script.
-See the [installation guide](../../getting-started/installation/#2-out-of-repository-build-recommended)
-for more information.
+This page explains how to configure the custom user submodule to your needs. We assume that you are already familiar with
+how to set up a legolas directory and how to run legolas in a separate directory. If this is not the case see [how to run your first problem](../../getting-started/running).
+In what follows we also assume that both a `smod_user_defined.f08` file and parfile are present in the current working directory. You can copy both of these over when running
+the setup script.
 
-# The parfile
-When running the setup script and no parfile is found you are asked if you want to copy over a default template.
-You'll need this file for the basic Legolas configuration, so please do so. Take a look at the different
-[parameter options](../parameter_file/) as well. Configure this file to your needs.
-
-# The smod_user_defined.f08 submodule
-In this module you will set up your equilibrium configuration. You can either choose to copy over the default template
-from the legolas `src` directory, or create your own. Both are fine, as long as the file is named `smod_user_defined.f08`
-and the general template looks like this:
+## The submodule itself
+The submodule `smod_user_defined.f08` is used to set up your own equilibrium configuration. The general template looks like this:
 ```fortran
 submodule (mod_equilibrium) smod_user_defined
   implicit none
@@ -38,57 +31,57 @@ contains
 end submodule smod_user_defined
 ```
 This is all that's needed. The `mod_equilibrium` statement between brackets refers to the parent module,
-which contains the interface of the subroutines that are implemented in their respective submodules.
-This also implies that you have access to _all_ global `use` statements in the `mod_equilibrium` module, without
-having to explicitly import them.
+which contains the interface of the subroutines that are implemented in their respective submodules. This also implies that you have access to all public variables/routines/functions
+that are either defined or used in the [`mod_equilibium`](../../ford/module/mod_equilibrium.html) module through host association, without having to `use` them explicitly.
 
 In what follows all code samples go _inside_ the `user_defined_eq()` subroutine, since this is the only routine you
 need to configure yourself.
 
 ## Setting the grid
-You have several options here. Either you hardcode the grid parameters yourself, setting `geometry`, `x_start` and `x_end`
-to fixed values. However, in some use cases it may be necessary to vary grid parameters as part of parametric studies.
-We therefore provided the `allow_geometry_override` subroutine, which can be used to set default values that can be
-overridden through the parfile.
+Here you have 2 options: let Legolas take care of everything _or_ provide a custom grid yourself.
 
-**Note:** The variables `geometry`, `x_start`, `x_end` and the subroutine `call initialise_grid()` are all known
-in the parent module and don't have to be imported explicitly.
+**Note:** The variables `geometry`, `x_start`, `x_end` and the subroutines `initialise_grid` and `allow_geometry_override` are all known
+in the parent module and don't have to be used explicitly.
 {: .notice--info}
-
-_Option 1_: full override
+### Using a default grid
+In this case you supply the geometry, start and end of the grid, and Legolas will create a uniform grid for you. Here you can either explicitly set
+the `geometry`, `x_start` and `x_end` variables to some values, or you use the `allow_geometry_override` subroutine:
 ```fortran
-call allow_geometry_override(default_geometry='cylindrical', &
-                             default_x_start=0.0d0, &
-                             default_x_end=1.0d0)
-```
-_Option 2_: partial override
-```fortran
-x_end = 1.0d0
-call allow_geometry_override(default_geometry="Cartesian", default_x_start=0.0d0)
-```
-_Option 3_: hardcoded
-```fortran
-geometry = "Cartesian"
-x_start = 0.0d0
-x_end = 1.0d0
-```
-In the first option above you can switch between `"Cartesian"` and `cylindrical` geometries and custom grid boundaries
-solely using the parfile, while in option 2 you can only modify the outer grid boundary. Option 3 does not allow for
-an override at all.
-After these three variables are set, you tell the code it should initialise the grid through
-```fortran
+call allow_geometry_override(default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0)
 call initialise_grid()
 ```
-which allocates the arrays and initialises the grid, geometry scale factor and Gaussian grid.
+This allows you to vary the grid properties through the parfile, without having to recompile your module. Legolas will default to the values
+given here if nothing is specified in the parfile.
+The call to `initialise_grid` sets up the (uniform) grid, Gaussian grid and scale factors.
+
+
+### Using a custom grid
+The second possibility is defining a grid yourself. There are no restrictions on the custom grid (besides it needing to be strictly increasing),
+meaning you have full control over start, end and grid spacing. This can be particularly useful if you want mesh accumulation near a certain region to better resolve some
+sharp gradients instead of increasing the base resolution. Simply define an array of size `gridpts`, fill it and supply it to the initialisation routine:
+```fortran
+real(dp) :: my_grid(gridpts)
+integer :: i
+
+x_start = 0.0d0
+x_end = 2.0d0
+do i = 1, gridpts
+  ! fill the grid however you want
+end do
+call initialise_grid(custom_grid=my_grid)
+```
+The `dp` here is a global parameter, corresponding to the double precision value `real64` from `iso_fortran_env`. The initialisation routine takes care of
+setting up the Gaussian grid automatically, using the custom grid you provided. You can even mix this with [parfile variables](../../general/parameter_file/#paramlist)
+to change the grid between different runs. You can take a look at the pre-implemented
+[flux tube equilibria](../../ford/sourcefile/smod_equil_coronal_flux_tube.f08.html) for inspiration, which use a separate grid spacing in 3 different regions.
 
 ## Using variables
 Legolas uses a dedicated module which contains a multitude of variables that you can use in your setups.
-For a comprehensive list we refer to [this page](../../src-docs/ford/module/mod_equilibrium_params.html#variable-k2).
+For a comprehensive list we refer to [this page](../../ford/module/mod_equilibrium_params.html#variable-k2).
 You can use all of these in your setups, but note that these should be explicitly imported (except for `k2` and `k3`).
 An example is given below.
 
-**Note:** The variables `use_defaults`, `k2` and `k3` are known in the parent module. All other parameters you want
-to use should be explicitly imported.
+**Note:** The variables `use_defaults`, `k2` and `k3` are known in the parent module. All other parameters should be explicitly used.
 {: .notice--info}
 
 ```fortran
@@ -110,36 +103,32 @@ during the pre-run checks and warn you.
 
 ## Setting units
 **Note:** All public variables/subroutine defined in
-[`mod_units`](../../src-docs/ford/module/mod_units.html#variable-unit_length) are known to the parent module and
-do not have to be imported explicitly in the submodule.
+[`mod_units`](../../ford/module/mod_units.html#variable-unit_length) are known to the parent module and
+do not have to be used explicitly in the submodule.
 {: .notice--info}
 
 Specifying the unit normalisations can either be done through the parfile (the `unitslist`) or in the submodule
 directly. This is only relevant if you include radiative cooling, thermal conduction or (temperature-dependent)
 resistivity, since these units are used to re-dimensionalise the variables for the corresponding calculations and/or
-table lookups. To set the units you can do, for example
+table lookups. To set the units you can do
 ```fortran
 use_cgs = .true.
-call set_normalisations(new_unit_density=1.6727d-15, &
-                        new_unit_magneticfield=22.5d0, &
-                        new_unit_length=1.0d10)
+call set_normalisations( &
+  new_unit_density=1.6727d-15, &
+  new_unit_magneticfield=22.5d0, &
+  new_unit_length=1.0d10, &
+  new_mean_molecular_weight=1.0d0 &  ! this one is optional
+)
 ```
 which sets values in cgs units, if you set `use_cgs = .false.` these are interpreted as SI units. Instead of specifying
-`new_unit_density` you can choose a reference temperature `new_unit_temperature` instead,
-see [units](../equations_physics/#units) for more information.
+`new_unit_density` you can choose a reference temperature `new_unit_temperature` instead. Setting the mean molecular weight is optional,
+the default value is 1.
 
 ## Including additional physics
-**Note:** You can set everything here either in the parfile or in the submodule. In case of the latter,
-the logicals `resistivity`, `flow`, `radiative_cooling`, `external_gravity` and `thermal_conduction` are
-known in the parent module. Variables like `use_fixed_resistivity`, `fixed_eta_value` and related ones on the other hand
-must be imported explicitly.
+**Note:** Don't forget to enable additional physics in the parfile's `physicslist`. Another option is enabling them in the submodule itself.
 {: .notice--info}
-
-Including additional physics in your setup is quite straightforward: you set the corresponding logical to `.true.` and
-set up the additional variables.
-
 ### Resistivity
-In the case of resistivity you have two options after setting `resistivity = .true.`:
+In the case of resistivity you have two options:
 - A constant value over the entire grid (with a possible drop-off near the edges,
   see the [physicslist](../parameter_file/#physicslist) namelist). Set `use_fixed_resistivity = .true.` and
   specify `fixed_eta_value`.
@@ -156,6 +145,9 @@ depends on density, temperature and magnetic field. The constant values are cont
 `use_fixed_tc_perp` and `fixed_tc_perp_value` for the perpendicular component. If you use the realistic profile
 you should set unit normalisations.
 
+If you only set `thermal_conduction = .true.` this will include both parallel and perpendicular conduction based on the
+Spitzer conductivity. If you want to omit perpendicular thermal conduction, set it to zero using the fixed value flags.
+
 ### Radiative cooling
 Set `radiative_cooling = .true.` and specify the cooling curve, see the [physicslist](../parameter_file/#physicslist)
 for possible options. For radiative cooling we only have a temperature-dependent profile due to the use of realistic
@@ -167,112 +159,81 @@ Set `flow = .true.` and specify the various velocity components in the correspon
 ### External gravity
 Set `external_gravity = .true.` and specify the gravity component in the corresponding field. See below.
 
-**Tip:** The variable `g` in the `mod_equilibrium_params` module is usually used if you want to set a constant gravity
-value.
-{: .notice--success}
+## Defining the equilibrium configuration
 
-## Defining the equilibrium state
-
-**Please note** <i class="fas fa-hard-hat"></i> <i class="fas fa-hammer"></i>  
-We are planning a (minor) refactor of some attributes in the (near) future, so keep a look out for changes.
+<i class="fa fa-file-contract" aria-hidden="true"></i>
+**Disclaimer**: due to the finite element representation used by Legolas the equilibrium profiles (or their derivatives) do not have to be
+continuous. Do note though that smooth, continuous profiles give the best results, and you should try to achieve this as much as possible. Instead of a discontinuity
+you can try to connect different regions with a smooth sine or hyperbolic tangent profile. This is not at all required and Legolas will run just fine with strong jumps or gradients,
+but know that in that case you should double check if the results make sense and ensure enough gridpoints to resolve everything.
 {: .notice--danger}
 
-**Tip:** to make sure your implementation is in order you can do a dry run first (`dry_run = .true.` in the parfile)
-and plot the equilibrium arrays using Pylbo. Once you're sure that everything is correct, remove the `dry_run` line from
-the parfile and you're good to go.
-{: .notice--success}
-
 The final thing that should be done is specifying the actual equilibrium state. The `mod_equilibrium` parent module
-contains various different types (we call them _fields_) each containing multiple attributes. For example,
+contains various types (we call them _fields_) each containing multiple attributes. For example,
 the variable `rho_field` contains (you guessed it) density-related variables, accessible through
 `rho_field % rho0` for the regular density and `rho_field % d_rho0_dr` for the density derivative.
-Analogous for the other fields. The advantage of this is that everything is contained to its particular type,
-meaning they can be easily passed to other subroutines, and adding a new attribute is as easy as appending it to the
-corresponding type. For a full list of the various fields and attributes see
-[mod_types](../../src-docs/ford/module/mod_types.html#type-density_type).
+Analogous for the other fields. All attributes are arrays with the same size as the Gaussian grid. For a full list of the various fields and attributes see
+[mod_types](../../ford/module/mod_types.html#type-density_type).
 
 You only have to specify the `rho_field`, `v_field`, `B_field`, `T_field` and `grav_field` (the names are self-explanatory);
 if a field is not set all attributes are assumed to be zero. For example, if you don't include flow or gravity, you
 don't have to set those fields explicitly.
 
-**Warning:** _technically_ you have access to `eta_field`, `rc_field` and `kappa_field` in the submodule, corresponding
-to the resistivity, radiative cooling and thermal conduction types. These are set automatically by Legolas
-and should _not_ be set manually.
+Note that you have to use the **Gaussian** grid and NOT the **base** grid!
+The base grid is only used to set up the Gaussian grid, and only the latter is used to define the equilibrium in. When setting the equilibrium attributes
+you can either use Numpy-like array operations using `gaussian_grid`, or you iterate over every gridpoint individually. Here we give the resistive tearing
+modes as an example, you can take a look at the various pre-implemented equilibria `legolas/equilibria` folder for more inspiration.
+
+<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+**Note:** all equilibria you implement have to satisfy force balance, and in the case of non-adiabatic effects also thermal balance.
+Legolas will warn you if one of the conditions is not satisfied. Note that you can run your setup if this is not the case, but know that there is a high probability that the results
+don't make much sense.
 {: .notice--warning}
 
-Since equilibrium expressions can be quite complicated, it is best to set everything in a loop where you iterate
-over the _Gaussian_ grid, NOT over the _base_ grid. The base grid is only used to set up the Gaussian grid,
-which is where the equilibrium quantities are evaluated in anyway. All field attributes are 1D-arrays,
-so you can simply iterate over them when setting the equilibrium.
-In the example below we include flow and a radius-dependent external gravity profile.
-
-**Note:** as indicated in the warning above you should not set `eta_field` manually. There is one exception through,
-which concerns the second magnetic field derivatives. These are only used when resistivity is included (hence why they are
-a part of `eta_field` and not of `B_field`) and should be set explicitly if `resistivity = .true.`.
-You can do this through `eta_field % dd_B02_dr` and `eta_field % dd_B03_dr`.
-{: .notice--info}
-
 ```fortran
-! specify variables to use later on
-real(dp)    :: x
-integer     :: i
+submodule (mod_equilibrium) smod_user_defined
+  implicit none
 
-! set the grid variables
-geometry = "Cartesian"
-x_start = 0.0d0
-x_end = 2.0d0
-call initialise_grid()
+contains
 
-! loop over the gaussian points
-do i = 1, gauss_gridpts
-  ! evaluate equilibria in the Gaussian grid
-  x = grid_gauss(i)
+  module subroutine user_defined_eq()
+    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
+    use mod_equilibrium_params, only: alpha, beta, cte_rho0
 
-  ! set equilibria + derivatives
-  rho_field % rho0(i) = 5.0d0 - x**2
-  rho_field % d_rho0_dr(i) = -2.0d0 * x
-  T_field % T0(i) = 2.0d0 ! constant, so no need to set d_T0_dr
-  v_field % v02(i) = x
-  v_field % d_v02_dr(i) = 1.0d0
-  B_field % B02(i) = sin(x)
-  B_field % d_B02_dr(i) = cos(x)
-  B_field % B03(i) = cos(x)
-  B_field % d_B03_dr(i) = -sin(x)
-  B_field % B0(i) = sqrt(B_field % B02(i)**2 + B_field % B03(i)**2)
-  ! no resistivity, so no second B_field derivatives needed
-  grav_field % grav(i) = 1.0d0 / x**2
-end do
-```
-The kind `dp` above denotes the intrinsic double precision `real64` from Fortran `iso_fortran_env`, defined in
-`mod_global_variables`. The variables `dp`, `gauss_gridpts` and `grid_gauss` are known in the parent module and
-don't have to be imported.
+    geometry = "Cartesian"
+    x_start = -0.5d0
+    x_end = 0.5d0
+    call initialise_grid()
 
-If you prefer to work with pressure instead of temperature that is also possible.
-You can specify a pressure and density profile, and set temperature as such:
-```fortran
-real(dp) :: x
-! pressure arrays
-real(dp) :: px(gauss_gridpts), dpx(gauss_gridpts)
-integer  :: i
+    if (use_defaults) then
+      resistivity = .true.
+      use_fixed_resistivity = .true.
+      fixed_eta_value = 1.0d-4
 
-do i = 1, gauss_gridpts
-  x = grid_gauss(i)
-  rho_field % rho0(i) = 5.0d0 - x**2
-  rho_field % d_rho0_dr(i) = -2.0d0 * x
-  px(i) = 0.5d0 * x
-  dpx(i) = 0.5d0
-  ! ideal gas law to set temperature, T' = (p'*rho - rho'*p) / rho**2
-  T_field % T0(i) = px(i) / rho_field % rho0(i)
-  T_field % d_T0_dr(i) = (  dpx(i) * rho_field % rho0(i) &
-                            - rho_field % d_rho0_dr(i) * px(i)  ) &
-                         / rho_field % rho0(i)**2
-end do
+      k2 = 0.49d0
+      k3 = 0.0d0
+
+      alpha = 4.73884d0
+      beta  = 0.15d0
+      cte_rho0 = 1.0d0
+    end if
+
+    rho_field % rho0 = cte_rho0
+    B_field % B02 = sin(alpha * grid_gauss)
+    B_field % B03 = cos(alpha * grid_gauss)
+    B_field % B0 = 1.0d0  ! sqrt(B02**2 + B03**2)
+    T_field % T0 = 0.5d0 * beta
+
+    B_field % d_B02_dr = alpha * cos(alpha * grid_gauss)
+    B_field % d_B03_dr = -alpha * sin(alpha * grid_gauss)
+    eta_field % dd_B02_dr = -alpha**2 * sin(alpha * grid_gauss)
+    eta_field % dd_B03_dr = -alpha**2 * cos(alpha * grid_gauss)
+  end subroutine user_defined_eq
+end submodule smod_user_defined
 ```
 
-For more examples you can look at implementation of the various descendants of the
-[`mod_equilibrium`](../../src-docs/ford/module/mod_equilibrium.html) parent module.
-
-**Note:** all equilibria should satisfy the [equilibrium conditions](../equations_physics/#equilibrium-requirements).
-The examples here are only for illustration purposes and do not satisfy those conditions. In principle Legolas
-will run if your equilibrium does not check out, but you _will_ be warned.
+<i class="fas fa-lightbulb" aria-hidden="true"></i>
+**Tip:** to make sure your implementation is in order you can do a dry run first (`dry_run = .true.` in the `savelist`)
+and plot the equilibrium arrays using Pylbo. Once you're sure that everything is correct, remove the `dry_run` line from
+the parfile and you're good to go.
 {: .notice--info}

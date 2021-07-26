@@ -25,7 +25,7 @@ leftcontents:
         url: /general/equilibria/
       - title: "Solvers"
         url: /general/solvers/
-      - title: "Running your own setup"
+      - title: "The user submodule"
         url: /general/own_setup/
       - title: "Equations & Physics"
         url: /general/equations_physics/
