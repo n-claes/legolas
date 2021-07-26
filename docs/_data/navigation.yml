@@ -13,10 +13,8 @@ leftcontents:
     children:
       - title: "Installation"
         url: /getting-started/installation/
-      - title: "Running the code"
+      - title: "Running your first problem"
         url: /getting-started/running/
-      - title: "Examples"
-        url: /getting-started/examples/
       - title: "Source code documentation"
         url: /source_docs
   - title: General
@@ -35,8 +33,6 @@ leftcontents:
     children:
       - title: "About Pylbo"
         url: /pylbo/about_pylbo/
-      - title: "Installing Pylbo"
-        url: /pylbo/installing_pylbo/
       - title: "Interfacing with Legolas"
         url: /pylbo/legolas_interface/
       - title: "Using Pylbo"
