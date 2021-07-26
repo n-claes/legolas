@@ -19,10 +19,10 @@ leftcontents:
         url: /source_docs
   - title: General
     children:
+      - title: "The parfile"
+        url: /general/parameter_file/
       - title: "Equations & Physics"
         url: /general/equations_physics/
-      - title: "Parameter file"
-        url: /general/parameter_file/
       - title: "Equilibria"
         url: /general/equilibria/
       - title: "Solvers"
