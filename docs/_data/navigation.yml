@@ -23,12 +23,12 @@ leftcontents:
         url: /general/parameter_file/
       - title: "Pre-implemented equilibria"
         url: /general/equilibria/
-      - title: "Equations & Physics"
-        url: /general/equations_physics/
       - title: "Solvers"
         url: /general/solvers/
       - title: "Running your own setup"
         url: /general/own_setup/
+      - title: "Equations & Physics"
+        url: /general/equations_physics/
   - title: Data-analysis with Pylbo
     children:
       - title: "About Pylbo"
