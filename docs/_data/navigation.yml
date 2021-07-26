@@ -21,10 +21,10 @@ leftcontents:
     children:
       - title: "The parfile"
         url: /general/parameter_file/
+      - title: "Pre-implemented equilibria"
+        url: /general/equilibria/
       - title: "Equations & Physics"
         url: /general/equations_physics/
-      - title: "Equilibria"
-        url: /general/equilibria/
       - title: "Solvers"
         url: /general/solvers/
       - title: "Running your own setup"
