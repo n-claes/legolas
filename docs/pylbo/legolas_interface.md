@@ -5,9 +5,10 @@ classes: wide
 sidebar:
   nav: "leftcontents"
 toc: true
-last_modified_at: 2021-02-03
+last_modified_at: 2021-07-27
 ---
 {% capture tip %}
+<i class="fas fa-lightbulb" aria-hidden="true"></i>
 **Tip:** when specifying paths using Python, the standard library package [`pathlib`](https://docs.python.org/3/library/pathlib.html)
 is really recommended. This will resolve filepaths on any file system and lets you easily work with relative paths as well.
 That way you can specify the relative path to a file, copy the script over to another machine, run it, and the path strings
@@ -24,8 +25,8 @@ output_dir = Path("output").resolve() # <-- this contains the full path, startin
 ## Generating parfiles
 Pylbo comes with a method to generate parfiles for you, something that is extremely handy when doing multiruns
 and you want to vary one or more parameters. All that is needed is to specify the namelist items in a dictionary,
-and pass them to the [`generate_parfiles`](../../src-docs/sphinx/autoapi/pylbo/index.html#pylbo.generate_parfiles) method.
-You don't have to specify which variable goes where, Pylbo will automatically take care of that and places them in their
+and pass them to the [`generate_parfiles`](../../sphinx/autoapi/pylbo/index.html#pylbo.generate_parfiles) method.
+You don't have to specify which variable goes where, Pylbo will automatically take care of that and place them in their
 corresponding namelist. Additionally, Pylbo will do typechecking on all parameters that you supply to the generator,
 such that you're sure that the correct datatypes are passed on to Legolas.
 Furthermore, you can ask that filepaths and output folders are automatically resolved and placed
@@ -96,23 +97,25 @@ which is a perfectly formatted Legolas namelist.
 
 ### Generating multiple parfiles
 You'll probably be able to generate a single parfile faster by hand instead of using Pylbo. However, the method
-described above excels in varying parameters, and modifying the parfiles accordingly. Say, you want to vary the parameter
+described above excels in varying parameters and modifying the parfiles accordingly. Say, you want to vary the parameter
 `alpha` in the above example between 1 and 4, and do 50 runs. This means you have to create and edit 50 parfiles by hand,
 which is a long and painful chore. Instead, simply edit the above `config` dictionary with the following:
-```
+```python
 import numpy as np
-...
-"number_of_runs": 50,
-"parameters": {
-   ...
-    "alpha": np.linspace(1, 4, 50),
-   ...
+
+config = {
+    ...
+    "number_of_runs": 50,
+    "parameters": {
+        ...
+        "alpha": np.linspace(1, 4, 50),
+        ...
+    },
+    ...
 },
-...
 ```
-where you have to add the `number_of_runs` entry. This is purely for a sanity check, and to make sure that everything
-is nice and consistent. Pylbo will throw an appropriate error if there is an inconsistency between this number and the
-number of runs you want.
+where you have to add the `number_of_runs` entry.
+Pylbo will throw an appropriate error if there is an inconsistency between this number and the number of runs you want.
 
 Now you call `generate_parfiles` in exactly the same way, which will create 50 parfiles where a number `xxxx` is prepended
 in front of the filename, the same holds true for the datfiles.
@@ -122,35 +125,34 @@ You can even combine multiple variations, see the example below:
 import numpy as np
 import pylbo
 
+
 config = {
-    "config": {
-        "geometry": "Cartesian",
-        "x_start": 0,
-        "x_end": 1,
-        "number_of_runs": 50,
-        "gridpoints": 100,
-        "parameters": {
-            "k2": 0.0,
-            "k3": np.linspace(1, 5, 50),
-            "beta": 0.25,
-            "cte_rho0": 1.0,
-            "cte_B02": 0.0,
-            "cte_B03": 1.0,
-        },
-        "equilibrium_type": "resistive_homo",
-        "resistivity": True,
-        "use_fixed_resistivity": True,
-        "fixed_eta_value": np.linspace(0.001, 0.01, 50),
-        "logging_level": 0,
-        "show_results": False,
-        "write_eigenfunctions": True,
-        "write_matrices": False,
-        "solver": "arnoldi",
-        "arpack_mode": "shift-invert",
-        "sigma": 0.5 - 3j,
-        "number_of_eigenvalues": 100,
+    "geometry": "Cartesian",
+    "x_start": 0,
+    "x_end": 1,
+    "number_of_runs": 50,
+    "gridpoints": 100,
+    "parameters": {
+        "k2": 0.0,
+        "k3": np.linspace(1, 5, 50),
+        "beta": 0.25,
+        "cte_rho0": 1.0,
+        "cte_B02": 0.0,
+        "cte_B03": 1.0,
     },
-}
+    "equilibrium_type": "resistive_homo",
+    "resistivity": True,
+    "use_fixed_resistivity": True,
+    "fixed_eta_value": np.linspace(0.001, 0.01, 50),
+    "logging_level": 0,
+    "show_results": False,
+    "write_eigenfunctions": True,
+    "write_matrices": False,
+    "solver": "arnoldi",
+    "arpack_mode": "shift-invert",
+    "sigma": 0.5 - 3j,
+    "number_of_eigenvalues": 100,
+},
 parfiles = pylbo.generate_parfiles(
     parfile_dict=config, basename="parfile_resistive", output_dir="parfile_output"
 )
@@ -164,10 +166,9 @@ Note that you can change as many parameters as you want, simply add any namelist
 The parfiles will be called `xxxxparfile_resistive.par`due to the fact that we added the `basename` argument.
 All parfiles will be placed in a directory called `parfile_output` relative to the current working directory. If this is not desired
 you can supply a full path instead, either as a string (e.g.`output_dir="/users/Documents/parfiles"`) or a PathLike object (e.g. `Path("../parfiles").resolve()`).
-More information on the parfile generator can be found [here](../../src-docs/sphinx/autoapi/pylbo/index.html#pylbo.generate_parfiles).
 
 ## Running Legolas with Pylbo
-The parfiles generated in the above examples can be passed on to Pylbo, which in turn will pass those on to Legolas. 
+The parfiles generated in the above examples can be passed on to Pylbo, which in turn will pass those on to Legolas.
 
 **Remark**: Note that Pylbo will always link to the executable in the Legolas home directory by default. It is therefore good
 practice to explicitly specify the Legolas executable when calling the runner.
@@ -176,7 +177,7 @@ practice to explicitly specify the Legolas executable when calling the runner.
 ### Single run
 To do a single Legolas run you specify the parfile and call the runner, like so:
 ```python
-import pylbo 
+import pylbo
 pylbo.run_legolas("parfiles/my_parfile.par", executable="legolas")
 ```
 This will use `my_parfile.par` from the `parfiles` directory, and the executable `legolas`, both relative
@@ -184,7 +185,7 @@ to the current working directory. Parfiles can be supplied either as (a list or 
 
 ### Multiple runs
 Pylbo can run multiple parfiles at the same time. Say you have a local directory called `parfiles` containing a bunch of
-generated parfiles, and would like to run Legolas on all of them. 
+generated parfiles, and would like to run Legolas on all of them.
 You can either pass the result from the parfile generator directly to the runner, or you can
 do it manually. In case of the latter then [`pathlib`](https://docs.python.org/3/library/pathlib.html) comes in
 handy: PathLike objects support [`glob`](https://docs.python.org/3/library/glob.html). This means that you can automatically search for parfiles based on a given string,
@@ -195,7 +196,7 @@ When we have the list of parfiles we simply pass them to the runner, which can e
 whether or not the optional keyword `nb_cpus` is given.
 ```python
 from pathlib import Path
-import pylbo 
+import pylbo
 
 parfiles = sorted(Path("parfiles").glob("*.par"))
 # this runs single-threaded
@@ -203,14 +204,11 @@ pylbo.run_legolas(parfiles, executable="legolas")
 # this runs multi-threaded
 pylbo.run_legolas(parfiles, nb_cpus=4, executable="legolas")
 ```
-The second case will use Python's [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) module to parallelise the 
+The second case will use Python's [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) module to parallelise the
 number of runs across the amount of CPUs requested (4 in this case). Every CPU will have 1 instance of Legolas running, and a progressbar
 will be printed to keep track of the progress.
 
 The optional keyword argument `remove_parfiles` can be supplied as well, which is False by default. If this is set to True,
 the parfiles will be removed after the runs are completed. Only if the folder containing the parfiles is empty after all parfiles are removed,
 the folder is removed as well. This may be handy in case you want to automatically clean up afterwards.
-More information on the Legolas runner can be found [here](../../src-docs/sphinx/autoapi/pylbo/index.html#pylbo.run_legolas).
-
-
-
+More information on the Legolas runner can be found [here](../../sphinx/autoapi/pylbo/index.html#pylbo.run_legolas).
