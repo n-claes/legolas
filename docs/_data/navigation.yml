@@ -31,10 +31,11 @@ leftcontents:
     children:
       - title: "Equations"
         url: /physics/equations/
-      - title: "Unit normalisations"
-        url: /physics/units/
       - title: "Equilibrium conditions"
         url: /physics/balance_reqs/
+      - title: "Unit normalisations"
+        url: /physics/units/
+
   - title: Data-analysis with Pylbo
     children:
       - title: "About Pylbo"
