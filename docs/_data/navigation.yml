@@ -27,8 +27,14 @@ leftcontents:
         url: /general/solvers/
       - title: "The user submodule"
         url: /general/own_setup/
-      - title: "Equations & Physics"
-        url: /general/equations_physics/
+  - title: Physics
+    children:
+      - title: "Equations"
+        url: /physics/equations/
+      - title: "Unit normalisations"
+        url: /physics/units/
+      - title: "Equilibrium conditions"
+        url: /physics/balance_reqs/
   - title: Data-analysis with Pylbo
     children:
       - title: "About Pylbo"
