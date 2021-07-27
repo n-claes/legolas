@@ -46,19 +46,5 @@ leftcontents:
         url: /pylbo/using_pylbo/
   - title: Testing
     children:
-      - title: "Code coverage"
-        url: /testing/coverage/
-      - title: "Core routines"
-        url: /testing/test_core/
-      - title: "Regression"
-        url: /testing/test_regression/
-      - title: "Pylbo"
-        url: /testing/test_pylbo/
-  - title: Misc
-    children:
-      - title: "Legolas changelog"
-        url: /misc/legolas_changelog/
-      - title: "Pylbo changelog"
-        url: /misc/pylbo_changelog/
-      - title: "Contributing"
-        url: /misc/contributing/
+      - title: "About the tests"
+        url: /testing/about_tests/
