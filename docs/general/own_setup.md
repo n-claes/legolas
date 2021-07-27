@@ -187,7 +187,7 @@ modes as an example, you can take a look at the various pre-implemented equilibr
 <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
 **Note:** all equilibria you implement have to satisfy force balance, and in the case of non-adiabatic effects also thermal balance.
 Legolas will warn you if one of the conditions is not satisfied. Note that you can run your setup if this is not the case, but know that there is a high probability that the results
-don't make much sense.
+don't make much sense. See [this page](../../physics/balance_reqs/#equilibrium-requirements) for more information.
 {: .notice--warning}
 
 ```fortran
