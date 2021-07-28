@@ -16,7 +16,7 @@ leftcontents:
       - title: "Running your first problem"
         url: /getting-started/running/
       - title: "Source code documentation"
-        url: /source_docs
+        url: /getting-started/source_docs
   - title: General
     children:
       - title: "The parfile"
