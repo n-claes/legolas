@@ -3,7 +3,7 @@ output_dir: ford
 project: Legolas
 project_github: https://github.com/n-claes/legolas
 project_website: ../../../index.html
-summary: ![LOGO](../../../assets/images/logo_legolas_640_trans.png)<br>
+summary: ![LOGO](../../../assets/images/logo_legolas_640x237.png)<br>
          Legolas is a novel finite-element based code that allows for
          realistic MHD spectroscopy of one-dimensional plasmas.
 fpp_extensions: fpp
