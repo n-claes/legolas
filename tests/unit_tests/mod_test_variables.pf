@@ -41,7 +41,7 @@ contains
 
     incompressible = .true.
     call set_gamma(1.0d0)
-    @assertGreaterThan(gamma, 1.0d6)
+    @assertGreaterThan(gamma, 1.0d5)
   end subroutine test_gamma_incompressible
 
 

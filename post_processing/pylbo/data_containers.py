@@ -11,6 +11,7 @@ from pylbo.utilities.datfile_utils import (
     read_matrix_A,
     read_ef_grid,
     read_eigenfunction,
+    read_postprocessed,
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import MatricesNotPresent
@@ -86,6 +87,14 @@ class LegolasDataContainer(ABC):
 
     @abstractmethod
     def ef_names(self):
+        pass
+
+    @abstractmethod
+    def pp_written(self):
+        pass
+
+    @abstractmethod
+    def pp_names(self):
         pass
 
     @abstractmethod
@@ -243,6 +252,31 @@ class LegolasDataSet(LegolasDataContainer):
             return grid
         else:
             return None
+
+    @property
+    def pp_written(self):
+        """
+        Checks if post-processed quantities are present.
+
+        Returns
+        -------
+        pp_written : bool
+            If `True`, post-processed quantities are present in the datfile.
+        """
+        return self.header["postprocessed_written"]
+
+    @property
+    def pp_names(self):
+        """
+        Retrieves the post-processed quantity names.
+
+        Returns
+        -------
+        pp_names : numpy.ndarray
+            Array containing the names of the post-processed quantities as strings.
+            None if no post-processed quantities are present.
+        """
+        return self.header.get("pp_names", None)
 
     @staticmethod
     def _get_values(array, which_values):
@@ -524,6 +558,48 @@ class LegolasDataSet(LegolasDataContainer):
                 eigenfuncs[dict_idx] = efs
         return eigenfuncs
 
+    def get_postprocessed(self, ev_guesses=None, ev_idxs=None):
+        """
+        Returns the post-processed quantities based on given eigenvalue guesses or their
+        indices. An array will be returned where every item is a dictionary, containing
+        both the eigenvalue and its quantities. Either eigenvalue guesses or
+        indices can be supplied, but not both.
+
+        Parameters
+        ----------
+        ev_guesses : (list of) int, float, complex
+            Eigenvalue guesses.
+        ev_idxs : (list of) int
+            Indices corresponding to the eigenvalues that need to be retrieved.
+
+        Returns
+        -------
+        postprocessed : numpy.ndarray(dtype=dict, ndim=1)
+            Array containing the post-processed quantities and eigenvalues
+            corresponding to the supplied indices. Every index in this array
+            contains a dictionary with the post-processed quantities and
+            corresponding eigenvalue. The keys of each dictionary are the
+            post-processed quantity names.
+        """
+        if ev_guesses is not None and ev_idxs is not None:
+            raise ValueError(
+                "get_postprocessed: either provide guesses or indices but not both"
+            )
+        if ev_guesses is not None:
+            idxs, _ = self.get_nearest_eigenvalues(ev_guesses)
+        else:
+            idxs = transform_to_numpy(ev_idxs)
+            for idx in idxs:
+                if not isinstance(idx, (int, np.int64)):
+                    raise ValueError("get_postprocessed: ev_idxs should be integers")
+        postprocessed = np.array([{}] * len(idxs), dtype=dict)
+        with open(self.datfile, "rb") as istream:
+            for dict_idx, pp_idx in enumerate(idxs):
+                ppq = read_postprocessed(istream, self.header, pp_idx)
+                ppq.update({"eigenvalue": self.eigenvalues[pp_idx]})
+                postprocessed[dict_idx] = ppq
+        return postprocessed
+
     def get_nearest_eigenvalues(self, ev_guesses):
         """
         Calculates the eigenvalues nearest to a given guess. This calculates
@@ -623,6 +699,38 @@ class LegolasDataSeries(LegolasDataContainer):
             An array with arrays, containing the eigenfunction grids for each dataset.
         """
         return np.array([ds.ef_grid for ds in self.datasets], dtype=object)
+
+    @property
+    def pp_written(self):
+        """
+        Checks if the post-processed quantities are written.
+
+        Returns
+        -------
+        pp_written : numpy.ndarray
+            An array of bools corresponding to the various datasets, `True` if a
+            dataset has post-processed quantities present.
+        """
+        return np.array([ds.pp_written for ds in self.datasets])
+
+    @property
+    def pp_names(self):
+        """
+        Returns the post-processed quantity names.
+
+        Returns
+        -------
+        pp_names : numpy.ndarray
+            An array with the post-processed quantity names as strings.
+        """
+        names = np.array([ds.pp_names for ds in self.datasets], dtype=object)
+        for item in names:
+            if item is None:
+                continue
+            else:
+                return item
+        else:
+            return None
 
     def get_sound_speed(self, which_values=None):
         """

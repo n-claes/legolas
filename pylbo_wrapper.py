@@ -20,6 +20,10 @@ def _main():
     p.add_continua()
     if ds.header["eigenfuncs_written"]:
         p.add_eigenfunctions()
+    if ds.header["postprocessed_written"]:
+        p2 = pylbo.plot_spectrum(ds)
+        p2.add_continua()
+        p2.add_postprocessed()
     p.show()
 
 

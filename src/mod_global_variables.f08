@@ -144,6 +144,8 @@ module mod_global_variables
   logical, save             :: write_matrices
   !> boolean to write the eigenfunctions to the datfile, defaults to <tt>True</tt>
   logical, save             :: write_eigenfunctions
+  !> boolean to write postprocessed quantities to the datfile, defaults to <tt>True</tt>
+  logical, save             :: write_postprocessed
   !> boolean to call the Python wrapper and plot the results, defaults to <tt>True</tt>
   logical, save             :: show_results
   !> base name for the datfile, defaults to \p "datfile"
@@ -233,6 +235,7 @@ contains
     !! post-processing parameters
     write_matrices = .false.
     write_eigenfunctions = .true.
+    write_postprocessed = .false.
     show_results = .true.
     logging_level = 2
     dry_run = .false.
@@ -259,7 +262,7 @@ contains
     real(dp), intent(in)    :: gamma_in
 
     if (incompressible) then
-      gamma = 1.0d8
+      gamma = 1.0d6
     else
       gamma = gamma_in
     end if

@@ -14,6 +14,7 @@ module mod_spline_functions
   public :: quadratic_factors_deriv
   public :: cubic_factors
   public :: cubic_factors_deriv
+  public :: cubic_factors_deriv2
 
 contains
 
@@ -96,5 +97,28 @@ contains
     dh_cubic_dr(4) = ( 2.0d0*(r - rj_lo) * (r - rj_hi) + (r - rj_hi)**2 ) &
                      / (rj_hi - rj_lo)**2
   end subroutine cubic_factors_deriv
+
+
+  !> @brief Calculates the second derivatives of the cubic basis functions.
+  subroutine cubic_factors_deriv2(r, rj_lo, rj_hi, ddh_cubic_dr)
+    !> current position for r in the grid interval
+    real(dp), intent(in)  :: r
+    !> left edge of the grid interval
+    real(dp), intent(in)  :: rj_lo
+    !> right edge of the grid interval
+    real(dp), intent(in)  :: rj_hi
+    !> array containing the derivatives of the cubic basis functions
+    !! for this grid interval
+    real(dp), intent(out) :: ddh_cubic_dr(4)
+
+    ddh_cubic_dr(1) =  6.0d0 / (rj_hi - rj_lo)**2 &
+                     - 12.0d0 * (r - rj_lo) / (rj_hi - rj_lo)**3
+    ddh_cubic_dr(2) = 6.0d0 / (rj_hi - rj_lo)**2 &
+                     - 12.0d0 * (rj_hi - r) / (rj_hi - rj_lo)**3
+    ddh_cubic_dr(3) = ( 2.0d0 * (r - rj_lo) + 2.0d0 * (r - rj_hi) &
+                      + 2.0d0 * (r - rj_lo) ) / (rj_hi - rj_lo)**2
+    ddh_cubic_dr(4) = ( 2.0d0 * (r - rj_hi) + 2.0d0 * (r - rj_lo) &
+                      + 2.0d0 * (r - rj_hi) ) / (rj_hi - rj_lo)**2
+  end subroutine cubic_factors_deriv2
 
 end module mod_spline_functions
