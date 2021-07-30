@@ -31,6 +31,9 @@ namelist_items = {
         ("output_folder", str),
         ("logging_level", (int, np.integer)),
         ("dry_run", bool),
+        ("write_eigenfunction_subset", bool),
+        ("eigenfunction_subset_center", (int, np.integer, float, complex)),
+        ("eigenfunction_subset_radius", (int, np.integer, float)),
     ],
     "physicslist": [
         ("mhd_gamma", float),

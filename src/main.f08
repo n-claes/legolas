@@ -39,7 +39,7 @@ program legolas
 
   call handle_spurious_eigenvalues(omega)
 
-  call finalise_results()
+  call create_eigenfunctions_and_save_datfile()
   call cleanup()
 
   if (show_results) then
@@ -99,12 +99,6 @@ contains
       )
     end if
 
-    if (write_postprocessed .and. (.not. write_eigenfunctions)) then
-      call log_message('eigenfunctions needed for postprocessing !', level='warning')
-      call log_message('eigenfunctions will be written to the datfile', level='warning')
-      write_eigenfunctions = .true.
-    end if
-
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
     if (write_eigenfunctions .or. solver == "arnoldi") then
       call log_message("allocating eigenvector arrays", level="debug")
@@ -122,7 +116,7 @@ contains
   !> Wraps up results and writes output.
   !! Makes a call to the eigenfunctions subroutine if specified in the parfile,
   !! then calls the output routines to write the datfile.
-  subroutine finalise_results()
+  subroutine create_eigenfunctions_and_save_datfile()
     use mod_global_variables, only: write_eigenfunctions, write_postprocessed
     use mod_output, only: create_datfile
     use mod_eigenfunctions, only: calculate_eigenfunctions
@@ -135,7 +129,7 @@ contains
       call calculate_postprocessed(eigenvecs_right)
     end if
     call create_datfile(omega, matrix_A, matrix_B)
-  end subroutine finalise_results
+  end subroutine create_eigenfunctions_and_save_datfile
 
 
   !> Deallocates all main variables, then calls the cleanup

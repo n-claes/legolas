@@ -146,6 +146,12 @@ module mod_global_variables
   logical, save             :: write_eigenfunctions
   !> boolean to write postprocessed quantities to the datfile, defaults to <tt>True</tt>
   logical, save             :: write_postprocessed
+  !> boolean to select subset of the eigenfunctions to save, defaults to <tt>False</tt>
+  logical, save             :: write_eigenfunction_subset
+  !> point used as the center for the eigenfunction subset
+  complex(dp)               :: eigenfunction_subset_center
+  !> radius used to determine eigenfunction subset
+  real(dp)                  :: eigenfunction_subset_radius
   !> boolean to call the Python wrapper and plot the results, defaults to <tt>True</tt>
   logical, save             :: show_results
   !> base name for the datfile, defaults to \p "datfile"
@@ -239,6 +245,9 @@ contains
     show_results = .true.
     logging_level = 2
     dry_run = .false.
+    write_eigenfunction_subset = .false.
+    eigenfunction_subset_center = cmplx(NaN, NaN, kind=dp)
+    eigenfunction_subset_radius = NaN
 
     !! file-saving variables
     basename_datfile = "datfile"
