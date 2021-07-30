@@ -68,3 +68,22 @@ def test_none_tonumpy():
     result = toolbox.transform_to_numpy(None)
     assert isinstance(result, np.ndarray)
     assert result[0] is None
+
+
+def test_cubic_solver_a_zero():
+    with pytest.raises(ValueError):
+        toolbox.solve_cubic_exact(a=0, b=1, c=2, d=3)
+
+
+def test_cubic_solver():
+    sols = np.sort_complex(toolbox.solve_cubic_exact(a=2.5, b=-2, c=1, d=7.5))
+    assert all(
+        np.isclose(
+            sols,
+            np.array(
+                [-1.14371037, 0.97185518 - 1.2955845j, 0.97185518 + 1.2955845j],
+                dtype=complex,
+            ),
+        )
+    )
+    assert all(np.isclose(sols, np.sort_complex(np.roots([2.5, -2, 1, 7.5]))))

@@ -57,7 +57,36 @@ jobs:
         cd post_processing
         python setup.py develop
 
-    - name: Test Pylbo core
+    - name: Install Legolas dependencies
       run: |
-        cd tests/pylbo_tests
-        pytest -v
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt update
+        sudo apt-get install gfortran-9
+        sudo apt-get -y install cmake
+        sudo apt-get install libblas-dev
+        sudo apt-get install liblapack-dev
+        sudo apt-get install lcov
+        gfortran-9 --version
+        cmake --version
+
+    - name: Compile Legolas
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make -j 2
+
+    - name: Run Pylbo tests
+      run: |
+        mkdir -p coverage/pylbo
+        cd $LEGOLASDIR/tests/pylbo_tests
+        cp .coveragerc $LEGOLASDIR/coverage/pylbo
+        pytest -v --cov=pylbo
+        cd $LEGOLASDIR/coverage/pylbo
+        coverage xml
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v1
+      with:
+        files: ./coverage/pylbo/coverage.xml
+        flags: pylbo

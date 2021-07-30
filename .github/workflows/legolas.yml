@@ -144,3 +144,4 @@ jobs:
       if: ${{ matrix.coverage }}
       with:
         files: ./coverage/${{ matrix.name }}.info
+        flags: legolas

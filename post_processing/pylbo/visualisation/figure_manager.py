@@ -158,7 +158,6 @@ class FigureWindow:
 
     def __init__(self, figure_type, figsize=None, custom_figure=None):
         if custom_figure is not None:
-            plt.close(custom_figure[0])
             self.fig, self.ax = custom_figure
             self.figsize = tuple(self.fig.get_size_inches())
             if self.fig.get_label() == "":

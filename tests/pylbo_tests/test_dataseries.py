@@ -1,0 +1,121 @@
+import numpy as np
+from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
+
+
+def test_series_iterable(series_v112):
+    for ds in series_v112:
+        assert isinstance(ds, LegolasDataSet)
+
+
+def test_series_getitem(series_v112):
+    ds = series_v112[1]
+    assert isinstance(ds, LegolasDataSet)
+
+
+def test_series_getslice(series_v112):
+    series_part = series_v112[0:2]
+    assert isinstance(series_part, LegolasDataSeries)
+    assert len(series_part) == 2
+    for ds in series_part:
+        assert isinstance(ds, LegolasDataSet)
+
+
+def test_series_efs_none(series_v100):
+    assert isinstance(series_v100.efs_written, np.ndarray)
+    assert not np.all(series_v100.efs_written)
+
+
+def test_series_efs_written(series_v112):
+    assert isinstance(series_v112.efs_written, np.ndarray)
+    assert np.all(series_v112.efs_written)
+
+
+def test_series_ef_names_not_present(series_v100):
+    assert series_v100.ef_names is None
+
+
+def test_series_ef_names(series_v112):
+    assert isinstance(series_v112.ef_names, np.ndarray)
+
+
+def test_series_ef_grid(series_v112):
+    grids = series_v112.ef_grid
+    assert isinstance(grids, np.ndarray)
+    assert len(grids) == len(series_v112)
+    for grid in grids:
+        assert isinstance(grid, np.ndarray)
+        assert np.all(np.isreal(grid))
+
+
+def test_series_ef_grid_none(series_v100):
+    grids = series_v100.ef_grid
+    assert isinstance(grids, np.ndarray)
+    assert len(grids) == len(series_v100)
+    assert all(grid is None for grid in grids)
+
+
+def test_series_sound_speed(series_v112):
+    cs_avg = series_v112.get_sound_speed(which_values="average")
+    assert np.all(np.isclose(cs_avg, [0.35804914] * len(series_v112)))
+
+
+def test_series_alfven_speed(series_v112):
+    ca_avg = series_v112.get_alfven_speed(which_values="average")
+    assert np.all(np.isclose(ca_avg, [0.82264676] * len(series_v112)))
+
+
+def test_series_tube_speed(series_v112):
+    ct_avg = series_v112.get_tube_speed(which_values="average")
+    assert np.all(np.isclose(ct_avg, [0.3282505] * len(series_v112)))
+
+
+def test_series_tube_speed_cartesian(series_v100):
+    ct = series_v100.get_tube_speed()
+    assert isinstance(ct, np.ndarray)
+    assert all(val is None for val in ct)
+
+
+def test_series_reynolds_nb_no_eta(series_v112):
+    reynolds = series_v112.get_reynolds_nb()
+    assert isinstance(reynolds, np.ndarray)
+    assert all(re is None for re in reynolds)
+
+
+def test_series_reynolds_nb(series_v112_eta):
+    reynolds = series_v112_eta.get_reynolds_nb(which_values="average")
+    assert isinstance(reynolds, np.ndarray)
+    assert np.all(np.isclose(reynolds, [3535.53390593] * len(series_v112_eta)))
+
+
+def test_series_magnetic_reynolds_nb_no_eta(series_v112):
+    magnetic_reynolds = series_v112.get_magnetic_reynolds_nb()
+    assert isinstance(magnetic_reynolds, np.ndarray)
+    assert all(val is None for val in magnetic_reynolds)
+
+
+def test_series_magnetic_reynolds_nb(series_v112_eta):
+    magnetic_reynolds = series_v112_eta.get_magnetic_reynolds_nb(which_values="average")
+    assert isinstance(magnetic_reynolds, np.ndarray)
+    assert np.all(np.isclose(magnetic_reynolds, [1e4] * len(series_v112_eta)))
+
+
+def test_series_get_k0_squared(series_v112):
+    k02 = series_v112.get_k0_squared()
+    assert isinstance(k02, np.ndarray)
+    assert np.all(np.isclose(k02, 1 + (-1.2) ** 2))
+
+
+def test_series_get_continua(series_v112):
+    continua = series_v112.continua
+    assert isinstance(continua, dict)
+    for value in continua.values():
+        assert isinstance(value, np.ndarray)
+        assert len(value) == len(series_v112)
+
+
+def test_series_get_parameters(series_v112):
+    params = series_v112.parameters
+    assert isinstance(params, dict)
+    for value in params.values():
+        assert isinstance(value, np.ndarray)
+        assert len(value) == len(series_v112)
