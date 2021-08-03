@@ -75,8 +75,8 @@ contains
     use mod_grid, only: grid, grid_gauss
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
       kappa_field, eta_field, grav_field, hall_field
-    use mod_eigenfunctions, only: ef_grid, ef_names, ef_array
-    use mod_postprocessing, only: pp_names, pp_array, nb_pp
+    use mod_eigenfunctions, only: ef_grid, ef_names, base_eigenfunctions
+    ! use mod_postprocessing, only: pp_names, pp_array, nb_pp
     use mod_check_values, only: is_equal
     use mod_equilibrium_params
     use mod_units
@@ -162,19 +162,19 @@ contains
       call log_message("writing eigenfunctions...", level="info")
       write(dat_fh) size(ef_names), ef_names
       write(dat_fh) ef_grid
-      do i = 1, nb_eqs
-        write(dat_fh) ef_array(i) % eigenfunctions
+      do i = 1, size(base_eigenfunctions)
+        write(dat_fh) base_eigenfunctions(i)%eigenfunctions
       end do
     end if
 
-    ! Postprocessed data [optional]
-    if (write_postprocessed) then
-      call log_message("writing postprocessed quantities...", level='info')
-      write(dat_fh) size(pp_names), pp_names
-      do i = 1, nb_pp
-        write(dat_fh) pp_array(i) % quantities
-      end do
-    end if
+    ! ! Postprocessed data [optional]
+    ! if (write_postprocessed) then
+    !   call log_message("writing postprocessed quantities...", level='info')
+    !   write(dat_fh) size(pp_names), pp_names
+    !   do i = 1, nb_pp
+    !     write(dat_fh) pp_array(i) % quantities
+    !   end do
+    ! end if
 
     ! Matrix data [optional]
     if (write_matrices) then

@@ -119,11 +119,11 @@ module mod_types
 
   !> type containing all eigenfuction related variables
   type ef_type
-    !> index of the variable in the state vector
-    integer                  :: index
-    !> name of the eigenfunction (rho, v1, etc.)
-    character(str_len_arr)   :: name
-    !> array containing all eigenfunctions for this index
+    !> index of the eigenfunction variable in the state vector
+    integer :: state_vector_index
+    !> name of the eigenfunction
+    character(str_len_arr) :: name
+    !> array with eigenfunctions
     complex(dp), allocatable :: eigenfunctions(:, :)
   end type ef_type
 
