@@ -236,7 +236,7 @@ class SingleSpectrumPlot(SpectrumFigure):
         if self._ef_ax is None:
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
-            self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax)
+            self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax, self.ax)
         super()._enable_interface(handle=self._ef_handler)
 
     def add_postprocessed(self):
@@ -473,7 +473,9 @@ class MultiSpectrumPlot(SpectrumFigure):
         if self._ef_ax is None:
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
-            self._ef_handler = EigenfunctionHandler(self.dataseries, self._ef_ax)
+            self._ef_handler = EigenfunctionHandler(
+                self.dataseries, self._ef_ax, self.ax
+            )
         super()._enable_interface(handle=self._ef_handler)
 
     def add_postprocessed(self):
@@ -562,7 +564,7 @@ class MergedSpectrumPlot(SpectrumFigure):
         if self._ef_ax is None:
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
-            self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax)
+            self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax, self.ax)
         super()._enable_interface(handle=self._ef_handler)
 
     def add_postprocessed(self):
@@ -669,8 +671,6 @@ class SpectrumComparisonPlot(SpectrumFigure):
             panel.disconnect_callbacks()
             # merge callbacks
             self._mpl_callbacks.extend(panel._mpl_callbacks)
-            # add dedicated attribute to prevent mpl from double triggering events
-            setattr(panel.ef_handler, "associated_ds_ax", panel.ax)
 
     def add_postprocessed(self):
         """
@@ -683,8 +683,6 @@ class SpectrumComparisonPlot(SpectrumFigure):
             panel.disconnect_callbacks()
             # merge callbacks
             self._mpl_callbacks.extend(panel._mpl_callbacks)
-            # add dedicated attribute to prevent mpl from double triggering events
-            setattr(panel.pp_handler, "associated_ds_ax", panel.ax)
 
     def add_continua(self, interactive=True):
         """Adds the continua for both datasets and merges the mpl callbacks."""

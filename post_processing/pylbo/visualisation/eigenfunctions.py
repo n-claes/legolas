@@ -10,8 +10,8 @@ class EigenfunctionHandler(EigenfunctionInterface):
     Main handler for eigenfunctions.
     """
 
-    def __init__(self, data, ef_ax):
-        super().__init__(data, ef_ax)
+    def __init__(self, data, ef_ax, spec_ax):
+        super().__init__(data, ef_ax, spec_ax)
         self._function_names = self.data.ef_names
 
     def _check_data_is_present(self):
