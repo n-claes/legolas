@@ -1,5 +1,5 @@
 submodule(mod_eigenfunctions) smod_base_eigenfunctions
-  use mod_global_variables, only: ef_gridpts, nb_eqs
+  use mod_global_variables, only: ef_gridpts
   implicit none
 
 contains
@@ -19,6 +19,7 @@ contains
       base_eigenfunctions(i) % name = ef_names(i)
       allocate(base_eigenfunctions(i) % quantities(size(ef_grid), nb_eigenfuncs))
     end do
+    efs_initialised = .true.
   end procedure initialise_base_eigenfunctions
 
 

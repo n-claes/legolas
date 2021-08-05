@@ -18,78 +18,78 @@ submodule(mod_eigenfunctions) smod_derived_eigenfunctions
   use mod_global_variables, only: dp, ic, gridpts, matrix_gridpts, ef_gridpts, &
                                   str_len_arr, dp_LIMIT
   use mod_equilibrium_params, only: k2, k3
-  use mod_eigenfunctions, only: ef_grid, ef_array
-  use mod_types, only: pp_type
   use mod_interpolation, only: lookup_table_value
   use mod_logging, only: log_message
   implicit none
 
-  !> number of postprocessing quantities
-  integer                               :: nb_pp
-  !> array containing the postprocessed quantity names as strings
-  character(str_len_arr), allocatable   :: pp_names(:)
-  !> type containing all postprocessed quantities
-  type (pp_type), allocatable           :: pp_array(:)
-  !> True if no magnetic field present or B01 nonzero, i.e. determines if
-  !! parallel/perpendicular quantities can be computed
-  logical, save                         :: B_zero
+  !> Determines if parallel/perpendicular quantities can be computed
+  logical, save :: can_calculate_pp_quantities
   !> array containing the interpolated grid
-  real(dp), allocatable                 :: grid_ip(:, :)
+  real(dp), allocatable :: grid_ip(:, :)
   !> array containing the interpolated B0 components, rho0 and T0
-  real(dp), allocatable                 :: eq_ip(:, :)
+  real(dp), allocatable :: eq_ip(:, :)
   !> interpolation gridpoints
-  integer                               :: ip_pts
+  integer :: ip_pts
 
 contains
+
+  !> Determines if parallel/perpendicular quantities can be calculated and
+  !! sets the corresponding module flag. This flag will be false if there is a
+  !! non-zero B01 component present, or no magnetic field.
+  subroutine check_if_para_perp_quantities_can_be_calculated()
+    use mod_check_values, only: is_zero
+    use mod_equilibrium, only: B_field
+
+    can_calculate_pp_quantities = .true.
+    if (.not. is_zero(B_field % B01)) then
+      call log_message( &
+        "parallel/perpendicular derived quantities currently not supported &
+        &for non-zero B01 components", level="warning" &
+      )
+      can_calculate_pp_quantities = .false.
+    end if
+    if (all(is_zero(B_field % B02)) .and. all(is_zero(B_field % B03))) then
+      can_calculate_pp_quantities = .false.
+    end if
+  end subroutine check_if_para_perp_quantities_can_be_calculated
 
 
   !> Initialised the derived eigenfunction array, sets the corresponding names and
   !! vector indices, allocates the (subset of) derived eigenfunctions
   module procedure initialise_derived_eigenfunctions
     use mod_equilibrium, only: B_field
+    use mod_check_values, only: is_equal
 
+    integer :: i
 
-    if (B_field % B01 > dp_LIMIT) then
-      call log_message('Post-processing (parallel/perpendicular) currently not &
-                        & supported for non-zero B01 component', level='warning')
-    end if
-    Bcheck = count(abs(B_field % B02) > dp_LIMIT) + count(abs(B_field % B03) > dp_LIMIT)
-
-    B_zero = .true.
-    if (Bcheck == 0 .or. (abs(B_field % B01) > dp_LIMIT)) then
-      nb_pp = 12
+    if (can_calculate_pp_quantities) then
+      derived_ef_names = [ &
+        character(len=str_len_arr) :: "S", "div v", "(curl v)1", "(curl v)2", &
+        "(curl v)3", "B1", "B2", "B3", "div B", &
+        "(curl B)1", "(curl B)2", "(curl B)3", &
+        "B_para", "B_perp", "(curl B)_para", &
+        "(curl B)_perp", "v1", "v_para", "v_perp", &
+        "(curl v)_para", "(curl v)_perp" &
+      ]
     else
-      B_zero = .false.
-      nb_pp = 21
+      derived_ef_names = [ &
+        character(len=str_len_arr) :: "S", "div v", "(curl v)1", "(curl v)2", &
+        "(curl v)3", "B1", "B2", "B3", "div B", &
+        "(curl B)1", "(curl B)2", "(curl B)3" &
+      ]
     end if
+    allocate(derived_eigenfunctions(size(derived_ef_names)))
 
-    allocate(pp_names(nb_pp))
-    allocate(pp_array(nb_pp))
+    do i = 1, size(derived_eigenfunctions)
+      derived_eigenfunctions(i) % state_vector_index = i
+      derived_eigenfunctions(i) % name = derived_ef_names(i)
+      allocate(derived_eigenfunctions(i)%quantities(size(ef_grid), nb_eigenfuncs))
+    end do
 
     ip_pts = 25 * (gridpts - 1) + 1
     allocate(grid_ip(ip_pts, 4))
     allocate(eq_ip(ip_pts, 4))
-
-    do i = 1, nb_pp
-      allocate(pp_array(i) % quantities(ef_gridpts, nev))
-    end do
-
-    if (B_zero) then
-      pp_names = [ &
-        character(len=str_len_arr) :: 'S', 'div v', '(curl v)1', '(curl v)2', &
-                                      '(curl v)3', 'B1', 'B2', 'B3', 'div B', &
-                                      '(curl B)1', '(curl B)2', '(curl B)3' &
-      ]
-    else
-      pp_names = [ &
-        character(len=str_len_arr) :: 'S', 'div v', '(curl v)1', '(curl v)2', &
-                                      '(curl v)3', 'B1', 'B2', 'B3', 'div B', &
-                                      '(curl B)1', '(curl B)2', '(curl B)3', &
-                                      'B_para', 'B_perp', '(curl B)_para', &
-                                      '(curl B)_perp', 'v1', 'v_para', 'v_perp', &
-                                      '(curl v)_para', '(curl v)_perp' &
-      ]
-    end if
+    derived_efs_initialised = .true.
   end procedure initialise_derived_eigenfunctions
 
 

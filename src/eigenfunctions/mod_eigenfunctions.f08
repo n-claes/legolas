@@ -7,6 +7,8 @@ module mod_eigenfunctions
 
   !> logical to check whether eigenfunctions are initialised
   logical, save, protected :: efs_initialised = .false.
+  !> logical to check whether derived eigenfunctions are initialised
+  logical, save, protected :: derived_efs_initialised = .false.
   !> grid on which the eigenfunctions are assembled
   real(dp), protected, allocatable :: ef_grid(:)
   !> scale factor dedicated for eigenfunctions (eigenfunction grid != gauss grid)
@@ -58,7 +60,6 @@ contains
     !> the array of calculated eigenvalues
     complex(dp), intent(in) :: omega(:)
 
-    efs_initialised = .true.
     call select_eigenfunctions_to_save(omega)
 
     call assemble_eigenfunction_grid()
@@ -153,7 +154,12 @@ contains
       deallocate(ef_written_idxs)
       deallocate(ef_names)
       deallocate(base_eigenfunctions)
+      if (derived_efs_initialised) then
+        deallocate(derived_ef_names)
+        deallocate(derived_eigenfunctions)
+      end if
     end if
     efs_initialised = .false.
+    derived_efs_initialised = .false.
   end subroutine eigenfunctions_clean
 end module mod_eigenfunctions
