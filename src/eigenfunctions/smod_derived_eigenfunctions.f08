@@ -15,8 +15,8 @@
 !! taken in the 23-plane. The right-handed triad is e1, B0/|B0|, (e1 x B0) / |B0|.
 
 submodule(mod_eigenfunctions) smod_derived_eigenfunctions
+  use mod_global_variables, only: ic
   use mod_equilibrium_params, only: k2, k3
-  use mod_logging, only: log_message
   implicit none
 
   !> Determines if parallel/perpendicular quantities can be computed
@@ -38,6 +38,7 @@ contains
   subroutine check_if_para_perp_quantities_can_be_calculated()
     use mod_check_values, only: is_zero
     use mod_equilibrium, only: B_field
+    use mod_logging, only: log_message
 
     can_calculate_pp_quantities = .true.
     if (.not. is_zero(B_field % B01)) then
@@ -147,12 +148,7 @@ contains
     integer     :: i, j
 
     call set_entropy(derived_eigenfunctions(1))
-
-    !! Divergence of v1
-    do i = 1, size(vr, dim=2)
-      call get_div_velocity(i, vr(:, i), single)
-      derived_eigenfunctions(2) % quantities(:, i) = single
-    end do
+    call set_velocity_divergence(derived_eigenfunctions(2), right_eigenvectors)
 
     !! Curl of v1
     do i = 1, size(vr, dim=2)
@@ -219,9 +215,9 @@ contains
     !> derived eigenfunction type at entropy position in the array
     type(ef_type), intent(inout)  :: derived_ef
     !> density eigenfunction
-    real(dp)  :: rho_ef(size(ef_grid))
+    complex(dp)  :: rho_ef(size(ef_grid))
     !> temperature eigenfunction
-    real(dp)  :: T_ef(size(ef_grid))
+    complex(dp)  :: T_ef(size(ef_grid))
     integer :: i
 
     do i = 1, size(ef_written_idxs)
@@ -236,26 +232,33 @@ contains
 
 
   !> Calculates the divergence of the perturbed velocity v1
-  subroutine get_div_velocity(index, eigenvector, divergence)
-    integer, intent(in)       :: index
-    complex(dp), intent(in)   :: eigenvector(matrix_gridpts)
-    complex(dp), intent(out)  :: divergence(ef_gridpts)
+  subroutine set_velocity_divergence(derived_ef, right_eigenvectors)
+    !> derived eigenfunction type at div(v) position in the array
+    type(ef_type), intent(inout)  :: derived_ef
+    !> right eigenvectors
+    complex(dp), intent(in) :: right_eigenvectors(:, :)
+    !> v2 eigenfunction
+    complex(dp) :: v2_ef(size(ef_grid))
+    !> v3 eigenfunction
+    complex(dp) :: v3_ef(size(ef_grid))
+    !> derivative of v1 eigenfunction
+    complex(dp) :: dv1_ef(size(ef_grid))
+    integer :: i, eigenvalue_idx
 
-    !! Derivatives are transformed variables, regular variables are 'actual' values
-    complex(dp) :: v2(ef_gridpts), v3(ef_gridpts)
-    complex(dp) :: dv1(ef_gridpts)
-    integer     :: m
-    real(dp)    :: eps, deps
-
-    v2 = base_eigenfunctions(3) % eigenfunctions(:, index)
-    v3 = base_eigenfunctions(4) % eigenfunctions(:, index)
-    call get_eigenfunction_deriv(2, eigenvector, dv1, 1)
-
-    do m = 1, ef_gridpts
-      call set_eps(m, eps, deps)
-      divergence(m) = ic * (-dv1(m) / eps + k2 * v2(m) / eps + k3 * v3(m))
+    do i = 1, size(ef_written_idxs)
+      eigenvalue_idx = ef_written_idxs(i)
+      v2_ef = base_eigenfunctions(findloc(ef_names, "v2"))%quantities(:, i)
+      v3_ef = base_eigenfunctions(findloc(ef_names, "v3"))%quantities(:, i)
+      dv1_ef = get_assembled_eigenfunction( &
+        base_ef=base_eigenfunctions(findloc(ef_names, "v1")), &
+        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
+        derivative_order=1 &
+      )
+      derived_ef%quantities(:, i) = ( &
+        ic * (-dv1_ef / ef_eps + k2 * v2_ef / eps + k3 * v3_ef) &
+      )
     end do
-  end subroutine get_div_velocity
+  end subroutine set_velocity_divergence
 
 
   !> Calculates the curl of the perturbed velocity v1
