@@ -13,6 +13,8 @@ module mod_eigenfunctions
   real(dp), protected, allocatable :: ef_grid(:)
   !> scale factor dedicated for eigenfunctions (eigenfunction grid != gauss grid)
   real(dp), protected, allocatable :: ef_eps(:)
+  !> derivative of scale factor
+  real(dp), protected :: ef_deps
   !> array with the names of the basis eigenfunctions
   character(str_len_arr), protected, allocatable :: ef_names(:)
   !> array with the names of the derived eigenfunctions
@@ -123,8 +125,10 @@ contains
     allocate(ef_eps(size(ef_grid)))
     if (geometry == "Cartesian") then
       ef_eps = 1.0d0
+      ef_deps = 0.0d0
     else
       ef_eps = ef_grid
+      ef_deps = 1.0d0
     end if
   end subroutine assemble_eigenfunction_grid
 

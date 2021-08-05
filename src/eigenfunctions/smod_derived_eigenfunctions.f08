@@ -149,6 +149,9 @@ contains
 
     call set_entropy(derived_eigenfunctions(1))
     call set_velocity_divergence(derived_eigenfunctions(2), right_eigenvectors)
+    call set_velocity_curl_1_component(derived_eigenfunctions(3))
+    call set_velocity_curl_2_component(derived_eigenfunctions(4), right_eigenvectors)
+    call set_velocity_curl_3_component(derived_eigenfunctions(5), right_eigenvectors)
 
     !! Curl of v1
     do i = 1, size(vr, dim=2)
@@ -259,6 +262,84 @@ contains
       )
     end do
   end subroutine set_velocity_divergence
+
+
+  !> Calculates the 1-component of the curl of the perturbed velocity v1
+  subroutine set_velocity_curl_1_component(derived_ef)
+    !> derived eigenfunction type at curl(v)1 position in the array
+    type(ef_type), intent(inout)  :: derived_ef
+    ! v1 eigenfunction
+    complex(dp) :: v1_ef(size(ef_grid))
+    ! v3 eigenfunction
+    complex(dp) :: v3_ef(size(ef_grid))
+    integer :: i
+
+    do i = 1, size(ef_written_idxs)
+      v1_ef = base_eigenfunctions(findloc(ef_names, "v1"))%quantities(:, i)
+      v3_ef = base_eigenfunctions(findloc(ef_names, "v3"))%quantities(:, i)
+      derived_ef%quantities(:, i) = ic * (k2 * v3_ef / ef_eps - k3 * v2_ef)
+    end do
+  end subroutine set_velocity_curl_1_component
+
+
+  !> Calculates the 2-component of the curl of the perturbed velocity v1
+  subroutine set_velocity_curl_2_component(derived_ef, right_eigenvectors)
+    !> derived eigenfunction type at curl(v)2 position in the array
+    type(ef_type), intent(inout)  :: derived_ef
+    !> right eigenvectors
+    complex(dp), intent(in) :: right_eigenvectors(:, :)
+    ! v1 eigenfunction
+    complex(dp) :: v1_ef(size(ef_grid))
+    ! v3 eigenfunction
+    complex(dp) :: v3_ef(size(ef_grid))
+    !> dv3 eigenfunction
+    complex(dp) :: dv3_ef(size(ef_grid))
+    integer :: i, eigenvalue_idx
+
+    do i = 1, size(ef_written_idxs)
+      eigenvalue_idx = ef_written_idxs(i)
+      v1_ef = base_eigenfunctions(findloc(ef_names, "v1"))%quantities(:, i)
+      v3_ef = base_eigenfunctions(findloc(ef_names, "v3"))%quantities(:, i)
+      dv3_ef = get_assembled_eigenfunction( &
+        base_ef=base_eigenfunctions(findloc(ef_names, "v3")), &
+        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
+        derivative_order=1 &
+      )
+      derived_ef%quantities(:, i) = ( &
+        ic * k3 * v1_ef - dv3_ef / ef_eps - ef_deps * v3_ef / ef_eps &
+      )
+    end do
+  end subroutine set_velocity_curl_2_component
+
+
+  !> Calculates the 3-component of the curl of the perturbed velocity v1
+  subroutine set_velocity_curl_3_component(derived_ef, right_eigenvectors)
+    !> derived eigenfunction type at curl(v)3 position in the array
+    type(ef_type), intent(inout)  :: derived_ef
+    !> right eigenvectors
+    complex(dp), intent(in) :: right_eigenvectors(:, :)
+    ! v1 eigenfunction
+    complex(dp) :: v1_ef(size(ef_grid))
+    ! v2 eigenfunction
+    complex(dp) :: v2_ef(size(ef_grid))
+    !> dv2 eigenfunction
+    complex(dp) :: dv2_ef(size(ef_grid))
+    integer :: i, eigenvalue_idx
+
+    do i = 1, size(ef_written_idxs)
+      eigenvalue_idx = ef_written_idxs(i)
+      v1_ef = base_eigenfunctions(findloc(ef_names, "v1"))%quantities(:, i)
+      v2_ef = base_eigenfunctions(findloc(ef_names, "v2"))%quantities(:, i)
+      dv2_ef = get_assembled_eigenfunction( &
+        base_ef=base_eigenfunctions(findloc(ef_names, "v2")), &
+        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
+        derivative_order=1 &
+      )
+      derived_ef%quantities(:, i) = ( &
+        dv2_ef(m) + (ef_deps * v2_ef - ic * k2 * v1_ef) / ef_eps &
+      )
+    end do
+  end subroutine set_velocity_curl_3_component
 
 
   !> Calculates the curl of the perturbed velocity v1
