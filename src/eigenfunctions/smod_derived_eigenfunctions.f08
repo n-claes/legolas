@@ -15,21 +15,20 @@
 !! taken in the 23-plane. The right-handed triad is e1, B0/|B0|, (e1 x B0) / |B0|.
 
 submodule(mod_eigenfunctions) smod_derived_eigenfunctions
-  use mod_global_variables, only: dp, ic, gridpts, matrix_gridpts, ef_gridpts, &
-                                  str_len_arr, dp_LIMIT
   use mod_equilibrium_params, only: k2, k3
-  use mod_interpolation, only: lookup_table_value
   use mod_logging, only: log_message
   implicit none
 
   !> Determines if parallel/perpendicular quantities can be computed
   logical, save :: can_calculate_pp_quantities
-  !> array containing the interpolated grid
-  real(dp), allocatable :: grid_ip(:, :)
-  !> array containing the interpolated B0 components, rho0 and T0
-  real(dp), allocatable :: eq_ip(:, :)
-  !> interpolation gridpoints
-  integer :: ip_pts
+  !> array containing the interpolated B02
+  real(dp), allocatable :: B02_on_ef_grid(:)
+  !> array containing the interpolated B03
+  real(dp), allocatable :: B03_on_ef_grid(:)
+  !> array containing the interpolated rho0
+  real(dp), allocatable :: rho0_on_ef_grid(:)
+  !> array containing the interpolated T0
+  real(dp), allocatable :: T0_on_ef_grid(:)
 
 contains
 
@@ -52,6 +51,53 @@ contains
       can_calculate_pp_quantities = .false.
     end if
   end subroutine check_if_para_perp_quantities_can_be_calculated
+
+
+  !> Interpolates the B02, B03, rho0 and T0 equilibrium components, used for
+  !! calculating the derived eigenfunction quantities.
+  subroutine interpolate_equilibrium_on_eigenfunction_grid()
+    use mod_global_variables, only: gridpts
+    use mod_interpolation, only: interpolate_table, lookup_table_value
+    use mod_grid, only: grid_gauss
+    use mod_equilibrium, only: B_field, rho_field, T_field
+
+    call interpolate_and_set_values(B_field % B02, B02_on_ef_grid)
+    call interpolate_and_set_values(B_field % B03, B03_on_ef_grid)
+    call interpolate_and_set_values(rho_field % rho0, rho0_on_ef_grid)
+    call interpolate_and_set_values(T_field % T0, T0_on_ef_grid)
+
+    contains
+      !> interpolates an equilibrium array and sets it on the eigenfunction grid.
+      subroutine interpolate_and_set_values(basic_array, expected_array)
+        use mod_interpolation, only: interpolate_table, lookup_table_value
+        use mod_grid, only: grid_gauss
+
+        !> basic array (equilibrium)
+        real(dp), intent(in)  :: basic_array
+        !> expected array (set on eigenfunction grid)
+        real(dp), allocatable, intent(out) :: expected_array(:)
+        !> number of points used for interpolation
+        integer :: ip_pts
+        !> interpolated grid
+        real(dp), allocatable  :: interpolated_grid(:)
+        !> interpolated equilibrium values
+        real(dp), allocatable  :: interpolated_values(:)
+
+        ip_pts = 25 * (gridpts - 1) + 1
+        allocate(interpolated_grid(ip_pts))
+        allocate(interpolated_values(ip_pts))
+        call interpolate_table(ip_pts, grid_gauss, basic_array, interpolated_values)
+
+        allocate(expected_array(size(ef_grid)))
+        do i = 1, size(ef_grid)
+          expected_array(i) = lookup_table_value( &
+            ef_grid(i), interpolated_grid, interpolated_values &
+          )
+        end do
+        deallocate(interpolated_grid)
+        deallocate(interpolated_values)
+      end subroutine interpolate_and_set_values
+  end subroutine interpolate_equilibrium_on_eigenfunction_grid
 
 
   !> Initialised the derived eigenfunction array, sets the corresponding names and
@@ -86,20 +132,18 @@ contains
       allocate(derived_eigenfunctions(i)%quantities(size(ef_grid), nb_eigenfuncs))
     end do
 
-    ip_pts = 25 * (gridpts - 1) + 1
-    allocate(grid_ip(ip_pts, 4))
-    allocate(eq_ip(ip_pts, 4))
+    call interpolate_equilibrium_on_eigenfunction_grid()
     derived_efs_initialised = .true.
   end procedure initialise_derived_eigenfunctions
 
 
-  !> Calculates the postprocessed quantities for every eigenvalue.
-  subroutine calculate_postprocessed(vr)
-
-    !> the matrix of right eigenvectors
-    complex(dp), intent(in) :: vr(:, :)
+  !> Calculates the derived eigenfunction quantities corresponding to the requested
+  !! eigenvalues and sets them as attributes for the corresponding types.
+  module procedure calculate_derived_eigenfunctions
     !> quantities values
-    complex(dp) :: single(ef_gridpts), double(ef_gridpts, 2), triple(ef_gridpts, 3)
+    complex(dp) :: single(size(ef_grid))
+    complex(dp) :: double(size(ef_grid), 2)
+    complex(dp) :: triple(size(ef_grid), 3)
     integer     :: i, j
 
     do j = 1, nb_pp
@@ -114,59 +158,59 @@ contains
     !! Entropy perturbation S1
     do i = 1, size(vr, dim=2)
       call get_entropy(i, single)
-      pp_array(1) % quantities(:, i) = single
+      derived_eigenfunctions(1) % quantities(:, i) = single
     end do
 
     !! Divergence of v1
     do i = 1, size(vr, dim=2)
       call get_div_velocity(i, vr(:, i), single)
-      pp_array(2) % quantities(:, i) = single
+      derived_eigenfunctions(2) % quantities(:, i) = single
     end do
 
     !! Curl of v1
     do i = 1, size(vr, dim=2)
       call get_curl_velocity(i, vr(:, i), triple, double)
-      pp_array(3) % quantities(:, i) = triple(:, 1)
-      pp_array(4) % quantities(:, i) = triple(:, 2)
-      pp_array(5) % quantities(:, i) = triple(:, 3)
+      derived_eigenfunctions(3) % quantities(:, i) = triple(:, 1)
+      derived_eigenfunctions(4) % quantities(:, i) = triple(:, 2)
+      derived_eigenfunctions(5) % quantities(:, i) = triple(:, 3)
       !! In parallel/perpendicular components w.r.t B0 (no B01, so set becomes
       !! (curlv1)1, (curlv1)para, (curlv1)perp)
       if (.not. B_zero) then
-        pp_array(20) % quantities(:, i) = double(:, 1)
-        pp_array(21) % quantities(:, i) = double(:, 2)
+        derived_eigenfunctions(20) % quantities(:, i) = double(:, 1)
+        derived_eigenfunctions(21) % quantities(:, i) = double(:, 2)
       end if
     end do
 
     !! Magnetic field B1
     do i = 1, size(vr, dim=2)
       call get_magnetic_field(i, vr(:, i), triple, double)
-      pp_array(6) % quantities(:, i) = triple(:, 1)
-      pp_array(7) % quantities(:, i) = triple(:, 2)
-      pp_array(8) % quantities(:, i) = triple(:, 3)
+      derived_eigenfunctions(6) % quantities(:, i) = triple(:, 1)
+      derived_eigenfunctions(7) % quantities(:, i) = triple(:, 2)
+      derived_eigenfunctions(8) % quantities(:, i) = triple(:, 3)
       !! In parallel/perpendicular components w.r.t B0 (no B01, so set becomes B1, Bpara, Bperp)
       if (.not. B_zero) then
-        pp_array(13) % quantities(:, i) = double(:, 1)
-        pp_array(14) % quantities(:, i) = double(:, 2)
+        derived_eigenfunctions(13) % quantities(:, i) = double(:, 1)
+        derived_eigenfunctions(14) % quantities(:, i) = double(:, 2)
       end if
     end do
 
     !! Divergence of B1
     do i = 1, size(vr, dim=2)
       call get_div_magnetic(i, vr(:, i), single)
-      pp_array(9) % quantities(:, i) = single
+      derived_eigenfunctions(9) % quantities(:, i) = single
     end do
 
     !! Curl of B1
     do i = 1, size(vr, dim=2)
       call get_curl_magnetic(i, vr(:, i), triple, double)
-      pp_array(10) % quantities(:, i) = triple(:, 1)
-      pp_array(11) % quantities(:, i) = triple(:, 2)
-      pp_array(12) % quantities(:, i) = triple(:, 3)
+      derived_eigenfunctions(10) % quantities(:, i) = triple(:, 1)
+      derived_eigenfunctions(11) % quantities(:, i) = triple(:, 2)
+      derived_eigenfunctions(12) % quantities(:, i) = triple(:, 3)
       !! In parallel/perpendicular components w.r.t B0 (no B01, so set becomes
       !! (curlB1)1, (curlB1)para, (curlB1)perp)
       if (.not. B_zero) then
-        pp_array(15) % quantities(:, i) = double(:, 1)
-        pp_array(16) % quantities(:, i) = double(:, 2)
+        derived_eigenfunctions(15) % quantities(:, i) = double(:, 1)
+        derived_eigenfunctions(16) % quantities(:, i) = double(:, 2)
       end if
     end do
 
@@ -175,12 +219,12 @@ contains
     if (.not. B_zero) then
       do i = 1, size(vr, dim=2)
         call get_v_paraperp(i, triple)
-        pp_array(17) % quantities(:, i) = triple(:, 1)
-        pp_array(18) % quantities(:, i) = triple(:, 2)
-        pp_array(19) % quantities(:, i) = triple(:, 3)
+        derived_eigenfunctions(17) % quantities(:, i) = triple(:, 1)
+        derived_eigenfunctions(18) % quantities(:, i) = triple(:, 2)
+        derived_eigenfunctions(19) % quantities(:, i) = triple(:, 3)
       end do
     end if
-  end subroutine calculate_postprocessed
+  end procedure calculate_derived_eigenfunctions
 
 
   !> Calculates the perturbed magnetic field B1
@@ -229,8 +273,8 @@ contains
     integer     :: m
     real(dp)    :: eps, deps
 
-    v2 = ef_array(3) % eigenfunctions(:, index)
-    v3 = ef_array(4) % eigenfunctions(:, index)
+    v2 = base_eigenfunctions(3) % eigenfunctions(:, index)
+    v3 = base_eigenfunctions(4) % eigenfunctions(:, index)
     call get_eigenfunction_deriv(2, eigenvector, dv1, 1)
 
     do m = 1, ef_gridpts
@@ -256,9 +300,9 @@ contains
     real(dp)    :: eps, deps, x, B02, B03, B0
     complex(dp) :: curlv2, curlv3
 
-    v1 = ef_array(2) % eigenfunctions(:, index)
-    v2 = ef_array(3) % eigenfunctions(:, index)
-    v3 = ef_array(4) % eigenfunctions(:, index)
+    v1 = base_eigenfunctions(2) % eigenfunctions(:, index)
+    v2 = base_eigenfunctions(3) % eigenfunctions(:, index)
+    v3 = base_eigenfunctions(4) % eigenfunctions(:, index)
     call get_eigenfunction_deriv(3, eigenvector, dv2, 1)
     call get_eigenfunction_deriv(4, eigenvector, dv3, 1)
 
@@ -309,9 +353,9 @@ contains
     real(dp)    :: eps, deps, x, B02, B03, B0
     complex(dp) :: B2, B3
 
-    a1 = ef_array(6) % eigenfunctions(:, index)
-    a2 = ef_array(7) % eigenfunctions(:, index)
-    a3 = ef_array(8) % eigenfunctions(:, index)
+    a1 = base_eigenfunctions(6) % eigenfunctions(:, index)
+    a2 = base_eigenfunctions(7) % eigenfunctions(:, index)
+    a3 = base_eigenfunctions(8) % eigenfunctions(:, index)
     call get_eigenfunction_deriv(7, eigenvector, da2, 1)
     call get_eigenfunction_deriv(8, eigenvector, da3, 1)
 
@@ -358,9 +402,9 @@ contains
     integer     :: m
     real(dp)    :: eps, deps
 
-    a1 = ef_array(6) % eigenfunctions(:, index)
-    a2 = ef_array(7) % eigenfunctions(:, index)
-    a3 = ef_array(8) % eigenfunctions(:, index)
+    a1 = base_eigenfunctions(6) % eigenfunctions(:, index)
+    a2 = base_eigenfunctions(7) % eigenfunctions(:, index)
+    a3 = base_eigenfunctions(8) % eigenfunctions(:, index)
     call get_eigenfunction_deriv(7, eigenvector, da2, 1)
     call get_eigenfunction_deriv(8, eigenvector, da3, 1)
 
@@ -390,9 +434,9 @@ contains
     real(dp)    :: eps, deps, x, B02, B03, B0
     complex(dp) :: curlB2, curlB3
 
-    a1 = ef_array(6) % eigenfunctions(:, index)
-    a2 = ef_array(7) % eigenfunctions(:, index)
-    a3 = ef_array(8) % eigenfunctions(:, index)
+    a1 = base_eigenfunctions(6) % eigenfunctions(:, index)
+    a2 = base_eigenfunctions(7) % eigenfunctions(:, index)
+    a3 = base_eigenfunctions(8) % eigenfunctions(:, index)
     call get_eigenfunction_deriv(6, eigenvector, da1, 1)
     call get_eigenfunction_deriv(7, eigenvector, da2, 1)
     call get_eigenfunction_deriv(8, eigenvector, da3, 1)
@@ -445,9 +489,9 @@ contains
     integer     :: m
     real(dp)    :: x, B02, B03, B0
 
-    field(:, 1) = ef_array(2) % eigenfunctions(:, index)
-    v2 = ef_array(3) % eigenfunctions(:, index)
-    v3 = ef_array(4) % eigenfunctions(:, index)
+    field(:, 1) = base_eigenfunctions(2) % eigenfunctions(:, index)
+    v2 = base_eigenfunctions(3) % eigenfunctions(:, index)
+    v3 = base_eigenfunctions(4) % eigenfunctions(:, index)
 
     do m = 1, ef_gridpts
       !! In parallel/perpendicular components
@@ -605,43 +649,12 @@ contains
   end subroutine set_eps
 
 
-  subroutine interpolate_equilibrium(grid, eq)
-    use mod_interpolation, only: interpolate_table
-    use mod_equilibrium, only: B_field, T_field, rho_field
-    use mod_grid, only: grid_gauss
-
-    real(dp), intent(out)   :: grid(ip_pts, 4)
-    real(dp), intent(out)   :: eq(ip_pts, 4)
-    real(dp)                :: x_grid(ip_pts)
-    real(dp)                :: var(ip_pts)
-
-    call interpolate_table(ip_pts, grid_gauss, B_field % B02, x_grid, var)
-    grid(:, 1) = x_grid
-    eq(:, 1) = var
-    call interpolate_table(ip_pts, grid_gauss, B_field % B03, x_grid, var)
-    grid(:, 2) = x_grid
-    eq(:, 2) = var
-    call interpolate_table(ip_pts, grid_gauss, rho_field % rho0, x_grid, var)
-    grid(:, 3) = x_grid
-    eq(:, 3) = var
-    call interpolate_table(ip_pts, grid_gauss, T_field % T0, x_grid, var)
-    grid(:, 4) = x_grid
-    eq(:, 4) = var
-  end subroutine interpolate_equilibrium
-
-
-  !> Cleaning routine, deallocates the postprocessing arrays.
-  subroutine postprocessing_clean()
-    integer   :: i
-
-    if (allocated(pp_names)) then
-      deallocate(pp_names)
-      do i = 1, nb_pp
-        deallocate(pp_array(i) % quantities)
-      end do
-      deallocate(grid_ip)
-      deallocate(eq_ip)
-    end if
-  end subroutine postprocessing_clean
+  !> Cleaning routine, deallocated the derived quantities
+  module procedure clean_derived_eigenfunctions()
+    deallocate(B02_on_ef_grid)
+    deallocate(B03_on_ef_grid)
+    deallocate(rho0_on_ef_grid)
+    deallocate(T0_on_ef_grid)
+  end procedure clean_derived_eigenfunctions
 
 end submodule smod_derived_eigenfunctions

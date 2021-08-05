@@ -45,6 +45,10 @@ module mod_eigenfunctions
     end subroutine calculate_derived_eigenfunctions
   end interface
 
+  interface
+    module subroutine clean_derived_eigenfunctions(); end subroutine
+  end interface
+
   public :: ef_grid
   public :: ef_names, derived_ef_names
   public :: ef_written_flags, ef_written_idxs
@@ -155,6 +159,7 @@ contains
       deallocate(ef_names)
       deallocate(base_eigenfunctions)
       if (derived_efs_initialised) then
+        call clean_derived_eigenfunctions()
         deallocate(derived_ef_names)
         deallocate(derived_eigenfunctions)
       end if
