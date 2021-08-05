@@ -82,7 +82,7 @@ set (sources
         solvers/smod_arnoldi.f08
         eigenfunctions/mod_eigenfunctions.f08
         eigenfunctions/smod_base_eigenfunctions.f08
-        # mod_postprocessing.f08
+        eigenfunctions/smod_derived_eigenfunctions.f08
         dataIO/mod_output.f08
 )
 

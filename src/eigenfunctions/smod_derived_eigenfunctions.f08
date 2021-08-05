@@ -14,7 +14,7 @@
 !! already perpendicular to B0, and the parallel/perpendicular directions are
 !! taken in the 23-plane. The right-handed triad is e1, B0/|B0|, (e1 x B0) / |B0|.
 
-module mod_postprocessing
+submodule(mod_eigenfunctions) smod_derived_eigenfunctions
   use mod_global_variables, only: dp, ic, gridpts, matrix_gridpts, ef_gridpts, &
                                   str_len_arr, dp_LIMIT
   use mod_equilibrium_params, only: k2, k3
@@ -663,4 +663,4 @@ contains
     end if
   end subroutine postprocessing_clean
 
-end module mod_postprocessing
+end submodule smod_derived_eigenfunctions
