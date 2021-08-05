@@ -254,6 +254,18 @@ class LegolasDataSet(LegolasDataContainer):
             return None
 
     @property
+    def ef_subset(self):
+        """
+        Checks if dataset contains a subset of the eigenfunctions
+
+        Returns
+        -------
+        bool
+            `True` if subset present, `False` otherwise
+        """
+        return self.header["eigenfunction_subset_used"]
+
+    @property
     def pp_written(self):
         """
         Checks if post-processed quantities are present.
@@ -554,7 +566,8 @@ class LegolasDataSet(LegolasDataContainer):
         with open(self.datfile, "rb") as istream:
             for dict_idx, ef_idx in enumerate(idxs):
                 efs = read_eigenfunction(istream, self.header, ef_idx)
-                efs.update({"eigenvalue": self.eigenvalues[ef_idx]})
+                if efs is not None:
+                    efs.update({"eigenvalue": self.eigenvalues[ef_idx]})
                 eigenfuncs[dict_idx] = efs
         return eigenfuncs
 
