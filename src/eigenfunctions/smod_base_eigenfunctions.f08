@@ -17,7 +17,7 @@ contains
     do i = 1, size(base_eigenfunctions)
       base_eigenfunctions(i) % state_vector_index = i
       base_eigenfunctions(i) % name = ef_names(i)
-      allocate(base_eigenfunctions(i) % eigenfunctions(size(ef_grid), nb_eigenfuncs))
+      allocate(base_eigenfunctions(i) % quantities(size(ef_grid), nb_eigenfuncs))
     end do
   end procedure initialise_base_eigenfunctions
 
@@ -35,7 +35,7 @@ contains
           base_eigenfunctions(j), right_eigenvectors(:, eigenvalue_idx) &
         )
         call retransform_eigenfunction(base_eigenfunctions(j) % name, assembled_ef)
-        base_eigenfunctions(j) % eigenfunctions(:, i) = assembled_ef
+        base_eigenfunctions(j) % quantities(:, i) = assembled_ef
       end do
     end do
   end procedure calculate_base_eigenfunctions

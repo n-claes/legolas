@@ -145,7 +145,7 @@ module mod_global_variables
   !> boolean to write the eigenfunctions to the datfile, defaults to <tt>True</tt>
   logical, save             :: write_eigenfunctions
   !> boolean to write postprocessed quantities to the datfile, defaults to <tt>True</tt>
-  logical, save             :: write_postprocessed
+  logical, save             :: write_derived_eigenfunctions
   !> boolean to select subset of the eigenfunctions to save, defaults to <tt>False</tt>
   logical, save             :: write_eigenfunction_subset
   !> point used as the center for the eigenfunction subset
@@ -241,7 +241,7 @@ contains
     !! post-processing parameters
     write_matrices = .false.
     write_eigenfunctions = .true.
-    write_postprocessed = .false.
+    write_derived_eigenfunctions = .false.
     show_results = .true.
     logging_level = 2
     dry_run = .false.

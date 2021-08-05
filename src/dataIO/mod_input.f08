@@ -59,9 +59,9 @@ contains
         nb_spurious_eigenvalues
     namelist /savelist/ &
         write_matrices, write_eigenfunctions, show_results, basename_datfile, &
-        basename_logfile, output_folder, logging_level, dry_run, write_postprocessed, &
-        write_eigenfunction_subset, eigenfunction_subset_center, &
-        eigenfunction_subset_radius
+        basename_logfile, output_folder, logging_level, dry_run, &
+        write_derived_eigenfunctions, write_eigenfunction_subset, &
+        eigenfunction_subset_center, eigenfunction_subset_radius
     namelist /paramlist/  &
         k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, cte_v03, &
         cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
@@ -126,10 +126,9 @@ contains
     end if
 
     ! Check eigenfunction settings
-    if (write_postprocessed .and. (.not. write_eigenfunctions)) then
+    if (write_derived_eigenfunctions .and. (.not. write_eigenfunctions)) then
       call log_message( &
-        "eigenfunctions are needed for postprocessed quantities and will be written" &
-        // "to the datfile!", &
+        "derived quantities need eigenfunctions, these will also be saved in datfile", &
         level="warning" &
       )
       write_eigenfunctions = .true.

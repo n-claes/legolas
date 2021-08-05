@@ -341,9 +341,11 @@ contains
     call log_message( &
       "write eigenfunctions : " // adjustl(char_log), level="info", use_prefix=.false. &
     )
-    call logical_tostring(write_postprocessed, char_log)
+    call logical_tostring(write_derived_eigenfunctions, char_log)
     call log_message( &
-      "write post-processed : " // adjustl(char_log), level="info", use_prefix=.false. &
+      "write derived eigenfunctions : " // adjustl(char_log), &
+      level="info", &
+      use_prefix=.false. &
     )
     call log_message( &
       "---------------------------------------------", &

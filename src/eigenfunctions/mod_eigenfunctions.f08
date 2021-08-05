@@ -1,5 +1,5 @@
 module mod_eigenfunctions
-  use mod_global_variables, only: dp, str_len_arr
+  use mod_global_variables, only: dp, str_len_arr, write_derived_eigenfunctions
   use mod_types, only: ef_type
   implicit none
 
@@ -13,6 +13,8 @@ module mod_eigenfunctions
   real(dp), protected, allocatable :: ef_eps(:)
   !> array with the names of the basis eigenfunctions
   character(str_len_arr), protected, allocatable :: ef_names(:)
+  !> array with the names of the derived eigenfunctions
+  character(str_len_arr), protected, allocatable :: derived_ef_names(:)
   !> logical array containing flags for written eigenfunctions
   logical, protected, allocatable  :: ef_written_flags(:)
   !> integer array containing indices for written eigenfunctions
@@ -20,20 +22,32 @@ module mod_eigenfunctions
 
   !> array with base eigenfunctions
   type(ef_type), allocatable :: base_eigenfunctions(:)
+  !> array with derived eigenfunctions
+  type(ef_type), allocatable :: derived_eigenfunctions(:)
 
   interface
     module subroutine initialise_base_eigenfunctions(nb_eigenfuncs)
       integer, intent(in) :: nb_eigenfuncs
     end subroutine initialise_base_eigenfunctions
 
+    module subroutine initialise_derived_eigenfunctions(nb_eigenfuncs)
+      integer, intent(in) :: nb_eigenfuncs
+    end subroutine initialise_derived_eigenfunctions
+
     module subroutine calculate_base_eigenfunctions(right_eigenvectors)
       complex(dp), intent(in) :: right_eigenvectors(:, :)
     end subroutine calculate_base_eigenfunctions
+
+    module subroutine calculate_derived_eigenfunctions(right_eigenvectors)
+      complex(dp), intent(in) :: right_eigenvectors(:, :)
+    end subroutine calculate_derived_eigenfunctions
   end interface
 
-  public :: ef_grid, ef_names
+  public :: ef_grid
+  public :: ef_names, derived_ef_names
   public :: ef_written_flags, ef_written_idxs
   public :: base_eigenfunctions
+  public :: derived_eigenfunctions
   public :: initialise_eigenfunctions
   public :: calculate_eigenfunctions
   public :: eigenfunctions_clean
@@ -49,6 +63,9 @@ contains
 
     call assemble_eigenfunction_grid()
     call initialise_base_eigenfunctions(size(ef_written_idxs))
+    if (write_derived_eigenfunctions) then
+      call initialise_derived_eigenfunctions(size(ef_written_idxs))
+    end if
   end subroutine initialise_eigenfunctions
 
 
@@ -56,6 +73,9 @@ contains
     complex(dp), intent(in) :: right_eigenvectors(:, :)
 
     call calculate_base_eigenfunctions(right_eigenvectors)
+    if (write_derived_eigenfunctions) then
+      call calculate_derived_eigenfunctions(right_eigenvectors)
+    end if
   end subroutine calculate_eigenfunctions
 
 

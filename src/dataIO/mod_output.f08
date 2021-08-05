@@ -76,7 +76,6 @@ contains
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
       kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions
-    ! use mod_postprocessing, only: pp_names, pp_array, nb_pp
     use mod_check_values, only: is_equal
     use mod_equilibrium_params
     use mod_units
@@ -127,7 +126,7 @@ contains
     write(dat_fh) "legolas_version", LEGOLAS_VERSION
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
       gauss_gridpts, matrix_gridpts, ef_gridpts, gamma, equilibrium_type, &
-      write_eigenfunctions, write_postprocessed, write_matrices, &
+      write_eigenfunctions, write_derived_eigenfunctions, write_matrices, &
       write_eigenfunction_subset, eigenfunction_subset_center, &
       eigenfunction_subset_radius
     write(dat_fh) size(param_names), len(param_names(1)), param_names
@@ -167,18 +166,18 @@ contains
       write(dat_fh) size(ef_written_flags), ef_written_flags
       write(dat_fh) size(ef_written_idxs), ef_written_idxs
       do i = 1, size(base_eigenfunctions)
-        write(dat_fh) base_eigenfunctions(i)%eigenfunctions
+        write(dat_fh) base_eigenfunctions(i)%quantities
       end do
     end if
 
-    ! ! Postprocessed data [optional]
-    ! if (write_postprocessed) then
-    !   call log_message("writing postprocessed quantities...", level='info')
-    !   write(dat_fh) size(pp_names), pp_names
-    !   do i = 1, nb_pp
-    !     write(dat_fh) pp_array(i) % quantities
-    !   end do
-    ! end if
+    ! Data for quantities derived from eigenfunctions [optional]
+    if (write_derived_eigenfunctions) then
+      call log_message("writing derived eigenfunction quantities...", level="info")
+      write(dat_fh) size(derived_ef_names), derived_ef_names
+      do i = 1, size(derived_eigenfunctions)
+        write(dat_fh) derived_eigenfunctions(i)%quantities
+      end do
+    end if
 
     ! Matrix data [optional]
     if (write_matrices) then

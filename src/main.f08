@@ -129,7 +129,6 @@ contains
     use mod_equilibrium, only: equilibrium_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
     use mod_eigenfunctions, only: eigenfunctions_clean
-    ! use mod_postprocessing, only: postprocessing_clean
 
     deallocate(matrix_A)
     deallocate(matrix_B)
@@ -144,7 +143,6 @@ contains
     if (radiative_cooling) then
       call radiative_cooling_clean()
     end if
-    ! call postprocessing_clean()
     call eigenfunctions_clean()
   end subroutine cleanup
 

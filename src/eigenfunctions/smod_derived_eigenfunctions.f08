@@ -24,8 +24,6 @@ submodule(mod_eigenfunctions) smod_derived_eigenfunctions
   use mod_logging, only: log_message
   implicit none
 
-  private
-
   !> number of postprocessing quantities
   integer                               :: nb_pp
   !> array containing the postprocessed quantity names as strings
@@ -42,31 +40,14 @@ submodule(mod_eigenfunctions) smod_derived_eigenfunctions
   !> interpolation gridpoints
   integer                               :: ip_pts
 
-  public :: nb_pp, pp_names, pp_array
-  public :: initialise_postprocessing
-  public :: calculate_postprocessed
-  public :: postprocessing_clean
-
 contains
 
 
-  !> Main initialisations of this module.
-  !! Allocates and initialises the types and names.
-  !! Passing the optional argument <tt>nb_evs</tt> sets the number of eigenvalues
-  !! that are calculated and limits the size of the eigenfunction arrays accordingly.
-  !! This routine is only called if <tt>write_postprocessed = .true.</tt>.
-  subroutine initialise_postprocessing(nb_evs)
+  !> Initialised the derived eigenfunction array, sets the corresponding names and
+  !! vector indices, allocates the (subset of) derived eigenfunctions
+  module procedure initialise_derived_eigenfunctions
     use mod_equilibrium, only: B_field
-    !> the number of eigenvalues that are calculated, defaults to all (matrix dim)
-    integer, intent(in), optional :: nb_evs
 
-    integer    :: i, nev, Bcheck
-
-    if (present(nb_evs)) then
-      nev = nb_evs
-    else
-      nev = matrix_gridpts
-    end if
 
     if (B_field % B01 > dp_LIMIT) then
       call log_message('Post-processing (parallel/perpendicular) currently not &
@@ -109,7 +90,7 @@ contains
                                       '(curl v)_para', '(curl v)_perp' &
       ]
     end if
-  end subroutine initialise_postprocessing
+  end procedure initialise_derived_eigenfunctions
 
 
   !> Calculates the postprocessed quantities for every eigenvalue.
