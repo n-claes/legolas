@@ -28,6 +28,12 @@ module mod_check_values
     module procedure complex_is_equal
   end interface is_equal
 
+  !> interface to check if values/arrays are zero
+  interface is_zero
+    module procedure real_is_zero
+    module procedure complex_is_zero
+  end interface is_zero
+
   !> interface to check for negative values
   interface is_negative
     module procedure real_is_negative
@@ -41,6 +47,7 @@ module mod_check_values
   public :: set_small_values_to_zero
   public :: is_NaN
   public :: is_equal
+  public :: is_zero
   public :: is_negative
   public :: is_constant
 
@@ -153,6 +160,36 @@ contains
       .and. abs(aimag(value - base)) <= tolerance &
     )
   end function complex_is_equal
+
+
+  !> Checks if real values are zero
+  elemental logical function real_is_zero(value, tol)
+    !> the real value(s) to check
+    real(dp), intent(in)  :: value
+    !> optional tolerance
+    real(dp), intent(in), optional :: tol
+
+    if (present(tol)) then
+      real_is_zero = is_equal(value, 0.0d0, tol=tol)
+    else
+      real_is_zero = is_equal(value, 0.0d0)
+    end if
+  end function real_is_zero
+
+
+  !> Checks if complex values are zero
+  elemental logical function complex_is_zero(value, tol)
+    !> the complex value(s) to check
+    complex(dp), intent(in) :: value
+    !> optional tolerance
+    real(dp), intent(in), optional  :: tol
+
+    if (present(tol)) then
+      complex_is_zero = is_equal(value, (0.0d0, 0.0d0), tol=tol)
+    else
+      complex_is_zero = is_equal(value, (0.0d0, 0.0d0))
+    end if
+  end function complex_is_zero
 
 
   !> Check if values are or contain negative numbers
