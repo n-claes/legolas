@@ -1,5 +1,5 @@
 module mod_eigenfunctions
-  use mod_global_variables, only: dp, str_len_arr, write_derived_eigenfunctions
+  use mod_global_variables, only: dp, str_len_arr, ef_gridpts
   use mod_types, only: ef_type
   implicit none
 
@@ -46,6 +46,21 @@ module mod_eigenfunctions
   end interface
 
   interface
+    module function get_assembled_eigenfunction( &
+      base_ef, eigenvector, derivative_order &
+    ) result(assembled_ef)
+      !> the base eigenfunction at the current position in the eigenfunction array
+      type(ef_type), intent(in) :: base_ef
+      !> the eigenvector for the eigenvalue under consideration
+      complex(dp), intent(in) :: eigenvector(:)
+      !> derivative order of the eigenfunction, defaults to 0
+      integer, intent(in), optional :: derivative_order
+      !> the assembled eigenfunction (not yet transformed to "actual" values)
+      complex(dp) :: assembled_ef(ef_gridpts)
+    end function get_assembled_eigenfunction
+  end interface
+
+  interface
     module subroutine clean_derived_eigenfunctions(); end subroutine
   end interface
 
@@ -61,6 +76,8 @@ module mod_eigenfunctions
 contains
 
   subroutine initialise_eigenfunctions(omega)
+    use mod_global_variables, only: write_derived_eigenfunctions
+
     !> the array of calculated eigenvalues
     complex(dp), intent(in) :: omega(:)
 
@@ -78,7 +95,7 @@ contains
     complex(dp), intent(in) :: right_eigenvectors(:, :)
 
     call calculate_base_eigenfunctions(right_eigenvectors)
-    if (write_derived_eigenfunctions) then
+    if (derived_efs_initialised) then
       call calculate_derived_eigenfunctions(right_eigenvectors)
     end if
   end subroutine calculate_eigenfunctions
