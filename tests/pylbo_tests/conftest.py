@@ -79,8 +79,9 @@ def default_ds(tmpdir, default_pf_dict):
 
 
 @pytest.fixture
-def fake_ds(datv112):
-    return pylbo.testing.FakeDataSet(datfile=datv112, seed=20210715)
+def fake_ds():
+    datfile = utils / "v1.1.2_datfile_efs.dat"
+    return pylbo.testing.FakeDataSet(datfile=datfile, seed=20210715)
 
 
 @pytest.fixture
@@ -98,56 +99,54 @@ def datv0():
     return utils / "v0_datfile_efs.dat"
 
 
+@pytest.mark.timeout(5)
 @pytest.fixture
-def datv090():
-    return utils / "v0.9.0_datfile.dat"
+def ds_v090():
+    return pylbo.load(utils / "v0.9.0_datfile.dat")
 
 
+@pytest.mark.timeout(5)
 @pytest.fixture
-def datv100():
-    return utils / "v1_datfile_matrices.dat"
-
-
-@pytest.fixture
-def datv112():
-    return utils / "v1.1.2_datfile_efs.dat"
+def ds_v100():
+    return pylbo.load(utils / "v1_datfile_matrices.dat")
 
 
 @pytest.fixture
-def datv112_eta():
-    return utils / "v1.1.2_datfile_eta.dat"
+def ds_v112():
+    return pylbo.load(utils / "v1.1.2_datfile_efs.dat")
 
 
+@pytest.mark.timeout(5)
 @pytest.fixture
-def ds_v090(datv090):
-    return pylbo.load(datv090)
+def ds_v112_eta():
+    return pylbo.load(utils / "v1.1.2_datfile_eta.dat")
 
 
+@pytest.mark.timeout(5)
 @pytest.fixture
-def ds_v100(datv100):
-    return pylbo.load(datv100)
+def ds_v114_subset():
+    return pylbo.load(utils / "v1.1.4_datfile_subset.dat")
 
 
+@pytest.mark.timeout(5)
 @pytest.fixture
-def ds_v112(datv112):
-    return pylbo.load(datv112)
+def ds_v114():
+    return pylbo.load(utils / "v1.1.4_datfile.dat")
 
 
+@pytest.mark.timeout(5)
 @pytest.fixture
-def ds_v112_eta(datv112_eta):
-    return pylbo.load(datv112_eta)
+def series_v100():
+    return pylbo.load_series([utils / "v1_datfile_matrices.dat"] * 3)
 
 
+@pytest.mark.timeout(5)
 @pytest.fixture
-def series_v100(datv100):
-    return pylbo.load_series([datv100] * 3)
+def series_v112():
+    return pylbo.load_series([utils / "v1.1.2_datfile_efs.dat"] * 3)
 
 
+@pytest.mark.timeout(5)
 @pytest.fixture
-def series_v112(datv112):
-    return pylbo.load_series([datv112] * 3)
-
-
-@pytest.fixture
-def series_v112_eta(datv112_eta):
-    return pylbo.load_series([datv112_eta] * 5)
+def series_v112_eta():
+    return pylbo.load_series([utils / "v1.1.2_datfile_eta.dat"] * 5)
