@@ -16,6 +16,7 @@ from regression_tests.suite_utils import (
     EF_NAMES,
 )
 from regression_tests.test_adiabatic_homo import adiabatic_homo_setup
+from regression_tests.test_adiabatic_homo_ef_subset import adiabatic_ef_subset_setup
 from regression_tests.test_couette_flow import couette_flow_setup
 from regression_tests.test_discrete_alfven import discrete_alfven_setup
 from regression_tests.test_fluxtube_coronal import fluxtube_coronal_setup
@@ -56,6 +57,7 @@ from regression_tests.test_multi_photospheric_fluxtube import photospheric_tube_
 # retrieve test setups
 tests_to_run = [
     adiabatic_homo_setup,
+    adiabatic_ef_subset_setup,
     couette_flow_setup,
     discrete_alfven_setup,
     fluxtube_coronal_setup,
@@ -171,7 +173,11 @@ def test_multirun_file_exists(setup):
 
 
 # ===== GENERATION OF SPECTRUM IMAGES =====
-@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
+@pytest.mark.parametrize(
+    "setup",
+    [s for s in tests_to_run if s.get("image_limits") is not None],
+    ids=[s["name"] for s in tests_to_run if s.get("image_limits") is not None],
+)
 def test_generate_spectrum_images(ds_test, ds_answer, setup, imagedir):
     p_test = pylbo.plot_spectrum(ds_test)
     p_answer = pylbo.plot_spectrum(ds_answer)
@@ -292,11 +298,15 @@ def test_parameters(ds_test, ds_answer, setup):
 @pytest.mark.parametrize(
     argnames="setup,idx",
     argvalues=[
-        (_s, _idx) for _s in tests_to_run for _idx, _ in enumerate(_s["image_limits"])
+        (_s, _idx)
+        for _s in tests_to_run
+        if _s.get("image_limits") is not None
+        for _idx, _ in enumerate(_s["image_limits"])
     ],
     ids=[
         f"{_s['name']}-[x={lims['xlims']}, y={lims['ylims']}]"
         for _s in tests_to_run
+        if _s.get("image_limits") is not None
         for _idx, lims in enumerate(_s["image_limits"])
     ],
 )
