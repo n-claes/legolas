@@ -146,20 +146,7 @@ contains
     complex(dp) :: triple(size(ef_grid), 3)
     integer     :: i, j
 
-    do j = 1, nb_pp
-      ! quantity index
-      pp_array(j) % index = j
-      ! quantity name corresponding to the index
-      pp_array(j) % name = pp_names(j)
-    end do
-
-    call interpolate_equilibrium(grid_ip, eq_ip)
-
-    !! Entropy perturbation S1
-    do i = 1, size(vr, dim=2)
-      call get_entropy(i, single)
-      derived_eigenfunctions(1) % quantities(:, i) = single
-    end do
+    call set_entropy(derived_eigenfunctions(1))
 
     !! Divergence of v1
     do i = 1, size(vr, dim=2)
@@ -227,38 +214,25 @@ contains
   end procedure calculate_derived_eigenfunctions
 
 
-  !> Calculates the perturbed magnetic field B1
-  subroutine get_entropy(index, field)
-    use mod_global_variables, only: gauss_gridpts
-    use mod_equilibrium, only: T_field, rho_field
+  !> Calculates the entropy S1.
+  subroutine set_entropy(derived_ef)
+    !> derived eigenfunction type at entropy position in the array
+    type(ef_type), intent(inout)  :: derived_ef
+    !> density eigenfunction
+    real(dp)  :: rho_ef(size(ef_grid))
+    !> temperature eigenfunction
+    real(dp)  :: T_ef(size(ef_grid))
+    integer :: i
 
-    integer, intent(in)       :: index
-    complex(dp), intent(out)  :: field(ef_gridpts)
-
-    complex(dp) :: rho(ef_gridpts), T(ef_gridpts)
-    integer     :: m
-    real(dp)    :: x
-    complex(dp) :: T0, rho0
-
-    rho = ef_array(1) % eigenfunctions(:, index)
-    T   = ef_array(5) % eigenfunctions(:, index)
-
-    do m = 1, ef_gridpts
-      if (m == 1) then
-        rho0 = rho_field % rho0(1)
-        T0   = T_field % T0(1)
-      else if (m == ef_gridpts) then
-        rho0 = rho_field % rho0(gauss_gridpts)
-        T0   = T_field % T0(gauss_gridpts)
-      else
-        x    = ef_grid(m)
-        rho0 = lookup_table_value(x, grid_ip(:, 3), eq_ip(:, 3))
-        T0   = lookup_table_value(x, grid_ip(:, 4), eq_ip(:, 4))
-      end if
-
-      field(m) = T(m) / rho0**(2.0d0/3.0d0) - (2.0d0/3.0d0) * rho(m) * T0 / rho0**(5.0d0/3.0d0)
+    do i = 1, size(ef_written_idxs)
+      rho_ef = base_eigenfunctions(findloc(ef_names, "rho"))%quantities(:, i)
+      T_ef = base_eigenfunctions(findloc(ef_names, "T"))%quantities(:, i)
+      derived_ef%quantities(:, i) = ( &
+        T_ef / rho0_on_ef_grid ** (2.0d0 / 3.0d0) &
+        - (2.0d0/3.0d0) * rho_ef * T0_on_ef_grid / rho0_on_ef_grid ** (5.0d0/3.0d0) &
+      )
     end do
-  end subroutine get_entropy
+  end subroutine set_entropy
 
 
   !> Calculates the divergence of the perturbed velocity v1
