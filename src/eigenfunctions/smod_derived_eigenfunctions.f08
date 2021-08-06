@@ -159,6 +159,7 @@ contains
     call set_magnetic_field_ef_3_component( &
       derived_eigenfunctions(8), right_eigenvectors &
     )
+    call set_magnetic_field_divergence(derived_eigenfunctions(9), right_eigenvectors)
 
     if (can_calculate_pp_quantities) then
       call set_velocity_curl_parallel_component(derived_eigenfunctions(20))
@@ -166,12 +167,6 @@ contains
       call set_magnetic_field_parallel_component(derived_eigenfunctions(13))
       call set_magnetic_field_perpendicular_component(derived_eigenfunctions(14))
     end if
-
-    !! Divergence of B1
-    do i = 1, size(vr, dim=2)
-      call get_div_magnetic(i, vr(:, i), single)
-      derived_eigenfunctions(9) % quantities(:, i) = single
-    end do
 
     !! Curl of B1
     do i = 1, size(vr, dim=2)
@@ -485,31 +480,46 @@ contains
   end subroutine set_magnetic_field_perpendicular_component
 
 
-  !> Calculates the divergence of the perturbed magnetic field B1
-  subroutine get_div_magnetic(index, eigenvector, divergence)
-    integer, intent(in)       :: index
-    complex(dp), intent(in)   :: eigenvector(matrix_gridpts)
-    complex(dp), intent(out)  :: divergence(ef_gridpts)
+  !> Calculates the divergence of the perturbed magnetic field
+  subroutine set_magnetic_field_divergence(derived_ef, right_eigenvectors)
+    !> derived eigenfunction type at div(B) position in the array
+    type(ef_type), intent(inout)  :: derived_ef
+    !> right eigenvectors
+    complex(dp), intent(in) :: right_eigenvectors(:, :)
+    !> a1 eigenfunction
+    complex(dp) :: a1_ef(size(ef_grid))
+    !> a2 eigenfunction
+    complex(dp) :: a2_ef(size(ef_grid))
+    !> a3 eigenfunction
+    complex(dp) :: a3_ef(size(ef_grid))
+    !> da2 eigenfunction
+    complex(dp) :: da2_ef(size(ef_grid))
+    !> da3 eigenfunction
+    complex(dp) :: da3_ef(size(ef_grid))
+    integer :: i, eigenvalue_idx
 
-    !! Derivatives are transformed variables, regular variables are 'actual' values
-    complex(dp) :: a1(ef_gridpts), a2(ef_gridpts), a3(ef_gridpts)
-    complex(dp) :: da2(ef_gridpts), da3(ef_gridpts)
-    integer     :: m
-    real(dp)    :: eps, deps
-
-    a1 = base_eigenfunctions(6) % eigenfunctions(:, index)
-    a2 = base_eigenfunctions(7) % eigenfunctions(:, index)
-    a3 = base_eigenfunctions(8) % eigenfunctions(:, index)
-    call get_eigenfunction_deriv(7, eigenvector, da2, 1)
-    call get_eigenfunction_deriv(8, eigenvector, da3, 1)
-
-    do m = 1, ef_gridpts
-      call set_eps(m, eps, deps)
-      divergence(m) = ic * (k2 * da3(m) - k3 * da2(m)) / eps &
-                      + ic * k2 * (ic * k3 * a1(m) - da3(m)) / eps &
-                      + ic * k3 * (da2(m) - ic * k2 * a1(m)) / eps
+    do i = 1, size(ef_written_idxs)
+      eigenvalue_idx = ef_written_idxs(i)
+      a1_ef = base_eigenfunctions(findloc("ef_names", "a1"))%quantities(:, i)
+      a2_ef = base_eigenfunctions(findloc("ef_names", "a2"))%quantities(:, i)
+      a3_ef = base_eigenfunctions(findloc("ef_names", "a3"))%quantities(:, i)
+      da2_ef = get_assembled_eigenfunction( &
+        base_ef=base_eigenfunctions(findloc(ef_names, "a2")), &
+        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
+        derivative_order=1 &
+      )
+      da3_ef = get_assembled_eigenfunction( &
+        base_ef=base_eigenfunctions(findloc(ef_names, "a3")), &
+        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
+        derivative_order=1 &
+      )
+      derived_ef%quantities(:, i) = ( &
+        ic * (k2 * da3_ef - k3 * da2_ef) / ef_eps &
+        + ic * k2 * (ic * k3 * a1_ef - da3_ef) / ef_eps &
+        + ic * k3 * (da2_ef - ic * k2 * a1_ef) / ef_eps &
+      )
     end do
-  end subroutine get_div_magnetic
+  end subroutine set_magnetic_field_divergence
 
 
   !> Calculates the curl of the perturbed magnetic field B1
