@@ -153,19 +153,10 @@ contains
     call set_velocity_curl_2_component(derived_eigenfunctions(4), right_eigenvectors)
     call set_velocity_curl_3_component(derived_eigenfunctions(5), right_eigenvectors)
 
-    !! Curl of v1
-    do i = 1, size(vr, dim=2)
-      call get_curl_velocity(i, vr(:, i), triple, double)
-      derived_eigenfunctions(3) % quantities(:, i) = triple(:, 1)
-      derived_eigenfunctions(4) % quantities(:, i) = triple(:, 2)
-      derived_eigenfunctions(5) % quantities(:, i) = triple(:, 3)
-      !! In parallel/perpendicular components w.r.t B0 (no B01, so set becomes
-      !! (curlv1)1, (curlv1)para, (curlv1)perp)
-      if (.not. B_zero) then
-        derived_eigenfunctions(20) % quantities(:, i) = double(:, 1)
-        derived_eigenfunctions(21) % quantities(:, i) = double(:, 2)
-      end if
-    end do
+    if (can_calculate_pp_quantities) then
+      call set_velocity_curl_parallel_component(derived_eigenfunctions(20))
+      call set_velocity_curl_perpendicular_component(derived_eigenfunctions(21))
+    end if
 
     !! Magnetic field B1
     do i = 1, size(vr, dim=2)
@@ -342,57 +333,48 @@ contains
   end subroutine set_velocity_curl_3_component
 
 
-  !> Calculates the curl of the perturbed velocity v1
-  subroutine get_curl_velocity(index, eigenvector, curl, curl2)
-    use mod_global_variables, only: gauss_gridpts
-    use mod_equilibrium, only: B_field
+  !> Sets the velocity curl component parallel to the magnetic field.
+  subroutine set_velocity_curl_parallel_component(derived_ef)
+    !> derived eigenfunction type at curl(v)_parallel position in the array
+    type(ef_type), intent(inout)  :: derived_ef
+    complex(dp) :: curlv2(size(ef_grid))
+    complex(dp) :: curlv3(size(ef_grid))
+    integer :: i
 
-    integer, intent(in)       :: index
-    complex(dp), intent(in)   :: eigenvector(matrix_gridpts)
-    complex(dp), intent(out)  :: curl(ef_gridpts, 3), curl2(ef_gridpts, 3)
-
-    !! Derivatives are transformed variables, regular variables are 'actual' values
-    complex(dp) :: v1(ef_gridpts), v2(ef_gridpts), v3(ef_gridpts)
-    complex(dp) :: dv2(ef_gridpts), dv3(ef_gridpts)
-    integer     :: m
-    real(dp)    :: eps, deps, x, B02, B03, B0
-    complex(dp) :: curlv2, curlv3
-
-    v1 = base_eigenfunctions(2) % eigenfunctions(:, index)
-    v2 = base_eigenfunctions(3) % eigenfunctions(:, index)
-    v3 = base_eigenfunctions(4) % eigenfunctions(:, index)
-    call get_eigenfunction_deriv(3, eigenvector, dv2, 1)
-    call get_eigenfunction_deriv(4, eigenvector, dv3, 1)
-
-    do m = 1, ef_gridpts
-      call set_eps(m, eps, deps)
-      curlv2 = ic * k3 * v1(m) - dv3(m) / eps - deps * v3(m) / eps
-      curlv3 = dv2(m) + (deps * v2(m) - ic * k2 * v1(m)) / eps
-
-      curl(m, 1) = ic * (k2 * v3(m) / eps - k3 * v2(m))
-      curl(m, 2) = curlv2
-      curl(m, 3) = curlv3
-
-      !! In parallel/perpendicular components
-      if (.not. B_zero) then
-        x = ef_grid(m)
-        if (m == 1) then
-          B02 = B_field % B02(1)
-          B03 = B_field % B03(1)
-        else if (m == ef_gridpts) then
-          B02 = B_field % B02(gauss_gridpts)
-          B03 = B_field % B03(gauss_gridpts)
-        else
-          B02 = lookup_table_value(x, grid_ip(:, 1), eq_ip(:, 1))
-          B03 = lookup_table_value(x, grid_ip(:, 2), eq_ip(:, 2))
-        end if
-        B0 = sqrt(B02**2 + B03**2)
-
-        curl2(m, 1) = (B02 * curlv2 + B03 * curlv3) / B0
-        curl2(m, 2) = (B02 * curlv3 - B03 * curlv2) / B0
-      end if
+    do i = 1, size(ef_written_idxs)
+      curlv2 = derived_eigenfunctions( &
+        findloc(derived_ef_names, "(curl v)2") &
+      )%quantities(:, i)
+      curlv3 = derived_eigenfunctions( &
+        findloc(derived_ef_names, "(curl v)3") &
+      )%quantities(:, i)
+      derived_ef%quantities(:, i) = ( &
+        B02_on_ef_grid * curlv2 + B03_on_ef_grid * curlv3 &
+      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
     end do
-  end subroutine get_curl_velocity
+  end subroutine set_velocity_curl_parallel_component
+
+
+  !> Sets the velocity curl component perpendicular to the magnetic field
+  subroutine set_velocity_curl_perpendicular_component(derived_ef)
+    !> derived eigenfunction type at curl(v)_perpendicular position in the array
+    type(ef_type), intent(inout)  :: derived_ef
+    complex(dp) :: curlv2(size(ef_grid))
+    complex(dp) :: curlv3(size(ef_grid))
+    integer :: i
+
+    do i = 1, size(ef_written_idxs)
+      curlv2 = derived_eigenfunctions( &
+        findloc(derived_ef_names, "(curl v)2") &
+      )%quantities(:, i)
+      curlv3 = derived_eigenfunctions( &
+        findloc(derived_ef_names, "(curl v)3") &
+      )%quantities(:, i)
+      derived_ef%quantities(:, i) = ( &
+        B02_on_ef_grid * curlv3 - B03_on_ef_grid * curlv2 &
+      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
+    end do
+  end subroutine set_velocity_curl_perpendicular_component
 
 
   !> Calculates the perturbed magnetic field B1
