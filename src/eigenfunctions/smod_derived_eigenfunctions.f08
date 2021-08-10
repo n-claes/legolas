@@ -115,7 +115,7 @@ contains
         "(curl v)3", "B1", "B2", "B3", "div B", &
         "(curl B)1", "(curl B)2", "(curl B)3", &
         "B_para", "B_perp", "(curl B)_para", &
-        "(curl B)_perp", "v1", "v_para", "v_perp", &
+        "(curl B)_perp", "v_para", "v_perp", &
         "(curl v)_para", "(curl v)_perp" &
       ]
     else
@@ -171,23 +171,14 @@ contains
     )
 
     if (can_calculate_pp_quantities) then
-      call set_velocity_curl_parallel_component(derived_eigenfunctions(20))
-      call set_velocity_curl_perpendicular_component(derived_eigenfunctions(21))
       call set_magnetic_field_parallel_component(derived_eigenfunctions(13))
       call set_magnetic_field_perpendicular_component(derived_eigenfunctions(14))
       call set_magnetic_field_parallel_curl_component(derived_eigenfunctions(15))
       call set_magnetic_field_perpendicular_curl_component(derived_eigenfunctions(16))
-    end if
-
-    !! v1 components in parallel/perpendicular w.r.t. B0 (no B01, so set is
-    !! v1, v_para, v_perp)
-    if (.not. B_zero) then
-      do i = 1, size(vr, dim=2)
-        call get_v_paraperp(i, triple)
-        derived_eigenfunctions(17) % quantities(:, i) = triple(:, 1)
-        derived_eigenfunctions(18) % quantities(:, i) = triple(:, 2)
-        derived_eigenfunctions(19) % quantities(:, i) = triple(:, 3)
-      end do
+      call set_velocity_parallel_component(derived_eigenfunctions(17))
+      call set_velocity_perpendicular_component(derived_eigenfunctions(18))
+      call set_velocity_curl_parallel_component(derived_eigenfunctions(19))
+      call set_velocity_curl_perpendicular_component(derived_eigenfunctions(20))
     end if
   end procedure calculate_derived_eigenfunctions
 
@@ -672,7 +663,7 @@ contains
 
   !> Sets the magnetic field curl component perpendicular to B0.
   subroutine set_magnetic_field_perpendicular_curl_component(derived_ef)
-    !> derived eigenfunction type at B_perpendicular position in the array
+    !> derived eigenfunction type at (curl B) perpendicular position in the array
     type(ef_type), intent(inout)  :: derived_ef
     !> B2 eigenfunction
     complex(dp) :: curlB2(size(ef_grid))
@@ -692,6 +683,46 @@ contains
       ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
     end do
   end subroutine set_magnetic_field_perpendicular_curl_component
+
+
+  !> Sets the velocity component parallel to the magnetic field.
+  subroutine set_velocity_parallel_component(derived_ef)
+    !> derived eigenfunction type at v_parallel position in the array
+    type(ef_type), intent(inout)  :: derived_ef
+    !> v2 eigenfunction
+    complex(dp) :: v2_ef(size(ef_grid))
+    !> v3 eigenfunction
+    complex(dp) :: v3_ef(size(ef_grid))
+    integer :: i
+
+    do i = 1, size(ef_written_idxs)
+      v2_ef = base_eigenfunctions(findloc(ef_names, "v2"))%quantities(:, i)
+      v3_ef = base_eigenfunctions(findloc(ef_names, "v3"))%quantities(:, i)
+      derived_ef%quantities(:, i) = ( &
+        B02_on_ef_grid * v2_ef + B03_on_ef_grid * v3_ef &
+      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
+    end do
+  end subroutine set_velocity_parallel_component
+
+
+  !> Sets the velocity component perpendicular to the magnetic field.
+  subroutine set_velocity_perpendicular_component(derived_ef)
+    !> derived eigenfunction type at v_perpendicular position in the array
+    type(ef_type), intent(inout)  :: derived_ef
+    !> v2 eigenfunction
+    complex(dp) :: v2_ef(size(ef_grid))
+    !> v3 eigenfunction
+    complex(dp) :: v3_ef(size(ef_grid))
+    integer :: i
+
+    do i = 1, size(ef_written_idxs)
+      v2_ef = base_eigenfunctions(findloc(ef_names, "v2"))%quantities(:, i)
+      v3_ef = base_eigenfunctions(findloc(ef_names, "v3"))%quantities(:, i)
+      derived_ef%quantities(:, i) = ( &
+        B02_on_ef_grid * v3_ef - B03_on_ef_grid * v2_ef &
+      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
+    end do
+  end subroutine set_velocity_perpendicular_component
 
 
   subroutine get_v_paraperp(index, field)
