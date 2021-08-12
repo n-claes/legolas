@@ -3,6 +3,28 @@ submodule(mod_eigenfunctions) smod_eigenfunction_operations
 
 contains
 
+    !> Retransforms the eigenfunctions to their "actual" values.
+    !! For example, \(\rho\) is defined as \(\varepsilon\rho\) in the equations,
+    !! in this case the eigenfunction is divided by the scale factor.
+  module procedure retransform_eigenfunction
+    use mod_global_variables, only: ic
+    use mod_logging, only: log_message
+
+    select case(name)
+    case("rho", "v3", "T", "a2") ! var -> eps * var
+      eigenfunction = eigenfunction / ef_eps
+    case("v1") ! v1 -> i * eps * v1
+      eigenfunction = eigenfunction / (ef_eps * ic)
+    case("v2", "a3") ! var -> var
+      ! do nothing
+    case("a1") ! a1 -> i*a1
+      eigenfunction = eigenfunction / ic
+    case default
+      call log_message("wrong eigenfunction name during retransform", level="error")
+    end select
+  end procedure retransform_eigenfunction
+
+
   !> This function assembles the eigenfunction corresponding to the given
   !! eigenvector. Which eigenfunction to assemble is determined from the
   !! name attribute of the eigenfunction and the derivative order.
@@ -118,32 +140,5 @@ contains
       ef_grid(ef_grid_idx), grid(grid_idx), grid(grid_idx + 1), spline &
     )
   end function get_spline
-
-
-  !> Retransforms the eigenfunctions to their "actual" values.
-  !! For example, \(\rho\) is defined as \(\varepsilon\rho\) in the equations,
-  !! in this case the eigenfunction is divided by the scale factor.
-  subroutine retransform_eigenfunction(name, eigenfunction)
-    use mod_global_variables, only: ic
-    use mod_logging, only: log_message
-
-    !> name of the current eigenfunction
-    character(len=*), intent(in)  :: name
-    !> the current eigenfunction, transformed on exit if applicable
-    complex(dp), intent(inout)  :: eigenfunction(:)
-
-    select case(name)
-    case("rho", "v3", "T", "a2") ! var -> eps * var
-      eigenfunction = eigenfunction / ef_eps
-    case("v1") ! v1 -> i * eps * v1
-      eigenfunction = eigenfunction / (ef_eps * ic)
-    case("v2", "a3") ! var -> var
-      ! do nothing
-    case("a1") ! a1 -> i*a1
-      eigenfunction = eigenfunction / ic
-    case default
-      call log_message("wrong eigenfunction name during retransform", level="error")
-    end select
-  end subroutine retransform_eigenfunction
 
 end submodule smod_eigenfunction_operations

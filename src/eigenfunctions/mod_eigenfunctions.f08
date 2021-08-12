@@ -25,9 +25,9 @@ module mod_eigenfunctions
   integer, protected, allocatable  :: ef_written_idxs(:)
 
   !> array with base eigenfunctions
-  type(ef_type), allocatable :: base_eigenfunctions(:)
+  type(ef_type) :: base_eigenfunctions(8)
   !> array with derived eigenfunctions
-  type(ef_type), allocatable :: derived_eigenfunctions(:)
+  type(ef_type) :: derived_eigenfunctions(20)
 
   interface
     module subroutine initialise_base_eigenfunctions(nb_eigenfuncs)
@@ -60,6 +60,13 @@ module mod_eigenfunctions
       !> the assembled eigenfunction (not yet transformed to "actual" values)
       complex(dp) :: assembled_ef(ef_gridpts)
     end function get_assembled_eigenfunction
+
+    module subroutine retransform_eigenfunction(name, eigenfunction)
+      !> name of the current eigenfunction
+      character(len=*), intent(in)  :: name
+      !> the current eigenfunction, transformed on exit if applicable
+      complex(dp), intent(inout)  :: eigenfunction(:)
+    end subroutine retransform_eigenfunction
   end interface
 
   interface
@@ -178,11 +185,9 @@ contains
       deallocate(ef_written_flags)
       deallocate(ef_written_idxs)
       deallocate(ef_names)
-      deallocate(base_eigenfunctions)
       if (derived_efs_initialised) then
         call clean_derived_eigenfunctions()
         deallocate(derived_ef_names)
-        deallocate(derived_eigenfunctions)
       end if
     end if
     efs_initialised = .false.
