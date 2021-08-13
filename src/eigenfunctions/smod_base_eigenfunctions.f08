@@ -1,5 +1,4 @@
 submodule(mod_eigenfunctions) smod_base_eigenfunctions
-  use mod_global_variables, only: ef_gridpts
   implicit none
 
 contains
