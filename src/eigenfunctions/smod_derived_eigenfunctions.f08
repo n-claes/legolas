@@ -54,53 +54,41 @@ contains
   end subroutine check_if_para_perp_quantities_can_be_calculated
 
 
-  !> Interpolates the B02, B03, rho0 and T0 equilibrium components, used for
-  !! calculating the derived eigenfunction quantities.
-  subroutine interpolate_equilibrium_on_eigenfunction_grid()
-    use mod_global_variables, only: gridpts
+  !> Sets the B02, B03, rho0 and T0 equilibrium components on the eigenfunction grid
+  !! instead of on the Gaussian grid, these are used for calculating the derived
+  !! eigenfunction quantities. No interpolation needed since the Gaussian grid is
+  !! always finer than the eigenfunction grid, so we can get away by simply
+  !! looking up the nearest values for every point in the eigenfunction grid.
+  subroutine set_equilibrium_on_eigenfunction_grid()
     use mod_interpolation, only: interpolate_table, lookup_table_value
     use mod_equilibrium, only: B_field, rho_field, T_field
 
-    call interpolate_and_set_values(B_field % B02, B02_on_ef_grid)
-    call interpolate_and_set_values(B_field % B03, B03_on_ef_grid)
-    call interpolate_and_set_values(rho_field % rho0, rho0_on_ef_grid)
-    call interpolate_and_set_values(T_field % T0, T0_on_ef_grid)
+    call lookup_and_set_values(B_field % B02, B02_on_ef_grid)
+    call lookup_and_set_values(B_field % B03, B03_on_ef_grid)
+    call lookup_and_set_values(rho_field % rho0, rho0_on_ef_grid)
+    call lookup_and_set_values(T_field % T0, T0_on_ef_grid)
 
     contains
-      !> interpolates an equilibrium array and sets it on the eigenfunction grid.
-      subroutine interpolate_and_set_values(basic_array, expected_array)
+      !> Sets an equilibrium array on the eigenfunction grid
+      subroutine lookup_and_set_values(equil_array, equil_array_on_ef_grid)
         use mod_interpolation, only: interpolate_table, lookup_table_value
         use mod_grid, only: grid_gauss
 
-        !> basic array (equilibrium)
-        real(dp), intent(in)  :: basic_array(:)
-        !> expected array (set on eigenfunction grid)
-        real(dp), allocatable, intent(out) :: expected_array(:)
-        !> number of points used for interpolation
-        integer :: ip_pts
-        !> interpolated grid
-        real(dp), allocatable  :: interpolated_grid(:)
-        !> interpolated equilibrium values
-        real(dp), allocatable  :: interpolated_values(:)
+        !> basic equilibrium array
+        real(dp), intent(in)  :: equil_array(:)
+        !> equilibrium array set on eigenfunction grid
+        real(dp), allocatable, intent(out) :: equil_array_on_ef_grid(:)
         integer :: i
 
-        ip_pts = 25 * (gridpts - 1) + 1
-        allocate(interpolated_grid(ip_pts))
-        allocate(interpolated_values(ip_pts))
-        call interpolate_table( &
-          ip_pts, grid_gauss, basic_array, interpolated_grid, interpolated_values &
-        )
-
-        allocate(expected_array(size(ef_grid)))
+        allocate(equil_array_on_ef_grid(size(ef_grid)))
         do i = 1, size(ef_grid)
-          expected_array(i) = lookup_table_value( &
-            ef_grid(i), interpolated_grid, interpolated_values &
+          ! allow outside since edges of eigenfunction grid are beyond Gaussian grid
+          equil_array_on_ef_grid(i) = lookup_table_value( &
+            ef_grid(i), grid_gauss, equil_array, allow_outside=.true. &
           )
         end do
-        deallocate(interpolated_grid)
-        deallocate(interpolated_values)
-      end subroutine interpolate_and_set_values
-  end subroutine interpolate_equilibrium_on_eigenfunction_grid
+      end subroutine lookup_and_set_values
+  end subroutine set_equilibrium_on_eigenfunction_grid
 
 
   !> Initialised the derived eigenfunction array, sets the corresponding names and
@@ -110,6 +98,7 @@ contains
 
     integer :: i
 
+    call check_if_para_perp_quantities_can_be_calculated()
     if (can_calculate_pp_quantities) then
       derived_ef_names = [ &
         character(len=str_len_arr) :: "S", "div v", "(curl v)1", "(curl v)2", &
@@ -126,6 +115,7 @@ contains
         "(curl B)1", "(curl B)2", "(curl B)3" &
       ]
     end if
+    allocate(derived_eigenfunctions(size(derived_ef_names)))
 
     do i = 1, size(derived_eigenfunctions)
       derived_eigenfunctions(i) % state_vector_index = i
@@ -133,7 +123,7 @@ contains
       allocate(derived_eigenfunctions(i)%quantities(size(ef_grid), nb_eigenfuncs))
     end do
 
-    call interpolate_equilibrium_on_eigenfunction_grid()
+    call set_equilibrium_on_eigenfunction_grid()
     derived_efs_initialised = .true.
   end procedure initialise_derived_eigenfunctions
 

@@ -25,9 +25,9 @@ module mod_eigenfunctions
   integer, protected, allocatable  :: ef_written_idxs(:)
 
   !> array with base eigenfunctions
-  type(ef_type) :: base_eigenfunctions(8)
+  type(ef_type), allocatable :: base_eigenfunctions(:)
   !> array with derived eigenfunctions
-  type(ef_type) :: derived_eigenfunctions(20)
+  type(ef_type), allocatable :: derived_eigenfunctions(:)
 
   interface
     module subroutine initialise_base_eigenfunctions(nb_eigenfuncs)
@@ -180,6 +180,7 @@ contains
 
   subroutine eigenfunctions_clean()
     if (efs_initialised) then
+      deallocate(base_eigenfunctions)
       deallocate(ef_grid)
       deallocate(ef_eps)
       deallocate(ef_written_flags)
@@ -187,6 +188,7 @@ contains
       deallocate(ef_names)
       if (derived_efs_initialised) then
         call clean_derived_eigenfunctions()
+        deallocate(derived_eigenfunctions)
         deallocate(derived_ef_names)
       end if
     end if

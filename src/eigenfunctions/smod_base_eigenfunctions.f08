@@ -12,6 +12,7 @@ contains
     ef_names = [ &
       character(len=str_len_arr) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
     ]
+    allocate(base_eigenfunctions(size(ef_names)))
 
     do i = 1, size(base_eigenfunctions)
       base_eigenfunctions(i) % state_vector_index = i
