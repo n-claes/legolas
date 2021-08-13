@@ -90,7 +90,6 @@ def get_header(istream):
     )  # bool casts 0 to False, everything else to True
     h["postprocessed_written"] = False
     if legolas_version >= "1.1.3":
-        # read post-processed boolean
         fmt = ALIGN + "i"
         hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         h["postprocessed_written"] = bool(*hdr)
@@ -263,15 +262,13 @@ def get_header(istream):
             assert all(h["ef_written_idxs"] == np.where(h["ef_written_flags"])[0])
         # eigenfunction offsets
         byte_size = (
-            h["ef_gridpts"] * len(h["ef_written_flags"]) * nb_eigenfuncs * SIZE_COMPLEX
+            h["ef_gridpts"] * len(h["ef_written_idxs"]) * nb_eigenfuncs * SIZE_COMPLEX
         )
         offsets.update({"ef_arrays": istream.tell()})
         istream.seek(istream.tell() + byte_size)
 
     if legolas_version >= "1.1.3":
-        # if post-processed quantities are written, read names and include offsets
         if h["postprocessed_written"]:
-            # read post-processed quantity names
             fmt = ALIGN + "i"
             (nb_pp,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
             fmt = ALIGN + nb_pp * str_len_arr * "c"
@@ -460,7 +457,7 @@ def read_eigenfunction(istream, header, ev_index):
     try:
         ((ef_index,),) = np.where(header["ef_written_idxs"] == ev_index)
     except ValueError:
-        pylboLogger.warning("selected eigenvalue has no eigenfunction!")
+        pylboLogger.warning("selected eigenvalue has no eigenfunctions!")
         return None
 
     # Fortran writes in column-major order, meaning column per column.
@@ -511,22 +508,23 @@ def read_postprocessed(istream, header, pp_index):
     """
     pp_offset = header["offsets"]["pp_arrays"]
     pp_gridpts = header["ef_gridpts"]
-    nb_evs = header["nb_eigenvals"]
+    nb_eigenfuncs = len(header["ef_written_idxs"])
     postprocessed = {}
 
-    # Fortran writes in column-major order, meaning column per column.
-    # This makes it quite convenient to extract a single post-processed quantity
-    # from the datfile
-    matrix_bytesize = pp_gridpts * nb_evs * SIZE_COMPLEX
+    try:
+        ((ef_index,),) = np.where(header["ef_written_idxs"] == pp_index)
+    except ValueError:
+        pylboLogger.warning("selected eigenvalue has no eigenfunctions!")
+        return None
+
+    matrix_bytesize = pp_gridpts * nb_eigenfuncs * SIZE_COMPLEX
     pp_bytesize = pp_gridpts * SIZE_COMPLEX
     for name in header["pp_names"]:
         name_idx = header["pp_names"].index(name)
-        # move pointer to correct place of current name matrix in datfile
         istream.seek(pp_offset + name_idx * matrix_bytesize)
-        # move pointer to requested post-processed quantity
-        # 'pp_index' here is the index of the corresponding eigenvalue in its array
-        istream.seek(istream.tell() + pp_index * pp_bytesize)
-        # read in single post-processed quantity
+        # move pointer to requested eigenfunction
+        # 'ef_index' here is the index of the corresponding eigenvalue in its array
+        istream.seek(istream.tell() + ef_index * pp_bytesize)
         fmt = ALIGN + pp_gridpts * 2 * "d"
         hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         reals = hdr[::2]
