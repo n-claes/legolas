@@ -246,7 +246,7 @@ class SingleSpectrumPlot(SpectrumFigure):
         if self._pp_ax is None:
             self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._pp_handler is None:
-            self._pp_handler = PostprocessedHandler(self.dataset, self._pp_ax)
+            self._pp_handler = PostprocessedHandler(self.dataset, self._pp_ax, self.ax)
         super()._enable_interface(handle=self._pp_handler)
 
     def _ensure_smooth_continuum(self, continuum):
@@ -483,7 +483,9 @@ class MultiSpectrumPlot(SpectrumFigure):
         if self._pp_ax is None:
             self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._pp_handler is None:
-            self._pp_handler = PostprocessedHandler(self.dataseries, self._pp_ax)
+            self._pp_handler = PostprocessedHandler(
+                self.dataseries, self._pp_ax, self.ax
+            )
         super()._enable_interface(handle=self._pp_handler)
 
 
@@ -572,7 +574,7 @@ class MergedSpectrumPlot(SpectrumFigure):
         if self._pp_ax is None:
             self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._pp_handler is None:
-            self._pp_handler = PostprocessedHandler(self.data, self._pp_ax)
+            self._pp_handler = PostprocessedHandler(self.data, self._pp_ax, self.ax)
         super()._enable_interface(handle=self._pp_handler)
 
     def add_continua(self, interactive=True):

@@ -10,8 +10,8 @@ class PostprocessedHandler(EigenfunctionInterface):
     Main handler for post-processed quantities.
     """
 
-    def __init__(self, data, pp_ax):
-        super().__init__(data, pp_ax)
+    def __init__(self, data, pp_ax, spec_ax):
+        super().__init__(data, pp_ax, spec_ax)
         self._function_names = self.data.pp_names
 
     def _check_data_is_present(self):
