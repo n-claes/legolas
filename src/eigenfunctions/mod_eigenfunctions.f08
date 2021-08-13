@@ -48,7 +48,7 @@ module mod_eigenfunctions
   end interface
 
   interface
-    module function get_assembled_eigenfunction( &
+    module function assemble_eigenfunction( &
       base_ef, eigenvector, derivative_order &
     ) result(assembled_ef)
       !> the base eigenfunction at the current position in the eigenfunction array
@@ -59,7 +59,7 @@ module mod_eigenfunctions
       integer, intent(in), optional :: derivative_order
       !> the assembled eigenfunction (not yet transformed to "actual" values)
       complex(dp) :: assembled_ef(ef_gridpts)
-    end function get_assembled_eigenfunction
+    end function assemble_eigenfunction
 
     module subroutine retransform_eigenfunction(name, eigenfunction)
       !> name of the current eigenfunction
@@ -80,6 +80,7 @@ module mod_eigenfunctions
   public :: derived_eigenfunctions
   public :: initialise_eigenfunctions
   public :: calculate_eigenfunctions
+  public :: retrieve_eigenfunction
   public :: eigenfunctions_clean
 
 contains
@@ -108,6 +109,36 @@ contains
       call calculate_derived_eigenfunctions(right_eigenvectors)
     end if
   end subroutine calculate_eigenfunctions
+
+
+  function retrieve_eigenfunction(name) result(eigenfunction)
+    use mod_logging, only: log_message
+
+    !> name of the eigenfunction to retrieve
+    character(len=*), intent(in)  :: name
+    !> the eigenfunction corresponding to the given name
+    type(ef_type) :: eigenfunction
+    integer :: name_idx
+
+    ! check if we want a regular eigenfunction
+    name_idx = findloc(ef_names, name, dim=1)
+    if (name_idx > 0) then
+      ! found, retrieve and return
+      eigenfunction = base_eigenfunctions(name_idx)
+      return
+    end if
+    ! not found (= 0), try a derived quantity
+    name_idx = findloc(derived_ef_names, name, dim=1)
+    write(*, *) name_idx
+    if (name_idx > 0) then
+      eigenfunction = derived_eigenfunctions(name_idx)
+      return
+    end if
+    ! if still not found then something went wrong
+    call log_message( &
+      "could not retrieve eigenfunction with name " // name, level="error" &
+    )
+  end function retrieve_eigenfunction
 
 
   subroutine assemble_eigenfunction_grid()

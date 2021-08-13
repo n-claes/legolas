@@ -28,7 +28,7 @@ contains
   !> This function assembles the eigenfunction corresponding to the given
   !! eigenvector. Which eigenfunction to assemble is determined from the
   !! name attribute of the eigenfunction and the derivative order.
-  module procedure get_assembled_eigenfunction
+  module procedure assemble_eigenfunction
     use mod_global_variables, only: dim_subblock, gridpts
 
     real(dp)  :: spline(4)
@@ -59,7 +59,7 @@ contains
       ! Increment indices of eigenvector elements
       subblock_idx = subblock_idx + dim_subblock
     end do
-  end procedure get_assembled_eigenfunction
+  end procedure assemble_eigenfunction
 
 
   !> Retrieves the correct values from the eigenvector that correspond to the

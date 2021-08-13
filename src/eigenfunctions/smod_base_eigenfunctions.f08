@@ -31,7 +31,7 @@ contains
     do j = 1, size(base_eigenfunctions)
       do i = 1, size(ef_written_idxs)
         eigenvalue_idx = ef_written_idxs(i)
-        assembled_ef = get_assembled_eigenfunction( &
+        assembled_ef = assemble_eigenfunction( &
           base_eigenfunctions(j), right_eigenvectors(:, eigenvalue_idx) &
         )
         call retransform_eigenfunction(base_eigenfunctions(j) % name, assembled_ef)

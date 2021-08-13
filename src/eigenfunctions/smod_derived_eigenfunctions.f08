@@ -35,7 +35,7 @@ contains
   !> Determines if parallel/perpendicular quantities can be calculated and
   !! sets the corresponding module flag. This flag will be false if there is a
   !! non-zero B01 component present, or no magnetic field.
-  subroutine check_if_para_perp_quantities_can_be_calculated()
+  subroutine check_if_pp_quantities_can_be_calculated()
     use mod_check_values, only: is_zero
     use mod_equilibrium, only: B_field
     use mod_logging, only: log_message
@@ -51,7 +51,7 @@ contains
     if (all(is_zero(B_field % B02)) .and. all(is_zero(B_field % B03))) then
       can_calculate_pp_quantities = .false.
     end if
-  end subroutine check_if_para_perp_quantities_can_be_calculated
+  end subroutine check_if_pp_quantities_can_be_calculated
 
 
   !> Sets the B02, B03, rho0 and T0 equilibrium components on the eigenfunction grid
@@ -98,7 +98,7 @@ contains
 
     integer :: i
 
-    call check_if_para_perp_quantities_can_be_calculated()
+    call check_if_pp_quantities_can_be_calculated()
     if (can_calculate_pp_quantities) then
       derived_ef_names = [ &
         character(len=str_len_arr) :: "S", "div v", "(curl v)1", "(curl v)2", &
@@ -131,8 +131,36 @@ contains
   !> Calculates the derived eigenfunction quantities corresponding to the requested
   !! eigenvalues and sets them as attributes for the corresponding types.
   module procedure calculate_derived_eigenfunctions
-    call set_entropy(derived_eigenfunctions(1))
-    call set_velocity_divergence(derived_eigenfunctions(2), right_eigenvectors)
+    integer :: i, eigenvalue_idx
+    ! the density and temperature eigenfunctions
+    type(ef_type) :: rho_efs, T_efs
+    ! the v1, v2 and v3 eigenfunctions
+    type(ef_type) :: v1_efs, v2_efs, v3_efs
+
+    do i = 1, size(ef_written_idxs)
+      eigenvalue_idx = ef_written_idxs(i)
+
+      rho_efs = retrieve_eigenfunction(name="rho")
+      v1_efs = retrieve_eigenfunction(name="v1")
+      v2_efs = retrieve_eigenfunction(name="v2")
+      v3_efs = retrieve_eigenfunction(name="v3")
+      T_efs = retrieve_eigenfunction(name="T")
+
+      call set_entropy( &
+        loc=1, &
+        ef_index=i, &
+        rho_ef=rho_efs%quantities(:, i), &
+        T_ef=T_efs%quantities(:, i) &
+      )
+      call set_velocity_divergence( &
+        loc=2, &
+        ef_index=i, &
+        v2_ef=v2_efs%quantities(:, i), &
+        v3_ef=v3_efs%quantities(:, i), &
+        rvec=right_eigenvectors(:, eigenvalue_idx) &
+      )
+    end do
+
     call set_velocity_curl_1_component(derived_eigenfunctions(3))
     call set_velocity_curl_2_component(derived_eigenfunctions(4), right_eigenvectors)
     call set_velocity_curl_3_component(derived_eigenfunctions(5), right_eigenvectors)
@@ -167,54 +195,45 @@ contains
   end procedure calculate_derived_eigenfunctions
 
 
-  !> Calculates the entropy S1.
-  subroutine set_entropy(derived_ef)
-    !> derived eigenfunction type at entropy position in the array
-    type(ef_type), intent(inout)  :: derived_ef
+  !> Calculates the entropy S1 and places it at location "loc" in the main array.
+  subroutine set_entropy(loc, ef_index, rho_ef, T_ef)
+    !> position index in the main array
+    integer, intent(in) :: loc
+    !> index of the eigenfunction in the "quantities" array attribute
+    integer, intent(in) :: ef_index
     !> density eigenfunction
-    complex(dp)  :: rho_ef(size(ef_grid))
+    complex(dp), intent(in)  :: rho_ef(:)
     !> temperature eigenfunction
-    complex(dp)  :: T_ef(size(ef_grid))
-    integer :: i
+    complex(dp), intent(in)  :: T_ef(:)
 
-    do i = 1, size(ef_written_idxs)
-      rho_ef = base_eigenfunctions(findloc(ef_names, "rho", dim=1))%quantities(:, i)
-      T_ef = base_eigenfunctions(findloc(ef_names, "T", dim=1))%quantities(:, i)
-      derived_ef%quantities(:, i) = ( &
-        T_ef / rho0_on_ef_grid ** (2.0d0 / 3.0d0) &
-        - (2.0d0/3.0d0) * rho_ef * T0_on_ef_grid / rho0_on_ef_grid ** (5.0d0/3.0d0) &
-      )
-    end do
+    derived_eigenfunctions(loc)%quantities(:, ef_index) = ( &
+      T_ef / rho0_on_ef_grid ** (2.0d0 / 3.0d0) &
+      - (2.0d0/3.0d0) * (rho_ef * T0_on_ef_grid / rho0_on_ef_grid ** (5.0d0/3.0d0)) &
+    )
   end subroutine set_entropy
 
 
   !> Calculates the divergence of the perturbed velocity v1
-  subroutine set_velocity_divergence(derived_ef, right_eigenvectors)
-    !> derived eigenfunction type at div(v) position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> right eigenvectors
-    complex(dp), intent(in) :: right_eigenvectors(:, :)
+  subroutine set_velocity_divergence(loc, ef_index, v2_ef, v3_ef, rvec)
+    !> position index in the main array
+    integer, intent(in) :: loc
+    !> index of the eigenfunction in the "quantities" array attribute
+    integer, intent(in) :: ef_index
     !> v2 eigenfunction
-    complex(dp) :: v2_ef(size(ef_grid))
+    complex(dp), intent(in) :: v2_ef(:)
     !> v3 eigenfunction
-    complex(dp) :: v3_ef(size(ef_grid))
+    complex(dp), intent(in) :: v3_ef(:)
+    !> right eigenvector
+    complex(dp), intent(in) :: rvec(:)
     !> derivative of v1 eigenfunction
     complex(dp) :: dv1_ef(size(ef_grid))
-    integer :: i, eigenvalue_idx
 
-    do i = 1, size(ef_written_idxs)
-      eigenvalue_idx = ef_written_idxs(i)
-      v2_ef = base_eigenfunctions(findloc(ef_names, "v2", dim=1))%quantities(:, i)
-      v3_ef = base_eigenfunctions(findloc(ef_names, "v3", dim=1))%quantities(:, i)
-      dv1_ef = get_assembled_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "v1", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      derived_ef%quantities(:, i) = ( &
-        ic * (-dv1_ef / ef_eps + k2 * v2_ef / ef_eps + k3 * v3_ef) &
-      )
-    end do
+    dv1_ef = assemble_eigenfunction( &
+      base_ef=retrieve_eigenfunction(name="v1"), eigenvector=rvec, derivative_order=1 &
+    )
+    derived_eigenfunctions(loc)%quantities(:, ef_index) = ( &
+      ic * (-dv1_ef / ef_eps + k2 * v2_ef / ef_eps + k3 * v3_ef) &
+    )
   end subroutine set_velocity_divergence
 
 
@@ -254,7 +273,7 @@ contains
       eigenvalue_idx = ef_written_idxs(i)
       v1_ef = base_eigenfunctions(findloc(ef_names, "v1", dim=1))%quantities(:, i)
       v3_ef = base_eigenfunctions(findloc(ef_names, "v3", dim=1))%quantities(:, i)
-      dv3_ef = get_assembled_eigenfunction( &
+      dv3_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "v3", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
@@ -284,7 +303,7 @@ contains
       eigenvalue_idx = ef_written_idxs(i)
       v1_ef = base_eigenfunctions(findloc(ef_names, "v1", dim=1))%quantities(:, i)
       v2_ef = base_eigenfunctions(findloc(ef_names, "v2", dim=1))%quantities(:, i)
-      dv2_ef = get_assembled_eigenfunction( &
+      dv2_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "v2", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
@@ -377,7 +396,7 @@ contains
     do i = 1, size(ef_written_idxs)
       eigenvalue_idx = ef_written_idxs(i)
       a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
-      da3_ef = get_assembled_eigenfunction( &
+      da3_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a3", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
@@ -402,7 +421,7 @@ contains
     do i = 1, size(ef_written_idxs)
       eigenvalue_idx = ef_written_idxs(i)
       a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
-      da2_ef = get_assembled_eigenfunction( &
+      da2_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a2", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
@@ -483,12 +502,12 @@ contains
       a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
       a2_ef = base_eigenfunctions(findloc(ef_names, "a2", dim=1))%quantities(:, i)
       a3_ef = base_eigenfunctions(findloc(ef_names, "a3", dim=1))%quantities(:, i)
-      da2_ef = get_assembled_eigenfunction( &
+      da2_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a2", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
       )
-      da3_ef = get_assembled_eigenfunction( &
+      da3_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a3", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
@@ -519,12 +538,12 @@ contains
     do i = 1, size(ef_written_idxs)
       eigenvalue_idx = ef_written_idxs(i)
       a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
-      da2_ef = get_assembled_eigenfunction( &
+      da2_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a2", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
       )
-      da3_ef = get_assembled_eigenfunction( &
+      da3_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a3", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
@@ -562,17 +581,17 @@ contains
       a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
       a2_ef = base_eigenfunctions(findloc(ef_names, "a2", dim=1))%quantities(:, i)
       a3_ef = base_eigenfunctions(findloc(ef_names, "a3", dim=1))%quantities(:, i)
-      da1_ef = get_assembled_eigenfunction( &
+      da1_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a1", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
       )
-      da2_ef = get_assembled_eigenfunction( &
+      da2_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a2", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
       )
-      dda2_ef = get_assembled_eigenfunction( &
+      dda2_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a2", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=2 &
@@ -611,17 +630,17 @@ contains
       a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
       a2_ef = base_eigenfunctions(findloc(ef_names, "a2", dim=1))%quantities(:, i)
       a3_ef = base_eigenfunctions(findloc(ef_names, "a3", dim=1))%quantities(:, i)
-      da1_ef = get_assembled_eigenfunction( &
+      da1_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a1", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
       )
-      da3_ef = get_assembled_eigenfunction( &
+      da3_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a3", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=1 &
       )
-      dda3_ef = get_assembled_eigenfunction( &
+      dda3_ef = assemble_eigenfunction( &
         base_ef=base_eigenfunctions(findloc(ef_names, "a3", dim=1)), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
         derivative_order=2 &
