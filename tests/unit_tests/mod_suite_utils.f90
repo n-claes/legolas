@@ -49,7 +49,7 @@ contains
       call eigenfunctions_clean()
     end if
     if (init_efs) then
-      call initialise_eigenfunctions()
+      ! call initialise_eigenfunctions()
     end if
   end subroutine reset_eigenfunctions
 
