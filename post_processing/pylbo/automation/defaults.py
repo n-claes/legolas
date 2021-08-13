@@ -24,7 +24,7 @@ namelist_items = {
     "savelist": [
         ("write_matrices", bool),
         ("write_eigenfunctions", bool),
-        ("write_postprocessed", bool),
+        ("write_derived_eigenfunctions", bool),
         ("show_results", bool),
         ("basename_datfile", str),
         ("basename_logfile", str),
@@ -32,7 +32,7 @@ namelist_items = {
         ("logging_level", (int, np.integer)),
         ("dry_run", bool),
         ("write_eigenfunction_subset", bool),
-        ("eigenfunction_subset_center", (int, np.integer, float, complex)),
+        ("eigenfunction_subset_center", complex),
         ("eigenfunction_subset_radius", (int, np.integer, float)),
     ],
     "physicslist": [

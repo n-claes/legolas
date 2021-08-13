@@ -609,7 +609,8 @@ class LegolasDataSet(LegolasDataContainer):
         with open(self.datfile, "rb") as istream:
             for dict_idx, pp_idx in enumerate(idxs):
                 ppq = read_postprocessed(istream, self.header, pp_idx)
-                ppq.update({"eigenvalue": self.eigenvalues[pp_idx]})
+                if ppq is not None:
+                    ppq.update({"eigenvalue": self.eigenvalues[pp_idx]})
                 postprocessed[dict_idx] = ppq
         return postprocessed
 
