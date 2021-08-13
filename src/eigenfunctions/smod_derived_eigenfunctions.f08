@@ -30,6 +30,23 @@ submodule(mod_eigenfunctions) smod_derived_eigenfunctions
   !> array containing the interpolated T0
   real(dp), allocatable :: T0_on_ef_grid(:)
 
+  !> v1 eigenfunction
+  complex(dp), allocatable :: v1_ef(:)
+  !> v2 eigenfunction
+  complex(dp), allocatable :: v2_ef(:)
+  !> v3 eigenfunction
+  complex(dp), allocatable :: v3_ef(:)
+  !> a1 eigenfunction
+  complex(dp), allocatable :: a1_ef(:)
+  !> a2 eigenfunction
+  complex(dp), allocatable :: a2_ef(:)
+  !> a3 eigenfunction
+  complex(dp), allocatable :: a3_ef(:)
+  !> derivative of a2 eigenfunction
+  complex(dp), allocatable :: da2_ef(:)
+  !> derivative of a3 eigenfunction
+  complex(dp), allocatable :: da3_ef(:)
+
 contains
 
   !> Determines if parallel/perpendicular quantities can be calculated and
@@ -131,81 +148,71 @@ contains
   !> Calculates the derived eigenfunction quantities corresponding to the requested
   !! eigenvalues and sets them as attributes for the corresponding types.
   module procedure calculate_derived_eigenfunctions
-    integer :: i, eigenvalue_idx
-    ! the density and temperature eigenfunctions
-    type(ef_type) :: rho_efs, T_efs
     ! the v1, v2 and v3 eigenfunctions
-    type(ef_type) :: v1_efs, v2_efs, v3_efs
+    complex(dp) :: v1_ef(size(ef_grid)), v2_ef(size(ef_grid)), v3_ef(size(ef_grid))
+    !> the a1, a2 and a3 eigenfunctions
+    complex(dp) :: a1_ef(size(ef_grid)), a2_ef(size(ef_grid)), a3_ef(size(ef_grid))
+    !> the derivatives of the a2 and a3 eigenfunctions
+    complex(dp) :: da2_ef(size(ef_grid)), da3_ef(size(ef_grid))
+    integer :: i, eigenvalue_idx
+
 
     do i = 1, size(ef_written_idxs)
       eigenvalue_idx = ef_written_idxs(i)
 
-      rho_efs = retrieve_eigenfunction(name="rho")
-      v1_efs = retrieve_eigenfunction(name="v1")
-      v2_efs = retrieve_eigenfunction(name="v2")
-      v3_efs = retrieve_eigenfunction(name="v3")
-      T_efs = retrieve_eigenfunction(name="T")
-
-      call set_entropy( &
-        loc=1, &
-        ef_index=i, &
-        rho_ef=rho_efs%quantities(:, i), &
-        T_ef=T_efs%quantities(:, i) &
+      v1_ef = retrieve_eigenfunction_from_index(name="v1", ef_index=i)
+      v2_ef = retrieve_eigenfunction_from_index(name="v2", ef_index=i)
+      v3_ef = retrieve_eigenfunction_from_index(name="v3", ef_index=i)
+      a1_ef = retrieve_eigenfunction_from_index(name="a1", ef_index=i)
+      a2_ef = retrieve_eigenfunction_from_index(name="a2", ef_index=i)
+      a3_ef = retrieve_eigenfunction_from_index(name="a3", ef_index=i)
+      da2_ef = assemble_eigenfunction( &
+        base_ef=retrieve_eigenfunctions(name="a2"), &
+        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
+        derivative_order=1 &
       )
+      da3_ef = assemble_eigenfunction( &
+        base_ef=retrieve_eigenfunctions(name="a3"), &
+        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
+        derivative_order=1 &
+      )
+
+      call set_entropy(loc=1, ef_index=i)
       call set_velocity_divergence( &
-        loc=2, &
-        ef_index=i, &
-        v2_ef=v2_efs%quantities(:, i), &
-        v3_ef=v3_efs%quantities(:, i), &
-        rvec=right_eigenvectors(:, eigenvalue_idx) &
+        loc=2, ef_index=i, rvec=right_eigenvectors(:, eigenvalue_idx) &
       )
+      call set_velocity_curl( &
+        loc=[3, 4, 5], ef_index=i, rvec=right_eigenvectors(:, eigenvalue_idx) &
+      )
+      call set_magnetic_field(loc=[6, 7, 8], ef_index=i)
+      call set_magnetic_field_divergence(loc=9, ef_index=i)
+      call set_magnetic_field_curl( &
+        loc=[10, 11, 12], ef_index=i, rvec=right_eigenvectors(:, eigenvalue_idx) &
+      )
+
+      if (can_calculate_pp_quantities) then
+        call set_magnetic_field_pp(loc=[13, 14], ef_index=i)
+        call set_magnetic_field_curl_pp(loc=[15, 16], ef_index=i)
+        call set_velocity_pp(loc=[17, 18], ef_index=i)
+        call set_velocity_curl_pp(loc=[19, 20], ef_index=i)
+      end if
     end do
-
-    call set_velocity_curl_1_component(derived_eigenfunctions(3))
-    call set_velocity_curl_2_component(derived_eigenfunctions(4), right_eigenvectors)
-    call set_velocity_curl_3_component(derived_eigenfunctions(5), right_eigenvectors)
-    call set_magnetic_field_ef_1_component(derived_eigenfunctions(6))
-    call set_magnetic_field_ef_2_component( &
-      derived_eigenfunctions(7), right_eigenvectors &
-    )
-    call set_magnetic_field_ef_3_component( &
-      derived_eigenfunctions(8), right_eigenvectors &
-    )
-    call set_magnetic_field_divergence(derived_eigenfunctions(9), right_eigenvectors)
-    call set_magnetic_field_curl_1_component( &
-      derived_eigenfunctions(10), right_eigenvectors &
-    )
-    call set_magnetic_field_curl_2_component( &
-      derived_eigenfunctions(11), right_eigenvectors &
-    )
-    call set_magnetic_field_curl_3_component( &
-      derived_eigenfunctions(12), right_eigenvectors &
-    )
-
-    if (can_calculate_pp_quantities) then
-      call set_magnetic_field_parallel_component(derived_eigenfunctions(13))
-      call set_magnetic_field_perpendicular_component(derived_eigenfunctions(14))
-      call set_magnetic_field_parallel_curl_component(derived_eigenfunctions(15))
-      call set_magnetic_field_perpendicular_curl_component(derived_eigenfunctions(16))
-      call set_velocity_parallel_component(derived_eigenfunctions(17))
-      call set_velocity_perpendicular_component(derived_eigenfunctions(18))
-      call set_velocity_curl_parallel_component(derived_eigenfunctions(19))
-      call set_velocity_curl_perpendicular_component(derived_eigenfunctions(20))
-    end if
   end procedure calculate_derived_eigenfunctions
 
 
   !> Calculates the entropy S1 and places it at location "loc" in the main array.
-  subroutine set_entropy(loc, ef_index, rho_ef, T_ef)
+  subroutine set_entropy(loc, ef_index)
     !> position index in the main array
     integer, intent(in) :: loc
     !> index of the eigenfunction in the "quantities" array attribute
     integer, intent(in) :: ef_index
     !> density eigenfunction
-    complex(dp), intent(in)  :: rho_ef(:)
+    complex(dp) :: rho_ef(size(ef_grid))
     !> temperature eigenfunction
-    complex(dp), intent(in)  :: T_ef(:)
+    complex(dp) :: T_ef(size(ef_grid))
 
+    rho_ef = retrieve_eigenfunction_from_index(name="rho", ef_index=ef_index)
+    T_ef = retrieve_eigenfunction_from_index(name="T", ef_index=ef_index)
     derived_eigenfunctions(loc)%quantities(:, ef_index) = ( &
       T_ef / rho0_on_ef_grid ** (2.0d0 / 3.0d0) &
       - (2.0d0/3.0d0) * (rho_ef * T0_on_ef_grid / rho0_on_ef_grid ** (5.0d0/3.0d0)) &
@@ -214,22 +221,18 @@ contains
 
 
   !> Calculates the divergence of the perturbed velocity v1
-  subroutine set_velocity_divergence(loc, ef_index, v2_ef, v3_ef, rvec)
+  subroutine set_velocity_divergence(loc, ef_index, rvec)
     !> position index in the main array
     integer, intent(in) :: loc
     !> index of the eigenfunction in the "quantities" array attribute
     integer, intent(in) :: ef_index
-    !> v2 eigenfunction
-    complex(dp), intent(in) :: v2_ef(:)
-    !> v3 eigenfunction
-    complex(dp), intent(in) :: v3_ef(:)
     !> right eigenvector
     complex(dp), intent(in) :: rvec(:)
     !> derivative of v1 eigenfunction
     complex(dp) :: dv1_ef(size(ef_grid))
 
     dv1_ef = assemble_eigenfunction( &
-      base_ef=retrieve_eigenfunction(name="v1"), eigenvector=rvec, derivative_order=1 &
+      base_ef=retrieve_eigenfunctions(name="v1"), eigenvector=rvec, derivative_order=1 &
     )
     derived_eigenfunctions(loc)%quantities(:, ef_index) = ( &
       ic * (-dv1_ef / ef_eps + k2 * v2_ef / ef_eps + k3 * v3_ef) &
@@ -237,510 +240,204 @@ contains
   end subroutine set_velocity_divergence
 
 
-  !> Calculates the 1-component of the curl of the perturbed velocity v1
-  subroutine set_velocity_curl_1_component(derived_ef)
-    !> derived eigenfunction type at curl(v)1 position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    ! v2 eigenfunction
-    complex(dp) :: v2_ef(size(ef_grid))
-    ! v3 eigenfunction
-    complex(dp) :: v3_ef(size(ef_grid))
-    integer :: i
-
-    do i = 1, size(ef_written_idxs)
-      v2_ef = base_eigenfunctions(findloc(ef_names, "v2", dim=1))%quantities(:, i)
-      v3_ef = base_eigenfunctions(findloc(ef_names, "v3", dim=1))%quantities(:, i)
-      derived_ef%quantities(:, i) = ic * (k2 * v3_ef / ef_eps - k3 * v2_ef)
-    end do
-  end subroutine set_velocity_curl_1_component
-
-
-  !> Calculates the 2-component of the curl of the perturbed velocity v1
-  subroutine set_velocity_curl_2_component(derived_ef, right_eigenvectors)
-    !> derived eigenfunction type at curl(v)2 position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> right eigenvectors
-    complex(dp), intent(in) :: right_eigenvectors(:, :)
-    ! v1 eigenfunction
-    complex(dp) :: v1_ef(size(ef_grid))
-    ! v3 eigenfunction
-    complex(dp) :: v3_ef(size(ef_grid))
-    !> dv3 eigenfunction
-    complex(dp) :: dv3_ef(size(ef_grid))
-    integer :: i, eigenvalue_idx
-
-    do i = 1, size(ef_written_idxs)
-      eigenvalue_idx = ef_written_idxs(i)
-      v1_ef = base_eigenfunctions(findloc(ef_names, "v1", dim=1))%quantities(:, i)
-      v3_ef = base_eigenfunctions(findloc(ef_names, "v3", dim=1))%quantities(:, i)
-      dv3_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "v3", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      derived_ef%quantities(:, i) = ( &
-        ic * k3 * v1_ef - dv3_ef / ef_eps - ef_deps * v3_ef / ef_eps &
-      )
-    end do
-  end subroutine set_velocity_curl_2_component
-
-
-  !> Calculates the 3-component of the curl of the perturbed velocity v1
-  subroutine set_velocity_curl_3_component(derived_ef, right_eigenvectors)
-    !> derived eigenfunction type at curl(v)3 position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> right eigenvectors
-    complex(dp), intent(in) :: right_eigenvectors(:, :)
-    ! v1 eigenfunction
-    complex(dp) :: v1_ef(size(ef_grid))
-    ! v2 eigenfunction
-    complex(dp) :: v2_ef(size(ef_grid))
-    !> dv2 eigenfunction
+  !> Sets the three components of velocity curl.
+  subroutine set_velocity_curl(loc, ef_index, rvec)
+    !> position indices in the main array
+    integer, intent(in) :: loc(3)
+    !> index of the eigenfunction in the "quantities" array attribute
+    integer, intent(in) :: ef_index
+    !> right eigenvector
+    complex(dp), intent(in) :: rvec(:)
+    !> derivative of v2 eigenfunction
     complex(dp) :: dv2_ef(size(ef_grid))
-    integer :: i, eigenvalue_idx
+    !> derivative of v3 eigenfunction
+    complex(dp) :: dv3_ef(size(ef_grid))
 
-    do i = 1, size(ef_written_idxs)
-      eigenvalue_idx = ef_written_idxs(i)
-      v1_ef = base_eigenfunctions(findloc(ef_names, "v1", dim=1))%quantities(:, i)
-      v2_ef = base_eigenfunctions(findloc(ef_names, "v2", dim=1))%quantities(:, i)
-      dv2_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "v2", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      derived_ef%quantities(:, i) = ( &
-        dv2_ef + (ef_deps * v2_ef - ic * k2 * v1_ef) / ef_eps &
-      )
-    end do
-  end subroutine set_velocity_curl_3_component
-
-
-  !> Sets the velocity curl component parallel to the magnetic field.
-  subroutine set_velocity_curl_parallel_component(derived_ef)
-    !> derived eigenfunction type at curl(v)_parallel position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> curl v2 eigenfunction
-    complex(dp) :: curlv2(size(ef_grid))
-    !> curl v3 eigenfunction
-    complex(dp) :: curlv3(size(ef_grid))
-    integer :: i
-
-    do i = 1, size(ef_written_idxs)
-      curlv2 = derived_eigenfunctions( &
-        findloc(derived_ef_names, "(curl v)2", dim=1) &
-      )%quantities(:, i)
-      curlv3 = derived_eigenfunctions( &
-        findloc(derived_ef_names, "(curl v)3", dim=1) &
-      )%quantities(:, i)
-      derived_ef%quantities(:, i) = ( &
-        B02_on_ef_grid * curlv2 + B03_on_ef_grid * curlv3 &
-      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
-    end do
-  end subroutine set_velocity_curl_parallel_component
+    dv2_ef = assemble_eigenfunction( &
+      base_ef=retrieve_eigenfunctions(name="v2"), eigenvector=rvec, derivative_order=1 &
+    )
+    dv3_ef = assemble_eigenfunction( &
+      base_ef=retrieve_eigenfunctions(name="v3"), eigenvector=rvec, derivative_order=1 &
+    )
+    derived_eigenfunctions(loc(1))%quantities(:, ef_index) = ( &
+      ic * (k2 * v3_ef / ef_eps - k3 * v2_ef) &
+    )
+    derived_eigenfunctions(loc(2))%quantities(:, ef_index) = ( &
+      ic * k3 * v1_ef - dv3_ef / ef_eps - ef_deps * v3_ef / ef_eps &
+    )
+    derived_eigenfunctions(loc(3))%quantities(:, ef_index) = ( &
+      dv2_ef + (ef_deps * v2_ef - ic * k2 * v1_ef) / ef_eps &
+    )
+  end subroutine set_velocity_curl
 
 
-  !> Sets the velocity curl component perpendicular to the magnetic field
-  subroutine set_velocity_curl_perpendicular_component(derived_ef)
-    !> derived eigenfunction type at curl(v)_perpendicular position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> curl v2 eigenfunction
-    complex(dp) :: curlv2(size(ef_grid))
-    !> curl v3 eigenfunction
-    complex(dp) :: curlv3(size(ef_grid))
-    integer :: i
+  !> Calculates the perturbed magnetic field.
+  subroutine set_magnetic_field(loc, ef_index)
+    !> position indices in the main array
+    integer, intent(in) :: loc(:)
+    !> index of the eigenfunction in the "quantities" array attribute
+    integer, intent(in) :: ef_index
 
-    do i = 1, size(ef_written_idxs)
-      curlv2 = derived_eigenfunctions( &
-        findloc(derived_ef_names, "(curl v)2", dim=1) &
-      )%quantities(:, i)
-      curlv3 = derived_eigenfunctions( &
-        findloc(derived_ef_names, "(curl v)3", dim=1) &
-      )%quantities(:, i)
-      derived_ef%quantities(:, i) = ( &
-        B02_on_ef_grid * curlv3 - B03_on_ef_grid * curlv2 &
-      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
-    end do
-  end subroutine set_velocity_curl_perpendicular_component
-
-
-  !> Calculates the 1-component of the perturbed magnetic field
-  subroutine set_magnetic_field_ef_1_component(derived_ef)
-    !> derived eigenfunction type at B1-1 position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> a2 eigenfunction
-    complex(dp) :: a2_ef(size(ef_grid))
-    !> a3 eigenfunction
-    complex(dp) :: a3_ef(size(ef_grid))
-    integer :: i
-
-    do i = 1, size(ef_written_idxs)
-      a2_ef = base_eigenfunctions(findloc(ef_names, "a2", dim=1))%quantities(:, i)
-      a3_ef = base_eigenfunctions(findloc(ef_names, "a3", dim=1))%quantities(:, i)
-      derived_ef%quantities(:, i) = ic * (k2 * a3_ef / ef_eps - k3 * a2_ef)
-    end do
-  end subroutine set_magnetic_field_ef_1_component
-
-
-  !> Calculates the 2-component of the perturbed magnetic field
-  subroutine set_magnetic_field_ef_2_component(derived_ef, right_eigenvectors)
-    !> derived eigenfunction type at B1-2 position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> right eigenvectors
-    complex(dp), intent(in) :: right_eigenvectors(:, :)
-    !> a1 eigenfunction
-    complex(dp) :: a1_ef(size(ef_grid))
-    !> da3 eigenfunction
-    complex(dp) :: da3_ef(size(ef_grid))
-    integer :: i, eigenvalue_idx
-
-    do i = 1, size(ef_written_idxs)
-      eigenvalue_idx = ef_written_idxs(i)
-      a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
-      da3_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a3", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      derived_ef%quantities(:, i) = ic * k3 * a1_ef - da3_ef
-    end do
-  end subroutine set_magnetic_field_ef_2_component
-
-
-  !> Calculates the 3-component of the perturbed magnetic field
-  subroutine set_magnetic_field_ef_3_component(derived_ef, right_eigenvectors)
-    !> derived eigenfunction type at B1-3 position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> right eigenvectors
-    complex(dp), intent(in) :: right_eigenvectors(:, :)
-    !> a1 eigenfunction
-    complex(dp) :: a1_ef(size(ef_grid))
-    !> da3 eigenfunction
-    complex(dp) :: da2_ef(size(ef_grid))
-    integer :: i, eigenvalue_idx
-
-    do i = 1, size(ef_written_idxs)
-      eigenvalue_idx = ef_written_idxs(i)
-      a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
-      da2_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a2", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      derived_ef%quantities(:, i) = (da2_ef - ic * k2 * a1_ef) / ef_eps
-    end do
-  end subroutine set_magnetic_field_ef_3_component
-
-
-  !> Sets the magnetic field component parallel to B0.
-  subroutine set_magnetic_field_parallel_component(derived_ef)
-    !> derived eigenfunction type at B_parallel position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> B2 eigenfunction
-    complex(dp) :: B2_ef(size(ef_grid))
-    !> B3 eigenfunction
-    complex(dp) :: B3_ef(size(ef_grid))
-    integer :: i
-
-    do i = 1, size(ef_written_idxs)
-      B2_ef = derived_eigenfunctions( &
-        findloc(derived_ef_names, "B2", dim=1) &
-      )%quantities(:, i)
-      B3_ef = derived_eigenfunctions( &
-        findloc(derived_ef_names, "B3", dim=1) &
-      )%quantities(:, i)
-      derived_ef%quantities(:, i) = ( &
-        B02_on_ef_grid * B2_ef + B03_on_ef_grid * B3_ef &
-      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
-    end do
-  end subroutine set_magnetic_field_parallel_component
-
-
-  !> Sets the magnetic field component parallel to the B0.
-  subroutine set_magnetic_field_perpendicular_component(derived_ef)
-    !> derived eigenfunction type at B_perpendicular position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> B2 eigenfunction
-    complex(dp) :: B2_ef(size(ef_grid))
-    !> B3 eigenfunction
-    complex(dp) :: B3_ef(size(ef_grid))
-    integer :: i
-
-    do i = 1, size(ef_written_idxs)
-      B2_ef = derived_eigenfunctions( &
-        findloc(derived_ef_names, "B2", dim=1) &
-      )%quantities(:, i)
-      B3_ef = derived_eigenfunctions( &
-        findloc(derived_ef_names, "B3", dim=1) &
-      )%quantities(:, i)
-      derived_ef%quantities(:, i) = ( &
-        B02_on_ef_grid * B3_ef - B03_on_ef_grid * B2_ef &
-      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
-    end do
-  end subroutine set_magnetic_field_perpendicular_component
+    derived_eigenfunctions(loc(1))%quantities(:, ef_index) = ( &
+      ic * (k2 * a3_ef / ef_eps - k3 * a2_ef) &
+    )
+    derived_eigenfunctions(loc(2))%quantities(:, ef_index) = (ic * k3 * a1_ef - da3_ef)
+    derived_eigenfunctions(loc(3))%quantities(:, ef_index) = ( &
+      (da2_ef - ic * k2 * a1_ef) / ef_eps &
+    )
+  end subroutine set_magnetic_field
 
 
   !> Calculates the divergence of the perturbed magnetic field
-  subroutine set_magnetic_field_divergence(derived_ef, right_eigenvectors)
-    !> derived eigenfunction type at div(B) position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> right eigenvectors
-    complex(dp), intent(in) :: right_eigenvectors(:, :)
-    !> a1 eigenfunction
-    complex(dp) :: a1_ef(size(ef_grid))
-    !> a2 eigenfunction
-    complex(dp) :: a2_ef(size(ef_grid))
-    !> a3 eigenfunction
-    complex(dp) :: a3_ef(size(ef_grid))
-    !> da2 eigenfunction
-    complex(dp) :: da2_ef(size(ef_grid))
-    !> da3 eigenfunction
-    complex(dp) :: da3_ef(size(ef_grid))
-    integer :: i, eigenvalue_idx
+  subroutine set_magnetic_field_divergence(loc, ef_index)
+    !> position index in the main array
+    integer, intent(in) :: loc
+    !> index of the eigenfunction in the "quantities" array attribute
+    integer, intent(in) :: ef_index
 
-    do i = 1, size(ef_written_idxs)
-      eigenvalue_idx = ef_written_idxs(i)
-      a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
-      a2_ef = base_eigenfunctions(findloc(ef_names, "a2", dim=1))%quantities(:, i)
-      a3_ef = base_eigenfunctions(findloc(ef_names, "a3", dim=1))%quantities(:, i)
-      da2_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a2", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      da3_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a3", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      derived_ef%quantities(:, i) = ( &
-        ic * (k2 * da3_ef - k3 * da2_ef) / ef_eps &
-        + ic * k2 * (ic * k3 * a1_ef - da3_ef) / ef_eps &
-        + ic * k3 * (da2_ef - ic * k2 * a1_ef) / ef_eps &
-      )
-    end do
+    derived_eigenfunctions(loc)%quantities(:, ef_index) = ( &
+      ic * (k2 * da3_ef - k3 * da2_ef) / ef_eps &
+      + ic * k2 * (ic * k3 * a1_ef - da3_ef) / ef_eps &
+      + ic * k3 * (da2_ef - ic * k2 * a1_ef) / ef_eps &
+    )
   end subroutine set_magnetic_field_divergence
 
 
-  !> Calculates the curl 1-component of the perturbed magnetic field
-  subroutine set_magnetic_field_curl_1_component(derived_ef, right_eigenvectors)
-    !> derived eigenfunction type at curl(B)1 position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> right eigenvectors
-    complex(dp), intent(in) :: right_eigenvectors(:, :)
-    !> a1 eigenfunction
-    complex(dp) :: a1_ef(size(ef_grid))
-    !> da2 eigenfunction
-    complex(dp) :: da2_ef(size(ef_grid))
-    !> da3 eigenfunction
-    complex(dp) :: da3_ef(size(ef_grid))
-    integer :: i, eigenvalue_idx
-
-    do i = 1, size(ef_written_idxs)
-      eigenvalue_idx = ef_written_idxs(i)
-      a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
-      da2_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a2", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      da3_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a3", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      derived_ef%quantities(:, i) = ( &
-        ic * k2 * (da2_ef - ic * k2 * a1_ef) / ef_eps ** 2 &
-        - ic * k3 * (ic * k3 * a1_ef - da3_ef) &
-      )
-    end do
-  end subroutine set_magnetic_field_curl_1_component
-
-
-  !> Calculates the curl 2-component of the perturbed magnetic field
-  subroutine set_magnetic_field_curl_2_component(derived_ef, right_eigenvectors)
-    !> derived eigenfunction type at curl(B)2 position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> right eigenvectors
-    complex(dp), intent(in) :: right_eigenvectors(:, :)
-    !> a1 eigenfunction
-    complex(dp) :: a1_ef(size(ef_grid))
-    !> da1 eigenfunction
+  !> Calculates the curl of the perturbed magnetic field.
+  subroutine set_magnetic_field_curl(loc, ef_index, rvec)
+    !> position indices in the main array
+    integer, intent(in) :: loc(3)
+    !> index of the eigenfunction in the "quantities" array attribute
+    integer, intent(in) :: ef_index
+    !> right eigenvector
+    complex(dp), intent(in) :: rvec(:)
+    !> derivative of a1 eigenfunction
     complex(dp) :: da1_ef(size(ef_grid))
-    !> a2 eigenfunction
-    complex(dp) :: a2_ef(size(ef_grid))
-    !> a3 eigenfunction
-    complex(dp) :: a3_ef(size(ef_grid))
-    !> da2 eigenfunction
-    complex(dp) :: da2_ef(size(ef_grid))
-    !> dda2 eigenfunction
+    !> second derivative of a2 eigenfunction
     complex(dp) :: dda2_ef(size(ef_grid))
-    integer :: i, eigenvalue_idx
-
-    do i = 1, size(ef_written_idxs)
-      eigenvalue_idx = ef_written_idxs(i)
-      a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
-      a2_ef = base_eigenfunctions(findloc(ef_names, "a2", dim=1))%quantities(:, i)
-      a3_ef = base_eigenfunctions(findloc(ef_names, "a3", dim=1))%quantities(:, i)
-      da1_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a1", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      da2_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a2", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      dda2_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a2", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=2 &
-      )
-      derived_ef%quantities(:, i) = ( &
-        -k3 * (k2 * a3_ef / ef_eps - k3 * a2_ef) &
-        - (dda2_ef - k2 * da1_ef) / ef_eps &
-        + ef_deps * (da2_ef - ic * k2 * a1_ef) / ef_eps ** 2 &
-      )
-    end do
-  end subroutine set_magnetic_field_curl_2_component
-
-
-  !> Calculates the curl 3-component of the perturbed magnetic field
-  subroutine set_magnetic_field_curl_3_component(derived_ef, right_eigenvectors)
-    !> derived eigenfunction type at curl(B)3 position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> right eigenvectors
-    complex(dp), intent(in) :: right_eigenvectors(:, :)
-    !> a1 eigenfunction
-    complex(dp) :: a1_ef(size(ef_grid))
-    !> da1 eigenfunction
-    complex(dp) :: da1_ef(size(ef_grid))
-    !> a2 eigenfunction
-    complex(dp) :: a2_ef(size(ef_grid))
-    !> a3 eigenfunction
-    complex(dp) :: a3_ef(size(ef_grid))
-    !> da3 eigenfunction
-    complex(dp) :: da3_ef(size(ef_grid))
-    !> dda3 eigenfunction
+    !> second derivative of a3 eigenfunction
     complex(dp) :: dda3_ef(size(ef_grid))
-    integer :: i, eigenvalue_idx
 
-    do i = 1, size(ef_written_idxs)
-      eigenvalue_idx = ef_written_idxs(i)
-      a1_ef = base_eigenfunctions(findloc(ef_names, "a1", dim=1))%quantities(:, i)
-      a2_ef = base_eigenfunctions(findloc(ef_names, "a2", dim=1))%quantities(:, i)
-      a3_ef = base_eigenfunctions(findloc(ef_names, "a3", dim=1))%quantities(:, i)
-      da1_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a1", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      da3_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a3", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=1 &
-      )
-      dda3_ef = assemble_eigenfunction( &
-        base_ef=base_eigenfunctions(findloc(ef_names, "a3", dim=1)), &
-        eigenvector=right_eigenvectors(:, eigenvalue_idx), &
-        derivative_order=2 &
-      )
-      derived_ef%quantities(:, i) = ( &
-        k3 * da1_ef &
-        - dda3_ef &
-        + ef_deps * (ic * k3 * a1_ef - da3_ef) / ef_eps &
-        + k2 * (k2 * a3_ef / ef_eps - k3 * a2_ef) / ef_eps &
-      )
-    end do
-  end subroutine set_magnetic_field_curl_3_component
+    da1_ef = assemble_eigenfunction( &
+      base_ef=retrieve_eigenfunctions(name="a1"), eigenvector=rvec, derivative_order=1 &
+    )
+    dda2_ef = assemble_eigenfunction( &
+      base_ef=retrieve_eigenfunctions(name="a2"), eigenvector=rvec, derivative_order=2 &
+    )
+    dda3_ef = assemble_eigenfunction( &
+      base_ef=retrieve_eigenfunctions(name="a3"), eigenvector=rvec, derivative_order=2 &
+    )
+
+    derived_eigenfunctions(loc(1))%quantities(:, ef_index) = ( &
+      ic * k2 * (da2_ef - ic * k2 * a1_ef) / ef_eps ** 2 &
+      - ic * k3 * (ic * k3 * a1_ef - da3_ef) &
+    )
+    derived_eigenfunctions(loc(2))%quantities(:, ef_index) = ( &
+      -k3 * (k2 * a3_ef / ef_eps - k3 * a2_ef) &
+      - (dda2_ef - k2 * da1_ef) / ef_eps &
+      + ef_deps * (da2_ef - ic * k2 * a1_ef) / ef_eps ** 2 &
+    )
+    derived_eigenfunctions(loc(3))%quantities(:, ef_index) = ( &
+      k3 * da1_ef &
+      - dda3_ef &
+      + ef_deps * (ic * k3 * a1_ef - da3_ef) / ef_eps &
+      + k2 * (k2 * a3_ef / ef_eps - k3 * a2_ef) / ef_eps &
+    )
+  end subroutine set_magnetic_field_curl
 
 
-  !> Sets the magnetic field curl component parallel to B0.
-  subroutine set_magnetic_field_parallel_curl_component(derived_ef)
-    !> derived eigenfunction type at B_parallel position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> B2 eigenfunction
-    complex(dp) :: curlB2(size(ef_grid))
-    !> B3 eigenfunction
-    complex(dp) :: curlB3(size(ef_grid))
-    integer :: i
+  !> Sets the parallel and perpendicular components of the perturbed velocity with
+  !! respect to the background magnetic field.
+  subroutine set_velocity_pp(loc, ef_index)
+    !> position indices in the main array
+    integer, intent(in) :: loc(2)
+    !> index of the eigenfunction in the "quantities" array attribute
+    integer, intent(in) :: ef_index
 
-    do i = 1, size(ef_written_idxs)
-      curlB2 = derived_eigenfunctions( &
-        findloc(derived_ef_names, "(curl B)2", dim=1) &
-      )%quantities(:, i)
-      curlB3 = derived_eigenfunctions( &
-        findloc(derived_ef_names, "(curl B)3", dim=1) &
-      )%quantities(:, i)
-      derived_ef%quantities(:, i) = ( &
-        B02_on_ef_grid * curlB2 + B03_on_ef_grid * curlB3 &
-      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
-    end do
-  end subroutine set_magnetic_field_parallel_curl_component
+    ! parallel component
+    derived_eigenfunctions(loc(1))%quantities(:, ef_index) = ( &
+      B02_on_ef_grid * v2_ef + B03_on_ef_grid * v3_ef &
+    ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
+    ! perpendicular component
+    derived_eigenfunctions(loc(2))%quantities(:, ef_index) = ( &
+      B02_on_ef_grid * v3_ef - B03_on_ef_grid * v2_ef &
+    ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
+  end subroutine set_velocity_pp
 
 
-  !> Sets the magnetic field curl component perpendicular to B0.
-  subroutine set_magnetic_field_perpendicular_curl_component(derived_ef)
-    !> derived eigenfunction type at (curl B) perpendicular position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> B2 eigenfunction
-    complex(dp) :: curlB2(size(ef_grid))
-    !> B3 eigenfunction
-    complex(dp) :: curlB3(size(ef_grid))
-    integer :: i
+  !> Sets the parallel and perpendicular components of the velocity curl with
+  !! respect to the background magnetic field.
+  subroutine set_velocity_curl_pp(loc, ef_index)
+    !> position indices in the main array
+    integer, intent(in) :: loc(2)
+    !> index of the eigenfunction in the "quantities" array attribute
+    integer, intent(in) :: ef_index
+    !> curl of v2
+    complex(dp):: curlv2(size(ef_grid))
+    !> curl of v3
+    complex(dp):: curlv3(size(ef_grid))
 
-    do i = 1, size(ef_written_idxs)
-      curlB2 = derived_eigenfunctions( &
-        findloc(derived_ef_names, "(curl B)2", dim=1) &
-      )%quantities(:, i)
-      curlB3 = derived_eigenfunctions( &
-        findloc(derived_ef_names, "(curl B)3", dim=1) &
-      )%quantities(:, i)
-      derived_ef%quantities(:, i) = ( &
-        B02_on_ef_grid * curlB3 - B03_on_ef_grid * curlB2 &
-      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
-    end do
-  end subroutine set_magnetic_field_perpendicular_curl_component
-
-
-  !> Sets the velocity component parallel to the magnetic field.
-  subroutine set_velocity_parallel_component(derived_ef)
-    !> derived eigenfunction type at v_parallel position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> v2 eigenfunction
-    complex(dp) :: v2_ef(size(ef_grid))
-    !> v3 eigenfunction
-    complex(dp) :: v3_ef(size(ef_grid))
-    integer :: i
-
-    do i = 1, size(ef_written_idxs)
-      v2_ef = base_eigenfunctions(findloc(ef_names, "v2", dim=1))%quantities(:, i)
-      v3_ef = base_eigenfunctions(findloc(ef_names, "v3", dim=1))%quantities(:, i)
-      derived_ef%quantities(:, i) = ( &
-        B02_on_ef_grid * v2_ef + B03_on_ef_grid * v3_ef &
-      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
-    end do
-  end subroutine set_velocity_parallel_component
+    curlv2 = retrieve_eigenfunction_from_index(name="(curl v)2", ef_index=ef_index)
+    curlv3 = retrieve_eigenfunction_from_index(name="(curl v)3", ef_index=ef_index)
+    ! parallel component
+    derived_eigenfunctions(loc(1))%quantities(:, ef_index) = ( &
+      B02_on_ef_grid * curlv2 + B03_on_ef_grid * curlv3 &
+    ) / sqrt(B02_on_ef_grid ** 2 + B03_on_ef_grid ** 2)
+    ! perpendicular component
+    derived_eigenfunctions(loc(2))%quantities(:, ef_index) = ( &
+      B02_on_ef_grid * curlv3 - B03_on_ef_grid * curlv2 &
+    ) / sqrt(B02_on_ef_grid ** 2 + B03_on_ef_grid ** 2)
+  end subroutine set_velocity_curl_pp
 
 
-  !> Sets the velocity component perpendicular to the magnetic field.
-  subroutine set_velocity_perpendicular_component(derived_ef)
-    !> derived eigenfunction type at v_perpendicular position in the array
-    type(ef_type), intent(inout)  :: derived_ef
-    !> v2 eigenfunction
-    complex(dp) :: v2_ef(size(ef_grid))
-    !> v3 eigenfunction
-    complex(dp) :: v3_ef(size(ef_grid))
-    integer :: i
+  !> Sets the parallel and perpendicular components of the perturbed magnetic field
+  !! with respect to the background magnetic field.
+  subroutine set_magnetic_field_pp(loc, ef_index)
+    !> position indices in the main array
+    integer, intent(in) :: loc(2)
+    !> index of the eigenfunction in the "quantities" array attribute
+    integer, intent(in) :: ef_index
+    !> perturbed B2 eigenfunction
+    complex(dp) :: B2_ef(size(ef_grid))
+    !> perturbed B3 eigenfunction
+    complex(dp) :: B3_ef(size(ef_grid))
 
-    do i = 1, size(ef_written_idxs)
-      v2_ef = base_eigenfunctions(findloc(ef_names, "v2", dim=1))%quantities(:, i)
-      v3_ef = base_eigenfunctions(findloc(ef_names, "v3", dim=1))%quantities(:, i)
-      derived_ef%quantities(:, i) = ( &
-        B02_on_ef_grid * v3_ef - B03_on_ef_grid * v2_ef &
-      ) / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2)
-    end do
-  end subroutine set_velocity_perpendicular_component
+    B2_ef = retrieve_eigenfunction_from_index(name="B2", ef_index=ef_index)
+    B3_ef = retrieve_eigenfunction_from_index(name="B3", ef_index=ef_index)
+    ! parallel component
+    derived_eigenfunctions(loc(1))%quantities(:, ef_index) = ( &
+      B02_on_ef_grid * B2_ef + B03_on_ef_grid * B3_ef &
+    ) / sqrt(B02_on_ef_grid ** 2 + B03_on_ef_grid ** 2)
+    ! perpendicular component
+    derived_eigenfunctions(loc(2))%quantities(:, ef_index) = ( &
+      B02_on_ef_grid * B3_ef - B03_on_ef_grid * B2_ef &
+    ) / sqrt(B02_on_ef_grid ** 2 + B03_on_ef_grid ** 2)
+  end subroutine set_magnetic_field_pp
+
+
+  !> Sets the parallel and perpendicular components of the perturbed
+  !! magnetic field curl with respect to the background magnetic field.
+  subroutine set_magnetic_field_curl_pp(loc, ef_index)
+    !> position indices in the main array
+    integer, intent(in) :: loc(2)
+    !> index of the eigenfunction in the "quantities" array attribute
+    integer, intent(in) :: ef_index
+    !> curl of B2
+    complex(dp):: curlB2(size(ef_grid))
+    !> curl of B3
+    complex(dp):: curlB3(size(ef_grid))
+
+    curlB2 = retrieve_eigenfunction_from_index(name="(curl B)2", ef_index=ef_index)
+    curlB3 = retrieve_eigenfunction_from_index(name="(curl B)3", ef_index=ef_index)
+    ! parallel component
+    derived_eigenfunctions(loc(1))%quantities(:, ef_index) = ( &
+      B02_on_ef_grid * curlB2 + B03_on_ef_grid * curlB3 &
+    ) / sqrt(B02_on_ef_grid ** 2 + B03_on_ef_grid ** 2)
+    ! perpendicular component
+    derived_eigenfunctions(loc(2))%quantities(:, ef_index) = ( &
+      B02_on_ef_grid * curlB3 - B03_on_ef_grid * curlB2 &
+    ) / sqrt(B02_on_ef_grid ** 2 + B03_on_ef_grid ** 2)
+  end subroutine set_magnetic_field_curl_pp
 
 
   !> Cleaning routine, deallocated the derived quantities

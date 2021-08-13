@@ -80,7 +80,8 @@ module mod_eigenfunctions
   public :: derived_eigenfunctions
   public :: initialise_eigenfunctions
   public :: calculate_eigenfunctions
-  public :: retrieve_eigenfunction
+  public :: retrieve_eigenfunctions
+  public :: retrieve_eigenfunction_from_index
   public :: eigenfunctions_clean
 
 contains
@@ -111,34 +112,55 @@ contains
   end subroutine calculate_eigenfunctions
 
 
-  function retrieve_eigenfunction(name) result(eigenfunction)
+  !> Returns the full set of eigenfunctions corresponding to the given eigenfunction
+  !! name.
+  function retrieve_eigenfunctions(name) result(eigenfunctions)
     use mod_logging, only: log_message
 
     !> name of the eigenfunction to retrieve
     character(len=*), intent(in)  :: name
-    !> the eigenfunction corresponding to the given name
-    type(ef_type) :: eigenfunction
+    !> the eigenfunctions corresponding to the given name
+    type(ef_type) :: eigenfunctions
     integer :: name_idx
 
     ! check if we want a regular eigenfunction
     name_idx = findloc(ef_names, name, dim=1)
     if (name_idx > 0) then
       ! found, retrieve and return
-      eigenfunction = base_eigenfunctions(name_idx)
+      eigenfunctions = base_eigenfunctions(name_idx)
       return
     end if
     ! not found (= 0), try a derived quantity
     name_idx = findloc(derived_ef_names, name, dim=1)
     write(*, *) name_idx
     if (name_idx > 0) then
-      eigenfunction = derived_eigenfunctions(name_idx)
+      eigenfunctions = derived_eigenfunctions(name_idx)
       return
     end if
     ! if still not found then something went wrong
     call log_message( &
       "could not retrieve eigenfunction with name " // name, level="error" &
     )
-  end function retrieve_eigenfunction
+  end function retrieve_eigenfunctions
+
+
+  !> Retrieves a single eigenfunction based on its index in the attribute
+  !! of the main array. For example, if name equals "rho" and ef_idx equals 2
+  !! then this routine returns the quantities attribute evaluated at index 2
+  !! for the "rho" eigenfunctions.
+  function retrieve_eigenfunction_from_index(name, ef_index) result(eigenfunction)
+    !> name of the eigenfunction to retrieve
+    character(len=*), intent(in)  :: name
+    !> index of the eigenfunction to retrieve
+    integer, intent(in) :: ef_index
+    !> the eigenfunction corresponding to the given name and index
+    complex(dp) :: eigenfunction(size(ef_grid))
+    !> all eigenfunctions corresponding to the given name
+    type(ef_type) :: eigenfunctions
+
+    eigenfunctions = retrieve_eigenfunctions(name=name)
+    eigenfunction = eigenfunctions%quantities(:, ef_index)
+  end function retrieve_eigenfunction_from_index
 
 
   subroutine assemble_eigenfunction_grid()
