@@ -81,9 +81,9 @@ set (sources
         solvers/smod_qz_direct.f08
         solvers/smod_arnoldi.f08
         eigenfunctions/mod_eigenfunctions.f08
-        eigenfunctions/smod_eigenfunction_operations.f08
-        eigenfunctions/smod_base_eigenfunctions.f08
-        eigenfunctions/smod_derived_eigenfunctions.f08
+        eigenfunctions/smod_ef_operations.f08
+        eigenfunctions/smod_base_efs.f08
+        eigenfunctions/smod_derived_efs.f08
         dataIO/mod_output.f08
 )
 

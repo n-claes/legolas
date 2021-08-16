@@ -1,20 +1,16 @@
 ! =============================================================================
-!> This module composes perturbed quantities of interest based on the
-!! eigenfunctions and eigenvectors. As a result, all quantities are defined on
-!! the same grid as the eigenfunctions, ef_grid.
-!! The computed quantities are
-!!    - div v1
-!!    - all 3 components of curl v1
-!!    - all 3 components of B1
-!!    - div B1
-!!    - all 3 components of curl B1
-!!    - 3 components of v1, parallel/perpendicular to B0
-!!    - 2 components of curl v1, parallel and perpendicular to B0
+!> This submodule calculates various quantities derived from the base eigenfunctions:
+!!  - entropy S
+!!  - \(\nabla \cdot \mathbf{v}_1\)
+!!  - all 3 components of \(\nabla \times \mathbf{v}_1\)
+!!  - \(\nabla \cdot \mathbf{B}_1\)
+!!  - all 3 components of \(\mathbf{B}_1\)
+!!  - all 3 components of \(\nabla \times \mathbf{B}_1\)
+!!
 !! It is assumed that B0 has no B01 component, such that the 1-direction is
 !! already perpendicular to B0, and the parallel/perpendicular directions are
 !! taken in the 23-plane. The right-handed triad is e1, B0/|B0|, (e1 x B0) / |B0|.
-
-submodule(mod_eigenfunctions) smod_derived_eigenfunctions
+submodule(mod_eigenfunctions) smod_derived_efs
   use mod_global_variables, only: ic
   use mod_equilibrium_params, only: k2, k3
   implicit none
@@ -444,4 +440,4 @@ contains
     deallocate(da2_ef, da3_ef)
   end procedure clean_derived_eigenfunctions
 
-end submodule smod_derived_eigenfunctions
+end submodule smod_derived_efs

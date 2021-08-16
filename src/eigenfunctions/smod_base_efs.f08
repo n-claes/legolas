@@ -1,4 +1,7 @@
-submodule(mod_eigenfunctions) smod_base_eigenfunctions
+! =============================================================================
+!> This submodule initialises and calculates the base eigenfunctions, i.e. the ones
+!! corresponding to the basic state vector variables (rho, v1, v2, etc.)
+submodule(mod_eigenfunctions) smod_base_efs
   implicit none
 
 contains
@@ -40,4 +43,4 @@ contains
     end do
   end procedure calculate_base_eigenfunctions
 
-end submodule smod_base_eigenfunctions
+end submodule smod_base_efs

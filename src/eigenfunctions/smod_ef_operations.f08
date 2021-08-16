@@ -1,4 +1,8 @@
-submodule(mod_eigenfunctions) smod_eigenfunction_operations
+! =============================================================================
+!> This submodule contains procedures and functions to be used when we are
+!! either assembling eigenfunctions based on the eigenvectors, or retransforming
+!! them.
+submodule(mod_eigenfunctions) smod_ef_operations
   implicit none
 
 contains
@@ -121,7 +125,7 @@ contains
         return
       end select
 
-    case default
+    case("rho", "v2", "v3", "T", "a1")
       select case(diff_order)
       case(0)
         spline_function => quadratic_factors
@@ -134,6 +138,12 @@ contains
         )
         return
       end select
+
+    case default
+      call log_message( &
+        "get_spline - invalid eigenfunction name given: " // name, &
+        level="error" &
+      )
     end select
 
     call spline_function( &
@@ -141,4 +151,4 @@ contains
     )
   end function get_spline
 
-end submodule smod_eigenfunction_operations
+end submodule smod_ef_operations
