@@ -132,7 +132,6 @@ contains
     end if
     ! not found (= 0), try a derived quantity
     name_idx = findloc(derived_ef_names, name, dim=1)
-    write(*, *) name_idx
     if (name_idx > 0) then
       eigenfunctions = derived_eigenfunctions(name_idx)
       return
@@ -148,6 +147,9 @@ contains
   !! of the main array. For example, if name equals "rho" and ef_idx equals 2
   !! then this routine returns the quantities attribute evaluated at index 2
   !! for the "rho" eigenfunctions.
+  !! @note: this routine is needed apart from <tt>retrieve_eigenfunctions</tt>
+  !!        because Fortran does not allow access to a derived type's attribute
+  !!        directly through the result of a function call. @endnote
   function retrieve_eigenfunction_from_index(name, ef_index) result(eigenfunction)
     !> name of the eigenfunction to retrieve
     character(len=*), intent(in)  :: name

@@ -148,14 +148,7 @@ contains
   !> Calculates the derived eigenfunction quantities corresponding to the requested
   !! eigenvalues and sets them as attributes for the corresponding types.
   module procedure calculate_derived_eigenfunctions
-    ! the v1, v2 and v3 eigenfunctions
-    complex(dp) :: v1_ef(size(ef_grid)), v2_ef(size(ef_grid)), v3_ef(size(ef_grid))
-    !> the a1, a2 and a3 eigenfunctions
-    complex(dp) :: a1_ef(size(ef_grid)), a2_ef(size(ef_grid)), a3_ef(size(ef_grid))
-    !> the derivatives of the a2 and a3 eigenfunctions
-    complex(dp) :: da2_ef(size(ef_grid)), da3_ef(size(ef_grid))
     integer :: i, eigenvalue_idx
-
 
     do i = 1, size(ef_written_idxs)
       eigenvalue_idx = ef_written_idxs(i)
@@ -446,6 +439,9 @@ contains
     deallocate(B03_on_ef_grid)
     deallocate(rho0_on_ef_grid)
     deallocate(T0_on_ef_grid)
+    deallocate(v1_ef, v2_ef, v3_ef)
+    deallocate(a1_ef, a2_ef, a3_ef)
+    deallocate(da2_ef, da3_ef)
   end procedure clean_derived_eigenfunctions
 
 end submodule smod_derived_eigenfunctions
