@@ -6,18 +6,6 @@ module mod_test_valuechecks
 
 contains
 
-  @before
-  subroutine init_test()
-    call reset_globals()
-    call reset_fields(init_fields=.true.)
-  end subroutine init_test
-
-
-  @after
-  subroutine teardown_test()
-    call clean_up()
-  end subroutine teardown_test
-
 
   @test
   subroutine test_small_values_real()

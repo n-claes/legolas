@@ -22,7 +22,6 @@ contains
 
     call reset_globals()
     call reset_fields(init_fields=.true.)
-    call reset_eigenfunctions(init_efs=.false.)
     call create_test_grid(pts=base_gridpts, geom='Cartesian')
     call reset_matrices(avalue=(2.0d0, 3.0d0), bvalue=5.0d0)
     ! avoid division by B0 if conduction is enabled

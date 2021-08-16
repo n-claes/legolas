@@ -39,21 +39,6 @@ contains
   end subroutine reset_fields
 
 
-  subroutine reset_eigenfunctions(init_efs)
-    use mod_eigenfunctions, only: ef_grid, eigenfunctions_clean, &
-      initialise_eigenfunctions
-
-    logical, intent(in) :: init_efs
-
-    if (allocated(ef_grid)) then
-      call eigenfunctions_clean()
-    end if
-    if (init_efs) then
-      ! call initialise_eigenfunctions()
-    end if
-  end subroutine reset_eigenfunctions
-
-
   subroutine clean_up()
     use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid, grid_clean
@@ -67,7 +52,6 @@ contains
     if (radiative_cooling) then
       call radiative_cooling_clean()
     end if
-    call reset_eigenfunctions(init_efs=.false.)
     call solvers_clean()
   end subroutine clean_up
 

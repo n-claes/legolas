@@ -12,15 +12,12 @@ contains
 
   @before
   subroutine init_test()
-    call reset_globals()
-    call reset_fields(init_fields=.false.)
-    call reset_eigenfunctions(init_efs=.false.)
+    ! do nothing
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
-    call clean_up()
     spline_result = 0.0d0
     spline_expected = 0.0d0
   end subroutine teardown_test
