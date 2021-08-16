@@ -61,4 +61,13 @@ contains
     @assertEqual(spline_expected, spline_result, tolerance=TOL)
   end subroutine test_dC_spline
 
+
+  @test
+  subroutine test_ddC_spline()
+    call set_name("basis functions (2nd derivative cubic)")
+    call cubic_factors_deriv2(1.8d0, left, right, spline_result)
+    spline_expected = [-3.6d0, 3.6d0, 2.8d0, 0.8d0]
+    @assertEqual(spline_expected, spline_result, tolerance=TOL)
+  end subroutine test_ddC_spline
+
 end module mod_test_splines

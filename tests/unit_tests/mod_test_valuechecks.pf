@@ -10,7 +10,6 @@ contains
   subroutine init_test()
     call reset_globals()
     call reset_fields(init_fields=.true.)
-    call reset_eigenfunctions(init_efs=.false.)
   end subroutine init_test
 
 
@@ -162,6 +161,32 @@ contains
 
 
   @test
+  subroutine test_is_zero_real()
+    call set_name("check is_zero (real)")
+    @assertTrue(is_zero(0.0d0))
+    @assertFalse(is_zero(-1.0d0))
+    @assertFalse(is_zero(2.0d0))
+    @assertFalse(is_zero(1.0d-7))
+    @assertTrue(is_zero(1.0d-7, tol=1.0d-6))
+    @assertTrue(is_zero(-1.0d-5, tol=5.0d-4))
+  end subroutine test_is_zero_real
+
+
+  @test
+  subroutine test_is_zero_complex()
+    call set_name("check is_zero (complex)")
+    @assertTrue(is_zero((0.0d0, 0.0d0)))
+    @assertFalse(is_zero((1.0d0, 0.0d0)))
+    @assertFalse(is_zero((0.0d0, 1.0d0)))
+
+    @assertTrue(is_zero((0.0d0, 1.0d-8), tol=1.0d-7))
+    @assertTrue(is_zero((1.0d-7, 0.0d0), tol=1.0d-6))
+    @assertTrue(is_zero((1.0d-6, 1.0d-7), tol=5.0d-6))
+    @assertFalse(is_zero((1.0d-8, 1.0d-7), tol=1.0d-8))
+  end subroutine test_is_zero_complex
+
+
+  @test
   subroutine test_is_negative()
     real(dp)  :: array(20)
 
@@ -174,7 +199,7 @@ contains
 
 
   @test
-  subroutine test_is_constant_fail()
+  subroutine test_is_constant()
     real(dp)  :: array(30)
 
     call set_name("check is_constant")
@@ -183,5 +208,9 @@ contains
     @assertFalse(is_constant(array))
     array = 5.0d0
     @assertTrue(is_constant(array))
-  end subroutine test_is_constant_fail
+    array = 1.0d-3
+    array(3) = 1.0d-4
+    array(15) = 2.5d-5
+    @assertTrue(is_constant(array, tol=5.0d-3))
+  end subroutine test_is_constant
 end module mod_test_valuechecks
