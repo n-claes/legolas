@@ -433,7 +433,7 @@ contains
   end subroutine set_magnetic_field_curl_pp
 
 
-  !> Cleaning routine, deallocated the derived quantities
+  !> Cleaning routine.
   module procedure clean_derived_eigenfunctions
     deallocate(B02_on_ef_grid)
     deallocate(B03_on_ef_grid)

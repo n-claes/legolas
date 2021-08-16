@@ -1,3 +1,7 @@
+! =============================================================================
+!> Main module responsible for eigenfunction management. Contains routines
+!! and interfaces to initialise and calculate the eigenfunctions and
+!! derived quantities.
 module mod_eigenfunctions
   use mod_global_variables, only: dp, str_len_arr, ef_gridpts
   use mod_types, only: ef_type
@@ -86,6 +90,9 @@ module mod_eigenfunctions
 
 contains
 
+  !> Initialises the eigenfunctions based on an array of eigenvalues.
+  !! Before initialising all arrays we check which subset of eigenvalues, if any,
+  !! needs its eigenfunctions saved.
   subroutine initialise_eigenfunctions(omega)
     use mod_global_variables, only: write_derived_eigenfunctions
 
@@ -102,6 +109,8 @@ contains
   end subroutine initialise_eigenfunctions
 
 
+  !> Calculates both the base eigenfunctions and the derived quantities thereof
+  !! based on a 2D array of right eigenvectors.
   subroutine calculate_eigenfunctions(right_eigenvectors)
     complex(dp), intent(in) :: right_eigenvectors(:, :)
 
@@ -165,6 +174,8 @@ contains
   end function retrieve_eigenfunction_from_index
 
 
+  !> Allocates and assembles the eigenfunction grid, checks the corresponding
+  !! scale factor as well.
   subroutine assemble_eigenfunction_grid()
     use mod_global_variables, only: gridpts, ef_gridpts, geometry
     use mod_grid, only: grid
@@ -195,6 +206,7 @@ contains
   end subroutine assemble_eigenfunction_grid
 
 
+  !> Selects a subset of eigenfunctions to be saved.
   subroutine select_eigenfunctions_to_save(omega)
     use mod_global_variables, only: write_eigenfunction_subset
 
@@ -215,6 +227,7 @@ contains
   end subroutine select_eigenfunctions_to_save
 
 
+  !> Checks if a specific eigenvalue is within the provided subset radius.
   elemental logical function eigenvalue_is_inside_subset_radius(eigenvalue)
     use mod_global_variables, only: eigenfunction_subset_center, &
       eigenfunction_subset_radius
@@ -233,6 +246,7 @@ contains
   end function eigenvalue_is_inside_subset_radius
 
 
+  !> Cleaning routine.
   subroutine eigenfunctions_clean()
     if (efs_initialised) then
       deallocate(base_eigenfunctions)
