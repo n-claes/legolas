@@ -4,6 +4,8 @@ module mod_test_input
   use mod_input, only: read_parfile
   implicit none
 
+  character(len=125) :: error_msg
+
 contains
 
   @before
@@ -61,8 +63,6 @@ contains
 
   @test
   subroutine test_parfile_doubleunits()
-    character(len=125) :: error_msg
-
     call set_name("setting rho + T unit in parfile")
     call read_parfile("test_parfiles/parfile_doubleunits.par")
     error_msg = ( &
@@ -74,8 +74,6 @@ contains
 
   @test
   subroutine test_parfile_onlyrhounit()
-    character(len=125) :: error_msg
-
     call set_name("setting only rho unit in parfile")
     call read_parfile("test_parfiles/parfile_onlyrhounit.par")
     error_msg = "unit_density found, unit_magneticfield and unit_length also required."
@@ -85,8 +83,6 @@ contains
 
   @test
   subroutine test_parfile_onlyTunit()
-    character(len=125) :: error_msg
-
     call set_name("setting only T unit in parfile")
     call read_parfile("test_parfiles/parfile_onlytempunit.par")
     error_msg = ( &
@@ -122,5 +118,34 @@ contains
     @assertEqual(unit_magneticfield, 10.0d0, tolerance=TOL)
     @assertEqual(unit_length, 1.0d9, tolerance=TOL)
   end subroutine test_parfile_units_temp
+
+
+  @test
+  subroutine test_parfile_derived_efs_but_no_efs()
+    use mod_global_variables, only: write_eigenfunctions, &
+      write_derived_eigenfunctions, logging_level
+
+    logging_level = 0
+    call set_name("setting eigenfunctions false but derived true")
+    call read_parfile("test_parfiles/parfile_only_derived_efs.par")
+    @assertTrue(write_eigenfunctions)
+    @assertTrue(write_derived_eigenfunctions)
+  end subroutine test_parfile_derived_efs_but_no_efs
+
+
+  @test
+  subroutine test_parfile_invalid_subset_center()
+    call set_name("invalid subset center through parfile")
+    call read_parfile("test_parfiles/parfile_invalid_subset_center.par")
+    @assertExceptionRaised("eigenfunction_subset_center must be set!")
+  end subroutine test_parfile_invalid_subset_center
+
+
+  @test
+  subroutine test_parfile_invalid_subset_radius()
+    call set_name("invalid subset radius through parfile")
+    call read_parfile("test_parfiles/parfile_invalid_subset_radius.par")
+    @assertExceptionRaised("eigenfunction_subset_radius must be set!")
+  end subroutine test_parfile_invalid_subset_radius
 
 end module mod_test_input
