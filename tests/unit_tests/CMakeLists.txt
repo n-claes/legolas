@@ -60,6 +60,7 @@ set( test_sources
         mod_test_input.pf
         mod_test_valuechecks.pf
         mod_test_units.pf
+        mod_test_eigenfunctions.pf
         mod_test_cooling.pf
         mod_test_cooling_tables.pf
         mod_test_resistivity.pf
