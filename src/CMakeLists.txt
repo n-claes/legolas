@@ -84,6 +84,7 @@ set (sources
         eigenfunctions/smod_ef_operations.f08
         eigenfunctions/smod_base_efs.f08
         eigenfunctions/smod_derived_efs.f08
+        eigenfunctions/smod_derived_pp_efs.f08
         dataIO/mod_output.f08
 )
 
