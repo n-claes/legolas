@@ -199,7 +199,7 @@ contains
           locB=[13, 14], &
           locCurlB=[15, 16], &
           locV=[17, 18], &
-          locCurlV=[19, 29], &
+          locCurlV=[19, 20], &
           ef_index=i &
         )
       end if
@@ -359,9 +359,11 @@ contains
     deallocate(B03_on_ef_grid)
     deallocate(rho0_on_ef_grid)
     deallocate(T0_on_ef_grid)
-    deallocate(v1_ef, v2_ef, v3_ef)
-    deallocate(a1_ef, a2_ef, a3_ef)
-    deallocate(da2_ef, da3_ef)
+    if (allocated(v1_ef)) then
+      deallocate(v1_ef, v2_ef, v3_ef)
+      deallocate(a1_ef, a2_ef, a3_ef)
+      deallocate(da2_ef, da3_ef)
+    end if
   end procedure clean_derived_eigenfunctions
 
 end submodule smod_derived_efs
