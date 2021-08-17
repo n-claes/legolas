@@ -18,12 +18,12 @@ def _main():
     pylbo.plot_equilibrium(ds)
     p = pylbo.plot_spectrum(ds)
     p.add_continua()
-    if ds.header["eigenfuncs_written"]:
+    if ds.efs_written:
         p.add_eigenfunctions()
-    if ds.header["postprocessed_written"]:
+    if ds.derived_efs_written:
         p2 = pylbo.plot_spectrum(ds)
         p2.add_continua()
-        p2.add_postprocessed()
+        p2.add_derived_eigenfunctions()
     p.show()
 
 

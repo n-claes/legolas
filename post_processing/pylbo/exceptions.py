@@ -47,24 +47,6 @@ class EigenfunctionsNotPresent(LegolasException):
         return f"{self.msg}"
 
 
-class PostprocessedNotPresent(LegolasException):
-    """
-    Handles trying to query for post-processed quantities when these
-    are not present in the datfile.
-
-    Parameters
-    ----------
-    msg : str
-        The error message to pass on.
-    """
-
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __str__(self):
-        return f"{self.msg}"
-
-
 class MatricesNotPresent(LegolasException):
     """
     Handles trying to query for matrices when these

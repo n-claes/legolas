@@ -11,7 +11,7 @@ from pylbo.utilities.datfile_utils import (
     read_matrix_A,
     read_ef_grid,
     read_eigenfunction,
-    read_postprocessed,
+    read_derived_eigenfunction,
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import MatricesNotPresent
@@ -90,11 +90,11 @@ class LegolasDataContainer(ABC):
         pass
 
     @abstractmethod
-    def pp_written(self):
+    def derived_efs_written(self):
         pass
 
     @abstractmethod
-    def pp_names(self):
+    def derived_ef_names(self):
         pass
 
     @abstractmethod
@@ -266,29 +266,29 @@ class LegolasDataSet(LegolasDataContainer):
         return self.header["eigenfunction_subset_used"]
 
     @property
-    def pp_written(self):
+    def derived_efs_written(self):
         """
-        Checks if post-processed quantities are present.
+        Checks if derived eigenfunctions are present.
 
         Returns
         -------
-        pp_written : bool
-            If `True`, post-processed quantities are present in the datfile.
+        bool
+            If `True`, derived eigenfunctions are present in the datfile.
         """
-        return self.header["postprocessed_written"]
+        return self.header["derived_eigenfuncs_written"]
 
     @property
-    def pp_names(self):
+    def derived_ef_names(self):
         """
-        Retrieves the post-processed quantity names.
+        Retrieves the derived eigenfunction names.
 
         Returns
         -------
-        pp_names : numpy.ndarray
-            Array containing the names of the post-processed quantities as strings.
-            None if no post-processed quantities are present.
+        numpy.ndarray
+            Array containing the names of the derived eigenfunctions as strings.
+            None if no derived eigenfunctions are present.
         """
-        return self.header.get("pp_names", None)
+        return self.header.get("derived_ef_names", None)
 
     @staticmethod
     def _get_values(array, which_values):
@@ -571,9 +571,9 @@ class LegolasDataSet(LegolasDataContainer):
                 eigenfuncs[dict_idx] = efs
         return eigenfuncs
 
-    def get_postprocessed(self, ev_guesses=None, ev_idxs=None):
+    def get_derived_eigenfunctions(self, ev_guesses=None, ev_idxs=None):
         """
-        Returns the post-processed quantities based on given eigenvalue guesses or their
+        Returns the derived eigenfunctions based on given eigenvalue guesses or their
         indices. An array will be returned where every item is a dictionary, containing
         both the eigenvalue and its quantities. Either eigenvalue guesses or
         indices can be supplied, but not both.
@@ -587,32 +587,30 @@ class LegolasDataSet(LegolasDataContainer):
 
         Returns
         -------
-        postprocessed : numpy.ndarray(dtype=dict, ndim=1)
-            Array containing the post-processed quantities and eigenvalues
+        numpy.ndarray(dtype=dict, ndim=1)
+            Array containing the derived eigenfunctions and eigenvalues
             corresponding to the supplied indices. Every index in this array
-            contains a dictionary with the post-processed quantities and
+            contains a dictionary with the derived eigenfunctions and
             corresponding eigenvalue. The keys of each dictionary are the
-            post-processed quantity names.
+            corresponding eigenfunction names.
         """
         if ev_guesses is not None and ev_idxs is not None:
-            raise ValueError(
-                "get_postprocessed: either provide guesses or indices but not both"
-            )
+            raise ValueError("either provide guesses or indices but not both")
         if ev_guesses is not None:
             idxs, _ = self.get_nearest_eigenvalues(ev_guesses)
         else:
             idxs = transform_to_numpy(ev_idxs)
             for idx in idxs:
                 if not isinstance(idx, (int, np.int64)):
-                    raise ValueError("get_postprocessed: ev_idxs should be integers")
-        postprocessed = np.array([{}] * len(idxs), dtype=dict)
+                    raise ValueError("ev_idxs should be integers")
+        derived_efs = np.array([{}] * len(idxs), dtype=dict)
         with open(self.datfile, "rb") as istream:
-            for dict_idx, pp_idx in enumerate(idxs):
-                ppq = read_postprocessed(istream, self.header, pp_idx)
-                if ppq is not None:
-                    ppq.update({"eigenvalue": self.eigenvalues[pp_idx]})
-                postprocessed[dict_idx] = ppq
-        return postprocessed
+            for dict_idx, ef_idx in enumerate(idxs):
+                defs = read_derived_eigenfunction(istream, self.header, ef_idx)
+                if defs is not None:
+                    defs.update({"eigenvalue": self.eigenvalues[ef_idx]})
+                derived_efs[dict_idx] = defs
+        return derived_efs
 
     def get_nearest_eigenvalues(self, ev_guesses):
         """
@@ -715,29 +713,29 @@ class LegolasDataSeries(LegolasDataContainer):
         return np.array([ds.ef_grid for ds in self.datasets], dtype=object)
 
     @property
-    def pp_written(self):
+    def derived_efs_written(self):
         """
-        Checks if the post-processed quantities are written.
+        Checks if the derived eigenfunctions are written.
 
         Returns
         -------
-        pp_written : numpy.ndarray
+        numpy.ndarray(dtype=bool)
             An array of bools corresponding to the various datasets, `True` if a
-            dataset has post-processed quantities present.
+            dataset has derived eigenfunctions present.
         """
-        return np.array([ds.pp_written for ds in self.datasets])
+        return np.array([ds.derived_efs_written for ds in self.datasets])
 
     @property
-    def pp_names(self):
+    def derived_ef_names(self):
         """
-        Returns the post-processed quantity names.
+        Returns the derived eigenfunction names.
 
         Returns
         -------
-        pp_names : numpy.ndarray
-            An array with the post-processed quantity names as strings.
+        numpy.ndarray(dtype=str)
+            An array with the derived eigenfunction names as strings.
         """
-        names = np.array([ds.pp_names for ds in self.datasets], dtype=object)
+        names = np.array([ds.derived_ef_names for ds in self.datasets], dtype=object)
         for item in names:
             if item is None:
                 continue

@@ -3,7 +3,7 @@ from copy import copy
 from matplotlib import colors
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.visualisation.eigenfunctions import EigenfunctionHandler
-from pylbo.visualisation.postprocessed import PostprocessedHandler
+from pylbo.visualisation.derived_eigenfunctions import DerivedEigenfunctionHandler
 from pylbo.visualisation.continua import ContinuaHandler
 from pylbo.visualisation.legend_interface import LegendHandler
 from pylbo.utilities.toolbox import transform_to_numpy, add_pickradius_to_item
@@ -19,8 +19,8 @@ class SpectrumFigure(FigureWindow):
         self._c_handler = None
         self._ef_handler = None
         self._ef_ax = None
-        self._pp_handler = None
-        self._pp_ax = None
+        self._def_handler = None
+        self._def_ax = None
 
         self.plot_props = None
         self.marker = None
@@ -39,8 +39,8 @@ class SpectrumFigure(FigureWindow):
             self.add_continua(self._c_handler.interactive)
         if self._ef_handler is not None:
             self.add_eigenfunctions()
-        if self._pp_handler is not None:
-            self.add_postprocessed()
+        if self._def_handler is not None:
+            self.add_derived_eigenfunctions()
 
     def _set_plot_properties(self, properties):
         """
@@ -81,9 +81,9 @@ class SpectrumFigure(FigureWindow):
         """
         pass
 
-    def add_postprocessed(self):
+    def add_derived_eigenfunctions(self):
         """
-        Adds postprocessed quantities to the spectrum, overridden in subclasses.
+        Adds derived eigenfunctions to the spectrum, overridden in subclasses.
         """
         pass
 
@@ -239,15 +239,17 @@ class SingleSpectrumPlot(SpectrumFigure):
             self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax, self.ax)
         super()._enable_interface(handle=self._ef_handler)
 
-    def add_postprocessed(self):
+    def add_derived_eigenfunctions(self):
         """
-        Adds the post-processed quantities to the plot, sets the post-processed handler.
+        Adds the derived eigenfunctions to the plot, sets the eigenfunction handler.
         """
-        if self._pp_ax is None:
-            self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
-        if self._pp_handler is None:
-            self._pp_handler = PostprocessedHandler(self.dataset, self._pp_ax, self.ax)
-        super()._enable_interface(handle=self._pp_handler)
+        if self._def_ax is None:
+            self._def_ax = super()._add_subplot_axes(self.ax, loc="right")
+        if self._def_handler is None:
+            self._def_handler = DerivedEigenfunctionHandler(
+                self.dataset, self._def_ax, self.ax
+            )
+        super()._enable_interface(handle=self._def_handler)
 
     def _ensure_smooth_continuum(self, continuum):
         # TODO: this method should split the continuum into multiple parts, such that
@@ -478,13 +480,13 @@ class MultiSpectrumPlot(SpectrumFigure):
             )
         super()._enable_interface(handle=self._ef_handler)
 
-    def add_postprocessed(self):
-        """Adds the post-processed quantities to the current figure."""
-        if self._pp_ax is None:
-            self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
-        if self._pp_handler is None:
-            self._pp_handler = PostprocessedHandler(
-                self.dataseries, self._pp_ax, self.ax
+    def add_derived_eigenfunctions(self):
+        """Adds the derived eigenfunctions to the current figure."""
+        if self._def_ax is None:
+            self._def_ax = super()._add_subplot_axes(self.ax, loc="right")
+        if self._def_handler is None:
+            self._def_handler = DerivedEigenfunctionHandler(
+                self.dataseries, self._def_ax, self.ax
             )
         super()._enable_interface(handle=self._pp_handler)
 
@@ -569,13 +571,15 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax, self.ax)
         super()._enable_interface(handle=self._ef_handler)
 
-    def add_postprocessed(self):
-        """Adds the post-processed quantities to the current figure."""
-        if self._pp_ax is None:
-            self._pp_ax = super()._add_subplot_axes(self.ax, loc="right")
-        if self._pp_handler is None:
-            self._pp_handler = PostprocessedHandler(self.data, self._pp_ax, self.ax)
-        super()._enable_interface(handle=self._pp_handler)
+    def add_derived_eigenfunctions(self):
+        """Adds the derived eigenfunctions to the current figure."""
+        if self._def_ax is None:
+            self._def_ax = super()._add_subplot_axes(self.ax, loc="right")
+        if self._def_handler is None:
+            self._def_handler = DerivedEigenfunctionHandler(
+                self.data, self._def_ax, self.ax
+            )
+        super()._enable_interface(handle=self._def_handler)
 
     def add_continua(self, interactive=True):
         raise NotImplementedError("Continua are not supported for this type of figure.")
@@ -674,14 +678,14 @@ class SpectrumComparisonPlot(SpectrumFigure):
             # merge callbacks
             self._mpl_callbacks.extend(panel._mpl_callbacks)
 
-    def add_postprocessed(self):
+    def add_derived_eigenfunctions(self):
         """
-        Adds the post-processed quantities for both datasets and merges the mpl
+        Adds the derived eigenfunctions for both datasets and merges the mpl
         callbacks.
         """
         self._use_custom_axes()
         for panel in [self.panel1, self.panel2]:
-            panel.add_postprocessed()
+            panel.add_derived_eigenfunctions()
             panel.disconnect_callbacks()
             # merge callbacks
             self._mpl_callbacks.extend(panel._mpl_callbacks)

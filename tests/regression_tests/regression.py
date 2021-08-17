@@ -275,9 +275,9 @@ def test_generate_derived_eigenfunction_images(ds_test, ds_answer, setup, imaged
         figname = f"{setup['name']}_derived_eigenfunctions_{i}.png"
         figtitle = f"{setup['name']} -- eigenvalue={eigenval:.6f}"
         # generate baseline image
-        (efs_answer,) = ds_answer.get_postprocessed(ev_guesses=eigenval)
+        (efs_answer,) = ds_answer.get_derived_eigenfunctions(ev_guesses=eigenval)
         figname_answer = f"{figname[:-4]}-baseline.png"
-        for ax, ef_name in zip(axes_answer, ds_answer.pp_names):
+        for ax, ef_name in zip(axes_answer, ds_answer.derived_ef_names):
             result = efs_answer[ef_name].real + efs_answer[ef_name].imag
             # small values to zero
             result[np.where(abs(result) < ABS_TOL)] = 0
@@ -290,8 +290,8 @@ def test_generate_derived_eigenfunction_images(ds_test, ds_answer, setup, imaged
         [ax.clear() for ax in axes_answer]
 
         # generate test image
-        (efs_test,) = ds_test.get_postprocessed(ev_guesses=eigenval)
-        for ax, ef_name in zip(axes_test, ds_answer.pp_names):
+        (efs_test,) = ds_test.get_derived_eigenfunctions(ev_guesses=eigenval)
+        for ax, ef_name in zip(axes_test, ds_answer.derived_ef_names):
             result = efs_test[ef_name].real + efs_test[ef_name].imag
             # small values to zero
             result[np.where(abs(result) < ABS_TOL)] = 0
