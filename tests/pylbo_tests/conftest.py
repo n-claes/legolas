@@ -99,6 +99,16 @@ def datv0():
     return utils / "v0_datfile_efs.dat"
 
 
+@pytest.fixture
+def datv1():
+    return utils / "v1_datfile_matrices.dat"
+
+
+@pytest.fixture
+def datv112_eta():
+    return utils / "v1.1.2_datfile_eta.dat"
+
+
 @pytest.mark.timeout(5)
 @pytest.fixture
 def ds_v090():
@@ -126,6 +136,12 @@ def ds_v112_eta():
 @pytest.fixture
 def ds_v114_subset():
     return pylbo.load(utils / "v1.1.4_datfile_subset.dat")
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture
+def ds_v114_subset_defs():
+    return pylbo.load(utils / "v1.1.4_datfile_subset_defs.dat")
 
 
 @pytest.mark.timeout(5)
