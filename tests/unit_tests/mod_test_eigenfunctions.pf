@@ -9,6 +9,7 @@ module mod_test_eigenfunctions
   complex(dp) :: eigenvals(25)
   complex(dp), allocatable :: eigenvectors(:, :)
   type(ef_type) :: ef_test
+  character(len=10) :: test_names(5) = ["name1", "name2", "name3", "name4", "name5"]
 
 contains
 
@@ -118,6 +119,20 @@ contains
 
 
   @test
+  subroutine test_find_name_loc()
+    call set_name("eigenfunctions - retrieving name")
+    @assertEqual(2, find_name_loc_in_array("name2", test_names))
+  end subroutine test_find_name_loc
+
+
+  @test
+  subroutine test_find_name_loc_fail()
+    call set_name("eigenfunctions - retrieving name (fail)")
+    @assertEqual(0, find_name_loc_in_array("unknown", test_names))
+  end subroutine test_find_name_loc_fail
+
+
+  @test
   subroutine test_ef_names()
     call set_name("eigenfunctions - names")
     @assertEqual(8, size(ef_names))
@@ -125,10 +140,31 @@ contains
 
 
   @test
-  subroutine test_ef_names_derived()
-    call set_name("eigenfunctions - derived names")
-    write(*, *) derived_ef_names
-  end subroutine test_ef_names_derived
+  subroutine test_ef_names_derived_no_bfield()
+    call set_name("eigenfunctions - derived names (hydro)")
+    call enable_derived_efs()
+    @assertEqual(12, size(derived_ef_names))
+    @assertTrue(.not. any(derived_ef_names == "B_para"))
+  end subroutine test_ef_names_derived_no_bfield
+
+
+  @test
+  subroutine test_ef_names_derived_with_b01_field()
+    call set_name("eigenfunctions - derived names (with B01)")
+    logging_level = 0
+    call enable_derived_efs()
+    call use_bfield(use_b01=.true.)
+    @assertEqual(12, size(derived_ef_names))
+  end subroutine test_ef_names_derived_with_b01_field
+
+
+  @test
+  subroutine test_ef_names_derived_with_bfield()
+    call set_name("eigenfunctions - derived names (without B01)")
+    call enable_derived_efs()
+    call use_bfield(use_b01=.false.)
+    @assertEqual(20, size(derived_ef_names))
+  end subroutine test_ef_names_derived_with_bfield
 
 
   @test
