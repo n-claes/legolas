@@ -32,4 +32,6 @@ test_legolas
 *.egg*
 !/tests/regression_tests/answers/*.dat
 !/tests/regression_tests/answers/*.log
+!/tests/pylbo_tests/utility_files/*.dat
+!/tests/pylbo_tests/utility_files/*.log
 

@@ -119,23 +119,13 @@ module mod_types
 
   !> type containing all eigenfuction related variables
   type ef_type
-    !> index of the variable in the state vector
-    integer                  :: index
-    !> name of the eigenfunction (rho, v1, etc.)
-    character(str_len_arr)   :: name
-    !> array containing all eigenfunctions for this index
-    complex(dp), allocatable :: eigenfunctions(:, :)
-  end type ef_type
-
-  !> type containing all postprocessing related quantities
-  type pp_type
-    !> index of the variable in the state vector
-    integer                  :: index
-    !> name of the quantity (div v1, B1, B2, B3, etc.)
-    character(str_len_arr)   :: name
-    !> array containing all quantities for this index
+    !> index of the eigenfunction variable in the state vector
+    integer :: state_vector_index
+    !> name of the eigenfunction
+    character(str_len_arr) :: name
+    !> array with eigenfunctions
     complex(dp), allocatable :: quantities(:, :)
-  end type pp_type
+  end type ef_type
 
   !> type containing Hall related variables
   type hall_type
@@ -181,7 +171,6 @@ module mod_types
   public :: cooling_type
   public :: conduction_type
   public :: ef_type
-  public :: pp_type
   public :: hall_type
 
   public :: initialise_type

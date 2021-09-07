@@ -13,7 +13,6 @@ contains
   subroutine init_test()
     call reset_globals()
     call reset_fields(init_fields=.true.)
-    call reset_eigenfunctions(init_efs=.false.)
   end subroutine init_test
 
 

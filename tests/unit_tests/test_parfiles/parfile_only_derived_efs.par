@@ -1,0 +1,4 @@
+&savelist
+  write_eigenfunctions = .false.
+  write_derived_eigenfunctions = .true.
+/

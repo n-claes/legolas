@@ -16,6 +16,7 @@ from regression_tests.suite_utils import (
     EF_NAMES,
 )
 from regression_tests.test_adiabatic_homo import adiabatic_homo_setup
+from regression_tests.test_adiabatic_homo_ef_subset import adiabatic_ef_subset_setup
 from regression_tests.test_couette_flow import couette_flow_setup
 from regression_tests.test_discrete_alfven import discrete_alfven_setup
 from regression_tests.test_fluxtube_coronal import fluxtube_coronal_setup
@@ -32,6 +33,9 @@ from regression_tests.test_quasimodes import quasimodes_setup
 from regression_tests.test_resistive_homo import resistive_homo_setup
 from regression_tests.test_resistive_homo_arnoldi_si import (
     resistive_homo_arnoldi_si_setup,
+)
+from regression_tests.test_resistive_homo_ef_subset import (
+    resistive_homo_ef_subset_setup,
 )
 from regression_tests.test_resistive_tearing import resistive_tearing_setup
 from regression_tests.test_resistive_tearing_flow import resistive_tearing_flow_setup
@@ -56,6 +60,7 @@ from regression_tests.test_multi_photospheric_fluxtube import photospheric_tube_
 # retrieve test setups
 tests_to_run = [
     adiabatic_homo_setup,
+    adiabatic_ef_subset_setup,
     couette_flow_setup,
     discrete_alfven_setup,
     fluxtube_coronal_setup,
@@ -71,6 +76,7 @@ tests_to_run = [
     quasimodes_setup,
     resistive_homo_setup,
     resistive_homo_arnoldi_si_setup,
+    resistive_homo_ef_subset_setup,
     resistive_tearing_setup,
     resistive_tearing_flow_setup,
     rotating_cylinder_setup,
@@ -171,7 +177,11 @@ def test_multirun_file_exists(setup):
 
 
 # ===== GENERATION OF SPECTRUM IMAGES =====
-@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
+@pytest.mark.parametrize(
+    "setup",
+    [s for s in tests_to_run if s.get("image_limits") is not None],
+    ids=[s["name"] for s in tests_to_run if s.get("image_limits") is not None],
+)
 def test_generate_spectrum_images(ds_test, ds_answer, setup, imagedir):
     p_test = pylbo.plot_spectrum(ds_test)
     p_answer = pylbo.plot_spectrum(ds_answer)
@@ -246,6 +256,58 @@ def test_generate_eigenfunction_images(ds_test, ds_answer, setup, imagedir):
     plt.close(fig_test)
 
 
+# ===== GENERATION OF DERIVED EIGENFUNCTION IMAGES =====
+@pytest.mark.parametrize(
+    "setup",
+    [s for s in tests_to_run if s.get("derived_eigenfunctions") is not None],
+    ids=[
+        s["name"] for s in tests_to_run if s.get("derived_eigenfunctions") is not None
+    ],
+)
+def test_generate_derived_eigenfunction_images(ds_test, ds_answer, setup, imagedir):
+    setup["derived_eigenfunction_images"] = []
+    fig_test, axes_test = plt.subplots(5, 4, figsize=(10, 8), sharex="all")
+    axes_test = axes_test.flatten()
+    fig_answer, axes_answer = plt.subplots(5, 4, figsize=(10, 8), sharex="all")
+    axes_answer = axes_answer.flatten()
+    for i, efs in enumerate(setup.get("derived_eigenfunctions")):
+        eigenval = efs.get("eigenvalue")
+        figname = f"{setup['name']}_derived_eigenfunctions_{i}.png"
+        figtitle = f"{setup['name']} -- eigenvalue={eigenval:.6f}"
+        # generate baseline image
+        (efs_answer,) = ds_answer.get_derived_eigenfunctions(ev_guesses=eigenval)
+        figname_answer = f"{figname[:-4]}-baseline.png"
+        for ax, ef_name in zip(axes_answer, ds_answer.derived_ef_names):
+            result = efs_answer[ef_name].real + efs_answer[ef_name].imag
+            # small values to zero
+            result[np.where(abs(result) < ABS_TOL)] = 0
+            ax.plot(ds_answer.ef_grid, abs(result), lw=3)
+            ax.set_yticks([])
+            ax.set_title(ef_name)
+        fig_answer.suptitle(figtitle)
+        fig_answer.tight_layout()
+        fig_answer.savefig(imagedir / figname_answer, **SAVEFIG_KWARGS)
+        [ax.clear() for ax in axes_answer]
+
+        # generate test image
+        (efs_test,) = ds_test.get_derived_eigenfunctions(ev_guesses=eigenval)
+        for ax, ef_name in zip(axes_test, ds_answer.derived_ef_names):
+            result = efs_test[ef_name].real + efs_test[ef_name].imag
+            # small values to zero
+            result[np.where(abs(result) < ABS_TOL)] = 0
+            ax.plot(ds_test.ef_grid, abs(result), lw=3)
+            ax.set_yticks([])
+            ax.set_title(ef_name)
+        fig_test.suptitle(figtitle)
+        fig_test.tight_layout()
+        fig_test.savefig(imagedir / figname, **SAVEFIG_KWARGS)
+        [ax.clear() for ax in axes_test]
+
+        setup["derived_eigenfunction_images"].append((figname, figname_answer))
+    plt.close(fig_answer)
+    plt.close(fig_test)
+
+
 # ===== GENERATION OF MULTIRUN IMAGES =====
 @pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
 def test_generate_multi_spectra_images(series_test, series_answer, setup, imagedir):
@@ -292,11 +354,15 @@ def test_parameters(ds_test, ds_answer, setup):
 @pytest.mark.parametrize(
     argnames="setup,idx",
     argvalues=[
-        (_s, _idx) for _s in tests_to_run for _idx, _ in enumerate(_s["image_limits"])
+        (_s, _idx)
+        for _s in tests_to_run
+        if _s.get("image_limits") is not None
+        for _idx, _ in enumerate(_s["image_limits"])
     ],
     ids=[
         f"{_s['name']}-[x={lims['xlims']}, y={lims['ylims']}]"
         for _s in tests_to_run
+        if _s.get("image_limits") is not None
         for _idx, lims in enumerate(_s["image_limits"])
     ],
 )
@@ -399,3 +465,35 @@ def test_eigenfunction_edges(ds_test, ds_answer, setup, idx):
             assert efs_test.get(ef_name).imag[edge] == pytest.approx(0)
             assert efs_answer.get(ef_name).real[edge] == pytest.approx(0)
             assert efs_answer.get(ef_name).imag[edge] == pytest.approx(0)
+
+
+# ===== TESTS FOR DERIVED EIGENFUNCTION QUANTITIES =====
+@pytest.mark.parametrize(
+    argnames="setup,idx",
+    argvalues=[
+        (_s, _idx)
+        for _s in tests_to_run
+        if _s.get("derived_eigenfunctions") is not None
+        for _idx, _ in enumerate(_s["derived_eigenfunctions"])
+    ],
+    ids=[
+        f"{_s['name']}-eigenvalue={efs['eigenvalue']}"
+        for _s in tests_to_run
+        if _s.get("derived_eigenfunctions") is not None
+        for _idx, efs in enumerate(_s["derived_eigenfunctions"])
+    ],
+)
+def test_derived_eigenfunction(imagedir, setup, idx, keep_files):
+    test_image, baseline_image = setup["derived_eigenfunction_images"][idx]
+    result = compare_images(
+        str(imagedir / baseline_image),
+        str(imagedir / test_image),
+        tol=setup["derived_eigenfunctions"][idx].get("RMS_TOLERANCE", RMS_TOLERANCE),
+    )
+    # result will be None if test succeeds, if pass we remove images
+    if result is not None:
+        pytest.fail(result, pytrace=False)
+    else:
+        if not keep_files:
+            Path(imagedir / baseline_image).unlink()
+            Path(imagedir / test_image).unlink()

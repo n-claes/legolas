@@ -5,20 +5,6 @@ module mod_test_subblock
 
 contains
 
-  @before
-  subroutine init_test()
-    call reset_globals()
-    call reset_fields(init_fields=.true.)
-    call reset_eigenfunctions(init_efs=.false.)
-  end subroutine init_test
-
-
-  @after
-  subroutine teardown_test()
-    call clean_up()
-  end subroutine teardown_test
-
-
   @test
   subroutine test_subblock_fill()
     use mod_global_variables, only: dim_quadblock

@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 import pylbo
 
 
@@ -21,43 +22,27 @@ def test_load_invalid(datv0):
         pylbo.load([datv0, datv0])
 
 
+def test_load_no_version(datv0):
+    ds = pylbo.load(datv0)
+    assert ds.legolas_version == "0.0.0"
+
+
 def test_load_series_empty():
     with pytest.raises(ValueError):
         pylbo.load_series([])
 
 
-@pytest.mark.timeout(5)
-def test_load_series_multiple_equils(datv100, datv112, datv112_eta):
+def test_load_multiple_equilibria(datv1, datv112_eta):
     with pytest.raises(ValueError):
-        pylbo.load_series([datv100, datv112, datv112_eta])
+        pylbo.load_series([datv1, datv112_eta])
 
 
-@pytest.mark.timeout(5)
-def test_load_logfile_v0(logv0):
-    pylbo.load_logfile(logv0)
+def test_load_logfile(logv0):
+    eigenvals = pylbo.load_logfile(logv0)
+    assert isinstance(eigenvals, np.ndarray)
 
 
-@pytest.mark.timeout(5)
-def test_load_datfile_v0(datv0):
-    pylbo.load(datv0)
-
-
-@pytest.mark.timeout(5)
-def test_load_datfile_v090(datv090):
-    pylbo.load(datv090)
-
-
-@pytest.mark.timeout(5)
-def test_load_datfile_v100(datv100):
-    pylbo.load(datv100)
-
-
-@pytest.mark.timeout(5)
-def test_load_datfile_v112(datv112):
-    pylbo.load(datv112)
-
-
-@pytest.mark.timeout(5)
-def test_load_series(datv100):
-    series = pylbo.load_series([datv100, datv100, datv100])
-    assert len(series) == 3
+def test_load_logfile_and_sort(logv0):
+    eigenvals = pylbo.load_logfile(logv0, sort=True)
+    assert isinstance(eigenvals, np.ndarray)
+    assert np.all(eigenvals[:-1] <= eigenvals[1:])

@@ -1,16 +1,19 @@
 import abc
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.collections import PathCollection
-from pylbo.data_containers import LegolasDataSeries
+from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
 from pylbo.utilities.toolbox import add_pickradius_to_item
+from pylbo.utilities.logger import pylboLogger
 
 
 class EigenfunctionInterface:
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, data, axis):
+    def __init__(self, data, axis, spec_axis):
         self.data = data
         self.axis = axis
+        self.spec_axis = spec_axis
         self._check_data_is_present()
         # holds the points that are currently selected in the form of a "double" dict:
         # {"ds instance" : {"index" : line2D instance}}
@@ -23,6 +26,8 @@ class EigenfunctionInterface:
         self._condition_to_make_transparent = None
         self._transparent_data = False
         self._unmarked_alpha = None
+
+        self._ef_subset_artists = None
 
     def _check_data_is_present(self):
         """
@@ -47,10 +52,8 @@ class EigenfunctionInterface:
             `True` if all conditions are met and callbacks can be connected, `False`
             otherwise.
         """
-        # this attr has been set in case of multiple axes, prevents double event trigger
-        if hasattr(self, "associated_ds_ax"):
-            if not event.mouseevent.inaxes == self.associated_ds_ax:
-                return False
+        if not event.mouseevent.inaxes == self.spec_axis:
+            return False
         artist = event.artist
         # this attr has been set when adding the legend, return for legend items
         if hasattr(artist, "is_legend_item"):
@@ -187,6 +190,8 @@ class EigenfunctionInterface:
             self._clear_figure_and_selection()
         elif event.key == "i":
             self._switch_real_and_imaginary_part()
+        elif event.key == "e":
+            self._toggle_eigenfunction_subset_radius()
         elif event.key == "up":
             self._select_next_function()
         elif event.key == "down":
@@ -212,6 +217,9 @@ class EigenfunctionInterface:
         associated_ds = event.artist.dataset
         # skip if point index is already in list
         if str(idx) in self._selected_idxs.get(associated_ds, {}).keys():
+            return
+        # skip if point has no eigenfunction due to e.g. subset
+        if not self._selected_point_has_eigenfunctions(associated_ds, idx):
             return
         (marked_point,) = event.artist.axes.plot(
             xdata,
@@ -286,6 +294,60 @@ class EigenfunctionInterface:
             distances = (mouse_x - xdata[idxs]) ** 2 + (mouse_y - ydata[idxs]) ** 2
             idx = idxs[distances.argmin()]
         return idx, xdata[idx], ydata[idx]
+
+    def _selected_point_has_eigenfunctions(self, ds, idx):
+        """
+        Checks if the selected index has eigenfunctions associated with it, in the
+        case of for example eigenfunction subsets this is not guaranteed.
+
+        Parameters
+        ----------
+        ds : ~pylbo.data_containers.LegolasDataSet
+            The dataset associated with the given eigenvalue index
+        idx : int
+            The index of the selected eigenvalue
+
+        Returns
+        -------
+        bool
+            Returns `True` if `idx` corresponds to an eigenvalue with eigenfunctions,
+            `False` otherwise.
+        """
+        point_has_efs = idx in ds.header["ef_written_idxs"]
+        if not point_has_efs:
+            pylboLogger.warning(
+                f"eigenvalue {ds.eigenvalues[idx]} has no eigenfunctions!"
+            )
+        return point_has_efs
+
+    def _toggle_eigenfunction_subset_radius(self):
+        if not isinstance(self.data, LegolasDataSet):
+            return
+        if all(self.data.header["ef_written_flags"]):
+            return
+        xlim = self.spec_axis.get_xlim()
+        ylim = self.spec_axis.get_ylim()
+        if self._ef_subset_artists is None:
+            center = self.data.header["eigenfunction_subset_center"]
+            (subset_center,) = self.spec_axis.plot(
+                np.real(center), np.imag(center), ".r", markersize=8, alpha=0.8
+            )
+            subset_center.set_visible(False)
+            radius = self.data.header["eigenfunction_subset_radius"]
+            circle = plt.Circle(
+                (np.real(center), np.imag(center)),
+                radius,
+                edgecolor="red",
+                facecolor="none",
+                lw=2,
+            )
+            circle.set_visible(False)
+            self.spec_axis.add_patch(circle)
+            self._ef_subset_artists = {"center": subset_center, "circle": circle}
+        for artist in self._ef_subset_artists.values():
+            artist.set_visible(not artist.get_visible())
+        self.spec_axis.set_xlim(xlim)
+        self.spec_axis.set_ylim(ylim)
 
     def _mark_points_without_data_written(self):
         """

@@ -32,7 +32,6 @@ contains
   !!          and matrix saving to <tt>False</tt>, independent of the settings in the parfile! @endwarning
   subroutine read_parfile(parfile)
     use mod_check_values, only: is_equal, is_NaN
-    use mod_units, only: set_normalisations
 
     !> the name of the parfile
     character(len=*), intent(in)  :: parfile
@@ -60,7 +59,9 @@ contains
         nb_spurious_eigenvalues
     namelist /savelist/ &
         write_matrices, write_eigenfunctions, show_results, basename_datfile, &
-        basename_logfile, output_folder, logging_level, dry_run, write_postprocessed
+        basename_logfile, output_folder, logging_level, dry_run, &
+        write_derived_eigenfunctions, write_eigenfunction_subset, &
+        eigenfunction_subset_center, eigenfunction_subset_radius
     namelist /paramlist/  &
         k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, cte_v03, &
         cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
@@ -124,6 +125,53 @@ contains
       write_matrices = .false.
     end if
 
+    ! Check eigenfunction settings
+    if (write_derived_eigenfunctions .and. (.not. write_eigenfunctions)) then
+      call log_message( &
+        "derived quantities need eigenfunctions, these will also be saved in datfile", &
+        level="warning" &
+      )
+      write_eigenfunctions = .true.
+    end if
+
+    call check_and_set_supplied_unit_normalisations( &
+      unit_density, &
+      unit_temperature, &
+      unit_magneticfield, &
+      unit_length, &
+      mean_molecular_weight &
+    )
+
+    ! for an ef subset, check if global subset parameters are properly set
+    if (write_eigenfunction_subset) then
+      call check_global_eigenfunction_subset_parameters()
+    end if
+  end subroutine read_parfile
+
+
+  !> Checks the unit normalisations that are supplied (if any), sets the
+  !! unit normalisations if valid.
+  subroutine check_and_set_supplied_unit_normalisations( &
+    unit_density, &
+    unit_temperature, &
+    unit_magneticfield, &
+    unit_length, &
+    mean_molecular_weight &
+  )
+    use mod_units, only: set_normalisations
+    use mod_check_values, only: is_NaN
+
+    !> supplied unit density
+    real(dp), intent(in)  :: unit_density
+    !> supplied unit temperature
+    real(dp), intent(in)  :: unit_temperature
+    !> supplied unit magneticfield
+    real(dp), intent(in)  :: unit_magneticfield
+    !> supplied unit length
+    real(dp), intent(in)  :: unit_length
+    !> supplied mean molecular weight
+    real(dp), intent(in)  :: mean_molecular_weight
+
     ! Provide normalisations, if supplied
     if (.not. is_NaN(unit_density) .and. .not. is_NaN(unit_temperature)) then
       call log_message( &
@@ -182,7 +230,25 @@ contains
         )
       end if
     end if
-  end subroutine read_parfile
+  end subroutine check_and_set_supplied_unit_normalisations
+
+
+  !> Called when the eigenfunction subset selection is enabled, this checks if the
+  !! global variables are properly set.
+  subroutine check_global_eigenfunction_subset_parameters()
+    use mod_global_variables, only: eigenfunction_subset_center, &
+      eigenfunction_subset_radius
+    use mod_check_values, only: is_NaN
+
+    if (is_NaN(eigenfunction_subset_center)) then
+      call log_message("eigenfunction_subset_center must be set!", level="error")
+      return
+    end if
+    if (is_NaN(eigenfunction_subset_radius)) then
+      call log_message("eigenfunction_subset_radius must be set!", level="error")
+      return
+    end if
+  end subroutine check_global_eigenfunction_subset_parameters
 
 
   ! LCOV_EXCL_START <this routine is excluded from coverage>

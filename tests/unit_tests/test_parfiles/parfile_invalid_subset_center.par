@@ -1,0 +1,4 @@
+&savelist
+  write_eigenfunctions = .true.
+  write_eigenfunction_subset = .true.
+/
