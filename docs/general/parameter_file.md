@@ -123,6 +123,10 @@ The level of output is controlled through the integer `logging_level`:
 | :---         | :---: |   :----        |          :---:      |
 | write_matrices    | logical | if `.true.` the matrices are written to the datfile   |   `.false.`   |
 | write_eigenfunctions  | logical | if `.true.` eigenfunctions are calculated and written to the datfile  |   `.true.`  |
+| write_derived_eigenfunctions | logical | if `.true.` also calculates derived eigenfunction quantities ($\nabla \cdot \mathbf{B_1}$, $S$, $v_\parallel$, etc.) |  `.false.` |
+| write_eigenfunction_subset | logical | if `.true.` only saves a part of the eigenfunctions to the datfile, based on a given radius and complex point | `.false.` |
+| eigenfunction_subset_center | complex | point in the complex plane that defines the center of the circle in which to save eigenfunctions, needs `eigenfunction_subset_radius` to be set | - |
+| eigenfunction_subset_radius | float | radius around `eigenfunction_subset_center`, all eigenvalues within this circle will have their eigenfunctions saved | - |
 | show_results  | logical | calls the python wrapper after the run is finished and plots the results, requires `pylbo_wrapper.py` to be in the same directory as the executable.  | `.true.`  |
 | basename_datfile  | string | the base name of the datfile, this is prepended with the output directory and appended with `".dat"`  | `"datfile"`   |
 | basename_logfile  | string | if not an empty string, saves the eigenvalues to a plain text file with name `basename_logfile.log` (mainly used for testing)  | `""`  |

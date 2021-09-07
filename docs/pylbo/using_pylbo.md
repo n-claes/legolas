@@ -80,6 +80,13 @@ axis and split it in two. The spectrum will be drawn on the left, the eigenfunct
 for which you want to see eigenfunctions. Selected points will be annotated on the plot, clicking left will deselect them.
 Pressing Enter draws the eigenfunctions for the selected points, you can cycle through the various eigenfunctions as well.
 
+If derived eigenfunction quantities were saved as well, you can create an additional spectrum plot and attach those instead:
+```python
+p2 = pylbo.plot_spectrum(ds)
+p2.add_derived_eigenfunctions()
+```
+Usage and interactivity is exactly the same as for the regular eigenfunctions.
+
 Note that every point you select will have a different color, the colors between the eigenfunctions and the selected spectrum points are consistent.
 The legend on the eigenfunction panel will contain the index of the selected point in the `ds.eigenvalues` array, with the value printed as well.
 Below is a detailed overview of the various commands:
@@ -95,6 +102,7 @@ Below is a detailed overview of the various commands:
 | _d_ | Clears current selection. |
 | _t_ | Retransforms the eigenfunctions using the scale factor, hence has no effect if `geometry = "Cartesian"`. You can use this to cycle between the $rv_r$ and $v_r$ eigenfunctions in cylindrical geometry, for example. |
 | _w_ | prints out the currently selected eigenvalues to the console. This may come in handy if you want to copy the exact values somewhere, to extract eigenfunctions for example. |
+| _e_ | toggles a visualisation of the subset of eigenvalues that have their eigenfunctions saved, has no effect if `write_eigenfunction_subset` was set to `.false.`. |
 
 #### Retrieving eigenvalues & eigenfunctions
 You can manually retrieve the eigenfunctions from the dataset as well. You can either supply the eigenvalue indices (based on the interactive legend on the eigenfunction panel),
@@ -119,6 +127,8 @@ print(eigenfuncs[0].keys())
 >> "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3", "eigenvalue"
 ```
 The names of the keys are self-explanatory.
+
+To retrieve derived eigenfunction quantities use `ds.get_derived_eigenfunctions` instead.
 
 You can also retrieve eigenvalues near guesses, this will return both the indices and corresponding eigenvalues:
 ```python
