@@ -3,7 +3,7 @@ import matplotlib.gridspec as gridspec
 from pathlib import Path
 from functools import wraps
 from pylbo.utilities.logger import pylboLogger
-from pylbo._version import _mpl_version
+from pylbo.utilities.toolbox import get_axis_geometry, transform_to_numpy
 
 
 def refresh_plot(f):
@@ -150,8 +150,6 @@ class FigureWindow:
         Scaling to apply to the x-axis.
     y_scaling : int, float, complex, np.ndarray
         Scaling to apply to the y-axis.
-    enabled : bool
-        If `False` (default), the current figure will not be plotted at plt.show().
     """
 
     figure_stack = FigureContainer()
@@ -246,12 +244,13 @@ class FigureWindow:
                 {"cid": callback_id, "kind": callback_kind, "method": callback_method}
             )
 
-    def _add_subplot_axes(self, ax, loc="right", share=None):
+    def _add_subplot_axes(self, ax, loc="right", share=None, apply_tight_layout=True):
         """
-        Adds a new subplot to the given axes object, depending on the loc argument.
-        On return, `tight_layout()` is called to update the figure's gridspec.
-        This is meant to split a single axis, and should not be used for multiple
-        subplots.
+        Adds a new subplot to a given matplotlib subplot, essentially "splitting" the
+        axis into two. Position and placement depend on the loc argument.
+        When called on a more complex subplot layout the overall gridspec remains
+        untouched, only the `ax` object has its gridspec modified.
+        On return, `tight_layout()` is called by default to prevent overlapping labels.
 
         Parameters
         ----------
@@ -264,62 +263,56 @@ class FigureWindow:
             to the left and the new axis is added on the right.
         share : str
             Can be "x", "y" or "all". This locks axes zooming between both subplots.
+        apply_tight_layout : bool
+            If `True` applies `tight_layout()` to the figure on return.
 
         Raises
         ------
         ValueError
-            - If the subplot is not a single axis
-            - If the loc argument is invalid.
+            If the loc argument is invalid.
 
         Returns
         -------
-        new_ax : ~matplotlib.axes.Axes
+        ~matplotlib.axes.Axes
             The axes instance that was added.
         """
-        if _mpl_version >= "3.4":
-            axes_geometry = ax.get_subplotspec().get_geometry()[0:2]
-        else:
-            axes_geometry = ax.get_geometry()[0:2]
-
-        if axes_geometry != (1, 1):
-            raise ValueError(
-                f"Something went wrong when adding a subplot. Expected "
-                f"axes with geometry (1, 1) but got {axes_geometry}."
-            )
-        if loc == "top":
-            geom_ax = (2, 1, 2)
-            geom_new_ax = (2, 1, 1)
-        elif loc == "right":
-            geom_ax = (1, 2, 1)
-            geom_new_ax = (1, 2, 2)
-        elif loc == "bottom":
-            geom_ax = (2, 1, 1)
-            geom_new_ax = (2, 1, 2)
-        elif loc == "left":
-            geom_ax = (1, 2, 2)
-            geom_new_ax = (1, 2, 1)
-        else:
-            raise ValueError(
-                f"invalid loc = {loc}, expected 'top', 'right', 'bottom' or 'left'"
-            )
         sharex = None
         sharey = None
         if share in ("x", "all"):
             sharex = ax
         if share in ("y", "all"):
             sharey = ax
-        # handle deprecation of `change_geometry` in mpl 3.4
-        if _mpl_version >= "3.4":
-            spec = gridspec.GridSpec(*geom_ax[0:2], figure=self.fig)
-            # geom_ax[-1] - 1 determines position of plot in window, index 0 based
-            ax.set_subplotspec(gridspec.SubplotSpec(spec, geom_ax[-1] - 1))
-            new_ax = self.fig.add_subplot(spec[geom_new_ax[-1] - 1])
+
+        if loc == "right":
+            subplot_geometry = (1, 2)
+            old_new_position = (0, 1)
+        elif loc == "left":
+            subplot_geometry = (1, 2)
+            old_new_position = (1, 0)
+        elif loc == "top":
+            subplot_geometry = (2, 1)
+            old_new_position = (1, 0)
+        elif loc == "bottom":
+            subplot_geometry = (2, 1)
+            old_new_position = (0, 1)
         else:
-            ax.change_geometry(*geom_ax)
-            new_ax = self.fig.add_subplot(*geom_new_ax, sharex=sharex, sharey=sharey)
-            # this will update the figure's gridspec
+            raise ValueError(
+                f"invalid loc={loc}, expected ['top', 'right', 'bottom', 'left']"
+            )
+
+        _geometry = transform_to_numpy(get_axis_geometry(self.ax))
+        subplot_index = _geometry[-1]
+        gspec_outer = gridspec.GridSpec(*_geometry[0:2], figure=self.fig)
+        gspec_inner = gridspec.GridSpecFromSubplotSpec(
+            *subplot_geometry, subplot_spec=gspec_outer[subplot_index]
+        )
+        self.ax.set_subplotspec(gspec_inner[old_new_position[0]])
+        new_axis = self.fig.add_subplot(
+            gspec_inner[old_new_position[1]], sharex=sharex, sharey=sharey
+        )
+        if apply_tight_layout:
             self.fig.tight_layout()
-        return new_ax
+        return new_axis
 
     def draw(self):
         """

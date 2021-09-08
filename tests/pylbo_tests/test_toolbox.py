@@ -1,6 +1,29 @@
 import pytest
 import numpy as np
+import matplotlib.pyplot as plt
 from pylbo.utilities import toolbox
+
+
+def test_geometry_single_figure():
+    _, ax = plt.subplots(1)
+    assert toolbox.get_axis_geometry(ax) == (1, 1, 0)
+
+
+def test_geometry_multiple_columns():
+    _, axes = plt.subplots(1, 3)
+    assert toolbox.get_axis_geometry(axes[1]) == (1, 3, 1)
+
+
+def test_geometry_multiple_rows():
+    _, axes = plt.subplots(4, 1)
+    assert toolbox.get_axis_geometry(axes[2]) == (4, 1, 2)
+
+
+def test_geometry_multiple_rows_and_columns():
+    _, axes = plt.subplots(3, 3)
+    assert toolbox.get_axis_geometry(axes[0, 1]) == (3, 3, 1)
+    assert toolbox.get_axis_geometry(axes[1, 1]) == (3, 3, 4)
+    assert toolbox.get_axis_geometry(axes[2, 0]) == (3, 3, 6)
 
 
 def test_enumerate():

@@ -3,6 +3,31 @@ import matplotlib.lines as mpl_lines
 from pylbo._version import _mpl_version
 
 
+def get_axis_geometry(ax):
+    """
+    Retrieves the geometry of a given matplotlib axis.
+
+    Parameters
+    ----------
+    ax : ~matplotlib.axes.Axes
+        The axis to retrieve the geometry from.
+
+    Returns
+    -------
+    tuple
+        The geometry of the given matplotlib axis.
+    """
+    if _mpl_version >= "3.4":
+        axis_geometry = ax.get_subplotspec().get_geometry()[0:3]
+    else:
+        # this is 1-based indexing by default, use 0-based here for consistency
+        # with subplotspec in matplotlib 3.4+
+        axis_geometry = transform_to_numpy(ax.get_geometry())
+        axis_geometry[-1] -= 1
+        axis_geometry = tuple(axis_geometry)
+    return axis_geometry
+
+
 def add_pickradius_to_item(item, pickradius):
     """
     Makes a matplotlib artist pickable and adds a pickradius.
