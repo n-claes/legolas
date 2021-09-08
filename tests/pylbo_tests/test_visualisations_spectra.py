@@ -83,11 +83,11 @@ def test_spectrum_plot_save(tmpdir, ds_v112):
     assert filepath.is_file()
 
 
-def test_spectrum_plot_custom_figure_fail(ds_v112):
+def test_spectrum_plot_custom_figure_efs(ds_v112):
     fig, axes = plt.subplots(1, 2)
     p = pylbo.plot_spectrum(ds_v112, custom_figure=(fig, axes[0]))
-    with pytest.raises(ValueError):
-        p.add_eigenfunctions()
+    p.add_eigenfunctions()
+    assert len(fig.get_axes()) == 3
 
 
 def test_spectrum_plot_custom_figure(ds_v112):
