@@ -663,10 +663,8 @@ class SpectrumComparisonPlot(SpectrumFigure):
         """Splits the original 1x2 plot into a 2x2 plot."""
         if self._axes_set:
             return
-        self.panel1.ax.change_geometry(2, 2, 1)
-        self.panel1._ef_ax = self.panel1.fig.add_subplot(2, 2, 3)
-        self.panel2.ax.change_geometry(2, 2, 2)
-        self.panel2._ef_ax = self.panel2.fig.add_subplot(2, 2, 4)
+        self.panel1._ef_ax = self.panel1._add_subplot_axes(self.panel1.ax, loc="bottom")
+        self.panel2._ef_ax = self.panel2._add_subplot_axes(self.panel2.ax, loc="bottom")
         self._axes_set = True
 
     def add_eigenfunctions(self):

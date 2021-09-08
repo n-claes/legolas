@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pylbo
 from pylbo.visualisation.spectra import SingleSpectrumPlot
 from pylbo.exceptions import EigenfunctionsNotPresent
+from pylbo.utilities.toolbox import get_axis_geometry
 
 
 def test_spectrum_plot_invalid_data(series_v112):
@@ -294,7 +295,8 @@ def test_comparison_plot_continua(ds_v100, ds_v112):
 def test_comparison_plot_eigenfunctions(ds_v112):
     p = pylbo.plot_spectrum_comparison(ds_v112, ds_v112)
     p.add_eigenfunctions()
-    for panel, position in zip(
-        (p.panel1.ax, p.panel2.ax, p.panel1.ef_ax, p.panel2.ef_ax), np.arange(0, 4)
-    ):
-        assert panel.get_subplotspec().get_geometry()[0:3] == (2, 2, position)
+    assert get_axis_geometry(p.panel1.ax) == (2, 1, 0)
+    assert get_axis_geometry(p.panel1.ef_ax) == (2, 1, 1)
+    assert get_axis_geometry(p.panel2.ax) == (2, 1, 0)
+    assert get_axis_geometry(p.panel2.ef_ax) == (2, 1, 1)
+    assert len(p.fig.get_axes()) == 4
