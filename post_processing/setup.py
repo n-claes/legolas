@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from pathlib import Path
 
 package_name = "pylbo"
-required_packages = ["numpy", "matplotlib", "f90nml", "tqdm", "psutil"]
+required_packages = ["numpy", "matplotlib", "f90nml", "tqdm", "psutil", "packaging"]
 
 version_filepath = (Path(__file__).parent / "pylbo/_version.py").resolve()
 VERSION = None

@@ -13,8 +13,7 @@ class MatrixFigure(FigureWindow):
         self.dataset = dataset
         self.kwargs = kwargs
 
-        self.ax.change_geometry(1, 2, 1)
-        self.ax2 = self.fig.add_subplot(122)
+        self.ax2 = self._add_subplot_axes(self.ax, loc="right")
         self.draw()
 
     def draw(self):
