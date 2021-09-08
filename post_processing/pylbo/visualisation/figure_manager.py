@@ -300,13 +300,13 @@ class FigureWindow:
                 f"invalid loc={loc}, expected ['top', 'right', 'bottom', 'left']"
             )
 
-        _geometry = transform_to_numpy(get_axis_geometry(self.ax))
+        _geometry = transform_to_numpy(get_axis_geometry(ax))
         subplot_index = _geometry[-1]
         gspec_outer = gridspec.GridSpec(*_geometry[0:2], figure=self.fig)
         gspec_inner = gridspec.GridSpecFromSubplotSpec(
             *subplot_geometry, subplot_spec=gspec_outer[subplot_index]
         )
-        self.ax.set_subplotspec(gspec_inner[old_new_position[0]])
+        ax.set_subplotspec(gspec_inner[old_new_position[0]])
         new_axis = self.fig.add_subplot(
             gspec_inner[old_new_position[1]], sharex=sharex, sharey=sharey
         )
