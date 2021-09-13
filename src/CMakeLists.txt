@@ -87,6 +87,7 @@ set (sources
         eigenfunctions/smod_derived_pp_efs.f08
         dataIO/mod_output.f08
         utils/mod_assert.f08
+        utils/mod_timing.f08
 )
 
 include_directories(includes)
