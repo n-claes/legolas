@@ -86,8 +86,10 @@ set (sources
         eigenfunctions/smod_derived_efs.f08
         eigenfunctions/smod_derived_pp_efs.f08
         dataIO/mod_output.f08
+        utils/mod_assert.f08
 )
 
+include_directories(includes)
 set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)
 set_source_files_properties(main.f08 PROPERTIES LANGUAGE Fortran)
 
