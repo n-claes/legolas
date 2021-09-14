@@ -33,7 +33,8 @@
 !!call cputoc("slow operation is done", start_time)
 !!```
 module mod_timing
-  use mod_logging, only: log_message
+  use mod_global_variables, only: dp
+  use mod_logging, only: log_message, str
   implicit none
 
   private
@@ -92,8 +93,8 @@ contains
     !! the module variable is used.
     integer, optional, intent(in) :: start_time
 
-    integer       :: selected_start_time, rate, end_time
-    character(25) :: time_str
+    integer  :: selected_start_time, rate, end_time
+    real(dp) :: elapsed_time
 
     if (present(start_time)) then
         selected_start_time = start_time
@@ -103,8 +104,9 @@ contains
 
     call system_clock(end_time, rate)
 
-    write (time_str, '(F0.3)') real(end_time - selected_start_time) / rate
-    call log_message(message // " (" // trim(time_str) // " s)", level="debug")
+    elapsed_time = real(end_time - selected_start_time, kind=dp) / rate
+    call log_message(message // " (" // str(elapsed_time, fmt="f20.3") // " s)", &
+                   & level="debug")
   end subroutine toc
 
   !> Subroutine to start a CPU timer.
@@ -151,8 +153,8 @@ contains
     !! the module variable is used.
     real, optional, intent(in) :: start_time
 
-    real          :: selected_start_time, end_time
-    character(25) :: time_str
+    real     :: selected_start_time, end_time
+    real(dp) :: elapsed_time
 
     if (present(start_time)) then
         selected_start_time = start_time
@@ -162,8 +164,9 @@ contains
 
     call cpu_time(end_time)
 
-    write (time_str, '(F0.3)') end_time - selected_start_time
-    call log_message(message // " (" // trim(time_str) // " s CPU)", level="debug")
+    elapsed_time = end_time - selected_start_time
+    call log_message(message // " (" // str(elapsed_time, fmt="f20.3") // " s, CPU time)", &
+                   & level="debug")
   end subroutine cputoc
 
 end module mod_timing
