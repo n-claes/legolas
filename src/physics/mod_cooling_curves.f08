@@ -274,6 +274,7 @@ contains
     integer     :: i, j, idx
 
     do i = 1, size(T0)
+      idx = 1
       log10_T0 = dlog10(T0(i) * unit_temperature)
 
       ! look up value in tables

@@ -1,5 +1,5 @@
 module mod_matrix_shortcuts
-  use mod_global_variables, only: dp
+  use mod_global_variables, only: dp, NaN
   use mod_equilibrium, only: B_field
   use mod_equilibrium_params, only: k2, k3
   use mod_grid, only: eps_grid, d_eps_grid_dr
@@ -40,6 +40,7 @@ contains
         - k3 * B_field % B03(gauss_idx) &
       )
     else
+      Foperator = NaN
       call log_message( &
         "requesting invalid F-operator sign: " // trim(which), level="error" &
       )
@@ -79,6 +80,7 @@ contains
         ) - k3 * B_field % d_B03_dr(gauss_idx) &
       )
     else
+      dFoperator = NaN
       call log_message( &
         "requesting invalid dF-operator sign: " // trim(which), level="error" &
       )
@@ -110,6 +112,7 @@ contains
         + k2 * B_field % B03(gauss_idx) / eps_grid(gauss_idx) &
       )
     else
+      Goperator = NaN
       call log_message( &
         "requesting invalid G-operator sign: " // trim(which), level="error" &
       )
@@ -165,6 +168,7 @@ contains
     else if (which == "++") then
       Kp_operator = Kp_plusplus
     else
+      Kp_operator = NaN
       call log_message("requesting invalid Kp-operator: " // trim(which), level="error")
     end if
   end function get_Kp_operator

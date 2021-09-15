@@ -386,28 +386,28 @@ contains
     if (.not. all(is_equal(profile, b02_prof(hfile)))) then
       prof_names = trim(prof_names // " B02")
     end if
-    b02_cte = (is_constant(profile) .and. is_constant(b02_prof(hfile)))
+    b02_cte = (is_constant(b02_prof(hfile)) .and. is_constant(profile))
     ! check dB02
     read(unit) profile
     if (.not. all(is_equal(profile, db02_prof(hfile)))) then
       prof_names = trim(prof_names // " dB02")
     end if
     db02_zero = ( &
-      all(is_equal(profile, 0.0d0)) .and. all(is_equal(db02_prof(hfile), 0.0d0)) &
+      all(is_equal(db02_prof(hfile), 0.0d0)) .and. all(is_equal(profile, 0.0d0)) &
     )
     ! check B03
     read(unit) profile
     if (.not. all(is_equal(profile, b03_prof(hfile)))) then
       prof_names = trim(prof_names // " B03")
     end if
-    b03_cte = (is_constant(profile) .and. is_constant(b03_prof(hfile)))
+    b03_cte = (is_constant(b03_prof(hfile)) .and. is_constant(profile))
     ! check dB03
     read(unit) profile
     if (.not. all(is_equal(profile, db03_prof(hfile)))) then
       prof_names = trim(prof_names // " dB03")
     end if
     db03_zero = ( &
-      all(is_equal(profile, 0.0d0)) .and. all(is_equal(db03_prof(hfile), 0.0d0)) &
+      all(is_equal(db03_prof(hfile), 0.0d0)) .and. all(is_equal(profile, 0.0d0)) &
     )
 
     ! if both B02 and B03 are constant then values do not matter for profile, so skip

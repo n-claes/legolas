@@ -62,7 +62,7 @@ contains
 
 
   function get_diagonal_factor(matrix) result(diagonal_factor)
-    use mod_global_variables, only: solver
+    use mod_global_variables, only: solver, NaN
 
     character, intent(in) :: matrix
     complex(dp) :: diagonal_factor
@@ -76,6 +76,7 @@ contains
         diagonal_factor = (1.0d20, 0.0d0)
       end if
     else
+      diagonal_factor = NaN
       call log_message( &
         "get_diagonal_factor: invalid matrix argument " // matrix, level="error" &
       )

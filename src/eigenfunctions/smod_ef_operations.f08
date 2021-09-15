@@ -106,7 +106,7 @@ contains
     integer, intent(in) :: diff_order
     !> finite element basis functions for this grid position
     real(dp)  :: spline(4)
-    procedure(), pointer :: spline_function
+    procedure(), pointer :: spline_function => null()
 
     select case(name)
     case("v1", "a2", "a3")

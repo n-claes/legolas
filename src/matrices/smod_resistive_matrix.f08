@@ -163,6 +163,8 @@ contains
   !!      \left(\frac{\varepsilon'}{\varepsilon}\eta_0' \pm \eta_0\right)
   !! $$
   function get_R_operator(gauss_idx, which) result(Roperator)
+    use mod_global_variables, only: NaN
+
     !> current index in the Gaussian grid
     integer, intent(in) :: gauss_idx
     !> which operator to calculate, <tt>"plus"</tt> or <tt>"minus"</tt>
@@ -183,6 +185,7 @@ contains
     else if (which == "minus") then
       Roperator = (deps * eta / eps - deta)
     else
+      Roperator = NaN
       call log_message( &
         "requesting invalid R-operator sign: " // trim(which), level="error" &
       )
