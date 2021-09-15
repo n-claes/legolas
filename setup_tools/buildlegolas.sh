@@ -35,16 +35,24 @@ if [[ "$1" == "clean" ]]; then
   fi
   exit
 fi
+
 if [[ ! -f CMakeLists.txt ]]; then
-    echo "CMakeLists.txt not found! Can not start build process."
-    exit
+  echo "CMakeLists.txt not found! Can not start build process."
+  exit
 fi
-mkdir build
+if [[ ! -d build ]]; then
+  mkdir build
+fi
 cd build || exit
-if [[ "$1" == "coverage" ]]; then
-  cmake -DCoverage=ON ..
-else
-  cmake ..
+if [[ "$1" == "debug" ]]; then
+  echo "Configuring Legolas in debug mode..."
+  cmake -DCMAKE_BUILD_TYPE=Debug ..
+elif [[ "$1" == "coverage" ]]; then
+  echo "Configuring Legolas in debug mode with code coverage enabled..."
+  cmake -DCMAKE_BUILD_TYPE=Debug -DCoverage=ON ..
+else # release build by default
+  cmake -DCMAKE_BUILD_TYPE=Release ..
 fi
+echo "Building Legolas..."
 make -j 2
 cd ..
