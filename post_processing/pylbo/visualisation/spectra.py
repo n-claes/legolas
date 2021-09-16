@@ -187,45 +187,20 @@ class SingleSpectrumPlot(SpectrumFigure):
             continuum = self.dataset.continua[key]
             if self._c_handler.check_if_all_zero(continuum=continuum):
                 continue
-            min_value = np.min(continuum)
-            max_value = np.max(continuum)
-            # check if continua are complex
-            if np.any(np.iscomplex(continuum)):
-                item = self.ax.scatter(
-                    continuum.real * self.x_scaling,
-                    continuum.imag * self.y_scaling,
-                    marker=".",
-                    color=color,
-                    linewidth=self.markersize,
-                    alpha=self.alpha / 1.5,
-                    label=key,
-                )
-            elif self._c_handler.check_if_collapsed(continuum=continuum):
-                item = self.ax.scatter(
-                    min_value * self.x_scaling,
-                    0,
-                    marker=self._c_handler.marker,
-                    s=self._c_handler.markersize,
-                    c=color,
-                    alpha=self._c_handler.alpha_point,
-                    label=key,
-                )
-            else:
-                props = dict(
-                    facecolor=colors.to_rgba(color, self._c_handler.alpha_region),
-                    edgecolor=colors.to_rgba(color, self._c_handler.alpha_point),
-                    label=key,
-                )
-                if key == "thermal":
-                    item = self.ax.axhspan(
-                        min_value.imag * self.y_scaling,
-                        max_value * self.y_scaling,
-                        **props,
-                    )
-                else:
-                    item = self.ax.axvspan(
-                        min_value * self.x_scaling, max_value * self.x_scaling, **props
-                    )
+            realvals = continuum.real * self.x_scaling
+            imagvals = continuum.imag * self.y_scaling
+            if self._c_handler.check_if_collapsed(continuum=continuum):
+                realvals = np.min(realvals)
+                imagvals = 0
+            item = self.ax.scatter(
+                realvals,
+                imagvals,
+                marker=self._c_handler.marker,
+                linewidth=self._c_handler.markersize,
+                c=color,
+                alpha=self._c_handler.alpha_point,
+                label=key,
+            )
             self._c_handler.add(item)
         self._c_handler.legend = self.ax.legend(**self._c_handler.legend_properties)
         super().add_continua(self._c_handler.interactive)
@@ -250,11 +225,6 @@ class SingleSpectrumPlot(SpectrumFigure):
                 self.dataset, self._def_ax, self.ax
             )
         super()._enable_interface(handle=self._def_handler)
-
-    def _ensure_smooth_continuum(self, continuum):
-        # TODO: this method should split the continuum into multiple parts, such that
-        #       regions that lie far apart are not connected by a line.
-        pass
 
 
 class MultiSpectrumPlot(SpectrumFigure):
@@ -432,9 +402,8 @@ class MultiSpectrumPlot(SpectrumFigure):
             self._c_handler.continua_names, self._c_handler.continua_colors
         ):
             # we skip duplicates if eigenvalues are squared
-            if self.use_squared_omega:
-                if key in ("slow-", "alfven-"):
-                    continue
+            if self.use_squared_omega and key in ("slow-", "alfven-"):
+                continue
             # retrieve continuum, calculate region boundaries
             continuum = self.dataseries.continua[key] ** self._w_pow
             if self.use_real_parts:

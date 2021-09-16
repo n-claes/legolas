@@ -162,6 +162,8 @@ class ContinuaHandler(LegendHandler):
         super().__init__(interactive)
         self.continua_names = CONTINUA_NAMES
         self._continua_colors = CONTINUA_COLORS
+        self.marker = "."
+        self.markersize = 6
 
     @property
     def continua_colors(self):
