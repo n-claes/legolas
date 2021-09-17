@@ -1,6 +1,7 @@
 import abc
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from matplotlib.collections import PathCollection
 from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
 from pylbo.utilities.toolbox import add_pickradius_to_item
@@ -28,6 +29,7 @@ class EigenfunctionInterface:
         self._unmarked_alpha = None
 
         self._ef_subset_artists = None
+        self._display_tooltip()
 
     def _check_data_is_present(self):
         """
@@ -71,6 +73,7 @@ class EigenfunctionInterface:
                 artist.remove()
         self._selected_idxs.clear()
         self.axis.clear()
+        self._display_tooltip()
 
     def _switch_real_and_imaginary_part(self):
         """
@@ -371,3 +374,45 @@ class EigenfunctionInterface:
                         child.set_alpha(0)
                     else:
                         child.set_alpha(self._unmarked_alpha)
+
+    def _display_tooltip(self):
+        tooltip_values = [
+            [r"$\mathbf{L~click}$", "select spectrum point"],
+            [r"$\mathbf{R~click}$", "remove spectrum point"],
+            [r"$\mathbf{\hookleftarrow}$", "update plot"],
+            [r"$\mathbf{\uparrow}$", "cycle to next eigenfunction"],
+            [r"$\mathbf{\downarrow}$", "cycle to previous eigenfunction"],
+            [r"$\mathbf{i}$", r"switch real $\leftrightarrow$ imaginary"],
+            [r"$\mathbf{d}$", "clear selection"],
+            [r"$\mathbf{t}$", r"cylindrical: toggle $v_r \leftrightarrow r v_r$"],
+            [r"$\mathbf{w}$", r"print selected $\omega$ to console"],
+            [r"$\mathbf{e}$", r"subset: toggle center and radius"],
+        ]
+        bbox = np.array([0.1, 0.3, 0.8, 0.4])
+        rectangle = patches.Rectangle(
+            xy=0.95 * bbox[0:2],
+            width=1.05 * bbox[2],
+            height=1.05 * bbox[3],
+            facecolor="lightgrey",
+            alpha=0.3,
+        )
+        self.axis.add_patch(rectangle)
+
+        table = self.axis.table(
+            cellText=tooltip_values,
+            bbox=bbox,
+            cellLoc="center",
+            edges="open",
+            alpha=0.5,
+        )
+        table.scale(1, 1.5)
+        table.auto_set_column_width(col=list(range(len(tooltip_values[0]))))
+        # table title
+        self.axis.text(
+            0.5,
+            1.05 * (bbox[1] + bbox[3]),
+            "Interactive eigenfunction plotting",
+            ha="center",
+            va="center",
+            weight="bold",
+        )
