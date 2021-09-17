@@ -95,6 +95,22 @@ def modify_config_yml(branch):
         yaml.safe_dump(config, file, default_flow_style=False, sort_keys=False)
 
 
+def modify_navigation_yml(branch):
+    if branch is None:
+        return
+    nav_yml = (DOCS / "_data/navigation.yml").resolve()
+    assert nav_yml.is_file()
+    with open(nav_yml, "r") as file:
+        nav = yaml.safe_load(file)
+    if branch == "stable":
+        button = {"title": "goto: dev ▶", "url": "https://dev.legolas.science"}
+    else:
+        button = {"title": "◀ goto: stable", "url": "https://legolas.science"}
+    nav["main"].append(button)
+    with open(nav_yml, "w") as file:
+        yaml.safe_dump(nav, file, default_flow_style=False, sort_keys=False)
+
+
 def main():
     branch, clean_files = parse_command_arguments()
     if branch is not None:
@@ -105,6 +121,7 @@ def main():
 
     generate_ford_docs(branch)
     generate_sphinx_docs(branch)
+    modify_navigation_yml(branch)
     modify_config_yml(branch)
 
 
