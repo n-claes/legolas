@@ -5,9 +5,9 @@
 !! The geometry can be overridden in the parfile.
 !!
 !! This equilibrium is taken from
-!! _Van der Linden, R. A. M., Goossens, M., & Hood, A. W. (1992).
-!!  The relevance of the ballooning approximation for magnetic, thermal,
-!!  and coalesced magnetothermal instabilities. Solar physics, 140(2), 317-342_.
+!! _Van der Linden, R. A. M., Goossens, M. (1991).
+!! "The thermal continuum in coronal loops: instability criteria and the influence of
+!!  perpendicular thermal conduction." Solar physics, 134.2, 247-273._
 !! @note Default values are given by
 !!
 !! - <tt>k2</tt> = 1
