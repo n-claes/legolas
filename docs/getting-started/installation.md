@@ -137,7 +137,7 @@ cd post_processing
 python setup.py develop
 ```
 This will automatically install the listed [dependencies](/getting-started/installation/#post-processing) if they are not already installed. Activate any conda/virtualenv environment
-beforehand in order to install pylbo there. The `develop` argument means that you the package will be automatically updated whenever
+beforehand in order to install pylbo there. The `develop` argument means that the package will be automatically updated whenever
 you update the repository.
 
 ## Sourcing the folder
