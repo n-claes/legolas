@@ -1,79 +1,33 @@
 
-![legolas-logo](docs/assets/images/logo_legolas_1280_trans.png)
+![legolas-logo](docs/assets/images/logo_legolas_640x237.png)
+
 **L**arge **E**igensystem **G**enerator for **O**ne-dimensional p**LAS**mas
 
-### Table of contents
-1. [CI status](#ci-status)
-2. [Using Legolas](#using-legolas)
-3. [Obtaining Legolas](#obtaining-legolas)
-4. [Requirements](#requirements)
-5. [Compilation](#compilation)
-6. [Contents](#directory-contents)
+[![legolas](https://github.com/n-claes/legolas/actions/workflows/legolas.yml/badge.svg?branch=master)](https://github.com/n-claes/legolas/actions/workflows/legolas.yml) [![pylbo](https://github.com/n-claes/legolas/actions/workflows/pylbo.yml/badge.svg?branch=master)](https://github.com/n-claes/legolas/actions/workflows/pylbo.yml) [![docs](https://github.com/n-claes/legolas/actions/workflows/docs.yml/badge.svg?branch=master)](https://github.com/n-claes/legolas/actions/workflows/docs.yml) [![codecov](https://codecov.io/gh/n-claes/legolas/branch/master/graph/badge.svg?token=OVLYGOADS7)](https://codecov.io/gh/n-claes/legolas) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/n-claes/legolas?color=blue&label=release&style=flat)](https://github.com/n-claes/legolas/releases)
 
-## CI status
-- Branch `master` <br>
-  [![regression](https://github.com/n-claes/legolas/workflows/regression/badge.svg?branch=master)](https://github.com/n-claes/legolas/actions?query=workflow%3Aregression+branch%3Amaster)
-  [![legolas-core](https://github.com/n-claes/legolas/workflows/legolas-core/badge.svg?branch=master)](https://github.com/n-claes/legolas/actions?query=workflow%3Alegolas-core+branch%3Amaster)
-  [![pylbo-core](https://github.com/n-claes/legolas/workflows/pylbo-core/badge.svg?branch=master)](https://github.com/n-claes/legolas/actions?query=workflow%3Apylbo-core+branch%3Amaster)
-- Branch `develop` <br>
-  [![regression](https://github.com/n-claes/legolas/workflows/regression/badge.svg?branch=develop)](https://github.com/n-claes/legolas/actions?query=workflow%3Aregression+branch%3Adevelop)
-  [![legolas-core](https://github.com/n-claes/legolas/workflows/legolas-core/badge.svg?branch=develop)](https://github.com/n-claes/legolas/actions?query=workflow%3Alegolas-core+branch%3Adevelop)
-  [![pylbo-core](https://github.com/n-claes/legolas/workflows/pylbo-core/badge.svg?branch=develop)](https://github.com/n-claes/legolas/actions?query=workflow%3Apylbo-core+branch%3Adevelop)
+### Table of contents
+1. [About](#about-legolas)
+2. [Documentation](#documentation)
+3. [Versions](#stable-and-develop-versions)
+4. [Using Legolas](#using-legolas)
+
+## About Legolas
+The main goal of Legolas is to provide a new and modern user-friendly code while making use of the most recent developments in linear algebra and theoretical (linear) MHD, allowing for high resolution eigenspectrum studies with various physical effects included.
+
+Legolas is being developed and maintained at the [Centre for mathematical Plasma-Astrophysics](https://wis.kuleuven.be/CmPA), KU Leuven, Belgium.
+
+
+## Documentation
+We have a dedicated website on [legolas.science](https://legolas.science) which contains a detailed guide on how to install, compile and use the code. There you can also find the source code documentation of both Legolas and the post-processing framework Pylbo, which is rendered straight from the `master` (or `develop`) branch and updated on every commit.
+
+## Stable and develop versions
+The `master` branch of this repository should contain the latest stable release of the code, the main website is built from this branch. If you would like to check out the latest development goodies instead you can take a look at the `develop` branch. As there may be some time between major releases it is possible that the development branch can be quite different from the stable branch. However, the development version has its own dedicated website at [dev.legolas.science](https://dev.legolas.science), for those who want to use the bleeding-edge version of the code.
+
+Note that while everything on the `develop` branch _should_ be stable, it is possible that some features there are still under development and/or not yet entirely tested or documented.
 
 ## Using Legolas
-:warning: **Please note** :warning:
+:warning: **Please note**
 
-Legolas is the result of months and months of developing, testing, fixing issues, testing again,
-thinking bugs are fixed, further development, discovering that bugs weren't fixed, headscratching, testing again, etc.
-In short, a typical development process of a brand new code. Since this took (and still takes) a lot of effort and time,
-we therefore kindly ask that _**the first published peer-reviewed paper from applying Legolas is done in co-authorship with at least one of the original authors**_.
-Since the code is brand new we would like to know how it is used and provide guidance if possible.
-
-## Obtaining Legolas
-You can obtain the latest stable version of the code through
-```bash
-git clone https://github.com/n-claes/legolas.git
-cd legolas
-git checkout master
-```
-We ensure that the `master` branch always contains a stable release. If you would
-like to check out the latest development goodies of the code, you can checkout the `develop` branch instead
-and build from that one. Our typical workflow is branching off of `develop`, extend or create a feature and merge it back
-into `develop` when the automated tests are passing. Every now and then we merge `develop` into `master` and bump the
-release version. We hence (try to) ensure that `develop` is stable, but beware that this may not always be the case.
-
-Also note that due to this development workflow there will be multiple branches present in the repository at any
-given time. Feel free to check these out, but note that we will frequently rebase those so know that merge conflicts may
-be common when pulling updates from those branches.
-
-## Requirements
-We make extensive use of submodules (Fortran 2008) and object-oriented features (Fortran 2003),
-meaning that Legolas requires relatively recent compilers. We build using [CMake](https://cmake.org).
-To make use of the post-processing framework [Pylbo](post_processing) (which is highly recommended since we
-use a dedicated file format to store information) you need Python 3.6 or higher.
-The list below gives an indication of what is needed, note that lower versions _may_ work (but we haven't tested that).
-- gfortran v8.x+
-- CMake v3.12+
-- Python v3.6+
-- make
-- BLAS and LAPACK v3.5+
-
-For more information see the website.
-
-## Compilation
-For compilation instructions we refer to the website.
-
-## Directory contents
-Below is an overview of what's in the directory:
-- `.github/workflows`: all `.yml` files used for automatic testing.
-- `docs`: everything related to documentation, contains the Jekyll/Sphinx/Ford configuration files. The website is built from this folder.
-- `post-processing`: contains the Python package Pylbo.
-- `setup_tools`: scripts related to Legolas setup, also contains the `findBLAS` and `findLAPACK` CMake files.
-- `src`: all legolas source files and subdirectories.
-- `tests`: everything related to testing
-    - `core_tests`: tests for the Legolas core subroutines, uses [pFUnit](https://github.com/Goddard-Fortran-Ecosystem/pFUnit).
-    - `pylbo_tests`: tests for the Pylbo framework, does checks on internal Pylbo routines + Legolas interface for multiruns.
-    - `regression_tests`: tests for Legolas output, compares results from newly compiled code to expected (stored) output.
-- `CMakeLists.txt`: used for build configuration
-- `legolas_config.par`: example parameter file for legolas configuration.
-- `pylbo_wrapper.py`: wrapper script to interface with Pylbo.
+Legolas has taken (and still takes up) a lot of effort and time to test, develop and maintain.
+Since the code is relatively new we would like to know how it is used and provide guidance if possible.
+To that end, we kindly ask that the _**the first published peer-reviewed paper from applying Legolas is done in co-authorship with at least one of the original authors**_. The BibTex citation to our ApJS method paper can be found [here](https://ui.adsabs.harvard.edu/abs/2020arXiv201014148C/exportcitation).
