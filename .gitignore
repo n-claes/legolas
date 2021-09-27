@@ -4,6 +4,7 @@ output/
 build/
 legolas
 test_legolas
+legolas_config.par
 
 *.DS_Store
 *.aux

@@ -1,58 +1,58 @@
 &gridlist
-  ! geometry = 'Cartesian'
-  ! geometry = 'cylindrical'
-  ! x_start  = 0.0d0
-  ! x_end    = 1.0d0
-  gridpoints = 51
-  mesh_accumulation = .false.
+  geometry = "cylindrical"
+  x_start  = 0.0d0
+  x_end    = 1.0d0
+  gridpoints = 50
 /
 
 &solvelist
   solver = "QR-invert"
   ! solver = "arnoldi"
   ! arpack_mode = "shift-invert"
-  ! number_of_eigenvalues = 10
+  ! number_of_eigenvalues = 50
   ! which_eigenvalues = "LI"
-  ! sigma = (0.0d0, 0.01d0)
+  ! sigma = (-0.13d0, 0.0d0)
 /
 
 &physicslist
-  ! hall_mhd = .true.
+  ! flow = .true.
 /
 
 &equilibriumlist
-  ! equilibrium_type = "adiabatic_homo"               ! Cartesian
-  ! equilibrium_type = "resistive_homo"               ! Cartesian
-  ! equilibrium_type = "gravito_acoustic"             ! Cartesian
-  ! equilibrium_type = "gravito_mhd"                  ! Cartesian
-  equilibrium_type = "resistive_tearing"            ! Cartesian
-  ! equilibrium_type = "resistive_tearing_flow"       ! Cartesian
-  ! equilibrium_type = "suydam_cluster"               ! cylindrical
-  ! equilibrium_type = "rotating_plasma_cylinder"     ! cylindrical
-  ! equilibrium_type = "kelvin_helmholtz_cd"          ! cylindrical
-  ! equilibrium_type = "internal_kink"                ! cylindrical
-  ! equilibrium_type = "RTI_theta_pinch"              ! cylindrical
-  ! equilibrium_type = "discrete_alfven"              ! cylindrical
-  ! equilibrium_type = "MRI_accretion"                ! cylindrical
-  ! equilibrium_type = "interchange_modes"            ! Cartesian
-  ! equilibrium_type = "constant_current_tokamak"     ! cylindrical
-  ! equilibrium_type = "magnetothermal_instabilities"
-  ! equilibrium_type = "photospheric_flux_tube"
-  ! equilibrium_type = "coronal_flux_tube"
-  ! equilibrium_type = "resonant_absorption"
+  ! equilibrium_type = "adiabatic_homo"
+  ! equilibrium_type = "constant_current_tokamak"
+  ! equilibrium_type = "couette_flow"
+  ! equilibrium_type = "discrete_alfven"
   ! equilibrium_type = "gold_hoyle"
-  ! equilibrium_type = "rayleigh_taylor"
+  ! equilibrium_type = "gravito_acoustic"
+  ! equilibrium_type = "gravito_mhd"
+  ! equilibrium_type = "coronal_flux_tube"
+  ! equilibrium_type = "photospheric_flux_tube"
+  ! equilibrium_type = "interchange_modes"
+  ! equilibrium_type = "internal_kink"
   ! equilibrium_type = "kelvin_helmholtz"
+  ! equilibrium_type = "kelvin_helmholtz_cd"
+  ! equilibrium_type = "MRI_accretion"
+  ! equilibrium_type = "magnetothermal_instabilities"
+  ! equilibrium_type = "rayleigh_taylor"
   ! equilibrium_type = "RTI_KHI"
+  ! equilibrium_type = "RTI_theta_pinch"
+  ! equilibrium_type = "resistive_homo"
+  ! equilibrium_type = "resistive_tearing"
+  ! equilibrium_type = "resistive_tearing_flow"
+  ! equilibrium_type = "resonant_absorption"
+  ! equilibrium_type = "rotating_plasma_cylinder"
   ! equilibrium_type = "isothermal_atmosphere"
-  ! equilibrium_type = "harris_sheet"
-  ! equilibrium_type = "user_defined"
+  equilibrium_type = "suydam_cluster"
 
-  ! boundary_type = "wall"
+  ! equilibrium_type = "user_defined"
 /
 
 &savelist
-  write_matrices = .false.
-  write_eigenfunctions = .true.
   show_results = .true.
+  write_eigenfunctions = .true.
+  write_derived_eigenfunctions = .true.
+  ! write_eigenfunction_subset = .true.
+  ! eigenfunction_subset_center = (-0.13d0, 0.0d0)
+  ! eigenfunction_subset_radius = 0.02d0
 /
