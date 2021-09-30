@@ -45,4 +45,18 @@ contains
     call set_name("logging (complex -> str, fmt)")
     @assertEqual("2.4000-3.1000i", str((2.4d0, -3.1d0), fmt="f9.4"))
   end subroutine test_complex_to_str_fmt
+
+
+  @test
+  subroutine test_logical_to_str_true()
+    call set_name("logging (logical -> str, true)")
+    @assertEqual("True", str(.true.))
+  end subroutine test_logical_to_str_true
+
+
+  @test
+  subroutine test_logical_to_str_false()
+    call set_name("logging (logical -> str, false)")
+    @assertEqual("False", str(.false.))
+  end subroutine test_logical_to_str_false
 end module mod_test_logging
