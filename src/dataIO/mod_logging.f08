@@ -54,7 +54,7 @@ contains
   !!       stops code execution.
   !!       Error messages are printed in red, warnings in yellow, info messages have
   !!       default colouring and debug messages are in green.
-  subroutine log_message(msg, level, use_prefix)
+  subroutine log_message(msg, level, use_prefix) ! LCOV_EXCL_START
     use mod_exceptions, only: raise_exception
 
     !> the message to print to the console
@@ -87,7 +87,7 @@ contains
     case("error")
       call raise_exception(msg)
     case("warning")
-      if (logging_level >= 1) then ! LCOV_EXCL_START <we don't print info at testing>
+      if (logging_level >= 1) then
         if (add_prefix) then
           call paint_string(" WARNING | " // msg, "yellow", msg_painted)
         else
@@ -116,9 +116,9 @@ contains
       call raise_exception( &
         "argument 'level' should be 'error', 'warning', 'info' or 'debug'" &
       )
-      error stop ! LCOV_EXCL_STOP
+      error stop
     end select
-  end subroutine log_message
+  end subroutine log_message ! LCOV_EXCL_STOP
 
 
   ! LCOV_EXCL_START <logo is never printed during testing>
