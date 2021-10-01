@@ -18,3 +18,4 @@ exclude_lines =
     except KeyboardInterrupt:
     def _terminate_workers
     pass
+    def timethis

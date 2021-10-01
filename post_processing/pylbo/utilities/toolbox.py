@@ -1,6 +1,23 @@
 import numpy as np
+import functools
+import time
 import matplotlib.lines as mpl_lines
 from pylbo._version import _mpl_version
+from pylbo.utilities.logger import pylboLogger
+
+
+def timethis(func):
+    @functools.wraps(func)
+    def _time_method(*args, **kwargs):
+        t0 = time.perf_counter()
+        try:
+            return func(*args, **kwargs)
+        finally:
+            pylboLogger.debug(
+                f"{func.__name__} took {time.perf_counter() - t0} seconds to execute"
+            )
+
+    return _time_method
 
 
 def get_axis_geometry(ax):

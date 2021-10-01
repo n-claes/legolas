@@ -13,6 +13,7 @@ class EigenfunctionHandler(EigenfunctionInterface):
     def __init__(self, data, ef_ax, spec_ax):
         super().__init__(data, ef_ax, spec_ax)
         self._function_names = self.data.ef_names
+        self.spec_axis.set_title(f"{self.spec_axis.get_title()} -- eigenfunctions")
 
     def _check_data_is_present(self):
         if not any(transform_to_numpy(self.data.efs_written)):
@@ -23,6 +24,7 @@ class EigenfunctionHandler(EigenfunctionInterface):
     def update_plot(self):
         self.axis.clear()
         if not self._selected_idxs:
+            self._display_tooltip()
             return
         ef_name = self._function_names[self._selected_name_idx]
         for ds, idxs_dict in self._selected_idxs.items():

@@ -22,14 +22,16 @@ module mod_logging
   character(8), parameter    :: dp_fmt = '(f20.8)'
   !> integer format
   character(4), parameter    :: int_fmt  = '(i8)'
-  !> character used as variable to log non-strings
-  character(20) :: char_log, char_log2
   !> a convenient "tostring" interface, used for easy console writing
   interface str
+    module procedure logical_tostr
     module procedure int_tostr
     module procedure float_tostr
     module procedure complex_tostr
   end interface str
+
+  !> logical used to (locally) force a prefix override
+  logical :: override_prefix_to_false = .false.
 
   private
 
@@ -37,8 +39,8 @@ module mod_logging
   public :: print_logo
   public :: print_console_info
   public :: print_whitespace
-  public  :: str
-  public :: char_log, char_log2, exp_fmt, dp_fmt, int_fmt
+  public :: str
+  public :: exp_fmt, dp_fmt, int_fmt
 
 contains
 
@@ -52,30 +54,40 @@ contains
   !!       stops code execution.
   !!       Error messages are printed in red, warnings in yellow, info messages have
   !!       default colouring and debug messages are in green.
-  subroutine log_message(msg, level, use_prefix)
+  subroutine log_message(msg, level, use_prefix) ! LCOV_EXCL_START
     use mod_exceptions, only: raise_exception
 
     !> the message to print to the console
     character(len=*), intent(in)  :: msg
-    !> the level (severity) of the message
-    character(len=*), intent(in)  :: level
+    !> the level (severity) of the message, default is <tt>"info"</tt>
+    character(len=*), intent(in), optional  :: level
     !> prefixes message type to string, default is <tt>.true.</tt>
     logical, intent(in), optional :: use_prefix
 
     ! need a bit more room here, we trim anyway when printing
     character(len=2*str_len) :: msg_painted
-    logical                  :: add_prefix
+    character(:), allocatable :: loglevel
+    logical :: add_prefix
 
     add_prefix = .true.
     if (present(use_prefix)) then
       add_prefix = use_prefix
     end if
+    ! override prefix if desired
+    if (override_prefix_to_false) then
+      add_prefix = .false.
+    end if
+    if (present(level)) then
+      loglevel = level
+    else
+      loglevel = "info"
+    end if
 
-    select case(level)
+    select case(loglevel)
     case("error")
       call raise_exception(msg)
     case("warning")
-      if (logging_level >= 1) then ! LCOV_EXCL_START <we don't print info at testing>
+      if (logging_level >= 1) then
         if (add_prefix) then
           call paint_string(" WARNING | " // msg, "yellow", msg_painted)
         else
@@ -104,9 +116,9 @@ contains
       call raise_exception( &
         "argument 'level' should be 'error', 'warning', 'info' or 'debug'" &
       )
-      error stop ! LCOV_EXCL_STOP
+      error stop
     end select
-  end subroutine log_message
+  end subroutine log_message ! LCOV_EXCL_STOP
 
 
   ! LCOV_EXCL_START <logo is never printed during testing>
@@ -161,217 +173,105 @@ contains
       return
     end if
 
-    call log_message("---------------------------------------------", level="info")
-    call log_message( &
-      "              << Grid settings >>", level="info", use_prefix=.false. &
-    )
-    call log_message( &
-      "geometry             : " // trim(adjustl(geometry)), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    write(char_log, dp_fmt) x_start
-    call log_message( &
-      "grid start           : " // adjustl(char_log), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    write(char_log, dp_fmt) x_end
-    call log_message( &
-      "grid end             : " // adjustl(char_log), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    write(char_log, int_fmt) gridpts
-    call log_message( &
-      "gridpoints (base)    : " // adjustl(char_log), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    write(char_log, int_fmt) gauss_gridpts
-    call log_message( &
-      "gridpoints (Gauss)   : " // adjustl(char_log), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    write(char_log, int_fmt) matrix_gridpts
-    call log_message( &
-      "gridpoints (matrix)  : " // adjustl(char_log), &
-      level="info", &
-      use_prefix=.false. &
-    )
+    call log_message("---------------------------------------------")
 
-    call log_message( &
-      "          << Equilibrium settings >>", level="info", use_prefix=.false. &
-    )
-    call log_message( &
-      "selected equilibrium : " // trim(adjustl(equilibrium_type)), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    call log_message( &
-      "boundary conditions  : " // trim(adjustl(boundary_type)), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    write(char_log, dp_fmt) k2
-    call log_message( &
-      "wave number k2       : " // adjustl(char_log), level="info", use_prefix=.false. &
-    )
-    write(char_log, dp_fmt) k3
-    call log_message( &
-      "wave number k3       : " // adjustl(char_log), level="info", use_prefix=.false. &
-    )
+    ! we temporarily force the use of logging prefix to false
+    override_prefix_to_false = .true.
 
-    call log_message( &
-      "            << Physics settings >>", level="info", use_prefix=.false. &
-    )
-    if (flow) then
-      call logical_tostring(flow, char_log)
-      call log_message( &
-        "flow                 : " // adjustl(char_log), &
-        level="info", &
-        use_prefix=.false. &
-      )
-    end if
-    if (external_gravity) then
-      call logical_tostring(external_gravity, char_log)
-      call log_message( &
-        "external gravity     : " // adjustl(char_log), &
-        level="info", &
-        use_prefix=.false. &
-      )
-    end if
+    call log_message("              << Grid settings >>")
+    call log_message("geometry           : " // trim(adjustl(geometry)))
+    call log_message("grid start         : " // str(x_start))
+    call log_message("grid end           : " // str(x_end))
+    call log_message("gridpoints (base)  : " // str(gridpts))
+    call log_message("gridpoints (Gauss) : " // str(gauss_gridpts))
+    call log_message("gridpoints (matrix): " // str(matrix_gridpts))
+
+    call log_message("          << Equilibrium settings >>")
+    call log_message("equilibrium    : " // trim(adjustl(equilibrium_type)))
+    call log_message("wave number k2 : " // str(k2))
+    call log_message("wave number k3 : " // str(k3))
+    call log_message("default params : " // str(use_defaults))
+
+    call log_message("            << Physics settings >>")
+    call log_message("flow               : " // str(flow))
+    call log_message("external gravity   : " // str(external_gravity))
+
+    call log_message("radiative cooling  : " // str(radiative_cooling))
     if (radiative_cooling) then
-      call logical_tostring(radiative_cooling, char_log)
-      call log_message( &
-        "radiative cooling    : " // adjustl(char_log), &
-        level="info", &
-        use_prefix=.false. &
-      )
+      call log_message("    cooling curve : " // trim(adjustl(cooling_curve)))
     end if
+
+    call log_message("thermal conduction : " // str(thermal_conduction))
     if (thermal_conduction) then
-      call logical_tostring(thermal_conduction, char_log)
-      call log_message( &
-        "thermal conduction   : " // adjustl(char_log), &
-        level="info", &
-        use_prefix=.false. &
-      )
-    end if
-    if (resistivity) then
-      call logical_tostring(resistivity, char_log)
-      call log_message( &
-        "resistivity          : " // adjustl(char_log), &
-        level="info", &
-        use_prefix=.false. &
-      )
-    end if
-    if (viscosity) then
-      call logical_tostring(viscosity, char_log)
-      call log_message( &
-        "viscosity            : " // adjustl(char_log), &
-        level="info", &
-        use_prefix=.false. &
-      )
-    end if
-    if (viscous_heating) then
-      call logical_tostring(viscous_heating, char_log)
-      call log_message( &
-        "viscous heating      : " // adjustl(char_log), &
-        level="info", &
-        use_prefix=.false. &
-      )
-    end if
-
-    call log_message( &
-      "            << Solver settings >>", level="info", use_prefix=.false. &
-    )
-    call log_message( &
-      "solver               : " // trim(adjustl(solver)), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    if (solver == "arnoldi") then
-      call log_message( &
-        "ARPACK mode          : " // trim(adjustl(arpack_mode)), &
-        level="info", &
-        use_prefix=.false. &
-      )
-      if (arpack_mode == "shift-invert") then
-        write(char_log, dp_fmt) real(sigma)
-        write(char_log2, '(SP,f18.8,"i")') aimag(sigma)
-      call log_message( &
-        "sigma value          : " // trim(adjustl(char_log)) &
-          // trim(adjustl(char_log2)), &
-        level="info", &
-        use_prefix=.false. &
-      )
+      if (use_fixed_tc_para) then
+        call log_message("    fixed parallel value : " // str(fixed_tc_para_value))
       end if
-      write(char_log, int_fmt) number_of_eigenvalues
-      call log_message( &
-        "number of eigenvalues: " // trim(adjustl(char_log)), &
-        level="info", &
-        use_prefix=.false. &
-      )
-      call log_message( &
-        "which eigenvalues    : " // trim(adjustl(which_eigenvalues)), &
-        level="info", &
-        use_prefix=.false. &
-      )
+      if (use_fixed_tc_perp) then
+        call log_message("    fixed perpendicular value : " // str(fixed_tc_perp_value))
+      end if
+    end if
+    call log_message("resistivity        : " // str(resistivity))
+    if (use_fixed_resistivity) then
+      call log_message("    fixed eta value : " // str(fixed_eta_value))
     end if
 
+    call log_message("viscosity          : " // str(viscosity))
+    if (viscosity) then
+      call log_message("    viscosity value : " // str(viscosity_value))
+      call log_message("    viscous heating : " // str(viscous_heating))
+    end if
+
+    call log_message("hall mhd           : " // str(hall_mhd))
+    if (hall_mhd) then
+      call log_message("    electron pressure : " // str(elec_pressure))
+      call log_message("    electron intertia : " // str(elec_inertia))
+    end if
+
+    call log_message("            << Solver settings >>")
+    call log_message("solver      : " // trim(adjustl(solver)))
+    if (solver == "arnoldi") then
+      call log_message("ARPACK mode : " // trim(adjustl(arpack_mode)))
+      if (arpack_mode == "shift-invert") then
+        call log_message("sigma value : " // str(sigma))
+      end if
+      call log_message("number of eigenvalues : " // str(number_of_eigenvalues))
+      call log_message("which eigenvalues     : " // trim(adjustl(which_eigenvalues)))
+    end if
+
+    call log_message("            << DataIO settings >>")
+    call log_message("datfile name         : " // trim(adjustl(basename_datfile)))
+    call log_message("output folder        : " // trim(adjustl(output_folder)))
+    call log_message("write matrices       : " // str(write_matrices))
+    call log_message("write eigenfunctions : " // str(write_eigenfunctions))
     call log_message( &
-      "            << DataIO settings >>", level="info", use_prefix=.false. &
+      "write derived eigenfunctions : " // str(write_derived_eigenfunctions) &
     )
-    call log_message(&
-      "datfile name         : " // trim(adjustl(basename_datfile)), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    call log_message( &
-      "output folder        : " // trim(adjustl(output_folder)), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    call logical_tostring(write_matrices, char_log)
-    call log_message( &
-      "write matrices       : " // adjustl(char_log), level="info", use_prefix=.false. &
-    )
-    call logical_tostring(write_eigenfunctions, char_log)
-    call log_message( &
-      "write eigenfunctions : " // adjustl(char_log), level="info", use_prefix=.false. &
-    )
-    call logical_tostring(write_derived_eigenfunctions, char_log)
-    call log_message( &
-      "write derived eigenfunctions : " // adjustl(char_log), &
-      level="info", &
-      use_prefix=.false. &
-    )
-    call log_message( &
-      "---------------------------------------------", &
-      level="info", &
-      use_prefix=.false. &
-    )
+    call log_message("write eigenfunction subset : " // str(write_eigenfunction_subset))
+    if (write_eigenfunction_subset) then
+      call log_message("    subset center : " // str(eigenfunction_subset_center))
+      call log_message("    subset radius : " // str(eigenfunction_subset_radius))
+    end if
+    call log_message("---------------------------------------------")
     call print_whitespace(1)
+    ! reset override
+    override_prefix_to_false = .false.
   end subroutine print_console_info
   ! LCOV_EXCL_STOP
 
 
-  ! LCOV_EXCL_START
-  !> Converts a given Fortran logical to a string "true" or "false".
-  subroutine logical_tostring(boolean, boolean_string)
+  !> Converts a given logical to a string "True" or "False".
+  function logical_tostr(boolean) result(result_str)
     !> logical to convert
-    logical, intent(in)             :: boolean
-    !> <tt>True</tt> if boolean == True, <tt>False</tt> otherwise
-    character(len=20), intent(out)  :: boolean_string
+    logical, intent(in) :: boolean
+    !> return string, made allocatable so it has same length as input
+    character(:), allocatable :: result_str
 
     if (boolean) then
-      boolean_string = 'True'
+      result_str = "True"
     else
-      boolean_string = 'False'
+      result_str = "False"
     end if
-  end subroutine logical_tostring
-  ! LCOV_EXCL_STOP
+  end function logical_tostr
 
 
   !> Converts a given integer to a string, the default format is "i8".
@@ -382,7 +282,7 @@ contains
     character(len=*), intent(in), optional  :: fmt
     !> return string, made allocatable so it has same length as input
     character(:), allocatable :: result_str
-    character(len=20) :: format
+    character(len=20) :: format, char_log
 
     if (present(fmt)) then
       format = "(" // trim(fmt) // ")"
@@ -404,7 +304,7 @@ contains
     character(len=*), intent(in), optional  :: fmt
     !> return string, made allocatable so it has same length as input
     character(:), allocatable :: result_str
-    character(len=20) :: format
+    character(len=20) :: format, char_log
 
     if (present(fmt)) then
       format = "(" // trim(fmt) // ")"
@@ -427,7 +327,7 @@ contains
     character(len=*), intent(in), optional  :: fmt
     !> return string, made allocatable so it has same length as input
     character(:), allocatable :: result_str
-    character(len=20) :: format
+    character(len=20) :: format, char_log, char_log2
 
     if (present(fmt)) then
       format = "(" // trim(fmt) // ")"

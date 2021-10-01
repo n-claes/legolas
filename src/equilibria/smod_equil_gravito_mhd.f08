@@ -38,7 +38,7 @@ contains
       cte_p0 = 0.5d0
       g = 0.5d0
       alpha = 20.0d0
-    end if ! LCOV_EXCL_END
+    end if ! LCOV_EXCL_STOP
 
     B0 = 1.0d0
     beta  = 2.0d0*cte_p0 / B0**2
