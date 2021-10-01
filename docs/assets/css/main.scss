@@ -29,3 +29,14 @@ $base0f: #d33682;
 
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
+
+html {
+    font-size: 19px;
+}
+
+.page__content {
+    text-align: justify;
+}
+.sidebar__right {
+    text-align: left;
+}

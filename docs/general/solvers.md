@@ -6,7 +6,7 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2021-02-03
+last_modified_at: 2021-07-26
 ---
 
 Legolas has interfaces implemented to various BLAS, LAPACK and ARPACK routines.
@@ -80,12 +80,12 @@ and is called by default if no `solvelist` is supplied.
 </div>
 
 This is a variant of the QR-invert solver, with as main difference that the B-matrix is not inverted
-such that the eigenvalue problem is kept in its general form. 
+such that the eigenvalue problem is kept in its general form.
 The LAPACK routine `zggev` is used to solve the general eigenvalue problem, returning all
 eigenvalues and (optionally) the _generalised_ right eigenvectors.
 
 This solver can be specified in the `solvelist` through
-```fortran 
+```fortran
 &solvelist
   solver = "QZ-direct"
 /
@@ -93,18 +93,18 @@ This solver can be specified in the `solvelist` through
 
 ## ARPACK Reverse Communication Interface
 Legolas has various solvers implemented which interface with the ARPACK package to
-solve the eigenvalue problem. ARPACK is a reverse communication interface specifically designed to 
-solve large-scale, sparse matrix eigenvalue problems, and is hence perfectly suited for Legolas. 
-ARPACK can run in various modes, most notably a shift-invert method to probe 
+solve the eigenvalue problem. ARPACK is a reverse communication interface specifically designed to
+solve large-scale, sparse matrix eigenvalue problems, and is hence perfectly suited for Legolas.
+ARPACK can run in various modes, most notably a shift-invert method to probe
 various parts of the spectrum, only returning eigenvalues of regions you are interested in.
 
 The main difference with the LAPACK solvers is that one can query for only a number of eigenvalues
 instead of the full spectrum. This is essentially the Fortran analog of SciPy's
-[`eigs`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigs.html) 
+[`eigs`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigs.html)
 method in Python, which is a wrapper to ARPACK in itself.
 
 When using Arnoldi-based solvers the solvelist can be set as follows:
-```fortran 
+```fortran
 &solvelist
   solver = "arnoldi"
   arpack_mode = "standard" | "general" | "shift-invert"
@@ -124,13 +124,13 @@ When using Arnoldi-based solvers the solvelist can be set as follows:
    - `"LR"`: eigenvalues with largest real part
    - `"SR"`: eigenvalues with smallest real part
    - `"LI"`: eigenvalues with largest imaginary part
-   - `"SI"`: eigenvalues with smallest imaginary part   
+   - `"SI"`: eigenvalues with smallest imaginary part
 - `maxiter`: integer which limits the maximum iterations the Arnoldi solver may take when
    doing the reverse communication. This defaults to 10 times the size of the eigenvalue problem,
-   so for 100 gridpoints `maxiter` will be 10 x 100 x 16 = 16000, which is usually more than sufficient. 
+   so for 100 gridpoints `maxiter` will be 10 x 100 x 16 = 16000, which is usually more than sufficient.
    However, sometimes (especially for small eigenvalues) this may not be enough,
    in which case you can increase this number.
-   
+
 If the iterative solver reaches `maxiter`, only a number $j < k$ eigenvalues will be converged.
 Legolas will notify you how many are converged, and you can still plot these $j$ eigenvalues and their eigenfunctions.
 
@@ -151,7 +151,7 @@ spectral regions of interest, and then follow-up with shift-invert at those loca
 
 {% capture cons %}
 **Cons:**
-- Fast for the largest eigenvalues (`"LM", "LR", "LI"`), significantly slower for the smaller ones 
+- Fast for the largest eigenvalues (`"LM", "LR", "LI"`), significantly slower for the smaller ones
 {% endcapture %}
 <div class="notice--danger">
   {{ cons | markdownify }}
@@ -178,25 +178,28 @@ used during the iteration.
 
 {% capture cons %}
 **Cons:**
-- Method needs an operator $[A - \sigma B]^{-1}B$, so the inverse of a complex matrix
+- May take a very long time if the shift is badly chosen
 {% endcapture %}
 <div class="notice--danger">
   {{ cons | markdownify }}
 </div>
 Running ARPACK in shift-invert mode allows one to set a certain shift $\sigma$ and calculate
 the shifted eigenvalues. Note that for this mode, the setting `which_eigenvalues` in the parfile
-refers to the shifted eigenvalues 
+refers to the shifted eigenvalues
 
 $$ \dfrac{1}{\omega_i - \sigma} $$
 
 The value of $\sigma$ can be specified by adding it to the solvelist, like so
-```fortran 
+```fortran
 &solvelist
   sigma = (1.0d0, 0.05d0)
 /
 ```
 and should be a complex tuple (standard Fortran notation for complex numbers).
-Note that we need the operator $[A - \sigma B]^{-1}B$, which implies that $\sigma$ can not be zero
+Here we _really_ recommend that you first look at the spectrum using the QR solver in order to provide a "proper" guess for $\sigma$ and
+to make sure that there are enough eigenvalues near the requested shift. The solver may take quite a long time if you request 100 eigenvalues for example,
+and there are only 50 eigenvalues in the vicinity of the chosen shift.
+
+Also note that we need the operator $[A - \sigma B]^{-1}B$, which implies that $\sigma$ can not be zero
 in our case, because the matrix A can be singular (no magnetic field, for example) which removes the
 guarantee that the system is properly conditioned.
-
