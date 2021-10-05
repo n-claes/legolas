@@ -457,7 +457,7 @@ class MultiSpectrumPlot(SpectrumFigure):
             self._def_handler = DerivedEigenfunctionHandler(
                 self.dataseries, self._def_ax, self.ax
             )
-        super()._enable_interface(handle=self._pp_handler)
+        super()._enable_interface(handle=self._def_handler)
 
 
 class MergedSpectrumPlot(SpectrumFigure):
