@@ -1,5 +1,6 @@
 import matplotlib.collections as mpl_collections
 import matplotlib.lines as mpl_lines
+import matplotlib.patches as mpl_patches
 import numpy as np
 from pylbo.utilities.toolbox import add_pickradius_to_item
 
@@ -107,9 +108,10 @@ class LegendHandler:
             add_pickradius_to_item(item=legend_item, pickradius=self.pickradius)
             # add an attribute to this artist to tell it's from a legend
             setattr(legend_item, "is_legend_item", True)
-            # make sure colourmapping is done properly
-            legend_item.set_facecolor(drawn_item.get_facecolor())
-            legend_item.set_edgecolor(drawn_item.get_edgecolor())
+            # make sure colourmapping is done properly, only for continua regions
+            if isinstance(legend_item, mpl_patches.Rectangle):
+                legend_item.set_facecolor(drawn_item.get_facecolor())
+                legend_item.set_edgecolor(drawn_item.get_edgecolor())
             # we make the regions invisible until clicked, or set visible as default
             if self._make_visible_by_default:
                 legend_item.set_alpha(self.alpha_point)

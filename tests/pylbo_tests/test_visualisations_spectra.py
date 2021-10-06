@@ -33,6 +33,16 @@ def test_spectrum_plot_eigenfunctions(ds_v112):
     assert getattr(p, "ef_ax", None) is not None
 
 
+def test_spectrum_plot_continua_and_eigenfunctions(ds_v112):
+    p = pylbo.plot_spectrum(ds_v112)
+    p.add_continua()
+    p.add_eigenfunctions()
+    labels = p.ax.get_legend_handles_labels()[1]
+    assert len(labels) > 2
+    for attr in ("c_handler", "ef_handler", "ef_ax"):
+        assert getattr(p, attr, None) is not None
+
+
 def test_spectrum_plot_eigenfunctions_notpresent(ds_v100):
     p = pylbo.plot_spectrum(ds_v100)
     with pytest.raises(EigenfunctionsNotPresent):
