@@ -105,6 +105,12 @@ contains
       call log_message("allocating eigenvector arrays", level="debug")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
       allocate(eigenvecs_right(matrix_gridpts, nb_evs))
+    else
+      ! @note: this is needed to prevent segfaults, since it seems that in some
+      ! cases for macOS the routine zgeev references the right eigenvectors even
+      ! if they are not requested.
+      call log_message("allocating eigenvector arrays as dummy", level="debug")
+      allocate(eigenvecs_right(2, 2))
     end if
   end subroutine initialisation
 
