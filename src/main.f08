@@ -62,7 +62,7 @@ contains
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_logging, only: print_logo
-    use mod_global_variables, only: viscosity, hall_mhd
+    use mod_global_variables, only: hall_mhd
 
     character(len=str_len)  :: parfile
     integer   :: nb_evs
@@ -89,14 +89,10 @@ contains
     call set_equilibrium()
 
     ! TODO: remove this warning when fully tested
-    if (viscosity) then
-      call log_message( &
-        "using viscous MHD, note that this is not yet fully tested!", level="warning" &
-      )
-    end if
     if (hall_mhd) then
       call log_message( &
-        "using Hall MHD, note that this does not yet work properly!", level="warning" &
+        "using Hall MHD, note that some features are not yet **fully** tested!", &
+        level="warning" &
       )
     end if
 
