@@ -35,4 +35,3 @@ legolas_config.par
 !/tests/regression_tests/answers/*.log
 !/tests/pylbo_tests/utility_files/*.dat
 !/tests/pylbo_tests/utility_files/*.log
-
