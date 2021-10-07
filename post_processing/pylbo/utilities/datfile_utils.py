@@ -1,6 +1,7 @@
 import struct
 import numpy as np
 from pylbo._version import VersionHandler
+from pylbo.utilities.logger import pylboLogger
 
 SIZE_CHAR = struct.calcsize("c")
 SIZE_INT = struct.calcsize("i")
@@ -87,10 +88,29 @@ def get_header(istream):
     h["eigenfuncs_written"] = bool(
         *hdr
     )  # bool casts 0 to False, everything else to True
+    h["derived_eigenfuncs_written"] = False
+    if legolas_version >= "1.1.3":
+        fmt = ALIGN + "i"
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        h["derived_eigenfuncs_written"] = bool(*hdr)
     # read matrices boolean
     fmt = ALIGN + "i"
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     h["matrices_written"] = bool(*hdr)
+    # read eigenfunction subset info
+    h["eigenfunction_subset_used"] = False
+    if legolas_version >= "1.1.4":
+        fmt = ALIGN + "i"
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        h["eigenfunction_subset_used"] = bool(*hdr)
+        fmt = ALIGN + 2 * "d"
+        h["eigenfunction_subset_center"] = complex(
+            *struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        )
+        fmt = ALIGN + "d"
+        (h["eigenfunction_subset_radius"],) = struct.unpack(
+            fmt, istream.read(struct.calcsize(fmt))
+        )
 
     # read number of parameters saved
     fmt = ALIGN + "i"
@@ -170,6 +190,9 @@ def get_header(istream):
     unit_values = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     for name, value in zip(unit_names, unit_values):
         units[name] = value
+    # mean molecular weight is added in 1.1.2, before this it defaults to 1
+    if "mean_molecular_weight" not in unit_names:
+        units["mean_molecular_weight"] = 1.0
     h["units"] = units
 
     # @Devnote Niels: do not read in data here but simply determine the data offset
@@ -216,10 +239,51 @@ def get_header(istream):
         byte_size = h["ef_gridpts"] * SIZE_DOUBLE
         offsets.update({"ef_grid": istream.tell()})
         istream.seek(istream.tell() + byte_size)
+        h["ef_written_flags"] = np.asarray([True] * nb_eigenvals, dtype=bool)
+        h["ef_written_idxs"] = np.arange(0, nb_eigenvals)
+        # written flags and indices
+        if legolas_version >= "1.1.4":
+            fmt = ALIGN + "i"
+            (ef_flags_size,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+            fmt = ALIGN + ef_flags_size * "i"
+            h["ef_written_flags"] = np.asarray(
+                struct.unpack(fmt, istream.read(struct.calcsize(fmt))), dtype=bool
+            )
+            fmt = ALIGN + "i"
+            (ef_idxs_size,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+            fmt = ALIGN + ef_idxs_size * "i"
+            h["ef_written_idxs"] = (
+                np.asarray(
+                    struct.unpack(fmt, istream.read(struct.calcsize(fmt))), dtype=int
+                )
+                - 1
+            )  # -1 here to correct for Fortran 1-based indexing
+            # sanity check, should always be true
+            assert all(h["ef_written_idxs"] == np.where(h["ef_written_flags"])[0])
         # eigenfunction offsets
-        byte_size = h["ef_gridpts"] * nb_eigenvals * nb_eigenfuncs * SIZE_COMPLEX
+        byte_size = (
+            h["ef_gridpts"] * len(h["ef_written_idxs"]) * nb_eigenfuncs * SIZE_COMPLEX
+        )
         offsets.update({"ef_arrays": istream.tell()})
         istream.seek(istream.tell() + byte_size)
+
+    if legolas_version >= "1.1.3":
+        if h["derived_eigenfuncs_written"]:
+            fmt = ALIGN + "i"
+            (nb_pp,) = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+            fmt = ALIGN + nb_pp * str_len_arr * "c"
+            pp_names = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+            pp_names = [
+                b"".join(pp_names[i : i + str_len_arr]).strip().decode()
+                for i in range(0, len(pp_names), str_len_arr)
+            ]
+            h["derived_ef_names"] = pp_names
+            # derived eigenfunction offsets
+            byte_size = (
+                h["ef_gridpts"] * len(h["ef_written_flags"]) * nb_pp * SIZE_COMPLEX
+            )
+            offsets.update({"derived_ef_arrays": istream.tell()})
+            istream.seek(istream.tell() + byte_size)
 
     # if matrices are written, include amount of nonzero elements and offsets
     if h["matrices_written"]:
@@ -360,7 +424,7 @@ def read_equilibrium_arrays(istream, header):
     return equil_arrays
 
 
-def read_eigenfunction(istream, header, ef_index):
+def read_eigenfunction(istream, header, ev_index):
     """
     Reads a single eigenfunction from the datfile.
     Eigenfunctions are read in on-the-fly, to prevent having to load the
@@ -372,9 +436,8 @@ def read_eigenfunction(istream, header, ef_index):
         Datfile opened in binary mode.
     header : dict
         Dictionary containing the datfile header, output from :func:`get_header`.
-    ef_index : int
-        The index of the eigenfunction in the matrix. This value corresponds to the
-        index of the accompanying eigenvalue in the
+    ev_index : int
+        The array index of the selected eigenvalue in the
         :class:`~pylbo.data_containers.LegolasDataSet` eigenvalues attribute.
 
     Returns
@@ -387,8 +450,15 @@ def read_eigenfunction(istream, header, ef_index):
     """
     ef_offset = header["offsets"]["ef_arrays"]
     ef_gridpts = header["ef_gridpts"]
-    nb_eigenfuncs = header["nb_eigenvals"]
+    nb_eigenfuncs = len(header["ef_written_idxs"])
     eigenfunctions = {}
+
+    # extract corresponding index in the array with written indices
+    try:
+        ((ef_index,),) = np.where(header["ef_written_idxs"] == ev_index)
+    except ValueError:
+        pylboLogger.warning("selected eigenvalue has no eigenfunctions!")
+        return None
 
     # Fortran writes in column-major order, meaning column per column.
     # This makes it quite convenient to extract a single eigenfunction from the datfile
@@ -407,8 +477,58 @@ def read_eigenfunction(istream, header, ef_index):
         reals = hdr[::2]
         imags = hdr[1::2]
         ef_values = np.asarray([complex(x, y) for x, y in zip(reals, imags)])
-        # omit very small values
-        ef_values[np.where(np.isclose(ef_values, 0, atol=1e-12))] = 0.0
+        eigenfunctions.update({name: ef_values})
+    return eigenfunctions
+
+
+def read_derived_eigenfunction(istream, header, ev_index):
+    """
+    Reads a single derived eigenfunction from the datfile.
+    Quantities are read in on-the-fly, to prevent having to load the
+    entire array into memory (which can quickly be a few 100 Mb for larger datasets).
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+    ev_index : int
+        The array index of the selected eigenvalue in the
+        :class:`~pylbo.data_containers.LegolasDataSet` eigenvalues attribute.
+
+    Returns
+    -------
+    eigenfunctions : dict
+        A dictionary containing the eigenfunctions for all variables with keys given
+        by the names of `header['derived_ef_names']`.
+        The eigenfunctions correspond to a specific
+        eigenvalue, associated with the same `ev_index`.
+    """
+    ef_offset = header["offsets"]["derived_ef_arrays"]
+    ef_gridpts = header["ef_gridpts"]
+    nb_eigenfuncs = len(header["ef_written_idxs"])
+    eigenfunctions = {}
+
+    try:
+        ((ef_index,),) = np.where(header["ef_written_idxs"] == ev_index)
+    except ValueError:
+        pylboLogger.warning("selected eigenvalue has no eigenfunctions!")
+        return None
+
+    matrix_bytesize = ef_gridpts * nb_eigenfuncs * SIZE_COMPLEX
+    ef_bytesize = ef_gridpts * SIZE_COMPLEX
+    for name in header["derived_ef_names"]:
+        name_idx = header["derived_ef_names"].index(name)
+        istream.seek(ef_offset + name_idx * matrix_bytesize)
+        # move pointer to requested eigenfunction
+        # 'ef_index' here is the index of the corresponding eigenvalue in its array
+        istream.seek(istream.tell() + ef_index * ef_bytesize)
+        fmt = ALIGN + ef_gridpts * 2 * "d"
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        reals = hdr[::2]
+        imags = hdr[1::2]
+        ef_values = np.asarray([complex(x, y) for x, y in zip(reals, imags)])
         eigenfunctions.update({name: ef_values})
     return eigenfunctions
 

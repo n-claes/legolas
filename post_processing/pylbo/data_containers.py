@@ -11,6 +11,7 @@ from pylbo.utilities.datfile_utils import (
     read_matrix_A,
     read_ef_grid,
     read_eigenfunction,
+    read_derived_eigenfunction,
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import MatricesNotPresent
@@ -86,6 +87,14 @@ class LegolasDataContainer(ABC):
 
     @abstractmethod
     def ef_names(self):
+        pass
+
+    @abstractmethod
+    def derived_efs_written(self):
+        pass
+
+    @abstractmethod
+    def derived_ef_names(self):
         pass
 
     @abstractmethod
@@ -244,6 +253,43 @@ class LegolasDataSet(LegolasDataContainer):
         else:
             return None
 
+    @property
+    def ef_subset(self):
+        """
+        Checks if dataset contains a subset of the eigenfunctions
+
+        Returns
+        -------
+        bool
+            `True` if subset present, `False` otherwise
+        """
+        return self.header["eigenfunction_subset_used"]
+
+    @property
+    def derived_efs_written(self):
+        """
+        Checks if derived eigenfunctions are present.
+
+        Returns
+        -------
+        bool
+            If `True`, derived eigenfunctions are present in the datfile.
+        """
+        return self.header["derived_eigenfuncs_written"]
+
+    @property
+    def derived_ef_names(self):
+        """
+        Retrieves the derived eigenfunction names.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array containing the names of the derived eigenfunctions as strings.
+            None if no derived eigenfunctions are present.
+        """
+        return self.header.get("derived_ef_names", None)
+
     @staticmethod
     def _get_values(array, which_values):
         """
@@ -322,8 +368,7 @@ class LegolasDataSet(LegolasDataContainer):
             Array with the Alfvén speed at every grid point,
             or a float corresponding to the value of `which_values` if provided.
         """
-        B0 = np.sqrt(self.equilibria["B02"] ** 2 + self.equilibria["B03"] ** 2)
-        cA = B0 / np.sqrt(self.equilibria["rho0"])
+        cA = self.equilibria["B0"] / np.sqrt(self.equilibria["rho0"])
         return self._get_values(cA, which_values)
 
     def get_tube_speed(self, which_values=None):
@@ -521,9 +566,51 @@ class LegolasDataSet(LegolasDataContainer):
         with open(self.datfile, "rb") as istream:
             for dict_idx, ef_idx in enumerate(idxs):
                 efs = read_eigenfunction(istream, self.header, ef_idx)
-                efs.update({"eigenvalue": self.eigenvalues[ef_idx]})
+                if efs is not None:
+                    efs.update({"eigenvalue": self.eigenvalues[ef_idx]})
                 eigenfuncs[dict_idx] = efs
         return eigenfuncs
+
+    def get_derived_eigenfunctions(self, ev_guesses=None, ev_idxs=None):
+        """
+        Returns the derived eigenfunctions based on given eigenvalue guesses or their
+        indices. An array will be returned where every item is a dictionary, containing
+        both the eigenvalue and its quantities. Either eigenvalue guesses or
+        indices can be supplied, but not both.
+
+        Parameters
+        ----------
+        ev_guesses : (list of) int, float, complex
+            Eigenvalue guesses.
+        ev_idxs : (list of) int
+            Indices corresponding to the eigenvalues that need to be retrieved.
+
+        Returns
+        -------
+        numpy.ndarray(dtype=dict, ndim=1)
+            Array containing the derived eigenfunctions and eigenvalues
+            corresponding to the supplied indices. Every index in this array
+            contains a dictionary with the derived eigenfunctions and
+            corresponding eigenvalue. The keys of each dictionary are the
+            corresponding eigenfunction names.
+        """
+        if ev_guesses is not None and ev_idxs is not None:
+            raise ValueError("either provide guesses or indices but not both")
+        if ev_guesses is not None:
+            idxs, _ = self.get_nearest_eigenvalues(ev_guesses)
+        else:
+            idxs = transform_to_numpy(ev_idxs)
+            for idx in idxs:
+                if not isinstance(idx, (int, np.int64)):
+                    raise ValueError("ev_idxs should be integers")
+        derived_efs = np.array([{}] * len(idxs), dtype=dict)
+        with open(self.datfile, "rb") as istream:
+            for dict_idx, ef_idx in enumerate(idxs):
+                defs = read_derived_eigenfunction(istream, self.header, ef_idx)
+                if defs is not None:
+                    defs.update({"eigenvalue": self.eigenvalues[ef_idx]})
+                derived_efs[dict_idx] = defs
+        return derived_efs
 
     def get_nearest_eigenvalues(self, ev_guesses):
         """
@@ -624,6 +711,38 @@ class LegolasDataSeries(LegolasDataContainer):
             An array with arrays, containing the eigenfunction grids for each dataset.
         """
         return np.array([ds.ef_grid for ds in self.datasets], dtype=object)
+
+    @property
+    def derived_efs_written(self):
+        """
+        Checks if the derived eigenfunctions are written.
+
+        Returns
+        -------
+        numpy.ndarray(dtype=bool)
+            An array of bools corresponding to the various datasets, `True` if a
+            dataset has derived eigenfunctions present.
+        """
+        return np.array([ds.derived_efs_written for ds in self.datasets])
+
+    @property
+    def derived_ef_names(self):
+        """
+        Returns the derived eigenfunction names.
+
+        Returns
+        -------
+        numpy.ndarray(dtype=str)
+            An array with the derived eigenfunction names as strings.
+        """
+        names = np.array([ds.derived_ef_names for ds in self.datasets], dtype=object)
+        for item in names:
+            if item is None:
+                continue
+            else:
+                return item
+        else:
+            return None
 
     def get_sound_speed(self, which_values=None):
         """

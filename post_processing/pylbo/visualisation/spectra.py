@@ -3,6 +3,7 @@ from copy import copy
 from matplotlib import colors
 from pylbo.visualisation.figure_manager import FigureWindow
 from pylbo.visualisation.eigenfunctions import EigenfunctionHandler
+from pylbo.visualisation.derived_eigenfunctions import DerivedEigenfunctionHandler
 from pylbo.visualisation.continua import ContinuaHandler
 from pylbo.visualisation.legend_interface import LegendHandler
 from pylbo.utilities.toolbox import transform_to_numpy, add_pickradius_to_item
@@ -18,6 +19,8 @@ class SpectrumFigure(FigureWindow):
         self._c_handler = None
         self._ef_handler = None
         self._ef_ax = None
+        self._def_handler = None
+        self._def_ax = None
 
         self.plot_props = None
         self.marker = None
@@ -27,7 +30,8 @@ class SpectrumFigure(FigureWindow):
 
     def draw(self):
         """
-        Draws everything, checks for continua/eigenfunctions. Overridden by subclasses.
+        Called on plot refreshing, the super call clears the figure and then redraws
+        everything.
         """
         super().draw()
         self._add_spectrum()
@@ -35,6 +39,8 @@ class SpectrumFigure(FigureWindow):
             self.add_continua(self._c_handler.interactive)
         if self._ef_handler is not None:
             self.add_eigenfunctions()
+        if self._def_handler is not None:
+            self.add_derived_eigenfunctions()
 
     def _set_plot_properties(self, properties):
         """
@@ -71,19 +77,30 @@ class SpectrumFigure(FigureWindow):
 
     def add_eigenfunctions(self):
         """
-        Method to add eigenfunctions, should be partially overridden by subclass and
-        then called through `super()` to connect the figure events.
+        Adds eigenfunctions to the spectrum, overridden in subclasses.
         """
-        callback_kinds = ("pick_event", "key_press_event")
-        callback_methods = (
-            self._ef_handler.on_point_pick,
-            self._ef_handler.on_key_press,
-        )
-        for callback_kind, callback_method in zip(callback_kinds, callback_methods):
-            callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
-            self._mpl_callbacks.append(
-                {"cid": callback_id, "kind": callback_kind, "method": callback_method}
-            )
+        pass
+
+    def add_derived_eigenfunctions(self):
+        """
+        Adds derived eigenfunctions to the spectrum, overridden in subclasses.
+        """
+        pass
+
+    @property
+    def c_handler(self):
+        """Property, returns the continua handler."""
+        return self._c_handler
+
+    @property
+    def ef_handler(self):
+        """Property, returns the eigenfunction handler."""
+        return self._ef_handler
+
+    @property
+    def ef_ax(self):
+        """Property, returns the eigenfunction axes."""
+        return self._ef_ax
 
 
 class SingleSpectrumPlot(SpectrumFigure):
@@ -170,45 +187,20 @@ class SingleSpectrumPlot(SpectrumFigure):
             continuum = self.dataset.continua[key]
             if self._c_handler.check_if_all_zero(continuum=continuum):
                 continue
-            min_value = np.min(continuum)
-            max_value = np.max(continuum)
-            # check if continua are complex
-            if np.all(np.iscomplex(continuum)):
-                item = self.ax.scatter(
-                    continuum.real * self.x_scaling,
-                    continuum.imag * self.y_scaling,
-                    marker=".",
-                    color=color,
-                    linewidth=self.markersize,
-                    alpha=self.alpha / 1.5,
-                    label=key,
-                )
-            elif self._c_handler.check_if_collapsed(continuum=continuum):
-                item = self.ax.scatter(
-                    min_value * self.x_scaling,
-                    0,
-                    marker=self._c_handler.marker,
-                    s=self._c_handler.markersize,
-                    c=color,
-                    alpha=self._c_handler.alpha_point,
-                    label=key,
-                )
-            else:
-                props = dict(
-                    facecolor=colors.to_rgba(color, self._c_handler.alpha_region),
-                    edgecolor=colors.to_rgba(color, self._c_handler.alpha_point),
-                    label=key,
-                )
-                if key == "thermal":
-                    item = self.ax.axhspan(
-                        min_value.imag * self.y_scaling,
-                        max_value * self.y_scaling,
-                        **props,
-                    )
-                else:
-                    item = self.ax.axvspan(
-                        min_value * self.x_scaling, max_value * self.x_scaling, **props
-                    )
+            realvals = continuum.real * self.x_scaling
+            imagvals = continuum.imag * self.y_scaling
+            if self._c_handler.check_if_collapsed(continuum=continuum):
+                realvals = np.min(realvals)
+                imagvals = 0
+            item = self.ax.scatter(
+                realvals,
+                imagvals,
+                marker=self._c_handler.marker,
+                linewidth=self._c_handler.markersize,
+                c=color,
+                alpha=self._c_handler.alpha_point,
+                label=key,
+            )
             self._c_handler.add(item)
         self._c_handler.legend = self.ax.legend(**self._c_handler.legend_properties)
         super().add_continua(self._c_handler.interactive)
@@ -219,24 +211,20 @@ class SingleSpectrumPlot(SpectrumFigure):
         if self._ef_ax is None:
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
-            self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax)
-        # connect everything
-        super().add_eigenfunctions()
+            self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax, self.ax)
+        super()._enable_interface(handle=self._ef_handler)
 
-    def _ensure_smooth_continuum(self, continuum):
-        # TODO: this method should split the continuum into multiple parts, such that
-        #       regions that lie far apart are not connected by a line.
-        pass
-
-    @property
-    def ef_ax(self):
-        """Property, returns the eigenfunction axes."""
-        return self._ef_ax
-
-    @property
-    def ef_handler(self):
-        """Property, returns the eigenfunction handler."""
-        return self._ef_handler
+    def add_derived_eigenfunctions(self):
+        """
+        Adds the derived eigenfunctions to the plot, sets the eigenfunction handler.
+        """
+        if self._def_ax is None:
+            self._def_ax = super()._add_subplot_axes(self.ax, loc="right")
+        if self._def_handler is None:
+            self._def_handler = DerivedEigenfunctionHandler(
+                self.dataset, self._def_ax, self.ax
+            )
+        super()._enable_interface(handle=self._def_handler)
 
 
 class MultiSpectrumPlot(SpectrumFigure):
@@ -333,19 +321,20 @@ class MultiSpectrumPlot(SpectrumFigure):
 
         Returns
         -------
-        ydata_values : numpy.ndarray
+        ydata : numpy.ndarray
             The y data values, either the real or imaginary parts based on
-            :attr:`use_real_parts`.
+            :attr:`use_real_parts`. Every element is an array in itself corresponding
+            to the various datasets, hence depending on the gridpoints in every dataset
+            the elements themselves may be of different length.
         """
-        ydata_values = np.array(
-            [ds.eigenvalues ** self._w_pow for ds in self.dataseries]
-        )
-        if self.use_real_parts:
-            ydata = ydata_values.real
-        else:
-            ydata = ydata_values.imag
-        # omit zeros from data
-        ydata[np.where(np.isclose(ydata, 0, atol=1e-12))] = np.nan
+        ydata = np.empty(len(self.dataseries), dtype=object)
+        for i, ds in enumerate(self.dataseries):
+            ydata[i] = ds.eigenvalues ** self._w_pow
+            if self.use_real_parts:
+                ydata[i] = ydata[i].real
+            else:
+                ydata[i] = ydata[i].imag
+            ydata[i][np.where(np.isclose(ydata[i], 0, atol=1e-15))] = np.nan
         return ydata
 
     def set_x_scaling(self, x_scaling):
@@ -413,9 +402,8 @@ class MultiSpectrumPlot(SpectrumFigure):
             self._c_handler.continua_names, self._c_handler.continua_colors
         ):
             # we skip duplicates if eigenvalues are squared
-            if self.use_squared_omega:
-                if key in ("slow-", "alfven-"):
-                    continue
+            if self.use_squared_omega and key in ("slow-", "alfven-"):
+                continue
             # retrieve continuum, calculate region boundaries
             continuum = self.dataseries.continua[key] ** self._w_pow
             if self.use_real_parts:
@@ -456,9 +444,20 @@ class MultiSpectrumPlot(SpectrumFigure):
         if self._ef_ax is None:
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
-            self._ef_handler = EigenfunctionHandler(self.dataseries, self._ef_ax)
-        # connect everything
-        super().add_eigenfunctions()
+            self._ef_handler = EigenfunctionHandler(
+                self.dataseries, self._ef_ax, self.ax
+            )
+        super()._enable_interface(handle=self._ef_handler)
+
+    def add_derived_eigenfunctions(self):
+        """Adds the derived eigenfunctions to the current figure."""
+        if self._def_ax is None:
+            self._def_ax = super()._add_subplot_axes(self.ax, loc="right")
+        if self._def_handler is None:
+            self._def_handler = DerivedEigenfunctionHandler(
+                self.dataseries, self._def_ax, self.ax
+            )
+        super()._enable_interface(handle=self._def_handler)
 
 
 class MergedSpectrumPlot(SpectrumFigure):
@@ -538,9 +537,18 @@ class MergedSpectrumPlot(SpectrumFigure):
         if self._ef_ax is None:
             self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
-            self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax)
-            # connect everything
-        super().add_eigenfunctions()
+            self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax, self.ax)
+        super()._enable_interface(handle=self._ef_handler)
+
+    def add_derived_eigenfunctions(self):
+        """Adds the derived eigenfunctions to the current figure."""
+        if self._def_ax is None:
+            self._def_ax = super()._add_subplot_axes(self.ax, loc="right")
+        if self._def_handler is None:
+            self._def_handler = DerivedEigenfunctionHandler(
+                self.data, self._def_ax, self.ax
+            )
+        super()._enable_interface(handle=self._def_handler)
 
     def add_continua(self, interactive=True):
         raise NotImplementedError("Continua are not supported for this type of figure.")
@@ -624,10 +632,8 @@ class SpectrumComparisonPlot(SpectrumFigure):
         """Splits the original 1x2 plot into a 2x2 plot."""
         if self._axes_set:
             return
-        self.panel1.ax.change_geometry(2, 2, 1)
-        self.panel1._ef_ax = self.panel1.fig.add_subplot(2, 2, 3)
-        self.panel2.ax.change_geometry(2, 2, 2)
-        self.panel2._ef_ax = self.panel2.fig.add_subplot(2, 2, 4)
+        self.panel1._ef_ax = self.panel1._add_subplot_axes(self.panel1.ax, loc="bottom")
+        self.panel2._ef_ax = self.panel2._add_subplot_axes(self.panel2.ax, loc="bottom")
         self._axes_set = True
 
     def add_eigenfunctions(self):
@@ -638,8 +644,18 @@ class SpectrumComparisonPlot(SpectrumFigure):
             panel.disconnect_callbacks()
             # merge callbacks
             self._mpl_callbacks.extend(panel._mpl_callbacks)
-            # add dedicated attribute to prevent mpl from double triggering events
-            setattr(panel.ef_handler, "associated_ds_ax", panel.ax)
+
+    def add_derived_eigenfunctions(self):
+        """
+        Adds the derived eigenfunctions for both datasets and merges the mpl
+        callbacks.
+        """
+        self._use_custom_axes()
+        for panel in [self.panel1, self.panel2]:
+            panel.add_derived_eigenfunctions()
+            panel.disconnect_callbacks()
+            # merge callbacks
+            self._mpl_callbacks.extend(panel._mpl_callbacks)
 
     def add_continua(self, interactive=True):
         """Adds the continua for both datasets and merges the mpl callbacks."""

@@ -19,16 +19,7 @@ contains
 
 
   !> Implementation of the ARPACK solvers
-  module subroutine arnoldi(matrix_A, matrix_B, omega, vr)
-    !> matrix A
-    complex(dp), intent(in)   :: matrix_A(:, :)
-    !> matrix B
-    real(dp), intent(in)      :: matrix_B(:, :)
-    !> array with calculated eigenvalues
-    complex(dp), intent(out)  :: omega(:)
-    !> array with right eigenvectors
-    complex(dp), intent(out)  :: vr(:, :)
-
+  module procedure arnoldi
 #if _ARPACK_FOUND
     !> inverse B-matrix
     real(dp), allocatable    :: B_inv(:, :)
@@ -232,15 +223,12 @@ contains
 
 #else
     call log_message( &
-      "ARPACK was not found and/or CMake failed to link", &
-      level="warning" &
+      "ARPACK was not found and/or CMake failed to link", level="warning" &
     )
     call log_message( &
-      "unable to use 'arnoldi', try another solver!", &
-      level="error" &
+      "unable to use 'arnoldi', try another solver!", level="error" &
     )
 #endif
-
-  end subroutine arnoldi
+  end procedure arnoldi
 
 end submodule smod_arnoldi

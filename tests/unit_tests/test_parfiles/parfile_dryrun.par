@@ -1,0 +1,5 @@
+&savelist
+  dry_run = .true.
+  write_matrices = .true.
+  write_eigenfunctions = .true.
+/

@@ -202,11 +202,8 @@ class ParfileGenerator:
             # parfile name
             parfile_name = f"{prefix}{self.basename}.par"
             # datfile name (no extension .dat needed)
-            datfile_name = "".join(
-                [
-                    f"{prefix}",
-                    run_dict["savelist"].get("basename_datfile", self.basename),
-                ]
+            datfile_name = (
+                f"{prefix}{run_dict['savelist'].get('basename_datfile', self.basename)}"
             )
             run_dict["savelist"].update({"basename_datfile": datfile_name})
             # logfile name (no extension .log needed)
@@ -219,5 +216,7 @@ class ParfileGenerator:
             parfile_path = (self.output_dir / parfile_name).resolve()
             self.parfiles.append(str(parfile_path))
             f90nml.write(run_dict, parfile_path, force=True)
+            # clear dictionary but keep keys
+            run_dict.update({key: {} for key in run_dict})
         pylboLogger.info(f"parfiles generated and saved to {self.output_dir}")
         return self.parfiles

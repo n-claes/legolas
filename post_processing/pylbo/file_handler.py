@@ -65,6 +65,14 @@ def load(datfile):
         pylboLogger.info("matrices present in datfile")
     if ds.header["eigenfuncs_written"]:
         pylboLogger.info("eigenfunctions present in datfile")
+    if ds.header.get("derived_eigenfuncs_written", False):
+        pylboLogger.info("derived eigenfunctions present in datfile")
+    if ds.header.get("eigenfunction_subset_used", False):
+        saved_efs = len(ds.header["ef_written_idxs"])
+        total_efs = len(ds.eigenvalues)
+        pylboLogger.info(
+            f"subset saved: {saved_efs}/{total_efs} eigenvalues have eigenfunctions"
+        )
     pylboLogger.info("-" * 75)
     return ds
 
@@ -147,8 +155,19 @@ def load_series(datfiles):
     else:
         if efs_present.pop():
             pylboLogger.info("eigenfunctions present in all datfiles")
-    pylboLogger.info("-" * 75)
 
+    # check presence of derived eigenfunctions
+    defs_present = set(
+        [ds.header.get("derived_eigenfuncs_written", False) for ds in series.datasets]
+    )
+    if len(defs_present) == 0:
+        pylboLogger.info("no derived eigenfunctions present")
+    elif len(defs_present) > 1:
+        pylboLogger.info("derived eigenfunctions present in some datfiles, but not all")
+    else:
+        if defs_present.pop():
+            pylboLogger.info("derived eigenfunctions present in all datfiles")
+    pylboLogger.info("-" * 75)
     return series
 
 

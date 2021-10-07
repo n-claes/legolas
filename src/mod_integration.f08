@@ -163,7 +163,6 @@ contains
       if ( &
         .not. use_adaptive_stepping &
         .and. i == nbpoints - 1 &
-        .and. (xend - xi - dh) < dh_min &
       ) then
         dh = xend - xi
       end if
@@ -206,7 +205,7 @@ contains
       xi = xi + dh
       xtemp(i) = xi
       ytemp(i) = ysolrk5
-
+      ! LCOV_EXCL_START
       if (mod(i, 10000) == 0) then
         call log_message( &
           "steps: " // str(i) // " | xi: " // str(xi) // " | dh: " &
@@ -215,6 +214,7 @@ contains
           use_prefix=.false. &
         )
       end if
+      ! LCOV_EXCL_STOP
     end do
 
     ! allocate final arrays
@@ -330,12 +330,14 @@ contains
     !> is <tt>.true.</tt> if arrays differ in size
     logical :: resample
 
+    ! LCOV_EXCL_START
     if (target < base) then
       call log_message( &
         "resampling: target #points is less than size of input arrays!", &
         level="warning" &
       )
     end if
+    ! LCOV_EXCL_STOP
 
     if (base == target) then
       resample = .false.

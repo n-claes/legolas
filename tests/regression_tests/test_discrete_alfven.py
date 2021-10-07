@@ -19,11 +19,18 @@ discrete_alfven_setup = {
         "unit_density": 1.5e-15,
         "unit_magneticfield": 50.0,
         "unit_length": 1.0e10,
+        "mean_molecular_weight": 1.0,
         "logging_level": 0,
         "show_results": False,
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-700, 700), "ylims": (-0.9, 0.4)},
+        {"xlims": (-100, 100), "ylims": (-0.9, 0.4)},
+        {"xlims": (-0.2, 0.2), "ylims": (-0.9, 0.4)},
+        {"xlims": (-0.01, 0.01), "ylims": (-0.004, 0.009), "RMS_TOLERANCE": 2.1},
+    ],
 }
 parametrisation = dict(
     argnames="setup",

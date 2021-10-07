@@ -68,6 +68,15 @@ add_definitions(
     -D _PARPACK_FOUND=${_PARPACK_FOUND}
 )
 
+# avoid "... has no symbols" warnings from ranlib", from
+# https://stackoverflow.com/questions/4929255
+if (APPLE)
+  SET(CMAKE_Fortran_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+  SET(
+    CMAKE_Fortran_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>"
+  )
+endif()
+
 # name of library
 set(LEGOLASLIB lego)
 # name of executable

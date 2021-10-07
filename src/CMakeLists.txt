@@ -21,6 +21,7 @@ set (sources
         physics/mod_solar_atmosphere.f08
         physics/mod_radiative_cooling.f08
         physics/mod_thermal_conduction.f08
+        physics/mod_hall.f08
         mod_inspections.f08
         mod_equilibrium.f08
         equilibria/smod_equil_adiabatic_homo.f08
@@ -48,19 +49,46 @@ set (sources
         equilibria/smod_equil_RTI_KHI.f08
         equilibria/smod_equil_RTI_theta_pinch.f08
         equilibria/smod_equil_suydam_cluster.f08
+        equilibria/smod_equil_couette_flow.f08
+        equilibria/smod_equil_taylor_couette.f08
+        equilibria/smod_equil_harris_sheet.f08
+        equilibria/smod_equil_tc_pinch.f08
         ${USR_SMOD_LOC}/smod_user_defined.f08
-        mod_make_subblock.f08
-        mod_boundary_conditions.f08
-        mod_matrix_creation.f08
+        boundaries/mod_boundary_manager.f08
+        boundaries/smod_essential_boundaries.f08
+        boundaries/smod_natural_boundaries.f08
+        boundaries/smod_natural_bounds_regular.f08
+        boundaries/smod_natural_bounds_flow.f08
+        boundaries/smod_natural_bounds_resistive.f08
+        boundaries/smod_natural_bounds_conduction.f08
+        boundaries/smod_natural_bounds_viscosity.f08
+        boundaries/smod_natural_bounds_hall.f08
+        matrices/mod_matrix_shortcuts.f08
+        matrices/mod_make_subblock.f08
+        matrices/mod_matrix_manager.f08
+        matrices/smod_regular_matrix.f08
+        matrices/smod_flow_matrix.f08
+        matrices/smod_resistive_matrix.f08
+        matrices/smod_cooling_matrix.f08
+        matrices/smod_conduction_matrix.f08
+        matrices/smod_viscosity_matrix.f08
+        matrices/smod_hall_matrix.f08
         solvers/mod_solvers.f08
         solvers/mod_arpack_type.f08
         solvers/smod_qr_invert.f08
         solvers/smod_qz_direct.f08
         solvers/smod_arnoldi.f08
-        mod_eigenfunctions.f08
+        eigenfunctions/mod_eigenfunctions.f08
+        eigenfunctions/smod_ef_operations.f08
+        eigenfunctions/smod_base_efs.f08
+        eigenfunctions/smod_derived_efs.f08
+        eigenfunctions/smod_derived_pp_efs.f08
         dataIO/mod_output.f08
+        utils/mod_assert.f08
+        utils/mod_timing.f08
 )
 
+include_directories(includes)
 set_source_files_properties(${sources} PROPERTIES LANGUAGE Fortran)
 set_source_files_properties(main.f08 PROPERTIES LANGUAGE Fortran)
 

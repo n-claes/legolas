@@ -11,3 +11,30 @@ New additions should go at the bottom of the file and follow the format already 
 3) added names of units and length of entry between cgs boolean and unit normalisations
 4) added length of eigenvalues array before eigenvalues are written
 Changes 1-4 needed an update of the pylbo reader
+
+=== version 1.0.3 --> 1.0.4 ===
+1) added ddv02 and ddv03 to equil_names
+2) added dd_v02_dr and dd_v03_dr to the data
+No update of the pylbo reader needed
+
+=== version 1.0.4 --> 1.0.5 ===
+1) added cte_B01 to param_names between cte_T0 and cte_B02
+2) added cte_B01 to the data between cte_T0 and cte_B02
+
+=== version 1.0.5 --> 1.1.1 === (PR #71)
+1) added B01, ddT0, v01, dv01, ddv01 to equil_names
+2) added B01, ddT0, v01, dv01, ddv01 to equilibrium data
+
+=== version 1.1.1 --> 1.1.2 ===
+1) added mean_molecular_weight to unit_names
+2) added mean molecular weight to units
+added this in a backwards compatible way to the pylbo reader
+
+=== version 1.1.2 --> 1.1.3 ===
+1) added write_postprocessed between write_eigenfunctions and write_matrices in header
+2) postprocessed quantities added after eigenfunctions and before matrices (optional)
+
+=== version 1.1.3 --> 1.1.4 ===
+1) added eigenfunction subset info to datfile header
+2) added ef_written_flags and ef_written_idxs to datfile, before writing eigenfunctions
+Changes needed an update of the pylbo reader

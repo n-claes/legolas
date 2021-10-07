@@ -30,13 +30,16 @@ resistive_homo_arnoldi_si_setup = {
         "which_eigenvalues": "LM",
         "sigma": 1.0 - 1.5j,
     },
-    "ev_guesses": [
-        4.180e-01 - 8.884e-04j,
-        4.160e-01 - 3.442e-03j,
-        4.155e-01 - 7.697e-03j,
-        4.152e-01 - 1.365e-02j,
+    "image_limits": [
+        {"xlims": (-0.6, 1.6), "ylims": (-3, 0.1), "RMS_TOLERANCE": 2.3},
+        {"xlims": (-0.07, 1.04), "ylims": (-1.1, 0.1), "RMS_TOLERANCE": 2.55},
     ],
-    "relax_ef_test": True,
+    "eigenfunctions": [
+        {"eigenvalue": 4.180e-01 - 8.884e-04j},
+        {"eigenvalue": 4.160e-01 - 3.442e-03j},
+        {"eigenvalue": 4.155e-01 - 7.697e-03j},
+        {"eigenvalue": 4.152e-01 - 1.365e-02j},
+    ],
 }
 parametrisation = dict(
     argnames="setup",

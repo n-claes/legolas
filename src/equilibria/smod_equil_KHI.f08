@@ -31,9 +31,9 @@ contains
 
   module subroutine KHI_eq()
     use mod_equilibrium_params, only: g, delta, theta, p1, p2, p3, tau, &
-                                      p4, alpha, cte_rho0, cte_p0
+      p4, alpha, cte_rho0, cte_p0
 
-    if (use_defaults) then
+    if (use_defaults) then ! LCOV_EXCL_START
       k2 = 0.0d0
       k3 = 1.0d0
       cte_rho0 = 1.0d0
@@ -47,7 +47,7 @@ contains
       p3 = 1.0d0
       p4 = 0.0d0
       tau = 11.0d0
-    end if
+    end if ! LCOV_EXCL_STOP
 
     call flow_driven_instabilities_eq()
     ! manually force the magnetic field to zero, it's HD here (the above set

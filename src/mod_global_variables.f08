@@ -35,6 +35,8 @@ module mod_global_variables
   real(dp), protected       :: gamma
   !> variable for (gamma - 1)
   real(dp), protected       :: gamma_1
+  !> boolean for incompressible approximation, defaults to <tt>False</tt>
+  logical, save             :: incompressible
   !> boolean for flow, defaults to <tt>False</tt>
   logical, save             :: flow
   !> boolean for radiative cooling, defaults to <tt>False</tt>
@@ -67,9 +69,27 @@ module mod_global_variables
   real(dp)                  :: dropoff_edge_dist
   !> width of the dropoff region, defaults to <tt>0.1</tt>
   real(dp)                  :: dropoff_width
-
+  !> boolean for viscosity, defaults to <tt>False</tt>
+  logical, save             :: viscosity
+  !> boolean to include viscoous heating, defaults to <tt>False</tt>
+  logical, save             :: viscous_heating
+  !> defines the fixed value for either the dynamic or kinematic viscosity, defaults to 0
+  real(dp)                  :: viscosity_value
+  !> boolean to use Hall MHD, defaults to <tt>False</tt>
+  logical, save             :: hall_mhd
+  !> boolean to use dropoff profile for Hall parameter, defaults to <tt>False </tt>
+  logical, save             :: hall_dropoff
+  !> boolean to use electron pressure in Ohm's law, defaults to <tt>False</tt>
+  logical, save             :: elec_pressure
+  !> boolean to use electron inertia in Ohm's law, defaults to <tt>False</tt>
+  logical, save             :: elec_inertia
+  !> boolean to use dropoff profile for inertia parameter, defaults to <tt>False </tt>
+  logical, save             :: inertia_dropoff
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
+  !> defines the presence of a coaxial inner boundary for a cylindrical geometry,
+  !! defaults to <tt>False</tt>
+  logical, save             :: coaxial
   !> start value of the base grid, defaults depend on chosen equilibrium
   real(dp)                  :: x_start
   !> end value of the base grid, defaults depend on chosen equilibrium
@@ -84,17 +104,6 @@ module mod_global_variables
   integer, protected        :: matrix_gridpts
   !> size of a single eigenfunction array, automatically set by \p gridpts
   integer, protected        :: ef_gridpts
-
-  !> boolean for mesh accumulation, defaults to <tt>False</tt>
-  logical, save             :: mesh_accumulation
-  !> expected value for the 1st Gaussian function used in accumulation, defaults to 1.25
-  real(dp)                  :: ev_1
-  !> expected value for the 2nd Gaussian function used in accumulation, defaults to 1.25
-  real(dp)                  :: ev_2
-  !> standard deviation for the 1st Gaussian function used in accumulation, defaults to 1
-  real(dp)                  :: sigma_1
-  !> standard deviation for the 2nd Gaussian function used in accumulation, defaults to 2
-  real(dp)                  :: sigma_2
 
   !> number of Gaussian nodes
   integer, parameter           :: n_gauss = 4
@@ -135,6 +144,14 @@ module mod_global_variables
   logical, save             :: write_matrices
   !> boolean to write the eigenfunctions to the datfile, defaults to <tt>True</tt>
   logical, save             :: write_eigenfunctions
+  !> boolean to write postprocessed quantities to the datfile, defaults to <tt>True</tt>
+  logical, save             :: write_derived_eigenfunctions
+  !> boolean to select subset of the eigenfunctions to save, defaults to <tt>False</tt>
+  logical, save             :: write_eigenfunction_subset
+  !> point used as the center for the eigenfunction subset
+  complex(dp)               :: eigenfunction_subset_center
+  !> radius used to determine eigenfunction subset
+  real(dp)                  :: eigenfunction_subset_radius
   !> boolean to call the Python wrapper and plot the results, defaults to <tt>True</tt>
   logical, save             :: show_results
   !> base name for the datfile, defaults to \p "datfile"
@@ -178,7 +195,7 @@ contains
     !! physics variables
     cgs_units = .true.
     gamma = 5.0d0/3.0d0
-    call set_gamma(gamma)
+    incompressible = .false.
     flow = .false.
     radiative_cooling = .false.
     ncool = 4000
@@ -195,20 +212,24 @@ contains
     use_eta_dropoff = .false.
     dropoff_edge_dist = 0.05d0
     dropoff_width = 0.1d0
+    viscosity = .false.
+    viscous_heating = .false.
+    viscosity_value = 0.0d0
+    hall_mhd = .false.
+    hall_dropoff = .false.
+    elec_pressure = .false.
+    elec_inertia = .false.
+    inertia_dropoff = .false.
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile
     geometry = ""
+    coaxial = .false.
     x_start = NaN
     x_end = NaN
     gridpts = 31
     force_r0 = .false.
     call set_gridpts(gridpts)
-    mesh_accumulation = .false.
-    ev_1 = 1.25d0
-    ev_2 = 1.25d0
-    sigma_1 = 1.0d0
-    sigma_2 = 2.0d0
 
     !! equilibrium variables
     equilibrium_type = 'adiabatic_homo'
@@ -220,9 +241,13 @@ contains
     !! post-processing parameters
     write_matrices = .false.
     write_eigenfunctions = .true.
+    write_derived_eigenfunctions = .false.
     show_results = .true.
     logging_level = 2
     dry_run = .false.
+    write_eigenfunction_subset = .false.
+    eigenfunction_subset_center = cmplx(NaN, NaN, kind=dp)
+    eigenfunction_subset_radius = NaN
 
     !! file-saving variables
     basename_datfile = "datfile"
@@ -245,7 +270,11 @@ contains
     !> the value for gamma
     real(dp), intent(in)    :: gamma_in
 
-    gamma   = gamma_in
+    if (incompressible) then
+      gamma = 1.0d6
+    else
+      gamma = gamma_in
+    end if
     gamma_1 = gamma - 1.0d0
   end subroutine set_gamma
 
@@ -262,18 +291,5 @@ contains
     matrix_gridpts = 16 * gridpts
     ef_gridpts     = 2*gridpts - 1
   end subroutine set_gridpts
-
-
-  !> Sets the size of the matrix.
-  !> Manually forces the size of the matrices to the given value.
-  !! This is only used for testing purposes, as the matrix sizes are
-  !! dependent on the base number of gridpoints.
-  !> @warning Should **ONLY** be used for testing purposes!
-  subroutine set_matrix_gridpts(matrix_size_in)
-    !> value for the matrix size
-    integer, intent(in) :: matrix_size_in
-
-    matrix_gridpts = matrix_size_in
-  end subroutine set_matrix_gridpts
 
 end module mod_global_variables

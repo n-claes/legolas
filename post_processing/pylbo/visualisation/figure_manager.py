@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from pathlib import Path
 from functools import wraps
 from pylbo.utilities.logger import pylboLogger
+from pylbo.utilities.toolbox import get_axis_geometry, transform_to_numpy
 
 
 def refresh_plot(f):
@@ -97,26 +99,6 @@ class FigureContainer(dict):
                 f"id='{figure_id}' not in existing list {self.figure_id_list}"
             )
 
-    def disable_stack(self):
-        """
-        This disables the figurestack by closing the figures: this prevents them
-        from showing when calling `plt.show()`.
-        Later on we reconstruct the figuremanagers.
-        """
-        [figure.disable() for figure in self.figure_list]
-        self.stack_is_enabled = False
-
-    def enable_stack(self):
-        """
-        This enables the figurestack so figures are again accessible through
-        the plt.show() methods. When we lock the stack those figures are closed,
-        which essentially destroys the figuremanager but keeps the figure references
-        alive. Here we simply reconstruct the figuremanager for every disabled figure
-        in the stack, allowing for multiple calls to show(), save(), etc.
-        """
-        [figure.enable() for figure in self.figure_list]
-        self.stack_is_enabled = True
-
     @property
     def number_of_figures(self):
         """Returns the total number of figures in the stack."""
@@ -168,15 +150,12 @@ class FigureWindow:
         Scaling to apply to the x-axis.
     y_scaling : int, float, complex, np.ndarray
         Scaling to apply to the y-axis.
-    enabled : bool
-        If `False` (default), the current figure will not be plotted at plt.show().
     """
 
     figure_stack = FigureContainer()
 
     def __init__(self, figure_type, figsize=None, custom_figure=None):
         if custom_figure is not None:
-            plt.close(custom_figure[0])
             self.fig, self.ax = custom_figure
             self.figsize = tuple(self.fig.get_size_inches())
             if self.fig.get_label() == "":
@@ -192,7 +171,6 @@ class FigureWindow:
             self.ax = self.fig.add_subplot(111)
         self.x_scaling = 1.0
         self.y_scaling = 1.0
-        self.enabled = False
         self._mpl_callbacks = []
         self.__class__.figure_stack.add(self)
 
@@ -217,18 +195,6 @@ class FigureWindow:
         )
         suffix = 1 + occurences
         return f"{figure_type}-{suffix}"
-
-    def disable(self):
-        """Disables the current figure."""
-        self.enabled = False
-        plt.close(self.figure_id)
-
-    def enable(self):
-        """Enables the current figure, reconstructs the figuremanagers"""
-        self.enabled = True
-        manager = plt.figure(self.figure_id, self.figsize).canvas.manager
-        manager.canvas.figure = self.fig
-        self.fig.set_canvas(manager.canvas)
 
     def connect_callbacks(self):
         """Connects all callbacks to the canvas"""
@@ -261,12 +227,30 @@ class FigureWindow:
             }
         )
 
-    def _add_subplot_axes(self, ax, loc="right", share=None):
+    def _enable_interface(self, handle):
         """
-        Adds a new subplot to the given axes object, depending on the loc argument.
-        On return, `tight_layout()` is called to update the figure's gridspec.
-        This is meant to split a single axis, and should not be used for multiple
-        subplots.
+        Enables the EigenfunctionInterface based on a given handler.
+
+        Parameters
+        ----------
+        handle : ~pylbo.eigenfunction_interface.EigenfunctionInterface
+            The handler to add to the figure.
+        """
+        callback_kinds = ("pick_event", "key_press_event")
+        callback_methods = (handle.on_point_pick, handle.on_key_press)
+        for callback_kind, callback_method in zip(callback_kinds, callback_methods):
+            callback_id = self.fig.canvas.mpl_connect(callback_kind, callback_method)
+            self._mpl_callbacks.append(
+                {"cid": callback_id, "kind": callback_kind, "method": callback_method}
+            )
+
+    def _add_subplot_axes(self, ax, loc="right", share=None, apply_tight_layout=True):
+        """
+        Adds a new subplot to a given matplotlib subplot, essentially "splitting" the
+        axis into two. Position and placement depend on the loc argument.
+        When called on a more complex subplot layout the overall gridspec remains
+        untouched, only the `ax` object has its gridspec modified.
+        On return, `tight_layout()` is called by default to prevent overlapping labels.
 
         Parameters
         ----------
@@ -279,50 +263,56 @@ class FigureWindow:
             to the left and the new axis is added on the right.
         share : str
             Can be "x", "y" or "all". This locks axes zooming between both subplots.
+        apply_tight_layout : bool
+            If `True` applies `tight_layout()` to the figure on return.
 
         Raises
         ------
         ValueError
-            - If the subplot is not a single axis
-            - If the loc argument is invalid.
+            If the loc argument is invalid.
 
         Returns
         -------
-        new_ax : ~matplotlib.axes.Axes
+        ~matplotlib.axes.Axes
             The axes instance that was added.
         """
-        if ax.get_geometry() != (1, 1, 1):
-            raise ValueError(
-                f"Something went wrong when adding a subplot. Expected "
-                f"axes with geometry (1, 1, 1) but got {self.ax.get_geometry()}."
-            )
-        if loc == "top":
-            geom_ax = (2, 1, 2)
-            geom_new_ax = (2, 1, 1)
-        elif loc == "right":
-            geom_ax = (1, 2, 1)
-            geom_new_ax = (1, 2, 2)
-        elif loc == "bottom":
-            geom_ax = (2, 1, 1)
-            geom_new_ax = (2, 1, 2)
-        elif loc == "left":
-            geom_ax = (1, 2, 2)
-            geom_new_ax = (1, 2, 1)
-        else:
-            raise ValueError(
-                f"invalid loc = {loc}, expected 'top', 'right', 'bottom' or 'left'"
-            )
         sharex = None
         sharey = None
         if share in ("x", "all"):
             sharex = ax
         if share in ("y", "all"):
             sharey = ax
-        ax.change_geometry(*geom_ax)
-        new_ax = self.fig.add_subplot(*geom_new_ax, sharex=sharex, sharey=sharey)
-        # this will update the figure's gridspec
-        self.fig.tight_layout()
-        return new_ax
+
+        if loc == "right":
+            subplot_geometry = (1, 2)
+            old_new_position = (0, 1)
+        elif loc == "left":
+            subplot_geometry = (1, 2)
+            old_new_position = (1, 0)
+        elif loc == "top":
+            subplot_geometry = (2, 1)
+            old_new_position = (1, 0)
+        elif loc == "bottom":
+            subplot_geometry = (2, 1)
+            old_new_position = (0, 1)
+        else:
+            raise ValueError(
+                f"invalid loc={loc}, expected ['top', 'right', 'bottom', 'left']"
+            )
+
+        _geometry = transform_to_numpy(get_axis_geometry(ax))
+        subplot_index = _geometry[-1]
+        gspec_outer = gridspec.GridSpec(*_geometry[0:2], figure=self.fig)
+        gspec_inner = gridspec.GridSpecFromSubplotSpec(
+            *subplot_geometry, subplot_spec=gspec_outer[subplot_index]
+        )
+        ax.set_subplotspec(gspec_inner[old_new_position[0]])
+        new_axis = self.fig.add_subplot(
+            gspec_inner[old_new_position[1]], sharex=sharex, sharey=sharey
+        )
+        if apply_tight_layout:
+            self.fig.tight_layout()
+        return new_axis
 
     def draw(self):
         """
@@ -358,19 +348,13 @@ class FigureWindow:
         self.y_scaling = y_scaling
 
     def show(self):
-        """Shows the current figure."""
-        self.__class__.figure_stack.disable_stack()
-        self.enable()
-        self.connect_callbacks()
-        self.fig.tight_layout()
-        plt.show()
+        """Shows the figures, wrapper to `showall()` for backwards compatibility."""
+        self.showall()
 
     @classmethod
     def showall(cls):
         """Shows all active figures at once through a call to plt.show()."""
-        cls.figure_stack.disable_stack()
         for figure in cls.figure_stack.figure_list:
-            figure.enable()
             figure.connect_callbacks()
         plt.show()
 

@@ -3,7 +3,7 @@
 !! All needed variables are defined and allocated here, along with sanity
 !! checks when setting certain values.
 module mod_arpack_type
-  use mod_logging, only: char_log, char_log2, dp_fmt, int_fmt, log_message
+  use mod_logging, only: log_message, str
   use mod_global_variables, only: dp, dp_LIMIT
 
   implicit none
@@ -140,12 +140,11 @@ contains
     integer, intent(in) :: mode
 
     if (mode < 1 .or. mode > 3) then
-      write(char_log, int_fmt) mode
       call log_message( &
-        "mode must be 1, 2 or 3 but mode = " // trim(adjustl(char_log)) &
-          // " was given", &
+        "mode must be 1, 2 or 3 but mode = " // str(mode) // " was given", &
         level="error" &
       )
+      return
     end if
     this % mode = mode
     this % iparam(7) = this % mode
@@ -157,18 +156,19 @@ contains
   !! we run into troubles.
   !! @warning Throws an error if sigma = 0. @endwarning
   subroutine set_sigma(this, sigma)
-    use mod_check_values, only: value_is_zero
+    use mod_check_values, only: is_equal
 
     !> reference to type object
     class(arpack_type)      :: this
     !> sigma for the shift-invert method
     complex(dp), intent(in) :: sigma
 
-    if (value_is_zero(sigma)) then
+    if (is_equal(sigma, (0.0d0, 0.0d0))) then
       call log_message( &
         "ARPACK shift-invert: sigma can not be equal to zero", &
         level="error" &
       )
+      return
     end if
     this % sigma = sigma
   end subroutine set_sigma
@@ -189,19 +189,16 @@ contains
     select case(this % info)
     case(0)
       converged = .true.
-    case(1)
+    case(1) ! LCOV_EXCL_START
       call log_message("ARPACK failed to converge! (maxiter reached)", level="warning")
-      write(char_log, int_fmt) this % maxiter
       call log_message( &
-        "number of iterations: " // adjustl(trim(char_log)), &
+        "number of iterations: " // str(this % maxiter), &
         level="warning", &
         use_prefix=.false. &
       )
-      write(char_log, int_fmt) this % iparam(5)
-      write(char_log2, int_fmt) this % nev
       call log_message( &
-        "number of converged eigenvalues: " // adjustl(trim(char_log)) // &
-        " / " // adjustl(trim(char_log2)), &
+        "number of converged eigenvalues: " // str(this % iparam(5)) // &
+        " / " // str(this % nev), &
         level="warning", &
         use_prefix=.false. &
       )
@@ -210,6 +207,7 @@ contains
         "znaupd: no shifts could be applied during Arnoldi iteration", &
         level="error" &
       )
+      return
     case(-6)
       call log_message("znaupd: bmat must be 'I' or 'G'", level="error")
     case(-8)
@@ -217,16 +215,19 @@ contains
         "znaupd: error from LAPACK eigenvalue calculation", &
         level="error" &
       )
+      return
     case(-11)
       call log_message("mode = 1 and bmat = 'G' are incompatible", level="error")
+      return
     case(-9999)
       call log_message("ARPACK could not build, something went wrong", level="error")
+      return
     case default
-      write(char_log, int_fmt) this % info
       call log_message( &
-        "znaupd: unexpected info = " // adjustl(trim(char_log)) // " encountered", &
+        "znaupd: unexpected info = " // str(this % info) // " encountered", &
         level="error" &
       )
+      return ! LCOV_EXCL_STOP
     end select
   end subroutine parse_znaupd_info
 
@@ -241,32 +242,36 @@ contains
     select case(this % info)
     case(0)
       return
-    case(-8)
+    case(-8) ! LCOV_EXCL_START
       call log_message( &
         "zneupd: error from LAPACK eigenvalue calculation", &
         level="error" &
       )
+      return
     case(-9)
       call log_message( &
         "zneupd: error from LAPACK eigenvector calculation (ztrevc)", &
         level="error" &
       )
+      return
     case(-14)
       call log_message( &
         "zneupd: no eigenvalues with sufficient accuracy found", &
         level="error" &
       )
+      return
     case(-15)
       call log_message( &
         "zneupd: different count for converged eigenvalues than znaupd", &
         level="error" &
       )
+      return
     case default
-      write(char_log, int_fmt) this % info
       call log_message( &
-        "zneupd: unexpected info = " // trim(adjustl(char_log)) // " value", &
+        "zneupd: unexpected info = " // str(this % info) // " value", &
         level="error" &
       )
+      return ! LCOV_EXCL_STOP
     end select
   end subroutine parse_zneupd_info
 
@@ -281,20 +286,17 @@ contains
     class(arpack_type)  :: this
 
     if (number_of_eigenvalues <= 0) then
-      write(char_log, int_fmt) number_of_eigenvalues
       call log_message( &
         "number_of_eigenvalues must be >= 0, but is equal to " &
-          // adjustl(trim(char_log)), &
+        // str(number_of_eigenvalues), &
         level="error" &
       )
       return
     end if
     if (number_of_eigenvalues >= this % evpdim) then
-      write(char_log, int_fmt) number_of_eigenvalues
-      write(char_log2, int_fmt) this % evpdim
       call log_message( &
         "number_of_eigenvalues larger than matrix size! (" &
-          // trim(adjustl(char_log)) // " > " // trim(adjustl(char_log2)) // ")", &
+        // str(number_of_eigenvalues) // " > " // str(this % evpdim) // ")", &
         level="error" &
       )
       return
@@ -334,21 +336,17 @@ contains
     if (maxiter == 0) then
       maxiter = 10 * this % evpdim
     else if (maxiter < 0) then
-      write(char_log, int_fmt) maxiter
       call log_message( &
-        "maxiter has to be positive, but is equal to " &
-          // trim(adjustl(char_log)), level="error" &
+        "maxiter has to be positive, but is equal to " // str(maxiter), level="error" &
       )
       return
-    else if (maxiter < 10 * this % evpdim) then
-      write(char_log, int_fmt) maxiter
-      write(char_log2, int_fmt) 10 * this % evpdim
+    else if (maxiter < 10 * this % evpdim) then ! LCOV_EXCL_START
       call log_message( &
         "maxiter is below recommended 10*N: (" &
-          // trim(adjustl(char_log)) // " < " // trim(adjustl(char_log2)) // ")", &
+        // str(maxiter) // " < " // str(10 * this % evpdim) // ")", &
         level="warning" &
       )
-    end if
+    end if ! LCOV_EXCL_STOP
     this % maxiter = maxiter
   end subroutine set_maxiter
 

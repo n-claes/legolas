@@ -6,6 +6,7 @@
 !! interpolation module to create one.
 module mod_radiative_cooling
   use mod_global_variables, only: dp, ncool
+  use mod_logging, only: log_message
   implicit none
 
   private
@@ -40,35 +41,35 @@ contains
     integer               :: ntable
 
     select case(cooling_curve)
-    case('jc_corona')
+    case("jc_corona")
        ntable = n_jc_corona
        allocate(table_T(ntable))
        allocate(table_L(ntable))
        table_T = t_jc_corona
        table_L = l_jc_corona
 
-    case('dalgarno')
+    case("dalgarno")
        ntable = n_dalgarno
        allocate(table_T(ntable))
        allocate(table_L(ntable))
        table_T = t_dalgarno
        table_L = l_dalgarno
 
-    case('ml_solar')
+    case("ml_solar")
        ntable = n_ml_solar
        allocate(table_T(ntable))
        allocate(table_L(ntable))
        table_T = t_ml_solar
        table_L = l_ml_solar
 
-    case('spex')
+    case("spex")
        ntable = n_spex
        allocate(table_T(ntable))
        allocate(table_L(ntable))
        table_T = t_spex
        table_l = l_spex
 
-    case('spex_dalgarno')
+    case("spex_dalgarno")
        ntable = n_spex + n_dalgarno2 - 6
        allocate(table_T(ntable))
        allocate(table_L(ntable))
@@ -77,11 +78,12 @@ contains
        table_T(n_dalgarno2:ntable) = t_spex(6:n_spex)
        table_L(n_dalgarno2:ntable) = l_spex(6:n_SPEX) + log10(n_spex_enh(6:n_spex))
 
-    case('rosner')
+    case("rosner")
       interpolated_curve = .false.
 
     case default
-      call log_message("unknown cooling curve: " // cooling_curve, level='error')
+      call log_message("unknown cooling curve: " // cooling_curve, level="error")
+      return
     end select
 
     if (interpolated_curve) then
@@ -154,11 +156,11 @@ contains
     else
       ! In this case an analytical cooling curve is used
       select case(cooling_curve)
-      case('rosner')
+      case("rosner")
         call get_rosner_cooling(T_field % T0, lambda_T, d_lambda_dT)
 
       case default
-        call log_message("unknown cooling curve: " // cooling_curve, level='error')
+        call log_message("unknown cooling curve: " // cooling_curve, level="error")
       end select
     end if
 
@@ -175,8 +177,9 @@ contains
   !! care of normalisations.
   !! @note    The interpolated cooling curves are normalised on exit.
   subroutine create_cooling_curve(table_T, table_L)
-    use mod_units, only: unit_temperature, unit_lambdaT
+    use mod_units, only: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
     use mod_interpolation, only: interpolate_table, get_numerical_derivative
+    use mod_global_variables, only: logging_level
 
     !> temperature values in the cooling table
     real(dp), intent(in)  :: table_T(:)
@@ -207,6 +210,30 @@ contains
     interp_table_T = 10.0d0**interp_table_T
     ! and hence dL(T)/dT = dL(T) / dlogT * (1 / T)
     interp_table_dLdT = interp_table_dLdT / interp_table_T
+
+    ! LCOV_EXCL_START
+    ! save these curves to a file if we're in debug mode
+    if (logging_level >= 3) then
+      open( &
+        unit=1002, &
+        file="debug_coolingcurves", &
+        access="stream", &
+        status="unknown", &
+        action="write" &
+      )
+      write(1002) size(table_T)
+      write(1002) 10.0d0**table_T
+      write(1002) 10.0d0**table_L
+      write(1002) size(interp_table_T)
+      write(1002) interp_table_T * unit_temperature
+      write(1002) interp_table_L * unit_lambdaT
+      write(1002) interp_table_dLdT * unit_dlambdaT_dT
+      close(1002)
+      call log_message( &
+        "cooling curves saved to file 'debug_coolingcurves'", level="debug" &
+      )
+    end if
+    ! LCOV_EXCL_STOP
   end subroutine create_cooling_curve
 
 

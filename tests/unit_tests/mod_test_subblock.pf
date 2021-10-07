@@ -1,0 +1,46 @@
+module mod_test_subblock
+  use mod_suite_utils
+  use funit
+  implicit none
+
+contains
+
+  @test
+  subroutine test_subblock_fill()
+    use mod_global_variables, only: dim_quadblock
+    use mod_make_subblock, only: subblock
+
+    complex(dp) :: quadblock(dim_quadblock, dim_quadblock)
+    complex(dp) :: factors(2), val1, val2
+    real(dp)    :: spline1(4), spline2(4), weight
+    integer     :: positions(2, 2), i, idx1(16), idx2(16)
+
+    call set_name("filling subblock")
+    quadblock = (0.0d0, 0.0d0)
+    val1 = (3.0d0, 1.0d0)
+    val2 = (-1.0d0, 5.0d0)
+    ! Two factors and positions are chosen freely
+    factors(1) = val1
+    positions(1, :) = [4, 3]
+    factors(2) = val2
+    positions(2, :) = [7, 5]
+    ! weight and splines are set to unity for testing purposes
+    weight = 1.0d0
+    spline1 = 1.0d0
+    spline2 = 1.0d0
+    call subblock(quadblock, factors, positions, weight, spline1, spline2)
+    ! first factor
+    idx1 = (/ 7, 7, 8, 8,  7,  7,  8,  8, 23, 23, 24, 24, 23, 23, 24, 24 /)
+    idx2 = (/ 5, 6, 5, 6, 21, 22, 21, 22,  5,  6,  5,  6, 21, 22, 21, 22 /)
+    do i = 1, size(idx1)
+      @assertEqual(quadblock(idx1(i), idx2(i)), val1, tolerance=TOL)
+    end do
+    ! second factor
+    idx1 = (/ 13, 13, 14, 14, 13, 13, 14, 14, 29, 29, 30, 30, 29, 29, 30, 30 /)
+    idx2 = (/  9, 10,  9, 10, 25, 26, 25, 26,  9, 10,  9, 10, 25, 26, 25, 26 /)
+    do i = 1, size(idx1)
+      @assertEqual(quadblock(idx1(i), idx2(i)), val2, tolerance=TOL)
+    end do
+  end subroutine test_subblock_fill
+
+end module mod_test_subblock

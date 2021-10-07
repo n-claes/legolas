@@ -23,11 +23,15 @@ module mod_types
     real(dp), allocatable   :: T0(:)
     !> derivative of the equilibrium temperature
     real(dp), allocatable   :: d_T0_dr(:)
+    !> second derivative of the equilibrium temperature
+    real(dp), allocatable   :: dd_T0_dr(:)
   end type temperature_type
 
   !> type containing all magnetic field related equilibrium variables
   type bfield_type
-    !> equilibrium magnetic field in y or theta-direction
+    !> constant equilibrium magnetic field in x or r direction
+    real(dp)                :: B01
+    !> equilibrium magnetic field in y or theta direction
     real(dp), allocatable   :: B02(:)
     !> equilibrium magnetic field in z direction
     real(dp), allocatable   :: B03(:)
@@ -41,14 +45,24 @@ module mod_types
 
   !> type containing all flow related equilibrium variables
   type velocity_type
+    !> equilibrium velocity in the x or r direction
+    real(dp), allocatable   :: v01(:)
+    !> derivative of equilibrium v01
+    real(dp), allocatable   :: d_v01_dr(:)
+    !> second derivative of equilibrium v01
+    real(dp), allocatable   :: dd_v01_dr(:)
     !> equilibrium velocity in the y or theta-direction
     real(dp), allocatable   :: v02(:)
-    !> equilibrium velocity in the z direction
-    real(dp), allocatable   :: v03(:)
     !> derivative of equilibrium v02
     real(dp), allocatable   :: d_v02_dr(:)
+    !> second derivative of equilibrium v02
+    real(dp), allocatable   :: dd_v02_dr(:)
+    !> equilibrium velocity in the z direction
+    real(dp), allocatable   :: v03(:)
     !> derivative of equilibrium v03
     real(dp), allocatable   :: d_v03_dr(:)
+    !> second derivative of equilibrium v03
+    real(dp), allocatable   :: dd_v03_dr(:)
   end type velocity_type
 
   !> type containing all gravity related equilibrium variables
@@ -85,6 +99,8 @@ module mod_types
   type conduction_type
     !> equilibrium parallel thermal conduction
     real(dp), allocatable   :: kappa_para(:)
+    !> derivative d(kappa_para)/dT
+    real(dp), allocatable   :: d_kappa_para_dT(:)
     !> equilibrium perpendicular thermal conduction
     real(dp), allocatable   :: kappa_perp(:)
     !> derivative d(kappa_perp)/drho
@@ -93,17 +109,31 @@ module mod_types
     real(dp), allocatable   :: d_kappa_perp_dT(:)
     !> derivative d(kappa_perp)/d(B**2)
     real(dp), allocatable   :: d_kappa_perp_dB2(:)
+    !> derivative d(kappa_perp)/dr
+    real(dp), allocatable   :: d_kappa_perp_dr(:)
+    !> conduction prefactor (kappa_para - kappa_perp) / B**2
+    real(dp), allocatable   :: prefactor(:)
+    !> derivative conduction prefactor with respect to r
+    real(dp), allocatable   :: d_prefactor_dr(:)
   end type conduction_type
 
   !> type containing all eigenfuction related variables
   type ef_type
-    !> index of the variable in the state vector
-    integer                  :: index
-    !> name of the eigenfunction (rho, v1, etc.)
-    character(str_len_arr)   :: name
-    !> array containing all eigenfunctions for this index
-    complex(dp), allocatable :: eigenfunctions(:, :)
+    !> index of the eigenfunction variable in the state vector
+    integer :: state_vector_index
+    !> name of the eigenfunction
+    character(str_len_arr) :: name
+    !> array with eigenfunctions
+    complex(dp), allocatable :: quantities(:, :)
   end type ef_type
+
+  !> type containing Hall related variables
+  type hall_type
+    !> Hall parameter
+    real(dp), allocatable    :: hallfactor(:)
+    !> electron inertia parameter
+    real(dp), allocatable    :: inertiafactor(:)
+  end type hall_type
 
 
   !> interface to initialise all the different types
@@ -116,6 +146,7 @@ module mod_types
     module procedure initialise_resistivity_type
     module procedure initialise_cooling_type
     module procedure initialise_conduction_type
+    module procedure initialise_hall_type
   end interface initialise_type
 
   !> interface to deallocate all the different types
@@ -128,6 +159,7 @@ module mod_types
     module procedure deallocate_resistivity_type
     module procedure deallocate_cooling_type
     module procedure deallocate_conduction_type
+    module procedure deallocate_hall_type
   end interface deallocate_type
 
   public :: density_type
@@ -139,6 +171,7 @@ module mod_types
   public :: cooling_type
   public :: conduction_type
   public :: ef_type
+  public :: hall_type
 
   public :: initialise_type
   public :: deallocate_type
@@ -166,9 +199,11 @@ contains
 
     allocate(type_T % T0(gauss_gridpts))
     allocate(type_T % d_T0_dr(gauss_gridpts))
+    allocate(type_T % dd_T0_dr(gauss_gridpts))
 
     type_T % T0 = 0.0d0
     type_T % d_T0_dr = 0.0d0
+    type_T % dd_T0_dr = 0.0d0
   end subroutine initialise_temperature_type
 
 
@@ -183,6 +218,7 @@ contains
     allocate(type_B % d_B02_dr(gauss_gridpts))
     allocate(type_B % d_B03_dr(gauss_gridpts))
 
+    type_B % B01 = 0.0d0
     type_B % B02 = 0.0d0
     type_B % B03 = 0.0d0
     type_B % B0 = 0.0d0
@@ -196,15 +232,25 @@ contains
     !> the type containing the velocity attributes
     type (velocity_type), intent(inout) :: type_v
 
+    allocate(type_v % v01(gauss_gridpts))
+    allocate(type_v % d_v01_dr(gauss_gridpts))
+    allocate(type_v % dd_v01_dr(gauss_gridpts))
     allocate(type_v % v02(gauss_gridpts))
-    allocate(type_v % v03(gauss_gridpts))
     allocate(type_v % d_v02_dr(gauss_gridpts))
+    allocate(type_v % dd_v02_dr(gauss_gridpts))
+    allocate(type_v % v03(gauss_gridpts))
     allocate(type_v % d_v03_dr(gauss_gridpts))
+    allocate(type_v % dd_v03_dr(gauss_gridpts))
 
+    type_v % v01 = 0.0d0
+    type_v % d_v01_dr = 0.0d0
+    type_v % dd_v01_dr = 0.0d0
     type_v % v02 = 0.0d0
-    type_v % v03 = 0.0d0
     type_v % d_v02_dr = 0.0d0
+    type_v % dd_v02_dr = 0.0d0
+    type_v % v03 = 0.0d0
     type_v % d_v03_dr = 0.0d0
+    type_v % dd_v03_dr = 0.0d0
   end subroutine initialise_velocity_type
 
 
@@ -256,22 +302,43 @@ contains
   end subroutine initialise_cooling_type
 
 
+  !> Allocates the Hall type and initialises all values to zero.
+  subroutine initialise_hall_type(type_hall)
+    !> the type containing the density attributes
+    type (hall_type), intent(inout)  :: type_hall
+
+    allocate(type_hall % hallfactor(gauss_gridpts))
+    allocate(type_hall % inertiafactor(gauss_gridpts))
+
+    type_hall % hallfactor = 0.0d0
+    type_hall % inertiafactor = 0.0d0
+  end subroutine initialise_hall_type
+
+
   !> Allocates the thermal conduction type and initialises all values to zero.
   subroutine initialise_conduction_type(type_kappa)
     !> the type containing the thermal conduction attributes
     type (conduction_type), intent(inout) :: type_kappa
 
     allocate(type_kappa % kappa_para(gauss_gridpts))
+    allocate(type_kappa % d_kappa_para_dT(gauss_gridpts))
     allocate(type_kappa % kappa_perp(gauss_gridpts))
     allocate(type_kappa % d_kappa_perp_drho(gauss_gridpts))
     allocate(type_kappa % d_kappa_perp_dT(gauss_gridpts))
     allocate(type_kappa % d_kappa_perp_dB2(gauss_gridpts))
+    allocate(type_kappa % d_kappa_perp_dr(gauss_gridpts))
+    allocate(type_kappa % prefactor(gauss_gridpts))
+    allocate(type_kappa % d_prefactor_dr(gauss_gridpts))
 
     type_kappa % kappa_para = 0.0d0
+    type_kappa % d_kappa_para_dT = 0.0d0
     type_kappa % kappa_perp = 0.0d0
     type_kappa % d_kappa_perp_drho = 0.0d0
     type_kappa % d_kappa_perp_dT = 0.0d0
     type_kappa % d_kappa_perp_dB2 = 0.0d0
+    type_kappa % d_kappa_perp_dr = 0.0d0
+    type_kappa % prefactor = 0.0d0
+    type_kappa % d_prefactor_dr = 0.0d0
   end subroutine initialise_conduction_type
 
 
@@ -292,6 +359,7 @@ contains
 
     deallocate(type_T % T0)
     deallocate(type_T % d_T0_dr)
+    deallocate(type_T % dd_T0_dr)
   end subroutine deallocate_temperature_type
 
 
@@ -313,10 +381,15 @@ contains
     !> the type containing the velocity attributes
     type (velocity_type), intent(inout) :: type_v
 
+    deallocate(type_v % v01)
+    deallocate(type_v % d_v01_dr)
+    deallocate(type_v % dd_v01_dr)
     deallocate(type_v % v02)
-    deallocate(type_v % v03)
     deallocate(type_v % d_v02_dr)
+    deallocate(type_v % dd_v02_dr)
+    deallocate(type_v % v03)
     deallocate(type_v % d_v03_dr)
+    deallocate(type_v % dd_v03_dr)
   end subroutine deallocate_velocity_type
 
 
@@ -359,10 +432,24 @@ contains
     type (conduction_type), intent(inout)  :: type_kappa
 
     deallocate(type_kappa % kappa_para)
+    deallocate(type_kappa % d_kappa_para_dT)
     deallocate(type_kappa % kappa_perp)
     deallocate(type_kappa % d_kappa_perp_drho)
     deallocate(type_kappa % d_kappa_perp_dT)
     deallocate(type_kappa % d_kappa_perp_dB2)
+    deallocate(type_kappa % d_kappa_perp_dr)
+    deallocate(type_kappa % prefactor)
+    deallocate(type_kappa % d_prefactor_dr)
   end subroutine deallocate_conduction_type
+
+
+  !> Deallocates all attributes contained in the Hall type.
+  subroutine deallocate_hall_type(type_hall)
+    !> the type containing the density attributes
+    type (hall_type), intent(inout)  :: type_hall
+
+    deallocate(type_hall % hallfactor)
+    deallocate(type_hall % inertiafactor)
+  end subroutine deallocate_hall_type
 
 end module mod_types

@@ -1,0 +1,344 @@
+module mod_test_solar_atmosphere
+  use mod_suite_utils
+  use funit
+  use mod_solar_atmosphere, only: set_solar_atmosphere
+  use mod_units, only: set_normalisations
+  use mod_global_variables, only: logging_level
+  implicit none
+
+contains
+
+  @before
+  subroutine init_test()
+    call create_test_grid(pts=100, geom="Cartesian", start=0.05d0, end=0.35d0)
+    call reset_fields(init_fields=.true.)
+    call set_default_units()
+    logging_level = 1
+  end subroutine init_test
+
+
+  @after
+  subroutine tear_down()
+    call clean_up()
+  end subroutine tear_down
+
+
+  @test
+  subroutine test_sa_no_db02()
+    call set_name("solar atmosphere (no dB02)")
+    call set_solar_atmosphere(f_b02=b02)
+    @assertExceptionRaised("solar atmosphere: B02 defined but no dB02")
+    contains
+      function b02(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: b02(size(x))
+        b02 = 0.0d0
+      end function b02
+  end subroutine test_sa_no_db02
+
+
+  @test
+  subroutine test_sa_no_db03()
+    call set_name("solar atmosphere (no dB03)")
+    call set_solar_atmosphere(f_b03=b03)
+    @assertExceptionRaised("solar atmosphere: B03 defined but no dB03")
+    contains
+      function b03(x)
+        real(dp), intent(in)  :: x(:)
+        real(dp) :: b03(size(x))
+        b03 = 0.0d0
+      end function b03
+  end subroutine test_sa_no_db03
+
+
+  @test
+  subroutine test_sa_invalid_geometry()
+    use mod_global_variables, only: geometry
+
+    call set_name("solar atmosphere (invalid geometry)")
+    geometry = "cylindrical"
+    call set_solar_atmosphere()
+    @assertExceptionRaised("solar atmosphere can only be set in Cartesian geometries!")
+  end subroutine test_sa_invalid_geometry
+
+
+  @test
+  subroutine test_sa_default_profile_saving()
+    call set_name("solar atmosphere (default profile saving)")
+    call set_solar_atmosphere(n_interp=5000, save_to="test_sa_profiles/default")
+  end subroutine test_sa_default_profile_saving
+
+
+  @test
+  subroutine test_sa_custom_profile_saving()
+    use mod_grid, only: grid_gauss
+    use mod_equilibrium, only: B_field, grav_field
+
+    call set_name("solar atmosphere (custom profile saving)")
+    call set_solar_atmosphere( &
+      f_b02=b02, &
+      f_db02=db02, &
+      f_b03=b03, &
+      f_db03=db03, &
+      f_g=gprof, &
+      n_interp=5000, &
+      save_to="test_sa_profiles/custom" &
+    )
+    @assertEqual(5.0d0 * grid_gauss, B_field % B02, tolerance=TOL)
+    @assertEqual(5.0d0, B_field % d_B02_dr, tolerance=TOL)
+    @assertEqual(25.0d0 * grid_gauss ** 2, B_field % B03, tolerance=TOL)
+    @assertEqual(50.0d0 * grid_gauss, B_field % d_B03_dr, tolerance=TOL)
+    @assertEqual(1.0d0 / grid_gauss ** 2, grav_field % grav, tolerance=TOL)
+    contains
+      function b02(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: b02(size(x))
+        b02 = 5.0d0 * x
+      end function b02
+
+      function db02(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: db02(size(x))
+        db02 = 5.0d0
+      end function db02
+
+      function b03(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: b03(size(x))
+        b03 = 25.0d0 * x ** 2
+      end function b03
+
+      function db03(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: db03(size(x))
+        db03 = 50.0d0 * x
+      end function db03
+
+      function gprof(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: gprof(size(x))
+        gprof = 1.0d0 / x ** 2
+      end function gprof
+  end subroutine test_sa_custom_profile_saving
+
+
+  @test
+  subroutine test_sa_default_profile_loading_density()
+    use mod_equilibrium, only: rho_field
+
+    real(dp) :: rho_expected(size(rho_field % rho0))
+
+    call set_name("solar atmosphere (default profile loading - density)")
+    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    rho_expected = rho_field % rho0
+    call reset_fields(init_fields=.true.)
+    call set_solar_atmosphere(n_interp=5000)
+    @assertEqual(rho_expected, rho_field % rho0, tolerance=TOL)
+  end subroutine test_sa_default_profile_loading_density
+
+
+  @test
+  subroutine test_sa_default_profile_loading_temperature()
+    use mod_equilibrium, only: T_field
+
+    real(dp) :: temp_expected(size(T_field % T0))
+
+    call set_name("solar atmosphere (default profile loading - temperature)")
+    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    temp_expected = T_field % T0
+    call reset_fields(init_fields=.true.)
+    call set_solar_atmosphere(n_interp=5000)
+    @assertEqual(temp_expected, T_field % T0, tolerance=TOL)
+  end subroutine test_sa_default_profile_loading_temperature
+
+
+  @test
+  subroutine test_sa_profile_loading_invalid_unit_length()
+    use mod_units, only: unit_temperature, unit_magneticfield
+
+    call set_name("solar atmosphere (loading - different unit length)")
+    call set_normalisations( &
+      new_unit_temperature=unit_temperature, &
+      new_unit_magneticfield=unit_magneticfield, &
+      new_unit_length=5.0d6 &
+    )
+    logging_level = 0
+    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    @assertExceptionRaised("solar atmosphere: profile loading failed!")
+  end subroutine test_sa_profile_loading_invalid_unit_length
+
+
+  @test
+  subroutine test_sa_profile_loading_invalid_unit_temperature()
+    use mod_units, only: unit_magneticfield, unit_length
+
+    call set_name("solar atmosphere (loading - different unit temperature)")
+    call set_normalisations( &
+      new_unit_temperature=1.0d4, &
+      new_unit_magneticfield=unit_magneticfield, &
+      new_unit_length=unit_length &
+    )
+    logging_level = 0
+    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    @assertExceptionRaised("solar atmosphere: profile loading failed!")
+  end subroutine test_sa_profile_loading_invalid_unit_temperature
+
+
+  @test
+  subroutine test_sa_profile_loading_invalid_unit_magneticfield()
+    use mod_units, only: unit_temperature, unit_length
+
+    call set_name("solar atmosphere (loading - different unit magnetic field)")
+    call set_normalisations( &
+      new_unit_temperature=unit_temperature, &
+      new_unit_magneticfield=2.5d0, &
+      new_unit_length=unit_length &
+    )
+    logging_level = 0
+    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    @assertExceptionRaised("solar atmosphere: profile loading failed!")
+  end subroutine test_sa_profile_loading_invalid_unit_magneticfield
+
+
+  @test
+  subroutine test_sa_profile_loading_invalid_unit_density()
+    use mod_units, only: unit_magneticfield, unit_length
+
+    call set_name("solar atmosphere (loading - different unit density)")
+    call set_normalisations( &
+      new_unit_density=1.0d-12, &
+      new_unit_magneticfield=unit_magneticfield, &
+      new_unit_length=unit_length &
+    )
+    logging_level = 0
+    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    @assertExceptionRaised("solar atmosphere: profile loading failed!")
+  end subroutine test_sa_profile_loading_invalid_unit_density
+
+
+  @test
+  subroutine test_sa_loading_b02_inconsistent()
+    call set_name("solar atmosphere (loading - B02 inconsistent)")
+    logging_level = 0
+    call set_solar_atmosphere( &
+      f_b02=b02, &
+      f_db02=db02, &
+      n_interp=5000, &
+      load_from="test_sa_profiles/default" &
+    )
+    @assertExceptionRaised("solar atmosphere: profile loading failed!")
+    contains
+      function b02(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: b02(size(x))
+        b02 = x
+      end function b02
+      function db02(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: db02(size(x))
+        db02 = 0.0d0
+      end function db02
+  end subroutine test_sa_loading_b02_inconsistent
+
+
+  @test
+  subroutine test_sa_loading_db02_inconsistent()
+    call set_name("solar atmosphere (loading - dB02 inconsistent)")
+    logging_level = 0
+    call set_solar_atmosphere( &
+      f_b02=b02, &
+      f_db02=db02, &
+      n_interp=5000, &
+      load_from="test_sa_profiles/default" &
+    )
+    @assertExceptionRaised("solar atmosphere: profile loading failed!")
+    contains
+      function b02(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: b02(size(x))
+        b02 = 1.0d0
+      end function b02
+      function db02(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: db02(size(x))
+        db02 = 1.0d0
+      end function db02
+  end subroutine test_sa_loading_db02_inconsistent
+
+
+  @test
+  subroutine test_sa_loading_b03_inconsistent()
+    call set_name("solar atmosphere (loading - B03 inconsistent)")
+    logging_level = 0
+    call set_solar_atmosphere( &
+      f_b03=b03, &
+      f_db03=db03, &
+      n_interp=5000, &
+      load_from="test_sa_profiles/default" &
+    )
+    @assertExceptionRaised("solar atmosphere: profile loading failed!")
+    contains
+      function b03(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: b03(size(x))
+        b03 = x**2
+      end function b03
+      function db03(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: db03(size(x))
+        db03 = 0.0d0
+      end function db03
+  end subroutine test_sa_loading_b03_inconsistent
+
+
+  @test
+  subroutine test_sa_loading_db03_inconsistent()
+    call set_name("solar atmosphere (loading - dB03 inconsistent)")
+    logging_level = 0
+    call set_solar_atmosphere( &
+      f_b03=b03, &
+      f_db03=db03, &
+      n_interp=5000, &
+      load_from="test_sa_profiles/default" &
+    )
+    @assertExceptionRaised("solar atmosphere: profile loading failed!")
+    contains
+      function b03(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: b03(size(x))
+        b03 = 1.0d0
+      end function b03
+      function db03(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: db03(size(x))
+        db03 = 2.0d0
+      end function db03
+  end subroutine test_sa_loading_db03_inconsistent
+
+
+  @test
+  subroutine test_sa_loading_gravity_inconsistent()
+    call set_name("solar atmosphere (loading - gravity inconsistent)")
+    logging_level = 0
+    call set_solar_atmosphere( &
+      f_g=gprof, &
+      n_interp=5000, &
+      load_from="test_sa_profiles/default" &
+    )
+    @assertExceptionRaised("solar atmosphere: profile loading failed!")
+    contains
+      function gprof(x)
+        real(dp), intent(in) :: x(:)
+        real(dp) :: gprof(size(x))
+        gprof = 1.0d0
+      end function gprof
+  end subroutine test_sa_loading_gravity_inconsistent
+
+
+
+
+
+
+
+
+end module mod_test_solar_atmosphere

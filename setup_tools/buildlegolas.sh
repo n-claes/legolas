@@ -1,19 +1,19 @@
 #!/bin/bash
 
-if [ "$1" == "clean" ]; then
+if [[ "$1" == "clean" ]]; then
   # to clean, $LEGOLASDIR must be set in order to find compiled files
-  if [ -z "${LEGOLASDIR}" ]; then
+  if [[ -z "${LEGOLASDIR}" ]]; then
     echo "Environment variable \$LEGOLASDIR is not defined, can't clean."
     exit
   fi
   # if local executable is found, remove it
-  if [ -f legolas ]; then
+  if [[ -f legolas ]]; then
     rm legolas
     echo "Local legolas executable removed."
   else
     echo "No local executable found, skipping."
   fi
-  if [ -d build ] && [ ! "${LEGOLASDIR}" == "$(pwd)" ]; then
+  if [[ -d build ]] && [[ ! "${LEGOLASDIR}" == "$(pwd)" ]]; then
     rm -r build
     echo "Local build directory removed."
   else
@@ -27,7 +27,7 @@ if [ "$1" == "clean" ]; then
     echo "No build directory found in legolas repository, skipping."
   fi
   # clean source directory executable
-  if [ -f "$LEGOLASDIR/legolas" ]; then
+  if [[ -f "$LEGOLASDIR/legolas" ]]; then
     rm "$LEGOLASDIR/legolas"
     echo "Executable in main legolas directory removed."
   else
@@ -35,12 +35,24 @@ if [ "$1" == "clean" ]; then
   fi
   exit
 fi
-if [ ! -f CMakeLists.txt ]; then
-    echo "CMakeLists.txt not found! Can not start build process."
-    exit
+
+if [[ ! -f CMakeLists.txt ]]; then
+  echo "CMakeLists.txt not found! Can not start build process."
+  exit
 fi
-mkdir build
+if [[ ! -d build ]]; then
+  mkdir build
+fi
 cd build || exit
-cmake ..
+if [[ "$1" == "debug" ]]; then
+  echo "Configuring Legolas in debug mode..."
+  cmake -DCMAKE_BUILD_TYPE=Debug ..
+elif [[ "$1" == "coverage" ]]; then
+  echo "Configuring Legolas in debug mode with code coverage enabled..."
+  cmake -DCMAKE_BUILD_TYPE=Debug -DCoverage=ON ..
+else # release build by default
+  cmake -DCMAKE_BUILD_TYPE=Release ..
+fi
+echo "Building Legolas..."
 make -j 2
 cd ..

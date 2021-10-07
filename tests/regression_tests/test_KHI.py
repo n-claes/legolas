@@ -25,4 +25,9 @@ khi_setup = {
         "write_eigenfunctions": False,
         "write_matrices": False,
     },
+    "image_limits": [
+        {"xlims": (-300, 300), "ylims": (-0.2, 0.2)},
+        {"xlims": (-30, 30), "ylims": (-0.2, 0.2)},
+        {"xlims": (-1.2, 1.2), "ylims": (-0.2, 0.2)},
+    ],
 }

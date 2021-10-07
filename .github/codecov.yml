@@ -1,0 +1,15 @@
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    after_n_builds: 3   # allow regression + unit tests + pylbo to pass before notification
+
+comment:
+  require_changes: true
+  layout: "diff, flags"
+
+coverage:
+  status:
+    patch: off
+    project:
+      default:
+        threshold: 2%
