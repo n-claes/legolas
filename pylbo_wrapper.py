@@ -1,6 +1,29 @@
+import os
+import sys
+
 from argparse import ArgumentParser
 from pathlib import Path
-import pylbo
+
+# Search for Pylbo in $LEGOLASDIR/post_processing.
+if "LEGOLASDIR" in os.environ.keys():
+    _pylbo_path = Path(os.environ["LEGOLASDIR"]).joinpath("post_processing")
+    if _pylbo_path.is_dir():
+        sys.path.append(str(_pylbo_path.resolve()))
+
+# Else search for Pylbo in ./post_processing, if possible.
+elif "__file__" in globals():
+    _pylbo_path = Path(__file__).parent.joinpath("post_processing")
+    if _pylbo_path.is_dir():
+        sys.path.append(str(_pylbo_path.resolve()))
+
+try:
+    import pylbo
+except ImportError:
+    print(
+        "ERROR: Failed to load Pylbo. Check if $LEGOLASDIR is "
+        + "configured correctly, or install Pylbo as a package."
+    )
+    exit(1)
 
 
 def _main():
