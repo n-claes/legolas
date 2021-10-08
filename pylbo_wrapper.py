@@ -18,10 +18,13 @@ elif "__file__" in globals():
 
 try:
     import pylbo
-except ImportError:
+except ModuleNotFoundError as e:
+    print("ERROR: Failed to load Pylbo")
+    print("      ", e.args[0])
+    print()
     print(
-        "ERROR: Failed to load Pylbo. Check if $LEGOLASDIR is "
-        + "configured correctly, or install Pylbo as a package."
+        "Check if $LEGOLASDIR is configured correctly and all of Pylbo's",
+        "dependencies are available, or install Pylbo as a package.",
     )
     exit(1)
 
