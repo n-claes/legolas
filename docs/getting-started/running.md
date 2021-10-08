@@ -8,7 +8,7 @@ toc: false
 last_modified_at: 2021-07-26
 ---
 
-Once you cloned the repository and installed the Pylbo framework you are set to run your first problem.
+Once you cloned the repository and installed both Legolas and the Pylbo framework you are set to run your first problem.
 As an example here we will run one of the pre-implemented equilibria already present in the source code.
 
 ## Running your first problem

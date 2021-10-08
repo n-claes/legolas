@@ -32,6 +32,16 @@ installed if you choose the Pylbo package install (see [below](/getting-started/
 - [tqdm](https://tqdm.github.io), used for progress bars.
 - [psutil](https://psutil.readthedocs.io/en/latest/), for management of multiprocessing resources during parallel runs.
 
+You can alternatively install these manually using
+```bash
+pip install numpy matplotlib f90nml tqdm psutils
+```
+or
+```bash
+conda install numpy matplotlib f90nml tqdm psutils
+```
+depending on your preference. On Linux it's usually best to use the versions available in your package repository.
+
 **Note:** Python is only needed for Pylbo, not for Legolas itself. You can still run Legolas
 if the Python requirements are not satisfied, however you will not be able to immediately
 see the results after the run finishes (so set `show_results=.false.` in the parfile).
@@ -43,7 +53,7 @@ linear algebra packages are **required** dependencies, and you will
 not be able to compile without them. We recommend version 3.5 or higher.
 CMake is configured in such a way that both libraries should be found and linked automatically if
 they are installed. An easy (but not the only) way to install these packages is as follows
-- **Linux**
+- **Linux** (Debian/Ubuntu)
   ```bash
   sudo apt-get install libblas-dev
   sudo apt-get install liblapack-dev
@@ -66,8 +76,10 @@ CMake may not find the libraries by default. In that case it will throw a warnin
 The [ARPACK](https://www.caam.rice.edu/software/ARPACK/) library is an **optional** dependency, so
 Legolas will compile and run just fine if you don't have this installed (related modules are
 conditionally compiled). Also here CMake will try to automatically find and link the libraries if installed.
-We recommend using the maintained [arpack-ng](https://github.com/opencollab/arpack-ng) repository to
-install ARPACK. You can execute the piece of code below to clone the repository and install:
+
+We recommend using the actively maintained [arpack-ng](https://github.com/opencollab/arpack-ng). Unfortunately
+most operating systems do not have this version readily available, so you will have to install it manually using
+the following commands.
 ```bash
 git clone https://github.com/opencollab/arpack-ng.git
 cd arpack-ng
@@ -103,16 +115,16 @@ cd $LEGOLASDIR
 ```
 Next you have the option of compiling the code manually, or to use the shell script we provided which
 automatically takes care of creating build folders and calling the various make commands.
+- For an automagic build
+  ```bash
+  buildlegolas.sh
+  ```
 - For a manual build
   ```bash
   mkdir build
   cd build
-  cmake ..
+  cmake -DCMAKE_BUILD_TYPE=Release ..
   make
-  ```
-- For an automagic build
-  ```bash
-  buildlegolas.sh
   ```
 
 ## Doing a clean build
@@ -130,6 +142,12 @@ You can also remove these folders manually instead if you prefer.
 # Pylbo
 The Pylbo framework is automatically included in the `legolas/post_processing` folder when you
 clone the repository.
+
+If you configured `$LEGOLASDIR` correctly and have all of [Pylbo's dependencies](/getting-started/installation/#post-processing)
+installed, the included `pylbo_wrapper.py` (which is automatically run by Legolas when `show_results=.true.`) will find Pylbo on
+it's own. If you want to write your own scripts using Pylbo, or do not want to install the dependencies manually, you can follow
+the steps below.
+
 ## Installing as a package
 This is the recommended installation option. To do so, navigate to the `post_processing` folder and do the following:
 ```bash
@@ -137,7 +155,7 @@ cd post_processing
 python setup.py develop
 ```
 This will automatically install the listed [dependencies](/getting-started/installation/#post-processing) if they are not already installed. Activate any conda/virtualenv environment
-beforehand in order to install pylbo there. The `develop` argument means that the package will be automatically updated whenever
+beforehand in order to install Pylbo there. The `develop` argument means that the package will be automatically updated whenever
 you update the repository.
 
 ## Sourcing the folder
@@ -151,4 +169,7 @@ your python installation then this is a valid alternative. Note that in this cas
 - **Windows**
   Go to `Start` > `Control panel` > `Edit the system environment variables` > tab `"advanced"` > `environment variables`.
   Create or edit the PYTHONPATH environment variable and add the _full path_ to the `post_processing` folder.
-  Multiple paths are separated by a semicolon `";"`. -->
+  Multiple paths are separated by a semicolon `";"`.
+
+# Next steps
+Now that you've successfully installed Legolas and Pylbo [you can move on to your first run](/getting-started/running/).
