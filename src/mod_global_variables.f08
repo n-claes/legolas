@@ -85,6 +85,8 @@ module mod_global_variables
   logical, save             :: elec_inertia
   !> boolean to use dropoff profile for inertia parameter, defaults to <tt>False </tt>
   logical, save             :: inertia_dropoff
+  !> boolean to use selfgravity
+  logical, save             :: selfgravity
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
   !> defines the presence of a coaxial inner boundary for a cylindrical geometry,
@@ -132,7 +134,7 @@ module mod_global_variables
   integer                      :: nb_spurious_eigenvalues
 
   !> total number of equations
-  integer, parameter        :: nb_eqs = 8
+  integer, parameter        :: nb_eqs = 9
   !> dimension of one finite element integral block, e.g. A(1, 2)
   integer, parameter        :: dim_integralblock = 2
   !> dimension of one subblock, 4 of these define a quadblock
@@ -220,6 +222,7 @@ contains
     elec_pressure = .false.
     elec_inertia = .false.
     inertia_dropoff = .false.
+    selfgravity = .true.
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile
@@ -288,7 +291,7 @@ contains
 
     gridpts        = gridpts_in
     gauss_gridpts  = 4*(gridpts - 1)
-    matrix_gridpts = 16 * gridpts
+    matrix_gridpts = dim_subblock * gridpts
     ef_gridpts     = 2*gridpts - 1
   end subroutine set_gridpts
 

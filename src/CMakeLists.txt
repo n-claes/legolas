@@ -63,6 +63,7 @@ set (sources
         boundaries/smod_natural_bounds_conduction.f08
         boundaries/smod_natural_bounds_viscosity.f08
         boundaries/smod_natural_bounds_hall.f08
+        boundaries/smod_natural_bounds_selfgravity.f08
         matrices/mod_matrix_shortcuts.f08
         matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
@@ -73,6 +74,7 @@ set (sources
         matrices/smod_conduction_matrix.f08
         matrices/smod_viscosity_matrix.f08
         matrices/smod_hall_matrix.f08
+        matrices/smod_selfgravity_matrix.f08
         solvers/mod_solvers.f08
         solvers/mod_arpack_type.f08
         solvers/smod_qr_invert.f08

@@ -75,6 +75,18 @@ module mod_matrix_manager
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
     end subroutine add_hall_bmatrix_terms
+
+    module subroutine add_selfgravity_terms(gauss_idx, current_weight, quadblock)
+      integer, intent(in)   :: gauss_idx
+      real(dp), intent(in)  :: current_weight
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_selfgravity_terms
+
+    module subroutine add_selfgravity_bmatrix_terms(gauss_idx, current_weight, quadblock)
+      integer, intent(in)   :: gauss_idx
+      real(dp), intent(in)  :: current_weight
+      complex(dp), intent(inout)  :: quadblock(:, :)
+    end subroutine add_selfgravity_bmatrix_terms
   end interface
 
   private
@@ -87,7 +99,7 @@ contains
   subroutine build_matrices(matrix_B, matrix_A)
     use mod_global_variables, only: gridpts, dim_quadblock, dim_subblock, &
         n_gauss, gaussian_weights, flow, resistivity, radiative_cooling, &
-        thermal_conduction, viscosity, hall_mhd
+        thermal_conduction, viscosity, hall_mhd, selfgravity
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
     use mod_boundary_manager, only: apply_boundary_conditions
@@ -161,6 +173,10 @@ contains
         if (hall_mhd) then
           call add_hall_matrix_terms(gauss_idx, current_weight, quadblock_A)
           call add_hall_bmatrix_terms(gauss_idx, current_weight, quadblock_B)
+        end if
+        if (selfgravity) then
+          call add_selfgravity_terms(gauss_idx, current_weight, quadblock_A)
+          call add_selfgravity_bmatrix_terms(gauss_idx, current_weight, quadblock_B)
         end if
       end do
 
