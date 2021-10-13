@@ -83,6 +83,8 @@ class EigenfunctionHandler(EigenfunctionInterface):
         for i, idx in enumerate("123"):
             ef_name = ef_name.replace(idx, suffix[i])
         ef_name = ef_name.replace("rho", r"\rho")
+        ef_name = ef_name.replace("phi", r"\Phi")
+
         name = f"{part}(${ef_name}$) eigenfunction"
         return name
 

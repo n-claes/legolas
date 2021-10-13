@@ -125,7 +125,7 @@ contains
     ! First we write all header information
     write(dat_fh) "legolas_version", LEGOLAS_VERSION
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
-      gauss_gridpts, matrix_gridpts, ef_gridpts, gamma, equilibrium_type, &
+      gauss_gridpts, dim_matrix, ef_gridpts, gamma, equilibrium_type, &
       write_eigenfunctions, write_derived_eigenfunctions, write_matrices, &
       write_eigenfunction_subset, eigenfunction_subset_center, &
       eigenfunction_subset_radius
@@ -161,7 +161,7 @@ contains
     ! Eigenfunction data [optional]
     if (write_eigenfunctions) then
       call log_message("writing eigenfunctions...", level="info")
-      write(dat_fh) size(ef_names), ef_names
+      write(dat_fh) size(state_vector), state_vector
       write(dat_fh) ef_grid
       write(dat_fh) size(ef_written_flags), ef_written_flags
       write(dat_fh) size(ef_written_idxs), ef_written_idxs
@@ -187,8 +187,8 @@ contains
       ! to correctly read in the values later on (we have to know how many there are).
       nonzero_B_values = 0
       nonzero_A_values = 0
-      do j = 1, matrix_gridpts
-        do i = 1, matrix_gridpts
+      do j = 1, dim_matrix
+        do i = 1, dim_matrix
           if (.not. is_equal(matrix_B(i, j), 0.0d0)) then
             nonzero_B_values = nonzero_B_values + 1
           end if
@@ -199,8 +199,8 @@ contains
       end do
       ! write these numbers to the file
       write(dat_fh) nonzero_B_values, nonzero_A_values
-      do j = 1, matrix_gridpts
-        do i = 1, matrix_gridpts
+      do j = 1, dim_matrix
+        do i = 1, dim_matrix
           if (.not. is_equal(matrix_B(i, j), 0.0d0)) then
             write(dat_fh) i, j
             write(dat_fh) matrix_B(i, j)
@@ -208,8 +208,8 @@ contains
         end do
       end do
       ! Write non-zero A matrix indices and values
-      do j = 1, matrix_gridpts
-        do i = 1, matrix_gridpts
+      do j = 1, dim_matrix
+        do i = 1, dim_matrix
           if (.not. is_equal(matrix_A(i, j), (0.0d0, 0.0d0))) then
             write(dat_fh) i, j
             write(dat_fh) matrix_A(i, j)

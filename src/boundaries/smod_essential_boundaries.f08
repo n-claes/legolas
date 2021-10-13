@@ -15,7 +15,7 @@ contains
     call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[1, 5, 7, 9, 11])
     ! wall or regularity conditions: v1, a2 and a3 have to be zero. These are cubic
     ! elements, so we force non-zero basis functions (odd rows & columns) to zero.
-    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3, 13, 15])
+    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3, 13, 15, 17])
     ! if T boundary conditions are needed, set even row/colum (quadratic)
     if (apply_T_bounds) then
       call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[10])
@@ -34,14 +34,14 @@ contains
     diagonal_factor = get_diagonal_factor(matrix)
 
     ! for a fixed wall v1, a2 and a3 should be zero, same reasoning as for left side.
-    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[19, 29, 31])
+    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[21, 31, 33, 35])
     ! T condition
     if (apply_T_bounds) then
-      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[26])
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[28])
     end if
     ! no-slip condition
     if (apply_noslip_bounds_right) then
-      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[22, 24])
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[24, 26])
     end if
   end procedure apply_essential_boundaries_right
 

@@ -57,8 +57,8 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, matrix_gridpts, &
-      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma
+    use mod_global_variables, only: initialise_globals, dim_matrix, &
+      solver, number_of_eigenvalues, write_eigenfunctions, set_matrix_properties
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_logging, only: print_logo
@@ -70,23 +70,24 @@ contains
     call initialise_globals()
     call get_parfile(parfile)
     call read_parfile(parfile)
-    call set_gamma(gamma)
 
     call print_logo()
+    call initialise_equilibrium()
+    call set_equilibrium()
 
-    allocate(matrix_A(matrix_gridpts, matrix_gridpts))
-    allocate(matrix_B(matrix_gridpts, matrix_gridpts))
+    call log_message("setting matrix properties", level="debug")
+    call set_matrix_properties()
 
     if (solver == "arnoldi") then
       nb_evs = number_of_eigenvalues
     else
-      nb_evs = matrix_gridpts
+      nb_evs = dim_matrix
     end if
     call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
-    allocate(omega(nb_evs))
 
-    call initialise_equilibrium()
-    call set_equilibrium()
+    allocate(omega(nb_evs))
+    allocate(matrix_A(dim_matrix, dim_matrix))
+    allocate(matrix_B(dim_matrix, dim_matrix))
 
     ! TODO: remove this warning when fully tested
     if (hall_mhd) then
@@ -100,7 +101,7 @@ contains
     if (write_eigenfunctions .or. solver == "arnoldi") then
       call log_message("allocating eigenvector arrays", level="debug")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
-      allocate(eigenvecs_right(matrix_gridpts, nb_evs))
+      allocate(eigenvecs_right(dim_matrix, nb_evs))
     else
       ! @note: this is needed to prevent segfaults, since it seems that in some
       ! cases for macOS the routine zgeev references the right eigenvectors even
