@@ -1,10 +1,31 @@
 submodule (mod_boundary_manager) smod_essential_boundaries
+  use mod_check_values, only: get_index
+  use mod_global_variables, only: state_vector
   implicit none
 
 contains
 
+  function convert_to_subblock_indices(indices, which, edge) result(idxs)
+    use mod_global_variables, only: dim_subblock
+
+    integer, intent(in) :: indices(:)
+    character(len=*), intent(in)  :: which, edge
+    integer, allocatable :: idxs(:)
+
+    ! remove zeros
+    idxs = pack(indices, indices > 0)
+    if (which == "even") then
+      idxs = 2 * idxs
+    else
+      idxs = 2 * idxs - 1
+    end if
+    if (edge == "right") idxs = idxs + dim_subblock
+  end function convert_to_subblock_indices
+
+
   module procedure apply_essential_boundaries_left
     complex(dp) :: diagonal_factor
+    integer, allocatable :: indices(:)
 
     diagonal_factor = get_diagonal_factor(matrix)
 
@@ -12,36 +33,58 @@ contains
     ! zeroes out the odd rows/columns. We explicitly handle this by introducing an
     ! element on the diagonal for these indices as well. The odd numbered indices for
     ! the quadratic elements correspond to rho, v2, v2, T, a1 = 1, 5, 6, 9, 11.
-    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[1, 5, 7, 9, 11])
-    ! wall or regularity conditions: v1, a2 and a3 have to be zero. These are cubic
-    ! elements, so we force non-zero basis functions (odd rows & columns) to zero.
+    indices = get_index( &
+      [character(len=3) :: "rho", "v2", "v3", "T", "a1"], state_vector &
+    )
+    indices = convert_to_subblock_indices(indices, which="odd", edge="left")
+    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=indices)
+
+    ! wall or regularity conditions: v1, a2 and a3 have to be zero.
+    ! For self-gravity, Phi as well. These are cubic elements, so we force non-zero
+    ! basis functions (odd rows & columns) to zero.
+    indices = get_index([character(len=3) :: "v1", "a2", "a3", "phi"], state_vector)
+    indices = convert_to_subblock_indices(indices, which="odd", edge="left")
     call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3, 13, 15, 17])
+
     ! if T boundary conditions are needed, set even row/colum (quadratic)
     if (apply_T_bounds) then
-      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[10])
+      indices = get_index("T", state_vector)
+      indices = convert_to_subblock_indices([indices], which="even", edge="left")
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=indices)
     end if
+
     ! if no-slip boundary conditions are needed, then v2 and v3 should equal the
     ! wall's tangential velocities, here zero in the even rows/columns (both quadratic)
     if (apply_noslip_bounds_left) then
-      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[6, 8])
+      indices = get_index(["v2", "v3"], state_vector)
+      indices = convert_to_subblock_indices(indices, which="even", edge="left")
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=indices)
     end if
   end procedure apply_essential_boundaries_left
 
 
   module procedure apply_essential_boundaries_right
     complex(dp) :: diagonal_factor
+    integer, allocatable :: indices(:)
 
     diagonal_factor = get_diagonal_factor(matrix)
 
-    ! for a fixed wall v1, a2 and a3 should be zero, same reasoning as for left side.
-    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[21, 31, 33, 35])
+    ! for a fixed wall v1, a2, a3, (Phi) should be zero,
+    ! same reasoning as for left side.
+    indices = get_index([character(len=3) :: "v1", "a2", "a3", "phi"], state_vector)
+    indices = convert_to_subblock_indices(indices, which="odd", edge="right")
+    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=indices)
     ! T condition
     if (apply_T_bounds) then
-      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[28])
+      indices = get_index("T", state_vector)
+      indices = convert_to_subblock_indices([indices], which="even", edge="right")
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=indices)
     end if
     ! no-slip condition
     if (apply_noslip_bounds_right) then
-      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[24, 26])
+      indices = get_index(["v2", "v3"], state_vector)
+      indices = convert_to_subblock_indices(indices, which="even", edge="right")
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=indices)
     end if
   end procedure apply_essential_boundaries_right
 
