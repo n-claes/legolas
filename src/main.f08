@@ -58,7 +58,8 @@ contains
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, dim_matrix, &
-      solver, number_of_eigenvalues, write_eigenfunctions, set_matrix_properties
+      solver, number_of_eigenvalues, write_eigenfunctions, set_matrix_properties, &
+      state_vector
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
     use mod_logging, only: print_logo
@@ -77,6 +78,7 @@ contains
 
     call log_message("setting matrix properties", level="debug")
     call set_matrix_properties()
+    call log_message("the state vector is set to " // str(state_vector), level="info")
 
     if (solver == "arnoldi") then
       nb_evs = number_of_eigenvalues

@@ -59,4 +59,21 @@ contains
     call set_name("logging (logical -> str, false)")
     @assertEqual("False", str(.false.))
   end subroutine test_logical_to_str_false
+
+
+  @test
+  subroutine test_char_array_to_str_equal()
+    call set_name("logging (character array -> str, equals)")
+    @assertEqual("[test1, test2, test3]", str(["test1", "test2", "test3"]))
+  end subroutine test_char_array_to_str_equal
+
+
+  @test
+  subroutine test_char_array_to_str_nequal()
+    character(len=9) :: teststring(3)
+
+    call set_name("logging (character array -> str, unequal)")
+    teststring = [character(len=9) :: "test1", "test000", "test"]
+    @assertEqual("[test1, test000, test]", str(teststring))
+  end subroutine test_char_array_to_str_nequal
 end module mod_test_logging

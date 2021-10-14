@@ -28,6 +28,7 @@ module mod_logging
     module procedure int_tostr
     module procedure float_tostr
     module procedure complex_tostr
+    module procedure character_arr_tostr
   end interface str
 
   !> logical used to (locally) force a prefix override
@@ -340,6 +341,19 @@ contains
     write(char_log2, '(SP,' // format // ',"i")') aimag(value)
     result_str = trim(adjustl(char_log)) // trim(adjustl(char_log2))
   end function complex_tostr
+
+
+  function character_arr_tostr(array) result(result_str)
+    character(len=*), intent(in)  :: array(:)
+    character(:), allocatable :: result_str
+    integer :: i
+
+    result_str = "["
+    do i = 1, size(array)
+      result_str = result_str // trim(array(i)) // ", "
+    end do
+    result_str = result_str(:len(result_str) - 2) // "]"
+  end function character_arr_tostr
 
 
   ! LCOV_EXCL_START <not used during testing>
