@@ -1,4 +1,5 @@
 module mod_test_valuechecks
+  use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
   use mod_suite_utils
   use funit
   use mod_check_values
@@ -85,11 +86,11 @@ contains
 
   @test
   subroutine test_is_nan_real()
-    use mod_global_variables, only: NaN
-
-    real(dp)  :: array(20)
+    real(dp) :: NaN
+    real(dp) :: array(20)
 
     call set_name("check for NaN (real)")
+    NaN = ieee_value(NaN, ieee_quiet_nan)
     ! single value
     @assertTrue(is_NaN(NaN))
     @assertFalse(is_NaN(1.0d0))
@@ -102,11 +103,11 @@ contains
 
   @test
   subroutine test_is_nan_complex()
-    use mod_global_variables, only: NaN
-
+    real(dp) :: NaN
     complex(dp)  :: array(20)
 
     call set_name("check for NaN (complex)")
+    NaN = ieee_value(NaN, ieee_quiet_nan)
     ! single value
     @assertFalse(is_NaN((1.0d0, 2.0d0)))
     @assertTrue(is_NaN(cmplx(1.0d0, NaN, kind=dp)))
@@ -206,16 +207,38 @@ contains
   end subroutine test_is_constant
 
 
-  ! @test
-  ! subroutine test_find_name_index()
-  !   call set_name("eigenfunctions - retrieving name")
-  !   @assertEqual(2, find_name_loc_in_array("name2", test_names))
-  ! end subroutine test_find_name_loc
+  @test
+  subroutine test_find_name_index()
+    call set_name("get name index from array")
+    @assertEqual(2, get_index("name2", test_names))
+  end subroutine test_find_name_index
 
 
-  ! @test
-  ! subroutine test_find_name_loc_fail()
-  !   call set_name("eigenfunctions - retrieving name (fail)")
-  !   @assertEqual(0, find_name_loc_in_array("unknown", test_names))
-  ! end subroutine test_find_name_loc_fail
+  @test
+  subroutine test_find_name_index_fail()
+    call set_name("get name index from array (fail)")
+    @assertEqual(0, get_index("unknown", test_names))
+  end subroutine test_find_name_index_fail
+
+
+  @test
+  subroutine test_find_name_indices()
+    call set_name("get name indices from array")
+    @assertEqual([3, 4], get_index(["name3", "name4"], test_names))
+  end subroutine test_find_name_indices
+
+
+  @test
+  subroutine test_find_name_indices_partial()
+    call set_name("get name indices from array (partial)")
+    @assertEqual([5, 0, 2], get_index(["name5", "test1", "name2"], test_names))
+  end subroutine test_find_name_indices_partial
+
+
+  @test
+  subroutine test_find_name_indices_fail()
+    call set_name("get name indices from array (fail)")
+    @assertEqual([0, 0, 0], get_index(["test1", "test2", "test3"], test_names))
+  end subroutine test_find_name_indices_fail
+
 end module mod_test_valuechecks
