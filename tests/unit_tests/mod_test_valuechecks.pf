@@ -4,6 +4,9 @@ module mod_test_valuechecks
   use mod_check_values
   implicit none
 
+  character(len=10) :: test_names(5) = ["name1", "name2", "name3", "name4", "name5"]
+
+
 contains
 
 
@@ -201,4 +204,18 @@ contains
     array(15) = 2.5d-5
     @assertTrue(is_constant(array, tol=5.0d-3))
   end subroutine test_is_constant
+
+
+  ! @test
+  ! subroutine test_find_name_index()
+  !   call set_name("eigenfunctions - retrieving name")
+  !   @assertEqual(2, find_name_loc_in_array("name2", test_names))
+  ! end subroutine test_find_name_loc
+
+
+  ! @test
+  ! subroutine test_find_name_loc_fail()
+  !   call set_name("eigenfunctions - retrieving name (fail)")
+  !   @assertEqual(0, find_name_loc_in_array("unknown", test_names))
+  ! end subroutine test_find_name_loc_fail
 end module mod_test_valuechecks

@@ -2,7 +2,7 @@ module mod_test_boundaries
   use mod_suite_utils
   use funit
   use mod_boundary_manager, only: apply_boundary_conditions
-  use mod_global_variables, only: matrix_gridpts, thermal_conduction, viscosity
+  use mod_global_variables, only: thermal_conduction, viscosity
   implicit none
 
   complex(dp), allocatable :: amat(:, :), amat_expected(:, :)
@@ -36,6 +36,8 @@ contains
 
 
   subroutine reset_matrices(avalue, bvalue)
+    use mod_global_variables, only: dim_matrix
+
     complex(dp), intent(in) :: avalue
     real(dp), intent(in)    :: bvalue
 
@@ -51,10 +53,10 @@ contains
     if (allocated(bmat_expected)) then
       deallocate(bmat_expected)
     end if
-    allocate(amat(matrix_gridpts, matrix_gridpts))
-    allocate(amat_expected(matrix_gridpts, matrix_gridpts))
-    allocate(bmat(matrix_gridpts, matrix_gridpts))
-    allocate(bmat_expected(matrix_gridpts, matrix_gridpts))
+    allocate(amat(dim_matrix, dim_matrix))
+    allocate(amat_expected(dim_matrix, dim_matrix))
+    allocate(bmat(dim_matrix, dim_matrix))
+    allocate(bmat_expected(dim_matrix, dim_matrix))
     amat = avalue
     amat_expected = avalue
     bmat = bvalue

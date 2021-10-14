@@ -57,7 +57,8 @@ contains
 
 
   subroutine create_test_grid(pts, geom, start, end)
-    use mod_global_variables, only: x_start, x_end, geometry, set_gridpts
+    use mod_global_variables, only: x_start, x_end, geometry, set_gridpts, &
+      set_matrix_properties
     use mod_grid, only: initialise_grid
 
     integer, intent(in)             :: pts
@@ -76,6 +77,7 @@ contains
       x_end = 1.0d0
     end if
     call set_gridpts(pts)
+    call set_matrix_properties()
     call initialise_grid()
   end subroutine create_test_grid
 

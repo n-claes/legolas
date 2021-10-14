@@ -44,7 +44,7 @@ contains
     ! basis functions (odd rows & columns) to zero.
     indices = get_index([character(len=3) :: "v1", "a2", "a3", "phi"], state_vector)
     indices = convert_to_subblock_indices(indices, which="odd", edge="left")
-    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3, 13, 15, 17])
+    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=indices)
 
     ! if T boundary conditions are needed, set even row/colum (quadratic)
     if (apply_T_bounds) then
