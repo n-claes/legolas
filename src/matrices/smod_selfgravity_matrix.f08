@@ -68,7 +68,7 @@ contains
     call reset_factor_positions(new_size=1)
     ! G(2, 9)
     factors(1) = eps * rho
-    positions(1, :) = [9, 2]
+    positions(1, :) = [2, 9]
     call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
 
     ! Quadratic * Cubic
