@@ -60,6 +60,7 @@ namelist_items = {
         ("elec_pressure", bool),
         ("elec_inertia", bool),
         ("inertia_dropoff", bool),
+        ("incompressible", bool),
     ],
     "unitslist": [
         ("cgs_units", bool),
