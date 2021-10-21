@@ -45,6 +45,8 @@ module mod_physical_constants
   real(dp), parameter   :: R_si = 8.3145d0
   !> gas constant in erg/deg
   real(dp), parameter   :: R_cgs = 8.3145d7
+  !> gravitational constant in dyne cm^2 / g^2
+  real(dp), parameter   :: bigG_cgs = 6.6726d-8
 
   !! Solar physics parameters
   !> solar mass in g
