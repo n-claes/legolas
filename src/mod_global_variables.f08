@@ -134,7 +134,7 @@ module mod_global_variables
   integer                      :: nb_spurious_eigenvalues
 
   !> total number of equations
-  integer, parameter        :: nb_eqs = 9
+  integer, parameter        :: nb_eqs = 8
   !> dimension of one finite element integral block, e.g. A(1, 2)
   integer, parameter        :: dim_integralblock = 2
   !> dimension of one subblock, 4 of these define a quadblock
@@ -222,7 +222,7 @@ contains
     elec_pressure = .false.
     elec_inertia = .false.
     inertia_dropoff = .false.
-    selfgravity = .true.
+    selfgravity = .false.
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile
