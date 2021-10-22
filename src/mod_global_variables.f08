@@ -105,6 +105,9 @@ module mod_global_variables
   !> size of a single eigenfunction array, automatically set by \p gridpts
   integer, protected        :: ef_gridpts
 
+  !> array containing the current state vector
+  character(len=str_len_arr), protected, allocatable :: state_vector(:)
+
   !> number of Gaussian nodes
   integer, parameter           :: n_gauss = 4
   !> values for the Gaussian nodes in [-1, 1]
@@ -132,13 +135,13 @@ module mod_global_variables
   integer                      :: nb_spurious_eigenvalues
 
   !> total number of equations
-  integer, parameter        :: nb_eqs = 8
+  integer, protected  :: nb_eqs
   !> dimension of one finite element integral block, e.g. A(1, 2)
-  integer, parameter        :: dim_integralblock = 2
+  integer, protected  :: dim_integralblock
   !> dimension of one subblock, 4 of these define a quadblock
-  integer, parameter        :: dim_subblock = nb_eqs * dim_integralblock
+  integer, protected  :: dim_subblock
   !> dimension of one quadblock, this is the block shifted along the main diagonal
-  integer, parameter        :: dim_quadblock = 2*dim_subblock
+  integer, protected  :: dim_quadblock
   !> size of the A and B matrices
   integer, protected  :: dim_matrix
 
@@ -285,14 +288,30 @@ contains
   !> Sets all gridpoint-related variables: sets the base number of gridpoints,
   !! the gridpoints of the Gaussian grid, matrix sizes and size of the
   !! eigenfunction arrays.
-  subroutine set_gridpts(gridpts_in)
+  subroutine set_gridpts(points)
     !> amount of gridpoints for the base grid
-    integer, intent(in) :: gridpts_in
+    integer, intent(in) :: points
 
-    gridpts = gridpts_in
+    gridpts = points
     gauss_gridpts = n_gauss * (gridpts - 1)
     ef_gridpts  = 2 * gridpts - 1
-    dim_matrix = dim_subblock * gridpts
+    call set_matrix_properties(points)
   end subroutine set_gridpts
+
+
+  !> Sets dimensions for matrix A and B, subblock sizes and state vector
+  subroutine set_matrix_properties(points)
+    !> gridpoints for the base grid
+    integer, intent(in) :: points
+
+    state_vector = [ &
+      character(len=str_len_arr) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
+    ]
+    nb_eqs = size(state_vector)
+    dim_integralblock = 2
+    dim_subblock = nb_eqs * dim_integralblock
+    dim_quadblock = dim_integralblock * dim_subblock
+    dim_matrix = dim_subblock * points
+  end subroutine set_matrix_properties
 
 end module mod_global_variables
