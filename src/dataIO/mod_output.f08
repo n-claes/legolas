@@ -161,7 +161,7 @@ contains
     ! Eigenfunction data [optional]
     if (write_eigenfunctions) then
       call log_message("writing eigenfunctions...", level="info")
-      write(dat_fh) size(ef_names), ef_names
+      write(dat_fh) size(state_vector), state_vector
       write(dat_fh) ef_grid
       write(dat_fh) size(ef_written_flags), ef_written_flags
       write(dat_fh) size(ef_written_idxs), ef_written_idxs

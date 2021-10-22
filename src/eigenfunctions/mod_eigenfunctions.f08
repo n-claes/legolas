@@ -3,7 +3,7 @@
 !! and interfaces to initialise and calculate the eigenfunctions and
 !! derived quantities.
 module mod_eigenfunctions
-  use mod_global_variables, only: dp, str_len_arr, ef_gridpts
+  use mod_global_variables, only: dp, str_len_arr, ef_gridpts, state_vector
   use mod_types, only: ef_type
   implicit none
 
@@ -19,8 +19,6 @@ module mod_eigenfunctions
   real(dp), protected, allocatable :: ef_eps(:)
   !> derivative of scale factor
   real(dp), protected :: ef_deps
-  !> array with the names of the basis eigenfunctions
-  character(str_len_arr), protected, allocatable :: ef_names(:)
   !> array with the names of the derived eigenfunctions
   character(str_len_arr), protected, allocatable :: derived_ef_names(:)
   !> logical array containing flags for written eigenfunctions
@@ -78,7 +76,7 @@ module mod_eigenfunctions
   end interface
 
   public :: ef_grid
-  public :: ef_names, derived_ef_names
+  public :: derived_ef_names
   public :: ef_written_flags, ef_written_idxs
   public :: base_eigenfunctions
   public :: derived_eigenfunctions
@@ -156,7 +154,7 @@ contains
     integer :: name_idx
 
     ! check if we want a regular eigenfunction
-    name_idx = find_name_loc_in_array(name, ef_names)
+    name_idx = find_name_loc_in_array(name, state_vector)
     if (name_idx > 0) then
       ! found, retrieve and return
       eigenfunctions = base_eigenfunctions(name_idx)
@@ -279,7 +277,6 @@ contains
       deallocate(ef_eps)
       deallocate(ef_written_flags)
       deallocate(ef_written_idxs)
-      deallocate(ef_names)
       if (derived_efs_initialised) then
         call clean_derived_eigenfunctions()
         deallocate(derived_eigenfunctions)

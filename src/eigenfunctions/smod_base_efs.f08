@@ -11,14 +11,10 @@ contains
   module procedure initialise_base_eigenfunctions
     integer :: i
 
-    ef_names = [ &
-      character(len=str_len_arr) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
-    ]
-    allocate(base_eigenfunctions(size(ef_names)))
-
+    allocate(base_eigenfunctions(size(state_vector)))
     do i = 1, size(base_eigenfunctions)
       base_eigenfunctions(i) % state_vector_index = i
-      base_eigenfunctions(i) % name = ef_names(i)
+      base_eigenfunctions(i) % name = state_vector(i)
       allocate(base_eigenfunctions(i) % quantities(size(ef_grid), nb_eigenfuncs))
     end do
     efs_initialised = .true.
