@@ -5,8 +5,6 @@ module mod_test_valuechecks
   use mod_check_values
   implicit none
 
-  character(len=10) :: test_names(5) = ["name1", "name2", "name3", "name4", "name5"]
-
 contains
 
 
@@ -205,38 +203,4 @@ contains
     @assertTrue(is_constant(array, tol=5.0d-3))
   end subroutine test_is_constant
 
-
-  @test
-   subroutine test_find_name_index()
-     call set_name("get name index from array")
-     @assertEqual(2, get_index("name2", test_names))
-   end subroutine test_find_name_index
-
-
-   @test
-   subroutine test_find_name_index_fail()
-     call set_name("get name index from array (fail)")
-     @assertEqual(0, get_index("unknown", test_names))
-   end subroutine test_find_name_index_fail
-
-
-   @test
-   subroutine test_find_name_indices()
-     call set_name("get name indices from array")
-     @assertEqual([3, 4], get_index(["name3", "name4"], test_names))
-   end subroutine test_find_name_indices
-
-
-   @test
-   subroutine test_find_name_indices_partial()
-     call set_name("get name indices from array (partial)")
-     @assertEqual([5, 0, 2], get_index(["name5", "test1", "name2"], test_names))
-   end subroutine test_find_name_indices_partial
-
-
-   @test
-   subroutine test_find_name_indices_fail()
-     call set_name("get name indices from array (fail)")
-     @assertEqual([0, 0, 0], get_index(["test1", "test2", "test3"], test_names))
-   end subroutine test_find_name_indices_fail
 end module mod_test_valuechecks
