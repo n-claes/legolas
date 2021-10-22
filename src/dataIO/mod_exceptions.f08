@@ -74,10 +74,10 @@ contains
 
     !> message to print to the console when exception is raised
     character(len=*), intent(in) :: msg
-    character(len=str_len) :: msg_painted
+    character(len=3*str_len) :: msg_painted
 
     call paint_string(" ERROR   | " // msg, "red", msg_painted)
-    write(*, *) msg_painted
+    write(*, *) trim(msg_painted)
     error stop
   end subroutine on_exception_raised
   ! LCOV_EXCL_STOP
