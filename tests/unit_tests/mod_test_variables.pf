@@ -46,7 +46,7 @@ contains
   @test
   subroutine test_gridpts()
     use mod_global_variables, only: &
-      gridpts, gauss_gridpts, matrix_gridpts, ef_gridpts, set_gridpts
+      gridpts, gauss_gridpts, dim_matrix, ef_gridpts, set_gridpts
     integer, parameter :: gridpts_test = 11
 
     call set_name("setting gridpoints")
@@ -54,7 +54,7 @@ contains
     call set_gridpts(gridpts_test)
     @assertEqual(gridpts_test, gridpts)
     @assertEqual(40, gauss_gridpts)
-    @assertEqual(176, matrix_gridpts)
+    @assertEqual(176, dim_matrix)
     @assertEqual(21, ef_gridpts)
   end subroutine test_gridpts
 

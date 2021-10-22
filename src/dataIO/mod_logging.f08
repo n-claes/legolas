@@ -184,7 +184,7 @@ contains
     call log_message("grid end           : " // str(x_end))
     call log_message("gridpoints (base)  : " // str(gridpts))
     call log_message("gridpoints (Gauss) : " // str(gauss_gridpts))
-    call log_message("gridpoints (matrix): " // str(matrix_gridpts))
+    call log_message("gridpoints (matrix): " // str(dim_matrix))
 
     call log_message("          << Equilibrium settings >>")
     call log_message("equilibrium    : " // trim(adjustl(equilibrium_type)))

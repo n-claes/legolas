@@ -123,10 +123,10 @@ contains
   !!          on-axis treatment (e.g. <tt>r = 0.025</tt> instead of <tt>r = 0</tt>)
   !!          usually does a better job. A warning will be thrown if eigenvalues are removed.
   subroutine handle_spurious_eigenvalues(eigenvalues)
-    use mod_global_variables, only: matrix_gridpts, remove_spurious_eigenvalues, nb_spurious_eigenvalues
+    use mod_global_variables, only: remove_spurious_eigenvalues, nb_spurious_eigenvalues
 
     !> the eigenvalues with spurious modes replaced on exit
-    complex(dp), intent(inout)  :: eigenvalues(matrix_gridpts)
+    complex(dp), intent(inout)  :: eigenvalues(:)
     integer                     :: i, idx
     complex(dp)                 :: replacement
 
