@@ -9,7 +9,6 @@ module mod_test_eigenfunctions
   complex(dp) :: eigenvals(25)
   complex(dp), allocatable :: eigenvectors(:, :)
   type(ef_type) :: ef_test
-  character(len=10) :: test_names(5) = ["name1", "name2", "name3", "name4", "name5"]
 
 contains
 
@@ -116,20 +115,6 @@ contains
     @assertEqual(4, size(ef_written_idxs))
     @assertEqual([5, 9, 10, 15], ef_written_idxs)
   end subroutine test_eigenfunction_subset_idxs
-
-
-  @test
-  subroutine test_find_name_loc()
-    call set_name("eigenfunctions - retrieving name")
-    @assertEqual(2, find_name_loc_in_array("name2", test_names))
-  end subroutine test_find_name_loc
-
-
-  @test
-  subroutine test_find_name_loc_fail()
-    call set_name("eigenfunctions - retrieving name (fail)")
-    @assertEqual(0, find_name_loc_in_array("unknown", test_names))
-  end subroutine test_find_name_loc_fail
 
 
   @test
