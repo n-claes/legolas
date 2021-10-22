@@ -39,7 +39,7 @@ module mod_boundary_manager
 contains
 
   subroutine apply_boundary_conditions(matrixA, matrixB)
-    use mod_global_variables, only: dim_quadblock, matrix_gridpts
+    use mod_global_variables, only: dim_quadblock
 
     !> the A-matrix with boundary conditions imposed on exit
     complex(dp), intent(inout)  :: matrixA(:, :)
@@ -51,7 +51,7 @@ contains
     ! first gridpoint quadblock runs from idx 1 to l_end
     l_end = dim_quadblock
     ! last gridpoint quadblock runs from idx r_start to
-    r_start = matrix_gridpts - dim_quadblock + 1
+    r_start = size(matrixA, dim=1) - dim_quadblock + 1
 
     call set_boundary_flags()
 

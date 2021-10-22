@@ -102,8 +102,6 @@ module mod_global_variables
   logical, save             :: force_r0
   !> number of gridpoints in the gaussian grid, automatically set by \p gridpts
   integer, protected        :: gauss_gridpts
-  !> size of the A and B matrices, automatically set by \p gridpts
-  integer, protected        :: matrix_gridpts
   !> size of a single eigenfunction array, automatically set by \p gridpts
   integer, protected        :: ef_gridpts
 
@@ -141,6 +139,8 @@ module mod_global_variables
   integer, parameter        :: dim_subblock = nb_eqs * dim_integralblock
   !> dimension of one quadblock, this is the block shifted along the main diagonal
   integer, parameter        :: dim_quadblock = 2*dim_subblock
+  !> size of the A and B matrices
+  integer, protected  :: dim_matrix
 
   !> boolean to write both matrices to the datfile, defaults to <tt>False</tt>
   logical, save             :: write_matrices
@@ -289,10 +289,10 @@ contains
     !> amount of gridpoints for the base grid
     integer, intent(in) :: gridpts_in
 
-    gridpts        = gridpts_in
-    gauss_gridpts  = 4*(gridpts - 1)
-    matrix_gridpts = dim_subblock * gridpts
-    ef_gridpts     = 2*gridpts - 1
+    gridpts = gridpts_in
+    gauss_gridpts = n_gauss * (gridpts - 1)
+    ef_gridpts  = 2 * gridpts - 1
+    dim_matrix = dim_subblock * gridpts
   end subroutine set_gridpts
 
 end module mod_global_variables
