@@ -228,6 +228,8 @@ contains
       call log_message("    electron intertia : " // str(elec_inertia))
     end if
 
+    call log_message("selfgravity        : " // str(selfgravity))
+
     call log_message("            << Solver settings >>")
     call log_message("solver      : " // trim(adjustl(solver)))
     if (solver == "arnoldi") then
