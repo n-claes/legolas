@@ -82,8 +82,12 @@ class EigenfunctionHandler(EigenfunctionInterface):
                 ef_name = f"r{ef_name}"
         for i, idx in enumerate("123"):
             ef_name = ef_name.replace(idx, suffix[i])
-        ef_name = ef_name.replace("rho", r"\rho")
-        name = f"{part}(${ef_name}$) eigenfunction"
+        ef_name = self._replace_name_with_latex(
+            ef_name,
+            regs_to_replace=("rho", "phi"),
+            latex_to_replace_with=(r"\rho", r"\Phi"),
+        )
+        name = f"{part}({ef_name}) eigenfunction"
         return name
 
     def _mark_points_without_data_written(self):

@@ -74,11 +74,17 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
             suffix = ("_r", r"_\theta", "_z")
         for i, idx in enumerate("123"):
             ef_name = ef_name.replace(idx, suffix[i])
-        ef_name = ef_name.replace("div", "\\nabla\\cdot")
-        ef_name = ef_name.replace("curl", "\\nabla\\times")
-        ef_name = ef_name.replace("para", "\\parallel")
-        ef_name = ef_name.replace("perp", "\\perp")
-        name = fr"{part}(${ef_name}$)"
+        ef_name = self._replace_name_with_latex(
+            ef_name,
+            regs_to_replace=("div", "curl", "para", "perp"),
+            latex_to_replace_with=(
+                r"\nabla\cdot",
+                r"\nabla\times",
+                r"\parallel",
+                r"\perp",
+            ),
+        )
+        name = f"{part}({ef_name})"
         return name
 
     def _mark_points_without_data_written(self):

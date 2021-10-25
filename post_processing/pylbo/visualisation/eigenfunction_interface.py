@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.collections import PathCollection
 from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
-from pylbo.utilities.toolbox import add_pickradius_to_item
+from pylbo.utilities.toolbox import add_pickradius_to_item, transform_to_list
 from pylbo.utilities.logger import pylboLogger
 
 
@@ -138,6 +138,32 @@ class EigenfunctionInterface:
         if isinstance(self.data, LegolasDataSeries):
             label = f"{ds.datfile.stem} | {label}"
         return label
+
+    @staticmethod
+    def _replace_name_with_latex(name, regs_to_replace, latex_to_replace_with):
+        """
+        Replaces regular expressions in a string with latex, transforms to a full
+        latex string on return.
+
+        Parameters
+        ----------
+        name : str
+            The string in which to replace
+        regs_to_replace : str, list
+            (list of) expressions to replace
+        latex_to_replace_with : str, list
+            (list of) latex expressions used to replace
+
+        Returns
+        -------
+        str
+            The original `name` with expressions replaced and put between dollar signs.
+        """
+        regs_to_replace = transform_to_list(regs_to_replace)
+        latex_to_replace_with = transform_to_list(latex_to_replace_with)
+        for regex, latex in zip(regs_to_replace, latex_to_replace_with):
+            name = name.replace(regex, rf"{latex}")
+        return f"${name}$"
 
     @abc.abstractmethod
     def _get_title(self):
