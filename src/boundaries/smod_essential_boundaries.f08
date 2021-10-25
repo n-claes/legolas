@@ -21,7 +21,9 @@ contains
     call zero_out_row_and_col( &
       quadblock=quadblock, &
       diagonal_factor=get_diagonal_factor(matrix), &
-      idxs=get_subblock_index(["v1", "a2", "a3"], odd=.true., edge="left") &
+      idxs=get_subblock_index( &
+        [character(len=5) :: "v1", "a2", "a3", "phi"], odd=.true., edge="left" &
+      ) &
     )
     ! if T boundary conditions are needed, set even row/colum (quadratic)
     if (apply_T_bounds) then
@@ -50,7 +52,9 @@ contains
     call zero_out_row_and_col( &
       quadblock=quadblock, &
       diagonal_factor=get_diagonal_factor(matrix), &
-      idxs=get_subblock_index(["v1", "a2", "a3"], odd=.true., edge="right") &
+      idxs=get_subblock_index( &
+        [character(len=5) :: "v1", "a2", "a3", "phi"], odd=.true., edge="right" &
+      ) &
     )
     ! T condition
     if (apply_T_bounds) then
@@ -91,10 +95,15 @@ contains
   end subroutine zero_out_row_and_col
 
 
+  !> Returns the value that is introduced on the main block diagonal after
+  !! zeroing out the corresponding row and column.
+  !! Depends on the matrix and solver that is used.
   function get_diagonal_factor(matrix) result(diagonal_factor)
     use mod_global_variables, only: solver, NaN
 
+    !> which matrix to get the diagonal factor from, `A` or `B`
     character, intent(in) :: matrix
+    !> value introduced on the main block diagonal
     complex(dp) :: diagonal_factor
 
     if (matrix == "B") then

@@ -19,7 +19,7 @@ contains
       eigenfunction = eigenfunction / ef_eps
     case("v1") ! v1 -> i * eps * v1
       eigenfunction = eigenfunction / (ef_eps * ic)
-    case("v2", "a3") ! var -> var
+    case("v2", "a3", "phi") ! var -> var
       ! do nothing
     case("a1") ! a1 -> i*a1
       eigenfunction = eigenfunction / ic
@@ -109,7 +109,7 @@ contains
     procedure(), pointer :: spline_function => null()
 
     select case(name)
-    case("v1", "a2", "a3")
+    case("v1", "a2", "a3", "phi")
       select case(diff_order)
       case(0)
         spline_function => cubic_factors
