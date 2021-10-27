@@ -268,7 +268,7 @@ contains
     real(dp), intent(in)    :: gamma_in
 
     if (incompressible) then
-      gamma = 1.0d6
+      gamma = 1.0d12
     else
       gamma = gamma_in
     end if
