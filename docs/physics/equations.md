@@ -127,3 +127,23 @@ $$
 
 The main Hall contribution, electron pressure term and electron inertia term are treated as separate entities, meaning that
 these terms can be toggled on or off independently of one another. See the [physicslist](../../general/parameter_file/#physicslist) for details.
+
+
+### Selfgravity
+Generally speaking Legolas uses the Cowling approximation (no linearisation of the gravity term) whenever gravity is enabled. However, you can enable the selfgravity
+option in the [physicslist](../../general/parameter_file/#physicslist), which will do a linearisation of the gravitational term instead.
+The Poisson equation
+
+$$
+\nabla \cdot \mathbf{g} = -4\pi G \rho
+$$
+
+will be added as an additional equation to the already existing set, and the linearised part will be converted into a gravitional potential
+using $\mathbf{g}_1 = -\nabla \Phi_1$.
+In MHD this means that the general state vector in this case is given by
+
+$$
+\mathbf{X} = \left(\rho_1, v_1, v_2, v_3, T_1, a_1, a_2, a_3, \Phi_1\right)
+$$
+
+meaning the dimension of your matrices will increase with respect to "regular" MHD (which has 8 equations).

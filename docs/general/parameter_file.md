@@ -78,6 +78,7 @@ This namelist includes all physics-related variables.
 | hall_mhd              | logical | inclusion of Hall effects | `.false.` |
 | elec_pressure         | logical | whether to include the electron pressure term in Ohm's law if `hall_mhd = .true.` | `.false.` |
 | elec_intertia         | logical | whether to include the electron intertia term in Ohm's law if `hall_mhd = .true.` | `.false.` |
+| selfgravity           | logical | whether to include selfgravity (Poisson equation) instead of using a Cowling approximation | `.false.` |
 
 ## solvelist
 This namelist includes all solver-related variables. For more information, see [Solvers](../../general/solvers)
