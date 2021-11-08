@@ -3,7 +3,7 @@
 !! submodules are defined here, and the <tt>solve_evp</tt> routine calls the
 !! correct solver based on parfile settings.
 module mod_solvers
-  use mod_global_variables, only: dp, write_eigenfunctions
+  use mod_global_variables, only: dp, NaN, write_eigenfunctions
   use mod_logging, only: log_message, str
   use mod_check_values, only: set_small_values_to_zero
   use mod_matrix_structure, only: matrix_t
@@ -75,6 +75,12 @@ contains
       call qz_direct(matrix_A, matrix_B, omega, vr)
     case("arnoldi")
       call arnoldi(matrix_A, matrix_B, omega, vr)
+    case("none")
+      ! Set eigenvalues and vectors to NaN.
+      omega = NaN * (1, 1)
+      if (write_eigenfunctions) then
+        vr = NaN * (1, 1)
+      end if
     case default
       call log_message("unknown solver passed: " // solver, level="error")
       return

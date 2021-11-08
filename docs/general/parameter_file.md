@@ -83,7 +83,7 @@ This namelist includes all solver-related variables. For more information, see [
 
 | Parameter     | Type  | Description   | Default value     |
 | :---          | :---: | :----         | :---:             |
-| solver        | string    | which solver to use | `"QR-invert"` |
+| solver        | string    | which solver to use, if 'none' eigenvalues and -functions are set to NaN | `"QR-invert"` |
 | arpack_mode   | string    | the mode for ARPACK, only used if `solver="arnoldi"` | `"standard"`  |
 | number_of_eigenvalues | int   | number of eigenvalues to calculate, only used if `solver="arnoldi"`   | 10    |
 | which eigenvalues | string    | which eigenvalues to calculate, only used if `solver="arnoldi"`   |   `"LM"`  |
