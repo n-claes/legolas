@@ -1,6 +1,9 @@
 submodule (mod_matrix_manager) smod_regular_matrix
   implicit none
 
+  !> list containing matrix elements
+  type(matrix_elements_t) :: elements
+
 contains
 
   module procedure add_bmatrix_terms
@@ -10,36 +13,34 @@ contains
     eps = eps_grid(gauss_idx)
 
     ! Quadratic * Quadratic
-    call reset_factor_positions(new_size=5)
-    ! B(1, 1)
-    factors(1) = 1.0d0
-    positions(1, :) = [1, 1]
-    ! B(3, 3)
-    factors(2) = eps * rho
-    positions(2, :) = [3, 3]
-    ! B(4, 4)
-    factors(3) = rho
-    positions(3, :) = [4, 4]
-    ! B(5, 5)
-    factors(4) = rho
-    positions(4, :) = [5, 5]
-    ! B(6, 6)
-    factors(5) = eps
-    positions(5, :) = [6, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call elements%add(1.0d0, location=["rho", "rho"])
+    call elements%add(eps * rho, location=["v2", "v2"])
+    call elements%add(rho, location=["v3", "v3"])
+    call elements%add(rho, location=["T", "T"])
+    call elements%add(eps, location=["a1", "a1"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      h_quad, &
+      h_quad &
+    )
+    call elements%delete()
 
     ! Cubic * Cubic
-    call reset_factor_positions(new_size=3)
-    ! B(2, 2)
-    factors(1) = rho
-    positions(1, :) = [2, 2]
-    ! B(7, 7)
-    factors(2) = 1.0d0
-    positions(2, :) = [7, 7]
-    ! B(8, 8)
-    factors(3) = eps
-    positions(3, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+    call elements%add(rho, location=["v1", "v1"])
+    call elements%add(1.0d0, location=["a2", "a2"])
+    call elements%add(eps, location=["a3", "a3"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      h_cubic, &
+      h_cubic &
+    )
+    call elements%delete()
   end procedure add_bmatrix_terms
 
 
@@ -52,6 +53,7 @@ contains
     real(dp)  :: T0, dT0
     real(dp)  :: B01, B02, dB02, drB02, B03, db03
     real(dp)  :: Fop_plus, Gop_plus, Gop_min, WVop
+    real(dp)  :: element
 
     ! grid variables
     eps = eps_grid(gauss_idx)
@@ -76,181 +78,164 @@ contains
     WVop = get_wv_operator(gauss_idx)
 
     ! ==================== Quadratic * Cubic ====================
-    call reset_factor_positions(new_size=6)
-    ! A(1, 2)
-    factors(1) = -drho
-    positions(1, :) = [1, 2]
-    ! A(3, 7)
-    factors(2) = k3 * (drB02 - ic * k2 * B01) / eps
-    positions(2, :) = [3, 7]
-    ! A(3, 8)
-    factors(3) = k2 * (ic * k2 * B01 - drB02) / eps
-    positions(3, :) = [3, 8]
-    ! A(4, 7)
-    factors(4) = k3 * (dB03 - ic * k3 * B01)
-    positions(4, :) = [4, 7]
-    ! A(4, 8)
-    factors(5) = k2 * (ic * B01 * k3 - dB03)
-    positions(5, :) = [4, 8]
-    ! A(5, 2)
-    factors(6) = -dT0 * rho
-    positions(6, :) = [5, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
+    call elements%add(-drho, location=["rho", "v1 "])
+    call elements%add(k3 * (drB02 - ic * k2 * B01) / eps, location=["v2", "a2"])
+    call elements%add(k2 * (ic * k2 * B01 - drB02) / eps, location=["v2", "a3"])
+    call elements%add(k3 * (dB03 - ic * k3 * B01), location=["v3", "a2"])
+    call elements%add(k2 * (ic * B01 * k3 - dB03), location=["v3", "a3"])
+    call elements%add(-dT0 * rho, location=["T ", "v1"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      h_quad, &
+      h_cubic &
+    )
+    call elements%delete()
 
     ! ==================== Quadratic * dCubic ====================
-    call reset_factor_positions(new_size=6)
-    ! A(1, 2)
-    factors(1) = -rho
-    positions(1, :) = [1, 2]
-    ! A(3, 7)
-    factors(2) = k2 * B03 / eps
-    positions(2, :) = [3, 7]
-    ! A(3, 8)
-    factors(3) = eps * k3 * B03
-    positions(3, :) = [3, 8]
-    ! A(4, 7)
-    factors(4) = -(k2 * B02 + ic * deps * B01) / eps
-    positions(4, :) = [4, 7]
-    ! A(4, 8)
-    factors(5) = -eps * k3 * B02
-    positions(5, :) = [4, 8]
-    ! A(5, 2)
-    factors(6) = -gamma_1 * T0 * rho
-    positions(6, :) = [5, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
+    call elements%add(-rho, location=["rho", "v1 "])
+    call elements%add(k2 * B03 / eps, location=["v2", "a2"])
+    call elements%add(eps * k3 * B03, location=["v2", "a3"])
+    call elements%add(-(k2 * B02 + ic * deps * B01) / eps, location=["v3", "a2"])
+    call elements%add(-eps * k3 * B02, location=["v3", "a3"])
+    call elements%add(-gamma_1 * T0 * rho, location=["T ", "v1"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      h_quad, &
+      dh_cubic &
+    )
+    call elements%delete()
 
     ! ==================== Quadratic * Quadratic ====================
-    call reset_factor_positions(new_size=12)
-    ! A(1, 3)
-    factors(1) = rho * k2
-    positions(1, :) = [1, 3]
-    ! A(1, 4)
-    factors(2) = rho * k3
-    positions(2, :) = [1, 4]
-    ! A(3, 1)
-    factors(3) = k2 * T0 / eps
-    positions(3, :) = [3, 1]
-    ! A(3, 5)
-    factors(4) = k2 * rho / eps
-    positions(4, :) = [3, 5]
-    ! A(3, 6)
-    factors(5) = -WVop * B03
-    positions(5, :) = [3, 6]
-    ! A(4, 1)
-    factors(6) = k3 * T0
-    positions(6, :) = [4, 1]
-    ! A(4, 5)
-    factors(7) = k3 * rho
-    positions(7, :) = [4, 5]
-    ! A(4, 6)
-    factors(8) = ic * deps * k2 * B01 / eps + B02 * WVop
-    positions(8, :) = [4, 6]
-    ! A(5, 3)
-    factors(9) = gamma_1 * k2 * rho * T0
-    positions(9, :) = [5, 3]
-    ! A(5, 4)
-    factors(10) = gamma_1 * k3 * rho * T0
-    positions(10, :) = [5, 4]
-    ! A(6, 3)
-    factors(11) = -eps * B03
-    positions(11, :) = [6, 3]
-    ! A(6, 4)
-    factors(12) = B02
-    positions(12, :) = [6, 4]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call elements%add(rho * k2, location=["rho", "v2 "])
+    call elements%add(rho * k3, location=["rho", "v3 "])
+    call elements%add(k2 * T0 / eps, location=["v2 ", "rho"])
+    call elements%add(k2 * rho / eps, location=["v2", "T "])
+    call elements%add(-WVop * B03, location=["v2", "a1"])
+    call elements%add(k3 * T0, location=["v3 ", "rho"])
+    call elements%add(k3 * rho, location=["v3", "T "])
+    call elements%add(ic * deps * k2 * B01 / eps + B02 * WVop, location=["v3", "a1"])
+    call elements%add(gamma_1 * k2 * rho * T0, location=["T ", "v2"])
+    call elements%add(gamma_1 * k3 * rho * T0, location=["T ", "v3"])
+    call elements%add(-eps * B03, location=["a1", "v2"])
+    call elements%add(B02, location=["a1", "v3"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      h_quad, &
+      h_quad &
+    )
+    call elements%delete()
 
     ! ==================== Cubic * Quadratic ====================
-    call reset_factor_positions(new_size=5)
-    ! A(2, 1)
-    factors(1) = -deps * T0 / eps
+    element = -deps * T0 / eps
     if (external_gravity) then
       ! adds gravity term to A(2, 1) matrix element
-      factors(1) = factors(1) + grav_field % grav(gauss_idx)
+      element = element + grav_field % grav(gauss_idx)
     end if
-    positions(1, :) = [2, 1]
-    ! A(2, 5)
-    factors(2) = -deps * rho / eps
-    positions(2, :) = [2, 5]
-    ! A(2, 6)
-    factors(3) = deps * Gop_plus
-    positions(3, :) = [2, 6]
-    ! A(7, 4)
-    factors(4) = ic * B01
-    positions(4, :) = [7, 4]
-    ! A(8, 3)
-    factors(5) = -ic * eps * B01
-    positions(5, :) = [8, 3]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
+    call elements%add(element, location=["v1 ", "rho"])
+    call elements%add(-deps * rho / eps, location=["v1", "T "])
+    call elements%add(deps * Gop_plus, location=["v1", "a1"])
+    call elements%add(ic * B01, location=["a2", "v3"])
+    call elements%add(-ic * eps * B01, location=["a3", "v2"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      h_cubic, &
+      h_quad &
+    )
+    call elements%delete()
 
     ! ==================== dCubic * Quadratic ====================
-    call reset_factor_positions(new_size=3)
-    ! A(2, 1)
-    factors(1) = -T0
-    positions(1, :) = [2, 1]
-    ! A(2, 5)
-    factors(2) = -rho
-    positions(2, :) = [2, 5]
-    ! A(2, 6)
-    factors(3) = -eps * Gop_min
-    positions(3, :) = [2, 6]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad)
+    call elements%add(-T0, location=["v1 ", "rho"])
+    call elements%add(-rho, location=["v1", "T "])
+    call elements%add(-eps * Gop_min, location=["v1", "a1"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      dh_cubic, &
+      h_quad &
+    )
+    call elements%delete()
 
     ! ==================== Cubic * Cubic ====================
-    call reset_factor_positions(new_size=4)
-    ! A(2, 7)
-    factors(1) = -k3 * Fop_plus
-    positions(1, :) = [2, 7]
-    ! A(2, 8)
-    factors(2) = k2 * Fop_plus
-    positions(2, :) = [2, 8]
-    ! A(7, 2)
-    factors(3) = -B03
-    positions(3, :) = [7, 2]
-    ! A(8, 2)
-    factors(4) = B02
-    positions(4, :) = [8, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+    call elements%add(-k3 * Fop_plus, location=["v1", "a2"])
+    call elements%add(k2 * Fop_plus, location=["v1", "a3"])
+    call elements%add(-B03, location=["a2", "v1"])
+    call elements%add(B02, location=["a3", "v1"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      h_cubic, &
+      h_cubic &
+    )
+    call elements%delete()
 
     ! ==================== Cubic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! A(2, 7)
-    factors(1) = -deps * B03 / eps
-    positions(1, :) = [2, 7]
+    call elements%add(-deps * B03 / eps, location=["v1", "a2"])
     ! A(2, 8)
-    factors(2) = -deps * B02
-    positions(2, :) = [2, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
+    call elements%add(-deps * B02, location=["v1", "a3"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      h_cubic, &
+      dh_cubic &
+    )
+    call elements%delete()
 
     ! ==================== dCubic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! A(2, 7)
-    factors(1) = -B03
-    positions(1, :) = [2, 7]
-    ! A(2, 8)
-    factors(2) = eps * B02
-    positions(2, :) = [2, 8]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, dh_cubic)
+    call elements%add(-B03, location=["v1", "a2"])
+    call elements%add(eps * B02, location=["v1", "a3"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      dh_cubic, &
+      dh_cubic &
+    )
+    call elements%delete()
 
     ! ==================== dQuadratic * Quadratic ====================
-    call reset_factor_positions(new_size=2)
-    ! A(3, 6)
-    factors(1) = -ic * eps * k3 * B01
-    positions(1, :) = [3, 6]
-    ! A(4, 6)
-    factors(2) = ic * k2 * B01
-    positions(2, :) = [4, 6]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
+    call elements%add(-ic * eps * k3 * B01, location=["v2", "a1"])
+    call elements%add(ic * k2 * B01, location=["v3", "a1"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      dh_quad, &
+      h_quad &
+    )
+    call elements%delete()
 
     ! ==================== dQuadratic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! A(3, 8)
-    factors(1) = ic * eps * B01
-    positions(1, :) = [3, 8]
-    ! A(4, 7)
-    factors(2) = -ic * B01
-    positions(2, :) = [4, 7]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
-
+    call elements%add(ic * eps * B01, location=["v2", "a3"])
+    call elements%add(-ic * B01, location=["v3", "a2"])
+    call subblock( &
+      quadblock, &
+      elements%get_values(), &
+      elements%get_positions(), &
+      current_weight, &
+      dh_quad, &
+      dh_cubic &
+    )
+    call elements%delete()
   end procedure add_regular_matrix_terms
 
 end submodule smod_regular_matrix
