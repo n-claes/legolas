@@ -1,0 +1,131 @@
+module mod_test_matrix_elements
+  use mod_matrix_elements
+  use mod_suite_utils
+  use funit
+  implicit none
+
+  type(matrix_elements_t) :: elements
+
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call elements%delete()
+  end subroutine teardown_test
+
+
+  @test
+  subroutine test_get_size()
+    call set_name("matrix elements (get size)")
+    call elements%add(1.0d0, location=["rho", "rho"])
+    @assertEqual(1, elements%get_size())
+  end subroutine test_get_size
+
+
+  @test
+  subroutine test_add_one_real_element()
+    call set_name("matrix elements (add 1 real)")
+    call elements%add(1.0d0, location=["rho", "rho"])
+    @assertEqual((1.0d0, 0.0d0), elements%get_values(), tolerance=TOL)
+  end subroutine test_add_one_real_element
+
+
+  @test
+  subroutine test_add_one_complex_element()
+    call set_name("matrix elements (add 1 complex)")
+    call elements%add((2.0d0, 5.0d0), location=["v1", "v1"])
+    @assertEqual((2.0d0, 5.0d0), elements%get_values(), tolerance=TOL)
+  end subroutine test_add_one_complex_element
+
+
+  @test
+  subroutine test_add_multiple_real_elements()
+    complex(dp) :: expected(3)
+
+    call set_name("matrix elements (add multiple real)")
+    call elements%add(1.0d0, location=["rho", "rho"])
+    call elements%add(5.0d0, location=["v1", "v1"])
+    call elements%add(7.5d0, location=["T", "T"])
+    expected = [(1.0d0, 0.0d0), (5.0d0, 0.0d0), (7.5d0, 0.0d0)]
+    @assertEqual(expected, elements%get_values(), tolerance=TOL)
+    @assertEqual(3, elements%get_size())
+  end subroutine test_add_multiple_real_elements
+
+
+  @test
+  subroutine test_add_multiple_complex_elements()
+    complex(dp) :: expected(4)
+
+    expected = [(1.0d0, 2.0d0), (0.0d0, 5.0d0), (1.0d0, 7.5d0), (3.0d0, 1.0d0)]
+
+    call set_name("matrix elements (add multiple complex)")
+    call elements%add(expected(1), location=["rho", "rho"])
+    call elements%add(expected(2), location=["v1", "v1"])
+    call elements%add(expected(3), location=["T", "T"])
+    call elements%add(expected(4), location=["T", "T"])
+    @assertEqual(expected, elements%get_values(), tolerance=TOL)
+    @assertEqual(4, elements%get_size())
+  end subroutine test_add_multiple_complex_elements
+
+
+  @test
+  subroutine test_position_one_element()
+    integer :: expected(1, 2)
+
+    call set_name("matrix elements (position one)")
+    call elements%add((1.0d0, 2.0d0), location=["rho", "rho"])
+    expected(1, :) = [1,  1]
+    @assertEqual(expected, elements%get_positions())
+  end subroutine test_position_one_element
+
+
+  @test
+  subroutine test_position_multiple_elements()
+    integer :: expected(3, 2)
+
+    call set_name("matrix elements (position multiple)")
+    call elements%add((1.0d0, 0.0d0), location=["v1", "v1"])
+    call elements%add((2.0d0, 2.0d0), location=["v1", "v2"])
+    call elements%add((1.0d0, 3.0d0), location=["rho", " T "])
+    expected(1, :) = [2, 2]
+    expected(2, :) = [2, 3]
+    expected(3, :) = [1, 5]
+    @assertEqual(expected, elements%get_positions())
+  end subroutine test_position_multiple_elements
+
+
+  @test
+  subroutine test_position_no_selfgravity()
+    integer :: expected(1, 2)
+
+    call set_name("matrix elements (position no phi)")
+    call elements%add(1.0d0, location=["rho", "v3 "])
+    call elements%add(2.0d0, location=["rho", "phi"])
+    @assertEqual(1, elements%get_size())
+    expected(1, :) = [1, 4]
+    @assertEqual(expected, elements%get_positions())
+  end subroutine test_position_no_selfgravity
+
+
+  @test
+  subroutine test_position_with_selfgravity()
+    integer :: expected(2, 2)
+
+    call set_name("matrix elements (position with phi)")
+    call enable_selfgravity()
+    call elements%add(1.0d0, location=["rho", "v3 "])
+    call elements%add(2.0d0, location=["rho", "phi"])
+    @assertEqual(2, elements%get_size())
+    expected(1, :) = [1, 4]
+    expected(2, :) = [1, 9]
+    @assertEqual(expected, elements%get_positions())
+  end subroutine test_position_with_selfgravity
+
+end module mod_test_matrix_elements

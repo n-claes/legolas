@@ -65,6 +65,7 @@ set (sources
         boundaries/smod_natural_bounds_viscosity.f08
         boundaries/smod_natural_bounds_hall.f08
         boundaries/smod_natural_bounds_selfgravity.f08
+        matrices/mod_matrix_elements.f08
         matrices/mod_matrix_shortcuts.f08
         matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08

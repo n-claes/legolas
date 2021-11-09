@@ -23,14 +23,6 @@ contains
   end subroutine tear_down
 
 
-  subroutine enable_selfgravity()
-    use mod_global_variables, only: selfgravity, gridpts, set_matrix_properties
-
-    selfgravity = .true.
-    call set_matrix_properties(gridpts)
-  end subroutine enable_selfgravity
-
-
   @test
   subroutine test_find_name_index()
     call set_name("get name index from array")

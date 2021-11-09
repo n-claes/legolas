@@ -136,4 +136,12 @@ contains
     end do
   end subroutine create_identity_matrix
 
+
+  subroutine enable_selfgravity()
+    use mod_global_variables, only: selfgravity, gridpts, set_matrix_properties
+
+    selfgravity = .true.
+    call set_matrix_properties(gridpts)
+  end subroutine enable_selfgravity
+
 end module mod_suite_utils
