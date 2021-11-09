@@ -1,7 +1,17 @@
 import os
-from pathlib import Path
-import shutil
+import sys
+
 import pytest
+import shutil
+from pathlib import Path
+
+# Search for Pylbo in $LEGOLASDIR/post_processing.
+# Useful when Pylbo is not installed as a package.
+if "LEGOLASDIR" in os.environ.keys():
+    _pylbo_path = Path(os.environ["LEGOLASDIR"]).joinpath("post_processing")
+    if _pylbo_path.is_dir():
+        sys.path.append(str(_pylbo_path.resolve()))
+
 import pylbo
 
 pylbo.set_loglevel("warning")
