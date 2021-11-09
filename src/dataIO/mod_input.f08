@@ -285,8 +285,9 @@ contains
       end select
     end do
 
+    ! If no parfile supplied, flag an error
     if (filename_par == "") then
-      call log_message("no parfile supplied, using default configuration", level='info')
+      call log_message("no parfile supplied, please provide the file path with the -i flag", level="error")
     end if
 
     !! Check if supplied file exists
