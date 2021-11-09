@@ -39,6 +39,30 @@ contains
 
 
   @test
+  subroutine test_find_name_index_with_trailing_spaces()
+    call set_name("get name index from array (trailing spaces)")
+
+    @assertEqual(2, get_index("name2  ", test_names))
+  end subroutine test_find_name_index_with_trailing_spaces
+
+
+  @test
+  subroutine test_find_name_index_with_prepended_spaces()
+    call set_name("get name index from array (prepended spaces)")
+
+    @assertEqual(3, get_index("  name3", test_names))
+  end subroutine test_find_name_index_with_prepended_spaces
+
+
+  @test
+  subroutine test_find_name_index_with_surrounding_spaces()
+    call set_name("get name index from array (surrounding spaces)")
+
+    @assertEqual(3, get_index("   name3  ", test_names))
+  end subroutine test_find_name_index_with_surrounding_spaces
+
+
+  @test
   subroutine test_find_name_index_fail()
     call set_name("get name index from array (fail)")
     @assertEqual(0, get_index("unknown", test_names))
