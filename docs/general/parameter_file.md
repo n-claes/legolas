@@ -76,7 +76,6 @@ This namelist includes all physics-related variables.
 | viscosity_value       | real    | constant value for the viscosity | 0 |
 | incompressible        | logical | if `.true.`, uses an incompressible approximation | `.false.` |
 | hall_mhd              | logical | inclusion of Hall effects | `.false.` |
-| elec_pressure         | logical | whether to include the electron pressure term in Ohm's law if `hall_mhd = .true.` | `.false.` |
 | elec_intertia         | logical | whether to include the electron intertia term in Ohm's law if `hall_mhd = .true.` | `.false.` |
 
 ## solvelist

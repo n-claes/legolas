@@ -79,8 +79,6 @@ module mod_global_variables
   logical, save             :: hall_mhd
   !> boolean to use dropoff profile for Hall parameter, defaults to <tt>False </tt>
   logical, save             :: hall_dropoff
-  !> boolean to use electron pressure in Ohm's law, defaults to <tt>False</tt>
-  logical, save             :: elec_pressure
   !> boolean to use electron inertia in Ohm's law, defaults to <tt>False</tt>
   logical, save             :: elec_inertia
   !> boolean to use dropoff profile for inertia parameter, defaults to <tt>False </tt>
@@ -217,7 +215,6 @@ contains
     viscosity_value = 0.0d0
     hall_mhd = .false.
     hall_dropoff = .false.
-    elec_pressure = .false.
     elec_inertia = .false.
     inertia_dropoff = .false.
 
