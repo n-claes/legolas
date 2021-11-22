@@ -122,17 +122,22 @@ contains
     use mod_units, only: mean_molecular_weight
 
     real(dp)  :: eps, deps
-    real(dp)  :: v02, v03, dv02, dv03
+    real(dp)  :: v01, v02, v03, dv01, dv02, dv03, ddv01, ddv02, ddv03
     real(dp)  :: rho, drho, dT0
     real(dp)  :: eta_H, mu, mmw
 
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
 
+    v01 = v_field % v01(gauss_idx)
     v02 = v_field % v02(gauss_idx)
     v03 = v_field % v03(gauss_idx)
+    dv01 = v_field % d_v01_dr(gauss_idx)
     dv02 = v_field % d_v02_dr(gauss_idx)
     dv03 = v_field % d_v03_dr(gauss_idx)
+    ddv01 = v_field % dd_v01_dr(gauss_idx)
+    ddv02 = v_field % dd_v02_dr(gauss_idx)
+    ddv03 = v_field % dd_v03_dr(gauss_idx)
 
     rho = rho_field % rho0(gauss_idx)
     drho = rho_field % d_rho0_dr(gauss_idx)
@@ -208,18 +213,21 @@ contains
       ! ==================== dQuadratic * dCubic ====================
       call reset_factor_positions(new_size=1)
       ! H(6, 2)
-      factors(1) = 4.0d0 * eta_H * ic * mu / (3.0d0 * rho)
+      factors(1) = -4.0d0 * eta_H * ic * mu / (3.0d0 * rho)
       positions(1, :) = [6, 2]
       call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
 
       ! ==================== Quadratic * Quadratic ====================
-      call reset_factor_positions(new_size=2)
+      call reset_factor_positions(new_size=3)
+      ! H(6, 1)
+      factors(1) = eta_H * mu * 4.0d0 * (ddv01 + deps * (dv01 - v01 / eps) / eps) / (3.0d0 * rho**2)
+      positions(1, :) = [6, 1]
       ! H(6, 3)
-      factors(1) = 7.0d0 * eta_H * ic * mu * deps * k2 / (3.0d0 * eps * rho)
-      positions(1, :) = [6, 3]
+      factors(2) = 7.0d0 * eta_H * ic * mu * deps * k2 / (3.0d0 * eps * rho)
+      positions(2, :) = [6, 3]
       ! H(6, 4)
-      factors(2) = eta_H * ic * mu * k3 * deps / (3.0d0 * eps * rho)
-      positions(2, :) = [6, 4]
+      factors(3) = eta_H * ic * mu * k3 * deps / (3.0d0 * eps * rho)
+      positions(3, :) = [6, 4]
       call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
 
       ! ==================== Quadratic * dQuadratic ====================
@@ -250,21 +258,27 @@ contains
       call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
 
       ! ==================== Cubic * Quadratic ====================
-      call reset_factor_positions(new_size=4)
+      call reset_factor_positions(new_size=6)
+      ! H(7, 1)
+      factors(1) = -ic * eta_H * mu * (ddv02 + deps * (dv02 - v02 / eps) / eps) / rho**2
+      positions(1, :) = [7, 1]
       ! H(7, 3)
-      factors(1) = -eta_H * ic * mu * (4.0d0 * k2**2 / (3.0d0 * eps) &
+      factors(2) = -eta_H * ic * mu * (4.0d0 * k2**2 / (3.0d0 * eps) &
                     + eps * k3**2 + deps / eps) / rho
-      positions(1, :) = [7, 3]
+      positions(2, :) = [7, 3]
       ! H(7, 4)
-      factors(2) = -eta_H * ic * mu * k2 * k3 / (3.0d0 * eps * rho)
-      positions(2, :) = [7, 4]
+      factors(3) = -eta_H * ic * mu * k2 * k3 / (3.0d0 * eps * rho)
+      positions(3, :) = [7, 4]
+      ! H(8, 1)
+      factors(4) = -ic * eta_H * mu * (ddv03 + deps * dv03 / eps) / rho**2
+      positions(4, :) = [8, 1]
       ! H(8, 3)
-      factors(3) = -eta_H * ic * mu * k2 * k3 / (3.0d0 * rho)
-      positions(3, :) = [8, 3]
+      factors(5) = -eta_H * ic * mu * k2 * k3 / (3.0d0 * rho)
+      positions(5, :) = [8, 3]
       ! H(8, 4)
-      factors(4) = -eta_H * ic * mu * ((k2 / eps)**2 + 4.0d0 * k3**2 / 3.0d0 &
+      factors(6) = -eta_H * ic * mu * ((k2 / eps)**2 + 4.0d0 * k3**2 / 3.0d0 &
                     + drho * deps / (eps * rho)) / rho
-      positions(4, :) = [8, 4]
+      positions(6, :) = [8, 4]
       call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
 
       ! ==================== Cubic * dQuadratic ====================
