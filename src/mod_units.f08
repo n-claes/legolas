@@ -78,6 +78,7 @@ module mod_units
   public  :: unit_numberdensity, unit_lambdaT, unit_dlambdaT_dT
   public  :: unit_conduction, unit_dtc_drho, unit_dtc_dT, unit_dtc_dB2
   public  :: unit_resistivity, unit_deta_dT
+  public  :: unit_mass
   public  :: mean_molecular_weight
 
 contains
