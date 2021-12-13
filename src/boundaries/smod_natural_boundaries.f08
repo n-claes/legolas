@@ -52,10 +52,6 @@ submodule (mod_boundary_manager) smod_natural_boundaries
       complex(dp), intent(inout)  :: quadblock(:, :)
     end subroutine add_natural_hall_Bterms
 
-    module subroutine add_natural_selfgravity_terms(quadblock)
-      complex(dp), intent(inout)  :: quadblock(:, :)
-    end subroutine add_natural_selfgravity_terms
-
     module subroutine add_natural_selfgravity_Bterms(quadblock)
       complex(dp), intent(inout)  :: quadblock(:, :)
     end subroutine add_natural_selfgravity_Bterms
@@ -73,7 +69,6 @@ contains
       call add_natural_conduction_terms(quadblock)
       call add_natural_viscosity_terms(quadblock)
       call add_natural_hall_terms(quadblock)
-      call add_natural_selfgravity_terms(quadblock)
     else if (matrix == "B") then
       call add_natural_hall_Bterms(quadblock)
       call add_natural_selfgravity_Bterms(quadblock)
@@ -91,7 +86,6 @@ contains
       call add_natural_conduction_terms(quadblock)
       call add_natural_viscosity_terms(quadblock)
       call add_natural_hall_terms(quadblock)
-      call add_natural_selfgravity_terms(quadblock)
     else if (matrix == "B") then
       call add_natural_hall_Bterms(quadblock)
       call add_natural_selfgravity_Bterms(quadblock)

@@ -3,6 +3,16 @@ submodule (mod_matrix_manager) smod_selfgravity_matrix
 
 contains
 
+  real(dp) function get_gravity_prefactor()
+    use mod_physical_constants, only: dpi, bigG_cgs
+    use mod_units, only: unit_length, unit_mass, unit_time
+
+    get_gravity_prefactor = ( &
+      4.0d0 * dpi * bigG_cgs / (unit_length**3 / (unit_mass * unit_time**2 )) &
+    )
+  end function get_gravity_prefactor
+
+
   module procedure add_selfgravity_bmatrix_terms
     real(dp)  :: eps
 
@@ -27,20 +37,24 @@ contains
   module procedure add_selfgravity_terms
     use mod_equilibrium, only: v_field
 
-    real(dp)  :: rho, eps
-    real(dp)  :: v01, v02, v03
+    real(dp)  :: rho, drho, eps
+    real(dp)  :: v01, v02, v03, dv01
+    real(dp)  :: gravity_prefactor
 
     rho = rho_field % rho0(gauss_idx)
+    drho = rho_field % d_rho0_dr(gauss_idx)
     eps = eps_grid(gauss_idx)
-
     v01 = v_field % v01(gauss_idx)
+    dv01 = v_field % d_v01_dr(gauss_idx)
     v02 = v_field % v03(gauss_idx)
     v03 = v_field % v03(gauss_idx)
+
+    gravity_prefactor = get_gravity_prefactor()
 
     ! Cubic * Quadratic
     call reset_factor_positions(new_size=3)
     ! G(9, 1)
-    factors(1) = k2 * v02 / eps + k3 * v03
+    factors(1) = k2 * v02 / eps + k3 * v03 - ic * dv01
     positions(1, :) = [9, 1]
     ! G(9, 3)
     factors(2) = rho * k2
@@ -48,27 +62,18 @@ contains
     ! G(9, 4)
     factors(3) = rho * k3
     positions(3, :) = [9, 4]
+    ! multiply with 4 pi G
+    factors = factors * gravity_prefactor
     call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
 
-    ! dCubic * Quadratic
-    call reset_factor_positions(new_size=1)
-    ! G(9, 1)
-    factors(1) = ic * v01
-    positions(1, :) = [9, 1]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad)
-
-    ! dCubic * Cubic
-    call reset_factor_positions(new_size=1)
-    ! G(9, 2)
-    factors(1) = rho
-    positions(1, :) = [9, 2]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_cubic)
-
     ! Cubic * dCubic
-    call reset_factor_positions(new_size=1)
+    call reset_factor_positions(new_size=2)
     ! G(2, 9)
     factors(1) = eps * rho
     positions(1, :) = [2, 9]
+    ! G(9, 2)
+    factors(2) = -gravity_prefactor * rho
+    positions(2, :) = [9, 2]
     call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
 
     ! Quadratic * Cubic
@@ -80,6 +85,20 @@ contains
     factors(2) = eps * rho * k3
     positions(2, :) = [4, 9]
     call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
+
+    ! Cubic * Cubic
+    call reset_factor_positions(new_size=1)
+    ! G(9, 2)
+    factors(1) = -gravity_prefactor * drho
+    positions(1, :) = [9, 2]
+    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+
+    ! Cubic * dQuadratic
+    call reset_factor_positions(new_size=1)
+    ! G(9, 1)
+    factors(1) = -gravity_prefactor * ic * v01
+    positions(1, :) = [9, 1]
+    call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_quad)
   end procedure add_selfgravity_terms
 
 end submodule smod_selfgravity_matrix
