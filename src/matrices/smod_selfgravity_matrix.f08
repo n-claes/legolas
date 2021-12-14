@@ -3,17 +3,8 @@ submodule (mod_matrix_manager) smod_selfgravity_matrix
 
 contains
 
-  real(dp) function get_gravity_prefactor()
-    use mod_physical_constants, only: dpi, bigG_cgs
-    use mod_units, only: unit_length, unit_mass, unit_time
 
-    get_gravity_prefactor = ( &
-      4.0d0 * dpi * bigG_cgs / (unit_length**3 / (unit_mass * unit_time**2 )) &
-    )
-  end function get_gravity_prefactor
-
-
-  module procedure add_selfgravity_bmatrix_terms
+module procedure add_selfgravity_bmatrix_terms
     real(dp)  :: eps
 
     eps = eps_grid(gauss_idx)
@@ -36,6 +27,7 @@ contains
 
   module procedure add_selfgravity_terms
     use mod_equilibrium, only: v_field
+    use mod_selfgravity, only: get_gravity_prefactor
 
     real(dp)  :: rho, drho, eps
     real(dp)  :: v01, v02, v03, dv01
