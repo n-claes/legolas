@@ -21,7 +21,8 @@
 !! @note    As one can always specify a unit current, the unit resistivity is defined in such
 !!          a way that the normalised resistivity equals 0.1 at 1 MK. @endnote
 module mod_units
-  use mod_global_variables, only: dp, cgs_units
+  use mod_global_variables, only: dp, cgs_units, selfgravity
+  use mod_physical_constants, only: dpi, bigG_cgs
   use mod_logging, only: log_message, str
   implicit none
 
@@ -210,15 +211,21 @@ contains
 
     unit_mass = unit_density * unit_length**3
     unit_numberdensity = unit_density / mp
-    unit_velocity = unit_magneticfield / sqrt(mu0 * unit_density)
-    unit_time = unit_length / unit_velocity
+    if (selfgravity) then
+      call log_message("using gravitional constant for unit time", level="debug")
+      unit_time = 1.0d0 / sqrt(4.0d0 * dpi * bigG_cgs * unit_density)
+      unit_velocity = unit_length / unit_time
+    else
+      unit_velocity = unit_magneticfield / sqrt(mu0 * unit_density)
+      unit_time = unit_length / unit_velocity
+    end if
     unit_lambdaT = unit_pressure / (unit_time * unit_numberdensity**2)
     unit_dlambdaT_dT = unit_lambdaT / unit_temperature
 
-    unit_conduction    = unit_density * unit_length * unit_velocity**3 / unit_temperature
-    unit_dtc_drho      = unit_conduction / unit_density
-    unit_dtc_dT        = unit_conduction / unit_temperature
-    unit_dtc_dB2       = unit_conduction / (unit_magneticfield**2)
+    unit_conduction = unit_density * unit_length * unit_velocity**3 / unit_temperature
+    unit_dtc_drho = unit_conduction / unit_density
+    unit_dtc_dT = unit_conduction / unit_temperature
+    unit_dtc_dB2 = unit_conduction / (unit_magneticfield**2)
 
     normalisations_are_set = .true.
   end subroutine set_normalisations
