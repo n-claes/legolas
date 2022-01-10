@@ -27,7 +27,7 @@ module procedure add_selfgravity_bmatrix_terms
 
   module procedure add_selfgravity_terms
     use mod_equilibrium, only: v_field
-    use mod_selfgravity, only: get_gravity_prefactor
+    use mod_physical_constants, only: dpi
 
     real(dp)  :: rho, drho, eps
     real(dp)  :: v01, v02, v03, dv01
@@ -41,7 +41,7 @@ module procedure add_selfgravity_bmatrix_terms
     v02 = v_field % v03(gauss_idx)
     v03 = v_field % v03(gauss_idx)
 
-    gravity_prefactor = get_gravity_prefactor()
+    gravity_prefactor = 4.0d0 * dpi
 
     ! Cubic * Quadratic
     call reset_factor_positions(new_size=3)
@@ -54,7 +54,7 @@ module procedure add_selfgravity_bmatrix_terms
     ! G(9, 4)
     factors(3) = rho * k3
     positions(3, :) = [9, 4]
-    ! multiply with 4 pi G
+    ! multiply with 4 pi
     factors = factors * gravity_prefactor
     call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
 
