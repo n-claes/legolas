@@ -117,14 +117,13 @@ contains
 
 
   module procedure add_hall_matrix_terms
-    use mod_global_variables, only: viscosity, viscosity_value
+    use mod_global_variables, only: viscosity, viscosity_value, electron_fraction
     use mod_equilibrium, only: v_field, rho_field, T_field
-    use mod_units, only: mean_molecular_weight
 
     real(dp)  :: eps, deps
     real(dp)  :: v01, v02, v03, dv01, dv02, dv03, ddv01, ddv02, ddv03
     real(dp)  :: rho, drho, dT0
-    real(dp)  :: eta_H, mu, mmw
+    real(dp)  :: eta_H, mu, efrac
 
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
@@ -145,7 +144,7 @@ contains
 
     eta_H = hall_field % hallfactor(gauss_idx)
     mu = viscosity_value
-    mmw = mean_molecular_weight
+    efrac = electron_fraction
 
     ! ==================== Quadratic * Cubic ====================
     call reset_factor_positions(new_size=1)
@@ -157,13 +156,13 @@ contains
     ! ==================== Quadratic * Quadratic ====================
     call reset_factor_positions(new_size=3)
     ! H(6, 1)
-    factors(1) = -eta_H * mmw * dT0 / rho
+    factors(1) = -eta_H * (1.0d0-efrac) * dT0 / rho
     positions(1, :) = [6, 1]
     ! H(6, 3)
     factors(2) = -2.0d0 * eta_H * deps * v02
     positions(2, :) = [6, 3]
     ! H(6, 5)
-    factors(3) = eta_H * mmw * drho / rho
+    factors(3) = eta_H * (1.0d0-efrac) * drho / rho
     positions(3, :) = [6, 5]
     call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
 

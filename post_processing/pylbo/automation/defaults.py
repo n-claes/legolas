@@ -59,6 +59,7 @@ namelist_items = {
         ("hall_dropoff", bool),
         ("elec_inertia", bool),
         ("inertia_dropoff", bool),
+        ("electron_fraction", (int, np.integer, float)),
         ("incompressible", bool),
     ],
     "unitslist": [
