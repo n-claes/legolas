@@ -167,7 +167,15 @@ contains
   !! equilibrium parameters etc. Only for logging level "info" or above.
   subroutine print_console_info()
     use mod_global_variables
+    use mod_equilibrium, only: hall_field
     use mod_equilibrium_params, only: k2, k3
+
+    real(dp) :: ratio
+    ratio = NaN
+
+    if (hall_mhd) then
+      ratio = maxval(hall_field % hallfactor) / (x_end - x_start)
+    end if
 
     if (logging_level <= 1) then
       return
@@ -225,6 +233,10 @@ contains
     if (hall_mhd) then
       call log_message("    electron fraction : " // str(electron_fraction))
       call log_message("    electron inertia  : " // str(elec_inertia))
+      call log_message("    scale ratio Hall / system : " // str(ratio))
+      if (ratio >= 0.1d0) then
+        call log_message("    scale ratio is very large!", level='warning')
+      end if
     end if
 
     call log_message("            << Solver settings >>")
