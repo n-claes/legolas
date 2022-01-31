@@ -58,14 +58,17 @@ contains
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, matrix_gridpts, &
-      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma
+      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma, NaN
     use mod_input, only: read_parfile, get_parfile
-    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
+    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
     use mod_logging, only: print_logo
-    use mod_global_variables, only: hall_mhd
+    use mod_global_variables, only: hall_mhd, x_end, x_start
 
     character(len=str_len)  :: parfile
     integer   :: nb_evs
+
+    real(dp) :: ratio
+    ratio = NaN
 
     call initialise_globals()
     call get_parfile(parfile)
@@ -94,6 +97,10 @@ contains
         "using Hall MHD, note that some features are not yet **fully** tested!", &
         level="warning" &
       )
+      ratio = maxval(hall_field % hallfactor) / (x_end - x_start)
+      if (ratio > 0.1d0) then
+        call log_message("large ratio Hall scale / system scale: " // str(ratio), level="warning")
+      end if
     end if
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
