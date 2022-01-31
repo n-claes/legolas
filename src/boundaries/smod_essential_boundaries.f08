@@ -1,5 +1,5 @@
 submodule (mod_boundary_manager) smod_essential_boundaries
-  use mod_global_variables, only: dp_LIMIT, boundary_type
+  use mod_global_variables, only: dp_LIMIT, boundary_type, geometry, coaxial
   use mod_equilibrium_params, only: k2, k3
 
   implicit none
@@ -18,7 +18,11 @@ contains
     call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[1, 5, 7, 9, 11])
     ! wall or regularity conditions: v1 and (k3 * a2 - k2 * a3) have to be zero. These are cubic
     ! elements, so we force non-zero basis functions (odd rows & columns) to zero.
+    ! for wall we force a2 = a3 = 0 regardless of k2 and k3, for wall_weak we
+    ! only force a2 resp. a3 to zero if k3 resp. k2 is nonzero
     if (boundary_type == 'wall') then
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3, 13, 15])
+    else if (boundary_type == 'wall_weak') then
       call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3])
       if (abs(k2) > dp_LIMIT) then
         call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[15])
@@ -46,6 +50,8 @@ contains
 
     ! for a fixed wall v1 and (k3 * a2 - k2 * a3) should be zero, same reasoning as for left side.
     if (boundary_type == 'wall') then
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[19, 29, 31])
+    else if (boundary_type == 'wall_weak') then
       call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[19])
       if (abs(k2) > dp_LIMIT) then
         call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[31])
