@@ -8,8 +8,8 @@ hall_adiabatic_homo = {
         "x_end": 1000,
         "gridpoints": 51,
         "parameters": {
-            "k2": np.pi * np.sin(np.pi / 6),
-            "k3": np.pi * np.cos(np.pi / 6),
+            "k2": round(np.pi * np.sin(np.pi / 6), 14),
+            "k3": round(np.pi * np.cos(np.pi / 6), 14),
             "cte_rho0": 1.0,
             "cte_T0": 1.0,
             "cte_B02": 0.0,
