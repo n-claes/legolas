@@ -178,7 +178,7 @@ def test_multispectrum_plot_ydata_squared(ds_v112, series_v112):
     p = pylbo.plot_spectrum_multi(
         series_v112, xdata="k3", use_squared_omega=True, use_real_parts=True
     )
-    evs = (ds_v112.eigenvalues ** 2).real
+    evs = (ds_v112.eigenvalues**2).real
     for data in p.ydata:
         assert not np.all(np.isnan(data))
         assert not np.all(np.isnan(evs))

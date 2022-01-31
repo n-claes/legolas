@@ -177,7 +177,7 @@ class EquilibriumBalance(FigureWindow):
             + b02 * db02
             + b03 * db03
             + rho * g
-            - (dr_scale / r_scale) * (rho * v02 ** 2 - b02 ** 2)
+            - (dr_scale / r_scale) * (rho * v02**2 - b02**2)
         )
         equil_force[np.where(abs(equil_force) <= 1e-16)] = 0
         self.ax.plot(self.data.grid_gauss, equil_force, **self.kwargs)
