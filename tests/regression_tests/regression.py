@@ -56,6 +56,8 @@ from regression_tests.test_multi_interchange import interchange_setup
 from regression_tests.test_multi_iso_atmo import iso_atmo_beta_half_setup
 from regression_tests.test_multi_photospheric_fluxtube import photospheric_tube_setup
 
+from regression_tests.test_hall_adiabatic_homo import hall_adiabatic_homo
+from regression_tests.test_hall_harris_sheet import hall_harris_sheet
 
 # retrieve test setups
 tests_to_run = [
@@ -87,6 +89,8 @@ tests_to_run = [
     suydam_setup,
     taylor_couette_setup,
     tokamak_setup,
+    hall_adiabatic_homo,
+    hall_harris_sheet,
 ]
 multirun_tests = [
     constant_current_setup,
