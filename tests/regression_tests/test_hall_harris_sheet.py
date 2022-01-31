@@ -1,6 +1,3 @@
-import pytest
-import numpy as np
-
 hall_harris_sheet = {
     "name": "hall_harris_sheet",
     "config": {
@@ -40,15 +37,3 @@ hall_harris_sheet = {
         {"xlims": (-0.5, 0.5), "ylims": (-0.2, 0.02)},
     ],
 }
-parametrisation = dict(
-    argnames="setup",
-    argvalues=[hall_harris_sheet],
-    ids=[hall_harris_sheet["name"]],
-)
-
-
-@pytest.mark.parametrize(**parametrisation)
-def test_eta_value(ds_test, setup):
-    eta_value = 1e-4
-    assert setup["config"]["fixed_eta_value"] == pytest.approx(eta_value)
-    assert np.all(ds_test.equilibria.get("eta") == pytest.approx(eta_value))
