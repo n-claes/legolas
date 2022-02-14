@@ -4,7 +4,8 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_vis
 contains
 
   module procedure add_natural_viscosity_terms
-    use mod_global_variables, only: viscosity, viscous_heating, viscosity_value
+    use mod_global_variables, only: viscosity, viscous_heating, viscosity_value, &
+                                    gamma_1, incompressible
     use mod_equilibrium, only: v_field
 
     real(dp)  :: eps, deps
@@ -62,8 +63,8 @@ contains
     positions(1, :) = [4, 4]
     ! Sigma(5, 4)
     factors(2) = (0.0d0, 0.0d0)
-    if (viscous_heating) then
-      factors(2) = 2.0d0 * ic * mu * dv03
+    if (viscous_heating .and. (.not. incompressible)) then
+      factors(2) = 2.0d0 * ic * gamma_1 * mu * dv03
     end if
     positions(2, :) = [5, 4]
     call subblock(quadblock, factors, positions, weight, h_quad, h_quad)
@@ -72,8 +73,8 @@ contains
     call reset_factor_positions(new_size=1)
     ! Sigma(5, 2)
     factors(1) = (0.0d0, 0.0d0)
-    if (viscous_heating) then
-      factors(1) = 2.0d0 * mu * dv01
+    if (viscous_heating .and. (.not. incompressible)) then
+      factors(1) = 2.0d0 * gamma_1 * mu * dv01
     end if
     positions(1, :) = [5, 2]
     call subblock(quadblock, factors, positions, weight, h_quad, h_cubic)
