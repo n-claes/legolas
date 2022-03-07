@@ -123,7 +123,7 @@ contains
   !! name.
   function retrieve_eigenfunctions(name) result(eigenfunctions)
     use mod_logging, only: log_message
-    use mod_check_values, only: get_index
+    use mod_get_indices, only: get_index
 
     !> name of the eigenfunction to retrieve
     character(len=*), intent(in)  :: name

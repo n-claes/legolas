@@ -56,15 +56,4 @@ contains
     @assertEqual(160, dim_matrix)
   end subroutine test_matrix_properties_mhd
 
-  @test
-  subroutine test_matrix_properties_mhd_selfgravity()
-    call set_name("matrix properties MHD (selfgravity)")
-    selfgravity = .true.
-    call set_matrix_properties(points=10)
-    @assertEqual(size(state_vector), 9)
-    @assertEqual(18, dim_subblock)
-    @assertEqual(36, dim_quadblock)
-    @assertEqual(180, dim_matrix)
-  end subroutine test_matrix_properties_mhd_selfgravity
-
 end module mod_test_variables
