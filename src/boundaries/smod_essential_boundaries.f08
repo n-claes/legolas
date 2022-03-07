@@ -1,4 +1,7 @@
 submodule (mod_boundary_manager) smod_essential_boundaries
+  use mod_global_variables, only: dp_LIMIT, boundary_type, geometry, coaxial
+  use mod_equilibrium_params, only: k2, k3
+
   implicit none
 
 contains
@@ -11,11 +14,23 @@ contains
     ! on the left side we have a zero in a quadratic basis function (number 2), which
     ! zeroes out the odd rows/columns. We explicitly handle this by introducing an
     ! element on the diagonal for these indices as well. The odd numbered indices for
-    ! the quadratic elements correspond to rho, v2, v2, T, a1 = 1, 5, 6, 9, 11.
+    ! the quadratic elements correspond to rho, v2, v3, T, a1 = 1, 5, 7, 9, 11.
     call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[1, 5, 7, 9, 11])
-    ! wall or regularity conditions: v1, a2 and a3 have to be zero. These are cubic
+    ! wall or regularity conditions: v1 and (k3 * a2 - k2 * a3) have to be zero. These are cubic
     ! elements, so we force non-zero basis functions (odd rows & columns) to zero.
-    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3, 13, 15])
+    ! for wall we force a2 = a3 = 0 regardless of k2 and k3, for wall_weak we
+    ! only force a2 resp. a3 to zero if k3 resp. k2 is nonzero
+    if (boundary_type == 'wall') then
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3, 13, 15])
+    else if (boundary_type == 'wall_weak') then
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[3])
+      if (abs(k2) > dp_LIMIT) then
+        call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[15])
+      end if
+      if (abs(k3) > dp_LIMIT) then
+        call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[13])
+      end if
+    end if
     ! if T boundary conditions are needed, set even row/colum (quadratic)
     if (apply_T_bounds) then
       call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[10])
@@ -33,8 +48,18 @@ contains
 
     diagonal_factor = get_diagonal_factor(matrix)
 
-    ! for a fixed wall v1, a2 and a3 should be zero, same reasoning as for left side.
-    call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[19, 29, 31])
+    ! for a fixed wall v1 and (k3 * a2 - k2 * a3) should be zero, same reasoning as for left side.
+    if (boundary_type == 'wall') then
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[19, 29, 31])
+    else if (boundary_type == 'wall_weak') then
+      call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[19])
+      if (abs(k2) > dp_LIMIT) then
+        call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[31])
+      end if
+      if (abs(k3) > dp_LIMIT) then
+        call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[29])
+      end if
+    end if
     ! T condition
     if (apply_T_bounds) then
       call set_row_col_to_value(quadblock, val=diagonal_factor, idxs=[26])

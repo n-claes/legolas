@@ -35,7 +35,7 @@ def calculate_continua(ds):
 
     # Alfven and slow continuum (squared)
     alfven2 = (1 / rho) * ((k2 * B02 / ds.scale_factor) + k3 * B03) ** 2
-    slow2 = (gamma * p / (gamma * p + B0 ** 2)) * alfven2
+    slow2 = (gamma * p / (gamma * p + B0**2)) * alfven2
     # doppler shift equals dot product of k and v
     doppler = k2 * v02 / ds.scale_factor + k3 * v03
     slow_min = -np.sqrt(slow2)
@@ -50,7 +50,7 @@ def calculate_continua(ds):
     else:
         kpara = 0
     cs2 = gamma * p / rho  # sound speed
-    vA2 = B0 ** 2 / rho  # Alfvén speed
+    vA2 = B0**2 / rho  # Alfvén speed
     ci2 = p / rho  # isothermal sound speed
     dLdT = ds.equilibria["dLdT"]
     dLdrho = ds.equilibria["dLdrho"]
@@ -71,7 +71,7 @@ def calculate_continua(ds):
     elif slow_is_zero:
         thermal = 1j * (gamma - 1) * (rho * dLdrho - dLdT * (ci2 + vA2)) / (cs2 + vA2)
     else:
-        sigma_A2 = kpara ** 2 * vA2  # Alfvén frequency
+        sigma_A2 = kpara**2 * vA2  # Alfvén frequency
         sigma_c2 = cs2 * sigma_A2 / (vA2 + cs2)  # cusp frequency
         sigma_i2 = ci2 * sigma_A2 / (vA2 + ci2)  # isothermal cusp frequency
 
@@ -79,12 +79,12 @@ def calculate_continua(ds):
         # coeffi means the coefficient corresponding to the term omega^i
         coeff3 = rho * (cs2 + vA2) * 1j / (gamma - 1)
         coeff2 = (
-            -(kappa_para * kpara ** 2 + rho * dLdT) * (ci2 + vA2) + rho ** 2 * dLdrho
+            -(kappa_para * kpara**2 + rho * dLdT) * (ci2 + vA2) + rho**2 * dLdrho
         )
         coeff1 = -rho * (cs2 + vA2) * sigma_c2 * 1j / (gamma - 1)
-        coeff0 = (kappa_para * kpara ** 2 + rho * dLdT) * (
+        coeff0 = (kappa_para * kpara**2 + rho * dLdT) * (
             ci2 + vA2
-        ) * sigma_i2 - rho ** 2 * dLdrho * sigma_A2
+        ) * sigma_i2 - rho**2 * dLdrho * sigma_A2
         # we have to solve this equation "gauss_gridpts" times.
         # the thermal continuum corresponds to the (only) purely imaginary solution,
         # modified slow continuum are other two solutions

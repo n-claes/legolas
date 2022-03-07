@@ -24,7 +24,7 @@ interchange_setup = {
         "logging_level": 0,
     },
     "xdata": np.linspace(0, np.pi, NB_RUNS) / np.pi,
-    "y_scaling": 1 / ca_avg ** 2,
+    "y_scaling": 1 / ca_avg**2,
     "use_squared_omega": True,
     "limits": {"xlims": (-0.01, 1.01), "ylims": (-4.1, 14.4)},
 }

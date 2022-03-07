@@ -400,7 +400,7 @@ class LegolasDataSet(LegolasDataContainer):
         else:
             cA = self.get_alfven_speed()
             cs = self.get_sound_speed()
-            ct = cs * cA / np.sqrt(cs ** 2 + cA ** 2)
+            ct = cs * cA / np.sqrt(cs**2 + cA**2)
             return self._get_values(ct, which_values)
 
     def get_reynolds_nb(self, which_values=None):

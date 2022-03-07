@@ -329,7 +329,7 @@ class MultiSpectrumPlot(SpectrumFigure):
         """
         ydata = np.empty(len(self.dataseries), dtype=object)
         for i, ds in enumerate(self.dataseries):
-            ydata[i] = ds.eigenvalues ** self._w_pow
+            ydata[i] = ds.eigenvalues**self._w_pow
             if self.use_real_parts:
                 ydata[i] = ydata[i].real
             else:

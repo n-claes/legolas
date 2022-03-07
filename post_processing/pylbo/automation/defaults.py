@@ -57,9 +57,10 @@ namelist_items = {
         ("viscosity_value", (int, np.integer, float)),
         ("hall_mhd", bool),
         ("hall_dropoff", bool),
-        ("elec_pressure", bool),
         ("elec_inertia", bool),
         ("inertia_dropoff", bool),
+        ("electron_fraction", (int, np.integer, float)),
+        ("incompressible", bool),
     ],
     "unitslist": [
         ("cgs_units", bool),

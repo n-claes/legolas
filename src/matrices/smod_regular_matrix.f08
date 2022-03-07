@@ -44,7 +44,7 @@ contains
 
 
   module procedure add_regular_matrix_terms
-    use mod_global_variables, only: external_gravity
+    use mod_global_variables, only: external_gravity, incompressible
     use mod_equilibrium, only: grav_field
 
     real(dp)  :: eps, deps
@@ -93,7 +93,10 @@ contains
     factors(5) = k2 * (ic * B01 * k3 - dB03)
     positions(5, :) = [4, 8]
     ! A(5, 2)
-    factors(6) = -dT0 * rho
+    factors(6) = 0.0d0
+    if (.not. incompressible) then
+      factors(6) = -dT0 * rho
+    end if
     positions(6, :) = [5, 2]
     call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
 

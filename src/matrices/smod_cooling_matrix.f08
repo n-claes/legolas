@@ -5,9 +5,14 @@ contains
 
   module procedure add_cooling_matrix_terms
     use mod_equilibrium, only: rc_field
+    use mod_global_variables, only: incompressible
 
     real(dp)  :: rho
     real(dp)  :: Lrho, LT, L0
+
+    if (incompressible) then
+      return
+    end if
 
     rho = rho_field % rho0(gauss_idx)
     Lrho = rc_field % d_L_drho(gauss_idx)

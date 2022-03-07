@@ -22,7 +22,7 @@ gravito_hd_setup = {
         "show_results": False,
         "logging_level": 0,
     },
-    "xdata": 2 * _kvals ** 2,  # k0**2
+    "xdata": 2 * _kvals**2,  # k0**2
     "y_scaling": 3 * 40.84 / 5,  # 1 / cs**2
     "use_squared_omega": True,
     "limits": {"xlims": (0, 550), "ylims": (0, 550)},

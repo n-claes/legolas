@@ -6,6 +6,7 @@ contains
 
   module procedure add_conduction_matrix_terms
     use mod_matrix_shortcuts, only: get_Kp_operator, get_diffF_operator
+    use mod_global_variables, only: incompressible
 
     real(dp)  :: eps, deps
     real(dp)  :: dT0, ddT0
@@ -15,6 +16,10 @@ contains
     real(dp)  :: kappa_para, dkappa_para_dT
     real(dp)  :: kappa_perp, dkappa_perp_drho, dkappa_perp_dT, dkappa_perp_dB2
     complex(dp) :: Fop_B01
+
+    if (incompressible) then
+      return
+    end if
 
     ! grid variables
     eps = eps_grid(gauss_idx)

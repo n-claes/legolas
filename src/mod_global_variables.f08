@@ -79,12 +79,12 @@ module mod_global_variables
   logical, save             :: hall_mhd
   !> boolean to use dropoff profile for Hall parameter, defaults to <tt>False </tt>
   logical, save             :: hall_dropoff
-  !> boolean to use electron pressure in Ohm's law, defaults to <tt>False</tt>
-  logical, save             :: elec_pressure
   !> boolean to use electron inertia in Ohm's law, defaults to <tt>False</tt>
   logical, save             :: elec_inertia
   !> boolean to use dropoff profile for inertia parameter, defaults to <tt>False </tt>
   logical, save             :: inertia_dropoff
+  !> fraction of number of electrons to number of all particles (between 0 and 1)
+  real(dp)                  :: electron_fraction
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
   !> defines the presence of a coaxial inner boundary for a cylindrical geometry,
@@ -217,9 +217,9 @@ contains
     viscosity_value = 0.0d0
     hall_mhd = .false.
     hall_dropoff = .false.
-    elec_pressure = .false.
     elec_inertia = .false.
     inertia_dropoff = .false.
+    electron_fraction = 0.0d0
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile
@@ -271,7 +271,7 @@ contains
     real(dp), intent(in)    :: gamma_in
 
     if (incompressible) then
-      gamma = 1.0d6
+      gamma = 1.0d12
     else
       gamma = gamma_in
     end if

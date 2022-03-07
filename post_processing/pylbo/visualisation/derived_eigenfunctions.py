@@ -78,7 +78,7 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
         ef_name = ef_name.replace("curl", "\\nabla\\times")
         ef_name = ef_name.replace("para", "\\parallel")
         ef_name = ef_name.replace("perp", "\\perp")
-        name = fr"{part}(${ef_name}$)"
+        name = rf"{part}(${ef_name}$)"
         return name
 
     def _mark_points_without_data_written(self):

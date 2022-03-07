@@ -5,6 +5,8 @@ submodule (mod_matrix_manager) smod_flow_matrix
 contains
 
   module procedure add_flow_matrix_terms
+    use mod_global_variables, only: incompressible
+
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
     real(dp)  :: T0
@@ -50,14 +52,18 @@ contains
     factors(5) = rho * (Vop + ic * dv01) + (deps * rho / eps + drho) * ic * v01
     positions(5, :) = [4, 4]
     ! Phi(5, 1)
-    factors(6) = -ic * gamma_1 * drv01 * T0 / eps
+    factors(6) = 0.0d0
     positions(6, :) = [5, 1]
     ! Phi(5, 5)
-    factors(7) = ( &
-      rho * (Vop + ic * dv01 - ic * gamma_1 * drv01 / eps) &
-      + ic * v01 * (deps * rho / eps + drho) &
-    )
+    factors(7) = 0.0d0
     positions(7, :) = [5, 5]
+    if (.not. incompressible) then
+      factors(6) = -ic * gamma_1 * drv01 * T0 / eps
+      factors(7) = ( &
+        rho * (Vop + ic * dv01 - ic * gamma_1 * drv01 / eps) &
+        + ic * v01 * (deps * rho / eps + drho) &
+      )
+    end if
     ! Phi(6, 6)
     factors(8) = eps * Vop
     positions(8, :) = [6, 6]
@@ -131,7 +137,10 @@ contains
     factors(1) = ic * rho * v01
     positions(1, :) = [4, 4]
     ! Phi(5, 5)
-    factors(2) = ic * rho * v01
+    factors(2) = 0.0d0
+    if (.not. incompressible) then
+      factors(2) = ic * rho * v01
+    end if
     positions(2, :) = [5, 5]
     call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
 

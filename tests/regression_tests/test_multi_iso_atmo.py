@@ -8,12 +8,12 @@ BETA2 = 0.5
 temp_unit = 1e6
 bfield_unit = 10.0
 length_unit = 5e9
-pres_unit = bfield_unit ** 2 / (4 * np.pi)
+pres_unit = bfield_unit**2 / (4 * np.pi)
 rho_unit = pres_unit * 1.672621777e-24 / (1.3806488e-16 * temp_unit)
 vel_unit = bfield_unit / np.sqrt(4 * np.pi * rho_unit)
 time_unit = length_unit / vel_unit
 
-g = 2.74e4 / (length_unit / time_unit ** 2)
+g = 2.74e4 / (length_unit / time_unit**2)
 cte_T0 = g * SCALE_HEIGHT
 gamma = 5 / 3
 

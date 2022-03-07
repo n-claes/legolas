@@ -223,8 +223,8 @@ contains
 
     call log_message("hall mhd           : " // str(hall_mhd))
     if (hall_mhd) then
-      call log_message("    electron pressure : " // str(elec_pressure))
-      call log_message("    electron intertia : " // str(elec_inertia))
+      call log_message("    electron fraction : " // str(electron_fraction))
+      call log_message("    electron inertia  : " // str(elec_inertia))
     end if
 
     call log_message("            << Solver settings >>")

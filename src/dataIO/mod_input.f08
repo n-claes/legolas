@@ -48,7 +48,7 @@ contains
         resistivity, use_fixed_resistivity, fixed_eta_value, &
         use_eta_dropoff, dropoff_edge_dist, dropoff_width, &
         viscosity, viscous_heating, viscosity_value, incompressible, &
-        hall_mhd, hall_dropoff, elec_pressure, elec_inertia, inertia_dropoff
+        hall_mhd, hall_dropoff, elec_inertia, inertia_dropoff, electron_fraction
     namelist /unitslist/    &
         cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length, &
         mean_molecular_weight
