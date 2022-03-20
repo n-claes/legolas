@@ -43,7 +43,7 @@ contains
     !> array for work
     real(dp), allocatable :: work(:)
     !> integer used to set leading dimension of matrix
-    integer   :: rows_mat1
+    integer   :: rows_mat
     !> integer used to set size of work array
     integer   :: lwork
     !> integer used for successful exits
@@ -55,13 +55,13 @@ contains
     end if
 
     mat_inv = mat
-    rows_mat1 = size(mat, dim=1)
-    lwork = 4 * rows_mat1
-    allocate(ipiv(rows_mat1))
+    rows_mat = size(mat, dim=1)
+    lwork = 4 * rows_mat
+    allocate(ipiv(rows_mat))
     allocate(work(lwork))
     ! calculate pivot indices
     call log_message("LU factorisation of matrix using dgetrf", level="debug")
-    call dgetrf(rows_mat1, rows_mat1, mat_inv, rows_mat1, ipiv, info)
+    call dgetrf(rows_mat, rows_mat, mat_inv, rows_mat, ipiv, info)
     if (info /= 0) then
       call log_message( &
         "LU factorisation of matrix failed. Value info: " // str(info), &
@@ -70,7 +70,7 @@ contains
     end if
     ! invert matrix
     call log_message("inverting matrix using dgetri", level="debug")
-    call dgetri(rows_mat1, mat_inv, rows_mat1, ipiv, work, lwork, info)
+    call dgetri(rows_mat, mat_inv, rows_mat, ipiv, work, lwork, info)
     if (info /= 0) then
       call log_message( &
         "inversion of matrix failed. Value info: " // str(info), &
@@ -97,7 +97,7 @@ contains
     !> array for work
     complex(dp), allocatable :: work(:)
     !> integer used to set leading dimension of matrix
-    integer   :: rows_mat1
+    integer   :: rows_mat
     !> integer used to set size of work array
     integer   :: lwork
     !> integer used for successful exits
@@ -108,13 +108,13 @@ contains
       return
     end if
     mat_inv = mat
-    rows_mat1 = size(mat, dim=1)
-    lwork = 4 * rows_mat1
-    allocate(ipiv(rows_mat1))
+    rows_mat = size(mat, dim=1)
+    lwork = 4 * rows_mat
+    allocate(ipiv(rows_mat))
     allocate(work(lwork))
     ! calculate pivot indices
     call log_message("LU factorisation of matrix using zgetrf", level="debug")
-    call zgetrf(rows_mat1, rows_mat1, mat_inv, rows_mat1, ipiv, info)
+    call zgetrf(rows_mat, rows_mat, mat_inv, rows_mat, ipiv, info)
     if (info /= 0) then
       call log_message( &
         "LU factorisation of matrix failed. Value info: " // str(info), &
@@ -123,7 +123,7 @@ contains
     end if
     ! invert matrix
     call log_message("inverting matrix using zgetri", level="debug")
-    call zgetri(rows_mat1, mat_inv, rows_mat1, ipiv, work, lwork, info)
+    call zgetri(rows_mat, mat_inv, rows_mat, ipiv, work, lwork, info)
     if (info /= 0) then
       call log_message( &
         "inversion of matrix failed. Value info: " // str(info), &
@@ -172,7 +172,7 @@ contains
   end subroutine rmat_x_cmat
 
 
-  !> Matrix multiplication using the BLAS routine <tt>zgemm</tt>,
+  !> Matrix multiplication using the BLAS routine <tt>zgemv</tt>,
   !! multiplies a real matrix with a complex vector
   subroutine rmat_x_cvec(mat, vec, vec_out)
     !> matrix (left side)
@@ -181,9 +181,9 @@ contains
     complex(dp), intent(in)   :: vec(:)
     !> matrix multiplication mat x vec, yields vector
     complex(dp), intent(out)  :: vec_out(:)
-    !> scalar alpha, see zgemm
+    !> scalar alpha, see zgemv
     complex(dp) :: alpha
-    !> scalar beta, see zgemm
+    !> scalar beta, see zgemv
     complex(dp) :: beta
     !> integer used to set leading dimension of matrix
     integer   :: rows_mat1
@@ -201,9 +201,9 @@ contains
     call check_matrix_compatibility(cols_mat1, rows_mat2)
     alpha = (1.0d0, 0.0d0)
     beta  = (0.0d0, 0.0d0)
-    call zgemm( &
-      "N", "N", rows_mat1, cols_mat2, cols_mat1, alpha, mat * (1.0d0, 0.0d0), &
-      rows_mat1, vec, rows_mat2, beta, vec_out, rows_mat1 &
+    call zgemv( &
+      "N", rows_mat1, cols_mat1, alpha, mat * (1.0d0, 0.0d0), &
+      rows_mat1, vec, 1, beta, vec_out, 1 &
     )
   end subroutine rmat_x_cvec
 
@@ -245,7 +245,7 @@ contains
   end subroutine cmat_x_rmat
 
 
-  !> Matrix multiplication using the BLAS routine <tt>zgemm</tt>,
+  !> Matrix multiplication using the BLAS routine <tt>zgemv</tt>,
   !! multiplies a complex matrix with a complex vector
   subroutine cmat_x_cvec(mat, vec, vec_out)
     !> matrix (left side)
@@ -254,9 +254,9 @@ contains
     complex(dp), intent(in)   :: vec(:)
     !> matrix multiplication mat x vec, yields vector
     complex(dp), intent(out)  :: vec_out(:)
-    !> scalar alpha, see zgemm
+    !> scalar alpha, see zgemv
     complex(dp) :: alpha
-    !> scalar beta, see zgemm
+    !> scalar beta, see zgemv
     complex(dp) :: beta
     !> integer used to set leading dimension of matrix
     integer   :: rows_mat1
@@ -275,9 +275,9 @@ contains
     alpha = (1.0d0, 0.0d0)
     beta  = (0.0d0, 0.0d0)
     ! do multiplication
-    call zgemm( &
-      "N", "N", rows_mat1, cols_mat2, cols_mat1, &
-      alpha, mat, rows_mat1, vec, rows_mat2, beta, vec_out, rows_mat1 &
+    call zgemv( &
+      "N", rows_mat1, cols_mat1, alpha, mat, &
+      rows_mat1, vec, 1, beta, vec_out, 1 &
     )
   end subroutine cmat_x_cvec
 
