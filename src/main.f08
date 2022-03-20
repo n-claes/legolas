@@ -14,6 +14,7 @@ program legolas
   use mod_output, only: datfile_name, create_datfile
   use mod_logging, only: log_message, str, print_console_info, print_whitespace
   use mod_inspections, only: handle_spurious_eigenvalues
+  use mod_timing, only: tic, toc
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -24,6 +25,8 @@ program legolas
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
   complex(dp), allocatable  :: eigenvecs_right(:, :)
+  !> start time of eigenvalue solver
+  integer                   :: start_time_evp
 
   call initialisation()
   call print_console_info()
@@ -32,7 +35,10 @@ program legolas
 
   if (.not. dry_run) then
     call log_message("solving eigenvalue problem...", level="info")
+
+    call tic(start_time_evp)
     call solve_evp(matrix_A, matrix_B, omega, eigenvecs_right)
+    call toc("solved eigenvalue problem", start_time_evp, level="info")
   else
     call log_message( &
       "running dry, overriding parfile and setting eigenvalues to zero", level="info"  &
