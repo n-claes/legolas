@@ -6,19 +6,6 @@ module mod_matrix_operations
   use mod_logging, only: log_message, str
   implicit none
 
-  !> integer used to set leading dimension of matrix
-  integer   :: rows_mat1
-  !> integer used to set trailing dimension of matrix
-  integer   :: cols_mat1
-  !> integer used to set leading dimension of second matrix
-  integer   :: rows_mat2
-  !> integer used to set trailing simension of second matrix
-  integer   :: cols_mat2
-  !> integer used to set size of work array
-  integer   :: lwork
-  !> integer used for successful exits
-  integer   :: info
-
   private
 
   !> Interface to invert a matrix
@@ -55,6 +42,12 @@ contains
     integer, allocatable  :: ipiv(:)
     !> array for work
     real(dp), allocatable :: work(:)
+    !> integer used to set leading dimension of matrix
+    integer   :: rows_mat1
+    !> integer used to set size of work array
+    integer   :: lwork
+    !> integer used for successful exits
+    integer   :: info
 
     if (size(mat, dim=1) /= size(mat, dim=2)) then
       call log_message("trying to invert but matrix is not square!", level="error")
@@ -103,6 +96,12 @@ contains
     integer, allocatable     :: ipiv(:)
     !> array for work
     complex(dp), allocatable :: work(:)
+    !> integer used to set leading dimension of matrix
+    integer   :: rows_mat1
+    !> integer used to set size of work array
+    integer   :: lwork
+    !> integer used for successful exits
+    integer   :: info
 
     if (size(mat, dim=1) /= size(mat, dim=2)) then
       call log_message("trying to invert but matrix is not square!", level="error")
@@ -136,7 +135,7 @@ contains
   end subroutine invert_matrix_complex
 
 
-  !> Matrix multiplication using the LAPACK routine <tt>zgemm</tt>, multiplies
+  !> Matrix multiplication using the BLAS routine <tt>zgemm</tt>, multiplies
   !! a real with a complex matrix.
   subroutine rmat_x_cmat(mat1, mat2, mat_out)
     !> first matrix (left side)
@@ -149,6 +148,14 @@ contains
     complex(dp) :: alpha
     !> scalar beta, see zgemm
     complex(dp) :: beta
+    !> integer used to set leading dimension of matrix
+    integer   :: rows_mat1
+    !> integer used to set trailing dimension of matrix
+    integer   :: cols_mat1
+    !> integer used to set leading dimension of second matrix
+    integer   :: rows_mat2
+    !> integer used to set trailing dimension of second matrix
+    integer   :: cols_mat2
 
     rows_mat1 = size(mat1, dim=1)
     cols_mat1 = size(mat1, dim=2)
@@ -165,7 +172,7 @@ contains
   end subroutine rmat_x_cmat
 
 
-  !> Matrix multiplication using the LAPACK routine <tt>zgemm</tt>,
+  !> Matrix multiplication using the BLAS routine <tt>zgemm</tt>,
   !! multiplies a real matrix with a complex vector
   subroutine rmat_x_cvec(mat, vec, vec_out)
     !> matrix (left side)
@@ -178,6 +185,14 @@ contains
     complex(dp) :: alpha
     !> scalar beta, see zgemm
     complex(dp) :: beta
+    !> integer used to set leading dimension of matrix
+    integer   :: rows_mat1
+    !> integer used to set trailing dimension of matrix
+    integer   :: cols_mat1
+    !> integer used to set leading dimension of second matrix
+    integer   :: rows_mat2
+    !> integer used to set trailing dimension of second matrix
+    integer   :: cols_mat2
 
     rows_mat1 = size(mat, dim=1)
     cols_mat1 = size(mat, dim=2)
@@ -193,7 +208,7 @@ contains
   end subroutine rmat_x_cvec
 
 
-  !> Matrix multiplication using the LAPACK routine <tt>zgemm</tt>,
+  !> Matrix multiplication using the BLAS routine <tt>zgemm</tt>,
   !! multiplies a complex with a real matrix.
   subroutine cmat_x_rmat(mat1, mat2, mat_out)
     !> first matrix (left side)
@@ -206,6 +221,14 @@ contains
     complex(dp) :: alpha
     !> scalar beta, see zgemm
     complex(dp) :: beta
+    !> integer used to set leading dimension of matrix
+    integer   :: rows_mat1
+    !> integer used to set trailing dimension of matrix
+    integer   :: cols_mat1
+    !> integer used to set leading dimension of second matrix
+    integer   :: rows_mat2
+    !> integer used to set trailing dimension of second matrix
+    integer   :: cols_mat2
 
     rows_mat1 = size(mat1, dim=1)
     cols_mat1 = size(mat1, dim=2)
@@ -222,7 +245,7 @@ contains
   end subroutine cmat_x_rmat
 
 
-  !> Matrix multiplication using the LAPACK routine <tt>zgemm</tt>,
+  !> Matrix multiplication using the BLAS routine <tt>zgemm</tt>,
   !! multiplies a complex matrix with a complex vector
   subroutine cmat_x_cvec(mat, vec, vec_out)
     !> matrix (left side)
@@ -235,6 +258,14 @@ contains
     complex(dp) :: alpha
     !> scalar beta, see zgemm
     complex(dp) :: beta
+    !> integer used to set leading dimension of matrix
+    integer   :: rows_mat1
+    !> integer used to set trailing dimension of matrix
+    integer   :: cols_mat1
+    !> integer used to set leading dimension of second matrix
+    integer   :: rows_mat2
+    !> integer used to set trailing dimension of second matrix
+    integer   :: cols_mat2
 
     rows_mat1 = size(mat, dim=1)
     cols_mat1 = size(mat, dim=2)
