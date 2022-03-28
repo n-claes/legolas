@@ -25,6 +25,8 @@ module mod_matrix_row
 
 contains
 
+  !> Constructor for a new row, initialises the linked list datastructure
+  !! and sets the current head pointer to `null()`.
   pure function new_row() result(row)
     type(row_t) :: row
 
@@ -34,11 +36,15 @@ contains
   end function new_row
 
 
+  !> Adds a new node to the linked list with a given column index and value.
   pure subroutine add_node(this, column, element)
     use mod_matrix_node, only: new_node
 
+    !> type instance
     class(row_t), intent(inout) :: this
+    !> column position of the element
     integer, intent(in) :: column
+    !> the element to be added
     class(*), intent(in) :: element
 
     if (.not. associated(this%head)) then
@@ -54,9 +60,14 @@ contains
   end subroutine add_node
 
 
+  !> Returns the node corresponding to the given column.
+  !! Throws an error if no node containing the given column index was found.
   function get_node(this, column) result(node)
+    !> type instance
     class(row_t), intent(in) :: this
+    !> column index
     integer, intent(in) :: column
+    !> the node with a column value that matches column
     type(node_t) :: node
     type(node_t), pointer :: current_node
     integer :: i
@@ -81,6 +92,8 @@ contains
   end function get_node
 
 
+  !> Deletes a given linked list row by recursively iterating over all nodes.
+  !! Nullifies the pointers and deallocates the elements.
   pure subroutine delete_row(this)
     class(row_t), intent(inout) :: this
 
@@ -90,6 +103,7 @@ contains
 
     contains
 
+    !> Recursive subroutine that deallocates a given node in the linked list.
     pure recursive subroutine delete_node(node)
       type(node_t), intent(inout) :: node
       type(node_t), pointer :: next_node

@@ -26,11 +26,14 @@ module mod_matrix_structure
 
 contains
 
+  !> Constructor for a new matrix matrix with a given number of rows.
+  !! Allocates and initialises the matrix datatype.
   pure function new_matrix(nb_rows) result(matrix)
+    !> number of rows in the matrix
     integer, intent(in) :: nb_rows
+    !> matrix datatype with rows/columns in a linked list
     type(matrix_t) :: matrix
     integer :: i
-
 
     matrix%matrix_dim = nb_rows
     allocate(matrix%rows(nb_rows))
@@ -40,10 +43,17 @@ contains
   end function new_matrix
 
 
+  !> Adds a given element at a certain (row, column) position to the matrix
+  !! datastructure. Elements that are zero are not added, sanity checks are done
+  !! on the row and column indices.
   subroutine add_element(this, row, column, element)
+    !> type instance
     class(matrix_t), intent(inout) :: this
+    !> row position of the element
     integer, intent(in) :: row
+    !> column position of the element
     integer, intent(in) :: column
+    !> polymorphic variable to add to the matrix
     class(*), intent(in) :: element
 
     if (.not. is_valid_element(element)) return
@@ -54,9 +64,12 @@ contains
   end subroutine add_element
 
 
+  !> Checks if a given element is valid in order to add it to the matrix.
+  !! Returns `.true.` if the element is of type real or complex, `.false.` otherwise.
   logical function is_valid_element(element) result(is_valid)
     use mod_check_values, only: is_zero
 
+    !> Matrix element that is to be added
     class(*), intent(in) :: element
 
     is_valid = .false.
@@ -71,8 +84,13 @@ contains
   end function is_valid_element
 
 
+  !> Checks if a given index is valid for the current matrix datastructure.
+  !! Returns `.true.` if the index (either row or column) is larger than 0 and
+  !! smaller than the dimension of the matrix. Returns `.false.` otherwise.
   logical function is_valid_index(matrix, index) result(is_valid)
+    !> matrix datastructure object
     type(matrix_t), intent(in) :: matrix
+    !> index to check
     integer, intent(in) :: index
 
     is_valid = .true.
@@ -86,10 +104,17 @@ contains
   end function is_valid_index
 
 
+  !> Returns the real element associated with the linked-list node at position
+  !! (row, column) in the matrix datastructure. Throws appropriate errors if the
+  !! requested node does not exist or if the element types do not match.
   subroutine get_real_element(this, row, column, element)
+    !> type instance
     class(matrix_t), intent(in) :: this
+    !> row position of the needed element
     integer, intent(in) :: row
+    !> column position of the needed element
     integer, intent(in) :: column
+    !> the element at position (row, column) in the matrix
     real(dp), intent(out) :: element
     type(node_t) :: node
 
@@ -98,6 +123,8 @@ contains
   end subroutine get_real_element
 
 
+  !> Deallocates the matrix datastructure, nullifies all corresponding pointers and
+  !! deallocates the various nodes in the rows.
   pure subroutine delete_matrix(this)
     class(matrix_t), intent(inout) :: this
     integer :: i

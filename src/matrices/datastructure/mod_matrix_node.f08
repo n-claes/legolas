@@ -24,9 +24,14 @@ module mod_matrix_node
 
 contains
 
+  !> Constructor for a new node, sets the column and element attributes.
+  !! No nodes are linked yet; the pointer to the next node is initialised to `null()`.
   pure function new_node(column, element) result(node)
+    !> column index
     integer, intent(in) :: column
+    !> element added to the node
     class(*), intent(in) :: element
+    !> new node with given column and element attributes
     type(node_t) :: node
 
     allocate(node%element, source=element)
@@ -35,8 +40,12 @@ contains
   end function new_node
 
 
+  !> Getter for nodes with real elements, returns a real `element` attribute.
+  !! Throws an error if the element attribute is not of type real.
   subroutine get_real_node_element(this, element)
+    !> type instance
     class(node_t), intent(in) :: this
+    !> corresponding element
     real(dp), intent(out) :: element
 
     select type(item => this%element)
@@ -50,7 +59,10 @@ contains
   end subroutine get_real_node_element
 
 
+  !> Throws an error message stating that the requested element type and the
+  !! corresponding element type do not match.
   subroutine throw_type_error(element_type)
+    !> element type to display in the error message
     character(len=*), intent(in) :: element_type
 
     call log_message("node element does not have type " // element_type, level="error")
