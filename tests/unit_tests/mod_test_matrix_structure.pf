@@ -95,4 +95,42 @@ contains
     @assertEqual(0, matrix%rows(1)%nb_elements)
     @assertFalse(associated(matrix%rows(1)%head))
   end subroutine test_add_zero_complex_element
+
+
+  @test
+  subroutine test_add_element_invalid_type()
+    call set_name("matrix datastructure: add invalid type")
+    call matrix%add_element(row=2, column=1, element=1)
+    @assertExceptionRaised("adding unexpected element type")
+  end subroutine test_add_element_invalid_type
+
+
+  @test
+  subroutine test_get_single_real_element()
+    real(dp) :: element
+    call set_name("matrix datastructure: get single real element")
+    call matrix%add_element(row=1, column=2, element=(2.0d0))
+    call matrix%get_element(row=1, column=2, element=element)
+    @assertEqual(2.0d0, element, tolerance=TOL)
+  end subroutine test_get_single_real_element
+
+
+  @test
+  subroutine test_get_real_element_not_present()
+    real(dp) :: element
+    call set_name("matrix datastructure: get real not present")
+    call matrix%get_element(row=1, column=2, element=element)
+    @assertExceptionRaised("node with column index 2 was not found")
+  end subroutine test_get_real_element_not_present
+
+
+  @test
+  subroutine test_get_real_element_invalid_type()
+    real(dp) :: element
+    call set_name("matrix datastructure: get real invalid type")
+    call matrix%add_element(row=1, column=3, element=(1.0d0, 2.0d0))
+    call matrix%get_element(row=1, column=3, element=element)
+    @assertExceptionRaised("node element does not have type real")
+  end subroutine test_get_real_element_invalid_type
+
 end module mod_test_matrix_structure

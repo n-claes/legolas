@@ -1,4 +1,5 @@
 module mod_matrix_row
+  use mod_logging, only: log_message, str
   use mod_matrix_node, only: node_t
   implicit none
 
@@ -64,11 +65,19 @@ contains
     do i = 1, this%nb_elements
       if (column == current_node%column) then
         node = current_node
+        current_node => null()
         exit
       end if
       current_node => this%head%next
     end do
     current_node => null()
+    ! if node has not been found then element is still deallocated
+    if (.not. allocated(node%element)) then
+      call log_message( &
+        "node with column index " // str(column) // " was not found", &
+        level="error" &
+      )
+    end if
   end function get_node
 
 

@@ -1,5 +1,7 @@
 module mod_matrix_structure
+  use mod_global_variables, only: dp
   use mod_logging, only: log_message, str
+  use mod_matrix_node, only: node_t
   use mod_matrix_row, only: row_t, new_row
   implicit none
 
@@ -15,6 +17,8 @@ module mod_matrix_structure
     contains
 
     procedure :: add_element
+    procedure, private :: get_real_element
+    generic :: get_element => get_real_element
     procedure :: delete_matrix
   end type matrix_T
 
@@ -51,7 +55,6 @@ contains
 
 
   logical function is_valid_element(element) result(is_valid)
-    use mod_global_variables, only: dp
     use mod_check_values, only: is_zero
 
     class(*), intent(in) :: element
@@ -63,7 +66,7 @@ contains
       type is (complex(dp))
         is_valid = (.not. is_zero(element))
       class default
-        call log_message("is_valid_element: unexpected element type", level="error")
+        call log_message("adding unexpected element type", level="error")
     end select
   end function is_valid_element
 
@@ -81,6 +84,18 @@ contains
       is_valid = .false.
     end if
   end function is_valid_index
+
+
+  subroutine get_real_element(this, row, column, element)
+    class(matrix_t), intent(in) :: this
+    integer, intent(in) :: row
+    integer, intent(in) :: column
+    real(dp), intent(out) :: element
+    type(node_t) :: node
+
+    node = this%rows(row)%get_node(column=column)
+    if (allocated(node%element)) call node%get_node_element(element)
+  end subroutine get_real_element
 
 
   pure subroutine delete_matrix(this)
