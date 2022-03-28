@@ -45,6 +45,7 @@ contains
     @assertEqual(0, matrix%rows(1)%nb_elements)
     call matrix%add_element(row=1, column=1, element=1.0d0)
     @assertEqual(1, matrix%rows(1)%nb_elements)
+    @assertTrue(associated(matrix%rows(1)%head))
   end subroutine test_add_single_real_element
 
 
@@ -54,5 +55,44 @@ contains
     @assertEqual(0, matrix%rows(2)%nb_elements)
     call matrix%add_element(row=2, column=3, element=(2.0d0, 1.0d0))
     @assertEqual(1, matrix%rows(2)%nb_elements)
+    @assertTrue(associated(matrix%rows(2)%head))
   end subroutine test_add_single_complex_element
+
+
+  @test
+  subroutine test_add_element_invalid_row()
+    call set_name("matrix datastructure: invalid row")
+    call matrix%add_element(row=0, column=3, element=1.0d0)
+    @assertExceptionRaised("row/column index 0 is outside of matrix dimension")
+    call matrix%add_element(row=6, column=2, element=1.0d0)
+    @assertExceptionRaised("row/column index 6 is outside of matrix dimension")
+  end subroutine test_add_element_invalid_row
+
+
+  @test
+  subroutine test_add_element_invalid_column()
+    call set_name("matrix datastructure: invalid column")
+    call matrix%add_element(row=1, column=0, element=1.0d0)
+    @assertExceptionRaised("row/column index 0 is outside of matrix dimension")
+    call matrix%add_element(row=2, column=7, element=1.0d0)
+    @assertExceptionRaised("row/column index 7 is outside of matrix dimension")
+  end subroutine test_add_element_invalid_column
+
+
+  @test
+  subroutine test_add_zero_real_element()
+    call set_name("matrix datastructure: add real zero")
+    call matrix%add_element(row=1, column=1, element=0.0d0)
+    @assertEqual(0, matrix%rows(1)%nb_elements)
+    @assertFalse(associated(matrix%rows(1)%head))
+  end subroutine test_add_zero_real_element
+
+
+  @test
+  subroutine test_add_zero_complex_element()
+    call set_name("matrix datastructure: add complex zero")
+    call matrix%add_element(row=1, column=1, element=(0.0d0, 0.0d0))
+    @assertEqual(0, matrix%rows(1)%nb_elements)
+    @assertFalse(associated(matrix%rows(1)%head))
+  end subroutine test_add_zero_complex_element
 end module mod_test_matrix_structure
