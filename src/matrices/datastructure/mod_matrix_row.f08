@@ -11,8 +11,10 @@ module mod_matrix_row
     logical :: initialised = .false.
     !> number of elements in linked list
     integer :: nb_elements
-    !> pointer to current head (last added element)
+    !> pointer to head (first element added)
     type(node_t), pointer :: head
+    !> pointer to tail (last element added)
+    type(node_t), pointer :: tail
 
     contains
 
@@ -33,11 +35,12 @@ contains
     row%initialised = .true.
     row%nb_elements = 0
     row%head => null()
+    row%tail => null()
   end function new_row
 
 
   !> Adds a new node to the linked list with a given column index and value.
-  pure subroutine add_node(this, column, element)
+  subroutine add_node(this, column, element)
     use mod_matrix_node, only: new_node
 
     !> type instance
@@ -50,11 +53,13 @@ contains
     if (.not. associated(this%head)) then
       ! list is empty, allocate new node and set as head
       allocate(this%head, source=new_node(column, element))
+      ! first element so tail = head
+      this%tail => this%head
     else
       ! list is not empty, allocate new node and set as next
-      allocate(this%head%next, source=new_node(column, element))
-      ! update head to last added node
-      this%head => this%head%next
+      allocate(this%tail%next, source=new_node(column, element))
+      ! update tail to last element added
+      this%tail => this%tail%next
     end if
     this%nb_elements = this%nb_elements + 1
   end subroutine add_node
@@ -69,6 +74,7 @@ contains
     integer, intent(in) :: column
     !> the node with a column value that matches column
     type(node_t) :: node
+
     type(node_t), pointer :: current_node
     integer :: i
 
@@ -79,7 +85,7 @@ contains
         current_node => null()
         exit
       end if
-      current_node => this%head%next
+      current_node => current_node%next
     end do
     current_node => null()
     ! if node has not been found then element is still deallocated
@@ -98,6 +104,8 @@ contains
     class(row_t), intent(inout) :: this
 
     if (associated(this%head)) call delete_node(node=this%head)
+    nullify(this%head)
+    nullify(this%tail)
     this%initialised = .false.
     this%nb_elements = 0
 

@@ -133,4 +133,43 @@ contains
     @assertExceptionRaised("node element does not have type real")
   end subroutine test_get_real_element_invalid_type
 
+
+  @test
+  subroutine test_add_real_multiple_rows()
+    integer :: i
+    real(dp) :: element
+    call set_name("matrix datastructure: add multiple rows (real)")
+    do i = 1, 5
+      element = i * 2.0d0 - 6.0d0
+      call matrix%add_element(row=i, column=2, element=element)
+    end do
+    call matrix%get_element(row=1, column=2, element=element)
+    @assertEqual(-4.0d0, element, tolerance=TOL)
+    call matrix%get_element(row=2, column=2, element=element)
+    @assertEqual(-2.0d0, element, tolerance=TOL)
+    call matrix%get_element(row=4, column=2, element=element)
+    @assertEqual(2.0d0, element, tolerance=TOL)
+    call matrix%get_element(row=5, column=2, element=element)
+    @assertEqual(4.0d0, element, tolerance=TOL)
+
+    call matrix%get_element(row=3, column=2, element=element)
+    @assertExceptionRaised("node with column index 2 was not found")
+  end subroutine test_add_real_multiple_rows
+
+
+  @test
+  subroutine test_add_real_multiple_columns()
+    integer :: i
+    real(dp) :: element
+    call set_name("matrix datastructure: add multiple columns (real)")
+    do i = 1, 5
+      element = 3.5d0 * i
+      call matrix%add_element(row=3, column=i, element=element)
+    end do
+    do i = 1, 5
+      call matrix%get_element(row=3, column=i, element=element)
+      @assertEqual(3.5d0 * i, element, tolerance=TOL)
+    end do
+  end subroutine test_add_real_multiple_columns
+
 end module mod_test_matrix_structure
