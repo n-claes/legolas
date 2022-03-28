@@ -7,6 +7,9 @@ set (sources
         dataIO/mod_logging.f08
         mod_physical_constants.f08
         utils/mod_get_indices.f08
+        matrices/datastructure/mod_matrix_node.f08
+        matrices/datastructure/mod_matrix_row.f08
+        matrices/datastructure/mod_matrix_structure.f08
         mod_units.f08
         mod_grid.f08
         mod_types.f08

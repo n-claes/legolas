@@ -1,0 +1,58 @@
+module mod_test_matrix_structure
+  use mod_suite_utils
+  use funit
+  use mod_matrix_structure, only: matrix_t, new_matrix
+  implicit none
+
+  real(dp)  :: rmat(4, 4) = reshape( &
+    [ &
+      3.0d0, 0.0d0, -1.0d0, 0.0d0, & ! column 1
+      0.0d0, 1.0d0, 0.0d0, 0.0d0, & ! column 2
+      7.0d0, 0.0d0, 2.0d0, -1.0d0, & ! column 3
+      -1.0d0, 5.0d0, 8.0d0, 4.0d0 & ! column 4
+    ], &
+    shape=[4, 4] &
+  )
+
+  type(matrix_t) :: matrix
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    matrix = new_matrix(nb_rows=5)
+  end subroutine init_test
+
+
+  @after
+  subroutine tear_down()
+    call matrix%delete_matrix()
+  end subroutine tear_down
+
+
+  @test
+  subroutine test_init_matrix()
+    call set_name("matrix datastructure: initialisation")
+    @assertEqual(5, size(matrix%rows))
+    @assertEqual(5, matrix%matrix_dim)
+  end subroutine test_init_matrix
+
+
+  @test
+  subroutine test_add_single_real_element()
+    call set_name("matrix datastructure: add real")
+    @assertEqual(0, matrix%rows(1)%nb_elements)
+    call matrix%add_element(row=1, column=1, element=1.0d0)
+    @assertEqual(1, matrix%rows(1)%nb_elements)
+  end subroutine test_add_single_real_element
+
+
+  @test
+  subroutine test_add_single_complex_element()
+    call set_name("matrix datastructure: add complex")
+    @assertEqual(0, matrix%rows(2)%nb_elements)
+    call matrix%add_element(row=2, column=3, element=(2.0d0, 1.0d0))
+    @assertEqual(1, matrix%rows(2)%nb_elements)
+  end subroutine test_add_single_complex_element
+end module mod_test_matrix_structure
