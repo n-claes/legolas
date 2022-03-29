@@ -57,6 +57,7 @@ set( test_sources
         mod_test_variables.pf
         mod_test_logging.pf
         mod_test_matrix_structure_real.pf
+        mod_test_matrix_structure_complex.pf
         mod_test_indices.pf
         mod_test_grid.pf
         mod_test_input.pf
