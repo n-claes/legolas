@@ -20,7 +20,8 @@ module mod_matrix_node
     procedure, private :: add_real_to_node_element
 
     procedure, private :: get_real_node_element
-    generic :: get_node_element => get_real_node_element
+    procedure, private :: get_complex_node_element
+    generic :: get_node_element => get_real_node_element, get_complex_node_element
   end type node_t
 
   public :: new_node
@@ -89,6 +90,24 @@ contains
         call throw_type_error(element_type="real")
     end select
   end subroutine get_real_node_element
+
+
+  !> Getter for nodes with complex elements, returns a complex `element` attribute.
+  !! Throws an error if the element attribute is not of type real.
+  subroutine get_complex_node_element(this, element)
+    !> type instance
+    class(node_t), intent(in) :: this
+    !> corresponding element
+    complex(dp), intent(out) :: element
+
+    select type(item => this%element)
+      type is (complex(dp))
+        element = item
+      class default
+        element = cmplx(NaN, NaN, kind=dp)
+        call throw_type_error(element_type="complex")
+    end select
+  end subroutine get_complex_node_element
 
 
   !> Throws an error message stating that the requested element type and the

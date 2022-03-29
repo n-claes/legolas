@@ -60,6 +60,64 @@ contains
   end subroutine test_add_zero_complex_element
 
 
+  @test
+  subroutine test_get_single_complex_element()
+    complex(dp) :: element
+    call set_name("matrix datastructure: get single complex element")
+    call matrix%add_element(row=1, column=2, element=(2.0d0, 1.0d0))
+    call matrix%get_element(row=1, column=2, element=element)
+    @assertEqual((2.0d0, 1.0d0), element, tolerance=TOL)
+  end subroutine test_get_single_complex_element
 
+
+  @test
+  subroutine test_get_complex_element_not_present()
+    complex(dp) :: element
+    call set_name("matrix datastructure: get complex not present")
+    call matrix%get_element(row=2, column=3, element=element)
+    @assertExceptionRaised("node with column index 3 does not exist")
+  end subroutine test_get_complex_element_not_present
+
+
+  @test
+  subroutine test_get_complex_element_invalid_type()
+    complex(dp) :: element
+    call set_name("matrix datastructure: get complex invalid type")
+    call matrix%add_element(row=1, column=3, element=2.0d0)
+    call matrix%get_element(row=1, column=3, element=element)
+    @assertExceptionRaised("node element does not have type complex")
+  end subroutine test_get_complex_element_invalid_type
+
+
+  @test
+  subroutine test_add_complex_multiple_rows()
+    integer :: i
+    complex(dp) :: element
+    call set_name("matrix datastructure: add multiple rows (complex)")
+    do i = 1, 5
+      element = i * (2.0d0, 3.0d0) - (1.0d0, 6.0d0)
+      call matrix%add_element(row=i, column=2, element=element)
+    end do
+    do i = 1, 5
+      call matrix%get_element(row=i, column=2, element=element)
+      @assertEqual(i * (2.0d0, 3.0d0) - (1.0d0, 6.0d0), element, tolerance=TOL)
+    end do
+  end subroutine test_add_complex_multiple_rows
+
+
+  @test
+  subroutine test_add_complex_multiple_columns()
+    integer :: i
+    complex(dp) :: element
+    call set_name("matrix datastructure: add multiple columns (complex)")
+    do i = 1, 5
+      element = i * (2.2d0, -4.5d0)
+      call matrix%add_element(row=3, column=i, element=element)
+    end do
+    do i = 1, 5
+      call matrix%get_element(row=3, column=i, element=element)
+      @assertEqual(i * (2.2d0, -4.5d0), element, tolerance=TOL)
+    end do
+  end subroutine test_add_complex_multiple_columns
 
 end module mod_test_matrix_structure_complex
