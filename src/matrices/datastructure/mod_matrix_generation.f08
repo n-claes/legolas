@@ -5,7 +5,12 @@ module mod_matrix_generation
 
   private
 
+  interface generate_array_from_matrix
+    module procedure generate_real_array_from_matrix
+  end interface generate_array_from_matrix
+
   public :: generate_matrix_from_array
+  public :: generate_array_from_matrix
 
 contains
 
@@ -23,5 +28,15 @@ contains
       end do
     end do
   end function generate_matrix_from_array
+
+
+  function generate_real_array_from_matrix(matrix) result(array)
+    !> the matrix datastructure used to generate the array
+    type(matrix_t), intent(in) :: matrix
+    !> the real 2D array generated from the matrix
+    real(dp) :: array(matrix%matrix_dim, matrix%matrix_dim)
+
+    array = 0.0d0
+  end function generate_real_array_from_matrix
 
 end module mod_matrix_generation

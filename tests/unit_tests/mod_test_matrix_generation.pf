@@ -1,8 +1,9 @@
 module mod_test_matrix_generation
   use mod_suite_utils
   use funit
-  use mod_matrix_structure, only: matrix_t
-  use mod_matrix_generation, only: generate_matrix_from_array
+  use mod_matrix_structure, only: matrix_t, new_matrix
+  use mod_matrix_generation, only: generate_matrix_from_array, &
+    generate_array_from_matrix
   implicit none
 
   real(dp) :: rmat(4, 4) = reshape( &
@@ -76,5 +77,30 @@ contains
     @assertEqual(cmat(4, 2), matrix%get_complex_element(4, 2), tolerance=TOL)
     @assertEqual(cmat(4, 4), matrix%get_complex_element(4, 4), tolerance=TOL)
   end subroutine test_generation_complex_array_to_matrix
+
+
+  @test
+  subroutine test_generation_matrix_to_complex_array()
+    real(dp) :: expected(4, 4) = reshape( &
+      [ &
+        1.0d0, 1.0d0, 0.0d0, 0.0d0, &
+        0.0d0, 0.0d0, 0.0d0, 0.0d0, &
+        2.0d0, 3.0d0, -1.0d0, -1.0d0, &
+        0.0d0, 0.0d0, 8.0d0, -4.0d0 &
+      ], &
+      shape=[4, 4] &
+    )
+    call set_name("matrix generation: matrix -> complex array")
+    matrix = new_matrix(nb_rows=4)
+    call matrix%add_element(row=1, column=1, element=1.0d0)
+    call matrix%add_element(row=2, column=1, element=1.0d0)
+    call matrix%add_element(row=1, column=3, element=2.0d0)
+    call matrix%add_element(row=2, column=3, element=3.0d0)
+    call matrix%add_element(row=3, column=3, element=-1.0d0)
+    call matrix%add_element(row=4, column=3, element=-1.0d0)
+    call matrix%add_element(row=3, column=4, element=8.0d0)
+    call matrix%add_element(row=4, column=4, element=-4.0d0)
+    @assertEqual(expected, generate_array_from_matrix(matrix), tolerance=TOL)
+  end subroutine test_generation_matrix_to_complex_array
 
 end module mod_test_matrix_generation
