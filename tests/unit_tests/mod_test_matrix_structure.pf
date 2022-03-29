@@ -120,7 +120,7 @@ contains
     real(dp) :: element
     call set_name("matrix datastructure: get real not present")
     call matrix%get_element(row=1, column=2, element=element)
-    @assertExceptionRaised("node with column index 2 was not found")
+    @assertExceptionRaised("node with column index 2 does not exist")
   end subroutine test_get_real_element_not_present
 
 
@@ -153,7 +153,7 @@ contains
     @assertEqual(4.0d0, element, tolerance=TOL)
 
     call matrix%get_element(row=3, column=2, element=element)
-    @assertExceptionRaised("node with column index 2 was not found")
+    @assertExceptionRaised("node with column index 2 does not exist")
   end subroutine test_add_real_multiple_rows
 
 

@@ -1,6 +1,6 @@
 module mod_matrix_row
   use mod_logging, only: log_message, str
-  use mod_matrix_node, only: node_t
+  use mod_matrix_node, only: node_t, new_node
   implicit none
 
   private
@@ -21,6 +21,9 @@ module mod_matrix_row
     procedure :: add_node
     procedure :: get_node
     procedure :: delete_row
+
+    procedure, private :: create_first_node
+    procedure, private :: append_node
   end type row_t
 
   public :: new_row
@@ -41,8 +44,6 @@ contains
 
   !> Adds a new node to the linked list with a given column index and value.
   subroutine add_node(this, column, element)
-    use mod_matrix_node, only: new_node
-
     !> type instance
     class(row_t), intent(inout) :: this
     !> column position of the element
@@ -51,18 +52,44 @@ contains
     class(*), intent(in) :: element
 
     if (.not. associated(this%head)) then
-      ! list is empty, allocate new node and set as head
-      allocate(this%head, source=new_node(column, element))
-      ! first element so tail = head
-      this%tail => this%head
+      call this%create_first_node(column, element)
     else
-      ! list is not empty, allocate new node and set as next
-      allocate(this%tail%next, source=new_node(column, element))
-      ! update tail to last element added
-      this%tail => this%tail%next
+      call this%append_node(column, element)
     end if
-    this%nb_elements = this%nb_elements + 1
   end subroutine add_node
+
+
+  !> Subroutine to add the first node to the linked list. Allocates a new node and
+  !! sets both the head and tail to this node.
+  pure subroutine create_first_node(this, column, element)
+    !> type instance
+    class(row_t), intent(inout) :: this
+    !> column position of element
+    integer, intent(in) :: column
+    !> the element to be added
+    class(*), intent(in) :: element
+
+    allocate(this%head, source=new_node(column, element))
+    this%tail => this%head
+    this%nb_elements = this%nb_elements + 1
+  end subroutine create_first_node
+
+
+  !> Subroutine to append a new node to an already existing list of nodes.
+  !! A new node is created, appended, and the tail is updated.
+  pure subroutine append_node(this, column, element)
+    !> type instance
+    class(row_t), intent(inout) :: this
+    !> column position of element
+    integer, intent(in) :: column
+    !> the element to be added
+    class(*), intent(in) :: element
+
+    allocate(this%tail%next, source=new_node(column, element))
+    ! update tail to last element added
+    this%tail => this%tail%next
+    this%nb_elements = this%nb_elements + 1
+  end subroutine append_node
 
 
   !> Returns the node corresponding to the given column.
@@ -79,6 +106,7 @@ contains
     integer :: i
 
     current_node => this%head
+    ! loop over nodes, return node if column index matches
     do i = 1, this%nb_elements
       if (column == current_node%column) then
         node = current_node
@@ -88,13 +116,6 @@ contains
       current_node => current_node%next
     end do
     current_node => null()
-    ! if node has not been found then element is still deallocated
-    if (.not. allocated(node%element)) then
-      call log_message( &
-        "node with column index " // str(column) // " was not found", &
-        level="error" &
-      )
-    end if
   end function get_node
 
 

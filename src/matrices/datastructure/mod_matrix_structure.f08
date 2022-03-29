@@ -119,8 +119,25 @@ contains
     type(node_t) :: node
 
     node = this%rows(row)%get_node(column=column)
+    call validate_retrieved_node(node, column)
     if (allocated(node%element)) call node%get_node_element(element)
   end subroutine get_real_element
+
+
+  !> Checks if the retrieved node for the given column index is indeed present.
+  subroutine validate_retrieved_node(node, column)
+    !> the node to check
+    type(node_t), intent(in) :: node
+    !> the column index
+    integer, intent(in) :: column
+
+    if (.not. node%exists()) then
+      call log_message( &
+        "node with column index " // str(column) // " does not exist", &
+        level="error" &
+      )
+    end if
+  end subroutine validate_retrieved_node
 
 
   !> Deallocates the matrix datastructure, nullifies all corresponding pointers and
