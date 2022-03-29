@@ -10,6 +10,7 @@ set (sources
         matrices/datastructure/mod_matrix_node.f08
         matrices/datastructure/mod_matrix_row.f08
         matrices/datastructure/mod_matrix_structure.f08
+        matrices/datastructure/mod_matrix_generation.f08
         mod_units.f08
         mod_grid.f08
         mod_types.f08
