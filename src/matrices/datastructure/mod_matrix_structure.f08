@@ -19,6 +19,7 @@ module mod_matrix_structure
     procedure :: add_element
     procedure :: get_real_element
     procedure :: get_complex_element
+    procedure :: get_total_nb_elements
     procedure :: delete_matrix
   end type matrix_T
 
@@ -120,10 +121,8 @@ contains
 
     node => this%rows(row)%get_node(column=column)
     call validate_retrieved_node(node, column)
-    if (associated(node)) then
-      call node%get_node_element(element)
-      nullify(node)
-    end if
+    if (associated(node)) call node%get_node_element(element)
+    nullify(node)
   end function get_real_element
 
 
@@ -143,11 +142,24 @@ contains
 
     node => this%rows(row)%get_node(column=column)
     call validate_retrieved_node(node, column)
-    if (associated(node)) then
-      call node%get_node_element(element)
-    end if
+    if (associated(node)) call node%get_node_element(element)
     nullify(node)
   end function get_complex_element
+
+
+  !> Returns the total number of elements (nodes) across the various rows.
+  pure function get_total_nb_elements(this) result(total_nb_elements)
+    !> type instance
+    class(matrix_t), intent(in) :: this
+    !> total number of (non-zero) elements in this matrix
+    integer :: total_nb_elements
+    integer :: i
+
+    total_nb_elements = 0
+    do i = 1, this%matrix_dim
+      total_nb_elements = total_nb_elements + this%rows(i)%nb_elements
+    end do
+  end function get_total_nb_elements
 
 
   !> Checks if the retrieved node for the given column index is indeed present.
