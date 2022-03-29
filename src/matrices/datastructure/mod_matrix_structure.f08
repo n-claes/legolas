@@ -173,6 +173,7 @@ contains
     class(matrix_t), intent(inout) :: this
     integer :: i
 
+    if (.not. allocated(this%rows)) return
     do i = 1, this%matrix_dim
       call this%rows(i)%delete_row()
     end do

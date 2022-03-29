@@ -4,16 +4,6 @@ module mod_test_matrix_structure_real
   use mod_matrix_structure, only: matrix_t, new_matrix
   implicit none
 
-  real(dp)  :: rmat(4, 4) = reshape( &
-    [ &
-      3.0d0, 0.0d0, -1.0d0, 0.0d0, & ! column 1
-      0.0d0, 1.0d0, 0.0d0, 0.0d0, & ! column 2
-      7.0d0, 0.0d0, 2.0d0, -1.0d0, & ! column 3
-      -1.0d0, 5.0d0, 8.0d0, 4.0d0 & ! column 4
-    ], &
-    shape=[4, 4] &
-  )
-
   type(matrix_t) :: matrix
 
 contains
@@ -37,6 +27,14 @@ contains
     @assertEqual(5, size(matrix%rows))
     @assertEqual(5, matrix%matrix_dim)
   end subroutine test_init_matrix
+
+
+  @test
+  subroutine test_teardown_matrix()
+    type(matrix_t) :: test_matrix
+    call set_name("matrix datastructure: deallocation")
+    call test_matix%delete_matrix()
+  end subroutine test_teardown_matrix
 
 
   @test
