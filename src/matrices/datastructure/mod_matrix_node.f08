@@ -18,6 +18,7 @@ module mod_matrix_node
 
     procedure :: add_to_node_element
     procedure, private :: add_real_to_node_element
+    procedure, private :: add_complex_to_node_element
 
     procedure, private :: get_real_node_element
     procedure, private :: get_complex_node_element
@@ -55,6 +56,8 @@ contains
     select type(element)
       type is (real(dp))
         call this%add_real_to_node_element(element)
+      type is (complex(dp))
+        call this%add_complex_to_node_element(element)
     end select
   end subroutine add_to_node_element
 
@@ -72,6 +75,21 @@ contains
     deallocate(this%element)
     allocate(this%element, source=(existing_element + element_to_add))
   end subroutine add_real_to_node_element
+
+
+  !> Sums the current complex node element with a new element. The "old" element is
+  !! deallocated and reallocated with its new value
+  subroutine add_complex_to_node_element(this, element_to_add)
+    !> type instance
+    class(node_t), intent(inout) :: this
+    !> element to add to the existing element
+    complex(dp), intent(in) :: element_to_add
+    complex(dp) :: existing_element
+
+    call this%get_node_element(existing_element)
+    deallocate(this%element)
+    allocate(this%element, source=(existing_element + element_to_add))
+  end subroutine add_complex_to_node_element
 
 
   !> Getter for nodes with real elements, returns a real `element` attribute.

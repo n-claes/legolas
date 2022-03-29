@@ -120,4 +120,32 @@ contains
     end do
   end subroutine test_add_complex_multiple_columns
 
+
+  @test
+  subroutine test_add_complex_to_existing_node()
+    integer :: i, row, col
+    complex(dp) :: element
+
+    call set_name("matrix datastructure: add to existing nodes (real)")
+    row = 2
+    col = 1
+    do i = 1, 5
+      element = i * (2.2d0, -4.5d0)
+      call matrix%add_element(row=row, column=i, element=element)
+    end do
+    call matrix%get_element(row=row, column=col, element=element)
+    @assertEqual((2.2d0, -4.5d0), element, tolerance=TOL)
+    @assertEqual(5, matrix%rows(row)%nb_elements)
+
+    call matrix%add_element(row=row, column=col, element=(3.0d0, 2.5d0))
+    call matrix%get_element(row=row, column=col, element=element)
+    @assertEqual(5, matrix%rows(row)%nb_elements)
+    @assertEqual((5.2d0, -2.0d0), element, tolerance=TOL)
+
+    call matrix%add_element(row=row, column=3, element=(-2.0d0, -7.5d0))
+    call matrix%get_element(row=row, column=3, element=element)
+    @assertEqual(5, matrix%rows(row)%nb_elements)
+    @assertEqual((4.6d0, -21.0d0), element, tolerance=TOL)
+  end subroutine test_add_complex_to_existing_node
+
 end module mod_test_matrix_structure_complex
