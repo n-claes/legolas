@@ -17,9 +17,8 @@ module mod_matrix_structure
     contains
 
     procedure :: add_element
-    procedure, private :: get_real_element
-    procedure, private :: get_complex_element
-    generic :: get_element => get_real_element, get_complex_element
+    procedure :: get_real_element
+    procedure :: get_complex_element
     procedure :: delete_matrix
   end type matrix_T
 
@@ -108,7 +107,7 @@ contains
   !> Returns the real element associated with the linked-list node at position
   !! (row, column) in the matrix datastructure. Throws appropriate errors if the
   !! requested node does not exist or if the element types do not match.
-  subroutine get_real_element(this, row, column, element)
+  function get_real_element(this, row, column) result(element)
     !> type instance
     class(matrix_t), intent(in) :: this
     !> row position of the needed element
@@ -116,7 +115,7 @@ contains
     !> column position of the needed element
     integer, intent(in) :: column
     !> the element at position (row, column) in the matrix
-    real(dp), intent(out) :: element
+    real(dp) :: element
     type(node_t), pointer :: node
 
     node => this%rows(row)%get_node(column=column)
@@ -125,13 +124,13 @@ contains
       call node%get_node_element(element)
       nullify(node)
     end if
-  end subroutine get_real_element
+  end function get_real_element
 
 
   !> Returns the complex element associated with the linked-list node at position
   !! (row, column) in the matrix datastructure. Throws appropriate errors if the
   !! requested node does not exist or if the element types do not match.
-  subroutine get_complex_element(this, row, column, element)
+  function get_complex_element(this, row, column) result(element)
     !> type instance
     class(matrix_t), intent(in) :: this
     !> row position of the needed element
@@ -139,7 +138,7 @@ contains
     !> column position of the needed element
     integer, intent(in) :: column
     !> the element at position (row, column) in the matrix
-    complex(dp), intent(out) :: element
+    complex(dp) :: element
     type(node_t), pointer :: node
 
     node => this%rows(row)%get_node(column=column)
@@ -148,7 +147,7 @@ contains
       call node%get_node_element(element)
     end if
     nullify(node)
-  end subroutine get_complex_element
+  end function get_complex_element
 
 
   !> Checks if the retrieved node for the given column index is indeed present.

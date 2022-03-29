@@ -62,11 +62,9 @@ contains
 
   @test
   subroutine test_get_single_complex_element()
-    complex(dp) :: element
     call set_name("matrix datastructure: get single complex element")
     call matrix%add_element(row=1, column=2, element=(2.0d0, 1.0d0))
-    call matrix%get_element(row=1, column=2, element=element)
-    @assertEqual((2.0d0, 1.0d0), element, tolerance=TOL)
+    @assertEqual((2.0d0, 1.0d0), matrix%get_complex_element(1, 2), tolerance=TOL)
   end subroutine test_get_single_complex_element
 
 
@@ -74,7 +72,7 @@ contains
   subroutine test_get_complex_element_not_present()
     complex(dp) :: element
     call set_name("matrix datastructure: get complex not present")
-    call matrix%get_element(row=2, column=3, element=element)
+    element = matrix%get_complex_element(row=2, column=3)
     @assertExceptionRaised("node with column index 3 does not exist")
   end subroutine test_get_complex_element_not_present
 
@@ -84,7 +82,7 @@ contains
     complex(dp) :: element
     call set_name("matrix datastructure: get complex invalid type")
     call matrix%add_element(row=1, column=3, element=2.0d0)
-    call matrix%get_element(row=1, column=3, element=element)
+    element = matrix%get_complex_element(row=1, column=3)
     @assertExceptionRaised("node element does not have type complex")
   end subroutine test_get_complex_element_invalid_type
 
@@ -99,8 +97,8 @@ contains
       call matrix%add_element(row=i, column=2, element=element)
     end do
     do i = 1, 5
-      call matrix%get_element(row=i, column=2, element=element)
-      @assertEqual(i * (2.0d0, 3.0d0) - (1.0d0, 6.0d0), element, tolerance=TOL)
+      element = i * (2.0d0, 3.0d0) - (1.0d0, 6.0d0)
+      @assertEqual(element, matrix%get_complex_element(i, 2), tolerance=TOL)
     end do
   end subroutine test_add_complex_multiple_rows
 
@@ -115,8 +113,8 @@ contains
       call matrix%add_element(row=3, column=i, element=element)
     end do
     do i = 1, 5
-      call matrix%get_element(row=3, column=i, element=element)
-      @assertEqual(i * (2.2d0, -4.5d0), element, tolerance=TOL)
+      element = i * (2.2d0, -4.5d0)
+      @assertEqual(element, matrix%get_complex_element(3, i), tolerance=TOL)
     end do
   end subroutine test_add_complex_multiple_columns
 
@@ -133,19 +131,16 @@ contains
       element = i * (2.2d0, -4.5d0)
       call matrix%add_element(row=row, column=i, element=element)
     end do
-    call matrix%get_element(row=row, column=col, element=element)
-    @assertEqual((2.2d0, -4.5d0), element, tolerance=TOL)
+    @assertEqual((2.2d0, -4.5d0), matrix%get_complex_element(row, col), tolerance=TOL)
     @assertEqual(5, matrix%rows(row)%nb_elements)
 
     call matrix%add_element(row=row, column=col, element=(3.0d0, 2.5d0))
-    call matrix%get_element(row=row, column=col, element=element)
     @assertEqual(5, matrix%rows(row)%nb_elements)
-    @assertEqual((5.2d0, -2.0d0), element, tolerance=TOL)
+    @assertEqual((5.2d0, -2.0d0), matrix%get_complex_element(row, col), tolerance=TOL)
 
     call matrix%add_element(row=row, column=3, element=(-2.0d0, -7.5d0))
-    call matrix%get_element(row=row, column=3, element=element)
     @assertEqual(5, matrix%rows(row)%nb_elements)
-    @assertEqual((4.6d0, -21.0d0), element, tolerance=TOL)
+    @assertEqual((4.6d0, -21.0d0), matrix%get_complex_element(row, 3), tolerance=TOL)
   end subroutine test_add_complex_to_existing_node
 
 end module mod_test_matrix_structure_complex
