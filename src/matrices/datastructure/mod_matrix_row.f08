@@ -77,7 +77,7 @@ contains
 
   !> Subroutine to append a new node to an already existing list of nodes.
   !! A new node is created, appended, and the tail is updated.
-  pure subroutine append_node(this, column, element)
+  subroutine append_node(this, column, element)
     !> type instance
     class(row_t), intent(inout) :: this
     !> column position of element
@@ -85,37 +85,48 @@ contains
     !> the element to be added
     class(*), intent(in) :: element
 
-    allocate(this%tail%next, source=new_node(column, element))
-    ! update tail to last element added
-    this%tail => this%tail%next
-    this%nb_elements = this%nb_elements + 1
+    type(node_t), pointer :: node
+
+    node => this%get_node(column)
+    ! check if node already exists
+    if (associated(node)) then
+      call node%add_to_node_element(element)
+    else
+      allocate(this%tail%next, source=new_node(column, element))
+      ! update tail to last element added
+      this%tail => this%tail%next
+      this%nb_elements = this%nb_elements + 1
+    end if
+    nullify(node)
   end subroutine append_node
 
 
-  !> Returns the node corresponding to the given column.
-  !! Throws an error if no node containing the given column index was found.
+  !> Returns a pointer to the node corresponding to the given column.
+  !! Returns a nullified pointer if no node containing the given column index
+  !! was found.
   function get_node(this, column) result(node)
     !> type instance
     class(row_t), intent(in) :: this
     !> column index
     integer, intent(in) :: column
     !> the node with a column value that matches column
-    type(node_t) :: node
+    type(node_t), pointer :: node
 
     type(node_t), pointer :: current_node
     integer :: i
 
+    node => null()
     current_node => this%head
     ! loop over nodes, return node if column index matches
     do i = 1, this%nb_elements
       if (column == current_node%column) then
-        node = current_node
-        current_node => null()
+        node => current_node
+        nullify(current_node)
         exit
       end if
       current_node => current_node%next
     end do
-    current_node => null()
+    nullify(current_node)
   end function get_node
 
 
@@ -140,9 +151,9 @@ contains
       next_node => null()
       if (associated(node%next)) next_node => node%next
       deallocate(node%element)
-      node%next => null()
+      nullify(node%next)
       if (associated(next_node)) call delete_node(next_node)
-      next_node => null()
+      nullify(next_node)
     end subroutine delete_node
   end subroutine delete_row
 end module mod_matrix_row

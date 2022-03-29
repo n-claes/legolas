@@ -16,6 +16,9 @@ module mod_matrix_node
 
     contains
 
+    procedure :: add_to_node_element
+    procedure, private :: add_real_to_node_element
+
     procedure, private :: get_real_node_element
     generic :: get_node_element => get_real_node_element
   end type node_t
@@ -40,6 +43,36 @@ contains
   end function new_node
 
 
+  !> Generic type-checking function to add a polymorphic element to the existing
+  !! element attribute.
+  subroutine add_to_node_element(this, element)
+    !> type instance
+    class(node_t), intent(inout) :: this
+    !> element to add to the existing element
+    class(*), intent(in) :: element
+
+    select type(element)
+      type is (real(dp))
+        call this%add_real_to_node_element(element)
+    end select
+  end subroutine add_to_node_element
+
+
+  !> Sums the current real node element with a new element. The "old" element is
+  !! deallocated and reallocated with its new value.
+  subroutine add_real_to_node_element(this, element_to_add)
+    !> type instance
+    class(node_t), intent(inout) :: this
+    !> element to add to the existing element
+    real(dp), intent(in) :: element_to_add
+    real(dp) :: existing_element
+
+    call this%get_node_element(existing_element)
+    deallocate(this%element)
+    allocate(this%element, source=(existing_element + element_to_add))
+  end subroutine add_real_to_node_element
+
+
   !> Getter for nodes with real elements, returns a real `element` attribute.
   !! Throws an error if the element attribute is not of type real.
   subroutine get_real_node_element(this, element)
@@ -55,7 +88,6 @@ contains
         element = NaN
         call throw_type_error(element_type="real")
     end select
-
   end subroutine get_real_node_element
 
 

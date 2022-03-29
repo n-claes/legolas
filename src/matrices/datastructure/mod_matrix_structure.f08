@@ -116,22 +116,25 @@ contains
     integer, intent(in) :: column
     !> the element at position (row, column) in the matrix
     real(dp), intent(out) :: element
-    type(node_t) :: node
+    type(node_t), pointer :: node
 
-    node = this%rows(row)%get_node(column=column)
+    node => this%rows(row)%get_node(column=column)
     call validate_retrieved_node(node, column)
-    if (allocated(node%element)) call node%get_node_element(element)
+    if (associated(node)) then
+      call node%get_node_element(element)
+      nullify(node)
+    end if
   end subroutine get_real_element
 
 
   !> Checks if the retrieved node for the given column index is indeed present.
   subroutine validate_retrieved_node(node, column)
     !> the node to check
-    type(node_t), intent(in) :: node
+    type(node_t), pointer, intent(in) :: node
     !> the column index
     integer, intent(in) :: column
 
-    if (.not. node%exists()) then
+    if (.not. associated(node)) then
       call log_message( &
         "node with column index " // str(column) // " does not exist", &
         level="error" &

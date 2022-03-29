@@ -1,4 +1,4 @@
-module mod_test_matrix_structure
+module mod_test_matrix_structure_real
   use mod_suite_utils
   use funit
   use mod_matrix_structure, only: matrix_t, new_matrix
@@ -50,33 +50,23 @@ contains
 
 
   @test
-  subroutine test_add_single_complex_element()
-    call set_name("matrix datastructure: add complex")
-    @assertEqual(0, matrix%rows(2)%nb_elements)
-    call matrix%add_element(row=2, column=3, element=(2.0d0, 1.0d0))
-    @assertEqual(1, matrix%rows(2)%nb_elements)
-    @assertTrue(associated(matrix%rows(2)%head))
-  end subroutine test_add_single_complex_element
-
-
-  @test
-  subroutine test_add_element_invalid_row()
-    call set_name("matrix datastructure: invalid row")
+  subroutine test_add_real_element_invalid_row()
+    call set_name("matrix datastructure: invalid row (real)")
     call matrix%add_element(row=0, column=3, element=1.0d0)
     @assertExceptionRaised("row/column index 0 is outside of matrix dimension")
     call matrix%add_element(row=6, column=2, element=1.0d0)
     @assertExceptionRaised("row/column index 6 is outside of matrix dimension")
-  end subroutine test_add_element_invalid_row
+  end subroutine test_add_real_element_invalid_row
 
 
   @test
-  subroutine test_add_element_invalid_column()
-    call set_name("matrix datastructure: invalid column")
+  subroutine test_add_real_element_invalid_column()
+    call set_name("matrix datastructure: invalid column (real)")
     call matrix%add_element(row=1, column=0, element=1.0d0)
     @assertExceptionRaised("row/column index 0 is outside of matrix dimension")
     call matrix%add_element(row=2, column=7, element=1.0d0)
     @assertExceptionRaised("row/column index 7 is outside of matrix dimension")
-  end subroutine test_add_element_invalid_column
+  end subroutine test_add_real_element_invalid_column
 
 
   @test
@@ -86,15 +76,6 @@ contains
     @assertEqual(0, matrix%rows(1)%nb_elements)
     @assertFalse(associated(matrix%rows(1)%head))
   end subroutine test_add_zero_real_element
-
-
-  @test
-  subroutine test_add_zero_complex_element()
-    call set_name("matrix datastructure: add complex zero")
-    call matrix%add_element(row=1, column=1, element=(0.0d0, 0.0d0))
-    @assertEqual(0, matrix%rows(1)%nb_elements)
-    @assertFalse(associated(matrix%rows(1)%head))
-  end subroutine test_add_zero_complex_element
 
 
   @test
@@ -172,4 +153,32 @@ contains
     end do
   end subroutine test_add_real_multiple_columns
 
-end module mod_test_matrix_structure
+
+  @test
+  subroutine test_add_real_to_existing_node()
+    integer :: i, row, col
+    real(dp) :: element
+
+    call set_name("matrix datastructure: add to existing nodes (real)")
+    row = 2
+    col = 3
+    do i = 1, 5
+      element = 2.5d0 * i
+      call matrix%add_element(row=row, column=i, element=element)
+    end do
+    call matrix%get_element(row=row, column=col, element=element)
+    @assertEqual(7.5d0, element, tolerance=TOL)
+    @assertEqual(5, matrix%rows(row)%nb_elements)
+
+    call matrix%add_element(row=row, column=col, element=2.5d0)
+    call matrix%get_element(row=row, column=col, element=element)
+    @assertEqual(5, matrix%rows(row)%nb_elements)
+    @assertEqual(10.0d0, element, tolerance=TOL)
+
+    call matrix%add_element(row=row, column=1, element=-7.5d0)
+    call matrix%get_element(row=row, column=1, element=element)
+    @assertEqual(5, matrix%rows(row)%nb_elements)
+    @assertEqual(-5.0d0, element, tolerance=TOL)
+  end subroutine test_add_real_to_existing_node
+
+end module mod_test_matrix_structure_real
