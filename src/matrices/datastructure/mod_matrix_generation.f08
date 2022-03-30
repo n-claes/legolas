@@ -7,6 +7,7 @@ module mod_matrix_generation
 
   interface generate_array_from_matrix
     module procedure generate_real_array_from_matrix
+    module procedure generate_complex_array_from_matrix
   end interface generate_array_from_matrix
 
   public :: generate_matrix_from_array
@@ -14,6 +15,8 @@ module mod_matrix_generation
 
 contains
 
+
+  !> Converts a given 2D array to the linked-list matrix datastructure.
   function generate_matrix_from_array(array) result(matrix)
     !> the array used to generate the matrix datastructure
     class(*), intent(in) :: array(:, :)
@@ -30,13 +33,35 @@ contains
   end function generate_matrix_from_array
 
 
-  function generate_real_array_from_matrix(matrix) result(array)
+  !> Converts a given matrix data structure with real nodes to a 2D real array.
+  subroutine generate_real_array_from_matrix(matrix, array)
     !> the matrix datastructure used to generate the array
     type(matrix_t), intent(in) :: matrix
     !> the real 2D array generated from the matrix
-    real(dp) :: array(matrix%matrix_dim, matrix%matrix_dim)
+    real(dp), intent(out) :: array(matrix%matrix_dim, matrix%matrix_dim)
+    integer :: irow, icol
 
-    array = 0.0d0
-  end function generate_real_array_from_matrix
+    do icol = 1, matrix%matrix_dim
+      do irow = 1, matrix%matrix_dim
+        array(irow, icol) = matrix%get_real_element(row=irow, column=icol)
+      end do
+    end do
+  end subroutine generate_real_array_from_matrix
+
+
+  !> Converts a given matrix data structure with complex nodes to a 2D complex array.
+  subroutine generate_complex_array_from_matrix(matrix, array)
+    !> the matrix datastructure used to generate the array
+    type(matrix_t), intent(in) :: matrix
+    !> the complex 2D array generated from the matrix
+    complex(dp), intent(out) :: array(matrix%matrix_dim, matrix%matrix_dim)
+    integer :: irow, icol
+
+    do icol = 1, matrix%matrix_dim
+      do irow = 1, matrix%matrix_dim
+        array(irow, icol) = matrix%get_complex_element(row=irow, column=icol)
+      end do
+    end do
+  end subroutine generate_complex_array_from_matrix
 
 end module mod_matrix_generation

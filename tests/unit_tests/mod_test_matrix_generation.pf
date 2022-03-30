@@ -80,7 +80,7 @@ contains
 
 
   @test
-  subroutine test_generation_matrix_to_complex_array()
+  subroutine test_generation_matrix_to_real_array()
     real(dp) :: expected(4, 4) = reshape( &
       [ &
         1.0d0, 1.0d0, 0.0d0, 0.0d0, &
@@ -90,7 +90,9 @@ contains
       ], &
       shape=[4, 4] &
     )
-    call set_name("matrix generation: matrix -> complex array")
+    real(dp) :: actual(4, 4)
+
+    call set_name("matrix generation: matrix -> real array")
     matrix = new_matrix(nb_rows=4)
     call matrix%add_element(row=1, column=1, element=1.0d0)
     call matrix%add_element(row=2, column=1, element=1.0d0)
@@ -100,7 +102,38 @@ contains
     call matrix%add_element(row=4, column=3, element=-1.0d0)
     call matrix%add_element(row=3, column=4, element=8.0d0)
     call matrix%add_element(row=4, column=4, element=-4.0d0)
-    @assertEqual(expected, generate_array_from_matrix(matrix), tolerance=TOL)
+    call generate_array_from_matrix(matrix=matrix, array=actual)
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_generation_matrix_to_real_array
+
+
+  @test
+  subroutine test_generation_matrix_to_complex_array()
+    complex(dp) :: expected(4, 4) = reshape( &
+      [ &
+        (2.0d0, 7.0d0), (2.0d0, -3.0d0), (0.0d0, 0.0d0), (2.0d0, -1.0d0), &
+        (0.0d0, 0.0d0), (3.0d0, 1.0d0), (0.0d0, 0.0d0), (2.0d0, 2.0d0), &
+        (0.0d0, 5.0d0), (0.0d0, 0.0d0), (-2.0d0, 0.0d0), (0.0d0, 0.0d0), &
+        (0.0d0, 1.0d0), (1.0d0, 6.0d0), (0.0d0, -1.0d0), (0.0d0, 0.0d0) &
+      ], &
+      shape=[4, 4] &
+    )
+    complex(dp) :: actual(4, 4)
+
+    call set_name("matrix generation: matrix -> complex array")
+    matrix = new_matrix(nb_rows=4)
+    call matrix%add_element(row=1, column=1, element=(2.0d0, 7.0d0))
+    call matrix%add_element(row=2, column=1, element=(2.0d0, -3.0d0))
+    call matrix%add_element(row=4, column=1, element=(2.0d0, -1.0d0))
+    call matrix%add_element(row=2, column=2, element=(3.0d0, 1.0d0))
+    call matrix%add_element(row=4, column=2, element=(2.0d0, 2.0d0))
+    call matrix%add_element(row=1, column=3, element=(0.0d0, 5.0d0))
+    call matrix%add_element(row=3, column=3, element=(-2.0d0, 0.0d0))
+    call matrix%add_element(row=1, column=4, element=(0.0d0, 1.0d0))
+    call matrix%add_element(row=2, column=4, element=(1.0d0, 6.0d0))
+    call matrix%add_element(row=3, column=4, element=(0.0d0, -1.0d0))
+    call generate_array_from_matrix(matrix=matrix, array=actual)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_generation_matrix_to_complex_array
 
 end module mod_test_matrix_generation
