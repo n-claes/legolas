@@ -1,0 +1,59 @@
+module mod_test_matrix_maths
+  use mod_suite_utils
+  use funit
+  use mod_matrix_structure, only: matrix_t, new_matrix
+  use mod_matrix_generation, only: generate_matrix_from_array, &
+    generate_array_from_matrix
+
+  real(dp) :: rmat1(4, 4) = reshape( &
+    [ &
+      3.0d0, 0.0d0, -1.0d0, 0.0d0, &
+      0.0d0, 1.0d0, 0.0d0, 0.0d0, &
+      7.0d0, 0.0d0, 2.0d0, -1.0d0, &
+      -1.0d0, 5.0d0, 8.0d0, 4.0d0 &
+    ], &
+    shape=[4, 4] &
+  )
+  real(dp) :: rmat2(4, 4) = reshape( &
+    [ &
+      4.0d0, -1.0d0, 0.0d0, 3.0d0, &
+      -2.0d0, 0.0d0, 1.0d0, 2.0d0, &
+      7.0d0, -3.0d0, 0.0d0, -1.0d0, &
+      -1.0d0, 0.0d0, -3.0d0, 3.0d0 &
+    ], &
+    shape=[4, 4] &
+  )
+
+  type(matrix_t) :: result_matrix, matrix1, matrix2
+
+contains
+
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    matrix1 = generate_matrix_from_array(array=rmat1)
+    matrix2 = generate_matrix_from_array(array=rmat2)
+  end subroutine init_test
+
+
+  @after
+  subroutine tear_down()
+    call matrix1%delete_matrix()
+    call matrix2%delete_matrix()
+    call result_matrix%delete_matrix()
+  end subroutine tear_down
+
+
+  @test
+  subroutine test_real_matrix_addition()
+    real(dp) :: actual(4, 4), expected(4, 4)
+
+    call set_name("matrix maths: real matrix addition")
+    expected = rmat1 + rmat2
+    result_matrix = matrix1 + matrix2
+    call generate_array_from_matrix(result_matrix, actual)
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_real_matrix_addition
+
+end module mod_test_matrix_maths

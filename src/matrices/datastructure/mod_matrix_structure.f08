@@ -21,7 +21,23 @@ module mod_matrix_structure
     procedure :: get_complex_element
     procedure :: get_total_nb_elements
     procedure :: delete_matrix
+
+    procedure, private :: add_matrices
+    generic :: operator(+) => add_matrices
   end type matrix_T
+
+  ! interface for submodule implementations
+  interface
+    !> Overloads the addition operator between two matrix datastructures
+    module function add_matrices(matrix1, matrix2) result(matrix)
+      !> left-hand side of + operator
+      class(matrix_t), intent(in) :: matrix1
+      !> right-hand side of + operator
+      class(matrix_t), intent(in) :: matrix2
+      !> result of addition
+      type(matrix_t) :: matrix
+    end function add_matrices
+  end interface
 
   public :: new_matrix
 
