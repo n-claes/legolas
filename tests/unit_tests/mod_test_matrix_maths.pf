@@ -23,8 +23,26 @@ module mod_test_matrix_maths
     ], &
     shape=[4, 4] &
   )
+  complex(dp) :: cmat1(4, 4) = reshape( &
+    [ &
+      (2.0d0, 1.0d0), (-3.0d0, 1.0d0), (0.0d0, 0.0d0), (0.0d0, 0.0d0), &
+      (-3.5d0, -2.0d0), (1.4d0, 1.2d0), (-1.9d0, -2.4d0), (0.0d0, 0.0d0), &
+      (0.0d0, 0.0d0), (0.0d0, 0.0d0), (3.0d0, 2.1d0), (2.9d0, 7.4d0), &
+      (-5.0d1, 8.3d0), (4.5d0, -9.5d0), (0.0d0, 7.5d0), (2.9d0, 3.5d0) &
+    ], &
+    shape=[4, 4] &
+  )
+  complex(dp) :: cmat2(4, 4) = reshape( &
+    [ &
+      (7.0d0, 1.0d0), (-3.0d0, -5.0d0), (0.0d0, 0.0d0), (0.0d0, 2.3d0), &
+      (-3.5d0, -2.0d0), (1.4d0, 5.2d0), (-1.9d0, -2.4d0), (1.0d0, 0.0d0), &
+      (0.0d0, 5.0d0), (3.0d0, 0.1d0), (3.0d2, 2.1d0), (-2.9d0, 7.4d0), &
+      (4.0d1, 2.3d0), (4.5d0, -9.5d0), (0.8d0, -1.0d0), (2.9d0, 3.5d0) &
+    ], &
+    shape=[4, 4] &
+  )
 
-  type(matrix_t) :: result_matrix, matrix1, matrix2
+  type(matrix_t) :: matrix, matrix1, matrix2
 
 contains
 
@@ -32,8 +50,6 @@ contains
   @before
   subroutine init_test()
     call reset_globals()
-    matrix1 = generate_matrix_from_array(array=rmat1)
-    matrix2 = generate_matrix_from_array(array=rmat2)
   end subroutine init_test
 
 
@@ -41,7 +57,7 @@ contains
   subroutine tear_down()
     call matrix1%delete_matrix()
     call matrix2%delete_matrix()
-    call result_matrix%delete_matrix()
+    call matrix%delete_matrix()
   end subroutine tear_down
 
 
@@ -50,10 +66,56 @@ contains
     real(dp) :: actual(4, 4), expected(4, 4)
 
     call set_name("matrix maths: real matrix addition")
+    matrix1 = generate_matrix_from_array(array=rmat1)
+    matrix2 = generate_matrix_from_array(array=rmat2)
+    matrix = matrix1 + matrix2
+    call generate_array_from_matrix(matrix, actual)
+
     expected = rmat1 + rmat2
-    result_matrix = matrix1 + matrix2
-    call generate_array_from_matrix(result_matrix, actual)
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_real_matrix_addition
+
+
+  @test
+  subroutine test_complex_matrix_addition()
+    complex(dp) :: actual(4, 4), expected(4, 4)
+
+    call set_name("matrix maths: complex matrix addition")
+    matrix1 = generate_matrix_from_array(array=cmat1)
+    matrix2 = generate_matrix_from_array(array=cmat2)
+    matrix = matrix1 + matrix2
+    call generate_array_from_matrix(matrix, actual)
+
+    expected = cmat1 + cmat2
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_complex_matrix_addition
+
+
+  @test
+  subroutine test_matrix_real_vector_multiplication()
+    real(dp) :: vector(4), expected(4), actual(4)
+
+    call set_name("matrix maths: matrix and real vector multiplication")
+    vector = [-1.0d0, 2.5d0, -1.2d0, 4.5d0]
+    matrix = generate_matrix_from_array(array=rmat1)
+    actual = matrix * vector
+
+    expected = matmul(rmat1, vector)
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_matrix_real_vector_multiplication
+
+
+  @test
+  subroutine test_matrix_complex_vector_multiplication()
+    complex(dp) :: vector(4), expected(4), actual(4)
+
+    call set_name("matrix maths: matrix and complex vector multiplication")
+    vector = [(1.2d0, -3.9d0), (-2.6d0, 1.0d0), (0.0d0, 0.0d0), (-3.4d0, 7.5d0)]
+    matrix = generate_matrix_from_array(array=cmat1)
+    actual = matrix * vector
+
+    expected = matmul(cmat1, vector)
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_matrix_complex_vector_multiplication
 
 end module mod_test_matrix_maths

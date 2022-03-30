@@ -24,6 +24,9 @@ module mod_matrix_structure
 
     procedure, private :: add_matrices
     generic :: operator(+) => add_matrices
+    procedure, private :: matrix_x_real_vector
+    procedure, private :: matrix_x_complex_vector
+    generic :: operator(*) => matrix_x_real_vector, matrix_x_complex_vector
   end type matrix_T
 
   ! interface for submodule implementations
@@ -37,6 +40,26 @@ module mod_matrix_structure
       !> result of addition
       type(matrix_t) :: matrix
     end function add_matrices
+
+    !> Overloads the multiplication operator between a matrix and a real vector
+    module function matrix_x_real_vector(matrix, vector) result(array)
+      !> left-hand side
+      class(matrix_t), intent(in) :: matrix
+      !> right-hand side
+      real(dp), intent(in) :: vector(matrix%matrix_dim)
+      !> result of multiplication
+      real(dp) :: array(matrix%matrix_dim)
+    end function matrix_x_real_vector
+
+    !> Overloads the multiplication operator between a matrix and a complex vector
+    module function matrix_x_complex_vector(matrix, vector) result(array)
+      !> left-hand side
+      class(matrix_t), intent(in) :: matrix
+      !> right-hand side
+      complex(dp), intent(in) :: vector(matrix%matrix_dim)
+      !> result of multiplication
+      complex(dp) :: array(matrix%matrix_dim)
+    end function matrix_x_complex_vector
   end interface
 
   public :: new_matrix

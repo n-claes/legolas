@@ -68,7 +68,6 @@ contains
 
     ! fixed wall: v1 should be zero
     cubic_vars_to_zero_out = ["v1"]
-    write(*, *) cubic_vars_to_zero_out
     if (boundary_type == "wall") then
       cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a2", "a3"]
     else if (boundary_type == "wall_weak") then
