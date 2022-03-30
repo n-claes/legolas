@@ -107,7 +107,8 @@ contains
 
   !> Returns the real element associated with the linked-list node at position
   !! (row, column) in the matrix datastructure. Throws appropriate errors if the
-  !! requested node does not exist or if the element types do not match.
+  !! node element types do not match. Non-existing nodes correspond to zero elements,
+  !! so in that case this function returns (real) zero.
   function get_real_element(this, row, column) result(element)
     !> type instance
     class(matrix_t), intent(in) :: this
@@ -119,8 +120,9 @@ contains
     real(dp) :: element
     type(node_t), pointer :: node
 
+    ! if node is not present then element is zero
+    element = 0.0d0
     node => this%rows(row)%get_node(column=column)
-    call validate_retrieved_node(node, column)
     if (associated(node)) call node%get_node_element(element)
     nullify(node)
   end function get_real_element
@@ -128,7 +130,8 @@ contains
 
   !> Returns the complex element associated with the linked-list node at position
   !! (row, column) in the matrix datastructure. Throws appropriate errors if the
-  !! requested node does not exist or if the element types do not match.
+  !! node element types do not match. Non-existing nodes correspond to zero elements,
+  !! so in that case this function returns (complex) zero.
   function get_complex_element(this, row, column) result(element)
     !> type instance
     class(matrix_t), intent(in) :: this
@@ -140,8 +143,8 @@ contains
     complex(dp) :: element
     type(node_t), pointer :: node
 
+    element = (0.0d0, 0.0d0)
     node => this%rows(row)%get_node(column=column)
-    call validate_retrieved_node(node, column)
     if (associated(node)) call node%get_node_element(element)
     nullify(node)
   end function get_complex_element
@@ -160,22 +163,6 @@ contains
       total_nb_elements = total_nb_elements + this%rows(i)%nb_elements
     end do
   end function get_total_nb_elements
-
-
-  !> Checks if the retrieved node for the given column index is indeed present.
-  subroutine validate_retrieved_node(node, column)
-    !> the node to check
-    type(node_t), pointer, intent(in) :: node
-    !> the column index
-    integer, intent(in) :: column
-
-    if (.not. associated(node)) then
-      call log_message( &
-        "node with column index " // str(column) // " does not exist", &
-        level="error" &
-      )
-    end if
-  end subroutine validate_retrieved_node
 
 
   !> Deallocates the matrix datastructure, nullifies all corresponding pointers and

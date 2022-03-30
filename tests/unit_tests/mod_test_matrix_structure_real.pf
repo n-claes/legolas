@@ -94,10 +94,8 @@ contains
 
   @test
   subroutine test_get_real_element_not_present()
-    real(dp) :: element
     call set_name("matrix datastructure: get real not present")
-    element = matrix%get_real_element(1, 2)
-    @assertExceptionRaised("node with column index 2 does not exist")
+    @assertEqual(0.0d0, matrix%get_real_element(1, 2), tolerance=TOL)
   end subroutine test_get_real_element_not_present
 
 
@@ -114,7 +112,6 @@ contains
   @test
   subroutine test_add_real_multiple_rows()
     integer :: i
-    real(dp) :: element
     call set_name("matrix datastructure: add multiple rows (real)")
     do i = 1, 5
       call matrix%add_element(row=i, column=2, element=i * 2.0d0 - 6.0d0)
@@ -123,8 +120,7 @@ contains
     @assertEqual(-2.0d0, matrix%get_real_element(2, 2), tolerance=TOL)
     @assertEqual(2.0d0, matrix%get_real_element(4, 2), tolerance=TOL)
     @assertEqual(4.0d0, matrix%get_real_element(5, 2), tolerance=TOL)
-    element = matrix%get_real_element(3, 2)
-    @assertExceptionRaised("node with column index 2 does not exist")
+    @assertEqual(0.0d0, matrix%get_real_element(3, 2), tolerance=TOL)
   end subroutine test_add_real_multiple_rows
 
 

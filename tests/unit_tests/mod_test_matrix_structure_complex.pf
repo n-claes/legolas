@@ -70,10 +70,8 @@ contains
 
   @test
   subroutine test_get_complex_element_not_present()
-    complex(dp) :: element
     call set_name("matrix datastructure: get complex not present")
-    element = matrix%get_complex_element(row=2, column=3)
-    @assertExceptionRaised("node with column index 3 does not exist")
+    @assertEqual((0.0d0, 0.0d0), matrix%get_complex_element(2, 3), tolerance=TOL)
   end subroutine test_get_complex_element_not_present
 
 
@@ -122,14 +120,12 @@ contains
   @test
   subroutine test_add_complex_to_existing_node()
     integer :: i, row, col
-    complex(dp) :: element
 
     call set_name("matrix datastructure: add to existing nodes (real)")
     row = 2
     col = 1
     do i = 1, 5
-      element = i * (2.2d0, -4.5d0)
-      call matrix%add_element(row=row, column=i, element=element)
+      call matrix%add_element(row=row, column=i, element=i * (2.2d0, -4.5d0))
     end do
     @assertEqual((2.2d0, -4.5d0), matrix%get_complex_element(row, col), tolerance=TOL)
     @assertEqual(5, matrix%rows(row)%nb_elements)
