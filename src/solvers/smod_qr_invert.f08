@@ -77,10 +77,19 @@ contains
     ldB_invA = N
     ldvl = N
     ldvr = N
-    ! set work arrays
-    lwork = 4 * N
-    allocate(work(lwork))
+    ! allocate rwork array
     allocate(rwork(2 * N))
+    ! get lwork
+    allocate(work(1))
+    call zgeev( &
+      jobvl, jobvr, N, array_B_invA, ldB_invA, omega, &
+      vl, ldvl, vr, ldvr, work, -1, rwork, info &
+    )
+    lwork = int(work(1))
+    deallocate(work)
+    ! allocate work array
+    allocate(work(lwork))
+
 
     ! solve eigenvalue problem
     call log_message("solving evp using QR algorithm zgeev (LAPACK)", level="debug")

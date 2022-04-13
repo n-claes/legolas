@@ -56,9 +56,7 @@ contains
 
     mat_inv = mat
     rows_mat = size(mat, dim=1)
-    lwork = 4 * rows_mat
     allocate(ipiv(rows_mat))
-    allocate(work(lwork))
     ! calculate pivot indices
     call log_message("LU factorisation of matrix using dgetrf", level="debug")
     call dgetrf(rows_mat, rows_mat, mat_inv, rows_mat, ipiv, info)
@@ -68,6 +66,13 @@ contains
         level="warning" &
       )
     end if
+    ! get optimal lwork
+    allocate(work(1))
+    call dgetri(rows_mat, mat_inv, rows_mat, ipiv, work, -1, info)
+    lwork = int(work(1))
+    deallocate(work)
+    ! allocate work array
+    allocate(work(lwork))
     ! invert matrix
     call log_message("inverting matrix using dgetri", level="debug")
     call dgetri(rows_mat, mat_inv, rows_mat, ipiv, work, lwork, info)
@@ -109,9 +114,7 @@ contains
     end if
     mat_inv = mat
     rows_mat = size(mat, dim=1)
-    lwork = 4 * rows_mat
     allocate(ipiv(rows_mat))
-    allocate(work(lwork))
     ! calculate pivot indices
     call log_message("LU factorisation of matrix using zgetrf", level="debug")
     call zgetrf(rows_mat, rows_mat, mat_inv, rows_mat, ipiv, info)
@@ -121,6 +124,13 @@ contains
         level="warning" &
         )
     end if
+    ! get optimal lwork
+    allocate(work(1))
+    call zgetri(rows_mat, mat_inv, rows_mat, ipiv, work, -1, info)
+    lwork = int(work(1))
+    deallocate(work)
+    ! allocate work array
+    allocate(work(lwork))
     ! invert matrix
     call log_message("inverting matrix using zgetri", level="debug")
     call zgetri(rows_mat, mat_inv, rows_mat, ipiv, work, lwork, info)
