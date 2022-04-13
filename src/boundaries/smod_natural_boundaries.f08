@@ -56,34 +56,70 @@ submodule (mod_boundary_manager) smod_natural_boundaries
 contains
 
   module procedure apply_natural_boundaries_left
+    complex(dp) :: quadblock(dim_quadblock, dim_quadblock)
+    integer :: i, j
+
+    quadblock = (0.0d0, 0.0d0)
     call set_basis_functions(edge="left")
 
-    if (matrix == "A") then
+    if (matrix%get_label() == "A") then
       call add_natural_regular_terms(quadblock)
       call add_natural_flow_terms(quadblock)
       call add_natural_resistive_terms(quadblock)
       call add_natural_conduction_terms(quadblock)
       call add_natural_viscosity_terms(quadblock)
       call add_natural_hall_terms(quadblock)
-    else if (matrix == "B") then
+    else if (matrix%get_label() == "B") then
       call add_natural_hall_Bterms(quadblock)
     end if
+    ! add quadblock elements to left edge
+    do j = 1, dim_quadblock
+      do i = 1, dim_quadblock
+        if (matrix%get_label() == "A") then
+          call matrix%add_element(row=i, column=j, element=quadblock(i, j))
+        else
+          call matrix%add_element(row=i, column=j, element=real(quadblock(i, j)))
+        end if
+      end do
+    end do
   end procedure apply_natural_boundaries_left
 
 
   module procedure apply_natural_boundaries_right
+    complex(dp) :: quadblock(dim_quadblock, dim_quadblock)
+    integer :: i, j, qb_r_idx_start
+
     call set_basis_functions(edge="right")
 
-    if (matrix == "A") then
+    ! starting row/col index of last quadblock
+    qb_r_idx_start = matrix%matrix_dim - dim_quadblock + 1
+
+    if (matrix%get_label() == "A") then
       call add_natural_regular_terms(quadblock)
       call add_natural_flow_terms(quadblock)
       call add_natural_resistive_terms(quadblock)
       call add_natural_conduction_terms(quadblock)
       call add_natural_viscosity_terms(quadblock)
       call add_natural_hall_terms(quadblock)
-    else if (matrix == "B") then
+    else if (matrix%get_label() == "B") then
       call add_natural_hall_Bterms(quadblock)
     end if
+    ! add quadblock elements to right edge
+    do j = 1, dim_quadblock
+      do i = 1, dim_quadblock
+        if (matrix%get_label() == "A") then
+          call matrix%add_element( &
+            row=i + qb_r_idx_start, column=j + qb_r_idx_start, element=quadblock(i, j) &
+          )
+        else
+          call matrix%add_element( &
+            row=i + qb_r_idx_start, &
+            column=j + qb_r_idx_start, &
+            element=real(quadblock(i, j)) &
+          )
+        end if
+      end do
+    end do
   end procedure apply_natural_boundaries_right
 
 

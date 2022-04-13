@@ -6,6 +6,8 @@ module mod_solvers
   use mod_global_variables, only: dp, write_eigenfunctions
   use mod_logging, only: log_message, str
   use mod_check_values, only: set_small_values_to_zero
+  use mod_matrix_structure, only: matrix_t
+  use mod_matrix_generation, only: generate_array_from_matrix
   implicit none
 
   !> residual norm || Ax - \(\lambda\)Bx || of the eigenvalue problem
@@ -17,9 +19,9 @@ module mod_solvers
   interface
     module subroutine qr_invert(matrix_A, matrix_B, omega, vr)
       !> matrix A
-      complex(dp), intent(in)   :: matrix_A(:, :)
+      type(matrix_t), intent(in) :: matrix_A
       !> matrix B
-      real(dp), intent(in)      :: matrix_B(:, :)
+      type(matrix_t), intent(in) :: matrix_B
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
@@ -28,25 +30,25 @@ module mod_solvers
 
     module subroutine qz_direct(matrix_A, matrix_B, omega, vr)
       !> matrix A
-      complex(dp), intent(in)   :: matrix_A(:, :)
+      type(matrix_t), intent(in) :: matrix_A
       !> matrix B
-      real(dp), intent(in)      :: matrix_B(:, :)
+      type(matrix_t), intent(in) :: matrix_B
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine qz_direct
 
-    module subroutine arnoldi(matrix_A, matrix_B, omega, vr)
-      !> matrix A
-      complex(dp), intent(in)   :: matrix_A(:, :)
-      !> matrix B
-      real(dp), intent(in)      :: matrix_B(:, :)
-      !> array with eigenvalues
-      complex(dp), intent(out)  :: omega(:)
-      !> array with right eigenvectors
-      complex(dp), intent(out)  :: vr(:, :)
-    end subroutine arnoldi
+    ! module subroutine arnoldi(matrix_A, matrix_B, omega, vr)
+    !   !> matrix A
+    !   type(matrix_t), intent(in) :: matrix_A
+    !   !> matrix B
+    !   type(matrix_t), intent(in) :: matrix_B
+    !   !> array with eigenvalues
+    !   complex(dp), intent(out)  :: omega(:)
+    !   !> array with right eigenvectors
+    !   complex(dp), intent(out)  :: vr(:, :)
+    ! end subroutine arnoldi
   end interface
 
   public  :: residual_norm
@@ -63,9 +65,9 @@ contains
     use mod_global_variables, only: solver
 
     !> A-matrix
-    complex(dp), intent(in)   :: matrix_A(:, :)
+    type(matrix_t), intent(in) :: matrix_A
     !> B-matrix
-    real(dp), intent(in)      :: matrix_B(:, :)
+    type(matrix_t), intent(in) :: matrix_B
     !> eigenvalues
     complex(dp), intent(out)  :: omega(:)
     !> right eigenvectors
@@ -76,8 +78,8 @@ contains
       call qr_invert(matrix_A, matrix_B, omega, vr)
     case("QZ-direct")
       call qz_direct(matrix_A, matrix_B, omega, vr)
-    case("arnoldi")
-      call arnoldi(matrix_A, matrix_B, omega, vr)
+    ! case("arnoldi")
+    !   call arnoldi(matrix_A, matrix_B, omega, vr)
     case default
       call log_message("unknown solver passed: " // solver, level="error")
       return

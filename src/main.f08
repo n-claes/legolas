@@ -8,6 +8,7 @@
 !! KU Leuven, Belgium.
 program legolas
   use mod_global_variables, only: dp, str_len, show_results, dry_run
+  use mod_matrix_structure, only: matrix_t
   use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_name, create_datfile
@@ -16,9 +17,9 @@ program legolas
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
-  complex(dp), allocatable  :: matrix_A(:, :)
+  type(matrix_t) :: matrix_A
   !> B matrix in eigenvalue problem wBX = AX
-  real(dp), allocatable     :: matrix_B(:, :)
+  type(matrix_t) :: matrix_B
   !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
@@ -60,6 +61,7 @@ contains
     use mod_global_variables, only: initialise_globals, dim_matrix, &
       solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma, NaN, &
       state_vector
+    use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
     use mod_logging, only: print_logo
@@ -86,8 +88,8 @@ contains
     end if
     call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
     allocate(omega(nb_evs))
-    allocate(matrix_A(dim_matrix, dim_matrix))
-    allocate(matrix_B(dim_matrix, dim_matrix))
+    matrix_A = new_matrix(nb_rows=dim_matrix, label="A")
+    matrix_B = new_matrix(nb_rows=dim_matrix, label="B")
 
     call initialise_equilibrium()
     call set_equilibrium()
@@ -150,8 +152,8 @@ contains
     use mod_radiative_cooling, only: radiative_cooling_clean
     use mod_eigenfunctions, only: eigenfunctions_clean
 
-    deallocate(matrix_A)
-    deallocate(matrix_B)
+    call matrix_A%delete_matrix()
+    call matrix_B%delete_matrix()
     deallocate(omega)
     if (allocated(eigenvecs_right)) then
       deallocate(eigenvecs_right)
