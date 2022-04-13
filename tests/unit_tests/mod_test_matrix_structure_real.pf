@@ -33,8 +33,31 @@ contains
   subroutine test_teardown_matrix()
     type(matrix_t) :: test_matrix
     call set_name("matrix datastructure: deallocation")
+    test_matrix = new_matrix(nb_rows=10)
     call test_matrix%delete_matrix()
+    @assertFalse(allocated(test_matrix%rows))
   end subroutine test_teardown_matrix
+
+
+  @test
+  subroutine test_no_label_added()
+    call set_name("matrix datastructure: no label")
+    @assertEqual("", matrix%get_label())
+  end subroutine test_no_label_added
+
+
+  @test
+  subroutine test_add_label()
+    type(matrix_t) :: test_matrix
+    call set_name("matrix datastructure: add label")
+    test_matrix = new_matrix(nb_rows=5, label="test_matrix")
+    @assertEqual("test_matrix", test_matrix%get_label())
+    call test_matrix%delete_matrix()
+
+    test_matrix = new_matrix(nb_rows=5, label="A")
+    @assertEqual("A", test_matrix%get_label())
+    call test_matrix%delete_matrix()
+  end subroutine test_add_label
 
 
   @test

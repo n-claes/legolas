@@ -13,13 +13,17 @@ module mod_matrix_structure
     integer :: matrix_dim
     !> array containing the various rows
     type(row_t), allocatable :: rows(:)
+    !> label to distinguish between different matrix instances
+    character(:), allocatable, private :: label
 
     contains
 
     procedure :: add_element
+    procedure :: set_label
     procedure :: get_real_element
     procedure :: get_complex_element
     procedure :: get_total_nb_elements
+    procedure :: get_label
     procedure :: delete_matrix
 
     procedure, private :: add_matrices
@@ -68,9 +72,12 @@ contains
 
   !> Constructor for a new matrix matrix with a given number of rows.
   !! Allocates and initialises the matrix datatype.
-  pure function new_matrix(nb_rows) result(matrix)
+  pure function new_matrix(nb_rows, label) result(matrix)
     !> number of rows in the matrix
     integer, intent(in) :: nb_rows
+    !> label of the matrix
+    character(*), intent(in), optional :: label
+
     !> matrix datatype with rows/columns in a linked list
     type(matrix_t) :: matrix
     integer :: i
@@ -80,6 +87,11 @@ contains
     do i = 1, matrix%matrix_dim
       matrix%rows(i) = new_row()
     end do
+    if (present(label)) then
+      call matrix%set_label(label)
+    else
+      call matrix%set_label("")
+    end if
   end function new_matrix
 
 
@@ -102,6 +114,17 @@ contains
 
     call this%rows(row)%add_node(column, element)
   end subroutine add_element
+
+
+  !> Sets the label of the current matrix.
+  pure subroutine set_label(this, label)
+    !> type instance
+    class(matrix_t), intent(inout) :: this
+    !> label to set
+    character(len=*), intent(in) :: label
+
+    this%label = label
+  end subroutine set_label
 
 
   !> Checks if a given element is valid in order to add it to the matrix.
@@ -202,6 +225,17 @@ contains
       total_nb_elements = total_nb_elements + this%rows(i)%nb_elements
     end do
   end function get_total_nb_elements
+
+
+  !> Returns the current label.
+  pure function get_label(this) result(label)
+    !> type instance
+    class(matrix_t), intent(in) :: this
+    !> current matrix label
+    character(len(this%label)) :: label
+
+    label = this%label
+  end function get_label
 
 
   !> Deallocates the matrix datastructure, nullifies all corresponding pointers and
