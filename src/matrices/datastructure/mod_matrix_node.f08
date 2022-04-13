@@ -16,6 +16,8 @@ module mod_matrix_node
 
     contains
 
+    procedure :: delete
+
     procedure :: add_to_node_element
     procedure, private :: add_real_to_node_element
     procedure, private :: add_complex_to_node_element
@@ -43,6 +45,16 @@ contains
     node%column = column
     node%next => null()
   end function new_node
+
+
+  !> Destructor, deallocates the node attributes.
+  pure subroutine delete(this)
+    !> type instance
+    class(node_t), intent(inout) :: this
+
+    if (allocated(this%element)) deallocate(this%element)
+    nullify(this%next)
+  end subroutine delete
 
 
   !> Generic type-checking function to add a polymorphic element to the existing

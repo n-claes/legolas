@@ -21,6 +21,7 @@ module mod_matrix_row
     procedure :: add_node
     procedure :: get_node
     procedure :: delete_row
+    procedure :: delete_node
 
     procedure, private :: create_first_node
     procedure, private :: append_node
@@ -130,9 +131,64 @@ contains
   end function get_node
 
 
+  !> Deletes a given node from the current row.
+  subroutine delete_node(this, column)
+    !> type instance
+    class(row_t), intent(inout) :: this
+    !> column index of node to be deleted
+    integer, intent(in) :: column
+
+    type(node_t), pointer :: node
+    type(node_t), pointer :: next_node
+    integer :: i
+
+    node => this%head
+    ! check if head is the one being deleted
+    if (column == node%column) then
+      this%head => this%head%next
+      call node%delete()
+      call decrement_and_nullify()
+      return
+    end if
+
+    next_node => this%head%next
+    do i = 1, this%nb_elements
+      ! check if next node is tail and will be deleted
+      if (associated(next_node, this%tail) .and. column == next_node%column) then
+        call next_node%delete()
+        node%next => null()
+        this%tail => node
+        call decrement_and_nullify()
+        exit
+      end if
+      if (column == next_node%column) then
+        node%next => next_node%next
+        call next_node%delete()
+        call decrement_and_nullify()
+        exit
+      end if
+      node => next_node
+      next_node => next_node%next
+    end do
+    nullify(node)
+    nullify(next_node)
+
+    contains
+
+    !> Decrements the total number of nodes in the row and nullifies the node pointers
+    !! of the containing subroutine. Called whenever a node gets deleted.
+    subroutine decrement_and_nullify()
+      this%nb_elements = this%nb_elements - 1
+      nullify(node)
+      nullify(next_node)
+    end subroutine decrement_and_nullify
+  end subroutine delete_node
+
+
   !> Deletes a given linked list row by recursively iterating over all nodes.
   !! Nullifies the pointers and deallocates the elements.
   pure subroutine delete_row(this)
+    !> type instance
     class(row_t), intent(inout) :: this
 
     if (associated(this%head)) call delete_node(node=this%head)
@@ -150,8 +206,7 @@ contains
 
       next_node => null()
       if (associated(node%next)) next_node => node%next
-      deallocate(node%element)
-      nullify(node%next)
+      call node%delete()
       if (associated(next_node)) call delete_node(next_node)
       nullify(next_node)
     end subroutine delete_node

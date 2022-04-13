@@ -21,6 +21,16 @@ contains
   end subroutine tear_down
 
 
+  subroutine add_nodes_to_matrix(row)
+    integer, intent(in) :: row
+    integer :: i
+
+    do i = 1, 5
+      call matrix%add_element(row=row, column=i, element=2.0d0 * i)
+    end do
+  end subroutine add_nodes_to_matrix
+
+
   @test
   subroutine test_init_matrix()
     call set_name("matrix datastructure: initialisation")
@@ -58,6 +68,80 @@ contains
     @assertEqual("A", test_matrix%get_label())
     call test_matrix%delete_matrix()
   end subroutine test_add_label
+
+
+  @test
+  subroutine test_delete_node()
+    integer, parameter :: row = 2
+
+    call set_name("matrix datastructure: delete node")
+    call add_nodes_to_matrix(row=row)
+
+    @assertEqual(5, matrix%rows(row)%nb_elements)
+    @assertTrue(associated(matrix%rows(row)%get_node(column=3)))
+
+    call matrix%rows(row)%delete_node(column=3)
+    @assertEqual(4, matrix%rows(row)%nb_elements)
+    @assertFalse(associated(matrix%rows(row)%get_node(column=3)))
+    @assertTrue(associated(matrix%rows(row)%get_node(column=2)))
+    @assertTrue(associated(matrix%rows(row)%get_node(column=4)))
+  end subroutine test_delete_node
+
+
+  @test
+  subroutine test_delete_nodes_head()
+    integer, parameter :: row = 2
+    real(dp) :: element
+
+    call set_name("matrix datastructure: delete nodes (head)")
+    call add_nodes_to_matrix(row=row)
+
+    @assertEqual(5, matrix%rows(row)%nb_elements)
+    call matrix%rows(row)%delete_node(column=1)
+    @assertEqual(4, matrix%rows(row)%nb_elements)
+    @assertFalse(associated(matrix%rows(row)%get_node(column=1)))
+    @assertTrue(associated(matrix%rows(row)%head))
+    call matrix%rows(row)%head%get_node_element(element)
+    @assertEqual(4.0d0, element, tolerance=TOL)
+  end subroutine test_delete_nodes_head
+
+
+  @test
+  subroutine test_delete_nodes_tail()
+    integer, parameter :: row = 2
+    real(dp) :: element
+
+    call set_name("matrix datastructure: delete nodes (tail)")
+    call add_nodes_to_matrix(row=row)
+
+    @assertEqual(5, matrix%rows(row)%nb_elements)
+    call matrix%rows(row)%delete_node(column=5)
+    @assertFalse(associated(matrix%rows(row)%get_node(column=5)))
+    @assertEqual(4, matrix%rows(row)%nb_elements)
+    @assertTrue(associated(matrix%rows(row)%tail))
+    call matrix%rows(row)%tail%get_node_element(element)
+    @assertEqual(8.0d0, element, tolerance=TOL)
+  end subroutine test_delete_nodes_tail
+
+
+  @test
+  subroutine test_delete_nodes_multiple()
+    integer, parameter :: row = 2
+    real(dp) :: element
+
+    call set_name("matrix datastructure: delete nodes (multiple)")
+    call add_nodes_to_matrix(row=row)
+    call matrix%rows(row)%delete_node(column=2)
+    call matrix%rows(row)%delete_node(column=1)
+
+    @assertEqual(3, matrix%rows(row)%nb_elements)
+    @assertTrue(associated(matrix%rows(row)%head))
+    @assertTrue(associated(matrix%rows(row)%tail))
+    call matrix%rows(row)%head%get_node_element(element)
+    @assertEqual(6.0d0, element, tolerance=TOL)
+    call matrix%rows(row)%tail%get_node_element(element)
+    @assertEqual(10.0d0, element, tolerance=TOL)
+  end subroutine test_delete_nodes_multiple
 
 
   @test
