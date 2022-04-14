@@ -200,6 +200,10 @@ contains
     real(dp) :: B_element
     complex(dp) :: A_element
 
+    ! write total number of nonzero elements
+    write(dat_fh) matrix_B%get_total_nb_elements()
+    write(dat_fh) matrix_A%get_total_nb_elements()
+
     ! write matrix B
     do irow = 1, matrix_B%matrix_dim
       current_node => matrix_B%rows(irow)%head
