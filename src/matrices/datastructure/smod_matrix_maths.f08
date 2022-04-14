@@ -7,7 +7,7 @@ contains
     integer :: irow, inode
     type(node_t), pointer :: current_node
 
-    matrix = new_matrix(nb_rows=matrix1%matrix_dim)
+    matrix = new_matrix(nb_rows=max(matrix1%matrix_dim, matrix2%matrix_dim))
 
     do irow = 1, matrix1%matrix_dim
       current_node => matrix1%rows(irow)%head
@@ -17,6 +17,8 @@ contains
         )
         current_node => current_node%next
       end do
+    end do
+    do irow = 1, matrix2%matrix_dim
       current_node => matrix2%rows(irow)%head
       do inode = 1, matrix2%rows(irow)%nb_elements
         call matrix%add_element( &
