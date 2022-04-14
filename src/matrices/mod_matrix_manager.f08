@@ -6,6 +6,8 @@ module mod_matrix_manager
   use mod_equilibrium_params, only: k2, k3
   use mod_logging, only: log_message, str
   use mod_matrix_shortcuts, only: get_G_operator, get_F_operator, get_wv_operator
+
+  use mod_matrix_generation, only: generate_matrix_from_array
   implicit none
 
   !> quadratic basis functions
@@ -114,6 +116,13 @@ contains
     integer :: i, j, k, l, idx1, idx2
     integer :: quadblock_idx, gauss_idx
 
+    complex(dp) :: amat(matrix_A%matrix_dim, matrix_A%matrix_dim)
+    real(dp) :: bmat(matrix_B%matrix_dim, matrix_B%matrix_dim)
+
+
+    amat = (0.0d0, 0.0d0)
+    bmat = 0.0d0
+
     ! used to shift the quadblock along the main diagonal
     quadblock_idx = 0
 
@@ -176,14 +185,19 @@ contains
         do l = 1, dim_quadblock
           idx1 = k + quadblock_idx
           idx2 = l + quadblock_idx
-          call matrix_A%add_element(row=idx1, column=idx2, element=quadblock_A(k, l))
-          call matrix_B%add_element( &
-            row=idx1, column=idx2, element=real(quadblock_B(k, l)) &
-          )
+          bmat(idx1, idx2) = bmat(idx1, idx2) + real(quadblock_B(k, l))
+          amat(idx1, idx2) = amat(idx1, idx2) + quadblock_A(k, l)
+          ! call matrix_A%add_element(row=idx1, column=idx2, element=quadblock_A(k, l))
+          ! call matrix_B%add_element( &
+            ! row=idx1, column=idx2, element=real(quadblock_B(k, l)) &
+          ! )
         end do
       end do
       quadblock_idx = quadblock_idx + dim_subblock
     end do
+
+    matrix_A = generate_matrix_from_array(array=amat, label="A")
+    matrix_B = generate_matrix_from_array(array=bmat, label="B")
 
     ! apply boundary conditions
     call apply_boundary_conditions(matrix_A, matrix_B)
