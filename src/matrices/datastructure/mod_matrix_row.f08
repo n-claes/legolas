@@ -7,8 +7,6 @@ module mod_matrix_row
 
   !> Linked list for a given row index, contains the column values
   type, public :: row_t
-    !> initialisation check
-    logical :: initialised = .false.
     !> number of elements in linked list
     integer :: nb_elements
     !> pointer to head (first element added)
@@ -36,7 +34,6 @@ contains
   pure function new_row() result(row)
     type(row_t) :: row
 
-    row%initialised = .true.
     row%nb_elements = 0
     row%head => null()
     row%tail => null()
@@ -142,6 +139,9 @@ contains
     type(node_t), pointer :: next_node
     integer :: i
 
+    ! do nothing for empty rows
+    if (.not. associated(this%head)) return
+
     node => this%head
     ! check if head is the one being deleted
     if (column == node%column) then
@@ -152,7 +152,8 @@ contains
     end if
 
     next_node => this%head%next
-    do i = 1, this%nb_elements
+    ! -1 since we're working with current and next nodes, head and tail are checked
+    do i = 1, this%nb_elements - 1
       ! check if next node is tail and will be deleted
       if (associated(next_node, this%tail) .and. column == next_node%column) then
         call next_node%delete()
@@ -194,7 +195,6 @@ contains
     if (associated(this%head)) call delete_node(node=this%head)
     nullify(this%head)
     nullify(this%tail)
-    this%initialised = .false.
     this%nb_elements = 0
 
     contains

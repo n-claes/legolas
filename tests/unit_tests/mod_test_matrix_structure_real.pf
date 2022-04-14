@@ -145,6 +145,31 @@ contains
 
 
   @test
+  subroutine test_delete_node_empty_row()
+    integer, parameter :: row = 3
+
+    call set_name("matrix datastructure: delete nodes (empty row)")
+    call add_nodes_to_matrix(row=row)
+    call matrix%rows(row)%delete_row()
+    @assertEqual(0, matrix%rows(row)%nb_elements)
+    @assertFalse(associated(matrix%rows(row)%head))
+    call matrix%rows(row)%delete_node(column=2)
+  end subroutine test_delete_node_empty_row
+
+
+  @test
+  subroutine test_delete_node_not_present()
+    integer, parameter :: row = 3
+
+    call set_name("matrix datastructure: delete node (not present)")
+    call add_nodes_to_matrix(row=row)
+    call matrix%rows(row)%delete_node(column=3)
+    @assertEqual(4, matrix%rows(row)%nb_elements)
+    call matrix%rows(row)%delete_node(column=3)
+  end subroutine test_delete_node_not_present
+
+
+  @test
   subroutine test_add_single_real_element()
     call set_name("matrix datastructure: add real")
     @assertEqual(0, matrix%rows(1)%nb_elements)
