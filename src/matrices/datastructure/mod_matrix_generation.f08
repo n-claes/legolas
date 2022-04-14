@@ -17,14 +17,16 @@ contains
 
 
   !> Converts a given 2D array to the linked-list matrix datastructure.
-  function generate_matrix_from_array(array) result(matrix)
+  function generate_matrix_from_array(array, label) result(matrix)
     !> the array used to generate the matrix datastructure
     class(*), intent(in) :: array(:, :)
+    !> optional label for matrix structure
+    character(len=*), intent(in), optional :: label
     !> matrix datastructure corresponding to the array
     type(matrix_t) :: matrix
     integer :: irow, icol
 
-    matrix = new_matrix(nb_rows=size(array, dim=1))
+    matrix = new_matrix(nb_rows=size(array, dim=1), label=label)
     do icol = 1, size(array, dim=2)
       do irow = 1, size(array, dim=1)
         call matrix%add_element(row=irow, column=icol, element=array(irow, icol))
