@@ -199,7 +199,7 @@ contains
 
     !! physics variables
     cgs_units = .true.
-    gamma = 5.0d0/3.0d0
+    call set_gamma(5.0d0/3.0d0)
     incompressible = .false.
     flow = .false.
     radiative_cooling = .false.
