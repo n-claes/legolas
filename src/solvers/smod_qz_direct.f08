@@ -85,7 +85,7 @@ contains
     ! solve eigenvalue problem
     call log_message("solving evp using QZ algorithm zggev (LAPACK)", level="debug")
     call zggev( &
-      jobvl, jobvr, N, matrix_A, lda, cmplx(array_B, kind=dp), ldb, &
+      jobvl, jobvr, N, array_A, lda, cmplx(array_B, kind=dp), ldb, &
       alpha, beta, vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )
     if (info /= 0) then ! LCOV_EXCL_START
