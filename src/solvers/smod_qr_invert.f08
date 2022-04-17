@@ -2,13 +2,13 @@
 !> Submodule containing the implementation of the QR-invert algorithm.
 !! The original problem is written as a standard eigenvalue problem through
 !! $$ \mathcal{B}^{-1}\mathcal{A}\textbf{X} = \omega\textbf{X}\ $$
-!! where \(\mathcal{B}\) is always properly conditioned.
-!! Various calls to <tt>mod_matrix_operations</tt> are done to invert the
-!! B-matrix and to do matrix multiplications.
+!! where \(\mathcal{B}\) is positive definite. This is done using a Cholesky
+!! decomposition via LAPACKS's <tt>zpbsv</tt>.
 !! Eventually a call to LAPACK's <tt>zgeev</tt> routine is done to obtain
 !! all eigenvalues and eigenvectors.
 submodule (mod_solvers) smod_qr_invert
-  use mod_matrix_operations, only: invert_matrix, multiply_matrices
+  use mod_global_variables, only: dim_subblock
+  use mod_banded_matrices
   implicit none
 
 contains
@@ -20,12 +20,11 @@ contains
   module procedure qr_invert
     !> full array containing the B-matrix
     complex(dp), allocatable :: array_B(:, :)
-    !> full array containing the inverse of the B-matrix
-    real(dp), allocatable :: array_B_inv(:, :)
-    !> full array containing the A-matrix
-    complex(dp), allocatable :: array_A(:, :)
     !> full array containing the \(B^{-1}A\)-matrix
     complex(dp), allocatable :: array_B_invA(:, :)
+    !> banded B-matrix
+    type(hermitian_banded_matrix) :: B_band
+    integer     :: kd
 
     !> order of matrix \(B^{-1}A\)
     integer     :: N
@@ -50,20 +49,23 @@ contains
     !> dummy for left eigenvectors, jobvl = "N" so this is never referenced
     complex(dp) :: vl(2, 2)
 
-    ! do inversion of B
+    ! compute B^{-1}A
     allocate(array_B(matrix_B%matrix_dim, matrix_B%matrix_dim))
-    allocate(array_B_inv(matrix_B%matrix_dim, matrix_B%matrix_dim))
     call matrix_to_array(matrix=matrix_B, array=array_B)
-    call invert_matrix(real(array_B), array_B_inv)
+    kd = 2*dim_subblock+1 ! at most 2 subblocks away from diag
+    call real_dense_to_hermitian_banded(array_B, "U", kd, B_band)
     deallocate(array_B)
-
-    ! do matrix multiplication B^{-1}A
-    allocate(array_A(matrix_A%matrix_dim, matrix_A%matrix_dim))
-    call matrix_to_array(matrix=matrix_A, array=array_A)
-    allocate(array_B_invA, mold=array_A)
-    call multiply_matrices(array_B_inv, array_A, array_B_invA)
-    deallocate(array_A)
-    deallocate(array_B_inv)
+    
+    allocate(array_B_invA(matrix_A%matrix_dim, matrix_A%matrix_dim))
+    call matrix_to_array(matrix=matrix_A, array=array_B_invA)
+    call zpbsv( &
+      B_band%uplo, B_band%n, B_band%kd, N, &
+      B_band%BS, B_band%kd+1, array_B_invA, ldB_invA, info &
+    )
+    call deallocate_hermitian_banded_matrix(B_band)
+    if (info /= 0) then ! LCOV_EXCL_START
+      call log_message("zpbtrf failed: B is not positive definite", level="error")
+    end if ! LCOV_EXCL_STOP
 
     ! calculate eigenvectors, we don't use the left ones
     jobvl = "N"
@@ -106,6 +108,8 @@ contains
       )
     end if ! LCOV_EXCL_STOP
 
+    ! tear down work arrays
+    deallocate(array_B_invA)
     deallocate(work)
     deallocate(rwork)
 

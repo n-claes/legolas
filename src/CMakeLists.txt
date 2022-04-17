@@ -17,6 +17,7 @@ set (sources
         mod_grid.f08
         mod_types.f08
         mod_check_values.f08
+        solvers/mod_banded_matrices.f08
         solvers/mod_matrix_operations.f08
         mod_spline_functions.f08
         mod_interpolation.f08
