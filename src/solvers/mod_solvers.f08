@@ -25,6 +25,17 @@ module mod_solvers
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine
 
+    module subroutine qr_cholesky(matrix_A, matrix_B, omega, vr)
+      !> matrix A
+      complex(dp), intent(in)   :: matrix_A(:, :)
+      !> matrix B
+      real(dp), intent(in)      :: matrix_B(:, :)
+      !> array with eigenvalues
+      complex(dp), intent(out)  :: omega(:)
+      !> array with right eigenvectors
+      complex(dp), intent(out)  :: vr(:, :)
+    end subroutine qr_cholesky
+
     module subroutine qz_direct(matrix_A, matrix_B, omega, vr)
       !> matrix A
       type(matrix_t), intent(in) :: matrix_A
@@ -71,6 +82,8 @@ contains
     select case(solver)
     case("QR-invert")
       call qr_invert(matrix_A, matrix_B, omega, vr)
+    case("QR-cholesky")
+      call qr_cholesky(matrix_A, matrix_B, omega, vr)
     case("QZ-direct")
       call qz_direct(matrix_A, matrix_B, omega, vr)
     case("arnoldi")

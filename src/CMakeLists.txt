@@ -85,6 +85,7 @@ set (sources
         solvers/mod_linear_systems.f08
         solvers/mod_solvers.f08
         solvers/smod_qr_invert.f08
+        solvers/smod_qr_cholesky.f08
         solvers/smod_qz_direct.f08
         solvers/arnoldi/smod_arpack_main.f08
         solvers/arnoldi/smod_arpack_general.f08
