@@ -101,7 +101,7 @@ jobs:
         if [[ "${{ matrix.coverage }}" ]]; then
           cmake -DCoverage=ON ..
         else
-          cmake ..
+          cmake -DDebug=ON ..
         fi
         make -j 2
 
