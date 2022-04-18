@@ -49,7 +49,7 @@ program legolas
   call handle_spurious_eigenvalues(omega)
 
   call create_eigenfunctions()
-  call create_datfile(omega, matrix_A, matrix_B)
+  call create_datfile(omega, matrix_A, matrix_B, eigenvecs_right)
 
   call cleanup()
 
@@ -65,7 +65,7 @@ contains
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, dim_matrix, &
-      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma, NaN, &
+      solver, number_of_eigenvalues, should_compute_eigenvectors, gamma, set_gamma, NaN, &
       state_vector, hall_mhd, x_start, x_end
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
@@ -107,7 +107,7 @@ contains
     end if
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
-    if (write_eigenfunctions .or. solver == "arnoldi") then
+    if (should_compute_eigenvectors() .or. solver == "arnoldi") then
       call log_message("allocating eigenvector arrays", level="debug")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
       allocate(eigenvecs_right(dim_matrix, nb_evs))

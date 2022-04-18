@@ -40,4 +40,6 @@ added this in a backwards compatible way to the pylbo reader
 Changes needed an update of the pylbo reader
 
 === version 1.2.0 --> 1.2.1 ===
-added electron_fraction to param_list after g
+1) added electron_fraction to param_list after g
+2) added write_eigenvectors between write_matrices and write_eigenfunction_subset in header
+3) eigenvectors added after derived eigenfunctions and before matrices (optional)

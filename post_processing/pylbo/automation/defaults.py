@@ -23,6 +23,7 @@ namelist_items = {
     ],
     "savelist": [
         ("write_matrices", bool),
+        ("write_eigenvectors", bool),
         ("write_eigenfunctions", bool),
         ("write_derived_eigenfunctions", bool),
         ("show_results", bool),

@@ -60,7 +60,7 @@ contains
     !! use <tt>solver = "QR-invert"</tt> if eigenvectors are needed. @endwarning
     jobvl = "N"
     jobvr = "N"
-    if (write_eigenfunctions) then  ! LCOV_EXCL_START
+    if (should_compute_eigenvectors()) then  ! LCOV_EXCL_START
       call log_message( &
         "eigenvector calculations with the direct QZ solver are disabled for now,", &
         level="warning" &
@@ -71,6 +71,7 @@ contains
         use_prefix=.false. &
       )
     end if  ! LCOV_EXCL_STOP
+
     ! set array dimensions
     N = matrix_A%matrix_dim
     lda = N

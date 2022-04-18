@@ -3,7 +3,7 @@
 !! submodules are defined here, and the <tt>solve_evp</tt> routine calls the
 !! correct solver based on parfile settings.
 module mod_solvers
-  use mod_global_variables, only: dp, NaN, write_eigenfunctions
+  use mod_global_variables, only: dp, NaN, should_compute_eigenvectors
   use mod_logging, only: log_message, str
   use mod_check_values, only: set_small_values_to_zero
   use mod_matrix_structure, only: matrix_t
@@ -78,7 +78,7 @@ contains
     case("none")
       ! Set eigenvalues and vectors to NaN.
       omega = NaN * (1, 1)
-      if (write_eigenfunctions) then
+      if (should_compute_eigenvectors()) then
         vr = NaN * (1, 1)
       end if
     case default

@@ -147,6 +147,8 @@ module mod_global_variables
 
   !> boolean to write both matrices to the datfile, defaults to <tt>False</tt>
   logical, save             :: write_matrices
+  !> boolean to write the eigenvectors to the datfile, defaults to <tt>False</tt>
+  logical, save             :: write_eigenvectors
   !> boolean to write the eigenfunctions to the datfile, defaults to <tt>True</tt>
   logical, save             :: write_eigenfunctions
   !> boolean to write postprocessed quantities to the datfile, defaults to <tt>True</tt>
@@ -247,6 +249,7 @@ contains
     nb_spurious_eigenvalues = 1
 
     !! post-processing parameters
+    write_eigenvectors = .false.
     write_matrices = .false.
     write_eigenfunctions = .true.
     write_derived_eigenfunctions = .false.
@@ -272,6 +275,14 @@ contains
     ncv = 0
   end subroutine initialise_globals
 
+  !> See if any output options require us to compute the eigenvectors
+  function should_compute_eigenvectors()
+    !> the result
+    logical :: should_compute_eigenvectors
+
+    should_compute_eigenvectors = &
+      write_eigenfunctions .or. write_eigenvectors
+  end function
 
   !> Sets the ratio of specific heats gamma and its corresponding
   !! value gamma - 1.

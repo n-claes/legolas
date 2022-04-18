@@ -68,8 +68,10 @@ contains
   !!          first pass is performed locating the non-zero values, and then the
   !!          values are saved to file in the format
   !!          <tt>(row_idx, column_idx, value)</tt>. @endnote
+  !! @note    Eigenvectors are only written if this is enabled in the
+  !!          global variables. @endnote
   !! @note    The extension <tt>".dat"</tt> is appended to the filename. @endnote
-  subroutine create_datfile(eigenvalues, matrix_A, matrix_B)
+  subroutine create_datfile(eigenvalues, matrix_A, matrix_B, eigenvectors)
     use mod_global_variables
     use mod_version, only: LEGOLAS_VERSION
     use mod_logging, only: log_message
@@ -86,6 +88,8 @@ contains
     type(matrix_t), intent(in) :: matrix_A
     !> the B-matrix
     type(matrix_t), intent(in) :: matrix_B
+    !> the eigenvectors
+    complex(dp), intent(in)       :: eigenvectors(:, :)
 
     real(dp)  :: b01_array(size(B_field % B02))
     character(len=str_len_arr)    :: param_names(34), equil_names(32)
@@ -128,7 +132,7 @@ contains
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
       gauss_gridpts, dim_matrix, ef_gridpts, gamma, equilibrium_type, &
       write_eigenfunctions, write_derived_eigenfunctions, write_matrices, &
-      write_eigenfunction_subset, eigenfunction_subset_center, &
+      write_eigenvectors, write_eigenfunction_subset, eigenfunction_subset_center, &
       eigenfunction_subset_radius
     write(dat_fh) size(param_names), len(param_names(1)), param_names
     write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, &
@@ -178,6 +182,12 @@ contains
       do i = 1, size(derived_eigenfunctions)
         write(dat_fh) derived_eigenfunctions(i)%quantities
       end do
+    end if
+
+    ! Eigenvector data [optional]
+    if (write_eigenvectors) then
+      call log_message("writing eigenvectors...", level="info")
+      write(dat_fh) size(eigenvectors, 1), size(eigenvectors, 2), eigenvectors
     end if
 
     ! Matrix data [optional]

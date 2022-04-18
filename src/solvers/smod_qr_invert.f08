@@ -67,7 +67,7 @@ contains
 
     ! calculate eigenvectors, we don't use the left ones
     jobvl = "N"
-    if (write_eigenfunctions) then
+    if (should_compute_eigenvectors()) then
       jobvr = "V"
     else
       jobvr = "N"

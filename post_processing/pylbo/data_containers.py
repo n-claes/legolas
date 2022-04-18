@@ -10,6 +10,7 @@ from pylbo.utilities.datfile_utils import (
     read_ef_grid,
     read_eigenfunction,
     read_eigenvalues,
+    read_eigenvectors,
     read_equilibrium_arrays,
     read_grid,
     read_grid_gauss,
@@ -18,6 +19,7 @@ from pylbo.utilities.datfile_utils import (
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import transform_to_numpy
+from pylbo.exceptions import MatricesNotPresent, EigenvectorsNotPresent
 from pylbo.visualisation.continua import calculate_continua
 
 
@@ -530,6 +532,27 @@ class LegolasDataSet(LegolasDataContainer):
         with open(self.datfile, "rb") as istream:
             rows, cols, vals = read_matrix_A(istream, self.header)
         return rows, cols, vals
+
+    def get_eigenvectors(self):
+        """
+        Retrieves the eigenvectors from the datfile.
+
+        Returns
+        -------
+        eigenvectors : numpy.ndarray(dtype=complex, ndim=2)
+            Array containing the eigenvectors. One eigenvector
+            in each column.
+
+        Raises
+        ------
+        EigenvectorsNotPresent
+            If the eigenvectors were not saved to the datfile.
+        """
+        if not self.header["eigenvecs_written"]:
+            raise EigenvectorsNotPresent(self.datfile)
+        with open(self.datfile, "rb") as istream:
+            evs = read_eigenvectors(istream, self.header)
+        return evs
 
     def get_eigenfunctions(self, ev_guesses=None, ev_idxs=None):
         """

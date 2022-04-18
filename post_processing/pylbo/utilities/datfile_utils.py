@@ -97,6 +97,11 @@ def get_header(istream):
     fmt = ALIGN + "i"
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     h["matrices_written"] = bool(*hdr)
+    # read eigenvectors boolean
+    h["eigenvecs_written"] = False
+    if legolas_version >= "1.2.1":
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        h["eigenvecs_written"] = bool(*hdr)
     # read eigenfunction subset info
     h["eigenfunction_subset_used"] = False
     if legolas_version >= "1.1.4":
@@ -285,6 +290,16 @@ def get_header(istream):
             offsets.update({"derived_ef_arrays": istream.tell()})
             istream.seek(istream.tell() + byte_size)
 
+    # if eigenvectors are written include offset
+    if h["eigenvecs_written"]:
+        fmt = ALIGN + 2*"i"
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        h["eigenvec_len"], h["nb_eigenvecs"] = hdr
+
+        byte_size = SIZE_COMPLEX * h["eigenvec_len"] * h["nb_eigenvecs"]
+        offsets.update({"eigenvectors": istream.tell()})
+        istream.seek(istream.tell() + byte_size)
+
     # if matrices are written, include amount of nonzero elements and offsets
     if h["matrices_written"]:
         fmt = ALIGN + 2 * "i"
@@ -297,6 +312,7 @@ def get_header(istream):
         istream.seek(istream.tell() + byte_size)
         # matrix A offset
         offsets.update({"matrix_A": istream.tell()})
+
     h["offsets"] = offsets
     return h
 
@@ -365,6 +381,34 @@ def read_ef_grid(istream, header):
     fmt = ALIGN + header["ef_gridpts"] * "d"
     ef_grid = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     return np.asarray(ef_grid)
+
+
+def read_eigenvectors(istream, header):
+    """
+    Reads the eigenvectors from the datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+
+    Returns
+    -------
+    eigenvectors : numpy.ndarray(dtype=complex, ndim=2)
+        The eigenvectors from the datfile, one in each column.
+    """
+    istream.seek(header["offsets"]["eigenvectors"])
+    fmt = ALIGN + (2 * "d") * header["eigenvec_len"] * header["nb_eigenvecs"]
+    hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+    reals = hdr[::2]
+    imags = hdr[1::2]
+    return np.reshape(
+        np.asarray([complex(x, y) for x, y in zip(reals, imags)]),
+        (header["eigenvec_len"], header["nb_eigenvecs"]),
+        order = 'F'
+    )
 
 
 def read_eigenvalues(istream, header, omit_large_evs=True):
