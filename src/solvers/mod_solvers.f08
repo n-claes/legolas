@@ -57,6 +57,17 @@ module mod_solvers
       !> array with right eigenvectors
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine arnoldi
+
+    module subroutine inverse_iteration(matrix_A, matrix_B, omega, vr)
+      !> matrix A
+      complex(dp), intent(in)   :: matrix_A(:, :)
+      !> matrix B
+      real(dp), intent(in)      :: matrix_B(:, :)
+      !> array with eigenvalues
+      complex(dp), intent(out)  :: omega(:)
+      !> array with right eigenvectors
+      complex(dp), intent(out)  :: vr(:, :)
+    end subroutine inverse_iteration
   end interface
 
   public  :: solve_evp
@@ -88,6 +99,8 @@ contains
       call qz_direct(matrix_A, matrix_B, omega, vr)
     case("arnoldi")
       call arnoldi(matrix_A, matrix_B, omega, vr)
+    case("inverse-iteration")
+      call inverse_iteration(matrix_A, matrix_B, omega, vr)
     case("none")
       ! Set eigenvalues and vectors to NaN.
       omega = NaN * (1, 1)

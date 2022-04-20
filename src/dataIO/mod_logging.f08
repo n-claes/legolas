@@ -234,10 +234,17 @@ contains
     if (solver == "arnoldi") then
       call log_message("ARPACK mode : " // trim(adjustl(arpack_mode)))
       if (arpack_mode == "shift-invert") then
-        call log_message("sigma value : " // str(sigma))
+        call log_message("sigma : " // str(sigma))
       end if
       call log_message("number of eigenvalues : " // str(number_of_eigenvalues))
       call log_message("which eigenvalues     : " // trim(adjustl(which_eigenvalues)))
+      call log_message("maxiter               : " // str(maxiter))
+      call log_message("tolerance             : " // str(tolerance, exp_fmt))
+    end if
+    if (solver == "inverse-iteration") then
+      call log_message("sigma     : " // str(sigma))
+      call log_message("maxiter   : " // str(maxiter))
+      call log_message("tolerance : " // str(tolerance, exp_fmt))
     end if
 
     call log_message("            << DataIO settings >>")

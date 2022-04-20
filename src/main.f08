@@ -88,6 +88,8 @@ contains
 
     if (solver == "arnoldi") then
       nb_evs = number_of_eigenvalues
+    elseif (solver == "inverse-iteration") then
+      nb_evs = 1
     else
       nb_evs = dim_matrix
     end if

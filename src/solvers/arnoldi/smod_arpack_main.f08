@@ -2,7 +2,7 @@
 !> Main module for the Arnoldi-type solvers. Contains interfaces to the general Arnoldi
 !! procedures (general, shift-invert, etc.).
 submodule (mod_solvers) smod_arpack_main
-  use mod_global_variables, only: arpack_mode, dim_quadblock
+  use mod_global_variables, only: arpack_mode, dim_quadblock, tolerance
   use mod_arpack_type, only: arpack_t, new_arpack_config
   use mod_linear_systems, only: solve_linear_system_complex_banded
   implicit none
@@ -61,7 +61,7 @@ contains
         bmat="I", &
         which=which_eigenvalues, &
         nev=number_of_eigenvalues, &
-        tolerance=0.0d0, &  ! if <= 0, machine precision is used
+        tolerance=tolerance, &  ! if <= 0, machine precision is used
         maxiter=maxiter, &
         ncv=ncv &
       )
@@ -74,7 +74,7 @@ contains
         bmat="I", &
         which=which_eigenvalues, &
         nev=number_of_eigenvalues, &
-        tolerance=0.0d0, &
+        tolerance=tolerance, &
         maxiter=maxiter, &
         ncv=ncv &
       )

@@ -180,12 +180,14 @@ module mod_global_variables
   integer                   :: number_of_eigenvalues
   !> which eigenvalues to calculate, defaults to <tt>"LM"<tt> (largest magnitude)
   character(len=2)          :: which_eigenvalues
-  !> maximum number of Arnoldi iterations
+  !> maximum number iterations of Arnoldi or inverse iteration
   integer                   :: maxiter
-  !> sigma value, only used in shift-invert mode
+  !> sigma value, used in Arnoldi shift-invert mode and inverse iteration
   complex(dp)               :: sigma
   !> value for ncv, only used for Arnoldi
   integer :: ncv
+  !> the tolerance used by inverse-iteration, defaults to dp_LIMIT
+  real(dp)                  :: tolerance
 
 contains
 
@@ -270,9 +272,11 @@ contains
     arpack_mode = "standard"
     number_of_eigenvalues = 100
     which_eigenvalues = "LM"
-    ! this defaults to 10*N, but we technically don't know N yet
+    ! this defaults to 10*N for Arnoldi, which is changed later,
+    ! for inverse-iteration we default to 100
     maxiter = 0
     ncv = 0
+    tolerance = DP_limit
   end subroutine initialise_globals
 
   !> See if any output options require us to compute the eigenvectors
