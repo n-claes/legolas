@@ -10,9 +10,6 @@ module mod_solvers
   use mod_matrix_generation, only: generate_array_from_matrix
   implicit none
 
-  !> residual norm || Ax - \(\lambda\)Bx || of the eigenvalue problem
-  real(dp), allocatable  :: residual_norm(:)
-
   private
 
   !> interface to the different solution methods implemented in submodules
@@ -39,21 +36,19 @@ module mod_solvers
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine qz_direct
 
-    ! module subroutine arnoldi(matrix_A, matrix_B, omega, vr)
-    !   !> matrix A
-    !   type(matrix_t), intent(in) :: matrix_A
-    !   !> matrix B
-    !   type(matrix_t), intent(in) :: matrix_B
-    !   !> array with eigenvalues
-    !   complex(dp), intent(out)  :: omega(:)
-    !   !> array with right eigenvectors
-    !   complex(dp), intent(out)  :: vr(:, :)
-    ! end subroutine arnoldi
+    module subroutine arnoldi(matrix_A, matrix_B, omega, vr)
+      !> matrix A
+      type(matrix_t), intent(in) :: matrix_A
+      !> matrix B
+      type(matrix_t), intent(in) :: matrix_B
+      !> array with eigenvalues
+      complex(dp), intent(out)  :: omega(:)
+      !> array with right eigenvectors
+      complex(dp), intent(out)  :: vr(:, :)
+    end subroutine arnoldi
   end interface
 
-  public  :: residual_norm
   public  :: solve_evp
-  public  :: solvers_clean
 
 contains
 
@@ -78,20 +73,12 @@ contains
       call qr_invert(matrix_A, matrix_B, omega, vr)
     case("QZ-direct")
       call qz_direct(matrix_A, matrix_B, omega, vr)
-    ! case("arnoldi")
-    !   call arnoldi(matrix_A, matrix_B, omega, vr)
+    case("arnoldi")
+      call arnoldi(matrix_A, matrix_B, omega, vr)
     case default
       call log_message("unknown solver passed: " // solver, level="error")
       return
     end select
   end subroutine solve_evp
-
-
-  !> Cleanup routine.
-  subroutine solvers_clean()
-    if (allocated(residual_norm)) then
-      deallocate(residual_norm)
-    end if
-  end subroutine solvers_clean
 
 end module mod_solvers
