@@ -2,8 +2,7 @@ module mod_test_matrix_maths
   use mod_suite_utils
   use funit
   use mod_matrix_structure, only: matrix_t, new_matrix
-  use mod_matrix_generation, only: generate_matrix_from_array, &
-    generate_array_from_matrix
+  use mod_transform_matrix, only: array_to_matrix, matrix_to_array
 
   real(dp) :: rmat1(4, 4) = reshape( &
     [ &
@@ -66,10 +65,10 @@ contains
     real(dp) :: actual(4, 4), expected(4, 4)
 
     call set_name("matrix maths: real matrix addition")
-    matrix1 = generate_matrix_from_array(array=rmat1)
-    matrix2 = generate_matrix_from_array(array=rmat2)
+    matrix1 = array_to_matrix(array=rmat1)
+    matrix2 = array_to_matrix(array=rmat2)
     matrix = matrix1 + matrix2
-    call generate_array_from_matrix(matrix, actual)
+    call matrix_to_array(matrix, actual)
 
     expected = rmat1 + rmat2
     @assertEqual(expected, actual, tolerance=TOL)
@@ -81,10 +80,10 @@ contains
     complex(dp) :: actual(4, 4), expected(4, 4)
 
     call set_name("matrix maths: complex matrix addition")
-    matrix1 = generate_matrix_from_array(array=cmat1)
-    matrix2 = generate_matrix_from_array(array=cmat2)
+    matrix1 = array_to_matrix(array=cmat1)
+    matrix2 = array_to_matrix(array=cmat2)
     matrix = matrix1 + matrix2
-    call generate_array_from_matrix(matrix, actual)
+    call matrix_to_array(matrix, actual)
 
     expected = cmat1 + cmat2
     @assertEqual(expected, actual, tolerance=TOL)
@@ -97,7 +96,7 @@ contains
 
     call set_name("matrix maths: matrix and real vector multiplication")
     vector = [-1.0d0, 2.5d0, -1.2d0, 4.5d0]
-    matrix = generate_matrix_from_array(array=rmat1)
+    matrix = array_to_matrix(array=rmat1)
     actual = matrix * vector
 
     expected = matmul(rmat1, vector)
@@ -111,7 +110,7 @@ contains
 
     call set_name("matrix maths: matrix and complex vector multiplication")
     vector = [(1.2d0, -3.9d0), (-2.6d0, 1.0d0), (0.0d0, 0.0d0), (-3.4d0, 7.5d0)]
-    matrix = generate_matrix_from_array(array=cmat1)
+    matrix = array_to_matrix(array=cmat1)
     actual = matrix * vector
 
     expected = matmul(cmat1, vector)
@@ -124,10 +123,10 @@ contains
     real(dp) :: actual(4, 4), expected(4, 4)
 
     call set_name("matrix maths: matrix and submatrix addition")
-    matrix1 = generate_matrix_from_array(array=rmat1)
-    matrix2 = generate_matrix_from_array(array=rmat2(1:3, 1:2))
+    matrix1 = array_to_matrix(array=rmat1)
+    matrix2 = array_to_matrix(array=rmat2(1:3, 1:2))
     matrix = matrix1 + matrix2
-    call generate_array_from_matrix(matrix, actual)
+    call matrix_to_array(matrix, actual)
 
     expected = reshape( &
       [ &
@@ -148,7 +147,7 @@ contains
     real(dp) :: rmat(5, 5)
 
     call set_name("matrix maths: unequal matrix addition")
-    matrix1 = generate_matrix_from_array(array=rmat1(1:3, 1:3))
+    matrix1 = array_to_matrix(array=rmat1(1:3, 1:3))
     rmat = reshape( &
       [ &
         4.0d0, -1.0d0, 0.0d0, 3.0d0, 1.0d0, &
@@ -159,10 +158,10 @@ contains
       ], &
       shape=[5, 5] &
     )
-    matrix2 = generate_matrix_from_array(array=rmat)
+    matrix2 = array_to_matrix(array=rmat)
     matrix = matrix1 + matrix2
     @assertEqual(5, matrix%matrix_dim)
-    call generate_array_from_matrix(matrix, actual)
+    call matrix_to_array(matrix, actual)
 
     expected = reshape( &
       [ &

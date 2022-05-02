@@ -1,9 +1,8 @@
-module mod_test_matrix_generation
+module mod_test_transform_matrix
   use mod_suite_utils
   use funit
   use mod_matrix_structure, only: matrix_t, new_matrix
-  use mod_matrix_generation, only: generate_matrix_from_array, &
-    generate_array_from_matrix
+  use mod_transform_matrix, only: matrix_to_array, array_to_matrix
   implicit none
 
   real(dp) :: rmat(4, 4) = reshape( &
@@ -43,8 +42,8 @@ contains
 
   @test
   subroutine test_generation_real_array_to_matrix()
-    call set_name("matrix generation: real array -> matrix")
-    matrix = generate_matrix_from_array(array=rmat)
+    call set_name("transform matrix: real array -> matrix")
+    matrix = array_to_matrix(array=rmat)
     @assertEqual(count(abs(rmat) > 0.0d0), matrix%get_total_nb_elements())
 
     @assertEqual(rmat(1, 1), matrix%get_real_element(1, 1), tolerance=TOL)
@@ -62,8 +61,8 @@ contains
 
   @test
   subroutine test_generation_complex_array_to_matrix()
-    call set_name("matrix generation: complex array -> matrix")
-    matrix = generate_matrix_from_array(array=cmat)
+    call set_name("transform matrix: complex array -> matrix")
+    matrix = array_to_matrix(array=cmat)
     @assertEqual(9, matrix%get_total_nb_elements())
 
     @assertEqual(cmat(1, 1), matrix%get_complex_element(1, 1), tolerance=TOL)
@@ -92,7 +91,7 @@ contains
     )
     real(dp) :: actual(4, 4)
 
-    call set_name("matrix generation: matrix -> real array")
+    call set_name("transform matrix: matrix -> real array")
     matrix = new_matrix(nb_rows=4)
     call matrix%add_element(row=1, column=1, element=1.0d0)
     call matrix%add_element(row=2, column=1, element=1.0d0)
@@ -102,7 +101,7 @@ contains
     call matrix%add_element(row=4, column=3, element=-1.0d0)
     call matrix%add_element(row=3, column=4, element=8.0d0)
     call matrix%add_element(row=4, column=4, element=-4.0d0)
-    call generate_array_from_matrix(matrix=matrix, array=actual)
+    call matrix_to_array(matrix=matrix, array=actual)
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_generation_matrix_to_real_array
 
@@ -120,7 +119,7 @@ contains
     )
     complex(dp) :: actual(4, 4)
 
-    call set_name("matrix generation: matrix -> complex array")
+    call set_name("transform matrix: matrix -> complex array")
     matrix = new_matrix(nb_rows=4)
     call matrix%add_element(row=1, column=1, element=(2.0d0, 7.0d0))
     call matrix%add_element(row=2, column=1, element=(2.0d0, -3.0d0))
@@ -132,8 +131,8 @@ contains
     call matrix%add_element(row=1, column=4, element=(0.0d0, 1.0d0))
     call matrix%add_element(row=2, column=4, element=(1.0d0, 6.0d0))
     call matrix%add_element(row=3, column=4, element=(0.0d0, -1.0d0))
-    call generate_array_from_matrix(matrix=matrix, array=actual)
+    call matrix_to_array(matrix=matrix, array=actual)
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_generation_matrix_to_complex_array
 
-end module mod_test_matrix_generation
+end module mod_test_transform_matrix

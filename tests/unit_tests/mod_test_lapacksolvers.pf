@@ -4,7 +4,7 @@ module mod_test_lapacksolvers
   use mod_global_variables, only: solver, write_eigenfunctions
   use mod_solvers, only: solve_evp
   use mod_matrix_structure, only: matrix_t, new_matrix
-  use mod_matrix_generation, only: generate_matrix_from_array
+  use mod_transform_matrix, only: array_to_matrix
   implicit none
 
   real(dp), parameter :: bmat_array(5, 5) = reshape( &
@@ -55,8 +55,8 @@ contains
   subroutine set_matrices()
     integer :: i
 
-    bmat = generate_matrix_from_array(array=bmat_array)
-    amat = generate_matrix_from_array(array=amat_array)
+    bmat = array_to_matrix(array=bmat_array)
+    amat = array_to_matrix(array=amat_array)
     idmat = new_matrix(nb_rows=5)
     do i = 1, 5
       call idmat%add_element(row=i, column=i, element=1.0d0)

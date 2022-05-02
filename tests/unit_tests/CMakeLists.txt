@@ -59,7 +59,7 @@ set( test_sources
         mod_test_matrix_structure_real.pf
         mod_test_matrix_structure_complex.pf
         mod_test_matrix_maths.pf
-        mod_test_matrix_generation.pf
+        mod_test_transform_matrix.pf
         mod_test_indices.pf
         mod_test_grid.pf
         mod_test_input.pf

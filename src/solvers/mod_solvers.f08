@@ -7,7 +7,7 @@ module mod_solvers
   use mod_logging, only: log_message, str
   use mod_check_values, only: set_small_values_to_zero
   use mod_matrix_structure, only: matrix_t
-  use mod_matrix_generation, only: generate_array_from_matrix
+  use mod_transform_matrix, only: matrix_to_array
   implicit none
 
   private

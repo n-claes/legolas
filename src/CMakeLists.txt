@@ -12,7 +12,7 @@ set (sources
         matrices/datastructure/mod_matrix_structure.f08
         matrices/datastructure/mod_banded_matrix.f08
         matrices/datastructure/smod_matrix_maths.f08
-        matrices/datastructure/mod_matrix_generation.f08
+        matrices/datastructure/mod_transform_matrix.f08
         mod_units.f08
         mod_grid.f08
         mod_types.f08

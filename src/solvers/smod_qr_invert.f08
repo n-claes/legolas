@@ -53,13 +53,13 @@ contains
     ! do inversion of B
     allocate(array_B(matrix_B%matrix_dim, matrix_B%matrix_dim))
     allocate(array_B_inv, mold=array_B)
-    call generate_array_from_matrix(matrix=matrix_B, array=array_B)
+    call matrix_to_array(matrix=matrix_B, array=array_B)
     call invert_matrix(array_B, array_B_inv)
     deallocate(array_B)
 
     ! do matrix multiplication B^{-1}A
     allocate(array_A(matrix_A%matrix_dim, matrix_A%matrix_dim))
-    call generate_array_from_matrix(matrix=matrix_A, array=array_A)
+    call matrix_to_array(matrix=matrix_A, array=array_A)
     allocate(array_B_invA, mold=array_A)
     call multiply_matrices(array_B_inv, array_A, array_B_invA)
     deallocate(array_A)

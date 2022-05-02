@@ -4,8 +4,7 @@ module mod_test_boundaries
   use mod_boundary_manager, only: apply_boundary_conditions
   use mod_global_variables, only: thermal_conduction, viscosity, incompressible
   use mod_matrix_structure, only: matrix_t, new_matrix
-  use mod_matrix_generation, only: generate_array_from_matrix, &
-    generate_matrix_from_array
+  use mod_transform_matrix, only: matrix_to_array, array_to_matrix
   implicit none
 
   integer, parameter :: points = 160
@@ -33,8 +32,8 @@ contains
     B_field % B0 = 1.0d0
 
     call reset_ab(avalue=(2.0d0, 3.0d0), bvalue=5.0d0)
-    amat = generate_matrix_from_array(array=amat_array, label="A")
-    bmat = generate_matrix_from_array(array=bmat_array, label="B")
+    amat = array_to_matrix(array=amat_array, label="A")
+    bmat = array_to_matrix(array=bmat_array, label="B")
   end subroutine init_test
 
 
@@ -97,7 +96,7 @@ contains
 
     ! boundary conditions on odd v1, a2, a3
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=bmat, array=bmat_array)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
     ! set expected
     call zero_out_expected_left_idxs([3, 13, 15])
     call zero_out_expected_right_idxs([147, 157, 159])
@@ -110,7 +109,7 @@ contains
     call set_name("regular boundary conditions (A-matrix, wall)")
     ! boundary conditions on odd v1, a2, a3
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=amat, array=amat_array)
+    call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 13, 15])
     call zero_out_expected_right_idxs([147, 157, 159])
     @assertEqual(amat_expected, amat_array, tolerance=TOL)
@@ -126,7 +125,7 @@ contains
     kappa_field % kappa_perp = 0.0d0
     ! boundary conditions on odd v1, a2, a3
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=bmat, array=bmat_array)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
     call zero_out_expected_left_idxs([3, 13, 15])
     call zero_out_expected_right_idxs([147, 157, 159])
     @assertEqual(bmat_expected, bmat_array, tolerance=TOL)
@@ -142,7 +141,7 @@ contains
     kappa_field % kappa_perp = 0.0d0
     ! boundary conditions on odd v1, a2, a3
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=amat, array=amat_array)
+    call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 13, 15])
     call zero_out_expected_right_idxs([147, 157, 159])
     @assertEqual(amat_expected, amat_array, tolerance=TOL)
@@ -158,7 +157,7 @@ contains
     kappa_field % kappa_perp = 1.0d0
     ! boundary conditions on odd v1, a2, a3, even T1
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=bmat, array=bmat_array)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
     call zero_out_expected_left_idxs([3, 10, 13, 15])
     call zero_out_expected_right_idxs([147, 154, 157, 159])
     @assertEqual(bmat_expected, bmat_array, tolerance=TOL)
@@ -174,7 +173,7 @@ contains
     kappa_field % kappa_perp = 1.0d0
     ! boundary conditions on odd v1, a2, a3, even T1
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=amat, array=amat_array)
+    call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 10, 13, 15])
     call zero_out_expected_right_idxs([147, 154, 157, 159])
     @assertEqual(amat_expected, amat_array, tolerance=TOL)
@@ -187,7 +186,7 @@ contains
     viscosity = .true.
     ! boundary conditions on odd v1, a2, a3, even v2, v3
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=bmat, array=bmat_array)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
     call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
     call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
     @assertEqual(bmat_expected, bmat_array, tolerance=TOL)
@@ -200,7 +199,7 @@ contains
     viscosity = .true.
     ! boundary conditions on odd v1, a2, a3, even v2, v3
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=amat, array=amat_array)
+    call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
     call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
     @assertEqual(amat_expected, amat_array, tolerance=TOL)
@@ -217,7 +216,7 @@ contains
     call create_test_grid(pts=10, geom="cylindrical", start=0.0d0, end=1.0d0)
     viscosity = .true.
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=bmat, array=bmat_array)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
     ! no additional left side boundary conditions
     call zero_out_expected_left_idxs([3, 13, 15])
     ! boundary conditions on odd v1, a2, a3, even v2, v3
@@ -236,7 +235,7 @@ contains
     call create_test_grid(pts=10, geom="cylindrical", start=0.0d0, end=1.0d0)
     viscosity = .true.
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=amat, array=amat_array)
+    call matrix_to_array(matrix=amat, array=amat_array)
     ! no additional left side boundary conditions
     call zero_out_expected_left_idxs([3, 13, 15])
     ! boundary conditions on odd v1, a2, a3, even v2, v3
@@ -257,7 +256,7 @@ contains
     viscosity = .true.
     coaxial = .true.
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=bmat, array=bmat_array)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
     call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
     ! boundary conditions on odd v1, a2, a3, even v2, v3
     call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
@@ -277,7 +276,7 @@ contains
     viscosity = .true.
     coaxial = .true.
     call apply_boundary_conditions(amat, bmat)
-    call generate_array_from_matrix(matrix=amat, array=amat_array)
+    call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
     ! boundary conditions on odd v1, a2, a3, even v2, v3
     call zero_out_expected_right_idxs([147, 150, 152, 157, 159])

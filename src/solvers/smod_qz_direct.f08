@@ -48,9 +48,9 @@ contains
     complex(dp) :: vl(2, 2)
 
     allocate(array_B(matrix_B%matrix_dim, matrix_B%matrix_dim))
-    call generate_array_from_matrix(matrix=matrix_B, array=array_B)
+    call matrix_to_array(matrix=matrix_B, array=array_B)
     allocate(array_A(matrix_A%matrix_dim, matrix_A%matrix_dim))
-    call generate_array_from_matrix(matrix=matrix_A, array=array_A)
+    call matrix_to_array(matrix=matrix_A, array=array_A)
 
     !> @warning The LAPACK routine <tt>zggev</tt> returns the _generalised_
     !! eigenvectors, which are different from the ordinary ones returned
