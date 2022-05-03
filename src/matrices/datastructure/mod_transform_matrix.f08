@@ -138,7 +138,7 @@ contains
       rows=nrows, cols=ncols, subdiags=subdiags, superdiags=superdiags &
     )
     do icol = 1, ncols
-      do irow = 1, max(1, icol - superdiags), min(nrows, icol + subdiags)
+      do irow = max(1, icol - superdiags), min(nrows, icol + subdiags)
         call banded%set_element( &
           row=irow, &
           col=icol, &
