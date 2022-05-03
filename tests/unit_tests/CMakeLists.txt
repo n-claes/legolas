@@ -56,6 +56,7 @@ target_link_libraries(suite ${LEGOLASLIB} ${LIBSTOLINK})
 set( test_sources
         mod_test_variables.pf
         mod_test_logging.pf
+        mod_test_banded_matrix.pf
         mod_test_matrix_structure_real.pf
         mod_test_matrix_structure_complex.pf
         mod_test_matrix_maths.pf
