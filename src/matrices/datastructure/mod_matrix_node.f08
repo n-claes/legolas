@@ -105,7 +105,9 @@ contains
 
 
   !> Getter for nodes with real elements, returns a real `element` attribute.
-  !! Throws an error if the element attribute is not of type real.
+  !! If the node element is complex it is case to real first, but we throw a
+  !! warning since this may indicate unexpected behaviour and information loss.
+  !! Throws an error if the element attribute is not of type real/complex.
   subroutine get_real_node_element(this, element)
     !> type instance
     class(node_t), intent(in) :: this
@@ -115,15 +117,20 @@ contains
     select type(item => this%element)
       type is (real(dp))
         element = item
+      type is (complex(dp))
+        element = real(item, kind=dp)
+        call raise_type_cast_warning(from_type="complex", to_type="real")
       class default
         element = NaN
-        call throw_type_error(element_type="real")
+        call raise_type_error(element_type="real")
     end select
   end subroutine get_real_node_element
 
 
   !> Getter for nodes with complex elements, returns a complex `element` attribute.
-  !! Throws an error if the element attribute is not of type real.
+  !! If the node element is real instead we cast it to complex, no warning will be
+  !! raised since there is no possible loss of information.
+  !! Throws an error if the element attribute is not of type real/complex.
   subroutine get_complex_node_element(this, element)
     !> type instance
     class(node_t), intent(in) :: this
@@ -133,20 +140,38 @@ contains
     select type(item => this%element)
       type is (complex(dp))
         element = item
+      type is (real(dp))
+        element = cmplx(item, kind=dp)
       class default
         element = cmplx(NaN, NaN, kind=dp)
-        call throw_type_error(element_type="complex")
+        call raise_type_error(element_type="complex")
     end select
   end subroutine get_complex_node_element
 
 
   !> Throws an error message stating that the requested element type and the
   !! corresponding element type do not match.
-  subroutine throw_type_error(element_type)
+  subroutine raise_type_error(element_type)
     !> element type to display in the error message
     character(len=*), intent(in) :: element_type
 
-    call log_message("node element does not have type " // element_type, level="error")
-  end subroutine throw_type_error
+    call log_message("node element is not of type " // element_type, level="error")
+  end subroutine raise_type_error
+
+
+  !> Throws an error message stating that the requested element type and the
+  !! corresponding element type do not match.
+  subroutine raise_type_cast_warning(from_type, to_type)
+    !> original element type to display in the warning message
+    character(len=*), intent(in) :: from_type
+    !> casted element type
+    character(len=*), intent(in) :: to_type
+
+    call log_message( &
+      "node element was originally " // from_type &
+      // " but has been cast to " // to_type // ". Possible information loss!", &
+      level="warning" &
+    )
+  end subroutine raise_type_cast_warning
 
 end module mod_matrix_node
