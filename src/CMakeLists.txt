@@ -80,11 +80,11 @@ set (sources
         matrices/smod_conduction_matrix.f08
         matrices/smod_viscosity_matrix.f08
         matrices/smod_hall_matrix.f08
+        solvers/arnoldi/mod_arpack_type.f08
         solvers/mod_linear_systems.f08
         solvers/mod_solvers.f08
         solvers/smod_qr_invert.f08
         solvers/smod_qz_direct.f08
-        solvers/arnoldi/mod_arpack_type.f08
         solvers/arnoldi/smod_arpack_main.f08
         solvers/arnoldi/smod_arpack_general.f08
         eigenfunctions/mod_eigenfunctions.f08

@@ -1,6 +1,7 @@
 submodule (mod_solvers) smod_arpack_main
-  use mod_global_variables, only: arpack_mode
+  use mod_global_variables, only: arpack_mode, dim_quadblock
   use mod_arpack_type, only: arpack_t, new_arpack_config
+  use mod_linear_systems, only: solve_linear_system_complex_banded
   implicit none
 
   interface

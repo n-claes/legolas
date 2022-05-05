@@ -48,6 +48,7 @@ module mod_arpack_type
     procedure, private :: set_mode
     procedure, private :: set_which
     procedure, private :: set_nev
+    procedure, private :: set_ncv
     procedure, private :: set_maxiter
   end type arpack_t
 
@@ -90,11 +91,7 @@ contains
     call arpack_config%set_nev(nev)
     arpack_config%tolerance = tolerance
     allocate(arpack_config%residual(evpdim))
-
-    ! ncv is number of Arnoldi basis vectors calculated, should satisfy
-    ! 1 <= ncv - nev and ncv <= evpdim (recommended is ncv = 2 * nev, see arpack docs)
-    arpack_config%ncv = 2 * nev
-
+    call arpack_config%set_ncv(2 * nev)
     call arpack_config%set_maxiter(maxiter)
     ! iparam(1) = ishift = 1 means restart with shifts from Hessenberg matrix
     arpack_config%iparam(1) = 1
@@ -158,13 +155,41 @@ contains
     if (nev >= this%evpdim) then
       call log_message( &
         "Arnoldi: number of eigenvalues " // str(nev) &
-        // " > " // "matrix size" // str(this%evpdim), &
+        // " > " // " matrix size" // str(this%evpdim), &
         level="error" &
       )
       return
     end if
     this%nev = nev
   end subroutine set_nev
+
+
+  !> Setter for ncv, the number of Arnoldi basis vectors to calculate.
+  !! This should satisfy 1 <= ncv - nev and ncv <= evpdim, with recommended
+  !! value ncv = 2 * nev (see arpack docs).
+  subroutine set_ncv(this, ncv)
+    !> type instance
+    class(arpack_t), intent(inout) :: this
+    !> value for ncv
+    integer, intent(in) :: ncv
+
+    if (1 > ncv - this%get_nev()) then
+      call log_message( &
+        "requesting too many eigenvalues, should be less than " // str(ncv + 1), &
+        level="error" &
+      )
+      return
+    end if
+    if (ncv > this%get_evpdim()) then
+      call log_message( &
+        "requesting too many eigenvalues, should be less than " &
+        // str(int(this%get_evpdim() / 2)), &
+        level="error" &
+      )
+      return
+    end if
+    this%ncv = ncv
+  end subroutine set_ncv
 
 
   !> Sets the maximum number of iterations that ARPACK is allowed to take, defaults
@@ -185,18 +210,18 @@ contains
       )
       return
     end if
-    if (maxiter < min_maxiter) then ! LCOV_EXCL_START
+    if (maxiter == 0) then
+      this%maxiter = min_maxiter
+    else
+      this%maxiter = maxiter
+    end if
+    if (this%maxiter < min_maxiter) then ! LCOV_EXCL_START
       call log_message( &
         "Arnoldi: maxiter (" // str(maxiter) // ") below recommended 10*N (" &
         // str(min_maxiter) // ")", &
         level="warning" &
       )
     end if ! LCOV_EXCL_STOP
-    if (maxiter == 0) then
-      this%maxiter = min_maxiter
-    else
-      this%maxiter = maxiter
-    end if
     this%iparam(3) = this%maxiter
   end subroutine set_maxiter
 
