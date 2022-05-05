@@ -82,6 +82,7 @@ contains
     !> initialised arpack configuration
     type(arpack_t) :: arpack_config
 
+    call log_message("configuring Arnoldi parameters", level="debug")
     arpack_config%evpdim = evpdim
     call arpack_config%set_mode(mode)
 
@@ -91,7 +92,8 @@ contains
     call arpack_config%set_nev(nev)
     arpack_config%tolerance = tolerance
     allocate(arpack_config%residual(evpdim))
-    call arpack_config%set_ncv(2 * nev)
+    ! TODO: allow ncv to be set in the parfile
+    call arpack_config%set_ncv(min(evpdim, 2 * nev))
     call arpack_config%set_maxiter(maxiter)
     ! iparam(1) = ishift = 1 means restart with shifts from Hessenberg matrix
     arpack_config%iparam(1) = 1
@@ -115,6 +117,7 @@ contains
     end if
     this%mode = mode
     this%iparam(7) = this%mode
+    call log_message("Arnoldi: mode set to " // str(this%mode), level="debug")
   end subroutine set_mode
 
 
@@ -161,6 +164,7 @@ contains
       return
     end if
     this%nev = nev
+    call log_message("Arnoldi: nev set to " // str(this%nev), level="debug")
   end subroutine set_nev
 
 
@@ -189,6 +193,7 @@ contains
       return
     end if
     this%ncv = ncv
+    call log_message("Arnoldi: ncv set to " // str(this%ncv), level="debug")
   end subroutine set_ncv
 
 

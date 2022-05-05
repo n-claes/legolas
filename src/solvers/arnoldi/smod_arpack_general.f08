@@ -36,7 +36,7 @@ contains
       matrix=matrix_B, subdiags=diags, superdiags=diags, banded=bmat_banded &
     )
 
-    call log_message("starting Arnoldi iteration", level="debug")
+    call log_message("doing Arnoldi iteration", level="debug")
     converged = .false.
     ! we keep iterating for as long as the eigenvalues are not converged.
     ! If convergence is achieved or the maximum number of iterations is reached,
