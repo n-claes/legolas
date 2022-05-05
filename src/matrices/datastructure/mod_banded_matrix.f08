@@ -97,7 +97,7 @@ contains
     !> type instance
     class(banded_matrix_t), intent(inout) :: this
 
-    deallocate(this%AB)
+    if (allocated(this%AB)) deallocate(this%AB)
   end subroutine destroy
 
 

@@ -10,10 +10,8 @@ module mod_test_linear_systems
   complex(dp), parameter :: bvector(8) = [ &
     1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0, 6.0d0, 7.0d0, 8.0d0 &
   ] * (1.0d0, 1.0d0)
-  complex(dp) :: actual(8)
-  ! complex(dp), parameter :: array(8, 8) = reshape( &
 
-  ! )
+  complex(dp) :: actual(8), expected(8)
 
 contains
 
@@ -27,6 +25,32 @@ contains
   subroutine tear_down()
     call bandmatrix%destroy()
   end subroutine tear_down
+
+
+  subroutine fill_bandmatrix(superdiags, subdiags)
+    integer, intent(in) :: superdiags, subdiags
+    complex(dp) :: amat(8, 8)
+    integer :: i
+
+    amat = (0.0d0, 0.0d0)
+    ! diagonal
+    do i = 1, 8
+      amat(i, i) = (1.0d0, 2.0d0) * i
+    end do
+    ! diagonals 1
+    do i = 1, 7
+      if (superdiags >= 1) amat(i, i + 1) = -2.0d0 * i + (3.0d0, 5.0d0)
+      if (subdiags >= 1) amat(i + 1, i) =  cmplx(1.5d0, 0.5d0, kind=dp) * i
+    end do
+    ! dieagonals 2
+    do i = 1, 6
+      if (superdiags >= 2) amat(i, i + 2) = cmplx(8.0d0 - 2.0d0 * i, 1.5d0 * i, kind=dp)
+      if (subdiags >= 2) amat(i + 2, i) = cmplx(1.0d0, -2.5d0 * i, kind=dp)
+    end do
+    call array_to_banded( &
+      array=amat, subdiags=subdiags, superdiags=superdiags, banded=bandmatrix &
+    )
+  end subroutine fill_bandmatrix
 
 
   @test
@@ -57,7 +81,7 @@ contains
     end do
     call array_to_banded(array=idmat, subdiags=0, superdiags=0, banded=bandmatrix)
     actual = solve_linear_system_complex_banded(bandmatrix, bvector)
-    ! should return complex conjugate of B-vector
+    ! solution should be complex conjugate of B-vector
     @assertEqual(conjg(bvector), actual, tolerance=TOL)
   end subroutine test_solve_linear_pure_complex_identity_matrix
 
@@ -65,7 +89,7 @@ contains
   @test
   subroutine test_solve_linear_complex_identity_matrix()
     integer :: i
-    complex(dp) :: idmat(8, 8), expected(8)
+    complex(dp) :: idmat(8, 8)
 
     call set_name("solve linear system: complex identity matrix")
     idmat = (0.0d0, 0.0d0)
@@ -77,5 +101,71 @@ contains
     actual = solve_linear_system_complex_banded(bandmatrix, bvector)
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_solve_linear_complex_identity_matrix
+
+
+  @test
+  subroutine test_solve_linear_complex_equal_diags()
+    call set_name("solve linear system: complex matrix with equal number of diagonals")
+    call fill_bandmatrix(superdiags=2, subdiags=2)
+    actual = solve_linear_system_complex_banded(bandmatrix, bvector)
+    call sort_complex_array(actual)
+
+    ! these come from scipy.linalg.solve
+    expected = [ &
+      (-0.99619592d0, -0.55662593d0), &
+      (-0.17362219d0, -0.79248836d0), &
+      (-0.09418966d0, 0.51696661d0), &
+      (0.28437612d0, -0.25123575d0), &
+      (0.39204755d0, -0.1898519d0), &
+      (0.49666747d0, 0.12248596d0), &
+      (0.79643255d0, -0.6140133d0), &
+      (1.3064335d0, 2.44482155d0) &
+    ]
+    @assertEqual(expected, actual, tolerance=1.0d-8)
+  end subroutine test_solve_linear_complex_equal_diags
+
+
+  @test
+  subroutine test_solve_linear_complex_more_superdiags()
+    call set_name("solve linear system: complex matrix with superdiags > subdiags")
+    call fill_bandmatrix(superdiags=2, subdiags=0)
+    actual = solve_linear_system_complex_banded(bandmatrix, bvector)
+    call sort_complex_array(actual)
+
+    ! from scipy.linalg.solve
+    expected = [ &
+      (-2.51878679d0, 0.04721232d0), &
+      (-0.50188952d0, 0.27246476d0), &
+      (-0.32133333d0, -0.7792381d0), &
+      (0.46285714d0, -0.66857143d0), &
+      (0.6d0, -0.2d0), &
+      (0.88884952d0, 0.67224381d0), &
+      (1.05531683d0, -1.3486146d0), &
+      (7.10217872d0, 5.8510766d0) &
+    ]
+    @assertEqual(expected, actual, tolerance=1.0d-8)
+  end subroutine test_solve_linear_complex_more_superdiags
+
+
+  @test
+  subroutine test_solve_linear_complex_more_subdiags()
+    call set_name("solve linear system: complex matrix with subdiags > superdiags")
+    call fill_bandmatrix(superdiags=1, subdiags=2)
+    actual = solve_linear_system_complex_banded(bandmatrix, bvector)
+    call sort_complex_array(actual)
+
+    ! from scipy.linalg.solve
+    expected = [ &
+      (0.02350837d0, -0.31515451d0), &
+      (0.05757693d0, -0.20216356d0), &
+      (0.29984402d0, -0.13860867d0), &
+      (0.35918888d0, 0.47923489d0), &
+      (0.49440269d0, -0.16181365d0), &
+      (0.51407726d0, -0.74773964d0), &
+      (1.00769576d0, -0.63968409d0), &
+      (1.12949026d0, 0.19710028d0) &
+    ]
+    @assertEqual(expected, actual, tolerance=1.0d-8)
+  end subroutine test_solve_linear_complex_more_subdiags
 
 end module mod_test_linear_systems
