@@ -12,13 +12,13 @@ contains
 
   !> Calculates the solution $X$ to a system of linear equations $AX = B$ where
   !! $A$ is a complex banded matrix and $B$ is a complex vector.
-  function solve_linear_system_complex_banded(bandmatrix, bvector) result(xvector)
+  function solve_linear_system_complex_banded(bandmatrix, vector) result(xvector)
     !> the banded A-matrix on the left-hand side
     type(banded_matrix_t), intent(in) :: bandmatrix
     !> the B-vector on the right-hand side
-    complex(dp), intent(in) :: bvector(:)
+    complex(dp), intent(in) :: vector(:)
     !> the solution vector $X$
-    complex(dp) :: xvector(size(bvector))
+    complex(dp) :: xvector(size(vector))
     complex(dp), allocatable :: ABmat(:, :)
     integer :: nb_eqs, kl, ku, i, j, info
     integer :: ipiv(bandmatrix%m)
@@ -38,7 +38,7 @@ contains
       end do
     end do
     ! on entry, xvector equals the B-vector
-    xvector = bvector
+    xvector = vector
 
     ! on exit, xvector contains solution (if info == 0)
     call zgbsv( &
@@ -50,7 +50,7 @@ contains
       size(ABmat, dim=1), &
       ipiv, &
       xvector, &
-      size(bvector), &
+      size(vector), &
       info &
     )
 

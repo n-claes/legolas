@@ -31,7 +31,7 @@ module mod_matrix_structure
     procedure, private :: matrix_x_real_vector
     procedure, private :: matrix_x_complex_vector
     generic :: operator(*) => matrix_x_real_vector, matrix_x_complex_vector
-  end type matrix_T
+  end type matrix_t
 
   ! interface for submodule implementations
   interface
