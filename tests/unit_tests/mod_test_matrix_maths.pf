@@ -253,4 +253,70 @@ contains
   end subroutine test_multiply_complex_matrix_invalid_type
 
 
+  @test
+  subroutine test_combined_real_plus_real()
+    real(dp) :: expected(4, 4), actual(4, 4)
+    real(dp), parameter :: number = 2.3d0
+
+    call set_name("matrix maths: combined operation A + rB (all real)")
+
+    matrix1 = array_to_matrix(array=rmat1)
+    matrix2 = array_to_matrix(array=rmat2)
+    matrix = matrix1 + matrix2 * number
+    call matrix_to_array(matrix, actual)
+
+    expected = rmat1 + number * rmat2
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_combined_real_plus_real
+
+
+  @test
+  subroutine test_combined_real_plus_complex()
+    complex(dp) :: expected(4, 4), actual(4, 4)
+    complex(dp), parameter :: number = (2.3d0, -1.4d0)
+
+    call set_name("matrix maths: combined operation A + rB (r complex)")
+
+    matrix1 = array_to_matrix(array=rmat1)
+    matrix2 = array_to_matrix(array=rmat2)
+    matrix = matrix1 + matrix2 * number
+    call matrix_to_array(matrix, actual)
+
+    expected = rmat1 + number * rmat2
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_combined_real_plus_complex
+
+
+  @test
+  subroutine test_combined_real_min_complex()
+    complex(dp) :: expected(4, 4), actual(4, 4)
+    complex(dp), parameter :: number = (1.0d0, 1.5d0)
+
+    call set_name("matrix maths: combined operation A - rB (r, B complex)")
+
+    matrix1 = array_to_matrix(array=rmat2)
+    matrix2 = array_to_matrix(array=cmat2)
+    matrix = matrix1 + matrix2 * (-number)
+    call matrix_to_array(matrix, actual)
+
+    expected = rmat2 - number * cmat2
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_combined_real_min_complex
+
+
+  @test
+  subroutine test_combined_complex_min_complex()
+    complex(dp) :: expected(4, 4), actual(4, 4)
+    complex(dp), parameter :: number = (2.13d0, -1.35d0)
+
+    call set_name("matrix maths: combined operation A - rB (all complex)")
+
+    matrix1 = array_to_matrix(array=cmat1)
+    matrix2 = array_to_matrix(array=cmat2)
+    matrix = matrix1 + matrix2 * (-number)
+    call matrix_to_array(matrix, actual)
+
+    expected = cmat1 - number * cmat2
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_combined_complex_min_complex
 end module mod_test_matrix_maths
