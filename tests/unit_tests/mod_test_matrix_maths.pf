@@ -175,4 +175,62 @@ contains
     )
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_matrix_addition_unequal
+
+
+  @test
+  subroutine test_multiply_real_matrix_real_number()
+    real(dp) :: expected(4, 4), actual(4, 4)
+    real(dp), parameter :: number = 1.5d0
+
+    call set_name("matrix maths: multiply real matrix with real number")
+    matrix = array_to_matrix(array=rmat1) * number
+    call matrix_to_array(matrix, actual)
+
+    expected = rmat1 * number
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_multiply_real_matrix_real_number
+
+
+  @test
+  subroutine test_multiply_real_matrix_complex_number()
+    complex(dp) :: expected(4, 4), actual(4, 4)
+    complex(dp), parameter :: number = (1.5d0, -2.3d0)
+
+    call set_name("matrix maths: multiply real matrix with complex number")
+    matrix = array_to_matrix(array=rmat1) * number
+    call matrix_to_array(matrix, actual)
+
+    expected = rmat1 * number
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_multiply_real_matrix_complex_number
+
+
+  @test
+  subroutine test_multiply_complex_matrix_real_number()
+    complex(dp) :: expected(4, 4), actual(4, 4)
+    real(dp), parameter :: number = 0.75d0
+
+    call set_name("matrix maths: multiply complex matrix with real number")
+    matrix = array_to_matrix(array=cmat1) * number
+    call matrix_to_array(matrix, actual)
+
+    expected = cmat1 * number
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_multiply_complex_matrix_real_number
+
+
+  @test
+  subroutine test_multiply_complex_matrix_complex_number()
+    complex(dp) :: expected(4, 4), actual(4, 4)
+    complex(dp), parameter :: number = (-1.2d0, 3.4d0)
+
+    call set_name("matrix maths: multiply complex matrix with complex number")
+    matrix = array_to_matrix(array=cmat2) * number
+    call matrix_to_array(matrix, actual)
+
+    expected = cmat2 * number
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_multiply_complex_matrix_complex_number
+
+
 end module mod_test_matrix_maths

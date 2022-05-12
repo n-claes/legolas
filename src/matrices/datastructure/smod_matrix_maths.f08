@@ -70,4 +70,21 @@ contains
     nullify(current_node)
   end procedure matrix_x_complex_vector
 
+
+  module procedure matrix_x_number
+    integer :: irow, inode
+    type(node_t), pointer :: current_node
+
+    matrix_out = matrix
+
+    do irow = 1, matrix_out%matrix_dim
+      current_node => matrix_out%rows(irow)%head
+      do inode = 1, matrix_out%rows(irow)%nb_elements
+        call current_node%multiply_node_element_with(number)
+        current_node => current_node%next
+      end do
+    end do
+    nullify(current_node)
+  end procedure matrix_x_number
+
 end submodule mod_matrix_maths

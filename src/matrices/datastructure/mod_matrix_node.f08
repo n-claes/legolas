@@ -22,6 +22,10 @@ module mod_matrix_node
     procedure, private :: add_real_to_node_element
     procedure, private :: add_complex_to_node_element
 
+    procedure :: multiply_node_element_with
+    procedure, private :: multiply_real_node_element_with
+    procedure, private :: multiply_complex_node_element_with
+
     procedure, private :: get_real_node_element
     procedure, private :: get_complex_node_element
     generic :: get_node_element => get_real_node_element, get_complex_node_element
@@ -104,6 +108,67 @@ contains
   end subroutine add_complex_to_node_element
 
 
+  !> Generic type-checking routine to multiply a polymorphic node element with
+  !! a given number.
+  subroutine multiply_node_element_with(this, number)
+    !> type instance
+    class(node_t), intent(inout) :: this
+    !> number to multiply the element with
+    class(*), intent(in) :: number
+
+    select type(element => this%element)
+      type is (real(dp))
+        call this%multiply_real_node_element_with(number)
+      type is (complex(dp))
+        call this%multiply_complex_node_element_with(number)
+    end select
+  end subroutine multiply_node_element_with
+
+
+  !> Multiplies a real node element with a given real/complex number.
+  subroutine multiply_real_node_element_with(this, number)
+    !> type instance
+    class(node_t), intent(inout) :: this
+    !> number to multiply the element with
+    class(*), intent(in) :: number
+    real(dp) :: element
+
+    call this%get_node_element(element)
+    deallocate(this%element)
+    select type(number)
+      type is (real(dp))
+        allocate(this%element, source=(number * element))
+      type is (complex(dp))
+        allocate(this%element, source=(number * element))
+      class default
+        allocate(this%element, source=NaN)
+        call raise_multiply_error(element_type="real")
+    end select
+  end subroutine multiply_real_node_element_with
+
+
+  !> Multiplies a complex node element with a given real/complex number.
+  subroutine multiply_complex_node_element_with(this, number)
+    !> type instance
+    class(node_t), intent(inout) :: this
+    !> number to multiply the element with
+    class(*), intent(in) :: number
+    complex(dp) :: element
+
+    call this%get_node_element(element)
+    deallocate(this%element)
+    select type(number)
+      type is (real(dp))
+        allocate(this%element, source=(number * element))
+      type is (complex(dp))
+        allocate(this%element, source=(number * element))
+      class default
+        allocate(this%element, source=cmplx(NaN, NaN, kind=dp))
+        call raise_multiply_error(element_type="complex")
+    end select
+  end subroutine multiply_complex_node_element_with
+
+
   !> Getter for nodes with real elements, returns a real `element` attribute.
   !! If the node element is complex it is case to real first, but we throw a
   !! warning since this may indicate unexpected behaviour and information loss.
@@ -173,5 +238,18 @@ contains
       level="warning" &
     )
   end subroutine raise_type_cast_warning
+
+
+  !> Throws an error message stating that element multiplication failed
+  subroutine raise_multiply_error(element_type)
+    !> element type to display in the error message
+    character(len=*), intent(in) :: element_type
+
+    call log_message( &
+      "unable to multiply the " // element_type &
+      // " node element with the given number", &
+      level="error" &
+    )
+  end subroutine raise_multiply_error
 
 end module mod_matrix_node
