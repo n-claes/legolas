@@ -1,11 +1,11 @@
-submodule (mod_solvers:smod_arpack_main) smod_arpack_general
+submodule (mod_solvers:smod_arpack_main) smod_arpack_shift_invert
   use mod_banded_matrix, only: banded_matrix_t
   use mod_transform_matrix, only: matrix_to_banded
   implicit none
 
 contains
 
-  module procedure solve_arpack_general
+  module procedure solve_arpack_shift_invert
     !> contains the basis vectors
     complex(dp) :: basis_vectors(arpack_cfg%get_evpdim(), arpack_cfg%get_ncv())
     !> work array of length 3N
@@ -23,25 +23,22 @@ contains
 
     integer :: diags
     logical :: converged
-    complex(dp) :: sigma
-    type(banded_matrix_t) :: bmat_banded
+    type(banded_matrix_t) :: amat_min_sigmab
     integer :: xstart, xend, ystart, yend
 
-    ! we fill at most the full quadblock, so -1 diagonals
-    ! TODO: do a pass over the B-matrix to figure out how many diagonals we need, since
-    ! this is problem-dependent
     diags = dim_quadblock - 1
-    call log_message("converting B-matrix into banded structure", level="debug")
+    call log_message("converting A - sigma*B into banded structure", level="debug")
     call matrix_to_banded( &
-      matrix=matrix_B, subdiags=diags, superdiags=diags, banded=bmat_banded &
+      matrix=matrix_A + matrix_B * (-sigma), &
+      subdiags=diags, &
+      superdiags=diags, &
+      banded=amat_min_sigmab &
     )
 
-    call log_message("doing Arnoldi iteration", level="debug")
+    call log_message("doing Arnoldi shift-invert", level="debug")
     converged = .false.
-    ! we keep iterating for as long as the eigenvalues are not converged.
-    ! If convergence is achieved or the maximum number of iterations is reached,
-    ! ARPACK sets ido=99 so the while-loop will always break.
-    do while (.not. converged)
+
+    do while(.not. converged)
       call znaupd( &
         arpack_cfg%ido, &
         arpack_cfg%get_bmat(), &
@@ -62,26 +59,32 @@ contains
         arpack_cfg%info &
       )
 
-      ! in the following y is given by workd(ipntr(2)), x by workd(ipntr(1)).
-      ! we need to explicitly set start and end to avoid incompatible ranks
+      ! x is given by workd(ipntr(1))
+      ! y is given by workd(ipntr(2))
+      ! for shift-invert B*x is saved in workd(ipntr(3))
       xstart = ipntr(1)
       xend = xstart + arpack_cfg%get_evpdim() - 1
       ystart = ipntr(2)
       yend = ystart + arpack_cfg%get_evpdim() - 1
-
-      ! note that the linked-list datastructures have the matrix-vector product
-      ! implemented using the operator (*).
       select case(arpack_cfg%ido)
-      case(-1, 1)
-        ! get y <--- OP*x, we do not calculate OP*x explicitly.
-        ! We need R = OP*x = inv[B]*A*x, so do the following:
-        ! 1. calculate u = A*x
-        ! 2. solve linear system B * R = u for R
+      case(-1)
+        ! ido = -1 on first call, forces starting vector in OP range
+        ! get y <--- OP * x
+        ! we need R = OP*x = inv[A - sigma*B]*B*x
+        ! 1. calculate u = B*x
+        ! 2. solve linear system [A - sigma*B] * R = u for R
         workd(ystart:yend) = solve_linear_system_complex_banded( &
-          bandmatrix=bmat_banded, vector=matrix_A * workd(xstart:xend) &
+          bandmatrix=amat_min_sigmab, vector=matrix_B * workd(xstart:xend) &
+        )
+      case(1)
+        ! get y <--- OP * x
+        ! we need R = OP*x = inv[A - sigma*B]*B*x, see higher.
+        ! here B*x has already been saved in workd(ipntr(3))
+        workd(ystart:yend) = solve_linear_system_complex_banded( &
+          bandmatrix=amat_min_sigmab, vector=workd(ipntr(3):) &
         )
       case(2)
-        ! get y <--- B*x, which is a simple matrix-vector product
+        ! get y <--- B * x
         workd(ystart:yend) = matrix_B * workd(xstart:xend)
       case default
         ! when convergence is achieved or maxiter is reached
@@ -89,8 +92,8 @@ contains
       end select
     end do
 
+    ! check info parameter from znaupd, this errors if necessary
     call arpack_cfg%parse_znaupd_info(converged)
-
     ! if we have a normal exit, extract the eigenvalues through zneupd
     call zneupd( &
       .true., &  ! always calculate eigenvectors, negligible additional cost in ARPACK
@@ -99,7 +102,7 @@ contains
       omega(1:arpack_cfg%get_nev()), &
       vr(:, 1:arpack_cfg%get_nev()), &
       size(vr, dim=1), &
-      sigma, &  ! not referenced here
+      sigma, &
       workev, &
       arpack_cfg%get_bmat(), &
       arpack_cfg%get_evpdim(), &
@@ -121,6 +124,6 @@ contains
 
     call arpack_cfg%parse_zneupd_info()
     call arpack_cfg%parse_finished_stats()
-  end procedure solve_arpack_general
+  end procedure solve_arpack_shift_invert
 
-end submodule smod_arpack_general
+end submodule smod_arpack_shift_invert

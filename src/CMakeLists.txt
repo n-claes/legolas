@@ -87,6 +87,7 @@ set (sources
         solvers/smod_qz_direct.f08
         solvers/arnoldi/smod_arpack_main.f08
         solvers/arnoldi/smod_arpack_general.f08
+        solvers/arnoldi/smod_arpack_shift_invert.f08
         eigenfunctions/mod_eigenfunctions.f08
         eigenfunctions/smod_ef_operations.f08
         eigenfunctions/smod_base_efs.f08

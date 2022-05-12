@@ -43,6 +43,7 @@ module mod_arpack_type
     procedure, public :: get_lworkl
     procedure, public :: parse_znaupd_info
     procedure, public :: parse_zneupd_info
+    procedure, public :: parse_finished_stats
     procedure, public :: destroy
 
     procedure, private :: set_mode
@@ -315,6 +316,7 @@ contains
     !> if .true. the reverse communication routines converged, .false. otherwise
     logical, intent(out)  :: converged
 
+    call log_message("checking znaupd info parameter", level="debug")
     converged = .false.
     select case(this % info)
     case(0)
@@ -360,6 +362,8 @@ contains
     !> reference to type object
     class(arpack_t), intent(in)  :: this
 
+    call log_message("checking zneupd info parameter", level="debug")
+
     select case(this % info)
     case(0)
       return
@@ -390,4 +394,29 @@ contains
       return ! LCOV_EXCL_STOP
     end select
   end subroutine parse_zneupd_info
+
+
+  !> Parses the statistics that come out of ARPACK when the run is finished. Displays
+  !! the number of OP*X and B*X operations and the number of re-orthogonalisation
+  !! steps that were needed.
+  subroutine parse_finished_stats(this)
+    class(arpack_t), intent(in) :: this
+
+    call log_message("Arnoldi iteration finished. Statistics: ", level="info")
+    call log_message( &
+      "   Total number of OP*x operations: " // str(this%iparam(9)), &
+      level="info", &
+      use_prefix=.false. &
+    )
+    call log_message( &
+      "   Total number of B*x operations: " // str(this%iparam(10)), &
+      level="info", &
+      use_prefix=.false. &
+    )
+    call log_message( &
+      "   Total number of re-orthogonalisation steps: " // str(this%iparam(11)), &
+      level="info", &
+      use_prefix=.false. &
+    )
+  end subroutine parse_finished_stats
 end module mod_arpack_type
