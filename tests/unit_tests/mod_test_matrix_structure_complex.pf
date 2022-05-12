@@ -61,6 +61,26 @@ contains
 
 
   @test
+  subroutine test_add_real_element_to_complex_node()
+    complex(dp) :: element
+    call set_name("matrix datastructure: add real element to complex node")
+    call matrix%add_element(row=2, column=3, element=(1.5d0, 2.0d0))
+    call matrix%add_element(row=2, column=3, element=1.0d0)
+    element = matrix%get_complex_element(2, 3)
+    @assertEqual((2.5d0, 2.0d0), element, tolerance=TOL)
+  end subroutine test_add_real_element_to_complex_node
+
+
+  @test
+  subroutine test_add_invalid_type_to_complex_node()
+    call set_name("matrix datastructure: add invalid type to complex node")
+    call matrix%add_element(row=2, column=5, element=(2.0d0, 1.0d0))
+    call matrix%rows(2)%add_node(column=5, element=2)
+    @assertExceptionRaised("unable to do node element (complex) + given number")
+  end subroutine test_add_invalid_type_to_complex_node
+
+
+  @test
   subroutine test_get_single_complex_element()
     call set_name("matrix datastructure: get single complex element")
     call matrix%add_element(row=1, column=2, element=(2.0d0, 1.0d0))
@@ -76,13 +96,13 @@ contains
 
 
   @test
-  subroutine test_get_complex_element_invalid_type()
+  subroutine test_get_complex_element_casted()
     complex(dp) :: element
-    call set_name("matrix datastructure: get complex invalid type")
+    call set_name("matrix datastructure: get complex (real node, casted)")
     call matrix%add_element(row=1, column=3, element=2.0d0)
     element = matrix%get_complex_element(row=1, column=3)
-    @assertExceptionRaised("node element does not have type complex")
-  end subroutine test_get_complex_element_invalid_type
+    @assertEqual((2.0d0, 0.0d0), element, tolerance=TOL)
+  end subroutine test_get_complex_element_casted
 
 
   @test

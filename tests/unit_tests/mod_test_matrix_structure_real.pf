@@ -209,11 +209,31 @@ contains
 
 
   @test
+  subroutine test_add_complex_element_to_real_node()
+    complex(dp) :: element
+    call set_name("matrix datastructure: add complex element to real node")
+    call matrix%add_element(row=2, column=3, element=1.0d0)
+    call matrix%add_element(row=2, column=3, element=(1.5d0, 2.0d0))
+    element = matrix%get_complex_element(2, 3)
+    @assertEqual((2.5d0, 2.0d0), element, tolerance=TOL)
+  end subroutine test_add_complex_element_to_real_node
+
+
+  @test
   subroutine test_add_element_invalid_type()
     call set_name("matrix datastructure: add invalid type")
     call matrix%add_element(row=2, column=1, element=1)
     @assertExceptionRaised("adding unexpected element type")
   end subroutine test_add_element_invalid_type
+
+
+  @test
+  subroutine test_add_invalid_type_to_real_node()
+    call set_name("matrix datastructure: add invalid type to real node")
+    call matrix%add_element(row=2, column=5, element=2.0d0)
+    call matrix%rows(2)%add_node(column=5, element=2)
+    @assertExceptionRaised("unable to do node element (real) + given number")
+  end subroutine test_add_invalid_type_to_real_node
 
 
   @test
@@ -232,13 +252,13 @@ contains
 
 
   @test
-  subroutine test_get_real_element_invalid_type()
+  subroutine test_get_real_element_casted()
     real(dp) :: element
-    call set_name("matrix datastructure: get real invalid type")
+    call set_name("matrix datastructure: get real (complex node, casted + warning)")
     call matrix%add_element(row=1, column=3, element=(1.0d0, 2.0d0))
     element = matrix%get_real_element(1, 3)
-    @assertExceptionRaised("node element does not have type real")
-  end subroutine test_get_real_element_invalid_type
+    @assertEqual(1.0d0, element, tolerance=TOL)
+  end subroutine test_get_real_element_casted
 
 
   @test

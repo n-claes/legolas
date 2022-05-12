@@ -19,8 +19,8 @@ module mod_matrix_node
     procedure :: delete
 
     procedure :: add_to_node_element
-    procedure, private :: add_real_to_node_element
-    procedure, private :: add_complex_to_node_element
+    procedure, private :: add_to_real_node_element
+    procedure, private :: add_to_complex_node_element
 
     procedure :: multiply_node_element_with
     procedure, private :: multiply_real_node_element_with
@@ -69,43 +69,59 @@ contains
     !> element to add to the existing element
     class(*), intent(in) :: element
 
-    select type(element)
+    select type(node_element => this%element)
       type is (real(dp))
-        call this%add_real_to_node_element(element)
+        call this%add_to_real_node_element(element)
       type is (complex(dp))
-        call this%add_complex_to_node_element(element)
+        call this%add_to_complex_node_element(element)
     end select
   end subroutine add_to_node_element
 
 
   !> Sums the current real node element with a new element. The "old" element is
   !! deallocated and reallocated with its new value.
-  subroutine add_real_to_node_element(this, element_to_add)
+  subroutine add_to_real_node_element(this, element_to_add)
     !> type instance
     class(node_t), intent(inout) :: this
     !> element to add to the existing element
-    real(dp), intent(in) :: element_to_add
+    class(*), intent(in) :: element_to_add
     real(dp) :: existing_element
 
     call this%get_node_element(existing_element)
     deallocate(this%element)
-    allocate(this%element, source=(existing_element + element_to_add))
-  end subroutine add_real_to_node_element
+    select type(element_to_add)
+      type is (real(dp))
+        allocate(this%element, source=(existing_element + element_to_add))
+      type is (complex(dp))
+        allocate(this%element, source=(existing_element + element_to_add))
+      class default
+        allocate(this%element, source=NaN)
+        call raise_operation_error(element_type="real", operation="+")
+    end select
+  end subroutine add_to_real_node_element
 
 
   !> Sums the current complex node element with a new element. The "old" element is
   !! deallocated and reallocated with its new value
-  subroutine add_complex_to_node_element(this, element_to_add)
+  subroutine add_to_complex_node_element(this, element_to_add)
     !> type instance
     class(node_t), intent(inout) :: this
     !> element to add to the existing element
-    complex(dp), intent(in) :: element_to_add
+    class(*), intent(in) :: element_to_add
     complex(dp) :: existing_element
 
     call this%get_node_element(existing_element)
     deallocate(this%element)
-    allocate(this%element, source=(existing_element + element_to_add))
-  end subroutine add_complex_to_node_element
+    select type(element_to_add)
+      type is (real(dp))
+        allocate(this%element, source=(existing_element + element_to_add))
+      type is (complex(dp))
+        allocate(this%element, source=(existing_element + element_to_add))
+      class default
+        allocate(this%element, source=cmplx(NaN, NaN, kind=dp))
+        call raise_operation_error(element_type="complex", operation="+")
+    end select
+  end subroutine add_to_complex_node_element
 
 
   !> Generic type-checking routine to multiply a polymorphic node element with
@@ -142,7 +158,7 @@ contains
         allocate(this%element, source=(number * element))
       class default
         allocate(this%element, source=NaN)
-        call raise_multiply_error(element_type="real")
+        call raise_operation_error(element_type="real", operation="*")
     end select
   end subroutine multiply_real_node_element_with
 
@@ -164,7 +180,7 @@ contains
         allocate(this%element, source=(number * element))
       class default
         allocate(this%element, source=cmplx(NaN, NaN, kind=dp))
-        call raise_multiply_error(element_type="complex")
+        call raise_operation_error(element_type="complex", operation="*")
     end select
   end subroutine multiply_complex_node_element_with
 
@@ -241,15 +257,17 @@ contains
 
 
   !> Throws an error message stating that element multiplication failed
-  subroutine raise_multiply_error(element_type)
+  subroutine raise_operation_error(element_type, operation)
     !> element type to display in the error message
     character(len=*), intent(in) :: element_type
+    !> operation that was performed
+    character(len=*), intent(in) :: operation
 
     call log_message( &
-      "unable to multiply the " // element_type &
-      // " node element with the given number", &
+      "unable to do node element (" // element_type // ") " &
+      // operation // " given number", &
       level="error" &
     )
-  end subroutine raise_multiply_error
+  end subroutine raise_operation_error
 
 end module mod_matrix_node

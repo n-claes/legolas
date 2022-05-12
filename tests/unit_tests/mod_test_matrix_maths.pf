@@ -233,4 +233,24 @@ contains
   end subroutine test_multiply_complex_matrix_complex_number
 
 
+  @test
+  subroutine test_multiply_real_matrix_invalid_type()
+    call set_name("matrix maths: multiply real matrix with invalid type")
+    matrix = new_matrix(nb_rows=3)
+    call matrix%add_element(row=2, column=1, element=1.0d0)
+    matrix = matrix * 2
+    @assertExceptionRaised("unable to do node element (real) * given number")
+  end subroutine test_multiply_real_matrix_invalid_type
+
+
+  @test
+  subroutine test_multiply_complex_matrix_invalid_type()
+    call set_name("matrix maths: multiply complex matrix with invalid type")
+    matrix = new_matrix(nb_rows=3)
+    call matrix%add_element(row=2, column=1, element=(1.0d0, 2.0d0))
+    matrix = matrix * 2
+    @assertExceptionRaised("unable to do node element (complex) * given number")
+  end subroutine test_multiply_complex_matrix_invalid_type
+
+
 end module mod_test_matrix_maths
