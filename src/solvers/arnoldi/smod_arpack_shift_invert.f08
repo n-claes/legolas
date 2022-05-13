@@ -1,6 +1,6 @@
 submodule (mod_solvers:smod_arpack_main) smod_arpack_shift_invert
   use mod_banded_matrix, only: banded_matrix_t
-  use mod_transform_matrix, only: matrix_to_banded
+  use mod_transform_matrix, only: matrix_to_banded, banded_to_array
   implicit none
 
 contains
@@ -24,12 +24,12 @@ contains
     integer :: diags
     logical :: converged
     type(banded_matrix_t) :: amat_min_sigmab
-    integer :: xstart, xend, ystart, yend
+    integer :: xstart, xend, ystart, yend, bxstart, bxend
 
     diags = dim_quadblock - 1
     call log_message("converting A - sigma*B into banded structure", level="debug")
     call matrix_to_banded( &
-      matrix=matrix_A + matrix_B * (-sigma), &
+      matrix=matrix_A - matrix_B * sigma, &
       subdiags=diags, &
       superdiags=diags, &
       banded=amat_min_sigmab &
@@ -60,12 +60,15 @@ contains
       )
 
       ! x is given by workd(ipntr(1))
-      ! y is given by workd(ipntr(2))
-      ! for shift-invert B*x is saved in workd(ipntr(3))
       xstart = ipntr(1)
       xend = xstart + arpack_cfg%get_evpdim() - 1
+      ! y is given by workd(ipntr(2))
       ystart = ipntr(2)
       yend = ystart + arpack_cfg%get_evpdim() - 1
+      ! for shift-invert B*x is saved in workd(ipntr(3))
+      bxstart = ipntr(3)
+      bxend = bxstart + arpack_cfg%get_evpdim() - 1
+
       select case(arpack_cfg%ido)
       case(-1)
         ! ido = -1 on first call, forces starting vector in OP range
@@ -81,7 +84,7 @@ contains
         ! we need R = OP*x = inv[A - sigma*B]*B*x, see higher.
         ! here B*x has already been saved in workd(ipntr(3))
         workd(ystart:yend) = solve_linear_system_complex_banded( &
-          bandmatrix=amat_min_sigmab, vector=workd(ipntr(3):) &
+          bandmatrix=amat_min_sigmab, vector=workd(bxstart:bxend) &
         )
       case(2)
         ! get y <--- B * x
