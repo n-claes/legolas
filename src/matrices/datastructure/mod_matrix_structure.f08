@@ -27,6 +27,8 @@ module mod_matrix_structure
 
     procedure, private :: add_matrices
     generic :: operator(+) => add_matrices
+    procedure, private :: subtract_matrices
+    generic :: operator(-) => subtract_matrices
     procedure, private :: matrix_x_real_vector
     procedure, private :: matrix_x_complex_vector
     procedure, private :: matrix_x_number
@@ -46,6 +48,18 @@ module mod_matrix_structure
       type(matrix_t) :: matrix
     end function add_matrices
   end interface addition
+
+  interface subtraction
+    !> Overloads the subtraction operator between two matrix datastructures
+    module function subtract_matrices(matrix1, matrix2) result(matrix)
+      !> left-hand side of - operator
+      class(matrix_t), intent(in) :: matrix1
+      !> right-hand side of + operator
+      class(matrix_t), intent(in) :: matrix2
+      !> result of subtraction
+      type(matrix_t) :: matrix
+    end function subtract_matrices
+  end interface subtraction
 
   interface multiplication
     !> Overloads the multiplication operator between a matrix and a real vector

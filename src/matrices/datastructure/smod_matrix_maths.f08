@@ -7,8 +7,12 @@ contains
     integer :: irow, inode
     type(node_t), pointer :: current_node
 
-    matrix = new_matrix(nb_rows=max(matrix1%matrix_dim, matrix2%matrix_dim))
+    if (matrix1%matrix_dim /= matrix2%matrix_dim) then
+      call raise_incompatibility_error(matrix1%matrix_dim, matrix2%matrix_dim)
+      return
+    end if
 
+    matrix = new_matrix(matrix1%matrix_dim)
     do irow = 1, matrix1%matrix_dim
       current_node => matrix1%rows(irow)%head
       do inode = 1, matrix1%rows(irow)%nb_elements
@@ -33,6 +37,41 @@ contains
     end do
     nullify(current_node)
   end procedure add_matrices
+
+
+  module procedure subtract_matrices
+    integer :: irow, inode
+    type(node_t), pointer :: current_node
+
+    if (matrix1%matrix_dim /= matrix2%matrix_dim) then
+      call raise_incompatibility_error(matrix1%matrix_dim, matrix2%matrix_dim)
+      return
+    end if
+
+    matrix = new_matrix(matrix1%matrix_dim)
+    do irow = 1, matrix1%matrix_dim
+      current_node => matrix1%rows(irow)%head
+      do inode = 1, matrix1%rows(irow)%nb_elements
+        call matrix%add_element( &
+          row=irow, &
+          column=current_node%column, &
+          element=current_node%get_node_element() &
+        )
+        current_node => current_node%next
+      end do
+    end do
+    do irow = 1, matrix2%matrix_dim
+      current_node => matrix2%rows(irow)%head
+      do inode = 1, matrix2%rows(irow)%nb_elements
+        call matrix%add_element( &
+          row=irow, &
+          column=current_node%column, &
+          element = -current_node%get_node_element() &
+        )
+        current_node => current_node%next
+      end do
+    end do
+  end procedure subtract_matrices
 
 
   module procedure matrix_x_real_vector
@@ -90,5 +129,17 @@ contains
     end do
     nullify(current_node)
   end procedure matrix_x_number
+
+
+  subroutine raise_incompatibility_error(dim1, dim2)
+    integer, intent(in) :: dim1
+    integer, intent(in) :: dim2
+
+    call log_message( &
+      "incompatible ranks! unable to add matrix of dimension " &
+      // str(dim1) // " with matrix of dimension " // str(dim2), &
+      level="error" &
+    )
+  end subroutine raise_incompatibility_error
 
 end submodule mod_matrix_maths

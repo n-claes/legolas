@@ -91,6 +91,21 @@ contains
 
 
   @test
+  subroutine test_complex_matrix_subtraction()
+    complex(dp) :: actual(4, 4), expected(4, 4)
+
+    call set_name("matrix maths: complex matrix subtraction")
+    matrix1 = array_to_matrix(array=cmat1)
+    matrix2 = array_to_matrix(array=cmat2)
+    matrix = matrix1 - matrix2
+    call matrix_to_array(matrix, actual)
+
+    expected = cmat1 - cmat2
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_complex_matrix_subtraction
+
+
+  @test
   subroutine test_matrix_real_vector_multiplication()
     real(dp) :: vector(4)
     complex(dp) :: expected(4), actual(4)
@@ -120,68 +135,31 @@ contains
 
 
   @test
-  subroutine test_matrix_addition_submatrix()
-    complex(dp) :: actual(4, 4), expected(4, 4)
+  subroutine test_matrix_addition_incompatible_ranks()
+    character(len=125) :: error_msg
 
-    call set_name("matrix maths: matrix and submatrix addition")
+    call set_name("matrix maths: adding incompatible ranks")
     matrix1 = array_to_matrix(array=rmat1)
     matrix2 = array_to_matrix(array=rmat2(1:3, 1:2))
     matrix = matrix1 + matrix2
-    call matrix_to_array(matrix, actual)
-
-    expected = cmplx( &
-      reshape( &
-        [ &
-          7.0d0, -1.0d0, -1.0d0, 0.0d0, &
-          -2.0d0, 1.0d0, 1.0d0, 0.0d0, &
-          7.0d0, 0.0d0, 2.0d0, -1.0d0, &
-          -1.0d0, 5.0d0, 8.0d0, 4.0d0 &
-        ], &
-        shape=[4, 4] &
-      ), &
-      kind=dp &
-    )
-    @assertEqual(expected, actual, tolerance=TOL)
-  end subroutine test_matrix_addition_submatrix
+    error_msg = "incompatible ranks! unable to add matrix of dimension 4 &
+      &with matrix of dimension 3"
+    @assertExceptionRaised(trim(error_msg))
+  end subroutine test_matrix_addition_incompatible_ranks
 
 
   @test
-  subroutine test_matrix_addition_unequal()
-    complex(dp) :: actual(5, 5), expected(5, 5)
-    real(dp) :: rmat(5, 5)
+  subroutine test_matrix_subtraction_incompatible_ranks()
+    character(len=125) :: error_msg
 
-    call set_name("matrix maths: unequal matrix addition")
-    matrix1 = array_to_matrix(array=rmat1(1:3, 1:3))
-    rmat = reshape( &
-      [ &
-        4.0d0, -1.0d0, 0.0d0, 3.0d0, 1.0d0, &
-        -2.0d0, 0.0d0, 1.0d0, 2.0d0, 2.0d0, &
-        7.0d0, -3.0d0, 0.0d0, -1.0d0, 3.0d0, &
-        -1.0d0, 0.0d0, -3.0d0, 3.0d0, -1.5d0, &
-        -3.0d0, 2.5d0, 1.0d0, -1.0d0, 2.0d0 &
-      ], &
-      shape=[5, 5] &
-    )
-    matrix2 = array_to_matrix(array=rmat)
-    matrix = matrix1 + matrix2
-    @assertEqual(5, matrix%matrix_dim)
-    call matrix_to_array(matrix, actual)
-
-    expected = cmplx( &
-      reshape( &
-        [ &
-          7.0d0, -1.0d0, -1.0d0, 3.0d0, 1.0d0, &
-          -2.0d0, 1.0d0, 1.0d0, 2.0d0, 2.0d0, &
-          14.0d0, -3.0d0, 2.0d0, -1.0d0, 3.0d0, &
-          -1.0d0, 0.0d0, -3.0d0, 3.0d0, -1.5d0, &
-          -3.0d0, 2.5d0, 1.0d0, -1.0d0, 2.0d0 &
-        ], &
-        shape=[5, 5] &
-      ), &
-      kind=dp &
-    )
-    @assertEqual(expected, actual, tolerance=TOL)
-  end subroutine test_matrix_addition_unequal
+    call set_name("matrix maths: subtracting incompatible ranks")
+    matrix1 = array_to_matrix(array=rmat1)
+    matrix2 = array_to_matrix(array=rmat2(1:3, 1:2))
+    matrix = matrix1 - matrix2
+    error_msg = "incompatible ranks! unable to add matrix of dimension 4 &
+      &with matrix of dimension 3"
+    @assertExceptionRaised(trim(error_msg))
+  end subroutine test_matrix_subtraction_incompatible_ranks
 
 
   @test
@@ -262,7 +240,6 @@ contains
     complex(dp), parameter :: number = (2.3d0, -1.4d0)
 
     call set_name("matrix maths: combined operation A + rB (r complex)")
-
     matrix1 = array_to_matrix(array=rmat1)
     matrix2 = array_to_matrix(array=rmat2)
     matrix = matrix1 + matrix2 * number
@@ -271,5 +248,21 @@ contains
     expected = rmat1 + number * rmat2
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_combined_real_plus_complex
+
+
+  @test
+  subroutine test_combined_minus_complex()
+    complex(dp) :: expected(4, 4), actual(4, 4)
+    complex(dp), parameter :: number = (1.8d0, 0.2d0)
+
+    call set_name("matrix maths: combined operation A - rB (all complex)")
+    matrix1 = array_to_matrix(array=cmat2)
+    matrix2 = array_to_matrix(array=cmat1)
+    matrix = matrix1 - matrix2 * number
+    call matrix_to_array(matrix, actual)
+
+    expected = cmat2 - number * cmat1
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_combined_minus_complex
 
 end module mod_test_matrix_maths
