@@ -19,7 +19,7 @@ contains
   !!          is not a square matrix. @endwarning
   module procedure qr_invert
     !> full array containing the B-matrix
-    real(dp), allocatable :: array_B(:, :)
+    complex(dp), allocatable :: array_B(:, :)
     !> full array containing the inverse of the B-matrix
     real(dp), allocatable :: array_B_inv(:, :)
     !> full array containing the A-matrix
@@ -52,9 +52,9 @@ contains
 
     ! do inversion of B
     allocate(array_B(matrix_B%matrix_dim, matrix_B%matrix_dim))
-    allocate(array_B_inv, mold=array_B)
+    allocate(array_B_inv(matrix_B%matrix_dim, matrix_B%matrix_dim))
     call matrix_to_array(matrix=matrix_B, array=array_B)
-    call invert_matrix(array_B, array_B_inv)
+    call invert_matrix(real(array_B), array_B_inv)
     deallocate(array_B)
 
     ! do matrix multiplication B^{-1}A

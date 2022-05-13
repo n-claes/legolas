@@ -197,8 +197,6 @@ contains
     type(matrix_t), intent(in) :: matrix_B
     type(node_t), pointer :: current_node
     integer :: irow, inode
-    real(dp) :: B_element
-    complex(dp) :: A_element
 
     ! write total number of nonzero elements
     write(dat_fh) matrix_B%get_total_nb_elements()
@@ -209,8 +207,8 @@ contains
       current_node => matrix_B%rows(irow)%head
       do inode = 1, matrix_B%rows(irow)%nb_elements
         write(dat_fh) irow, current_node%column
-        call current_node%get_node_element(B_element)
-        write(dat_fh) B_element
+        ! B is real, so write only real values
+        write(dat_fh) real(current_node%get_node_element())
         current_node => current_node%next
       end do
     end do
@@ -219,8 +217,7 @@ contains
       current_node => matrix_A%rows(irow)%head
       do inode = 1, matrix_A%rows(irow)%nb_elements
         write(dat_fh) irow, current_node%column
-        call current_node%get_node_element(A_element)
-        write(dat_fh) A_element
+        write(dat_fh) current_node%get_node_element()
         current_node => current_node%next
       end do
     end do

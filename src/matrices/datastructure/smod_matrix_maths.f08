@@ -13,7 +13,9 @@ contains
       current_node => matrix1%rows(irow)%head
       do inode = 1, matrix1%rows(irow)%nb_elements
         call matrix%add_element( &
-          row=irow, column=current_node%column, element=current_node%element &
+          row=irow, &
+          column=current_node%column, &
+          element=current_node%get_node_element() &
         )
         current_node => current_node%next
       end do
@@ -22,7 +24,9 @@ contains
       current_node => matrix2%rows(irow)%head
       do inode = 1, matrix2%rows(irow)%nb_elements
         call matrix%add_element( &
-          row=irow, column=current_node%column, element=current_node%element &
+          row=irow, &
+          column=current_node%column, &
+          element=current_node%get_node_element() &
         )
         current_node => current_node%next
       end do
@@ -33,15 +37,15 @@ contains
 
   module procedure matrix_x_real_vector
     integer :: irow, inode
-    real(dp) :: array_value
-    real(dp) :: element
+    complex(dp) :: array_value
+    complex(dp) :: element
     type(node_t), pointer :: current_node
 
     do irow = 1, matrix%matrix_dim
       array_value = 0.0d0
       current_node => matrix%rows(irow)%head
       do inode = 1, matrix%rows(irow)%nb_elements
-        call current_node%get_node_element(element)
+        element = current_node%get_node_element()
         array_value = array_value + element * vector(current_node%column)
         current_node => current_node%next
       end do
@@ -61,7 +65,7 @@ contains
       array_value = (0.0d0, 0.0d0)
       current_node => matrix%rows(irow)%head
       do inode = 1, matrix%rows(irow)%nb_elements
-        call current_node%get_node_element(element)
+        element = current_node%get_node_element()
         array_value = array_value + element * vector(current_node%column)
         current_node => current_node%next
       end do

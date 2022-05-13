@@ -133,9 +133,9 @@ contains
       idx = idxs(i)
       do k = limits(1), limits(2)
         ! row at idx, columns within limits
-        call matrix%rows(idx)%delete_node(column=k)
+        call matrix%rows(idx)%delete_node_from_row(column=k)
         ! column at idx, rows within limits
-        call matrix%rows(k)%delete_node(column=idx)
+        call matrix%rows(k)%delete_node_from_row(column=idx)
       end do
       ! add diagonal factor to main diagonal
       call matrix%add_element(row=idx, column=idx, element=get_diagonal_factor(matrix))

@@ -20,7 +20,6 @@ module mod_matrix_structure
 
     procedure :: add_element
     procedure :: set_label
-    procedure :: get_real_element
     procedure :: get_complex_element
     procedure :: get_total_nb_elements
     procedure :: get_label
@@ -56,7 +55,7 @@ module mod_matrix_structure
       !> right-hand side
       real(dp), intent(in) :: vector(matrix%matrix_dim)
       !> result of multiplication
-      real(dp) :: array(matrix%matrix_dim)
+      complex(dp) :: array(matrix%matrix_dim)
     end function matrix_x_real_vector
 
     !> Overloads the multiplication operator between a matrix and a complex vector
@@ -181,29 +180,6 @@ contains
   end function is_valid_index
 
 
-  !> Returns the real element associated with the linked-list node at position
-  !! (row, column) in the matrix datastructure. Throws appropriate errors if the
-  !! node element types do not match. Non-existing nodes correspond to zero elements,
-  !! so in that case this function returns (real) zero.
-  function get_real_element(this, row, column) result(element)
-    !> type instance
-    class(matrix_t), intent(in) :: this
-    !> row position of the needed element
-    integer, intent(in) :: row
-    !> column position of the needed element
-    integer, intent(in) :: column
-    !> the element at position (row, column) in the matrix
-    real(dp) :: element
-    type(node_t), pointer :: node
-
-    ! if node is not present then element is zero
-    element = 0.0d0
-    node => this%rows(row)%get_node(column=column)
-    if (associated(node)) call node%get_node_element(element)
-    nullify(node)
-  end function get_real_element
-
-
   !> Returns the complex element associated with the linked-list node at position
   !! (row, column) in the matrix datastructure. Throws appropriate errors if the
   !! node element types do not match. Non-existing nodes correspond to zero elements,
@@ -221,7 +197,7 @@ contains
 
     element = (0.0d0, 0.0d0)
     node => this%rows(row)%get_node(column=column)
-    if (associated(node)) call node%get_node_element(element)
+    if (associated(node)) element = node%get_node_element()
     nullify(node)
   end function get_complex_element
 

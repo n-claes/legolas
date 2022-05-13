@@ -7,7 +7,6 @@ module mod_transform_matrix
   private
 
   interface matrix_to_array
-    module procedure matrix_to_real_array
     module procedure matrix_to_complex_array
   end interface matrix_to_array
 
@@ -37,22 +36,6 @@ module mod_transform_matrix
 
 
 contains
-
-
-  !> Converts a given matrix data structure with real nodes to a 2D real array.
-  subroutine matrix_to_real_array(matrix, array)
-    !> the original matrix datastructure
-    type(matrix_t), intent(in) :: matrix
-    !> the resulting real 2D array
-    real(dp), intent(out) :: array(matrix%matrix_dim, matrix%matrix_dim)
-    integer :: irow, icol
-
-    do icol = 1, matrix%matrix_dim
-      do irow = 1, matrix%matrix_dim
-        array(irow, icol) = matrix%get_real_element(row=irow, column=icol)
-      end do
-    end do
-  end subroutine matrix_to_real_array
 
 
   !> Converts a given matrix data structure with complex nodes to a 2D complex array.

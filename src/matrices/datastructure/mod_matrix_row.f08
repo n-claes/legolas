@@ -19,7 +19,7 @@ module mod_matrix_row
     procedure :: add_node
     procedure :: get_node
     procedure :: delete_row
-    procedure :: delete_node
+    procedure :: delete_node_from_row
 
     procedure, private :: create_first_node
     procedure, private :: append_node
@@ -129,7 +129,7 @@ contains
 
 
   !> Deletes a given node from the current row.
-  subroutine delete_node(this, column)
+  subroutine delete_node_from_row(this, column)
     !> type instance
     class(row_t), intent(inout) :: this
     !> column index of node to be deleted
@@ -183,7 +183,7 @@ contains
       nullify(node)
       nullify(next_node)
     end subroutine decrement_and_nullify
-  end subroutine delete_node
+  end subroutine delete_node_from_row
 
 
   !> Deletes a given linked list row by recursively iterating over all nodes.

@@ -25,7 +25,7 @@ contains
     !> full array for matrix A
     complex(dp), allocatable :: array_A(:, :)
     !> full array for matrix B
-    real(dp), allocatable :: array_B(:, :)
+    complex(dp), allocatable :: array_B(:, :)
     !> leading dimension of (complex) matrix_B
     integer     :: ldb
     !> array for alpha, see zggem
@@ -85,7 +85,7 @@ contains
     ! solve eigenvalue problem
     call log_message("solving evp using QZ algorithm zggev (LAPACK)", level="debug")
     call zggev( &
-      jobvl, jobvr, N, array_A, lda, cmplx(array_B, kind=dp), ldb, &
+      jobvl, jobvr, N, array_A, lda, array_B, ldb, &
       alpha, beta, vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )
     if (info /= 0) then ! LCOV_EXCL_START
