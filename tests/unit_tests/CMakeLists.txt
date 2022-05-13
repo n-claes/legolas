@@ -57,8 +57,7 @@ set( test_sources
         mod_test_variables.pf
         mod_test_logging.pf
         mod_test_banded_matrix.pf
-        mod_test_matrix_structure_real.pf
-        mod_test_matrix_structure_complex.pf
+        mod_test_matrix_structure.pf
         mod_test_matrix_maths.pf
         mod_test_transform_matrix.pf
         mod_test_linear_systems.pf
@@ -80,7 +79,7 @@ set( test_sources
         mod_test_interpolation.pf
         mod_test_integration.pf
         mod_test_lapacksolvers.pf
-        mod_test_arpacksolvers.pf
+        # mod_test_arpacksolvers.pf
         mod_test_geometry_override.pf
         mod_test_inspections.pf
         mod_test_solar_atmosphere.pf

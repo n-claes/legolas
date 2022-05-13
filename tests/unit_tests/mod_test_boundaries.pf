@@ -14,7 +14,7 @@ module mod_test_boundaries
   integer, parameter :: right_start = 129
 
   complex(dp) :: amat_array(points, points), amat_expected(points, points)
-  real(dp) :: bmat_array(points, points), bmat_expected(points, points)
+  complex(dp) :: bmat_array(points, points), bmat_expected(points, points)
 
   type(matrix_t) :: amat
   type(matrix_t) :: bmat

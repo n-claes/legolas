@@ -46,16 +46,16 @@ contains
     matrix = array_to_matrix(array=rmat)
     @assertEqual(count(abs(rmat) > 0.0d0), matrix%get_total_nb_elements())
 
-    @assertEqual(rmat(1, 1), matrix%get_real_element(1, 1), tolerance=TOL)
-    @assertEqual(rmat(1, 3), matrix%get_real_element(1, 3), tolerance=TOL)
-    @assertEqual(rmat(1, 4), matrix%get_real_element(1, 4), tolerance=TOL)
-    @assertEqual(rmat(2, 2), matrix%get_real_element(2, 2), tolerance=TOL)
-    @assertEqual(rmat(2, 4), matrix%get_real_element(2, 4), tolerance=TOL)
-    @assertEqual(rmat(3, 1), matrix%get_real_element(3, 1), tolerance=TOL)
-    @assertEqual(rmat(3, 3), matrix%get_real_element(3, 3), tolerance=TOL)
-    @assertEqual(rmat(3, 4), matrix%get_real_element(3, 4), tolerance=TOL)
-    @assertEqual(rmat(4, 3), matrix%get_real_element(4, 3), tolerance=TOL)
-    @assertEqual(rmat(4, 4), matrix%get_real_element(4, 4), tolerance=TOL)
+    @assertEqual(cmplx(rmat(1, 1), kind=dp), matrix%get_complex_element(1, 1), TOL)
+    @assertEqual(cmplx(rmat(1, 3), kind=dp), matrix%get_complex_element(1, 3), TOL)
+    @assertEqual(cmplx(rmat(1, 4), kind=dp), matrix%get_complex_element(1, 4), TOL)
+    @assertEqual(cmplx(rmat(2, 2), kind=dp), matrix%get_complex_element(2, 2), TOL)
+    @assertEqual(cmplx(rmat(2, 4), kind=dp), matrix%get_complex_element(2, 4), TOL)
+    @assertEqual(cmplx(rmat(3, 1), kind=dp), matrix%get_complex_element(3, 1), TOL)
+    @assertEqual(cmplx(rmat(3, 3), kind=dp), matrix%get_complex_element(3, 3), TOL)
+    @assertEqual(cmplx(rmat(3, 4), kind=dp), matrix%get_complex_element(3, 4), TOL)
+    @assertEqual(cmplx(rmat(4, 3), kind=dp), matrix%get_complex_element(4, 3), TOL)
+    @assertEqual(cmplx(rmat(4, 4), kind=dp), matrix%get_complex_element(4, 4), TOL)
   end subroutine test_generation_real_array_to_matrix
 
 
@@ -79,19 +79,22 @@ contains
 
 
   @test
-  subroutine test_generation_matrix_to_real_array()
-    real(dp) :: expected(4, 4) = reshape( &
-      [ &
-        1.0d0, 1.0d0, 0.0d0, 0.0d0, &
-        0.0d0, 0.0d0, 0.0d0, 0.0d0, &
-        2.0d0, 3.0d0, -1.0d0, -1.0d0, &
-        0.0d0, 0.0d0, 8.0d0, -4.0d0 &
-      ], &
-      shape=[4, 4] &
+  subroutine test_generation_real_matrix_to_array()
+    complex(dp) :: expected(4, 4) = cmplx( &
+      reshape( &
+        [ &
+          1.0d0, 1.0d0, 0.0d0, 0.0d0, &
+          0.0d0, 0.0d0, 0.0d0, 0.0d0, &
+          2.0d0, 3.0d0, -1.0d0, -1.0d0, &
+          0.0d0, 0.0d0, 8.0d0, -4.0d0 &
+        ], &
+        shape=[4, 4] &
+      ), &
+      kind=dp &
     )
-    real(dp) :: actual(4, 4)
+    complex(dp) :: actual(4, 4)
 
-    call set_name("transform matrix: matrix -> real array")
+    call set_name("transform matrix: real matrix -> array")
     matrix = new_matrix(nb_rows=4)
     call matrix%add_element(row=1, column=1, element=1.0d0)
     call matrix%add_element(row=2, column=1, element=1.0d0)
@@ -103,11 +106,11 @@ contains
     call matrix%add_element(row=4, column=4, element=-4.0d0)
     call matrix_to_array(matrix=matrix, array=actual)
     @assertEqual(expected, actual, tolerance=TOL)
-  end subroutine test_generation_matrix_to_real_array
+  end subroutine test_generation_real_matrix_to_array
 
 
   @test
-  subroutine test_generation_matrix_to_complex_array()
+  subroutine test_generation_complex_matrix_to_array()
     complex(dp) :: expected(4, 4) = reshape( &
       [ &
         (2.0d0, 7.0d0), (2.0d0, -3.0d0), (0.0d0, 0.0d0), (2.0d0, -1.0d0), &
@@ -119,7 +122,7 @@ contains
     )
     complex(dp) :: actual(4, 4)
 
-    call set_name("transform matrix: matrix -> complex array")
+    call set_name("transform matrix: complex matrix -> array")
     matrix = new_matrix(nb_rows=4)
     call matrix%add_element(row=1, column=1, element=(2.0d0, 7.0d0))
     call matrix%add_element(row=2, column=1, element=(2.0d0, -3.0d0))
@@ -133,6 +136,6 @@ contains
     call matrix%add_element(row=3, column=4, element=(0.0d0, -1.0d0))
     call matrix_to_array(matrix=matrix, array=actual)
     @assertEqual(expected, actual, tolerance=TOL)
-  end subroutine test_generation_matrix_to_complex_array
+  end subroutine test_generation_complex_matrix_to_array
 
 end module mod_test_transform_matrix

@@ -21,191 +21,17 @@ contains
   end subroutine tear_down
 
 
-  subroutine add_nodes_to_matrix(row)
-    integer, intent(in) :: row
-    integer :: i
-
-    do i = 1, 5
-      call matrix%add_element(row=row, column=i, element=2.0d0 * i)
-    end do
-  end subroutine add_nodes_to_matrix
 
 
-  @test
-  subroutine test_init_matrix()
-    call set_name("matrix datastructure: initialisation")
-    @assertEqual(5, size(matrix%rows))
-    @assertEqual(5, matrix%matrix_dim)
-  end subroutine test_init_matrix
 
 
-  @test
-  subroutine test_teardown_matrix()
-    type(matrix_t) :: test_matrix
-    call set_name("matrix datastructure: deallocation")
-    test_matrix = new_matrix(nb_rows=10)
-    call test_matrix%delete_matrix()
-    @assertFalse(allocated(test_matrix%rows))
-  end subroutine test_teardown_matrix
 
 
-  @test
-  subroutine test_no_label_added()
-    call set_name("matrix datastructure: no label")
-    @assertEqual("", matrix%get_label())
-  end subroutine test_no_label_added
 
 
-  @test
-  subroutine test_add_label()
-    type(matrix_t) :: test_matrix
-    call set_name("matrix datastructure: add label")
-    test_matrix = new_matrix(nb_rows=5, label="test_matrix")
-    @assertEqual("test_matrix", test_matrix%get_label())
-    call test_matrix%delete_matrix()
-
-    test_matrix = new_matrix(nb_rows=5, label="A")
-    @assertEqual("A", test_matrix%get_label())
-    call test_matrix%delete_matrix()
-  end subroutine test_add_label
 
 
-  @test
-  subroutine test_delete_node()
-    integer, parameter :: row = 2
 
-    call set_name("matrix datastructure: delete node")
-    call add_nodes_to_matrix(row=row)
-
-    @assertEqual(5, matrix%rows(row)%nb_elements)
-    @assertTrue(associated(matrix%rows(row)%get_node(column=3)))
-
-    call matrix%rows(row)%delete_node(column=3)
-    @assertEqual(4, matrix%rows(row)%nb_elements)
-    @assertFalse(associated(matrix%rows(row)%get_node(column=3)))
-    @assertTrue(associated(matrix%rows(row)%get_node(column=2)))
-    @assertTrue(associated(matrix%rows(row)%get_node(column=4)))
-  end subroutine test_delete_node
-
-
-  @test
-  subroutine test_delete_nodes_head()
-    integer, parameter :: row = 2
-    real(dp) :: element
-
-    call set_name("matrix datastructure: delete nodes (head)")
-    call add_nodes_to_matrix(row=row)
-
-    @assertEqual(5, matrix%rows(row)%nb_elements)
-    call matrix%rows(row)%delete_node(column=1)
-    @assertEqual(4, matrix%rows(row)%nb_elements)
-    @assertFalse(associated(matrix%rows(row)%get_node(column=1)))
-    @assertTrue(associated(matrix%rows(row)%head))
-    call matrix%rows(row)%head%get_node_element(element)
-    @assertEqual(4.0d0, element, tolerance=TOL)
-  end subroutine test_delete_nodes_head
-
-
-  @test
-  subroutine test_delete_nodes_tail()
-    integer, parameter :: row = 2
-    real(dp) :: element
-
-    call set_name("matrix datastructure: delete nodes (tail)")
-    call add_nodes_to_matrix(row=row)
-
-    @assertEqual(5, matrix%rows(row)%nb_elements)
-    call matrix%rows(row)%delete_node(column=5)
-    @assertFalse(associated(matrix%rows(row)%get_node(column=5)))
-    @assertEqual(4, matrix%rows(row)%nb_elements)
-    @assertTrue(associated(matrix%rows(row)%tail))
-    call matrix%rows(row)%tail%get_node_element(element)
-    @assertEqual(8.0d0, element, tolerance=TOL)
-  end subroutine test_delete_nodes_tail
-
-
-  @test
-  subroutine test_delete_nodes_multiple()
-    integer, parameter :: row = 2
-    real(dp) :: element
-
-    call set_name("matrix datastructure: delete nodes (multiple)")
-    call add_nodes_to_matrix(row=row)
-    call matrix%rows(row)%delete_node(column=2)
-    call matrix%rows(row)%delete_node(column=1)
-
-    @assertEqual(3, matrix%rows(row)%nb_elements)
-    @assertTrue(associated(matrix%rows(row)%head))
-    @assertTrue(associated(matrix%rows(row)%tail))
-    call matrix%rows(row)%head%get_node_element(element)
-    @assertEqual(6.0d0, element, tolerance=TOL)
-    call matrix%rows(row)%tail%get_node_element(element)
-    @assertEqual(10.0d0, element, tolerance=TOL)
-  end subroutine test_delete_nodes_multiple
-
-
-  @test
-  subroutine test_delete_node_empty_row()
-    integer, parameter :: row = 3
-
-    call set_name("matrix datastructure: delete nodes (empty row)")
-    call add_nodes_to_matrix(row=row)
-    call matrix%rows(row)%delete_row()
-    @assertEqual(0, matrix%rows(row)%nb_elements)
-    @assertFalse(associated(matrix%rows(row)%head))
-    call matrix%rows(row)%delete_node(column=2)
-  end subroutine test_delete_node_empty_row
-
-
-  @test
-  subroutine test_delete_node_not_present()
-    integer, parameter :: row = 3
-
-    call set_name("matrix datastructure: delete node (not present)")
-    call add_nodes_to_matrix(row=row)
-    call matrix%rows(row)%delete_node(column=3)
-    @assertEqual(4, matrix%rows(row)%nb_elements)
-    call matrix%rows(row)%delete_node(column=3)
-  end subroutine test_delete_node_not_present
-
-
-  @test
-  subroutine test_add_single_real_element()
-    call set_name("matrix datastructure: add real")
-    @assertEqual(0, matrix%rows(1)%nb_elements)
-    call matrix%add_element(row=1, column=1, element=1.0d0)
-    @assertEqual(1, matrix%rows(1)%nb_elements)
-    @assertTrue(associated(matrix%rows(1)%head))
-  end subroutine test_add_single_real_element
-
-
-  @test
-  subroutine test_add_real_element_invalid_row()
-    call set_name("matrix datastructure: invalid row (real)")
-    call matrix%add_element(row=0, column=3, element=1.0d0)
-    @assertExceptionRaised("row/column index 0 is outside of matrix dimension")
-    call matrix%add_element(row=6, column=2, element=1.0d0)
-    @assertExceptionRaised("row/column index 6 is outside of matrix dimension")
-  end subroutine test_add_real_element_invalid_row
-
-
-  @test
-  subroutine test_add_real_element_invalid_column()
-    call set_name("matrix datastructure: invalid column (real)")
-    call matrix%add_element(row=1, column=0, element=1.0d0)
-    @assertExceptionRaised("row/column index 0 is outside of matrix dimension")
-    call matrix%add_element(row=2, column=7, element=1.0d0)
-    @assertExceptionRaised("row/column index 7 is outside of matrix dimension")
-  end subroutine test_add_real_element_invalid_column
-
-
-  @test
-  subroutine test_add_zero_real_element()
-    call set_name("matrix datastructure: add real zero")
-    call matrix%add_element(row=1, column=1, element=0.0d0)
-    @assertEqual(0, matrix%rows(1)%nb_elements)
-    @assertFalse(associated(matrix%rows(1)%head))
-  end subroutine test_add_zero_real_element
 
 
   @test
@@ -251,64 +77,8 @@ contains
   end subroutine test_get_real_element_not_present
 
 
-  @test
-  subroutine test_get_real_element_casted()
-    real(dp) :: element
-    call set_name("matrix datastructure: get real (complex node, casted + warning)")
-    call matrix%add_element(row=1, column=3, element=(1.0d0, 2.0d0))
-    element = matrix%get_real_element(1, 3)
-    @assertEqual(1.0d0, element, tolerance=TOL)
-  end subroutine test_get_real_element_casted
 
 
-  @test
-  subroutine test_add_real_multiple_rows()
-    integer :: i
-    call set_name("matrix datastructure: add multiple rows (real)")
-    do i = 1, 5
-      call matrix%add_element(row=i, column=2, element=i * 2.0d0 - 6.0d0)
-    end do
-    @assertEqual(-4.0d0, matrix%get_real_element(1, 2), tolerance=TOL)
-    @assertEqual(-2.0d0, matrix%get_real_element(2, 2), tolerance=TOL)
-    @assertEqual(2.0d0, matrix%get_real_element(4, 2), tolerance=TOL)
-    @assertEqual(4.0d0, matrix%get_real_element(5, 2), tolerance=TOL)
-    @assertEqual(0.0d0, matrix%get_real_element(3, 2), tolerance=TOL)
-  end subroutine test_add_real_multiple_rows
 
-
-  @test
-  subroutine test_add_real_multiple_columns()
-    integer :: i
-    call set_name("matrix datastructure: add multiple columns (real)")
-    do i = 1, 5
-      call matrix%add_element(row=3, column=i, element=3.5d0 * i)
-    end do
-    do i = 1, 5
-      @assertEqual(3.5d0 * i, matrix%get_real_element(3, i), tolerance=TOL)
-    end do
-  end subroutine test_add_real_multiple_columns
-
-
-  @test
-  subroutine test_add_real_to_existing_node()
-    integer :: i, row, col
-
-    call set_name("matrix datastructure: add to existing nodes (real)")
-    row = 2
-    col = 3
-    do i = 1, 5
-      call matrix%add_element(row=row, column=i, element = 2.5d0 * i)
-    end do
-    @assertEqual(7.5d0, matrix%get_real_element(row, col), tolerance=TOL)
-    @assertEqual(5, matrix%rows(row)%nb_elements)
-
-    call matrix%add_element(row=row, column=col, element=2.5d0)
-    @assertEqual(5, matrix%rows(row)%nb_elements)
-    @assertEqual(10.0d0, matrix%get_real_element(row, col), tolerance=TOL)
-
-    call matrix%add_element(row=row, column=1, element=-7.5d0)
-    @assertEqual(5, matrix%rows(row)%nb_elements)
-    @assertEqual(-5.0d0, matrix%get_real_element(row, 1), tolerance=TOL)
-  end subroutine test_add_real_to_existing_node
 
 end module mod_test_matrix_structure_real

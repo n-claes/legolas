@@ -62,7 +62,7 @@ contains
 
   @test
   subroutine test_real_matrix_addition()
-    real(dp) :: actual(4, 4), expected(4, 4)
+    complex(dp) :: actual(4, 4), expected(4, 4)
 
     call set_name("matrix maths: real matrix addition")
     matrix1 = array_to_matrix(array=rmat1)
@@ -70,7 +70,7 @@ contains
     matrix = matrix1 + matrix2
     call matrix_to_array(matrix, actual)
 
-    expected = rmat1 + rmat2
+    expected = cmplx(rmat1 + rmat2, kind=dp)
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_real_matrix_addition
 
@@ -92,14 +92,15 @@ contains
 
   @test
   subroutine test_matrix_real_vector_multiplication()
-    real(dp) :: vector(4), expected(4), actual(4)
+    real(dp) :: vector(4)
+    complex(dp) :: expected(4), actual(4)
 
     call set_name("matrix maths: matrix and real vector multiplication")
     vector = [-1.0d0, 2.5d0, -1.2d0, 4.5d0]
     matrix = array_to_matrix(array=rmat1)
     actual = matrix * vector
 
-    expected = matmul(rmat1, vector)
+    expected = cmplx(matmul(rmat1, vector), kind=dp)
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_matrix_real_vector_multiplication
 
@@ -120,7 +121,7 @@ contains
 
   @test
   subroutine test_matrix_addition_submatrix()
-    real(dp) :: actual(4, 4), expected(4, 4)
+    complex(dp) :: actual(4, 4), expected(4, 4)
 
     call set_name("matrix maths: matrix and submatrix addition")
     matrix1 = array_to_matrix(array=rmat1)
@@ -128,14 +129,17 @@ contains
     matrix = matrix1 + matrix2
     call matrix_to_array(matrix, actual)
 
-    expected = reshape( &
-      [ &
-        7.0d0, -1.0d0, -1.0d0, 0.0d0, &
-        -2.0d0, 1.0d0, 1.0d0, 0.0d0, &
-        7.0d0, 0.0d0, 2.0d0, -1.0d0, &
-        -1.0d0, 5.0d0, 8.0d0, 4.0d0 &
-      ], &
-      shape=[4, 4] &
+    expected = cmplx( &
+      reshape( &
+        [ &
+          7.0d0, -1.0d0, -1.0d0, 0.0d0, &
+          -2.0d0, 1.0d0, 1.0d0, 0.0d0, &
+          7.0d0, 0.0d0, 2.0d0, -1.0d0, &
+          -1.0d0, 5.0d0, 8.0d0, 4.0d0 &
+        ], &
+        shape=[4, 4] &
+      ), &
+      kind=dp &
     )
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_matrix_addition_submatrix
@@ -143,7 +147,7 @@ contains
 
   @test
   subroutine test_matrix_addition_unequal()
-    real(dp) :: actual(5, 5), expected(5, 5)
+    complex(dp) :: actual(5, 5), expected(5, 5)
     real(dp) :: rmat(5, 5)
 
     call set_name("matrix maths: unequal matrix addition")
@@ -163,15 +167,18 @@ contains
     @assertEqual(5, matrix%matrix_dim)
     call matrix_to_array(matrix, actual)
 
-    expected = reshape( &
-      [ &
-        7.0d0, -1.0d0, -1.0d0, 3.0d0, 1.0d0, &
-        -2.0d0, 1.0d0, 1.0d0, 2.0d0, 2.0d0, &
-        14.0d0, -3.0d0, 2.0d0, -1.0d0, 3.0d0, &
-        -1.0d0, 0.0d0, -3.0d0, 3.0d0, -1.5d0, &
-        -3.0d0, 2.5d0, 1.0d0, -1.0d0, 2.0d0 &
-      ], &
-      shape=[5, 5] &
+    expected = cmplx( &
+      reshape( &
+        [ &
+          7.0d0, -1.0d0, -1.0d0, 3.0d0, 1.0d0, &
+          -2.0d0, 1.0d0, 1.0d0, 2.0d0, 2.0d0, &
+          14.0d0, -3.0d0, 2.0d0, -1.0d0, 3.0d0, &
+          -1.0d0, 0.0d0, -3.0d0, 3.0d0, -1.5d0, &
+          -3.0d0, 2.5d0, 1.0d0, -1.0d0, 2.0d0 &
+        ], &
+        shape=[5, 5] &
+      ), &
+      kind=dp &
     )
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_matrix_addition_unequal
@@ -179,14 +186,14 @@ contains
 
   @test
   subroutine test_multiply_real_matrix_real_number()
-    real(dp) :: expected(4, 4), actual(4, 4)
+    complex(dp) :: expected(4, 4), actual(4, 4)
     real(dp), parameter :: number = 1.5d0
 
     call set_name("matrix maths: multiply real matrix with real number")
     matrix = array_to_matrix(array=rmat1) * number
     call matrix_to_array(matrix, actual)
 
-    expected = rmat1 * number
+    expected = cmplx(rmat1 * number, kind=dp)
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_multiply_real_matrix_real_number
 
@@ -194,13 +201,13 @@ contains
   @test
   subroutine test_multiply_real_matrix_complex_number()
     complex(dp) :: expected(4, 4), actual(4, 4)
-    complex(dp), parameter :: number = (1.5d0, -2.3d0)
+    complex(dp), parameter :: number = (0.75d0, -2.3d0)
 
     call set_name("matrix maths: multiply real matrix with complex number")
-    matrix = array_to_matrix(array=rmat1) * number
+    matrix = array_to_matrix(array=rmat2) * number
     call matrix_to_array(matrix, actual)
 
-    expected = rmat1 * number
+    expected = rmat2 * number
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_multiply_real_matrix_complex_number
 
@@ -208,7 +215,7 @@ contains
   @test
   subroutine test_multiply_complex_matrix_real_number()
     complex(dp) :: expected(4, 4), actual(4, 4)
-    real(dp), parameter :: number = 0.75d0
+    real(dp), parameter :: number = 1.5d0
 
     call set_name("matrix maths: multiply complex matrix with real number")
     matrix = array_to_matrix(array=cmat1) * number
@@ -222,7 +229,7 @@ contains
   @test
   subroutine test_multiply_complex_matrix_complex_number()
     complex(dp) :: expected(4, 4), actual(4, 4)
-    complex(dp), parameter :: number = (-1.2d0, 3.4d0)
+    complex(dp), parameter :: number = (7.2d0, -3.8d0)
 
     call set_name("matrix maths: multiply complex matrix with complex number")
     matrix = array_to_matrix(array=cmat2) * number
@@ -234,38 +241,17 @@ contains
 
 
   @test
-  subroutine test_multiply_real_matrix_invalid_type()
-    call set_name("matrix maths: multiply real matrix with invalid type")
-    matrix = new_matrix(nb_rows=3)
-    call matrix%add_element(row=2, column=1, element=1.0d0)
-    matrix = matrix * 2
-    @assertExceptionRaised("unable to do node element (real) * given number")
-  end subroutine test_multiply_real_matrix_invalid_type
-
-
-  @test
-  subroutine test_multiply_complex_matrix_invalid_type()
-    call set_name("matrix maths: multiply complex matrix with invalid type")
-    matrix = new_matrix(nb_rows=3)
-    call matrix%add_element(row=2, column=1, element=(1.0d0, 2.0d0))
-    matrix = matrix * 2
-    @assertExceptionRaised("unable to do node element (complex) * given number")
-  end subroutine test_multiply_complex_matrix_invalid_type
-
-
-  @test
   subroutine test_combined_real_plus_real()
-    real(dp) :: expected(4, 4), actual(4, 4)
+    complex(dp) :: expected(4, 4), actual(4, 4)
     real(dp), parameter :: number = 2.3d0
 
     call set_name("matrix maths: combined operation A + rB (all real)")
-
     matrix1 = array_to_matrix(array=rmat1)
     matrix2 = array_to_matrix(array=rmat2)
     matrix = matrix1 + matrix2 * number
     call matrix_to_array(matrix, actual)
 
-    expected = rmat1 + number * rmat2
+    expected = cmplx(rmat1 + number * rmat2, kind=dp)
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_combined_real_plus_real
 
@@ -286,37 +272,4 @@ contains
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_combined_real_plus_complex
 
-
-  @test
-  subroutine test_combined_real_min_complex()
-    complex(dp) :: expected(4, 4), actual(4, 4)
-    complex(dp), parameter :: number = (1.0d0, 1.5d0)
-
-    call set_name("matrix maths: combined operation A - rB (r, B complex)")
-
-    matrix1 = array_to_matrix(array=rmat2)
-    matrix2 = array_to_matrix(array=cmat2)
-    matrix = matrix1 + matrix2 * (-number)
-    call matrix_to_array(matrix, actual)
-
-    expected = rmat2 - number * cmat2
-    @assertEqual(expected, actual, tolerance=TOL)
-  end subroutine test_combined_real_min_complex
-
-
-  @test
-  subroutine test_combined_complex_min_complex()
-    complex(dp) :: expected(4, 4), actual(4, 4)
-    complex(dp), parameter :: number = (2.13d0, -1.35d0)
-
-    call set_name("matrix maths: combined operation A - rB (all complex)")
-
-    matrix1 = array_to_matrix(array=cmat1)
-    matrix2 = array_to_matrix(array=cmat2)
-    matrix = matrix1 + matrix2 * (-number)
-    call matrix_to_array(matrix, actual)
-
-    expected = cmat1 - number * cmat2
-    @assertEqual(expected, actual, tolerance=TOL)
-  end subroutine test_combined_complex_min_complex
 end module mod_test_matrix_maths
