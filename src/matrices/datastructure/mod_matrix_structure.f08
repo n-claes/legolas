@@ -23,6 +23,7 @@ module mod_matrix_structure
     procedure :: get_complex_element
     procedure :: get_total_nb_elements
     procedure :: get_label
+    procedure :: copy
     procedure :: delete_matrix
 
     procedure, private :: add_matrices
@@ -240,6 +241,34 @@ contains
 
     label = this%label
   end function get_label
+
+
+  !> Dedicated function to copy a matrix structure into a new matrix structure.
+  !! The datastructure contains pointers, such that simply setting
+  !! matrix1 = matrix2 may result in pointer target losses (and wrong results).
+  !! @note We should not overload the generic assignment(=) with this function,
+  !! as it may clash with the constructor. @endnote
+  function copy(matrix_in) result(matrix_out)
+    !> the original matrix
+    class(matrix_t), intent(in) :: matrix_in
+    !> copy from the original matrix
+    type(matrix_t) :: matrix_out
+    type(node_t), pointer :: current_node
+    integer :: irow, inode
+
+    matrix_out = new_matrix(nb_rows=matrix_in%matrix_dim)
+    do irow = 1, matrix_in%matrix_dim
+      current_node => matrix_in%rows(irow)%head
+      do inode = 1, matrix_in%rows(irow)%nb_elements
+        call matrix_out%add_element( &
+          row=irow, &
+          column=current_node%column, &
+          element=current_node%get_node_element() &
+        )
+        current_node => current_node%next
+      end do
+    end do
+  end function copy
 
 
   !> Deallocates the matrix datastructure, nullifies all corresponding pointers and

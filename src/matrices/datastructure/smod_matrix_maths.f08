@@ -12,18 +12,7 @@ contains
       return
     end if
 
-    matrix = new_matrix(matrix1%matrix_dim)
-    do irow = 1, matrix1%matrix_dim
-      current_node => matrix1%rows(irow)%head
-      do inode = 1, matrix1%rows(irow)%nb_elements
-        call matrix%add_element( &
-          row=irow, &
-          column=current_node%column, &
-          element=current_node%get_node_element() &
-        )
-        current_node => current_node%next
-      end do
-    end do
+    matrix = matrix1%copy()
     do irow = 1, matrix2%matrix_dim
       current_node => matrix2%rows(irow)%head
       do inode = 1, matrix2%rows(irow)%nb_elements
@@ -48,18 +37,7 @@ contains
       return
     end if
 
-    matrix = new_matrix(matrix1%matrix_dim)
-    do irow = 1, matrix1%matrix_dim
-      current_node => matrix1%rows(irow)%head
-      do inode = 1, matrix1%rows(irow)%nb_elements
-        call matrix%add_element( &
-          row=irow, &
-          column=current_node%column, &
-          element=current_node%get_node_element() &
-        )
-        current_node => current_node%next
-      end do
-    end do
+    matrix = matrix1%copy()
     do irow = 1, matrix2%matrix_dim
       current_node => matrix2%rows(irow)%head
       do inode = 1, matrix2%rows(irow)%nb_elements
@@ -118,8 +96,7 @@ contains
     integer :: irow, inode
     type(node_t), pointer :: current_node
 
-    matrix_out = matrix
-
+    matrix_out = matrix%copy()
     do irow = 1, matrix_out%matrix_dim
       current_node => matrix_out%rows(irow)%head
       do inode = 1, matrix_out%rows(irow)%nb_elements
