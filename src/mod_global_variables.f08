@@ -182,6 +182,8 @@ module mod_global_variables
   integer                   :: maxiter
   !> sigma value, only used in shift-invert mode
   complex(dp)               :: sigma
+  !> value for ncv, only used for Arnoldi
+  integer :: ncv
 
 contains
 
@@ -267,6 +269,7 @@ contains
     which_eigenvalues = "LM"
     ! this defaults to 10*N, but we technically don't know N yet
     maxiter = 0
+    ncv = 0
   end subroutine initialise_globals
 
 

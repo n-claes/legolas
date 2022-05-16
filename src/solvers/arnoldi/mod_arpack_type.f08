@@ -64,7 +64,7 @@ contains
   !! problem, mode of the solver and type of the B-matrix. Initialises required
   !! variables and allocates work arrays to be used when calling the solvers.
   function new_arpack_config( &
-    evpdim, mode, bmat, which, nev, tolerance, maxiter &
+    evpdim, mode, bmat, which, nev, tolerance, maxiter, ncv &
   ) result(arpack_config)
     !> dimension of the eigenvalue problem
     integer, intent(in) :: evpdim
@@ -80,6 +80,8 @@ contains
     real(dp), intent(in) :: tolerance
     !> maximum number of iterations, defaults to 10*evpdim
     integer, intent(in) :: maxiter
+    !> number of Arnoldi basis vectors
+    integer, intent(in) :: ncv
     !> initialised arpack configuration
     type(arpack_t) :: arpack_config
 
@@ -93,8 +95,7 @@ contains
     call arpack_config%set_nev(nev)
     arpack_config%tolerance = tolerance
     allocate(arpack_config%residual(evpdim))
-    ! TODO: allow ncv to be set in the parfile
-    call arpack_config%set_ncv(min(evpdim, 2 * nev))
+    call arpack_config%set_ncv(ncv)
     call arpack_config%set_maxiter(maxiter)
     ! iparam(1) = ishift = 1 means restart with shifts from Hessenberg matrix
     arpack_config%iparam(1) = 1
@@ -178,14 +179,19 @@ contains
     !> value for ncv
     integer, intent(in) :: ncv
 
-    if (1 > ncv - this%get_nev()) then
+    if (ncv == 0) then
+      this%ncv = min(this%get_evpdim(), 2 * this%get_nev())
+    else
+      this%ncv = ncv
+    end if
+    if (1 > this%ncv - this%get_nev()) then
       call log_message( &
         "requesting too many eigenvalues, should be less than " // str(ncv + 1), &
         level="error" &
       )
       return
     end if
-    if (ncv > this%get_evpdim()) then
+    if (this%ncv > this%get_evpdim()) then
       call log_message( &
         "requesting too many eigenvalues, should be less than " &
         // str(int(this%get_evpdim() / 2)), &
@@ -193,7 +199,6 @@ contains
       )
       return
     end if
-    this%ncv = ncv
     call log_message("Arnoldi: ncv set to " // str(this%ncv), level="debug")
   end subroutine set_ncv
 

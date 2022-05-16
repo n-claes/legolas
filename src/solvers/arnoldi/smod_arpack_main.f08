@@ -42,7 +42,7 @@ contains
   module procedure arnoldi
 #if _ARPACK_FOUND
     use mod_global_variables, only: which_eigenvalues, number_of_eigenvalues, maxiter, &
-      sigma
+      sigma, ncv
 
     !> type containing parameters for arpack configuration
     type(arpack_t) :: arpack_cfg
@@ -57,7 +57,8 @@ contains
         which=which_eigenvalues, &
         nev=number_of_eigenvalues, &
         tolerance=1.0d-14, &
-        maxiter=maxiter &
+        maxiter=maxiter, &
+        ncv=ncv &
       )
       call solve_arpack_general(arpack_cfg, matrix_A, matrix_B, omega, vr)
     case("shift-invert")
@@ -69,7 +70,8 @@ contains
         which=which_eigenvalues, &
         nev=number_of_eigenvalues, &
         tolerance=1.0d-14, &
-        maxiter=maxiter &
+        maxiter=maxiter, &
+        ncv=ncv &
       )
       call solve_arpack_shift_invert(arpack_cfg, matrix_A, matrix_B, sigma, omega, vr)
     case default
