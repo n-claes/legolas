@@ -1,0 +1,172 @@
+module mod_test_solvers_arpack_general
+  use mod_suite_utils
+  use funit
+  use mod_arpack_type, only: arpack_t, new_arpack_config
+  use mod_matrix_structure, only: matrix_t, new_matrix
+  use mod_global_variables, only: which_eigenvalues
+  use mod_solvers, only: solve_evp
+  implicit none
+
+  type(matrix_t) :: amat
+  type(matrix_t) :: bmat
+  complex(dp) :: vr(10, 10)
+  integer, parameter :: nb_eigenvals = 4
+  integer :: idxs(nb_eigenvals)
+  complex(dp) :: actual(nb_eigenvals)
+  complex(dp), parameter :: expected(10) = [ &
+    (-0.7795557649951639d0, -0.3190570519782475d0), &
+    (-0.40222728775310573d0, -0.1591345610324656d0), &
+    (0.19978864304130092d0, -0.007120730856958498d0), &
+    (0.2780763784935159d0, 1.0564177001188444d0), &
+    (0.49119510716997966d0, 0.48905000276138166d0), &
+    (0.5182657568800012d0, 0.7479373467358982d0), &
+    (0.707950211215408d0, 0.8410713792802329d0), &
+    (0.9836774139278549d0, 0.46713965558429804d0), &
+    (1.4744682873098567d0, 1.7884905288463375d0), &
+    (2.72570513179907d0, 3.60539530105732d0) &
+  ]
+
+
+contains
+
+  @before
+  subroutine init_test()
+    use mod_global_variables, only: solver, arpack_mode, number_of_eigenvalues, maxiter
+    call reset_globals()
+    solver = "arnoldi"
+    arpack_mode = "general"
+    number_of_eigenvalues = nb_eigenvals
+    maxiter = 500  ! increase, some smaller evs have difficulty converging
+    call create_matrices()
+  end subroutine init_test
+
+  @after
+  subroutine tear_down()
+    call amat%delete_matrix()
+    call bmat%delete_matrix()
+  end subroutine tear_down
+
+
+  subroutine create_matrices()
+    use mod_transform_matrix, only: array_to_matrix
+    integer :: i
+    complex(dp) :: amat_array(10, 10), bmat_array(10, 10)
+
+    amat_array = (0.0d0, 0.0d0)
+    bmat_array = (0.0d0, 0.0d0)
+    ! diagonals
+    do i = 1, 10
+      amat_array(i, i) = (1.0d0, 2.0d0) * i
+      bmat_array(i, i) = (0.2d0, 2.3d0) * i
+    end do
+    ! diagonals 1
+    do i = 1, 9
+      amat_array(i + 1, i) = (1.5d0, 0.5d0) * i
+      amat_array(i, i + 1) = -2.0d0 * i + (3.0d0, 5.0d0)
+      bmat_array(i + 1, i) = cmplx(3.1d0, -2.5d0 * i, kind=dp)
+      bmat_array(i, i + 1) = (6.0d0, -1.3d0) * i
+    end do
+    ! diagonals 2
+    do i = 1, 8
+      amat_array(i + 2, i) = cmplx(1.0d0, -2.5d0 * i, kind=dp)
+      amat_array(i, i + 2) = (6.0d0, 1.5d0) * i
+    end do
+    ! diagonal 3
+    do i = 1, 7
+      amat_array(i + 3, i) = cmplx(0.3d0, 1.8d0 * i, kind=dp)
+    end do
+
+    amat = array_to_matrix(amat_array)
+    bmat = array_to_matrix(bmat_array)
+  end subroutine create_matrices
+
+
+  @test
+  subroutine test_arpack_general_LM()
+    integer :: i
+    call set_name("solving EVP, arpack standard LM")
+    which_eigenvalues = "LM"
+    call solve_evp(amat, bmat, actual, vr)
+    call sort_complex_array(actual)
+    idxs = [4, 7, 9, 10]
+    do i = 1, nb_eigenvals
+      @assertEqual(expected(idxs(i)), actual(i), tolerance=TOL)
+    end do
+  end subroutine test_arpack_general_LM
+
+
+  @test
+  subroutine test_arpack_general_SM()
+    integer :: i
+    call set_name("solving EVP, arpack standard SM")
+    which_eigenvalues = "SM"
+
+    call solve_evp(amat, bmat, actual, vr)
+    call sort_complex_array(actual)
+    idxs = [1, 2, 3, 5]
+    do i = 1, nb_eigenvals
+      @assertEqual(expected(idxs(i)), actual(i), tolerance=TOL)
+    end do
+  end subroutine test_arpack_general_SM
+
+
+  @test
+  subroutine test_arpack_general_LR()
+    integer :: i
+    call set_name("solving EVP, arpack standard LR")
+    which_eigenvalues = "LR"
+
+    call solve_evp(amat, bmat, actual, vr)
+    call sort_complex_array(actual)
+    idxs = [7, 8, 9, 10]
+    do i = 1, nb_eigenvals
+      @assertEqual(expected(idxs(i)), actual(i), tolerance=TOL)
+    end do
+  end subroutine test_arpack_general_LR
+
+
+  @test
+  subroutine test_arpack_general_SR()
+    integer :: i
+    call set_name("solving EVP, arpack standard SR")
+    which_eigenvalues = "SR"
+
+    call solve_evp(amat, bmat, actual, vr)
+    call sort_complex_array(actual)
+    idxs = [1, 2, 3, 4]
+    do i = 1, nb_eigenvals
+      @assertEqual(expected(idxs(i)), actual(i), tolerance=TOL)
+    end do
+  end subroutine test_arpack_general_SR
+
+
+  @test
+  subroutine test_arpack_general_LI()
+    integer :: i
+    call set_name("solving EVP, arpack standard LI")
+    which_eigenvalues = "LI"
+
+    call solve_evp(amat, bmat, actual, vr)
+    call sort_complex_array(actual)
+    idxs = [4, 7, 9, 10]
+    do i = 1, nb_eigenvals
+      @assertEqual(expected(idxs(i)), actual(i), tolerance=TOL)
+    end do
+  end subroutine test_arpack_general_LI
+
+
+  @test
+  subroutine test_arpack_general_SI()
+    integer :: i
+    call set_name("solving EVP, arpack standard SI")
+    which_eigenvalues = "SI"
+
+    call solve_evp(amat, bmat, actual, vr)
+    call sort_complex_array(actual)
+    idxs = [1, 2, 3, 8]
+    do i = 1, nb_eigenvals
+      @assertEqual(expected(idxs(i)), actual(i), tolerance=TOL)
+    end do
+  end subroutine test_arpack_general_SI
+
+end module mod_test_solvers_arpack_general
