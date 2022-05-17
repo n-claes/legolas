@@ -112,7 +112,7 @@ contains
 
     if (.not. any(mode == allowed_modes)) then
       call log_message( &
-        "Arnoldi: mode = " // str(mode) // "is invalid, expected 2 or 3", &
+        "Arnoldi: mode = " // str(mode) // " is invalid, expected 2 or 3", &
         level="error" &
       )
       return
@@ -152,15 +152,15 @@ contains
 
     if (nev <= 0) then
       call log_message( &
-        "Arnoldi: number of eigenvalues must be >= 0 but got" // str(nev), &
+        "Arnoldi: number of eigenvalues must be >= 0 but got " // str(nev), &
         level="error" &
       )
       return
     end if
     if (nev >= this%evpdim) then
       call log_message( &
-        "Arnoldi: number of eigenvalues " // str(nev) &
-        // " > " // " matrix size" // str(this%evpdim), &
+        "Arnoldi: number of eigenvalues (" // str(nev) &
+        // ") >= " // "matrix size (" // str(this%evpdim) // ")", &
         level="error" &
       )
       return
@@ -186,15 +186,16 @@ contains
     end if
     if (1 > this%ncv - this%get_nev()) then
       call log_message( &
-        "requesting too many eigenvalues, should be less than " // str(ncv + 1), &
+        "requesting too many eigenvalues, expected ncv - nev > 1 but got " &
+        // str(this%ncv - this%get_nev()), &
         level="error" &
       )
       return
     end if
     if (this%ncv > this%get_evpdim()) then
       call log_message( &
-        "requesting too many eigenvalues, should be less than " &
-        // str(int(this%get_evpdim() / 2)), &
+        "ncv too high, expected ncv < N but got ncv = " // str(this%ncv) &
+        // " and N = " // str(this%get_evpdim()), &
         level="error" &
       )
       return
