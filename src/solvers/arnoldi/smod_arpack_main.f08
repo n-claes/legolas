@@ -65,8 +65,8 @@ contains
       call log_message("Arnoldi iteration, shift-invert mode", level="debug")
       arpack_cfg = new_arpack_config( &
         evpdim=matrix_A%matrix_dim, &
-        mode=3, &
-        bmat="G", &
+        mode=2, &
+        bmat="I", &
         which=which_eigenvalues, &
         nev=number_of_eigenvalues, &
         tolerance=0.0d0, &

@@ -64,6 +64,7 @@ set( test_sources
         mod_test_solvers_lapack.pf
         mod_test_solvers_arpack_type.pf
         mod_test_solvers_arpack_general.pf
+        mod_test_solvers_arpack_shift_invert.pf
         mod_test_indices.pf
         mod_test_grid.pf
         mod_test_input.pf

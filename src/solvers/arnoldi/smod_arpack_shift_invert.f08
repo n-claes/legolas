@@ -24,7 +24,7 @@ contains
     integer :: diags
     logical :: converged
     type(banded_matrix_t) :: amat_min_sigmab
-    integer :: xstart, xend, ystart, yend, bxstart, bxend
+    integer :: xstart, xend, ystart, yend
 
     diags = dim_quadblock - 1
     call log_message("converting A - sigma*B into banded structure", level="debug")
@@ -65,12 +65,9 @@ contains
       ! y is given by workd(ipntr(2))
       ystart = ipntr(2)
       yend = ystart + arpack_cfg%get_evpdim() - 1
-      ! for shift-invert B*x is saved in workd(ipntr(3))
-      bxstart = ipntr(3)
-      bxend = bxstart + arpack_cfg%get_evpdim() - 1
 
       select case(arpack_cfg%ido)
-      case(-1)
+      case(-1, 1)
         ! ido = -1 on first call, forces starting vector in OP range
         ! get y <--- OP * x
         ! we need R = OP*x = inv[A - sigma*B]*B*x
@@ -79,16 +76,6 @@ contains
         workd(ystart:yend) = solve_linear_system_complex_banded( &
           bandmatrix=amat_min_sigmab, vector=matrix_B * workd(xstart:xend) &
         )
-      case(1)
-        ! get y <--- OP * x
-        ! we need R = OP*x = inv[A - sigma*B]*B*x, see higher.
-        ! here B*x has already been saved in workd(ipntr(3))
-        workd(ystart:yend) = solve_linear_system_complex_banded( &
-          bandmatrix=amat_min_sigmab, vector=workd(bxstart:bxend) &
-        )
-      case(2)
-        ! get y <--- B * x
-        workd(ystart:yend) = matrix_B * workd(xstart:xend)
       case default
         ! when convergence is achieved or maxiter is reached
         exit
@@ -124,6 +111,15 @@ contains
       rwork, &
       arpack_cfg%info &
     )
+    !> @note In applying shift-invert we made the transformation $C = inv[B]*A$ and
+    !! solved the standard eigenvalue problem $Cx = \nu x$ instead since B isn't
+    !! always Hermitian (e.g. if we include Hall).
+    !! According to the ARPACK documentation, section 3.2.2, this
+    !! implies that we must manually transform the eigenvalues $\nu_j$ from $C$ to the
+    !! eigenvalues $\omega_j$ from the original system. This uses the relation
+    !! $$ \omega_j = \sigma + \frac{1}{\nu_j} $$
+    !! @endnote
+    omega = sigma + (1.0d0 / omega)
 
     call arpack_cfg%parse_zneupd_info()
     call arpack_cfg%parse_finished_stats()
