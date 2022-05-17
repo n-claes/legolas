@@ -56,7 +56,7 @@ contains
         bmat="I", &
         which=which_eigenvalues, &
         nev=number_of_eigenvalues, &
-        tolerance=1.0d-14, &
+        tolerance=0.0d0, &  ! if <= 0, machine precision is used
         maxiter=maxiter, &
         ncv=ncv &
       )
@@ -69,7 +69,7 @@ contains
         bmat="G", &
         which=which_eigenvalues, &
         nev=number_of_eigenvalues, &
-        tolerance=1.0d-14, &
+        tolerance=0.0d0, &
         maxiter=maxiter, &
         ncv=ncv &
       )
