@@ -1,4 +1,4 @@
-module mod_test_linear_systems
+module mod_test_solvers_linear_systems
   use mod_suite_utils
   use funit
   use mod_linear_systems, only: solve_linear_system_complex_banded
@@ -168,4 +168,4 @@ contains
     @assertEqual(expected, actual, tolerance=1.0d-8)
   end subroutine test_solve_linear_complex_more_subdiags
 
-end module mod_test_linear_systems
+end module mod_test_solvers_linear_systems

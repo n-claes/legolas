@@ -1,4 +1,4 @@
-module mod_test_lapacksolvers
+module mod_test_solvers_lapack
   use mod_suite_utils
   use funit
   use mod_global_variables, only: solver, write_eigenfunctions
@@ -145,4 +145,4 @@ contains
     @assertEqual(expected, eigenvals, tolerance=TOL)
   end subroutine test_lapack_qz_general
 
-end module mod_test_lapacksolvers
+end module mod_test_solvers_lapack

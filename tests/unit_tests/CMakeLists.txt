@@ -60,7 +60,8 @@ set( test_sources
         mod_test_matrix_structure.pf
         mod_test_matrix_maths.pf
         mod_test_transform_matrix.pf
-        mod_test_linear_systems.pf
+        mod_test_solvers_linear_systems.pf
+        mod_test_solvers_lapack.pf
         mod_test_indices.pf
         mod_test_grid.pf
         mod_test_input.pf
@@ -78,7 +79,6 @@ set( test_sources
         mod_test_matrix_operators.pf
         mod_test_interpolation.pf
         mod_test_integration.pf
-        mod_test_lapacksolvers.pf
         # mod_test_arpacksolvers.pf
         mod_test_geometry_override.pf
         mod_test_inspections.pf
