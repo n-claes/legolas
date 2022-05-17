@@ -47,6 +47,7 @@ module mod_arpack_type
     procedure, public :: destroy
 
     procedure, private :: set_mode
+    procedure, private :: set_bmat
     procedure, private :: set_which
     procedure, private :: set_nev
     procedure, private :: set_ncv
@@ -90,7 +91,7 @@ contains
     call arpack_config%set_mode(mode)
 
     arpack_config%ido = 0  ! 0 means first call to reverse communication interface
-    arpack_config%bmat = bmat
+    call arpack_config%set_bmat(bmat)
     call arpack_config%set_which(which)
     call arpack_config%set_nev(nev)
     arpack_config%tolerance = tolerance
@@ -108,11 +109,11 @@ contains
     class(arpack_t), intent(inout) :: this
     !> solver mode
     integer, intent(in) :: mode
-    integer, parameter :: allowed_modes(2) = [2, 3]
+    integer, parameter :: allowed_modes(3) = [1, 2, 3]
 
     if (.not. any(mode == allowed_modes)) then
       call log_message( &
-        "Arnoldi: mode = " // str(mode) // " is invalid, expected 2 or 3", &
+        "Arnoldi: mode = " // str(mode) // " is invalid, expected 1, 2 or 3", &
         level="error" &
       )
       return
@@ -121,6 +122,26 @@ contains
     this%iparam(7) = this%mode
     call log_message("Arnoldi: mode set to " // str(this%mode), level="debug")
   end subroutine set_mode
+
+
+  !> Sets the type of B-matrix.
+  subroutine set_bmat(this, bmat)
+    !> type instance
+    class(arpack_t), intent(inout) :: this
+    !> type of B-matrix
+    character, intent(in) :: bmat
+    character :: allowed_bmats(2) = ["I", "G"]
+
+    if (.not. any(bmat == allowed_bmats)) then
+      call log_message( &
+        "Arnoldi: bmat = " // bmat // " is invalid, expected 'I' or 'G'", &
+        level="error" &
+      )
+      return
+    end if
+    this%bmat = bmat
+    call log_message("Arnoldi: bmat set to " // this%bmat, level="debug")
+  end subroutine set_bmat
 
 
   !> Setter for the "which" argument of ARPACK routines.
@@ -140,6 +161,7 @@ contains
       return
     end if
     this%which = which
+    call log_message("Arnoldi: which set to " // this%which, level="debug")
   end subroutine set_which
 
 

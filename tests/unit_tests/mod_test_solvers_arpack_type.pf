@@ -38,8 +38,42 @@ contains
       maxiter=0, &
       ncv=0 &
     )
-    @assertExceptionRaised("Arnoldi: mode = 4 is invalid, expected 2 or 3")
+    @assertExceptionRaised("Arnoldi: mode = 4 is invalid, expected 1, 2 or 3")
   end subroutine test_invalid_arpack_mode
+
+
+  @test
+  subroutine test_arpack_bmat()
+    call set_name("arpack type: set bmat")
+    test_config = new_arpack_config( &
+      evpdim=100, &
+      mode=2, &
+      bmat="I", &
+      which="LM", &
+      nev=10, &
+      tolerance=1.0d-12, &
+      maxiter=0, &
+      ncv=0 &
+    )
+    @assertEqual("I", test_config%get_bmat())
+  end subroutine test_arpack_bmat
+
+
+  @test
+  subroutine test_arpack_bmat_invalid()
+    call set_name("arpack type: set invalid bmat")
+    test_config = new_arpack_config( &
+      evpdim=100, &
+      mode=2, &
+      bmat="M", &
+      which="LM", &
+      nev=10, &
+      tolerance=1.0d-12, &
+      maxiter=0, &
+      ncv=0 &
+    )
+    @assertExceptionRaised("Arnoldi: bmat = M is invalid, expected 'I' or 'G'")
+  end subroutine test_arpack_bmat_invalid
 
 
   @test
@@ -94,6 +128,7 @@ contains
     )
     @assertEqual(5, test_config%get_nev())
   end subroutine test_arpack_nev
+
 
   @test
   subroutine test_arpack_nev_negative()
@@ -250,22 +285,5 @@ contains
     )
     @assertExceptionRaised("Arnoldi: maxiter must be positive, but is equal to -1000")
   end subroutine test_arpack_maxiter_negative
-
-
-  @test
-  subroutine test_arpack_bmat()
-    call set_name("arpack type: set bmat")
-    test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="I", &
-      which="LM", &
-      nev=10, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
-    )
-    @assertEqual("I", test_config%get_bmat())
-  end subroutine test_arpack_bmat
 
 end module mod_test_solvers_arpack_type

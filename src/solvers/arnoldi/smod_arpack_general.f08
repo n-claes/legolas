@@ -23,7 +23,6 @@ contains
 
     integer :: diags
     logical :: converged
-    complex(dp) :: sigma
     type(banded_matrix_t) :: bmat_banded
     integer :: xstart, xend, ystart, yend
 
@@ -80,9 +79,6 @@ contains
         workd(ystart:yend) = solve_linear_system_complex_banded( &
           bandmatrix=bmat_banded, vector=matrix_A * workd(xstart:xend) &
         )
-      case(2)
-        ! get y <--- B*x, which is a simple matrix-vector product
-        workd(ystart:yend) = matrix_B * workd(xstart:xend)
       case default
         ! when convergence is achieved or maxiter is reached
         exit
@@ -99,7 +95,7 @@ contains
       omega(1:arpack_cfg%get_nev()), &
       vr(:, 1:arpack_cfg%get_nev()), &
       size(vr, dim=1), &
-      sigma, &  ! not referenced here
+      (0.0d0, 0.0d0), &  ! sigma value, not needed here
       workev, &
       arpack_cfg%get_bmat(), &
       arpack_cfg%get_evpdim(), &

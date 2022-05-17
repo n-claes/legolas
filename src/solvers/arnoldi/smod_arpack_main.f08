@@ -52,8 +52,8 @@ contains
       call log_message("Arnoldi iteration, general mode", level="debug")
       arpack_cfg = new_arpack_config( &
         evpdim=matrix_A%matrix_dim, &
-        mode=2, &
-        bmat="G", &
+        mode=1, &
+        bmat="I", &
         which=which_eigenvalues, &
         nev=number_of_eigenvalues, &
         tolerance=1.0d-14, &
