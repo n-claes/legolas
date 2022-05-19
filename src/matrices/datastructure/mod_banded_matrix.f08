@@ -2,6 +2,7 @@
 !! as explained in the LAPACK guide http://www.netlib.org/lapack/lug/node124.html.
 module mod_banded_matrix
   use mod_global_variables, only: dp
+  use mod_logging, only: log_message, str
   implicit none
 
   private
@@ -23,6 +24,8 @@ module mod_banded_matrix
 
     procedure, public :: get_element
     procedure, public :: set_element
+    procedure, public :: get_total_nb_elements
+    procedure, public :: get_total_nb_nonzero_elements
     procedure, public :: destroy
   end type banded_matrix_t
 
@@ -32,7 +35,7 @@ contains
 
   !> Constructor for a new banded matrix with a given number of rows, columns,
   !! subdiagonals and superdiagonals. Allocates and initialises the datatype.
-  pure function new_banded_matrix(rows, cols, subdiags, superdiags) result(matrix)
+  function new_banded_matrix(rows, cols, subdiags, superdiags) result(matrix)
     !> number of rows
     integer, intent(in) :: rows
     !> number of columns
@@ -43,6 +46,15 @@ contains
     integer, intent(in) :: superdiags
     !> banded matrix datatype
     type(banded_matrix_t) :: matrix
+
+    if (.not. dimensions_are_valid(rows, cols)) then
+      call log_message( &
+        "banded matrix creation failed, expected a square matrix but got " &
+        // str(rows) // " x " // str(cols), &
+        level="error" &
+      )
+      return
+    end if
 
     matrix%m = rows
     matrix%n = cols
@@ -103,6 +115,36 @@ contains
   end subroutine destroy
 
 
+  !> Returns the total number of elements inside the banded matrix.
+  pure integer function get_total_nb_elements(this)
+    !> type instance
+    class(banded_matrix_t), intent(in) :: this
+    integer :: i
+
+    ! N elements on diagonal (matrix is assumed square)
+    get_total_nb_elements = this%m
+    ! superdiagonals, every next one has 1 element less than previous one
+    do i = 1, this%ku
+      get_total_nb_elements = get_total_nb_elements + (this%m - i)
+    end do
+    ! subdiagonals, same as superdiagonals
+    do i = 1, this%kl
+      get_total_nb_elements = get_total_nb_elements + (this%m - i)
+    end do
+  end function get_total_nb_elements
+
+
+  !> Returns the total number of nonzero elements inside the banded matrix.
+  pure integer function get_total_nb_nonzero_elements(this)
+    use mod_check_values, only: is_zero
+
+    !> type instance
+    class(banded_matrix_t), intent(in) :: this
+
+    get_total_nb_nonzero_elements = count(.not. is_zero(this%AB))
+  end function get_total_nb_nonzero_elements
+
+
   !> Checks if a given position (row, col) is within the banded structure, i.e.
   !! $$ max(1, col - ku) \leq row \leq min(m, col + kl) $$
   !! with $ku$ the number of superdiagonals and $kl$ the number of subdiagonals.
@@ -118,5 +160,18 @@ contains
       max(1, col - matrix%ku) <= row .and. row <= min(matrix%m, col + matrix%kl) &
     )
   end function is_within_band
+
+
+  !> Checks if the given matrix dimensions are valid. For now, we only accept
+  !! square matrices.
+  pure logical function dimensions_are_valid(rows, cols)
+    !> number of rows in the original matrix
+    integer, intent(in) :: rows
+    !> number of columns in the original matrix
+    integer, intent(in) :: cols
+
+    dimensions_are_valid = (rows == cols)
+  end function dimensions_are_valid
+
 
 end module mod_banded_matrix

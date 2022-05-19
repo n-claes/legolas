@@ -41,7 +41,7 @@ contains
 
 
   @test
-  subroutine test_generation_real_array_to_matrix()
+  subroutine test_real_array_to_matrix()
     call set_name("transform matrix: real array -> matrix")
     matrix = array_to_matrix(array=rmat)
     @assertEqual(count(abs(rmat) > 0.0d0), matrix%get_total_nb_elements())
@@ -56,11 +56,11 @@ contains
     @assertEqual(cmplx(rmat(3, 4), kind=dp), matrix%get_complex_element(3, 4), TOL)
     @assertEqual(cmplx(rmat(4, 3), kind=dp), matrix%get_complex_element(4, 3), TOL)
     @assertEqual(cmplx(rmat(4, 4), kind=dp), matrix%get_complex_element(4, 4), TOL)
-  end subroutine test_generation_real_array_to_matrix
+  end subroutine test_real_array_to_matrix
 
 
   @test
-  subroutine test_generation_complex_array_to_matrix()
+  subroutine test_complex_array_to_matrix()
     call set_name("transform matrix: complex array -> matrix")
     matrix = array_to_matrix(array=cmat)
     @assertEqual(9, matrix%get_total_nb_elements())
@@ -75,11 +75,11 @@ contains
     @assertEqual(cmat(4, 2), matrix%get_complex_element(4, 2), tolerance=TOL)
     @assertEqual(cmat(4, 2), matrix%get_complex_element(4, 2), tolerance=TOL)
     @assertEqual(cmat(4, 4), matrix%get_complex_element(4, 4), tolerance=TOL)
-  end subroutine test_generation_complex_array_to_matrix
+  end subroutine test_complex_array_to_matrix
 
 
   @test
-  subroutine test_generation_real_matrix_to_array()
+  subroutine test_real_matrix_to_array()
     complex(dp) :: expected(4, 4) = cmplx( &
       reshape( &
         [ &
@@ -106,11 +106,11 @@ contains
     call matrix%add_element(row=4, column=4, element=-4.0d0)
     call matrix_to_array(matrix=matrix, array=actual)
     @assertEqual(expected, actual, tolerance=TOL)
-  end subroutine test_generation_real_matrix_to_array
+  end subroutine test_real_matrix_to_array
 
 
   @test
-  subroutine test_generation_complex_matrix_to_array()
+  subroutine test_complex_matrix_to_array()
     complex(dp) :: expected(4, 4) = reshape( &
       [ &
         (2.0d0, 7.0d0), (2.0d0, -3.0d0), (0.0d0, 0.0d0), (2.0d0, -1.0d0), &
@@ -136,6 +136,6 @@ contains
     call matrix%add_element(row=3, column=4, element=(0.0d0, -1.0d0))
     call matrix_to_array(matrix=matrix, array=actual)
     @assertEqual(expected, actual, tolerance=TOL)
-  end subroutine test_generation_complex_matrix_to_array
+  end subroutine test_complex_matrix_to_array
 
 end module mod_test_transform_matrix

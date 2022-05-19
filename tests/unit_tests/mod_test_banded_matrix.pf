@@ -148,4 +148,32 @@ contains
     @assertEqual(bandmatrix%AB, actual%AB, tolerance=TOL)
   end subroutine test_transform_matrix_to_banded
 
+
+  @test
+  subroutine test_banded_not_square()
+    character(len=125) :: msg
+    call set_name("banded matrix: original not square")
+    bandmatrix = new_banded_matrix(rows=5, cols=4, subdiags=2, superdiags=1)
+    msg = "banded matrix creation failed, expected a square matrix but got 5 x 4"
+    @assertExceptionRaised(msg)
+    @assertFalse(allocated(bandmatrix%AB))
+  end subroutine test_banded_not_square
+
+
+  @test
+  subroutine test_banded_total_elements()
+    call set_name("banded matrix: get total number of elements")
+    call fill_bandmatrix()
+    @assertEqual(16, bandmatrix%get_total_nb_elements())
+  end subroutine test_banded_total_elements
+
+
+  @test
+  subroutine test_banded_nb_nonzero_elements()
+    call set_name("banded matrix: get total number of nonzero elements")
+    call fill_bandmatrix()
+    call bandmatrix%set_element(row=3, col=3, element=(0.0d0, 0.0d0))
+    @assertEqual(15, bandmatrix%get_total_nb_nonzero_elements())
+  end subroutine test_banded_nb_nonzero_elements
+
 end module mod_test_banded_matrix

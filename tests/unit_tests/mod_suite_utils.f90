@@ -175,6 +175,20 @@ contains
     complex(dp) :: value_list, value_band
 
     matrix_equals_band = .true.
+    ! check dimensions
+    if (matrix%matrix_dim /= band%m .or. matrix%matrix_dim /= band%n) then
+      write(*, *) "incompatible matrix - bandmatrix dimensions"
+      write(*, *) "matrix dimensions", matrix%matrix_dim, matrix%matrix_dim
+      write(*, *) "bandmatrix dimensions", band%m, band%n
+      matrix_equals_band = .false.
+      return
+    end if
+    ! check number of elements
+    if (matrix%get_total_nb_elements() /= band%get_total_nb_nonzero_elements()) then
+      write(*, *) "unequal number of nonzero elements in matrix and band"
+      matrix_equals_band = .false.
+      return
+    end if
     ! iterate over linked list and retrieve element from band, check if equal
     do irow = 1, matrix%matrix_dim
       current_node => matrix%rows(irow)%head

@@ -104,7 +104,7 @@ contains
 
 
   !> Converts a given real array to a banded datastructure.
-  pure subroutine array_to_complex_banded(array, subdiags, superdiags, banded)
+  subroutine array_to_complex_banded(array, subdiags, superdiags, banded)
     !> the original array
     class(*), intent(in) :: array(:, :)
     !> the number of subdiagonals
