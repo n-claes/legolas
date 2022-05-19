@@ -49,6 +49,8 @@ contains
     matrix%kl = subdiags
     matrix%ku = superdiags
     allocate(matrix%AB(subdiags + superdiags + 1, cols))
+    ! initialise all to zero
+    matrix%AB = (0.0d0, 0.0d0)
   end function new_banded_matrix
 
 

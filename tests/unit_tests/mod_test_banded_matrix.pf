@@ -2,7 +2,9 @@ module mod_test_banded_matrix
   use mod_suite_utils
   use funit
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
-  use mod_transform_matrix, only: banded_to_array, array_to_banded
+  use mod_transform_matrix, only: banded_to_array, array_to_banded, matrix_to_banded, &
+    array_to_matrix
+  use mod_matrix_structure, only: matrix_t, new_matrix
   implicit none
 
   complex(dp), parameter :: izero = (0.0d0, 0.0d0)
@@ -18,6 +20,7 @@ module mod_test_banded_matrix
   )
   type(banded_matrix_t) :: bandmatrix
   type(banded_matrix_t) :: actual
+  type(matrix_t) :: matrix
 
 
 contains
@@ -26,13 +29,15 @@ contains
   subroutine init_test()
     call reset_globals()
     bandmatrix = new_banded_matrix(rows=5, cols=5, subdiags=2, superdiags=1)
+    matrix = new_matrix(nb_rows=5)
   end subroutine init_test
 
 
   @after
   subroutine tear_down()
     call bandmatrix%destroy()
-    if (allocated(actual%AB)) call actual%destroy()
+    call actual%destroy()
+    call matrix%delete_matrix()
   end subroutine tear_down
 
 
@@ -41,6 +46,7 @@ contains
     do j = 1, 5
       do i = 1, 5
         call bandmatrix%set_element(row=i, col=j, element=array(i, j))
+        call matrix%add_element(row=i, column=j, element=array(i, j))
       end do
     end do
   end subroutine fill_bandmatrix
@@ -115,10 +121,7 @@ contains
     call set_name("banded matrix: array to banded")
     call fill_bandmatrix()
     call array_to_banded(array, subdiags=2, superdiags=1, banded=actual)
-    @assertEqual(bandmatrix%AB(2:, 1), actual%AB(2:, 1), tolerance=TOL)
-    @assertEqual(bandmatrix%AB(:, 2:3), actual%AB(:, 2:3), tolerance=TOL)
-    @assertEqual(bandmatrix%AB(:3, 4), actual%AB(:3, 4), tolerance=TOL)
-    @assertEqual(bandmatrix%AB(1:2, 5), actual%AB(1:2, 5), tolerance=TOL)
+    @assertEqual(bandmatrix%AB, actual%AB, tolerance=TOL)
   end subroutine test_transform_array_to_banded
 
 
@@ -131,5 +134,18 @@ contains
     actual_array = banded_to_array(bandmatrix)
     @assertEqual(array, actual_array, tolerance=TOL)
   end subroutine test_transform_banded_to_array
+
+
+  @test
+  subroutine test_transform_matrix_to_banded()
+    call set_name("banded matrix: matrix to banded")
+    call fill_bandmatrix()
+
+    call matrix_to_banded(matrix=matrix, subdiags=2, superdiags=1, banded=actual)
+    call array_to_banded(array, subdiags=2, superdiags=1, banded=bandmatrix)
+
+    ! in AB elements 11, 35, 44 and 45 are not referenced (and not set)
+    @assertEqual(bandmatrix%AB, actual%AB, tolerance=TOL)
+  end subroutine test_transform_matrix_to_banded
 
 end module mod_test_banded_matrix

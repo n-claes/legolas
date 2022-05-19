@@ -122,4 +122,32 @@ contains
   end subroutine sort_complex_array
 
 
+  subroutine create_banded_array(subdiags, superdiags, mat)
+    integer, intent(in) :: subdiags, superdiags
+    complex(dp), intent(out) :: mat(8, 8)
+    integer :: i
+
+    if (superdiags > 2 .or. subdiags > 2) then
+      write(*, *) "can only create banded array up to 2 sub/super diagonals"
+      stop
+    end if
+
+    mat = (0.0d0, 0.0d0)
+    ! diagonal
+    do i = 1, 8
+      mat(i, i) = (1.0d0, 2.0d0) * i
+    end do
+    ! diagonals 1
+    do i = 1, 7
+      if (superdiags >= 1) mat(i, i + 1) = -2.0d0 * i + (3.0d0, 5.0d0)
+      if (subdiags >= 1) mat(i + 1, i) =  cmplx(1.5d0, 0.5d0, kind=dp) * i
+    end do
+    ! dieagonals 2
+    do i = 1, 6
+      if (superdiags >= 2) mat(i, i + 2) = cmplx(8.0d0 - 2.0d0 * i, 1.5d0 * i, kind=dp)
+      if (subdiags >= 2) mat(i + 2, i) = cmplx(1.0d0, -2.5d0 * i, kind=dp)
+    end do
+  end subroutine create_banded_array
+
+
 end module mod_suite_utils
