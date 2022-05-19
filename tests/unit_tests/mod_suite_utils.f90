@@ -105,6 +105,17 @@ contains
   end function linspace
 
 
+  !> Generate random number between a and b.
+  function random_uniform(a, b) result(random_nb)
+    real(dp), intent(in) :: a
+    real(dp), intent(in) :: b
+    real(dp) :: random_nb
+
+    call random_number(random_nb)
+    random_nb = (b - a) * random_nb + a
+  end function random_uniform
+
+
   subroutine sort_complex_array(array)
     complex(dp), intent(inout)  :: array(:)
     complex(dp) :: temp
@@ -148,6 +159,41 @@ contains
       if (subdiags >= 2) mat(i + 2, i) = cmplx(1.0d0, -2.5d0 * i, kind=dp)
     end do
   end subroutine create_banded_array
+
+
+  !> Checks if a given bandmatrix equals a linked-list matrix structure
+  logical function matrix_equals_band(matrix, band)
+    use mod_matrix_structure, only: matrix_t
+    use mod_matrix_node, only: node_t
+    use mod_banded_matrix, only: banded_matrix_t
+    use mod_check_values, only: is_equal
+
+    type(matrix_t), intent(in) :: matrix
+    type(banded_matrix_t), intent(in) :: band
+    integer :: irow, inode
+    type(node_t), pointer :: current_node
+    complex(dp) :: value_list, value_band
+
+    matrix_equals_band = .true.
+    ! iterate over linked list and retrieve element from band, check if equal
+    do irow = 1, matrix%matrix_dim
+      current_node => matrix%rows(irow)%head
+      do inode = 1, matrix%rows(irow)%nb_elements
+        value_list = current_node%get_node_element()
+        value_band = band%get_element(irow, current_node%column)
+        current_node => current_node%next
+        if (.not. is_equal(value_list, value_band)) then
+          write(*, *) "unequal matrix and bandmatrix!"
+          write(*, *) "row index: ", irow
+          write(*, *) "column index ", current_node%column
+          write(*, *) "value bandmatrix at index: ", value_band
+          write(*, *) "value linked-list matrix at index: ", value_list
+          matrix_equals_band = .false.
+          return
+        end if
+      end do
+    end do
+  end function matrix_equals_band
 
 
 end module mod_suite_utils
