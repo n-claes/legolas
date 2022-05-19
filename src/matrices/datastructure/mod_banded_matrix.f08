@@ -26,6 +26,7 @@ module mod_banded_matrix
     procedure, public :: set_element
     procedure, public :: get_total_nb_elements
     procedure, public :: get_total_nb_nonzero_elements
+    procedure, public :: is_compatible_with
     procedure, public :: destroy
   end type banded_matrix_t
 
@@ -162,8 +163,30 @@ contains
   end function is_within_band
 
 
+  !> Checks if a banded matrix is compatibe with another banded matrix.
+  !! This implies that the following attributes should be equal:
+  !!   - dimensions of the original matrices
+  !!   - number of superdiagonals and subdiagonals
+  !!   - dimensions of the banded matrices themselves
+  !! Returns `.true.` if these three criteria are satisfied, `.false.` otherwise.
+  pure logical function is_compatible_with(this, other)
+    !> type instance
+    class(banded_matrix_t), intent(in) :: this
+    !> other banded matrix
+    type(banded_matrix_t), intent(in) :: other
+
+    is_compatible_with = ( &
+      this%m == other%m &
+      .and. this%n == other%n &
+      .and. this%kl == other%kl &
+      .and. this%ku == other%ku &
+      .and. all(shape(this%AB) == shape(other%AB)) &
+    )
+  end function is_compatible_with
+
+
   !> Checks if the given matrix dimensions are valid. For now, we only accept
-  !! square matrices.
+  !! square matrices. Returns `.true.` if `rows` equals `cols`, `.false.` otherwise.
   pure logical function dimensions_are_valid(rows, cols)
     !> number of rows in the original matrix
     integer, intent(in) :: rows
