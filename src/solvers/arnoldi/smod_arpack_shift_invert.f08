@@ -1,6 +1,6 @@
 submodule (mod_solvers:smod_arpack_main) smod_arpack_shift_invert
-  use mod_banded_matrix, only: banded_matrix_t
-  use mod_transform_matrix, only: matrix_to_banded, banded_to_array
+  use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
+  use mod_transform_matrix, only: matrix_to_banded
   implicit none
 
 contains
@@ -23,21 +23,41 @@ contains
 
     integer :: diags
     logical :: converged
-    type(banded_matrix_t) :: amat_min_sigmab
+    type(banded_matrix_t) :: amat_min_sigmab_band
+    type(banded_matrix_t) :: bmat_banded
     integer :: xstart, xend, ystart, yend
 
+    call log_message("creating banded A - sigma*B", level="debug")
     diags = dim_quadblock - 1
-    call log_message("converting A - sigma*B into banded structure", level="debug")
-    call matrix_to_banded( &
-      matrix=matrix_A - matrix_B * sigma, &
-      subdiags=diags, &
-      superdiags=diags, &
-      banded=amat_min_sigmab &
-    )
+    !> @note: we don't do `matrix_to_banded(matrix_A - matrix_B * sigma)` as it appears
+    !! that in rare cases this gives rise to numerical difficulties. Depending on the
+    !! equilibrium, for some rather small `sigma` the differences between direct
+    !! conversion and operating on `band%AB` are on the order of 1e-8 to 1e-9 for the
+    !! imaginary part (as B is of type complex but technically real, all imaginary
+    !! components are zero), which seems sufficient to throw off the solver. This can
+    !! be mitigated by doing `matrix_to_banded(matrix_A*(1/sigma) - matrix_B)` instead,
+    !! followed by multiplying `band%AB` with `sigma`, but then this gives issues
+    !! for large sigmas. Operating on the `AB` matrices directly appears to be more
+    !! stable, and we ensure that they are compatible. @endnote
+    call matrix_to_banded(matrix_A, diags, diags, amat_min_sigmab_band)
+    call matrix_to_banded(matrix_B, diags, diags, bmat_banded)
+
+    ! check compatibility
+    if (.not. amat_min_sigmab_band%is_compatible_with(bmat_banded)) then
+      call log_message( &
+        "Arnoldi shift-invert: banded matrices are not compatible!", level="error" &
+      )
+      call amat_min_sigmab_band%destroy()
+      call bmat_banded%destroy()
+      return
+    end if
+
+    ! form A - sigma*B, we ensured the banded matrices are compatible
+    amat_min_sigmab_band%AB = amat_min_sigmab_band%AB - sigma * bmat_banded%AB
+    call bmat_banded%destroy()  ! we no longer need this one
 
     call log_message("doing Arnoldi shift-invert", level="debug")
     converged = .false.
-
     do while(.not. converged)
       call znaupd( &
         arpack_cfg%ido, &
@@ -74,7 +94,7 @@ contains
         ! 1. calculate u = B*x
         ! 2. solve linear system [A - sigma*B] * R = u for R
         workd(ystart:yend) = solve_linear_system_complex_banded( &
-          bandmatrix=amat_min_sigmab, vector=matrix_B * workd(xstart:xend) &
+          bandmatrix=amat_min_sigmab_band, vector=matrix_B * workd(xstart:xend) &
         )
       case default
         ! when convergence is achieved or maxiter is reached
@@ -110,6 +130,11 @@ contains
       arpack_cfg%get_lworkl(), &
       rwork, &
       arpack_cfg%info &
+    )
+
+    call log_message( &
+      "performing eigenvalue backtransformation to original problem (nu -> omega)", &
+      level="debug" &
     )
     !> @note In applying shift-invert we made the transformation $C = inv[B]*A$ and
     !! solved the standard eigenvalue problem $Cx = \nu x$ instead since B isn't
