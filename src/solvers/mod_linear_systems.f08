@@ -58,7 +58,7 @@ contains
       call log_message( &
         "LAPACK routine zgbsv failed! info = " // str(info), level="warning" &
       )
-    end if
+    end if ! LCOV_EXCL_STOP
     deallocate(ABmat)
   end function solve_linear_system_complex_banded
 
