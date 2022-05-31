@@ -26,6 +26,7 @@ contains
     type(banded_matrix_t) :: amat_min_sigmab_band
     type(banded_matrix_t) :: bmat_banded
     integer :: xstart, xend, ystart, yend
+    complex(dp) :: bxvector(arpack_cfg%get_evpdim())
 
     call log_message("creating banded A - sigma*B", level="debug")
     diags = dim_quadblock - 1
@@ -93,8 +94,9 @@ contains
         ! we need R = OP*x = inv[A - sigma*B]*B*x
         ! 1. calculate u = B*x
         ! 2. solve linear system [A - sigma*B] * R = u for R
+        bxvector = matrix_B * workd(xstart:xend)
         workd(ystart:yend) = solve_linear_system_complex_banded( &
-          bandmatrix=amat_min_sigmab_band, vector=matrix_B * workd(xstart:xend) &
+          bandmatrix=amat_min_sigmab_band, vector=bxvector &
         )
       case default
         ! when convergence is achieved or maxiter is reached
