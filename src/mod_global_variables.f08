@@ -71,13 +71,13 @@ module mod_global_variables
   real(dp)                  :: dropoff_width
   !> boolean for viscosity, defaults to <tt>False</tt>
   logical, save             :: viscosity
-  !> boolean to include viscoous heating, defaults to <tt>False</tt>
+  !> boolean to include viscous heating, defaults to <tt>False</tt>
   logical, save             :: viscous_heating
-  !> defines the fixed value for either the dynamic or kinematic viscosity, defaults to 0
+  !> defines the fixed value for the dynamic viscosity, defaults to 0
   real(dp)                  :: viscosity_value
   !> boolean to use Hall MHD, defaults to <tt>False</tt>
   logical, save             :: hall_mhd
-  !> boolean to use substitution for Hall elements, defaults to <tt>True</tt>
+  !> boolean to use substitution for Hall elements (as presented in the paper), defaults to <tt>True</tt>
   logical, save             :: hall_substitution
   !> boolean to use dropoff profile for Hall parameter, defaults to <tt>False</tt>
   logical, save             :: hall_dropoff

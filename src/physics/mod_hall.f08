@@ -1,6 +1,6 @@
 ! =============================================================================
-!> !> Module containing Hall-related routines, calculates
-!! and sets the Hall and inertia term factors based on the specified profiles.
+!> Module containing Hall-related routines.
+!! Sets the Hall and electron inertia factors based on normalisations and specified profiles.
 module mod_hall
   use mod_global_variables, only: dp, dim_quadblock
 
@@ -13,8 +13,8 @@ public  :: set_hall_factors
 contains
 
   !> Retrieves the normalised Hall factor as described by Porth et al. (2014),
-  !! with a dropoff at the boundary, if desired. Additionally defines the
-  !! inertia term factor if included, with a dropoff profile, if desired.
+  !! with a dropoff at the boundary, if desired. Additionally, defines the
+  !! electron inertia factor if included, with a dropoff profile, if desired.
   subroutine set_hall_factors(hall_field)
     use mod_grid, only: grid_gauss
     use mod_physical_constants, only: dpi
