@@ -47,6 +47,8 @@ from regression_tests.test_RTI_theta_pinch_MHD import rti_thetapinch_mhd_setup
 from regression_tests.test_suydam import suydam_setup
 from regression_tests.test_taylor_couette import taylor_couette_setup
 from regression_tests.test_tokamak import tokamak_setup
+from regression_tests.test_hall_adiabatic_homo import hall_adiabatic_homo
+from regression_tests.test_hall_harris_sheet import hall_harris_sheet
 
 from regression_tests.test_multi_constant_current import constant_current_setup
 from regression_tests.test_multi_coronal_fluxtube import coronal_tube_setup
@@ -55,9 +57,7 @@ from regression_tests.test_multi_gravito_MHD import gravito_mhd_setup
 from regression_tests.test_multi_interchange import interchange_setup
 from regression_tests.test_multi_iso_atmo import iso_atmo_beta_half_setup
 from regression_tests.test_multi_photospheric_fluxtube import photospheric_tube_setup
-
-from regression_tests.test_hall_adiabatic_homo import hall_adiabatic_homo
-from regression_tests.test_hall_harris_sheet import hall_harris_sheet
+from regression_tests.test_multi_elecinertia import elecinertia_setup
 
 # retrieve test setups
 tests_to_run = [
@@ -100,6 +100,7 @@ multirun_tests = [
     interchange_setup,
     iso_atmo_beta_half_setup,
     photospheric_tube_setup,
+    elecinertia_setup,
 ]
 
 # configure test setup
@@ -331,6 +332,10 @@ def test_generate_multi_spectra_images(series_test, series_answer, setup, imaged
         p.set_y_scaling(setup.get("y_scaling", 1))
         if setup.get("symlog", None) is not None:
             p.ax.set_yscale("symlog", linthresh=setup["symlog"])
+        if setup.get("xlog"):
+            p.ax.set_xscale("log")
+        if setup.get("ylog"):
+            p.ax.set_yscale("log")
         p.ax.set_xlim(xlims)
         p.ax.set_ylim(ylims)
     figname = f"{get_image_filename(setup['name'], limits_dict=setup['limits'])}.png"
