@@ -19,6 +19,7 @@ hall_harris_sheet = {
         "use_fixed_resistivity": True,
         "fixed_eta_value": 10 ** (-4.0),
         "hall_mhd": True,
+        "hall_substitution": True,
         "electron_fraction": 0.5,
         "cgs_units": True,
         "unit_density": 1.7e-14,
