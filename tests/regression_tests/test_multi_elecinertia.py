@@ -13,12 +13,12 @@ elecinertia_setup = {
         "x_start": 0,
         "x_end": 1000,
         "parameters": {
-            "k2": _kvals * np.sin(np.pi/6),
-            "k3": _kvals * np.cos(np.pi/6),
+            "k2": _kvals * np.sin(np.pi / 6),
+            "k3": _kvals * np.cos(np.pi / 6),
             "cte_rho0": 1,
             "cte_T0": 1,
             "cte_B02": 0,
-            "cte_B03": 1
+            "cte_B03": 1,
         },
         "hall_mhd": True,
         "hall_substitution": True,
