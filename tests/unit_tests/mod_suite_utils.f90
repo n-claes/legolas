@@ -26,7 +26,7 @@ contains
 
 
   subroutine reset_fields(init_fields)
-    use mod_equilibrium, only: rho_field, equilibrium_clean, initialise_equilibrium
+    use mod_equilibrium_fields, only: rho_field, equilibrium_clean, initialise_equilibrium
 
     logical, intent(in) :: init_fields
 

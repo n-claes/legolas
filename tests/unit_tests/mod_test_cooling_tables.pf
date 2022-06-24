@@ -6,7 +6,7 @@ module mod_test_cooling_tables
   use mod_global_variables, only: cooling_curve, gauss_gridpts
   use mod_radiative_cooling, only: initialise_radiative_cooling, &
     set_radiative_cooling_values
-  use mod_equilibrium, only: rho_field, T_field, rc_field
+  use mod_equilibrium_fields, only: rho_field, T_field, rc_field
   implicit none
 
   real(dp), allocatable :: expected(:)

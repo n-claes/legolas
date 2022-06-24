@@ -2,6 +2,7 @@ module mod_test_inspections
   use mod_suite_utils
   use funit
   use mod_equilibrium
+  use mod_equilibrium_fields
   use mod_inspections, only: check_wavenumbers
   use mod_equilibrium_params, only: k2, k3
   use mod_global_variables, only: NaN, geometry

@@ -18,7 +18,7 @@ contains
 
   @before
   subroutine init_test()
-    use mod_equilibrium, only: B_field
+    use mod_equilibrium_fields, only: B_field
 
     call reset_globals()
     call reset_fields(init_fields=.true.)
@@ -123,7 +123,7 @@ contains
 
   @test
   subroutine test_conduction_boundaries_no_kperp_wall_bmat()
-    use mod_equilibrium, only: kappa_field
+    use mod_equilibrium_fields, only: kappa_field
 
     call set_name("conduction boundary conditions (B-matrix, wall, no k_perp)")
     thermal_conduction = .true.
@@ -138,7 +138,7 @@ contains
 
   @test
   subroutine test_conduction_boundaries_no_kperp_wall_amat()
-    use mod_equilibrium, only: kappa_field
+    use mod_equilibrium_fields, only: kappa_field
 
     call set_name("conduction boundary conditions (A-matrix, wall, no k_perp)")
     thermal_conduction = .true.
@@ -153,7 +153,7 @@ contains
 
   @test
   subroutine test_conduction_boundaries_kperp_wall_bmat()
-    use mod_equilibrium, only: kappa_field
+    use mod_equilibrium_fields, only: kappa_field
 
     call set_name("conduction boundary conditions (B-matrix, wall, k_perp)")
     thermal_conduction = .true.
@@ -168,7 +168,7 @@ contains
 
   @test
   subroutine test_conduction_boundaries_kperp_wall_amat()
-    use mod_equilibrium, only: kappa_field
+    use mod_equilibrium_fields, only: kappa_field
 
     call set_name("conduction boundary conditions (A-matrix, wall, k_perp)")
     thermal_conduction = .true.

@@ -72,7 +72,7 @@ contains
   @test
   subroutine test_sa_custom_profile_saving()
     use mod_grid, only: grid_gauss
-    use mod_equilibrium, only: B_field, grav_field
+    use mod_equilibrium_fields, only: B_field, grav_field
 
     call set_name("solar atmosphere (custom profile saving)")
     call set_solar_atmosphere( &
@@ -124,7 +124,7 @@ contains
 
   @test
   subroutine test_sa_default_profile_loading_density()
-    use mod_equilibrium, only: rho_field
+    use mod_equilibrium_fields, only: rho_field
 
     real(dp) :: rho_expected(size(rho_field % rho0))
 
@@ -139,7 +139,7 @@ contains
 
   @test
   subroutine test_sa_default_profile_loading_temperature()
-    use mod_equilibrium, only: T_field
+    use mod_equilibrium_fields, only: T_field
 
     real(dp) :: temp_expected(size(T_field % T0))
 

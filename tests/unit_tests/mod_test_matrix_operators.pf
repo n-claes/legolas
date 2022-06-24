@@ -3,6 +3,7 @@ module mod_test_matrix_operators
   use funit
   use mod_matrix_shortcuts
   use mod_equilibrium
+  use mod_equilibrium_fields
   use mod_global_variables, only: set_gridpts, geometry
   use mod_grid, only: grid_gauss, grid_clean
   implicit none

@@ -22,7 +22,7 @@ contains
 
   @test
   subroutine test_set_eta_cte()
-    use mod_equilibrium, only: T_field, eta_field
+    use mod_equilibrium_fields, only: T_field, eta_field
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
 
     call set_name("setting constant resistivity")
@@ -37,7 +37,7 @@ contains
 
   @test
   subroutine test_set_eta()
-    use mod_equilibrium, only: T_field, eta_field
+    use mod_equilibrium_fields, only: T_field, eta_field
     use mod_global_variables, only: set_gridpts
     use mod_units, only: unit_resistivity, unit_deta_dT
 
@@ -63,7 +63,7 @@ contains
 
   @test
   subroutine test_set_dropoff_eta_fail()
-    use mod_equilibrium, only: T_field, eta_field
+    use mod_equilibrium_fields, only: T_field, eta_field
     use mod_global_variables, only: use_fixed_resistivity, use_eta_dropoff
 
     call set_name("setting eta dropoff (not constant)")
@@ -80,7 +80,7 @@ contains
 
   @test
   subroutine test_set_dropoff_eta()
-    use mod_equilibrium, only: T_field, eta_field
+    use mod_equilibrium_fields, only: T_field, eta_field
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value, &
       use_eta_dropoff, gauss_gridpts
 

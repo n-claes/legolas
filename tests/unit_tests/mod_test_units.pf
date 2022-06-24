@@ -88,7 +88,7 @@ contains
 
   @test
   subroutine test_unit_resistivity()
-    use mod_equilibrium, only: T_field, eta_field
+    use mod_equilibrium_fields, only: T_field, eta_field
     use mod_resistivity, only: set_resistivity_values
 
     call set_name("setting unit resistivity")

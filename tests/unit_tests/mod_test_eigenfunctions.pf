@@ -34,7 +34,7 @@ contains
 
 
   subroutine use_bfield(use_b01)
-    use mod_equilibrium, only: B_field
+    use mod_equilibrium_fields, only: B_field
 
     logical, intent(in)  :: use_b01
 
