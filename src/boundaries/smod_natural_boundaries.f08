@@ -2,7 +2,7 @@ submodule (mod_boundary_manager) smod_natural_boundaries
   use mod_global_variables, only: ic
   use mod_make_subblock, only: subblock
   use mod_grid, only: grid, eps_grid, d_eps_grid_dr
-  use mod_equilibrium, only: rho_field, T_field, B_field
+  use mod_equilibrium_fields, only: rho_field, T_field, B_field
   use mod_equilibrium_params, only: k2, k3
   implicit none
 

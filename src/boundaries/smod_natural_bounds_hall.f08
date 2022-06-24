@@ -5,7 +5,7 @@ contains
 
   module procedure add_natural_hall_Bterms
     use mod_global_variables, only: hall_mhd, elec_inertia
-    use mod_equilibrium, only: hall_field
+    use mod_equilibrium_fields, only: hall_field
 
     real(dp)  :: eps
     real(dp)  :: rho
@@ -44,7 +44,7 @@ contains
   module procedure add_natural_hall_terms
     use mod_global_variables, only: hall_mhd, hall_substitution, electron_fraction, &
                                     viscosity, viscosity_value
-    use mod_equilibrium, only: hall_field
+    use mod_equilibrium_fields, only: hall_field
 
     real(dp)  :: eps, deps
     real(dp)  :: rho, T0, B01, B02, B03

@@ -45,7 +45,7 @@ contains
 
   module procedure add_regular_matrix_terms
     use mod_global_variables, only: external_gravity, incompressible
-    use mod_equilibrium, only: grav_field
+    use mod_equilibrium_fields, only: grav_field
 
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho

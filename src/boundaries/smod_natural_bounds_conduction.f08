@@ -5,7 +5,7 @@ contains
 
   module procedure add_natural_conduction_terms
     use mod_global_variables, only: gamma_1, thermal_conduction
-    use mod_equilibrium, only: kappa_field
+    use mod_equilibrium_fields, only: kappa_field
     use mod_matrix_shortcuts, only: get_Kp_operator, get_F_operator, get_G_operator
 
     real(dp)  :: eps, deps

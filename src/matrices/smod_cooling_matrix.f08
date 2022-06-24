@@ -4,7 +4,7 @@ submodule (mod_matrix_manager) smod_cooling_matrix
 contains
 
   module procedure add_cooling_matrix_terms
-    use mod_equilibrium, only: rc_field
+    use mod_equilibrium_fields, only: rc_field
     use mod_global_variables, only: incompressible
 
     real(dp)  :: rho

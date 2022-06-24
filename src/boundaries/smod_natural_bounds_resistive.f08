@@ -5,7 +5,7 @@ contains
 
   module procedure add_natural_resistive_terms
     use mod_global_variables, only: gamma_1, resistivity
-    use mod_equilibrium, only: eta_field
+    use mod_equilibrium_fields, only: eta_field
 
     real(dp)  :: eps, deps
     real(dp)  :: eta

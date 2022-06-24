@@ -7,6 +7,7 @@ set (sources
         dataIO/mod_logging.f08
         mod_physical_constants.f08
         mod_units.f08
+        mod_grid_profiles.f08
         mod_grid.f08
         mod_types.f08
         mod_check_values.f08
@@ -23,6 +24,7 @@ set (sources
         physics/mod_thermal_conduction.f08
         physics/mod_hall.f08
         mod_inspections.f08
+        mod_equilibrium_fields.f08
         mod_equilibrium.f08
         equilibria/smod_equil_adiabatic_homo.f08
         equilibria/smod_equil_constant_current.f08

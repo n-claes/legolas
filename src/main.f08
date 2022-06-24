@@ -60,7 +60,8 @@ contains
     use mod_global_variables, only: initialise_globals, matrix_gridpts, &
       solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma, NaN
     use mod_input, only: read_parfile, get_parfile
-    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
+    use mod_equilibrium_fields, only: hall_field
+    use mod_equilibrium, only: set_equilibrium
     use mod_logging, only: print_logo
     use mod_global_variables, only: hall_mhd, hall_substitution, elec_inertia, x_end, x_start
 
@@ -77,6 +78,8 @@ contains
 
     call print_logo()
 
+    call set_equilibrium()
+
     allocate(matrix_A(matrix_gridpts, matrix_gridpts))
     allocate(matrix_B(matrix_gridpts, matrix_gridpts))
 
@@ -87,9 +90,6 @@ contains
     end if
     call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
     allocate(omega(nb_evs))
-
-    call initialise_equilibrium()
-    call set_equilibrium()
 
     ! TODO: remove this warning when fully tested
     if (hall_mhd) then
@@ -145,7 +145,7 @@ contains
   subroutine cleanup()
     use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid_clean
-    use mod_equilibrium, only: equilibrium_clean
+    use mod_equilibrium_fields, only: equilibrium_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
     use mod_eigenfunctions, only: eigenfunctions_clean
 

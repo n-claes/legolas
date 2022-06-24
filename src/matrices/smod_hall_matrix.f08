@@ -1,5 +1,5 @@
 submodule (mod_matrix_manager) smod_hall_matrix
-  use mod_equilibrium, only: hall_field
+  use mod_equilibrium_fields, only: hall_field
   implicit none
 
 contains
@@ -120,7 +120,7 @@ contains
   module procedure add_hall_matrix_terms
     use mod_global_variables, only: viscosity, viscosity_value, &
                                     hall_substitution, electron_fraction
-    use mod_equilibrium, only: v_field, rho_field, T_field, B_field
+    use mod_equilibrium_fields, only: v_field, rho_field, T_field, B_field
 
     real(dp)  :: eps, deps
     real(dp)  :: v01, v02, v03, dv01, dv02, dv03, ddv01, ddv02, ddv03

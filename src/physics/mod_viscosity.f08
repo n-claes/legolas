@@ -17,7 +17,7 @@ contains
                             h_quadratic, dh_quadratic_dr, h_cubic, dh_cubic_dr)
     use mod_global_variables, only: viscous_heating
     use mod_equilibrium_params, only: k2, k3
-    use mod_equilibrium, only: rho_field, v_field, viscosity_field
+    use mod_equilibrium_fields, only: rho_field, v_field, viscosity_field
     use mod_make_subblock, only: subblock, reset_factors, reset_positions
 
     !> current index in the Gaussian grid
@@ -212,7 +212,7 @@ contains
   subroutine viscosity_boundaries(quadblock_viscosity, edge)
     use mod_global_variables, only: dp_LIMIT, gauss_gridpts, geometry, coaxial, viscous_heating
     use mod_logging, only: log_message
-    use mod_equilibrium, only: v_field, kappa_field
+    use mod_equilibrium_fields, only: v_field, kappa_field
     use mod_grid, only: eps_grid, d_eps_grid_dr
     use mod_make_subblock, only: reset_factors, reset_positions
 

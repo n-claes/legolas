@@ -82,7 +82,7 @@ contains
 
 
   subroutine set_boundary_flags()
-    use mod_equilibrium, only: kappa_field
+    use mod_equilibrium_fields, only: kappa_field
     use mod_global_variables, only: &
       thermal_conduction, viscosity, coaxial, dp_LIMIT, geometry
 

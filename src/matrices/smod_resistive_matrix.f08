@@ -1,5 +1,5 @@
 submodule (mod_matrix_manager) smod_resistive_matrix
-  use mod_equilibrium, only: eta_field
+  use mod_equilibrium_fields, only: eta_field
   implicit none
 
 contains

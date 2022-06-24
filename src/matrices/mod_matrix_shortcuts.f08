@@ -1,6 +1,6 @@
 module mod_matrix_shortcuts
   use mod_global_variables, only: dp, NaN
-  use mod_equilibrium, only: B_field
+  use mod_equilibrium_fields, only: B_field
   use mod_equilibrium_params, only: k2, k3
   use mod_grid, only: eps_grid, d_eps_grid_dr
   use mod_logging, only: log_message, str
@@ -145,7 +145,7 @@ contains
   !! \right)
   !! $$
   function get_Kp_operator(gauss_idx, which) result(Kp_operator)
-    use mod_equilibrium, only: B_field, kappa_field
+    use mod_equilibrium_fields, only: B_field, kappa_field
 
     !> current index in the Gaussian grid
     integer, intent(in) :: gauss_idx

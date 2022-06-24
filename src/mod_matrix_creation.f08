@@ -41,7 +41,7 @@ contains
     use mod_boundary_conditions, only: apply_boundary_conditions
     use mod_viscosity, only: get_viscosity_terms
     use mod_hallmhd, only: get_hallterm, get_hallterm_Bmat
-    use mod_equilibrium, only: hall_field
+    use mod_equilibriummod_equilibrium_fields, only: hall_field
 
     !> the B-matrix
     real(dp), intent(inout)     :: matrix_B(matrix_gridpts, matrix_gridpts)
@@ -147,7 +147,7 @@ contains
   !!          have already been recalculated and correspond to this particular value
   !!          in the grid.
   subroutine get_B_elements(gauss_idx, eps, curr_weight, quadblock_B)
-    use mod_equilibrium, only: rho_field
+    use mod_equilibrium_fields, only: rho_field
     use mod_make_subblock, only: subblock, reset_positions, reset_factors
 
     !> current index in the Gaussian grid
@@ -215,8 +215,8 @@ contains
   subroutine get_A_elements(gauss_idx, eps, d_eps_dr, curr_weight, quadblock_A)
     use mod_global_variables, only: ic, gamma_1
     use mod_equilibrium_params, only: k2, k3
-    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, grav_field, eta_field, &
-                               rc_field, kappa_field
+    use mod_equilibrium_fields, only: rho_field, T_field, B_field, v_field, &
+                                  grav_field, eta_field, rc_field, kappa_field
     use mod_make_subblock, only: subblock, reset_factors, reset_positions
 
     !> current index in the Gaussian grid

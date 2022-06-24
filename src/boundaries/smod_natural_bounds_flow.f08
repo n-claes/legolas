@@ -5,7 +5,7 @@ contains
 
   module procedure add_natural_flow_terms
     use mod_global_variables, only: flow
-    use mod_equilibrium, only: v_field
+    use mod_equilibrium_fields, only: v_field
 
     real(dp)  :: rho
     real(dp)  :: v01

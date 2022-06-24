@@ -14,6 +14,9 @@ module mod_equilibrium
   use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
     flow, resistivity, external_gravity, radiative_cooling, &
     thermal_conduction, viscosity, hall_mhd, geometry, use_defaults, cgs_units
+  use mod_equilibrium_fields, only: rho_field, T_field, B_field, v_field, &
+                                    grav_field, eta_field, rc_field, &
+                                    kappa_field, hall_field
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
@@ -59,56 +62,10 @@ module mod_equilibrium
     module subroutine user_defined_eq; end subroutine
   end interface
 
-  !> type containing all density-related equilibrium variables
-  type (density_type)     :: rho_field
-  !> type containing all temperature-related equilibrium variables
-  type (temperature_type) :: T_field
-  !> type containing all magnetic field-related equilibrium variables
-  type (bfield_type)      :: B_field
-  !> type containing all velocity-related equilibrium variables
-  type (velocity_type)    :: v_field
-  !> type containing all gravity-related equilibrium variables
-  type (gravity_type)     :: grav_field
-  !> type containing all resistivity-related equilibrium variables
-  type (resistivity_type) :: eta_field
-  !> type containig all radiative cooling-related equilibrium variables
-  type (cooling_type)     :: rc_field
-  !> type containing all thermal conduction-related equilibrium variables
-  type (conduction_type)  :: kappa_field
-  !> type containing all Hall related variables
-  type (hall_type)        :: hall_field
-
-  public :: rho_field
-  public :: T_field
-  public :: B_field
-  public :: v_field
-  public :: grav_field
-  public :: eta_field
-  public :: rc_field
-  public :: kappa_field
-  public :: hall_field
-
-  public :: initialise_equilibrium
   public :: set_equilibrium
   public :: allow_geometry_override
-  public :: equilibrium_clean
 
 contains
-
-
-  !> Initialises the equilibrium types by calling the corresponding
-  !! subroutine, which allocates all necessary attributes.
-  subroutine initialise_equilibrium()
-    call initialise_type(rho_field)
-    call initialise_type(T_field)
-    call initialise_type(B_field)
-    call initialise_type(v_field)
-    call initialise_type(grav_field)
-    call initialise_type(eta_field)
-    call initialise_type(rc_field)
-    call initialise_type(kappa_field)
-    call initialise_type(hall_field)
-  end subroutine initialise_equilibrium
 
 
   !> Calls the routine to set the equilibrium pointer, then calls the correct
@@ -294,18 +251,5 @@ contains
     end if
   end subroutine allow_geometry_override
 
-
-  !> Cleaning routine, deallocates the equilibrium types.
-  subroutine equilibrium_clean()
-    call deallocate_type(rho_field)
-    call deallocate_type(T_field)
-    call deallocate_type(B_field)
-    call deallocate_type(v_field)
-    call deallocate_type(grav_field)
-    call deallocate_type(eta_field)
-    call deallocate_type(rc_field)
-    call deallocate_type(kappa_field)
-    call deallocate_type(hall_field)
-  end subroutine equilibrium_clean
 
 end module mod_equilibrium

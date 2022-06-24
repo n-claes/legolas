@@ -68,7 +68,7 @@ contains
     use mod_grid, only: grid_gauss
     use mod_interpolation, only: lookup_table_value, get_numerical_derivative
     use mod_integration, only: integrate_ode_rk
-    use mod_equilibrium, only: rho_field, T_field, B_field, grav_field
+    use mod_equilibrium_fields, only: rho_field, T_field, B_field, grav_field
 
     !> function reference for calculation of B02
     procedure(oned_profile), optional :: f_b02

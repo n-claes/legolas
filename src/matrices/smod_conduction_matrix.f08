@@ -1,5 +1,5 @@
 submodule (mod_matrix_manager) smod_conduction_matrix
-  use mod_equilibrium, only: kappa_field
+  use mod_equilibrium_fields, only: kappa_field
   implicit none
 
 contains

@@ -65,7 +65,7 @@ contains
   !! non-zero B01 component present, or no magnetic field.
   subroutine check_if_pp_quantities_can_be_calculated()
     use mod_check_values, only: is_zero
-    use mod_equilibrium, only: B_field
+    use mod_equilibrium_fields, only: B_field
     use mod_logging, only: log_message
 
     can_calculate_pp_quantities = .true.
@@ -89,7 +89,7 @@ contains
   !! looking up the nearest values for every point in the eigenfunction grid.
   subroutine set_equilibrium_on_eigenfunction_grid()
     use mod_interpolation, only: interpolate_table, lookup_table_value
-    use mod_equilibrium, only: B_field, rho_field, T_field
+    use mod_equilibrium_fields, only: B_field, rho_field, T_field
 
     call lookup_and_set_values(B_field % B02, B02_on_ef_grid)
     call lookup_and_set_values(B_field % B03, B03_on_ef_grid)

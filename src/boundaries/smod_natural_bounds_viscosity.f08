@@ -6,7 +6,7 @@ contains
   module procedure add_natural_viscosity_terms
     use mod_global_variables, only: viscosity, viscous_heating, viscosity_value, &
                                     gamma_1, incompressible
-    use mod_equilibrium, only: v_field
+    use mod_equilibrium_fields, only: v_field
 
     real(dp)  :: eps, deps
     real(dp)  :: mu

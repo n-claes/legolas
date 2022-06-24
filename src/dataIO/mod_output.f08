@@ -73,8 +73,8 @@ contains
     use mod_version, only: LEGOLAS_VERSION
     use mod_logging, only: log_message
     use mod_grid, only: grid, grid_gauss
-    use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
-      kappa_field, eta_field, grav_field, hall_field
+    use mod_equilibrium_fields, only: rho_field, T_field, B_field, v_field, &
+      rc_field, kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions
     use mod_check_values, only: is_equal
     use mod_equilibrium_params

@@ -1,5 +1,5 @@
 submodule (mod_matrix_manager) smod_flow_matrix
-  use mod_equilibrium, only: v_field
+  use mod_equilibrium_fields, only: v_field
   implicit none
 
 contains

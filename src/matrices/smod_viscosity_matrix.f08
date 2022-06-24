@@ -1,6 +1,6 @@
 submodule (mod_matrix_manager) smod_viscosity_matrix
   use mod_global_variables, only: viscosity_value, viscous_heating, incompressible
-  use mod_equilibrium, only: v_field
+  use mod_equilibrium_fields, only: v_field
   implicit none
 
 contains

@@ -32,6 +32,7 @@ module mod_grid
   public :: initialise_grid
   public :: set_grid_gauss
   public :: grid_clean
+  public :: get_accumulated_grid
 
 contains
 
@@ -51,6 +52,7 @@ contains
   subroutine initialise_grid(custom_grid)
     use mod_global_variables, only: geometry, x_start, x_end, &
       gauss_gridpts, dp_LIMIT, force_r0
+    use mod_equilibrium_fields, only: initialise_equilibrium
 
     !> custom grid to use instead of the default one, optional
     real(dp), intent(in), optional  :: custom_grid(:)
@@ -73,7 +75,13 @@ contains
     if (present(custom_grid)) then
       call log_message("using a custom base grid", level="info")
       ! check if size matches gridpoints
-      if (size(custom_grid) /= gridpts) then
+      if (size(custom_grid) > gridpts) then
+        call log_message( &
+          "custom grid size larger than expected: "// str(size(custom_grid)) // &
+          ". Grid will be trimmed down to " // str(gridpts) // " points", &
+          level="info" &
+        )
+      else if (size(custom_grid) /= gridpts) then
         call log_message( &
           "custom grid: sizes do not match! Expected "// str(gridpts) // &
           " points but got " // str(size(custom_grid)), &
@@ -82,7 +90,7 @@ contains
         return
       end if
       ! check if grid is monotonous
-      do i = 1, size(custom_grid) - 1
+      do i = 1, size(custom_grid(1:gridpts)) - 1
         if (.not. (custom_grid(i + 1) > custom_grid(i))) then
           call log_message( &
             "custom grid: supplied array is not monotone! Got x=" // &
@@ -93,7 +101,7 @@ contains
           return
         end if
       end do
-      grid = custom_grid
+      grid = custom_grid(1:gridpts)
     else
       if (geometry == "cylindrical" .and. abs(x_start) < dp_LIMIT) then
         if (.not. force_r0) then
@@ -117,6 +125,7 @@ contains
 
     call set_grid_gauss()
     call set_scale_factor()
+    call initialise_equilibrium()
   end subroutine initialise_grid
 
 
@@ -164,6 +173,70 @@ contains
       )
     end if
   end subroutine set_scale_factor
+
+
+  !> Generates a non-uniform grid based on a accumulation profile of choice.
+  !! @note  The p1, p2, p3 and p4 parameters are not needed for all profiles.
+  !!        If not needed, they can be set to NaN. See the individual
+  !!        accumulation profiles to determine their necessity. @endnote
+  subroutine get_accumulated_grid(accumulated_grid, grid_profile, p1, p2, p3, p4)
+    use mod_global_variables, only: x_start, x_end, gridpts, set_gridpts
+    use mod_logging, only: log_message
+    use mod_grid_profiles
+
+    real(dp), intent(out) :: accumulated_grid(gridpts)
+    character(len=*), intent(in) :: grid_profile
+    real(dp), intent(in) :: p1, p2, p3, p4
+
+    integer  :: i, new_gpts
+    real(dp) :: cx, dx, kappa, xbar(gridpts)
+
+    abstract interface
+      function func(x, p1, p2, p3, p4) result(dx)
+        use mod_global_variables, only: dp
+        real(dp) :: dx
+        real(dp), intent(in) :: x, p1, p2, p3, p4
+      end function func
+    end interface
+
+    ! pointer for the dx function, initialised to null
+    procedure(func), pointer :: profile_dx => null()
+
+    select case(grid_profile)
+    case("gaussian")
+      profile_dx => gaussian_dx
+    case("sinusoidal")
+      profile_dx => sine_dx
+    case default
+      call log_message( &
+        "grid profile not recognised: " // trim(grid_profile), level="error" &
+      )
+    end select
+
+    xbar(1) = x_start
+    cx = x_start
+    new_gpts = 1
+    do while (cx < x_end)
+      new_gpts = new_gpts + 1
+      ! When defining new functions, also give them p1, p2, p3 and p4 arguments,
+      ! even if they are not used.
+      dx = profile_dx(cx, p1, p2, p3, p4)
+      if (dx <= 0.0d0) then
+        call log_message('dx in accumulated grid generation is negative !', level='error')
+      end if
+      cx = xbar(new_gpts-1) + dx
+      xbar(new_gpts) = cx
+    end do
+    kappa = (x_end - xbar(new_gpts-1)) / (xbar(new_gpts) - xbar(new_gpts-1))
+
+    accumulated_grid(1) = x_start
+    do i = 1, new_gpts-1
+      accumulated_grid(i+1) = xbar(i) + kappa * profile_dx(xbar(i), p1, p2, p3, p4)
+    end do
+    accumulated_grid(new_gpts) = x_end
+
+    call set_gridpts(new_gpts)
+  end subroutine get_accumulated_grid
 
 
   !> Cleanup routine, deallocates the arrays at module scope.
