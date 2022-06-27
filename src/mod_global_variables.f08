@@ -71,19 +71,21 @@ module mod_global_variables
   real(dp)                  :: dropoff_width
   !> boolean for viscosity, defaults to <tt>False</tt>
   logical, save             :: viscosity
-  !> boolean to include viscoous heating, defaults to <tt>False</tt>
+  !> boolean to include viscous heating, defaults to <tt>False</tt>
   logical, save             :: viscous_heating
-  !> defines the fixed value for either the dynamic or kinematic viscosity, defaults to 0
+  !> defines the fixed value for the dynamic viscosity, defaults to 0
   real(dp)                  :: viscosity_value
   !> boolean to use Hall MHD, defaults to <tt>False</tt>
   logical, save             :: hall_mhd
-  !> boolean to use dropoff profile for Hall parameter, defaults to <tt>False </tt>
+  !> boolean to use substitution for Hall elements (as presented in the paper), defaults to <tt>True</tt>
+  logical, save             :: hall_substitution
+  !> boolean to use dropoff profile for Hall parameter, defaults to <tt>False</tt>
   logical, save             :: hall_dropoff
   !> boolean to use electron inertia in Ohm's law, defaults to <tt>False</tt>
   logical, save             :: elec_inertia
-  !> boolean to use dropoff profile for inertia parameter, defaults to <tt>False </tt>
+  !> boolean to use dropoff profile for inertia parameter, defaults to <tt>False</tt>
   logical, save             :: inertia_dropoff
-  !> fraction of number of electrons to number of all particles (between 0 and 1)
+  !> fraction of number of electrons to number of all particles (between 0 and 1), defaults to <tt>0.5</tt>
   real(dp)                  :: electron_fraction
   !> defines the geometry of the problem, defaults depend on chosen equilibrium
   character(len=str_len)    :: geometry
@@ -216,10 +218,11 @@ contains
     viscous_heating = .false.
     viscosity_value = 0.0d0
     hall_mhd = .false.
+    hall_substitution = .true.
     hall_dropoff = .false.
     elec_inertia = .false.
     inertia_dropoff = .false.
-    electron_fraction = 0.0d0
+    electron_fraction = 0.5d0
 
     !! grid variables
     ! do not initialise these three so they MUST be set in submodules/parfile
