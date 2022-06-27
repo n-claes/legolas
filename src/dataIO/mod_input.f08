@@ -262,11 +262,11 @@ contains
   !! @note If no parfile is passed, the code uses a default configuration. @endnote
   subroutine get_parfile(filename_par)
     !> the name of the parfile
-    character(len=str_len), intent(out) :: filename_par
+    character(len=*), intent(out) :: filename_par
 
-    integer                             :: num_args, i
-    character(len=str_len), allocatable :: args(:)
-    logical                             :: file_exists
+    integer :: num_args, i
+    character(len=5*str_len), allocatable :: args(:)
+    logical :: file_exists
 
     num_args = command_argument_count()
     allocate(args(num_args))

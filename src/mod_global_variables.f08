@@ -164,7 +164,7 @@ module mod_global_variables
   !> base name for the logfile, defaults to ""
   character(len=str_len)    :: basename_logfile
   !> path to the output folder, defaults to "."
-  character(len=str_len)    :: output_folder
+  character(len=3*str_len)    :: output_folder
   !> sets the logging level, defaults to 2 (errors, warnings and info)
   integer                   :: logging_level
   !> boolean for doing a dry run, defaults to <tt>False</tt>

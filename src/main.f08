@@ -67,7 +67,7 @@ contains
     use mod_logging, only: print_logo
     use mod_global_variables, only: hall_mhd, hall_substitution, elec_inertia, x_end, x_start
 
-    character(len=str_len)  :: parfile
+    character(len=5*str_len)  :: parfile
     integer   :: nb_evs
 
     real(dp) :: ratio
