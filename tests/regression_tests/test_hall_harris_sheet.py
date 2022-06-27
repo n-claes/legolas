@@ -1,23 +1,28 @@
-hall_harris_sheet = {
-    "name": "hall_harris_sheet",
-    "config": {
-        "geometry": "Cartesian",
-        "x_start": -15,
-        "x_end": 15,
-        "gridpoints": 51,
-        "parameters": {
-            "k2": 0.155,
-            "k3": 0.01,
-            "alpha": 1,
-            "cte_rho0": 1.0,
-            "cte_B02": 1.0,
-            "cte_B03": 5.0,
-            "eq_bool": False,
-        },
-        "equilibrium_type": "harris_sheet",
+from .regression import RegressionTest
+import pytest
+
+
+class TestHarrisSheetQR(RegressionTest):
+    name = "hall harris sheet k2=0.155 k3=0.01"
+    filename = "hall_harris_sheet_QR_k2_0.155_k3_0.01"
+    equilibrium = "harris_sheet"
+    geometry = "Cartesian"
+    x_start = -15
+    x_end = 15
+
+    parameters = {
+        "k2": 0.155,
+        "k3": 0.01,
+        "alpha": 1,
+        "cte_rho0": 1.0,
+        "cte_B02": 1.0,
+        "cte_B03": 5.0,
+        "eq_bool": False,
+    }
+    physics_settings = {
         "resistivity": True,
         "use_fixed_resistivity": True,
-        "fixed_eta_value": 10 ** (-4.0),
+        "fixed_eta_value": 1e-4,
         "hall_mhd": True,
         "hall_substitution": True,
         "electron_fraction": 0.5,
@@ -26,15 +31,15 @@ hall_harris_sheet = {
         "unit_magneticfield": 10,
         "unit_length": 7.534209349981049e-9,
         "incompressible": True,
-        "logging_level": 0,
-        "show_results": False,
-        "write_eigenfunctions": False,
-        "write_matrices": False,
-    },
-    "image_limits": [
-        {"xlims": (-375, 375), "ylims": (-11, 0.5)},
-        {"xlims": (-30, 30), "ylims": (-3, 0.3)},
-        {"xlims": (-0.6, 0.6), "ylims": (-1.2, 0.1)},
-        {"xlims": (-0.5, 0.5), "ylims": (-0.2, 0.02)},
-    ],
-}
+    }
+
+    spectrum_limits = [
+        {"xlim": (-3.5e4, 3.5e4), "ylim": (-0.03, 0.013)},
+        {"xlim": (-750, 750), "ylim": (-0.03, 0.013)},
+        {"xlim": (-10, 10), "ylim": (-0.1, 0.05)},
+        {"xlim": (-2.5, 2.5), "ylim": (-0.03, 0.03)},
+    ]
+
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
