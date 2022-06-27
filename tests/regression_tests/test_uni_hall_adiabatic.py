@@ -27,7 +27,12 @@ class TestUniHallAdiabaticQR(RegressionTest):
         "unit_magneticfield": 10,
         "unit_length": 7.534209349981049e-9,
     }
-    eigenfunction_settings = {"write_eigenfunctions": True}
+    eigenfunction_settings = {
+        "write_eigenfunctions": True,
+        "write_eigenfunction_subset": True,
+        "eigenfunction_subset_center": 5.13794 + 0j,
+        "eigenfunction_subset_radius": 4.351,
+    }
 
     eigenvalues_are_real = True
     spectrum_limits = [

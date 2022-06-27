@@ -27,8 +27,8 @@ class TestTaylorCouetteQR(RegressionTest):
     eigenfunction_settings = {
         "write_eigenfunctions": True,
         "write_eigenfunction_subset": True,
-        "eigenfunction_subset_center": 0.4 - 0.1j,
-        "eigenfunction_subset_radius": 0.6,
+        "eigenfunction_subset_center": 0.5 - 0.3j,
+        "eigenfunction_subset_radius": 0.5,
     }
 
     spectrum_limits = [
@@ -38,9 +38,6 @@ class TestTaylorCouetteQR(RegressionTest):
         {"xlim": (-1.5, 1.5), "ylim": (-1.25, 0.2)},
     ]
     eigenfunctions = [
-        {"eigenvalue": 0.00000 + 0.03457j},
-        {"eigenvalue": 0.00000 + 0.02917j},
-        {"eigenvalue": 0.00000 + 0.19793j},
         {"eigenvalue": 0.87784 - 0.04820j},
         {"eigenvalue": 0.49861 - 0.08124j},
         {"eigenvalue": 0.34390 - 0.13832j},

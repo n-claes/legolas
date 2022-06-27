@@ -12,7 +12,12 @@ class TestMRI_AccretionQR(RegressionTest):
 
     parameters = {"k2": 0.0, "k3": 70.0, "beta": 100.0, "tau": 1.0, "nu": 0.1}
     physics_settings = {"flow": True, "external_gravity": True}
-    eigenfunction_settings = {"write_eigenfunctions": True}
+    eigenfunction_settings = {
+        "write_eigenfunctions": True,
+        "write_eigenfunction_subset": True,
+        "eigenfunction_subset_center": -0.001 + 0.59j,
+        "eigenfunction_subset_radius": 0.06,
+    }
 
     spectrum_limits = [
         {"xlim": (-45, 45), "ylim": (-0.7, 0.7)},

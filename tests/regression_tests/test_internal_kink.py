@@ -17,7 +17,12 @@ class TestInternalKinkModesQR(RegressionTest):
         "alpha": 5.0,
     }
     physics_settings = {"flow": True}
-    eigenfunction_settings = {"write_eigenfunctions": True}
+    eigenfunction_settings = {
+        "write_eigenfunctions": True,
+        "write_eigenfunction_subset": True,
+        "eigenfunction_subset_center": 0.47 + 0.06j,
+        "eigenfunction_subset_radius": 0.01,
+    }
 
     spectrum_limits = [
         {"xlim": (-7000, 7000), "ylim": (-0.08, 0.08)},
@@ -27,7 +32,6 @@ class TestInternalKinkModesQR(RegressionTest):
     ]
     eigenfunctions = [
         {"eigenvalue": 0.470629 + 0.0607j},
-        {"eigenvalue": 0.470629 - 0.0607j},
     ]
 
     @pytest.mark.parametrize("limits", spectrum_limits)
