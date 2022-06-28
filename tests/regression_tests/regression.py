@@ -1,5 +1,6 @@
 import pytest
 import pylbo
+import pylbo.testing
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,6 +13,16 @@ only_for_baseline_generation = pytest.mark.skipif(
     condition="not config.getoption('generate_baseline')",
     reason="'--generate' option not passed",
 )
+
+
+def use_existing_baseline(capturemanager, baseline):
+    use_existing = False
+    if baseline.is_file():
+        testlog.info(f"baseline file '{baseline.name}' is already present!")
+        capturemanager.suspend_global_capture(in_=True)
+        use_existing = input("Regenerate this file? ").lower() not in ("yes", "y")
+        capturemanager.resume_global_capture()
+    return use_existing
 
 
 class TestCase:
@@ -43,6 +54,10 @@ class TestCase:
         raise NotImplementedError()
 
     @property
+    def number_of_runs(self):
+        return 1
+
+    @property
     def eigenfunction_settings(self):
         return {"write_eigenfunctions": False}
 
@@ -54,34 +69,6 @@ class TestCase:
     def eigenvalues_are_real(self):
         return False
 
-    def get_spectrum_image_filenames(self, limits):
-        xlim = limits["xlim"]
-        ylim = limits["ylim"]
-        figname_test = f"{self.filename}_Re{xlim[0]}-{xlim[1]}_Im{ylim[0]}-{ylim[1]}"
-        figname_base = f"{figname_test}-baseline"
-        return (
-            self._spectradir / f"{figname_test}.png",
-            self._spectradir / f"{figname_base}.png",
-        )
-
-    def get_eigenfunction_image_filenames(self, eigenvalue):
-        figname_test = f"{self.filename}_efs_w_{eigenvalue:.8f}"
-        figname_base = f"{figname_test}-baseline"
-        return (
-            self._eigfuncdir / f"{figname_test}.png",
-            self._eigfuncdir / f"{figname_base}.png",
-        )
-
-    @pytest.fixture(scope="class")
-    def file_base(self, baselinedir):
-        return baselinedir / f"BASE_{self.filename}.dat"
-
-    @pytest.fixture(scope="class")
-    def file_test(self, datfiledir):
-        return datfiledir / f"{self.filename}.dat"
-
-
-class RegressionTest(TestCase):
     def setup(self, outputdir):
         _setup = {
             "geometry": self.geometry,
@@ -97,19 +84,62 @@ class RegressionTest(TestCase):
         }
         _setup.update(self.eigenfunction_settings)
         _setup.update(self.physics_settings)
+        _setup.update({"number_of_runs": self.number_of_runs})
         return _setup
 
-    @only_for_baseline_generation
-    def test_generate_baseline(self, pytestconfig, file_base):
-        if file_base.is_file():
-            testlog.info(f"baseline file '{file_base.name}' is already present!")
-            capturemanager = pytestconfig.pluginmanager.getplugin("capturemanager")
-            capturemanager.suspend_global_capture(in_=True)
-            override = input("Regenerate (replace) this file? ").lower() in ("yes", "y")
-            capturemanager.resume_global_capture()
-            if not override:
-                pytest.skip("using existing file")
+    def get_spectrum_image_filenames(self, limits):
+        figname_test = f"{self.filename}"
+        if limits is not None:
+            xlim = limits["xlim"]
+            ylim = limits["ylim"]
+            figname_test = f"{figname_test}_Re{xlim[0]}-{xlim[1]}_Im{ylim[0]}-{ylim[1]}"
+        figname_base = f"{figname_test}-baseline"
+        return (
+            self._spectradir / f"{figname_test}.png",
+            self._spectradir / f"{figname_base}.png",
+        )
 
+    def get_eigenfunction_image_filenames(self, eigenvalue):
+        figname_test = f"{self.filename}_efs_w_{eigenvalue:.8f}"
+        figname_base = f"{figname_test}-baseline"
+        return (
+            self._eigfuncdir / f"{figname_test}.png",
+            self._eigfuncdir / f"{figname_base}.png",
+        )
+
+    def compare_test_images(self, image_test, image_baseline, tol):
+        result = compare_images(str(image_baseline), str(image_test), tol=tol)
+        if result is not None:
+            pytest.fail(result, pytrace=False)
+        # test succeeded if result = None, check if files are kept
+        if result is None and not self._keep_files:
+            Path(image_baseline).unlink()
+            Path(image_test).unlink()
+
+    def eigenvalues_are_of_correct_type(self, data):
+        if self.eigenvalues_are_real:
+            return np.all(data.eigenvalues.imag == pytest.approx(0))
+        else:
+            return np.any(data.eigenvalues.imag != pytest.approx(0))
+
+    @pytest.fixture(scope="class")
+    def file_base(self, baselinedir):
+        return baselinedir / f"BASE_{self.filename}.dat"
+
+    @pytest.fixture(scope="class")
+    def file_test(self, datfiledir):
+        return datfiledir / f"{self.filename}.dat"
+
+    @pytest.fixture(scope="session")
+    def capturemanager(self, pytestconfig):
+        return pytestconfig.pluginmanager.getplugin("capturemanager")
+
+
+class RegressionTest(TestCase):
+    @only_for_baseline_generation
+    def test_generate_baseline(self, capturemanager, file_base):
+        if use_existing_baseline(capturemanager, file_base):
+            pytest.skip("using existing file")
         setup = self.setup(outputdir=file_base.parent)
         setup.update({"basename_datfile": file_base.stem})
         self.generate_test_dataset(setup)
@@ -168,15 +198,6 @@ class RegressionTest(TestCase):
             plt.close(fig)
         return (figname_test, figname_base)
 
-    def compare_test_images(self, image_test, image_baseline, tol):
-        result = compare_images(str(image_baseline), str(image_test), tol=tol)
-        if result is not None:
-            pytest.fail(result, pytrace=False)
-        # test succeeded if result = None, check if files are kept
-        if result is None and not self._keep_files:
-            Path(image_baseline).unlink()
-            Path(image_test).unlink()
-
     def test_generate_ds(self, ds_test):
         assert ds_test is not None
 
@@ -187,10 +208,7 @@ class RegressionTest(TestCase):
         assert ds_base is not None
 
     def test_eigenvalue_types(self, ds_test):
-        if self.eigenvalues_are_real:
-            assert np.all(ds_test.eigenvalues.imag == pytest.approx(0))
-        else:
-            assert np.any(ds_test.eigenvalues.imag != pytest.approx(0))
+        assert super().eigenvalues_are_of_correct_type(data=ds_test)
 
     def test_geometry(self, ds_test, ds_base):
         assert self.geometry == ds_test.geometry == ds_base.geometry
@@ -202,7 +220,7 @@ class RegressionTest(TestCase):
         image_test, image_baseline = self.generate_spectrum_images(
             limits, ds_test, ds_base
         )
-        self.compare_test_images(
+        super().compare_test_images(
             image_test,
             image_baseline,
             tol=limits.get("RMS_TOLERANCE", self.RMS_TOLERANCE),
@@ -213,8 +231,106 @@ class RegressionTest(TestCase):
         image_test, image_baseline = self.generate_eigenfunction_images(
             eigenvalue, ds_test, ds_base
         )
-        self.compare_test_images(
+        super().compare_test_images(
             image_test,
             image_baseline,
             tol=eigenfunction.get("RMS_TOLERANCE", self.RMS_TOLERANCE),
+        )
+
+
+class MultiRegressionTest(TestCase):
+    @property
+    def multispectrum_settings(self):
+        raise NotImplementedError()
+
+    @only_for_baseline_generation
+    def test_generate_baseline(self, capturemanager, file_base):
+        if use_existing_baseline(capturemanager, file_base.with_suffix(".pickle")):
+            pytest.skip("using existing file")
+        setup = self.setup(outputdir=file_base.parent)
+        setup.update({"basename_datfile": file_base.stem})
+        self.generate_test_dataseries(setup, capturemanager)
+        # get generated files
+        base_files = sorted(file_base.parent.glob(f"*{file_base.name}"))
+        series = pylbo.load_series(base_files)
+        # create pickled datadump
+        pylbo.testing.pickle_dataseries_to_file(
+            series, file_base.with_suffix(".pickle")
+        )
+        # remove tmp files
+        [file.unlink() for file in base_files]
+
+    @pytest.fixture(scope="class")
+    def series_base(self, file_base):
+        return pylbo.testing.load_pickled_dataseries(file_base.with_suffix(".pickle"))
+
+    @pytest.fixture(scope="class")
+    def series_test(self, capturemanager, datfiledir):
+        setup = self.setup(datfiledir)
+        setup.update({"number_of_runs": self.number_of_runs})
+        self.generate_test_dataseries(setup, capturemanager)
+        return pylbo.load_series(sorted(datfiledir.glob(f"*{self.filename}.dat")))
+
+    def generate_test_dataseries(self, setup, capturemanager):
+        testlog.info(f"generating dataseries: {setup['basename_datfile']}")
+        parfiles = pylbo.generate_parfiles(
+            parfile_dict=setup,
+            basename=setup["basename_datfile"],
+            output_dir=self._datfiledir,
+            subdir=False,
+        )
+        capturemanager.suspend_global_capture()
+        pylbo.run_legolas(parfiles, nb_cpus=2)
+        capturemanager.resume_global_capture()
+
+    def generate_multispectrum_images(self, series_test, series_base):
+        settings = self.multispectrum_settings
+        p_test = pylbo.plot_spectrum_multi(
+            series_test,
+            xdata=settings["xdata"],
+            use_squared_omega=settings.get("use_squared_omega", True),
+        )
+        p_base = pylbo.plot_spectrum_multi(
+            series_base,
+            xdata=settings["xdata"],
+            use_squared_omega=settings.get("use_squared_omega", True),
+        )
+        figname_test, figname_base = self.get_spectrum_image_filenames(limits=None)
+        xlim = settings["xlim"]
+        ylim = settings["ylim"]
+        for pp, name in [(p_test, figname_test), (p_base, figname_base)]:
+            pp.set_x_scaling(settings.get("x_scaling", 1))
+            pp.set_y_scaling(settings.get("y_scaling", 1))
+            pp.ax.set_xlim(xlim)
+            pp.ax.set_ylim(ylim)
+            pp.ax.set_title(self.name)
+            pp.fig.savefig(name, **self.SAVEFIG_KWARGS)
+            plt.close(pp.fig)
+        return (figname_test, figname_base)
+
+    def test_generate_series(self, series_test):
+        assert series_test is not None
+
+    def test_file_base_exists(self, file_base):
+        assert file_base.with_suffix(".pickle").is_file()
+
+    def test_eigenvalue_types(self, series_test):
+        for ds_test in series_test:
+            assert super().eigenvalues_are_of_correct_type(data=ds_test)
+
+    def test_geometry(self, series_test, series_base):
+        assert np.all(self.geometry == series_test.geometry == series_base.geometry)
+
+    def test_resolution(self, series_test, series_base):
+        for ds_test, ds_base in zip(series_test, series_base):
+            assert ds_test.gridpoints == ds_base.gridpoints
+
+    def test_multispectrum(self, series_test, series_base):
+        image_test, image_baseline = self.generate_multispectrum_images(
+            series_test, series_base
+        )
+        super().compare_test_images(
+            image_test,
+            image_baseline,
+            tol=self.multispectrum_settings.get("RMS_TOLERANCE", self.RMS_TOLERANCE),
         )
