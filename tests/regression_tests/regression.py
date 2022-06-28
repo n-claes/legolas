@@ -116,12 +116,6 @@ class TestCase:
             Path(image_baseline).unlink()
             Path(image_test).unlink()
 
-    def eigenvalues_are_of_correct_type(self, data):
-        if self.eigenvalues_are_real:
-            return np.all(data.eigenvalues.imag == pytest.approx(0))
-        else:
-            return np.any(data.eigenvalues.imag != pytest.approx(0))
-
     @pytest.fixture(scope="class")
     def file_base(self, baselinedir):
         return baselinedir / f"BASE_{self.filename}.dat"
@@ -206,9 +200,6 @@ class RegressionTest(TestCase):
 
     def test_ds_base_exists(self, ds_base):
         assert ds_base is not None
-
-    def test_eigenvalue_types(self, ds_test):
-        assert super().eigenvalues_are_of_correct_type(data=ds_test)
 
     def test_geometry(self, ds_test, ds_base):
         assert self.geometry == ds_test.geometry == ds_base.geometry
@@ -301,6 +292,8 @@ class MultiRegressionTest(TestCase):
         for pp, name in [(p_test, figname_test), (p_base, figname_base)]:
             pp.set_x_scaling(settings.get("x_scaling", 1))
             pp.set_y_scaling(settings.get("y_scaling", 1))
+            if settings.get("symlog", None) is not None:
+                pp.ax.set_yscale("symlog", linthresh=settings["symlog"])
             pp.ax.set_xlim(xlim)
             pp.ax.set_ylim(ylim)
             pp.ax.set_title(self.name)
@@ -313,10 +306,6 @@ class MultiRegressionTest(TestCase):
 
     def test_file_base_exists(self, file_base):
         assert file_base.with_suffix(".pickle").is_file()
-
-    def test_eigenvalue_types(self, series_test):
-        for ds_test in series_test:
-            assert super().eigenvalues_are_of_correct_type(data=ds_test)
 
     def test_geometry(self, series_test, series_base):
         assert np.all(self.geometry == series_test.geometry == series_base.geometry)
