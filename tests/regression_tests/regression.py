@@ -212,6 +212,12 @@ class RegressionTest(TestCase):
     def test_resolution(self, ds_test, ds_base):
         assert ds_test.gridpoints == ds_base.gridpoints
 
+    def test_all_eigenvalues_are_real(self, ds_test, ds_base):
+        if not self.eigenvalues_are_real:
+            pytest.skip("imaginary eigenvalues allowed")
+        assert np.all(ds_test.eigenvalues.imag == pytest.approx(0))
+        assert np.all(ds_base.eigenvalues.imag == pytest.approx(0))
+
     def run_spectrum_test(self, limits, ds_test, ds_base):
         image_test, image_baseline = self.generate_spectrum_images(
             limits, ds_test, ds_base
