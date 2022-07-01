@@ -66,6 +66,10 @@ class TestCase:
         return {}
 
     @property
+    def solver_settings(self):
+        return {}
+
+    @property
     def eigenvalues_are_real(self):
         return False
 
@@ -84,6 +88,7 @@ class TestCase:
         }
         _setup.update(self.eigenfunction_settings)
         _setup.update(self.physics_settings)
+        _setup.update(self.solver_settings)
         _setup.update({"number_of_runs": self.number_of_runs})
         return _setup
 
