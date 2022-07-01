@@ -2,10 +2,15 @@ from .regression import RegressionTest
 import numpy as np
 import pytest
 
+eigenfunctions = [
+    {"eigenvalue": 6.745518},
+    {"eigenvalue": 11.18509},
+    {"eigenvalue": 16.02714},
+    {"eigenvalue": 21.00395},
+]
 
-class TestUniAdiabaticQR(RegressionTest):
-    name = "uniform adiabatic k2=0 k3=pi"
-    filename = "uni_adiab_QR_k2_0_k3_pi"
+
+class UniAdiabatic(RegressionTest):
     equilibrium = "adiabatic_homo"
     geometry = "Cartesian"
 
@@ -23,18 +28,41 @@ class TestUniAdiabaticQR(RegressionTest):
         "eigenfunction_subset_center": 20 + 1j,
         "eigenfunction_subset_radius": 15,
     }
-
     eigenvalues_are_real = True
+
+
+class TestUniAdiabaticQR(UniAdiabatic):
+    name = "uniform adiabatic k2=0 k3=pi QR"
+    filename = "uni_adiab_QR_k2_0_k3_pi"
+
     spectrum_limits = [
         {"xlim": (-600, 600), "ylim": (-0.05, 0.05)},
         {"xlim": (-50, 50), "ylim": (-0.05, 0.05)},
         {"xlim": (-0.5, 5), "ylim": (-0.05, 0.05)},
     ]
 
-    eigenfunctions = [
-        {"eigenvalue": 11.18509},
-        {"eigenvalue": 16.02714},
-        {"eigenvalue": 21.00395},
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
+
+    @pytest.mark.parametrize("eigenfunction", eigenfunctions)
+    def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
+        super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)
+
+
+class TestUniAdiabaticSI(UniAdiabatic):
+    name = "uniform adiabatic k2=0 k3=pi shift-invert"
+    filename = "uni_adiab_SI_k2_0_k3_pi"
+    solver_settings = {
+        "solver": "arnoldi",
+        "arpack_mode": "shift-invert",
+        "number_of_eigenvalues": 6,
+        "which_eigenvalues": "LM",
+        "sigma": 15 + 0j,
+    }
+
+    spectrum_limits = [
+        {"xlim": (-0.1, 30), "ylim": (-1e-5, 1e-5)},
     ]
 
     @pytest.mark.parametrize("limits", spectrum_limits)
