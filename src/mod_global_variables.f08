@@ -20,8 +20,8 @@ module mod_global_variables
   !> default length for strings in arrays
   integer, parameter :: str_len_arr = 16
 
-  !> values smaller than this are forced to zero
-  real(dp), parameter :: dp_LIMIT = 1.0d-12
+  !> values smaller than this are forced to zero, bit higher than machine precision
+  real(dp), parameter :: dp_LIMIT = 5.0d-15
   !> NaN value (ieee_quiet_nan)
   real(dp), protected :: NaN
 

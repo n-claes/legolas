@@ -5,6 +5,8 @@ module mod_test_valuechecks
   use mod_check_values
   implicit none
 
+  real(dp), parameter :: TOL_LOW = 5.0d-15
+
 contains
 
 
@@ -16,11 +18,15 @@ contains
     ! check zero unaffected
     value = 0.0d0
     call set_small_values_to_zero(value)
-    @assertEqual(0.0d0, value, tolerance=TOL)
+    @assertEqual(0.0d0, value, TOL_LOW)
     ! check small value
     value = 1.0d-14
     call set_small_values_to_zero(value)
-    @assertEqual(0.0d0, value, tolerance=TOL)
+    @assertEqual(1.0d-14, value, tolerance=TOL_LOW)
+    ! check small with tolerance
+    value = 1.0d-14
+    call set_small_values_to_zero(value, tol=TOL)
+    @assertEqual(0.0d0, value, tolerance=TOL_LOW)
     ! check unaffected
     value = 0.02d0
     call set_small_values_to_zero(value)
@@ -53,15 +59,15 @@ contains
     complex(dp) :: value
 
     call set_name("small values to zero (complex - small)")
-    value = (1.0d-14, 0.2d0)  ! real is small
+    value = (1.0d-16, 0.2d0)  ! real is small
     call set_small_values_to_zero(value)
-    @assertEqual((0.0d0, 0.2d0), value, tolerance=TOL)
-    value = (0.01d0, 2.0d-15) ! complex is small
+    @assertEqual((0.0d0, 0.2d0), value, tolerance=TOL_LOW)
+    value = (0.01d0, 2.0d-16) ! complex is small
     call set_small_values_to_zero(value)
-    @assertEqual((0.01d0, 0.0d0), value, tolerance=TOL)
-    value = (1.5d-15, 2.0d-14)  ! both are small
+    @assertEqual((0.01d0, 0.0d0), value, tolerance=TOL_LOW)
+    value = (1.5d-17, 2.0d-16)  ! both are small
     call set_small_values_to_zero(value)
-    @assertEqual((0.0d0, 0.0d0), value, tolerance=TOL)
+    @assertEqual((0.0d0, 0.0d0), value, tolerance=TOL_LOW)
   end subroutine test_small_values_complex_small
 
   @test
