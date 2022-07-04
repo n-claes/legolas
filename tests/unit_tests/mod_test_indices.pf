@@ -1,0 +1,145 @@
+module mod_test_indices
+  use mod_suite_utils
+  use funit
+  use mod_get_indices
+  implicit none
+
+  integer, allocatable :: idxs(:)
+
+  character(len=10) :: test_names(5) = ["name1", "name2", "name3", "name4", "name5"]
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+  end subroutine init_test
+
+
+  @after
+  subroutine tear_down()
+    if (allocated(idxs)) deallocate(idxs)
+  end subroutine tear_down
+
+
+  @test
+  subroutine test_find_name_index()
+    call set_name("get name index from array")
+    @assertEqual(2, get_index("name2", test_names))
+  end subroutine test_find_name_index
+
+
+  @test
+  subroutine test_find_name_index_fail()
+    call set_name("get name index from array (fail)")
+    @assertEqual(0, get_index("unknown", test_names))
+  end subroutine test_find_name_index_fail
+
+
+  @test
+  subroutine test_find_name_indices()
+    call set_name("get name indices from array")
+    @assertEqual([3, 4], get_index(["name3", "name4"], test_names))
+  end subroutine test_find_name_indices
+
+
+  @test
+  subroutine test_find_name_indices_partial()
+    call set_name("get name indices from array (partial)")
+    @assertEqual([5, 0, 2], get_index(["name5", "test1", "name2"], test_names))
+  end subroutine test_find_name_indices_partial
+
+
+  @test
+  subroutine test_find_name_indices_fail()
+    call set_name("get name indices from array (fail)")
+    @assertEqual([0, 0, 0], get_index(["test1", "test2", "test3"], test_names))
+  end subroutine test_find_name_indices_fail
+
+
+  @test
+  subroutine test_subblock_indices_fail()
+    character(len=1024), allocatable :: error_msg
+
+    call set_name("get subblock indices (fail)")
+    error_msg = ( &
+      "could not retrieve subblock indices for any variable in [test1, test2] " &
+      // "for state vector [rho, v1, v2, v3, T, a1, a2, a3]" &
+    )
+    idxs = get_subblock_index(variables=["test1", "test2"], odd=.true., edge="left")
+    @assertExceptionRaised(trim(error_msg))
+  end subroutine test_subblock_indices_fail
+
+
+  @test
+  subroutine test_subblock_indices_odd_left_mhd()
+    call set_name("get subblock indices (odd, left, MHD)")
+    idxs = get_subblock_index(variables=["v1", "v2", "a1"], odd=.true., edge="left")
+    @assertEqual([3, 5, 11], idxs)
+  end subroutine test_subblock_indices_odd_left_mhd
+
+
+  @test
+  subroutine test_subblock_indices_even_left_mhd()
+    call set_name("get subblock indices (even, left, MHD)")
+    idxs = get_subblock_index(variables=["v1", "v2", "a1"], odd=.false., edge="left")
+    @assertEqual([4, 6, 12], idxs)
+  end subroutine test_subblock_indices_even_left_mhd
+
+
+  @test
+  subroutine test_subblock_indices_odd_right_mhd()
+    call set_name("get subblock indices (odd, right, MHD)")
+    idxs = get_subblock_index(variables=["v1", "v2", "a1"], odd=.true., edge="right")
+    @assertEqual([19, 21, 27], idxs)
+  end subroutine test_subblock_indices_odd_right_mhd
+
+
+  @test
+  subroutine test_subblock_indices_even_right_mhd()
+    call set_name("get subblock indices (even, right, MHD)")
+    idxs = get_subblock_index(variables=["v1", "v2", "a1"], odd=.false., edge="right")
+    @assertEqual([20, 22, 28], idxs)
+  end subroutine test_subblock_indices_even_right_mhd
+
+
+  @test
+  subroutine test_subblock_indices_odd_left_mhd_zero()
+    call set_name("get subblock indices (odd, left, MHD, with zero)")
+    idxs = get_subblock_index( &
+      variables=["v1", "00", "v2", "va", "T4"], odd=.true., edge="left" &
+    )
+    @assertEqual([3, 5], idxs)
+  end subroutine test_subblock_indices_odd_left_mhd_zero
+
+
+  @test
+  subroutine test_subblock_indices_even_left_mhd_zero()
+    call set_name("get subblock indices (even, left, MHD, with zero)")
+    idxs = get_subblock_index( &
+      variables=["v1", "00", "v7", "v2", "T4"], odd=.false., edge="left" &
+    )
+    @assertEqual([4, 6], idxs)
+  end subroutine test_subblock_indices_even_left_mhd_zero
+
+
+  @test
+  subroutine test_subblock_indices_odd_right_mhd_zero()
+    call set_name("get subblock indices (odd, right, MHD, with zero)")
+    idxs = get_subblock_index( &
+      variables=["v1", "00", "v2", "va", "T4"], odd=.true., edge="right" &
+    )
+    @assertEqual([19, 21], idxs)
+  end subroutine test_subblock_indices_odd_right_mhd_zero
+
+
+  @test
+  subroutine test_subblock_indices_even_right_mhd_zero()
+    call set_name("get subblock indices (even, right, MHD, with zero)")
+    idxs = get_subblock_index( &
+      variables=["v1", "00", "v7", "v2", "T4"], odd=.false., edge="right" &
+    )
+    @assertEqual([20, 22], idxs)
+  end subroutine test_subblock_indices_even_right_mhd_zero
+
+end module mod_test_indices

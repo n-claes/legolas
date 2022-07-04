@@ -1,4 +1,5 @@
 module mod_test_valuechecks
+  use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
   use mod_suite_utils
   use funit
   use mod_check_values
@@ -82,11 +83,11 @@ contains
 
   @test
   subroutine test_is_nan_real()
-    use mod_global_variables, only: NaN
-
+    real(dp)  :: NaN
     real(dp)  :: array(20)
 
     call set_name("check for NaN (real)")
+    NaN = ieee_value(NaN, ieee_quiet_nan)
     ! single value
     @assertTrue(is_NaN(NaN))
     @assertFalse(is_NaN(1.0d0))
@@ -99,11 +100,11 @@ contains
 
   @test
   subroutine test_is_nan_complex()
-    use mod_global_variables, only: NaN
-
+    real(dp)  :: NaN
     complex(dp)  :: array(20)
 
     call set_name("check for NaN (complex)")
+    NaN = ieee_value(NaN, ieee_quiet_nan)
     ! single value
     @assertFalse(is_NaN((1.0d0, 2.0d0)))
     @assertTrue(is_NaN(cmplx(1.0d0, NaN, kind=dp)))
@@ -201,4 +202,5 @@ contains
     array(15) = 2.5d-5
     @assertTrue(is_constant(array, tol=5.0d-3))
   end subroutine test_is_constant
+
 end module mod_test_valuechecks

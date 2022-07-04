@@ -57,8 +57,9 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, matrix_gridpts, &
-      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma, NaN
+    use mod_global_variables, only: initialise_globals, dim_matrix, &
+      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma, NaN, &
+      state_vector
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
     use mod_logging, only: print_logo
@@ -76,17 +77,17 @@ contains
     call set_gamma(gamma)
 
     call print_logo()
-
-    allocate(matrix_A(matrix_gridpts, matrix_gridpts))
-    allocate(matrix_B(matrix_gridpts, matrix_gridpts))
+    call log_message("the state vector is set to " // str(state_vector), level="info")
 
     if (solver == "arnoldi") then
       nb_evs = number_of_eigenvalues
     else
-      nb_evs = matrix_gridpts
+      nb_evs = dim_matrix
     end if
     call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
     allocate(omega(nb_evs))
+    allocate(matrix_A(dim_matrix, dim_matrix))
+    allocate(matrix_B(dim_matrix, dim_matrix))
 
     call initialise_equilibrium()
     call set_equilibrium()
@@ -117,7 +118,7 @@ contains
     if (write_eigenfunctions .or. solver == "arnoldi") then
       call log_message("allocating eigenvector arrays", level="debug")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
-      allocate(eigenvecs_right(matrix_gridpts, nb_evs))
+      allocate(eigenvecs_right(dim_matrix, nb_evs))
     else
       ! @note: this is needed to prevent segfaults, since it seems that in some
       ! cases for macOS the routine zgeev references the right eigenvectors even

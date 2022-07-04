@@ -6,6 +6,7 @@ set (sources
         dataIO/mod_exceptions.f08
         dataIO/mod_logging.f08
         mod_physical_constants.f08
+        utils/mod_get_indices.f08
         mod_units.f08
         mod_grid.f08
         mod_types.f08
