@@ -118,7 +118,7 @@ jobs:
           ./test_legolas
         elif [[ "${{ matrix.name }}" == "regression" ]]; then
           cd $LEGOLASDIR/tests/regression_tests
-          pytest -v regression.py test*
+          pytest
         fi
         if [[ "${{ matrix.coverage }}" ]]; then
           # generate coverage report
@@ -137,7 +137,7 @@ jobs:
       if: failure()
       with:
         name: failed_logs
-        path: tests/regression_tests/image_comparisons
+        path: tests/regression_tests/test_results
 
     - name: Upload coverage report
       uses: codecov/codecov-action@v1
