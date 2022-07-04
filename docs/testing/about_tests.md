@@ -90,7 +90,7 @@ These are done for _all_ pre-implemented equilibria, and every spectrum test typ
 4. Save the difference between the two images as a new image on failure, otherwise delete
   the images.
 
-An example of a failing test is shown here, where the where the background flow parameter for the Suydam cluster modes
+An example of a failing test is shown here, where the background flow parameter for the Suydam cluster modes
 was slightly changed:
 ![image-center]({% link /assets/images/example_test_fail.png %}){: .align-center}
 The left image is the expected baseline result, the center image the test result and the right image the difference
@@ -108,12 +108,18 @@ The same principle as above is then applied, where the RMS value of the curves i
 
 ### Running the tests
 To run the regression tests make sure you have pytest installed, along with Pylbo and all its prerequisites. Then, navigate to the `tests` folder and move down
-one level to the regression test directory. There you execute pytest as follows
+one level to the regression test directory, where you execute `pytest`.
 ```bash
-pytest -v regression.py test*
+cd tests/regression_tests
+pytest
 ```
-It is important that the `regression.py` file comes first, since this one is responsible for generating the images and properly setting up everything.
-The verbose flag `-v` is not necessary but is recommended to better track the progress.
+This will automatically create a directory tree called `test_results` inside the `regression_tests` folder. Every subdirectory corresponds to a single
+regression test, with in turn multiple subdirectories for generated datfiles, spectrum images and eigenfunction images.
+The above command will run the entire test suite. If you want to only run a specific test, provide the filename instead:
+```bash
+pytest test_uni_adiabatic.py
+```
+You can add as many filenames as you want, separated by a whitespace.
 
 <i class="fas fa-lightbulb" aria-hidden="true"></i>
 **Note**: tests that are passing will clean up after themselves by deleting the generated datfile and images.
@@ -122,59 +128,107 @@ You can ask the test suite to keep the images instead (for visual inspections, f
 
 
 ### Adding new tests
-To add a new regression test create a new file in the regression test folder, and make sure to prepend the name with `test_` so it can be picked up
-by pytest. There you create a dictionary similar to when you generate a parfile with Pylbo which is used to configure and set up the test, take a look
-at the already present files for more details.
+To add a new regression test create a new file in the regression test folder, and make sure to prepend the name with `test_` so it can be picked up by pytest. Below is an example for a regression test of the `taylor_couette` equilibrium, with eigenfunctions. For additional inspiration there are plenty of tests set up in the `regression_tests` folder.
 
-For example, create a file called `test_example.py` with the following:
 ```python
-my_test_setup = {
-  "name": "my_test",
-  "config": {
-      "gridpoints": 51,
-      "equilibrium_type": "adiabatic_homo",
-      "parameters": {
-          "k2": 0,
-          "k3": np.pi,
-          "cte_rho0": 1.0,
-          "cte_T0": 1.0,
-          "cte_B02": 0.0,
-          "cte_B03": 1.0,
-      },
-      "logging_level": 0,
-      "show_results": False,
+from .regression import RegressionTest
+import numpy as np
+import pytest
+
+
+class TestExample(RegressionTest):
+  name = "a descriptive name"
+  filename = "a_descriptive_filename"
+  equilibrium = "taylor_couette"
+  geometry = "cylindrical"
+  x_start = 1
+  x_end = 2
+
+  parameters = {
+      "k2": 0,
+      "k3": 1,
+      "cte_rho0": 1.0,
+      "alpha": 1.0,
+      "beta": 2.0,
+  }
+  physics_settings = {
+      "flow": True,
+      "coaxial": True,
+      "viscosity": True,
+      "viscosity_value": 1e-3,
+  }
+  eigenfunction_settings = {
       "write_eigenfunctions": True,
-  },
-  "all_eigenvalues_real": True,
-  "image_limits": [
-      {"xlims": (-600, 600), "ylims": (-0.05, 0.05), "RMS_TOLERANCE": 2.5},
-      {"xlims": (-50, 50), "ylims": (-0.05, 0.05)},
-  ],
-  "eigenfunctions": [
-      {"eigenvalue": 2.67131},
-      {"eigenvalue": 2.54724},
-  ],
-}
+      "write_eigenfunction_subset": True,
+      "eigenfunction_subset_center": 0.5 - 0.3j,
+      "eigenfunction_subset_radius": 0.5,
+  }
+  eigenvalues_are_real = False
+
+  spectrum_limits = [
+      {"xlim": (-18, 18), "ylim": (-3, 0.3)},
+      {"xlim": (-1.5, 1.5), "ylim": (-1.25, 0.2), "RMS_TOLERANCE": 2.9},
+  ]
+  eigenfunctions = [
+      {"eigenvalue": 0.87784 - 0.04820j},
+      {"eigenvalue": 0.49861 - 0.08124j},
+  ]
+
+  @pytest.mark.parametrize("limits", spectrum_limits)
+  def test_spectrum(self, limits, ds_test, ds_base):
+      super().run_spectrum_test(limits, ds_test, ds_base)
+
+  @pytest.mark.parametrize("eigenfunction", eigenfunctions)
+  def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
+      super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)
 ```
-Next you open the file `regression.py`, import `my_test_setup` and add it to the appropriate list of tests to run.
-All the rest will be taken care of automatically.
+A few things of note:
+- Every regression test should subclass `RegressionTest`, and have their name start with `Test` such that it can be discovered automatically by pytest.
+- The `name`, `filename`, `parameters`, `geometry` and `equilibrium` properties are required to be set.
+- The properties `x_start` and `x_end` are optional, and default to 0 and 1 respectively if not set.
+- The `parameters`, `physics_settings` and `eigenfunction_settings` dictionaries follow the exact same conventions as used in [parfile generation](../../pylbo/legolas_interface/#generating-parfiles). An additional property called `solver_settings` (also a dict) can be used to specify the solver to be used, if not given this defaults to the QR algorithm.
+- The `eigenvalues_are_real` property can be set to `True`, which will run an additional test to check that the imaginary part of every eigenvalue is numerically zero. If `False` (default), complex values are allowed.
 
-The tests are configured in such a way that everything is controlled through this dictionary. The `"name"` key is just the name
-of the tests, the `"config"` key represents the usual dictionary to generate a parfile.
-The key `"image_limits"` should be a list, with every item a dictionary itself with the following keys:
-- `"xlims"`: this is a tuple representing the range in Re$(\omega)$ of the spectrum
-- `"ylims"`: this is a tuple representing the range in Im$(\omega)$ of the spectrum
-- `"RMS_TOLERANCE"`: [_optional_], this is a float representing a custom RMS tolerance to be used for this specific test. If not given
-  the default value is used.
 
-The key `"eigenfunctions"` is similar: this is also a list with the `"eigenvalue"` key, representing the (approximate) eigenvalue which eigenfunctions
-you want to test. We again have two tests here, one per eigenvalue. These list items also accept the optional `"RMS_TOLERANCE"` key.
+#### Generating spectrum image tests
+As in the above example there is a list `spectrum_limits` with dictionaries as items. Every dictionary
+has the following keys:
+- `"xlim"`: this is a tuple representing the range in Re$(\omega)$ of the spectrum
+- `"ylim"`: this is a tuple representing the range in Im$(\omega)$ of the spectrum
+- `"RMS_TOLERANCE"`: [_optional_], this is a float representing a custom RMS tolerance to be used for this specific test. If not given the default value is used.
 
-Finally we have the _optional_ `"all_eigenvalues_real"` flag, which is a special test for when you are sure that the spectrum should only yield real eigenvalues.
-If this key is present and its value is `True`, an extra test will run which will fail if any one of the eigenvalues has a non-zero imaginary part.
+You can add as many items to this list as you want. In order to tell the testing suite to run the tests, provide the method `test_spectrum` as shown above:
+```python
+@pytest.mark.parametrize("limits", spectrum_limits)
+def test_spectrum(self, limits, ds_test, ds_base):
+    super().run_spectrum_test(limits, ds_test, ds_base)
+```
+The method arguments should be the same as shown above, and within the method you call the `run_spectrum_test` method from the super class. This will automatically setup everything and run the tests.
+The decorator `@pytest.mark.parametrize("limits", spectrum_limits)` is important, this tells pytest to
+parametrise the `spectrum_limits` list given earlier, such that a test will run for every item in this list.
 
-The above example hence corresponds to five tests: one to check that all eigenvalues are real, two spectrum tests and two eigenfunction tests.
-Multispectrum tests are similar, take a look at the files with `test_multi` prepended to their name.
+#### Generating eigenfunction image tests
+For eigenfunction tests eigenfunctions should be set up using the `eigenfunction_settings` property.
+Then, add the desired eigenvalues to an `eigenfunctions` list, which is similar to `spectrum_limits`. Every item is a dictionary with the following keys:
+- `"eigenvalue"`: the (approximate) eigenvalue of which to test the eigenfunctions. This does not have to be exact, but should be as close as possible to the desired eigenvalue.
+- `"RMS_TOLERANCE"`: [_optional_], this is a float representing a custom RMS tolerance to be used for this specific test. If not given the default value is used.
+
+Again, you can add as many eigenvalues to this list as you want, and similar as before you should tell pytest to parametrise this list whilst calling the superclass method:
+
+```python
+@pytest.mark.parametrize("eigenfunction", eigenfunctions)
+def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
+    super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)
+```
+
+
+#### Generating the baseline file
+Once everything is set up properly and you run your newly created regression test it will probably fail
+due to the baseline file not being present. Once you are sure everything is correct you can (re)generate it by simply calling pytest with an additional argument:
+```bash
+pytest test_my_example.py --generate
+```
+This will automatically create a file `BASE_{filename}.dat` in the appropriate folder. If this file already exists you will be prompted to either overwrite or keep the existing file.
 
 ## The Pylbo unit tests
 To run the Pylbo unit tests you also need pytest, along with the [`timeout`](https://pypi.org/project/pytest-timeout/) plugin which you can install as
