@@ -3,9 +3,7 @@ import pytest
 import numpy as np
 
 
-class TestUniResistiveQR(RegressionTest):
-    name = "uniform resistive k2=0 k3=1"
-    filename = "uni_resistive_QR_k2_0_k3_1"
+class UniResistive(RegressionTest):
     equilibrium = "resistive_homo"
     geometry = "Cartesian"
 
@@ -29,6 +27,11 @@ class TestUniResistiveQR(RegressionTest):
         "eigenfunction_subset_center": 12 + 0j,
         "eigenfunction_subset_radius": 10,
     }
+
+
+class TestUniResistiveQR(UniResistive):
+    name = "uniform resistive k2=0 k3=1 QR"
+    filename = "uni_resistive_QR_k2_0_k3_1"
 
     spectrum_limits = [
         {"xlim": (-375, 375), "ylim": (-110, 5)},
@@ -58,3 +61,34 @@ class TestUniResistiveQR(RegressionTest):
             ds_test.equilibria.get("eta")
             == pytest.approx(self.physics_settings["fixed_eta_value"])
         )
+
+
+class TestUniResistiveSI(UniResistive):
+    name = "uniform resistive k2=0 k3=1 shift-invert"
+    filename = "uni_resistive_SI_k2_0_k3_1"
+    solver_settings = {
+        "solver": "arnoldi",
+        "arpack_mode": "shift-invert",
+        "number_of_eigenvalues": 20,
+        "which_eigenvalues": "LM",
+        "sigma": 10.0 - 0.05j,
+    }
+
+    spectrum_limits = [
+        {"xlim": (-0.003, 18), "ylim": (-0.175, 0.008)},
+    ]
+    eigenfunctions = [
+        {"eigenvalue": 3.59990691 - 0.00454643j},
+        {"eigenvalue": 6.98125212 - 0.01679692j},
+        {"eigenvalue": 10.4098540 - 0.03721645j},
+        {"eigenvalue": 13.8506386 - 0.06580399j},
+        {"eigenvalue": 17.2962673 - 0.10255935j},
+    ]
+
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
+
+    @pytest.mark.parametrize("eigenfunction", eigenfunctions)
+    def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
+        super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)
