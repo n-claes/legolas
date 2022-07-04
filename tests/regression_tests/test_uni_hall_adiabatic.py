@@ -3,9 +3,7 @@ import numpy as np
 import pytest
 
 
-class TestUniHallAdiabaticQR(RegressionTest):
-    name = "uniform adiabatic and hall k2=0.5pi k3=0.87"
-    filename = "uni_adiab_hall_QR_k2_0.5pi_k3_0.87"
+class UniHallAdiabatic(RegressionTest):
     equilibrium = "adiabatic_homo"
     geometry = "Cartesian"
     x_start = 0
@@ -33,8 +31,12 @@ class TestUniHallAdiabaticQR(RegressionTest):
         "eigenfunction_subset_center": 5.13794 + 0j,
         "eigenfunction_subset_radius": 4.351,
     }
-
     eigenvalues_are_real = True
+
+
+class TestUniHallAdiabaticQR(UniHallAdiabatic):
+    name = "uniform adiabatic and hall k2=0.5pi k3=0.87 QR"
+    filename = "uni_adiab_hall_QR_k2_0.5pi_k3_0.87"
     spectrum_limits = [
         {"xlim": (-11, 11), "ylim": (-0.05, 0.05)},
         {"xlim": (0.5, 5.5), "ylim": (-0.05, 0.05)},
@@ -51,6 +53,39 @@ class TestUniHallAdiabaticQR(RegressionTest):
         {"eigenvalue": 9.48808336},
         {"eigenvalue": 9.48810584},
         {"eigenvalue": 9.4881373},
+    ]
+
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
+
+    @pytest.mark.parametrize("eigenfunction", eigenfunctions)
+    def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
+        super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)
+
+
+class TestUniHallAdiabaticSI(UniHallAdiabatic):
+    name = "uniform adiabatic and hall k2=0.5pi k3=0.87 shift-invert"
+    filename = "uni_adiab_hall_SI_k2_0.5pi_k3_0.87"
+    solver_settings = {
+        "solver": "arnoldi",
+        "arpack_mode": "shift-invert",
+        "number_of_eigenvalues": 25,
+        "which_eigenvalues": "LM",
+        "sigma": 9.44805 + 0j,
+    }
+
+    eigenfunctions = [
+        {"eigenvalue": 9.48806988},
+        {"eigenvalue": 9.48808336},
+        {"eigenvalue": 9.48810584},
+        {"eigenvalue": 9.4881373},
+        {"eigenvalue": 9.48817775},
+        {"eigenvalue": 9.4882272},
+    ]
+    spectrum_limits = [
+        {"xlim": (9.4875, 9.4895), "ylim": (-0.05, 0.05)},
+        {"xlim": (9.4, 9.5), "ylim": (-0.05, 0.05)},
     ]
 
     @pytest.mark.parametrize("limits", spectrum_limits)
