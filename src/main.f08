@@ -94,12 +94,7 @@ contains
     call initialise_equilibrium()
     call set_equilibrium()
 
-    ! TODO: remove this warning when fully tested
     if (hall_mhd) then
-      call log_message( &
-        "using Hall MHD, note that some features are not yet **fully** tested!", &
-        level="warning" &
-      )
       ratio = maxval(hall_field % hallfactor) / (x_end - x_start)
       if (ratio > 0.1d0) then
         call log_message("large ratio Hall scale / system scale: " // str(ratio), level="warning")
