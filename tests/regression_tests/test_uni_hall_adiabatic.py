@@ -19,6 +19,7 @@ class UniHallAdiabatic(RegressionTest):
     }
     physics_settings = {
         "hall_mhd": True,
+        "hall_substitution": True,
         "electron_fraction": 0.5,
         "cgs_units": True,
         "unit_density": 1.7e-14,
