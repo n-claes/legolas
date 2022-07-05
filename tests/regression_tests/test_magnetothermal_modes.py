@@ -66,11 +66,7 @@ class TestMagnetoThermalModesSI(MagnetoThermalModes):
     ]
     eigenfunction_settings = {"write_eigenfunctions": True}
     eigenfunctions = [
-        {"eigenvalue": 2.02095e-02 + 0.04415j},
-        {"eigenvalue": 2.02365e-02 + 0.03219j},
-        {"eigenvalue": 1.89167e-02 + 0.02587j},
         {"eigenvalue": 2.12871e-13 + 0.02799j},
-        {"eigenvalue": 1.74600e-02 + 0.02195j},
     ]
 
     @pytest.mark.parametrize("limits", spectrum_limits)

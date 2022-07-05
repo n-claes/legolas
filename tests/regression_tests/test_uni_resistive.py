@@ -69,7 +69,7 @@ class TestUniResistiveSI(UniResistive):
     solver_settings = {
         "solver": "arnoldi",
         "arpack_mode": "shift-invert",
-        "number_of_eigenvalues": 20,
+        "number_of_eigenvalues": 30,
         "which_eigenvalues": "LM",
         "sigma": 10.0 - 0.05j,
     }

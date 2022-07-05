@@ -65,21 +65,10 @@ class TestTaylorCouetteSI(TaylorCouette):
         "which_eigenvalues": "LM",
         "sigma": 0.2 - 0.2j,
     }
-
     spectrum_limits = [
         {"xlim": (-0.01, 0.35), "ylim": (-0.45, 0.01)},
-    ]
-    eigenfunctions = [
-        {"eigenvalue": 0.34390 - 0.13832j},
-        {"eigenvalue": 0.26543 - 0.21655j},
-        {"eigenvalue": 0.21295 - 0.31135j},
-        {"eigenvalue": 0.16851 - 0.42393j},
     ]
 
     @pytest.mark.parametrize("limits", spectrum_limits)
     def test_spectrum(self, limits, ds_test, ds_base):
         super().run_spectrum_test(limits, ds_test, ds_base)
-
-    @pytest.mark.parametrize("eigenfunction", eigenfunctions)
-    def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
-        super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)

@@ -58,9 +58,9 @@ class TestCouetteFlowSI(CouetteFlow):
     solver_settings = {
         "solver": "arnoldi",
         "arpack_mode": "shift-invert",
-        "number_of_eigenvalues": 40,
+        "number_of_eigenvalues": 20,
         "which_eigenvalues": "LM",
-        "sigma": 0.5 - 0.5j,
+        "sigma": 0.5 - 0.6j,
     }
 
     spectrum_limits = [
@@ -70,7 +70,3 @@ class TestCouetteFlowSI(CouetteFlow):
     @pytest.mark.parametrize("limits", spectrum_limits)
     def test_spectrum(self, limits, ds_test, ds_base):
         super().run_spectrum_test(limits, ds_test, ds_base)
-
-    @pytest.mark.parametrize("eigenfunction", eigenfunctions)
-    def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
-        super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)
