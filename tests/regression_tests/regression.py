@@ -305,6 +305,10 @@ class MultiRegressionTest(TestCase):
             pp.set_y_scaling(settings.get("y_scaling", 1))
             if settings.get("symlog", None) is not None:
                 pp.ax.set_yscale("symlog", linthresh=settings["symlog"])
+            if settings.get("xlog"):
+                pp.ax.set_xscale("log")
+            if settings.get("ylog"):
+                pp.ax.set_yscale("log")
             pp.ax.set_xlim(xlim)
             pp.ax.set_ylim(ylim)
             pp.ax.set_title(self.name)
