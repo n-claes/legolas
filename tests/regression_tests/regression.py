@@ -197,24 +197,28 @@ class RegressionTest(TestCase):
             plt.close(fig)
         return (figname_test, figname_base)
 
+    @pytest.mark.required
     def test_generate_ds(self, ds_test):
         assert ds_test is not None
 
+    @pytest.mark.required
     def test_file_base_exists(self, file_base):
         assert file_base.is_file()
 
+    @pytest.mark.required
     def test_ds_base_exists(self, ds_base):
         assert ds_base is not None
 
+    @pytest.mark.required
     def test_geometry(self, ds_test, ds_base):
         assert self.geometry == ds_test.geometry == ds_base.geometry
 
     def test_resolution(self, ds_test, ds_base):
         assert ds_test.gridpoints == ds_base.gridpoints
 
-    def test_all_eigenvalues_are_real(self, ds_test, ds_base):
+    def test_eigenvalue_types(self, ds_test, ds_base):
         if not self.eigenvalues_are_real:
-            pytest.skip("imaginary eigenvalues allowed")
+            return
         assert np.all(ds_test.eigenvalues.imag == pytest.approx(0))
         assert np.all(ds_base.eigenvalues.imag == pytest.approx(0))
 
@@ -316,15 +320,19 @@ class MultiRegressionTest(TestCase):
             plt.close(pp.fig)
         return (figname_test, figname_base)
 
+    @pytest.mark.required
     def test_generate_series(self, series_test):
         assert series_test is not None
 
+    @pytest.mark.required
     def test_file_base_exists(self, file_base):
         assert file_base.with_suffix(".pickle").is_file()
 
+    @pytest.mark.required
     def test_geometry(self, series_test, series_base):
         assert np.all(self.geometry == series_test.geometry == series_base.geometry)
 
+    @pytest.mark.required
     def test_resolution(self, series_test, series_base):
         for ds_test, ds_base in zip(series_test, series_base):
             assert ds_test.gridpoints == ds_base.gridpoints

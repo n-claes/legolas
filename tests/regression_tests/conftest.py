@@ -142,3 +142,16 @@ def pytest_make_parametrize_id(val):
         if "eigenvalue" in val.keys():
             return f"w={val['eigenvalue']:.8f}"
     return None
+
+
+def pytest_runtest_makereport(item, call):
+    if "required" in item.keywords:
+        if call.excinfo is not None:
+            parent = item.parent
+            parent._requiredfailed = item
+
+
+def pytest_runtest_setup(item):
+    requiredfailed = getattr(item.parent, "_requiredfailed", False)
+    if requiredfailed:
+        pytest.xfail(f"required test failed ({requiredfailed.name})")
