@@ -15,6 +15,11 @@ def check_folder(folder):
         folder.mkdir()
 
 
+def is_empty(folder):
+    files = os.listdir(folder)
+    return not files
+
+
 def safely_remove_tree(root_folder):
     # walks through the root folder, removes directories only if they are empty
     folders = list(os.walk(root_folder))
@@ -102,17 +107,22 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope="class", autouse=True)
-def case_cleanup(request, casedir, datfiledir):
+def case_cleanup(request, casedir, datfiledir, spectradir, eigfuncdir):
     def remove_datfiledir():
-        # always remove generated datfiles by default
+        # testcase (class) passed all relevant tests if these dirs are empty
+        testcase_passed = is_empty(spectradir) and is_empty(eigfuncdir)
+        # on failure do not delete datfiles
+        if not testcase_passed:
+            return
+        # else only delete if files are not kept
         if not request.config.getoption(KEEP_FILES_OPTION):
             shutil.rmtree(datfiledir)
 
-    def remove_casedir():
+    def remove_directories():
+        remove_datfiledir()
         safely_remove_tree(casedir)
 
-    request.addfinalizer(remove_datfiledir)
-    request.addfinalizer(remove_casedir)
+    request.addfinalizer(remove_directories)
 
 
 @pytest.fixture(scope="session", autouse=True)
