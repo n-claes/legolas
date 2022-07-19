@@ -1,22 +1,24 @@
-import numpy as np
-from pathlib import Path
 from abc import ABC, abstractmethod
+from pathlib import Path
+
+import numpy as np
+
+from pylbo.exceptions import EigenfunctionsNotPresent, MatricesNotPresent
 from pylbo.utilities.datfile_utils import (
     get_header,
-    read_grid,
-    read_grid_gauss,
-    read_eigenvalues,
-    read_equilibrium_arrays,
-    read_matrix_B,
-    read_matrix_A,
+    read_derived_eigenfunction,
     read_ef_grid,
     read_eigenfunction,
-    read_derived_eigenfunction,
+    read_eigenvalues,
+    read_equilibrium_arrays,
+    read_grid,
+    read_grid_gauss,
+    read_matrix_A,
+    read_matrix_B,
 )
 from pylbo.utilities.logger import pylboLogger
-from pylbo.exceptions import MatricesNotPresent
-from pylbo.visualisation.continua import calculate_continua
 from pylbo.utilities.toolbox import transform_to_numpy
+from pylbo.visualisation.continua import calculate_continua
 
 
 class LegolasDataContainer(ABC):
@@ -551,6 +553,8 @@ class LegolasDataSet(LegolasDataContainer):
             eigenfunctions and corresponding eigenvalue.
             The keys of each dictionary are the eigenfunction names.
         """
+        if not self.efs_written:
+            raise EigenfunctionsNotPresent("eigenfunctions not written to datfile")
         if ev_guesses is not None and ev_idxs is not None:
             raise ValueError(
                 "get_eigenfunctions: either provide guesses or indices but not both"
@@ -594,6 +598,10 @@ class LegolasDataSet(LegolasDataContainer):
             corresponding eigenvalue. The keys of each dictionary are the
             corresponding eigenfunction names.
         """
+        if not self.derived_efs_written:
+            raise EigenfunctionsNotPresent(
+                "derived eigenfunctions not written to datfile"
+            )
         if ev_guesses is not None and ev_idxs is not None:
             raise ValueError("either provide guesses or indices but not both")
         if ev_guesses is not None:
