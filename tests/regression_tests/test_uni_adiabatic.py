@@ -1,6 +1,7 @@
-from .regression import RegressionTest
 import numpy as np
 import pytest
+
+from .regression import RegressionTest
 
 eigenfunctions = [
     {"eigenvalue": 6.745518},
@@ -24,6 +25,7 @@ class UniAdiabatic(RegressionTest):
     }
     eigenfunction_settings = {
         "write_eigenfunctions": True,
+        "write_derived_eigenfunctions": True,
         "write_eigenfunction_subset": True,
         "eigenfunction_subset_center": 20 + 1j,
         "eigenfunction_subset_radius": 15,
@@ -48,6 +50,10 @@ class TestUniAdiabaticQR(UniAdiabatic):
     @pytest.mark.parametrize("eigenfunction", eigenfunctions)
     def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
         super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)
+
+    @pytest.mark.parametrize("derived_eigenfunction", eigenfunctions)
+    def test_derived_eigenfunction(self, derived_eigenfunction, ds_test, ds_base):
+        super().run_derived_eigenfunction_test(derived_eigenfunction, ds_test, ds_base)
 
 
 class TestUniAdiabaticSI(UniAdiabatic):
