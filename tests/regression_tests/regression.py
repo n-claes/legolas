@@ -1,11 +1,12 @@
-import pytest
+import logging
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pylbo
 import pylbo.testing
-import logging
-import numpy as np
-import matplotlib.pyplot as plt
+import pytest
 from matplotlib.testing.compare import compare_images
-from pathlib import Path
 
 testlog = logging.getLogger("test_logger")
 
@@ -104,8 +105,8 @@ class TestCase:
             self._spectradir / f"{figname_base}.png",
         )
 
-    def get_eigenfunction_image_filenames(self, eigenvalue):
-        figname_test = f"{self.filename}_efs_w_{eigenvalue:.8f}"
+    def get_eigenfunction_image_filenames(self, eigenvalue, prefix):
+        figname_test = f"{self.filename}_{prefix}efs_w_{eigenvalue:.8f}"
         figname_base = f"{figname_test}-baseline"
         return (
             self._eigfuncdir / f"{figname_test}.png",
@@ -177,16 +178,39 @@ class RegressionTest(TestCase):
             plt.close(pp.fig)
         return (figname_test, figname_base)
 
-    def generate_eigenfunction_images(self, eigenvalue, ds_test, ds_base):
-        fig_test, ax_test = plt.subplots(3, 3, figsize=(10, 10), sharex="all")
-        fig_base, ax_base = plt.subplots(3, 3, figsize=(10, 10), sharex="all")
-        figname_test, figname_base = self.get_eigenfunction_image_filenames(eigenvalue)
+    def generate_eigenfunction_images(
+        self,
+        eigenvalue,
+        ds_test,
+        ds_base,
+        names_attr,
+        method_name,
+        figname_prefix="",
+        nb_plots=(3, 3),
+        figsize=(10, 10),
+        set_to_zero_tol=1e-10,
+    ):
+        fig_test, ax_test = plt.subplots(*nb_plots, figsize=figsize, sharex="all")
+        fig_base, ax_base = plt.subplots(*nb_plots, figsize=figsize, sharex="all")
+        figname_test, figname_base = self.get_eigenfunction_image_filenames(
+            eigenvalue, prefix=figname_prefix
+        )
+
+        nb_efs = len(getattr(ds_base, names_attr))
+        nb_axs = len(ax_base.flatten())
+        if nb_efs > nb_axs:
+            pytest.fail(
+                f"number of eigenfunctions ({nb_efs}) is larger than "
+                f"number of axes ({nb_axs})"
+            )
+
         for ds, ax in [(ds_test, ax_test), (ds_base, ax_base)]:
-            (efs,) = ds.get_eigenfunctions(eigenvalue)
-            for panel, ef_name in zip(ax.flatten(), ds.ef_names):
+            get_efs = getattr(ds, method_name)
+            (efs,) = get_efs(eigenvalue)
+            for panel, ef_name in zip(ax.flatten(), getattr(ds, names_attr)):
                 result = abs(efs[ef_name].real + efs[ef_name].imag)
                 # small values
-                result[np.where(result < 1e-10)] = 0
+                result[np.where(result < set_to_zero_tol)] = 0
                 panel.plot(ds.ef_grid, result, lw=3)
                 panel.set_yticks([])
                 panel.set_title(ef_name)
@@ -235,12 +259,35 @@ class RegressionTest(TestCase):
     def run_eigenfunction_test(self, eigenfunction, ds_test, ds_base):
         eigenvalue = eigenfunction["eigenvalue"]
         image_test, image_baseline = self.generate_eigenfunction_images(
-            eigenvalue, ds_test, ds_base
+            eigenvalue,
+            ds_test,
+            ds_base,
+            method_name="get_eigenfunctions",
+            names_attr="ef_names",
         )
         super().compare_test_images(
             image_test,
             image_baseline,
             tol=eigenfunction.get("RMS_TOLERANCE", self.RMS_TOLERANCE),
+        )
+
+    def run_derived_eigenfunction_test(self, derived_eigenfunction, ds_test, ds_base):
+        eigenvalue = derived_eigenfunction["eigenvalue"]
+        image_test, image_baseline = self.generate_eigenfunction_images(
+            eigenvalue,
+            ds_test,
+            ds_base,
+            method_name="get_derived_eigenfunctions",
+            names_attr="derived_ef_names",
+            figname_prefix="derived_",
+            nb_plots=(5, 4),
+            figsize=(18, 10),
+            set_to_zero_tol=1e-8,
+        )
+        super().compare_test_images(
+            image_test,
+            image_baseline,
+            tol=derived_eigenfunction.get("RMS_TOLERANCE", self.RMS_TOLERANCE),
         )
 
 
