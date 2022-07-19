@@ -1,5 +1,6 @@
-from .regression import RegressionTest
 import pytest
+
+from .regression import RegressionTest
 
 
 class TaylorCouette(RegressionTest):
@@ -23,6 +24,7 @@ class TaylorCouette(RegressionTest):
     }
     eigenfunction_settings = {
         "write_eigenfunctions": True,
+        "write_derived_eigenfunctions": True,
         "write_eigenfunction_subset": True,
         "eigenfunction_subset_center": 0.5 - 0.3j,
         "eigenfunction_subset_radius": 0.5,
@@ -53,6 +55,10 @@ class TestTaylorCouetteQR(TaylorCouette):
     @pytest.mark.parametrize("eigenfunction", eigenfunctions)
     def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
         super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)
+
+    @pytest.mark.parametrize("derived_eigenfunction", eigenfunctions)
+    def test_derived_eigenfunction(self, derived_eigenfunction, ds_test, ds_base):
+        super().run_derived_eigenfunction_test(derived_eigenfunction, ds_test, ds_base)
 
 
 class TestTaylorCouetteSI(TaylorCouette):
