@@ -1,5 +1,6 @@
-from .regression import RegressionTest
 import pytest
+
+from .regression import RegressionTest
 
 
 class TestMRI_AccretionQR(RegressionTest):
@@ -14,6 +15,7 @@ class TestMRI_AccretionQR(RegressionTest):
     physics_settings = {"flow": True, "external_gravity": True}
     eigenfunction_settings = {
         "write_eigenfunctions": True,
+        "write_derived_eigenfunctions": True,
         "write_eigenfunction_subset": True,
         "eigenfunction_subset_center": -0.001 + 0.59j,
         "eigenfunction_subset_radius": 0.06,
@@ -39,3 +41,7 @@ class TestMRI_AccretionQR(RegressionTest):
     @pytest.mark.parametrize("eigenfunction", eigenfunctions)
     def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
         super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)
+
+    @pytest.mark.parametrize("derived_eigenfunction", eigenfunctions)
+    def test_derived_eigenfunction(self, derived_eigenfunction, ds_test, ds_base):
+        super().run_derived_eigenfunction_test(derived_eigenfunction, ds_test, ds_base)
