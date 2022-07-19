@@ -26,6 +26,21 @@ def use_existing_baseline(capturemanager, baseline):
     return use_existing
 
 
+def validate_eigenfunctions_present(ds, present, which_efs):
+    if not present:
+        pytest.fail(f"{which_efs} are not present in {ds.datfile.name}")
+
+
+def validate_subplot_sizes(ef_names, axes):
+    nb_axs = len(axes.flatten())
+    nb_efs = len(ef_names)
+    if nb_efs > nb_axs:
+        pytest.fail(
+            f"number of eigenfunctions ({nb_efs}) is larger than "
+            f"number of axes ({nb_axs})"
+        )
+
+
 class TestCase:
     SAVEFIG_KWARGS = {"dpi": 200, "transparent": True}
     RMS_TOLERANCE = 2
@@ -184,7 +199,7 @@ class RegressionTest(TestCase):
         ds_test,
         ds_base,
         names_attr,
-        method_name,
+        get_ef_method_name,
         figname_prefix="",
         nb_plots=(3, 3),
         figsize=(10, 10),
@@ -196,18 +211,11 @@ class RegressionTest(TestCase):
             eigenvalue, prefix=figname_prefix
         )
 
-        nb_efs = len(getattr(ds_base, names_attr))
-        nb_axs = len(ax_base.flatten())
-        if nb_efs > nb_axs:
-            pytest.fail(
-                f"number of eigenfunctions ({nb_efs}) is larger than "
-                f"number of axes ({nb_axs})"
-            )
-
         for ds, ax in [(ds_test, ax_test), (ds_base, ax_base)]:
-            get_efs = getattr(ds, method_name)
-            (efs,) = get_efs(eigenvalue)
-            for panel, ef_name in zip(ax.flatten(), getattr(ds, names_attr)):
+            (efs,) = getattr(ds, get_ef_method_name)(eigenvalue)
+            ef_names = getattr(ds, names_attr)
+            validate_subplot_sizes(ef_names, ax)
+            for panel, ef_name in zip(ax.flatten(), ef_names):
                 result = abs(efs[ef_name].real + efs[ef_name].imag)
                 # small values
                 result[np.where(result < set_to_zero_tol)] = 0
@@ -258,11 +266,13 @@ class RegressionTest(TestCase):
 
     def run_eigenfunction_test(self, eigenfunction, ds_test, ds_base):
         eigenvalue = eigenfunction["eigenvalue"]
+        for ds in (ds_test, ds_base):
+            validate_eigenfunctions_present(ds, ds.efs_written, "eigenfunctions")
         image_test, image_baseline = self.generate_eigenfunction_images(
             eigenvalue,
             ds_test,
             ds_base,
-            method_name="get_eigenfunctions",
+            get_ef_method_name="get_eigenfunctions",
             names_attr="ef_names",
         )
         super().compare_test_images(
@@ -273,11 +283,15 @@ class RegressionTest(TestCase):
 
     def run_derived_eigenfunction_test(self, derived_eigenfunction, ds_test, ds_base):
         eigenvalue = derived_eigenfunction["eigenvalue"]
+        for ds in (ds_test, ds_base):
+            validate_eigenfunctions_present(
+                ds, ds.derived_efs_written, "derived eigenfunctions"
+            )
         image_test, image_baseline = self.generate_eigenfunction_images(
             eigenvalue,
             ds_test,
             ds_base,
-            method_name="get_derived_eigenfunctions",
+            get_ef_method_name="get_derived_eigenfunctions",
             names_attr="derived_ef_names",
             figname_prefix="derived_",
             nb_plots=(5, 4),
