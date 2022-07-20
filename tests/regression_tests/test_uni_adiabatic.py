@@ -1,51 +1,46 @@
+import numpy as np
 import pytest
 
 from .regression import RegressionTest
 
+eigenfunctions = [
+    {"eigenvalue": 6.745518},
+    {"eigenvalue": 11.18509},
+    {"eigenvalue": 16.02714},
+    {"eigenvalue": 21.00395},
+]
 
-class TaylorCouette(RegressionTest):
-    equilibrium = "taylor_couette"
-    geometry = "cylindrical"
-    x_start = 1
-    x_end = 2
+
+class UniAdiabatic(RegressionTest):
+    equilibrium = "adiabatic_homo"
+    geometry = "Cartesian"
 
     parameters = {
         "k2": 0,
-        "k3": 1,
+        "k3": np.pi,
         "cte_rho0": 1.0,
-        "alpha": 1.0,
-        "beta": 2.0,
-    }
-    physics_settings = {
-        "flow": True,
-        "coaxial": True,
-        "viscosity": True,
-        "viscosity_value": 1e-3,
+        "cte_T0": 1.0,
+        "cte_B02": 0.0,
+        "cte_B03": 1.0,
     }
     eigenfunction_settings = {
         "write_eigenfunctions": True,
         "write_derived_eigenfunctions": True,
         "write_eigenfunction_subset": True,
-        "eigenfunction_subset_center": 0.5 - 0.3j,
-        "eigenfunction_subset_radius": 0.5,
+        "eigenfunction_subset_center": 20 + 1j,
+        "eigenfunction_subset_radius": 15,
     }
+    eigenvalues_are_real = True
 
 
-class TestTaylorCouetteQR(TaylorCouette):
-    name = "Taylor Couette k2=0 k3=1 QR"
-    filename = "taylor_couette_QR_k2_0_k3_1"
+class TestUniAdiabaticQR(UniAdiabatic):
+    name = "uniform adiabatic k2=0 k3=pi QR"
+    filename = "uni_adiab_QR_k2_0_k3_pi"
+
     spectrum_limits = [
-        {"xlim": (-1100, 1100), "ylim": (-155, 5)},
-        {"xlim": (-175, 175), "ylim": (-35, 4)},
-        {"xlim": (-18, 18), "ylim": (-3, 0.3)},
-        {"xlim": (-1.5, 1.5), "ylim": (-1.25, 0.2)},
-    ]
-    eigenfunctions = [
-        {"eigenvalue": 0.87784 - 0.04820j},
-        {"eigenvalue": 0.49861 - 0.08124j},
-        {"eigenvalue": 0.34390 - 0.13832j},
-        {"eigenvalue": 0.26543 - 0.21655j},
-        {"eigenvalue": 0.21295 - 0.31135j},
+        {"xlim": (-600, 600), "ylim": (-0.05, 0.05)},
+        {"xlim": (-50, 50), "ylim": (-0.05, 0.05)},
+        {"xlim": (-0.5, 5), "ylim": (-0.05, 0.05)},
     ]
 
     @pytest.mark.parametrize("limits", spectrum_limits)
@@ -61,20 +56,25 @@ class TestTaylorCouetteQR(TaylorCouette):
         super().run_derived_eigenfunction_test(derived_eigenfunction, ds_test, ds_base)
 
 
-class TestTaylorCouetteSI(TaylorCouette):
-    name = "Taylor Couette k2=0 k3=1 shift-invert"
-    filename = "taylor_couette_SI_k2_0_k3_1"
+class TestUniAdiabaticSI(UniAdiabatic):
+    name = "uniform adiabatic k2=0 k3=pi shift-invert"
+    filename = "uni_adiab_SI_k2_0_k3_pi"
     solver_settings = {
         "solver": "arnoldi",
         "arpack_mode": "shift-invert",
-        "number_of_eigenvalues": 4,
+        "number_of_eigenvalues": 6,
         "which_eigenvalues": "LM",
-        "sigma": 0.2 - 0.2j,
+        "sigma": 15 + 0j,
     }
+
     spectrum_limits = [
-        {"xlim": (-0.01, 0.35), "ylim": (-0.45, 0.01)},
+        {"xlim": (-0.1, 30), "ylim": (-1e-5, 1e-5)},
     ]
 
     @pytest.mark.parametrize("limits", spectrum_limits)
     def test_spectrum(self, limits, ds_test, ds_base):
         super().run_spectrum_test(limits, ds_test, ds_base)
+
+    @pytest.mark.parametrize("eigenfunction", eigenfunctions)
+    def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
+        super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)

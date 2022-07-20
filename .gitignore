@@ -31,7 +31,7 @@ legolas_config.par
 *.inc
 *.a
 *.egg*
-!/tests/regression_tests/answers/*.dat
-!/tests/regression_tests/answers/*.log
+!/tests/regression_tests/baseline/*.dat
 !/tests/pylbo_tests/utility_files/*.dat
 !/tests/pylbo_tests/utility_files/*.log
+tests/regression_tests/test_results

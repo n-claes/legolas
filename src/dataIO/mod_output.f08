@@ -13,9 +13,9 @@ module mod_output
   !> filehandler IO unit for the log file
   integer, parameter  :: log_fh = 20
   !> datfile name
-  character(len=str_len) :: datfile_name
+  character(len=5*str_len) :: datfile_name
   !> logfile name
-  character(len=str_len) :: logfile_name
+  character(len=5*str_len) :: logfile_name
 
 
   public :: create_datfile

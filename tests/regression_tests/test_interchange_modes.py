@@ -1,42 +1,35 @@
-import pytest
+from .regression import RegressionTest
 import numpy as np
-
-interchange_modes_setup = {
-    "name": "interchange_modes",
-    "config": {
-        "geometry": "Cartesian",
-        "x_start": 0,
-        "x_end": 1,
-        "gridpoints": 51,
-        "parameters": {
-            "k2": np.pi,
-            "k3": np.pi,
-            "g": 0.5,
-            "cte_p0": 0.25,
-            "lambda": 0,
-            "alpha": 20.0,
-        },
-        "external_gravity": True,
-        "equilibrium_type": "interchange_modes",
-        "logging_level": 0,
-        "show_results": False,
-        "write_eigenfunctions": False,
-        "write_matrices": False,
-    },
-    "image_limits": [
-        {"xlims": (-75, 75), "ylims": (-0.4, 0.4)},
-        {"xlims": (-1.5, 1.5), "ylims": (-0.4, 0.4)},
-    ],
-}
-parametrisation = dict(
-    argnames="setup",
-    argvalues=[interchange_modes_setup],
-    ids=[interchange_modes_setup["name"]],
-)
+import pytest
 
 
-@pytest.mark.parametrize(**parametrisation)
-def test_gravity_value(ds_test, setup):
-    g_value = 0.5
-    assert setup["config"]["parameters"]["g"] == pytest.approx(g_value)
-    assert np.all(ds_test.equilibria.get("grav") == pytest.approx(g_value))
+class TestInterchangeModesQR(RegressionTest):
+    name = "interchange modes k2=pi k3=pi"
+    filename = "interchange_modes_QR_k2_pi_k3_pi"
+    equilibrium = "interchange_modes"
+    geometry = "Cartesian"
+
+    parameters = {
+        "k2": np.pi,
+        "k3": np.pi,
+        "g": 0.5,
+        "cte_p0": 0.25,
+        "lambda": 0,
+        "alpha": 20.0,
+    }
+    physics_settings = {"external_gravity": True}
+    spectrum_limits = [
+        {"xlim": (-75, 75), "ylim": (-0.6, 0.6)},
+        {"xlim": (-5, 5), "ylim": (-0.6, 0.6)},
+        {"xlim": (-1, 1), "ylim": (-0.6, 0.6)},
+        {"xlim": (-0.5, 0.5), "ylim": (-0.6, 0.6)},
+    ]
+
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
+
+    def test_external_gravity(self, ds_test):
+        assert np.all(
+            ds_test.equilibria.get("grav") == pytest.approx(self.parameters["g"])
+        )

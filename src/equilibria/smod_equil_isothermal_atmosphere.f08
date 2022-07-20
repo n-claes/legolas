@@ -34,7 +34,7 @@ contains
     integer   :: i
 
     geometry = "Cartesian"
-    call allow_geometry_override(default_x_start=0.0d0, default_x_end=1.0d0)
+    call allow_geometry_override(default_x_start=0.0d0, default_x_end=15.0d0)
     call initialise_grid()
 
     if (use_defaults) then  ! LCOV_EXCL_START

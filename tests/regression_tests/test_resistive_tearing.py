@@ -1,45 +1,69 @@
+from .regression import RegressionTest
 import pytest
 import numpy as np
 
-resistive_tearing_setup = {
-    "name": "resistive_tearing",
-    "config": {
-        "geometry": "Cartesian",
-        "x_start": -0.5,
-        "x_end": 0.5,
-        "gridpoints": 51,
-        "parameters": {
-            "k2": 0.49,
-            "k3": 0.0,
-            "alpha": 4.73884,
-            "beta": 0.15,
-            "cte_rho0": 1.0,
-        },
-        "equilibrium_type": "resistive_tearing",
+
+class TestResistiveTearingQR(RegressionTest):
+    name = "resistive tearing k2=0.49 k3=0"
+    filename = "resistive_tearing_QR_k2_0.49_k3_0"
+    equilibrium = "resistive_tearing"
+    geometry = "Cartesian"
+    x_start = -0.5
+    x_end = 0.5
+
+    parameters = {
+        "k2": 0.49,
+        "k3": 0.0,
+        "alpha": 4.73884,
+        "beta": 0.15,
+        "cte_rho0": 1.0,
+    }
+    physics_settings = {
         "resistivity": True,
         "use_fixed_resistivity": True,
-        "fixed_eta_value": 10 ** (-4.0),
-        "logging_level": 0,
-        "show_results": False,
-        "write_eigenfunctions": False,
-        "write_matrices": False,
-    },
-    "image_limits": [
-        {"xlims": (-375, 375), "ylims": (-11, 0.5)},
-        {"xlims": (-30, 30), "ylims": (-3, 0.3)},
-        {"xlims": (-0.6, 0.6), "ylims": (-1.2, 0.1)},
-        {"xlims": (-0.5, 0.5), "ylims": (-0.4, 0.05)},
-    ],
-}
-parametrisation = dict(
-    argnames="setup",
-    argvalues=[resistive_tearing_setup],
-    ids=[resistive_tearing_setup["name"]],
-)
+        "fixed_eta_value": 1e-4,
+    }
+
+    spectrum_limits = [
+        {"xlim": (-375, 375), "ylim": (-20, 5)},
+        {"xlim": (-30, 30), "ylim": (-15, 3)},
+        {"xlim": (-10, 10), "ylim": (-7.5, 1)},
+        {"xlim": (-1.2, 1.2), "ylim": (-1.1, 0.05)},
+    ]
+
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
+
+    def test_eta_value(self, ds_test):
+        assert np.all(
+            ds_test.equilibria.get("eta")
+            == pytest.approx(self.physics_settings["fixed_eta_value"])
+        )
 
 
-@pytest.mark.parametrize(**parametrisation)
-def test_eta_value(ds_test, setup):
-    eta_value = 1e-4
-    assert setup["config"]["fixed_eta_value"] == pytest.approx(eta_value)
-    assert np.all(ds_test.equilibria.get("eta") == pytest.approx(eta_value))
+class TestResistiveTearingFlowQR(TestResistiveTearingQR):
+    name = "resistive tearing flow k2=1.5 k3=0"
+    filename = "resistive_tearing_flow_QR_k2_1.5_k3_0"
+    equilibrium = "resistive_tearing_flow"
+
+    parameters = {
+        "k2": 1.5,
+        "k3": 0.0,
+        "alpha": 4.73884,
+        "beta": 0.15,
+        "cte_rho0": 1.0,
+    }
+    physics_settings = {
+        "resistivity": True,
+        "use_fixed_resistivity": True,
+        "fixed_eta_value": 1e-4,
+        "flow": True,
+    }
+    spectrum_limits = [
+        {"xlim": (-375, 375), "ylim": (-11, 5)},
+        {"xlim": (-30, 30), "ylim": (-3, 0.3)},
+        {"xlim": (-4, 4), "ylim": (-2.2, 0.2)},
+        {"xlim": (-1.6, 1.6), "ylim": (-1.6, 0.1)},
+        {"xlim": (-0.6, 0.6), "ylim": (-0.38, 0.05)},
+    ]

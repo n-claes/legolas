@@ -15,15 +15,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.8
+    - name: Set up Python 3.9
       uses: actions/setup-python@v1
       with:
-        python-version: 3.8
+        python-version: 3.9
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install ford==6.1.6 graphviz
+        # Fix version for now, 3.4 throws an error (see #101)
+        pip install markdown==3.3.7
+        pip install ford graphviz
         sudo apt-get install graphviz
         pip install -U sphinx
         pip install numpydoc sphinx-rtd-theme lazy-object-proxy==1.4 sphinx-autoapi
@@ -53,10 +55,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.8
+    - name: Set up Python 3.9
       uses: actions/setup-python@v1
       with:
-        python-version: 3.8
+        python-version: 3.9
 
     - name: Install dependencies
       run: |

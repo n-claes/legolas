@@ -67,7 +67,7 @@ contains
     use mod_logging, only: print_logo
     use mod_global_variables, only: hall_mhd, hall_substitution, elec_inertia, x_end, x_start
 
-    character(len=str_len)  :: parfile
+    character(len=5*str_len)  :: parfile
     integer   :: nb_evs
 
     real(dp) :: ratio
@@ -94,12 +94,7 @@ contains
     call initialise_equilibrium()
     call set_equilibrium()
 
-    ! TODO: remove this warning when fully tested
     if (hall_mhd) then
-      call log_message( &
-        "using Hall MHD, note that some features are not yet **fully** tested!", &
-        level="warning" &
-      )
       ratio = maxval(hall_field % hallfactor) / (x_end - x_start)
       if (ratio > 0.1d0) then
         call log_message("large ratio Hall scale / system scale: " // str(ratio), level="warning")
