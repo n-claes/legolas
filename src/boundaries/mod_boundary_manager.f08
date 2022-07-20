@@ -1,6 +1,7 @@
 module mod_boundary_manager
-  use mod_global_variables, only: dp
+  use mod_global_variables, only: dp, dim_quadblock
   use mod_logging, only: log_message, str
+  use mod_matrix_structure, only: matrix_t
   implicit none
 
   private
@@ -13,24 +14,20 @@ module mod_boundary_manager
   logical, save, protected :: apply_noslip_bounds_right
 
   interface
-    module subroutine apply_essential_boundaries_left(quadblock, matrix)
-      complex(dp), intent(inout)  :: quadblock(:, :)
-      character, intent(in)  :: matrix
+    module subroutine apply_essential_boundaries_left(matrix)
+      type(matrix_t), intent(inout) :: matrix
     end subroutine apply_essential_boundaries_left
 
-    module subroutine apply_essential_boundaries_right(quadblock, matrix)
-      complex(dp), intent(inout)  :: quadblock(:, :)
-      character, intent(in) :: matrix
+    module subroutine apply_essential_boundaries_right(matrix)
+      type(matrix_t), intent(inout) :: matrix
     end subroutine apply_essential_boundaries_right
 
-    module subroutine apply_natural_boundaries_left(quadblock, matrix)
-      complex(dp), intent(inout)  :: quadblock(:, :)
-      character, intent(in) :: matrix
+    module subroutine apply_natural_boundaries_left(matrix)
+      type(matrix_t), intent(inout) :: matrix
     end subroutine apply_natural_boundaries_left
 
-    module subroutine apply_natural_boundaries_right(quadblock, matrix)
-      complex(dp), intent(inout)  :: quadblock(:, :)
-      character, intent(in) :: matrix
+    module subroutine apply_natural_boundaries_right(matrix)
+      type(matrix_t), intent(inout) :: matrix
     end subroutine apply_natural_boundaries_right
   end interface
 
@@ -38,46 +35,26 @@ module mod_boundary_manager
 
 contains
 
-  subroutine apply_boundary_conditions(matrixA, matrixB)
-    use mod_global_variables, only: dim_quadblock
-
+  subroutine apply_boundary_conditions(matrix_A, matrix_B)
     !> the A-matrix with boundary conditions imposed on exit
-    complex(dp), intent(inout)  :: matrixA(:, :)
+    type(matrix_t), intent(inout) :: matrix_A
     !> the B-matrix with boundary conditions imposed on exit
-    real(dp), intent(inout)     :: matrixB(:, :)
-    complex(dp) :: quadblock(dim_quadblock, dim_quadblock)
-    integer   :: l_end, r_start
-
-    ! first gridpoint quadblock runs from idx 1 to l_end
-    l_end = dim_quadblock
-    ! last gridpoint quadblock runs from idx r_start to
-    r_start = size(matrixA, dim=1) - dim_quadblock + 1
+    type(matrix_t), intent(inout) :: matrix_B
 
     call set_boundary_flags()
 
     ! handle left side boundary conditions B-matrix
-    quadblock = matrixB(:l_end, :l_end)
-    call apply_natural_boundaries_left(quadblock, matrix="B")
-    call apply_essential_boundaries_left(quadblock, matrix="B")
-    matrixB(:l_end, :l_end) = real(quadblock)
-
+    call apply_natural_boundaries_left(matrix_B)
+    call apply_essential_boundaries_left(matrix_B)
     ! handle left side boundary conditions A-matrix
-    quadblock = matrixA(:l_end, :l_end)
-    call apply_natural_boundaries_left(quadblock, matrix="A")
-    call apply_essential_boundaries_left(quadblock, matrix="A")
-    matrixA(:l_end, :l_end) = quadblock
-
+    call apply_natural_boundaries_left(matrix_A)
+    call apply_essential_boundaries_left(matrix_A)
     ! handle right side boundary conditions B-matrix
-    quadblock = matrixB(r_start:, r_start:)
-    call apply_natural_boundaries_right(quadblock, matrix="B")
-    call apply_essential_boundaries_right(quadblock, matrix="B")
-    matrixB(r_start:, r_start:) = real(quadblock)
-
+    call apply_natural_boundaries_right(matrix_B)
+    call apply_essential_boundaries_right(matrix_B)
     ! handle right side boundary conditions A-matrix
-    quadblock = matrixA(r_start:, r_start:)
-    call apply_natural_boundaries_right(quadblock, matrix="A")
-    call apply_essential_boundaries_right(quadblock, matrix="A")
-    matrixA(r_start:, r_start:) = quadblock
+    call apply_natural_boundaries_right(matrix_A)
+    call apply_essential_boundaries_right(matrix_A)
   end subroutine apply_boundary_conditions
 
 

@@ -43,7 +43,6 @@ contains
     use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid, grid_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
-    use mod_solvers, only: solvers_clean
 
     if (allocated(grid)) then
       call grid_clean()
@@ -52,7 +51,6 @@ contains
     if (radiative_cooling) then
       call radiative_cooling_clean()
     end if
-    call solvers_clean()
   end subroutine clean_up
 
 
@@ -107,6 +105,17 @@ contains
   end function linspace
 
 
+  !> Generate random number between a and b.
+  function random_uniform(a, b) result(random_nb)
+    real(dp), intent(in) :: a
+    real(dp), intent(in) :: b
+    real(dp) :: random_nb
+
+    call random_number(random_nb)
+    random_nb = (b - a) * random_nb + a
+  end function random_uniform
+
+
   subroutine sort_complex_array(array)
     complex(dp), intent(inout)  :: array(:)
     complex(dp) :: temp
@@ -124,16 +133,81 @@ contains
   end subroutine sort_complex_array
 
 
-  subroutine create_identity_matrix(ndim, mat)
-    integer, intent(in)   :: ndim
-    real(dp), intent(out) :: mat(ndim, ndim)
+  subroutine create_banded_array(subdiags, superdiags, mat)
+    integer, intent(in) :: subdiags, superdiags
+    complex(dp), intent(out) :: mat(8, 8)
+    integer :: i
 
-    integer   :: i
+    if (superdiags > 2 .or. subdiags > 2) then
+      write(*, *) "can only create banded array up to 2 sub/super diagonals"
+      stop
+    end if
 
-    mat = 0.0d0
-    do i = 1, ndim
-      mat(i, i) = 1.0d0
+    mat = (0.0d0, 0.0d0)
+    ! diagonal
+    do i = 1, 8
+      mat(i, i) = (1.0d0, 2.0d0) * i
     end do
-  end subroutine create_identity_matrix
+    ! diagonals 1
+    do i = 1, 7
+      if (superdiags >= 1) mat(i, i + 1) = -2.0d0 * i + (3.0d0, 5.0d0)
+      if (subdiags >= 1) mat(i + 1, i) =  cmplx(1.5d0, 0.5d0, kind=dp) * i
+    end do
+    ! dieagonals 2
+    do i = 1, 6
+      if (superdiags >= 2) mat(i, i + 2) = cmplx(8.0d0 - 2.0d0 * i, 1.5d0 * i, kind=dp)
+      if (subdiags >= 2) mat(i + 2, i) = cmplx(1.0d0, -2.5d0 * i, kind=dp)
+    end do
+  end subroutine create_banded_array
+
+
+  !> Checks if a given bandmatrix equals a linked-list matrix structure
+  logical function matrix_equals_band(matrix, band)
+    use mod_matrix_structure, only: matrix_t
+    use mod_matrix_node, only: node_t
+    use mod_banded_matrix, only: banded_matrix_t
+    use mod_check_values, only: is_equal
+
+    type(matrix_t), intent(in) :: matrix
+    type(banded_matrix_t), intent(in) :: band
+    integer :: irow, inode
+    type(node_t), pointer :: current_node
+    complex(dp) :: value_list, value_band
+
+    matrix_equals_band = .true.
+    ! check dimensions
+    if (matrix%matrix_dim /= band%m .or. matrix%matrix_dim /= band%n) then
+      write(*, *) "incompatible matrix - bandmatrix dimensions"
+      write(*, *) "matrix dimensions", matrix%matrix_dim, matrix%matrix_dim
+      write(*, *) "bandmatrix dimensions", band%m, band%n
+      matrix_equals_band = .false.
+      return
+    end if
+    ! check number of elements
+    if (matrix%get_total_nb_elements() /= band%get_total_nb_nonzero_elements()) then
+      write(*, *) "unequal number of nonzero elements in matrix and band"
+      matrix_equals_band = .false.
+      return
+    end if
+    ! iterate over linked list and retrieve element from band, check if equal
+    do irow = 1, matrix%matrix_dim
+      current_node => matrix%rows(irow)%head
+      do inode = 1, matrix%rows(irow)%nb_elements
+        value_list = current_node%get_node_element()
+        value_band = band%get_element(irow, current_node%column)
+        current_node => current_node%next
+        if (.not. is_equal(value_list, value_band)) then
+          write(*, *) "unequal matrix and bandmatrix!"
+          write(*, *) "row index: ", irow
+          write(*, *) "column index ", current_node%column
+          write(*, *) "value bandmatrix at index: ", value_band
+          write(*, *) "value linked-list matrix at index: ", value_list
+          matrix_equals_band = .false.
+          return
+        end if
+      end do
+    end do
+  end function matrix_equals_band
+
 
 end module mod_suite_utils

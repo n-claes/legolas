@@ -1,0 +1,141 @@
+module mod_test_transform_matrix
+  use mod_suite_utils
+  use funit
+  use mod_matrix_structure, only: matrix_t, new_matrix
+  use mod_transform_matrix, only: matrix_to_array, array_to_matrix
+  implicit none
+
+  real(dp) :: rmat(4, 4) = reshape( &
+    [ &
+      3.0d0, 0.0d0, -1.0d0, 0.0d0, & ! column 1
+      0.0d0, 1.0d0, 0.0d0, 0.0d0, & ! column 2
+      7.0d0, 0.0d0, 2.0d0, -1.0d0, & ! column 3
+      -1.0d0, 5.0d0, 8.0d0, 4.0d0 & ! column 4
+    ], &
+    shape=[4, 4] &
+  )
+  complex(dp) :: cmat(4, 4) = reshape( &
+    [ &
+      (2.0d0, 7.0d0), (0.0d0, 0.0d0), (0.0d0, 0.0d0), (2.0d0, -1.0d0), &
+      (0.0d0, 0.0d0), (3.0d0, 1.0d0), (0.0d0, 0.0d0), (2.0d0, 2.0d0), &
+      (0.0d0, 0.0d0), (0.0d0, 0.0d0), (-2.0d0, 0.0d0), (0.0d0, 0.0d0), &
+      (0.0d0, 1.0d0), (1.0d0, 6.0d0), (0.0d0, -1.0d0), (0.0d0, 5.0d0) &
+    ], &
+    shape=[4, 4] &
+  )
+
+  type(matrix_t) :: matrix
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+  end subroutine init_test
+
+
+  @after
+  subroutine tear_down()
+    call matrix%delete_matrix()
+  end subroutine tear_down
+
+
+  @test
+  subroutine test_real_array_to_matrix()
+    call set_name("transform matrix: real array -> matrix")
+    matrix = array_to_matrix(array=rmat)
+    @assertEqual(count(abs(rmat) > 0.0d0), matrix%get_total_nb_elements())
+
+    @assertEqual(cmplx(rmat(1, 1), kind=dp), matrix%get_complex_element(1, 1), TOL)
+    @assertEqual(cmplx(rmat(1, 3), kind=dp), matrix%get_complex_element(1, 3), TOL)
+    @assertEqual(cmplx(rmat(1, 4), kind=dp), matrix%get_complex_element(1, 4), TOL)
+    @assertEqual(cmplx(rmat(2, 2), kind=dp), matrix%get_complex_element(2, 2), TOL)
+    @assertEqual(cmplx(rmat(2, 4), kind=dp), matrix%get_complex_element(2, 4), TOL)
+    @assertEqual(cmplx(rmat(3, 1), kind=dp), matrix%get_complex_element(3, 1), TOL)
+    @assertEqual(cmplx(rmat(3, 3), kind=dp), matrix%get_complex_element(3, 3), TOL)
+    @assertEqual(cmplx(rmat(3, 4), kind=dp), matrix%get_complex_element(3, 4), TOL)
+    @assertEqual(cmplx(rmat(4, 3), kind=dp), matrix%get_complex_element(4, 3), TOL)
+    @assertEqual(cmplx(rmat(4, 4), kind=dp), matrix%get_complex_element(4, 4), TOL)
+  end subroutine test_real_array_to_matrix
+
+
+  @test
+  subroutine test_complex_array_to_matrix()
+    call set_name("transform matrix: complex array -> matrix")
+    matrix = array_to_matrix(array=cmat)
+    @assertEqual(9, matrix%get_total_nb_elements())
+
+    @assertEqual(cmat(1, 1), matrix%get_complex_element(1, 1), tolerance=TOL)
+    @assertEqual(cmat(1, 4), matrix%get_complex_element(1, 4), tolerance=TOL)
+    @assertEqual(cmat(2, 2), matrix%get_complex_element(2, 2), tolerance=TOL)
+    @assertEqual(cmat(2, 4), matrix%get_complex_element(2, 4), tolerance=TOL)
+    @assertEqual(cmat(3, 3), matrix%get_complex_element(3, 3), tolerance=TOL)
+    @assertEqual(cmat(3, 4), matrix%get_complex_element(3, 4), tolerance=TOL)
+    @assertEqual(cmat(4, 1), matrix%get_complex_element(4, 1), tolerance=TOL)
+    @assertEqual(cmat(4, 2), matrix%get_complex_element(4, 2), tolerance=TOL)
+    @assertEqual(cmat(4, 2), matrix%get_complex_element(4, 2), tolerance=TOL)
+    @assertEqual(cmat(4, 4), matrix%get_complex_element(4, 4), tolerance=TOL)
+  end subroutine test_complex_array_to_matrix
+
+
+  @test
+  subroutine test_real_matrix_to_array()
+    complex(dp) :: expected(4, 4) = cmplx( &
+      reshape( &
+        [ &
+          1.0d0, 1.0d0, 0.0d0, 0.0d0, &
+          0.0d0, 0.0d0, 0.0d0, 0.0d0, &
+          2.0d0, 3.0d0, -1.0d0, -1.0d0, &
+          0.0d0, 0.0d0, 8.0d0, -4.0d0 &
+        ], &
+        shape=[4, 4] &
+      ), &
+      kind=dp &
+    )
+    complex(dp) :: actual(4, 4)
+
+    call set_name("transform matrix: real matrix -> array")
+    matrix = new_matrix(nb_rows=4)
+    call matrix%add_element(row=1, column=1, element=1.0d0)
+    call matrix%add_element(row=2, column=1, element=1.0d0)
+    call matrix%add_element(row=1, column=3, element=2.0d0)
+    call matrix%add_element(row=2, column=3, element=3.0d0)
+    call matrix%add_element(row=3, column=3, element=-1.0d0)
+    call matrix%add_element(row=4, column=3, element=-1.0d0)
+    call matrix%add_element(row=3, column=4, element=8.0d0)
+    call matrix%add_element(row=4, column=4, element=-4.0d0)
+    call matrix_to_array(matrix=matrix, array=actual)
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_real_matrix_to_array
+
+
+  @test
+  subroutine test_complex_matrix_to_array()
+    complex(dp) :: expected(4, 4) = reshape( &
+      [ &
+        (2.0d0, 7.0d0), (2.0d0, -3.0d0), (0.0d0, 0.0d0), (2.0d0, -1.0d0), &
+        (0.0d0, 0.0d0), (3.0d0, 1.0d0), (0.0d0, 0.0d0), (2.0d0, 2.0d0), &
+        (0.0d0, 5.0d0), (0.0d0, 0.0d0), (-2.0d0, 0.0d0), (0.0d0, 0.0d0), &
+        (0.0d0, 1.0d0), (1.0d0, 6.0d0), (0.0d0, -1.0d0), (0.0d0, 0.0d0) &
+      ], &
+      shape=[4, 4] &
+    )
+    complex(dp) :: actual(4, 4)
+
+    call set_name("transform matrix: complex matrix -> array")
+    matrix = new_matrix(nb_rows=4)
+    call matrix%add_element(row=1, column=1, element=(2.0d0, 7.0d0))
+    call matrix%add_element(row=2, column=1, element=(2.0d0, -3.0d0))
+    call matrix%add_element(row=4, column=1, element=(2.0d0, -1.0d0))
+    call matrix%add_element(row=2, column=2, element=(3.0d0, 1.0d0))
+    call matrix%add_element(row=4, column=2, element=(2.0d0, 2.0d0))
+    call matrix%add_element(row=1, column=3, element=(0.0d0, 5.0d0))
+    call matrix%add_element(row=3, column=3, element=(-2.0d0, 0.0d0))
+    call matrix%add_element(row=1, column=4, element=(0.0d0, 1.0d0))
+    call matrix%add_element(row=2, column=4, element=(1.0d0, 6.0d0))
+    call matrix%add_element(row=3, column=4, element=(0.0d0, -1.0d0))
+    call matrix_to_array(matrix=matrix, array=actual)
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_complex_matrix_to_array
+
+end module mod_test_transform_matrix

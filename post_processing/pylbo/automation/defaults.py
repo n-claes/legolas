@@ -78,5 +78,6 @@ namelist_items = {
         ("which_eigenvalues", str),
         ("maxiter", (int, np.integer)),
         ("sigma", (int, np.integer, float, complex)),
+        ("ncv", (int, np.integer)),
     ],
 }

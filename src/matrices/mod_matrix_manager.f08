@@ -90,12 +90,13 @@ contains
         thermal_conduction, viscosity, hall_mhd
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
+    use mod_matrix_structure, only: matrix_t
     use mod_boundary_manager, only: apply_boundary_conditions
 
     !> the B-matrix
-    real(dp), intent(inout) :: matrix_B(:, :)
+    type(matrix_t), intent(inout) :: matrix_B
     !> the A-matrix
-    complex(dp), intent(inout) :: matrix_A(:, :)
+    type(matrix_t), intent(inout) :: matrix_A
 
     !> quadblock for the A-matrix
     complex(dp) :: quadblock_A(dim_quadblock, dim_quadblock)
@@ -115,8 +116,6 @@ contains
 
     ! used to shift the quadblock along the main diagonal
     quadblock_idx = 0
-    matrix_B = 0.0d0
-    matrix_A = (0.0d0, 0.0d0)
 
     do i = 1, gridpts - 1
       ! reset quadblocks
@@ -177,16 +176,16 @@ contains
         do l = 1, dim_quadblock
           idx1 = k + quadblock_idx
           idx2 = l + quadblock_idx
-          matrix_B(idx1, idx2) = matrix_B(idx1, idx2) + real(quadblock_B(k, l))
-          matrix_A(idx1, idx2) = matrix_A(idx1, idx2) + quadblock_A(k, l)
+          call matrix_B%add_element( &
+            row=idx1, column=idx2, element=real(quadblock_B(k, l)) &
+          )
+          call matrix_A%add_element(row=idx1, column=idx2, element=quadblock_A(k, l))
         end do
       end do
       quadblock_idx = quadblock_idx + dim_subblock
     end do
 
-    ! apply boundary conditions
     call apply_boundary_conditions(matrix_A, matrix_B)
-
   end subroutine build_matrices
 
 

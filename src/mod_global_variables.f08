@@ -20,8 +20,8 @@ module mod_global_variables
   !> default length for strings in arrays
   integer, parameter :: str_len_arr = 16
 
-  !> values smaller than this are forced to zero
-  real(dp), parameter :: dp_LIMIT = 1.0d-12
+  !> values smaller than this are forced to zero, bit higher than machine precision
+  real(dp), parameter :: dp_LIMIT = 5.0d-15
   !> NaN value (ieee_quiet_nan)
   real(dp), protected :: NaN
 
@@ -182,6 +182,8 @@ module mod_global_variables
   integer                   :: maxiter
   !> sigma value, only used in shift-invert mode
   complex(dp)               :: sigma
+  !> value for ncv, only used for Arnoldi
+  integer :: ncv
 
 contains
 
@@ -199,7 +201,7 @@ contains
 
     !! physics variables
     cgs_units = .true.
-    gamma = 5.0d0/3.0d0
+    call set_gamma(5.0d0/3.0d0)
     incompressible = .false.
     flow = .false.
     radiative_cooling = .false.
@@ -267,6 +269,7 @@ contains
     which_eigenvalues = "LM"
     ! this defaults to 10*N, but we technically don't know N yet
     maxiter = 0
+    ncv = 0
   end subroutine initialise_globals
 
 

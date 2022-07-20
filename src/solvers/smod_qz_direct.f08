@@ -22,14 +22,16 @@ contains
     integer     :: N
     !> leading dimension of matrix_A
     integer     :: lda
-    !> complex variant of matrix_B
-    complex(dp) :: matB_c(size(matrix_B, dim=1), size(matrix_B, dim=2))
+    !> full array for matrix A
+    complex(dp), allocatable :: array_A(:, :)
+    !> full array for matrix B
+    complex(dp), allocatable :: array_B(:, :)
     !> leading dimension of (complex) matrix_B
     integer     :: ldb
     !> array for alpha, see zggem
-    complex(dp) :: alpha(size(matrix_A, dim=1))
+    complex(dp) :: alpha(matrix_A%matrix_dim)
     !> array for beta, see zggem
-    complex(dp) :: beta(size(matrix_B, dim=1))
+    complex(dp) :: beta(matrix_B%matrix_dim)
     !> leading dimension of vl
     integer     :: ldvl
     !> leading dimension of vr
@@ -45,9 +47,10 @@ contains
     !> dummy for left eigenvectors, jobvl = "N" so this is never referenced
     complex(dp) :: vl(2, 2)
 
-    ! make B complex
-    call log_message("making B-matrix complex", level="debug")
-    matB_c = matrix_B * (1.0d0, 0.0d0)
+    allocate(array_B(matrix_B%matrix_dim, matrix_B%matrix_dim))
+    call matrix_to_array(matrix=matrix_B, array=array_B)
+    allocate(array_A(matrix_A%matrix_dim, matrix_A%matrix_dim))
+    call matrix_to_array(matrix=matrix_A, array=array_A)
 
     !> @warning The LAPACK routine <tt>zggev</tt> returns the _generalised_
     !! eigenvectors, which are different from the ordinary ones returned
@@ -69,7 +72,7 @@ contains
       )
     end if  ! LCOV_EXCL_STOP
     ! set array dimensions
-    N = size(matrix_A, dim=1)
+    N = matrix_A%matrix_dim
     lda = N
     ldb = N
     ldvl = N
@@ -82,7 +85,7 @@ contains
     ! solve eigenvalue problem
     call log_message("solving evp using QZ algorithm zggev (LAPACK)", level="debug")
     call zggev( &
-      jobvl, jobvr, N, matrix_A, lda, matB_c, ldb, &
+      jobvl, jobvr, N, array_A, lda, array_B, ldb, &
       alpha, beta, vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )
     if (info /= 0) then ! LCOV_EXCL_START
@@ -97,6 +100,8 @@ contains
 
     deallocate(work)
     deallocate(rwork)
+    deallocate(array_B)
+    deallocate(array_A)
 
     call set_small_values_to_zero(omega)
   end procedure qz_direct

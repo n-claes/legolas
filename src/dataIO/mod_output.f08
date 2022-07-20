@@ -2,6 +2,7 @@
 !> This module contains all routines for file opening and file writing.
 module mod_output
   use mod_global_variables, only: dp, str_len
+  use mod_matrix_structure, only: matrix_t
   implicit none
 
   private
@@ -76,21 +77,20 @@ contains
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
       kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions
-    use mod_check_values, only: is_equal
     use mod_equilibrium_params
     use mod_units
 
     !> the eigenvalues
     complex(dp), intent(in)       :: eigenvalues(:)
     !> the A-matrix
-    complex(dp), intent(in)       :: matrix_A(:, :)
+    type(matrix_t), intent(in) :: matrix_A
     !> the B-matrix
-    real(dp), intent(in)          :: matrix_B(:, :)
+    type(matrix_t), intent(in) :: matrix_B
 
     real(dp)  :: b01_array(size(B_field % B02))
     character(len=str_len_arr)    :: param_names(34), equil_names(32)
     character(len=2*str_len_arr)  :: unit_names(12)
-    integer                       :: i, j, nonzero_A_values, nonzero_B_values
+    integer :: i
 
     param_names = [ &
       character(len=str_len_arr) :: "k2", "k3", "cte_rho0", "cte_T0", "cte_B01", &
@@ -181,49 +181,48 @@ contains
     end if
 
     ! Matrix data [optional]
-    if (write_matrices) then
-      call log_message("writing matrices...", level="info")
-      ! Write non-zero matrix indices and values. Since this varies every run, we first
-      ! loop through without writing and count the non-zero values. This number is needed
-      ! to correctly read in the values later on (we have to know how many there are).
-      nonzero_B_values = 0
-      nonzero_A_values = 0
-      do j = 1, size(matrix_A, dim=2)
-        do i = 1, size(matrix_A, dim=1)
-          if (.not. is_equal(matrix_B(i, j), 0.0d0)) then
-            nonzero_B_values = nonzero_B_values + 1
-          end if
-          if (.not. is_equal(matrix_A(i, j), (0.0d0, 0.0d0))) then
-            nonzero_A_values = nonzero_A_values + 1
-          end if
-        end do
-      end do
-      ! write these numbers to the file
-      write(dat_fh) nonzero_B_values, nonzero_A_values
-      do j = 1, size(matrix_B, dim=2)
-        do i = 1, size(matrix_B, dim=1)
-          if (.not. is_equal(matrix_B(i, j), 0.0d0)) then
-            write(dat_fh) i, j
-            write(dat_fh) matrix_B(i, j)
-          end if
-        end do
-      end do
-      ! Write non-zero A matrix indices and values
-      do j = 1, size(matrix_A, dim=2)
-        do i = 1, size(matrix_A, dim=1)
-          if (.not. is_equal(matrix_A(i, j), (0.0d0, 0.0d0))) then
-            write(dat_fh) i, j
-            write(dat_fh) matrix_A(i, j)
-          end if
-        end do
-      end do
-    end if
+    if (write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
 
     call log_message("results saved to " // trim(datfile_name), level="info")
     close(dat_fh)
 
     call create_logfile(eigenvalues)
   end subroutine create_datfile
+
+
+  subroutine write_matrices_to_file(matrix_A, matrix_B)
+    use mod_matrix_node, only: node_t
+
+    type(matrix_t), intent(in) :: matrix_A
+    type(matrix_t), intent(in) :: matrix_B
+    type(node_t), pointer :: current_node
+    integer :: irow, inode
+
+    ! write total number of nonzero elements
+    write(dat_fh) matrix_B%get_total_nb_elements()
+    write(dat_fh) matrix_A%get_total_nb_elements()
+
+    ! write matrix B
+    do irow = 1, matrix_B%matrix_dim
+      current_node => matrix_B%rows(irow)%head
+      do inode = 1, matrix_B%rows(irow)%nb_elements
+        write(dat_fh) irow, current_node%column
+        ! B is real, so write only real values
+        write(dat_fh) real(current_node%get_node_element())
+        current_node => current_node%next
+      end do
+    end do
+    ! write matrix A
+    do irow = 1, matrix_A%matrix_dim
+      current_node => matrix_A%rows(irow)%head
+      do inode = 1, matrix_A%rows(irow)%nb_elements
+        write(dat_fh) irow, current_node%column
+        write(dat_fh) current_node%get_node_element()
+        current_node => current_node%next
+      end do
+    end do
+    nullify(current_node)
+  end subroutine write_matrices_to_file
 
 
   !> Creates a logfile. If <tt>basename_logfile</tt> is specified in the datfile,

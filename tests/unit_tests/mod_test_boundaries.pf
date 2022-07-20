@@ -2,17 +2,22 @@ module mod_test_boundaries
   use mod_suite_utils
   use funit
   use mod_boundary_manager, only: apply_boundary_conditions
-  use mod_global_variables, only: dim_matrix, thermal_conduction, viscosity
+  use mod_global_variables, only: thermal_conduction, viscosity, incompressible
+  use mod_matrix_structure, only: matrix_t, new_matrix
+  use mod_transform_matrix, only: matrix_to_array, array_to_matrix
   implicit none
 
-  complex(dp), allocatable :: amat(:, :), amat_expected(:, :)
-  real(dp), allocatable :: bmat(:, :), bmat_expected(:, :)
-
-  integer, parameter :: base_gridpts = 10
-  ! end of left quadblock, holds for 10 gridpoints
+  integer, parameter :: points = 160
+  ! end of left quadblock, holds for dim = 160
   integer, parameter :: left_end = 32
-  ! start of right quadblock, holds for 10 gridpoints
+  ! start of right quadblock, holds for dim = 160
   integer, parameter :: right_start = 129
+
+  complex(dp) :: amat_array(points, points), amat_expected(points, points)
+  complex(dp) :: bmat_array(points, points), bmat_expected(points, points)
+
+  type(matrix_t) :: amat
+  type(matrix_t) :: bmat
 
 contains
 
@@ -22,54 +27,41 @@ contains
 
     call reset_globals()
     call reset_fields(init_fields=.true.)
-    call create_test_grid(pts=base_gridpts, geom='Cartesian')
-    call reset_matrices(avalue=(2.0d0, 3.0d0), bvalue=5.0d0)
+    call create_test_grid(pts=10, geom='Cartesian')
     ! avoid division by B0 if conduction is enabled
     B_field % B0 = 1.0d0
+
+    call reset_ab(avalue=(2.0d0, 3.0d0), bvalue=5.0d0)
+    amat = array_to_matrix(array=amat_array, label="A")
+    bmat = array_to_matrix(array=bmat_array, label="B")
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
     call clean_up()
+    call amat%delete_matrix()
+    call bmat%delete_matrix()
   end subroutine teardown_test
 
 
-  subroutine reset_matrices(avalue, bvalue)
+  subroutine reset_ab(avalue, bvalue)
     complex(dp), intent(in) :: avalue
     real(dp), intent(in)    :: bvalue
-
-    if (allocated(amat)) then
-      deallocate(amat)
-    end if
-    if (allocated(amat_expected)) then
-      deallocate(amat_expected)
-    end if
-    if (allocated(bmat)) then
-      deallocate(bmat)
-    end if
-    if (allocated(bmat_expected)) then
-      deallocate(bmat_expected)
-    end if
-    allocate(amat(dim_matrix, dim_matrix))
-    allocate(amat_expected(dim_matrix, dim_matrix))
-    allocate(bmat(dim_matrix, dim_matrix))
-    allocate(bmat_expected(dim_matrix, dim_matrix))
-    amat = avalue
+    amat_array = avalue
     amat_expected = avalue
-    bmat = bvalue
+    bmat_array = bvalue
     bmat_expected = bvalue
     ! these are the zero contributions from the quadratic basis functions
     ! and are always present on the left side
-    call zero_out_left_idxs([1, 5, 7, 9, 11])
-  end subroutine reset_matrices
+    call zero_out_expected_left_idxs([1, 5, 7, 9, 11])
+  end subroutine reset_ab
 
 
-  subroutine zero_out_left_idxs(idxs)
+  subroutine zero_out_expected_left_idxs(idxs)
     integer, intent(in) :: idxs(:)
     integer :: i, j
 
-    ! left side
     do i = 1, size(idxs)
       j = idxs(i)
       bmat_expected(j, 1:left_end) = 0.0d0
@@ -79,14 +71,13 @@ contains
       amat_expected(1:left_end, j) = (0.0d0, 0.0d0)
       amat_expected(j, j) = (1.0d20, 0.0d0)
     end do
-  end subroutine zero_out_left_idxs
+  end subroutine zero_out_expected_left_idxs
 
 
-  subroutine zero_out_right_idxs(idxs)
+  subroutine zero_out_expected_right_idxs(idxs)
     integer, intent(in) :: idxs(:)
     integer :: i, j
 
-    ! right side
     do i = 1, size(idxs)
       j = idxs(i)
       bmat_expected(j, right_start:) = 0.0d0
@@ -96,17 +87,20 @@ contains
       amat_expected(right_start:, j) = (0.0d0, 0.0d0)
       amat_expected(j, j) = (1.0d20, 0.0d0)
     end do
-  end subroutine zero_out_right_idxs
+  end subroutine zero_out_expected_right_idxs
 
 
   @test
   subroutine test_regular_boundaries_wall_bmat()
     call set_name("regular boundary conditions (B-matrix, wall)")
+
     ! boundary conditions on odd v1, a2, a3
     call apply_boundary_conditions(amat, bmat)
-    call zero_out_left_idxs([3, 13, 15])
-    call zero_out_right_idxs([147, 157, 159])
-    @assertEqual(bmat_expected, bmat, tolerance=TOL)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
+    ! set expected
+    call zero_out_expected_left_idxs([3, 13, 15])
+    call zero_out_expected_right_idxs([147, 157, 159])
+    @assertEqual(bmat_expected, bmat_array, tolerance=TOL)
   end subroutine test_regular_boundaries_wall_bmat
 
 
@@ -115,9 +109,10 @@ contains
     call set_name("regular boundary conditions (A-matrix, wall)")
     ! boundary conditions on odd v1, a2, a3
     call apply_boundary_conditions(amat, bmat)
-    call zero_out_left_idxs([3, 13, 15])
-    call zero_out_right_idxs([147, 157, 159])
-    @assertEqual(amat_expected, amat, tolerance=TOL)
+    call matrix_to_array(matrix=amat, array=amat_array)
+    call zero_out_expected_left_idxs([3, 13, 15])
+    call zero_out_expected_right_idxs([147, 157, 159])
+    @assertEqual(amat_expected, amat_array, tolerance=TOL)
   end subroutine test_regular_boundaries_wall_amat
 
 
@@ -130,9 +125,10 @@ contains
     kappa_field % kappa_perp = 0.0d0
     ! boundary conditions on odd v1, a2, a3
     call apply_boundary_conditions(amat, bmat)
-    call zero_out_left_idxs([3, 13, 15])
-    call zero_out_right_idxs([147, 157, 159])
-    @assertEqual(bmat_expected, bmat, tolerance=TOL)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
+    call zero_out_expected_left_idxs([3, 13, 15])
+    call zero_out_expected_right_idxs([147, 157, 159])
+    @assertEqual(bmat_expected, bmat_array, tolerance=TOL)
   end subroutine test_conduction_boundaries_no_kperp_wall_bmat
 
 
@@ -145,9 +141,10 @@ contains
     kappa_field % kappa_perp = 0.0d0
     ! boundary conditions on odd v1, a2, a3
     call apply_boundary_conditions(amat, bmat)
-    call zero_out_left_idxs([3, 13, 15])
-    call zero_out_right_idxs([147, 157, 159])
-    @assertEqual(amat_expected, amat, tolerance=TOL)
+    call matrix_to_array(matrix=amat, array=amat_array)
+    call zero_out_expected_left_idxs([3, 13, 15])
+    call zero_out_expected_right_idxs([147, 157, 159])
+    @assertEqual(amat_expected, amat_array, tolerance=TOL)
   end subroutine test_conduction_boundaries_no_kperp_wall_amat
 
 
@@ -160,9 +157,10 @@ contains
     kappa_field % kappa_perp = 1.0d0
     ! boundary conditions on odd v1, a2, a3, even T1
     call apply_boundary_conditions(amat, bmat)
-    call zero_out_left_idxs([3, 10, 13, 15])
-    call zero_out_right_idxs([147, 154, 157, 159])
-    @assertEqual(bmat_expected, bmat, tolerance=TOL)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
+    call zero_out_expected_left_idxs([3, 10, 13, 15])
+    call zero_out_expected_right_idxs([147, 154, 157, 159])
+    @assertEqual(bmat_expected, bmat_array, tolerance=TOL)
   end subroutine test_conduction_boundaries_kperp_wall_bmat
 
 
@@ -175,9 +173,10 @@ contains
     kappa_field % kappa_perp = 1.0d0
     ! boundary conditions on odd v1, a2, a3, even T1
     call apply_boundary_conditions(amat, bmat)
-    call zero_out_left_idxs([3, 10, 13, 15])
-    call zero_out_right_idxs([147, 154, 157, 159])
-    @assertEqual(amat_expected, amat, tolerance=TOL)
+    call matrix_to_array(matrix=amat, array=amat_array)
+    call zero_out_expected_left_idxs([3, 10, 13, 15])
+    call zero_out_expected_right_idxs([147, 154, 157, 159])
+    @assertEqual(amat_expected, amat_array, tolerance=TOL)
   end subroutine test_conduction_boundaries_kperp_wall_amat
 
 
@@ -185,11 +184,12 @@ contains
   subroutine test_viscous_boundaries_wall_bmat()
     call set_name("viscous boundary conditions (B-matrix, wall)")
     viscosity = .true.
-    call apply_boundary_conditions(amat, bmat)
     ! boundary conditions on odd v1, a2, a3, even v2, v3
-    call zero_out_left_idxs([3, 6, 8, 13, 15])
-    call zero_out_right_idxs([147, 150, 152, 157, 159])
-    @assertEqual(bmat_expected, bmat, tolerance=TOL)
+    call apply_boundary_conditions(amat, bmat)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
+    call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
+    call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
+    @assertEqual(bmat_expected, bmat_array, tolerance=TOL)
   end subroutine test_viscous_boundaries_wall_bmat
 
 
@@ -197,11 +197,12 @@ contains
   subroutine test_viscous_boundaries_wall_amat()
     call set_name("viscous boundary conditions (A-matrix, wall)")
     viscosity = .true.
-    call apply_boundary_conditions(amat, bmat)
     ! boundary conditions on odd v1, a2, a3, even v2, v3
-    call zero_out_left_idxs([3, 6, 8, 13, 15])
-    call zero_out_right_idxs([147, 150, 152, 157, 159])
-    @assertEqual(amat_expected, amat, tolerance=TOL)
+    call apply_boundary_conditions(amat, bmat)
+    call matrix_to_array(matrix=amat, array=amat_array)
+    call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
+    call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
+    @assertEqual(amat_expected, amat_array, tolerance=TOL)
   end subroutine test_viscous_boundaries_wall_amat
 
 
@@ -215,11 +216,12 @@ contains
     call create_test_grid(pts=10, geom="cylindrical", start=0.0d0, end=1.0d0)
     viscosity = .true.
     call apply_boundary_conditions(amat, bmat)
+    call matrix_to_array(matrix=bmat, array=bmat_array)
     ! no additional left side boundary conditions
-    call zero_out_left_idxs([3, 13, 15])
+    call zero_out_expected_left_idxs([3, 13, 15])
     ! boundary conditions on odd v1, a2, a3, even v2, v3
-    call zero_out_right_idxs([147, 150, 152, 157, 159])
-    @assertEqual(bmat_expected, bmat, tolerance=TOL)
+    call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
+    @assertEqual(bmat_expected, bmat_array, tolerance=TOL)
   end subroutine test_viscous_boundaries_cylindrical_wall_bmat
 
 
@@ -233,11 +235,12 @@ contains
     call create_test_grid(pts=10, geom="cylindrical", start=0.0d0, end=1.0d0)
     viscosity = .true.
     call apply_boundary_conditions(amat, bmat)
+    call matrix_to_array(matrix=amat, array=amat_array)
     ! no additional left side boundary conditions
-    call zero_out_left_idxs([3, 13, 15])
+    call zero_out_expected_left_idxs([3, 13, 15])
     ! boundary conditions on odd v1, a2, a3, even v2, v3
-    call zero_out_right_idxs([147, 150, 152, 157, 159])
-    @assertEqual(amat_expected, amat, tolerance=TOL)
+    call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
+    @assertEqual(amat_expected, amat_array, tolerance=TOL)
   end subroutine test_viscous_boundaries_cylindrical_wall_amat
 
 
@@ -253,10 +256,11 @@ contains
     viscosity = .true.
     coaxial = .true.
     call apply_boundary_conditions(amat, bmat)
-    call zero_out_left_idxs([3, 6, 8, 13, 15])
+    call matrix_to_array(matrix=bmat, array=bmat_array)
+    call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
     ! boundary conditions on odd v1, a2, a3, even v2, v3
-    call zero_out_right_idxs([147, 150, 152, 157, 159])
-    @assertEqual(bmat_expected, bmat, tolerance=TOL)
+    call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
+    @assertEqual(bmat_expected, bmat_array, tolerance=TOL)
   end subroutine test_viscous_boundaries_cylindrical_coax_wall_bmat
 
 
@@ -272,10 +276,11 @@ contains
     viscosity = .true.
     coaxial = .true.
     call apply_boundary_conditions(amat, bmat)
-    call zero_out_left_idxs([3, 6, 8, 13, 15])
+    call matrix_to_array(matrix=amat, array=amat_array)
+    call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
     ! boundary conditions on odd v1, a2, a3, even v2, v3
-    call zero_out_right_idxs([147, 150, 152, 157, 159])
-    @assertEqual(amat_expected, amat, tolerance=TOL)
+    call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
+    @assertEqual(amat_expected, amat_array, tolerance=TOL)
   end subroutine test_viscous_boundaries_cylindrical_coax_wall_amat
 
 end module mod_test_boundaries

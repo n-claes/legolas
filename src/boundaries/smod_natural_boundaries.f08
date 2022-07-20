@@ -1,9 +1,10 @@
 submodule (mod_boundary_manager) smod_natural_boundaries
-  use mod_global_variables, only: ic
+  use mod_global_variables, only: ic, dim_matrix, NaN
   use mod_make_subblock, only: subblock
   use mod_grid, only: grid, eps_grid, d_eps_grid_dr
   use mod_equilibrium, only: rho_field, T_field, B_field
   use mod_equilibrium_params, only: k2, k3
+  use mod_matrix_structure, only: matrix_t
   implicit none
 
   !> current position in the grid
@@ -56,34 +57,66 @@ submodule (mod_boundary_manager) smod_natural_boundaries
 contains
 
   module procedure apply_natural_boundaries_left
+    complex(dp) :: quadblock(dim_quadblock, dim_quadblock)
+    integer :: i, j
+
+    quadblock = (0.0d0, 0.0d0)
     call set_basis_functions(edge="left")
 
-    if (matrix == "A") then
+    if (matrix%get_label() == "A") then
       call add_natural_regular_terms(quadblock)
       call add_natural_flow_terms(quadblock)
       call add_natural_resistive_terms(quadblock)
       call add_natural_conduction_terms(quadblock)
       call add_natural_viscosity_terms(quadblock)
       call add_natural_hall_terms(quadblock)
-    else if (matrix == "B") then
+    else if (matrix%get_label() == "B") then
       call add_natural_hall_Bterms(quadblock)
     end if
+    ! add quadblock elements to left edge
+    do j = 1, dim_quadblock
+      do i = 1, dim_quadblock
+        call matrix%add_element( &
+          row=i, column=j, element=get_quadblock_element(matrix, quadblock(i, j)) &
+        )
+      end do
+    end do
   end procedure apply_natural_boundaries_left
 
 
   module procedure apply_natural_boundaries_right
+    complex(dp) :: quadblock(dim_quadblock, dim_quadblock)
+    integer :: i, j, ishift
+
+    quadblock = (0.0d0, 0.0d0)
     call set_basis_functions(edge="right")
 
-    if (matrix == "A") then
+    ! index shift, this is an even number and represents the final index of the
+    ! second-to-last quadblock. We add this to the iteration such that it starts
+    ! from 1 + ishift, which is an odd number and the starting index of the last
+    ! quadblock.
+    ishift = matrix%matrix_dim - dim_quadblock
+
+    if (matrix%get_label() == "A") then
       call add_natural_regular_terms(quadblock)
       call add_natural_flow_terms(quadblock)
       call add_natural_resistive_terms(quadblock)
       call add_natural_conduction_terms(quadblock)
       call add_natural_viscosity_terms(quadblock)
       call add_natural_hall_terms(quadblock)
-    else if (matrix == "B") then
+    else if (matrix%get_label() == "B") then
       call add_natural_hall_Bterms(quadblock)
     end if
+    ! add quadblock elements to right edge
+    do j = 1, dim_quadblock
+      do i = 1, dim_quadblock
+        call matrix%add_element( &
+          row=i + ishift, &
+          column=j + ishift, &
+          element=get_quadblock_element(matrix, quadblock(i, j)) &
+        )
+      end do
+    end do
   end procedure apply_natural_boundaries_right
 
 
@@ -136,5 +169,29 @@ contains
     end if
     allocate(positions(new_size, 2))
   end subroutine reset_factor_positions
+
+
+  !> Returns either the full complex or the real part of the quadblock element,
+  !! based on the matrix label (A or B).
+  function get_quadblock_element(matrix, qb_element) result(element)
+    !> current matrix to which the quadblock corresponds
+    type(matrix_t), intent(in) :: matrix
+    !> element in the quadblock
+    complex(dp), intent(in) :: qb_element
+    !> element returned
+    class(*), allocatable :: element
+
+    if (matrix%get_label() == "A") then
+      element = qb_element
+    else if (matrix%get_label() == "B") then
+      element = real(qb_element)
+    else
+      element = NaN
+      call log_message( &
+        "get_quadblock_element: invalid or empty matrix label " // matrix%get_label(), &
+        level="error" &
+      )
+    end if
+  end function get_quadblock_element
 
 end submodule smod_natural_boundaries

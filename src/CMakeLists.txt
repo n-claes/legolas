@@ -7,6 +7,12 @@ set (sources
         dataIO/mod_logging.f08
         mod_physical_constants.f08
         utils/mod_get_indices.f08
+        matrices/datastructure/mod_matrix_node.f08
+        matrices/datastructure/mod_matrix_row.f08
+        matrices/datastructure/mod_matrix_structure.f08
+        matrices/datastructure/mod_banded_matrix.f08
+        matrices/datastructure/smod_matrix_maths.f08
+        matrices/datastructure/mod_transform_matrix.f08
         mod_units.f08
         mod_grid.f08
         mod_types.f08
@@ -74,11 +80,14 @@ set (sources
         matrices/smod_conduction_matrix.f08
         matrices/smod_viscosity_matrix.f08
         matrices/smod_hall_matrix.f08
+        solvers/arnoldi/mod_arpack_type.f08
+        solvers/mod_linear_systems.f08
         solvers/mod_solvers.f08
-        solvers/mod_arpack_type.f08
         solvers/smod_qr_invert.f08
         solvers/smod_qz_direct.f08
-        solvers/smod_arnoldi.f08
+        solvers/arnoldi/smod_arpack_main.f08
+        solvers/arnoldi/smod_arpack_general.f08
+        solvers/arnoldi/smod_arpack_shift_invert.f08
         eigenfunctions/mod_eigenfunctions.f08
         eigenfunctions/smod_ef_operations.f08
         eigenfunctions/smod_base_efs.f08

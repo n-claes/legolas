@@ -18,10 +18,15 @@ contains
   !! @warning Throws an error if <tt>matrix_A</tt> or <tt>matrix_B</tt>
   !!          is not a square matrix. @endwarning
   module procedure qr_invert
-    !> inverse B-matrix
-    real(dp)    :: B_inv(size(matrix_B, dim=1), size(matrix_B, dim=2))
-    !> matrix \(B^{-1}A\)
-    complex(dp) :: B_invA(size(matrix_A, dim=1), size(matrix_A, dim=2))
+    !> full array containing the B-matrix
+    complex(dp), allocatable :: array_B(:, :)
+    !> full array containing the inverse of the B-matrix
+    real(dp), allocatable :: array_B_inv(:, :)
+    !> full array containing the A-matrix
+    complex(dp), allocatable :: array_A(:, :)
+    !> full array containing the \(B^{-1}A\)-matrix
+    complex(dp), allocatable :: array_B_invA(:, :)
+
     !> order of matrix \(B^{-1}A\)
     integer     :: N
     !> leading dimension of matrix \(B^{-1}A\)
@@ -46,9 +51,20 @@ contains
     complex(dp) :: vl(2, 2)
 
     ! do inversion of B
-    call invert_matrix(matrix_B, B_inv)
+    allocate(array_B(matrix_B%matrix_dim, matrix_B%matrix_dim))
+    allocate(array_B_inv(matrix_B%matrix_dim, matrix_B%matrix_dim))
+    call matrix_to_array(matrix=matrix_B, array=array_B)
+    call invert_matrix(real(array_B), array_B_inv)
+    deallocate(array_B)
+
     ! do matrix multiplication B^{-1}A
-    call multiply_matrices(B_inv, matrix_A, B_invA)
+    allocate(array_A(matrix_A%matrix_dim, matrix_A%matrix_dim))
+    call matrix_to_array(matrix=matrix_A, array=array_A)
+    allocate(array_B_invA, mold=array_A)
+    call multiply_matrices(array_B_inv, array_A, array_B_invA)
+    deallocate(array_A)
+    deallocate(array_B_inv)
+
     ! calculate eigenvectors, we don't use the left ones
     jobvl = "N"
     if (write_eigenfunctions) then
@@ -57,7 +73,7 @@ contains
       jobvr = "N"
     end if
     ! set array dimensions
-    N = size(B_invA, dim=1)
+    N = size(array_B_invA, dim=1)
     ldB_invA = N
     ldvl = N
     ldvr = N
@@ -69,7 +85,7 @@ contains
     ! solve eigenvalue problem
     call log_message("solving evp using QR algorithm zgeev (LAPACK)", level="debug")
     call zgeev( &
-      jobvl, jobvr, N, B_invA, ldB_invA, omega, &
+      jobvl, jobvr, N, array_B_invA, ldB_invA, omega, &
       vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )
     if (info /= 0) then ! LCOV_EXCL_START

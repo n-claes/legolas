@@ -6,10 +6,9 @@ module mod_solvers
   use mod_global_variables, only: dp, write_eigenfunctions
   use mod_logging, only: log_message, str
   use mod_check_values, only: set_small_values_to_zero
+  use mod_matrix_structure, only: matrix_t
+  use mod_transform_matrix, only: matrix_to_array
   implicit none
-
-  !> residual norm || Ax - \(\lambda\)Bx || of the eigenvalue problem
-  real(dp), allocatable  :: residual_norm(:)
 
   private
 
@@ -17,9 +16,9 @@ module mod_solvers
   interface
     module subroutine qr_invert(matrix_A, matrix_B, omega, vr)
       !> matrix A
-      complex(dp), intent(in)   :: matrix_A(:, :)
+      type(matrix_t), intent(in) :: matrix_A
       !> matrix B
-      real(dp), intent(in)      :: matrix_B(:, :)
+      type(matrix_t), intent(in) :: matrix_B
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
@@ -28,9 +27,9 @@ module mod_solvers
 
     module subroutine qz_direct(matrix_A, matrix_B, omega, vr)
       !> matrix A
-      complex(dp), intent(in)   :: matrix_A(:, :)
+      type(matrix_t), intent(in) :: matrix_A
       !> matrix B
-      real(dp), intent(in)      :: matrix_B(:, :)
+      type(matrix_t), intent(in) :: matrix_B
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
@@ -39,9 +38,9 @@ module mod_solvers
 
     module subroutine arnoldi(matrix_A, matrix_B, omega, vr)
       !> matrix A
-      complex(dp), intent(in)   :: matrix_A(:, :)
+      type(matrix_t), intent(in) :: matrix_A
       !> matrix B
-      real(dp), intent(in)      :: matrix_B(:, :)
+      type(matrix_t), intent(in) :: matrix_B
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
@@ -49,9 +48,7 @@ module mod_solvers
     end subroutine arnoldi
   end interface
 
-  public  :: residual_norm
   public  :: solve_evp
-  public  :: solvers_clean
 
 contains
 
@@ -63,9 +60,9 @@ contains
     use mod_global_variables, only: solver
 
     !> A-matrix
-    complex(dp), intent(in)   :: matrix_A(:, :)
+    type(matrix_t), intent(in) :: matrix_A
     !> B-matrix
-    real(dp), intent(in)      :: matrix_B(:, :)
+    type(matrix_t), intent(in) :: matrix_B
     !> eigenvalues
     complex(dp), intent(out)  :: omega(:)
     !> right eigenvectors
@@ -83,13 +80,5 @@ contains
       return
     end select
   end subroutine solve_evp
-
-
-  !> Cleanup routine.
-  subroutine solvers_clean()
-    if (allocated(residual_norm)) then
-      deallocate(residual_norm)
-    end if
-  end subroutine solvers_clean
 
 end module mod_solvers
