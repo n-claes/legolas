@@ -1,3 +1,7 @@
+! =============================================================================
+!> Module containing the implementation for the ARPACK general-type solver, that is,
+!! given the general eigenvalue problem $$ AX = \omega BX, $$ find \(k\) eigenvalues
+!! that satisfy a given criterion.
 submodule (mod_solvers:smod_arpack_main) smod_arpack_general
   use mod_banded_matrix, only: banded_matrix_t
   use mod_transform_matrix, only: matrix_to_banded
@@ -5,6 +9,7 @@ submodule (mod_solvers:smod_arpack_main) smod_arpack_general
 
 contains
 
+  !> Implementation of the ARPACK general solver.
   module procedure solve_arpack_general
     !> contains the basis vectors
     complex(dp) :: basis_vectors(arpack_cfg%get_evpdim(), arpack_cfg%get_ncv())
@@ -27,8 +32,9 @@ contains
     integer :: xstart, xend, ystart, yend
 
     ! we fill at most the full quadblock, so -1 diagonals
-    ! TODO: do a pass over the B-matrix to figure out how many diagonals we need, since
-    ! this is problem-dependent
+    ! IDEA: maybe do a pass over the B-matrix first to figure out how many diagonals
+    ! we need? This is problem-dependent so in some cases there might be quite some
+    ! room here for optimisations
     diags = dim_quadblock - 1
     call log_message("converting B-matrix into banded structure", level="debug")
     call matrix_to_banded( &

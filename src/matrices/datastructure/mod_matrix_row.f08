@@ -1,3 +1,6 @@
+! =============================================================================
+!> Module that contains the implementation of a single row of nodes in the
+!! linked-list matrix representation.
 module mod_matrix_row
   use mod_logging, only: log_message, str
   use mod_matrix_node, only: node_t, new_node
@@ -30,7 +33,7 @@ module mod_matrix_row
 contains
 
   !> Constructor for a new row, initialises the linked list datastructure
-  !! and sets the current head pointer to `null()`.
+  !! and sets the current head and tail pointers to `null()`.
   pure function new_row() result(row)
     type(row_t) :: row
 

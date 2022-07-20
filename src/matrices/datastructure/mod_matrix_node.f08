@@ -1,3 +1,6 @@
+! =============================================================================
+!> Module that contains the implementation of nodes in the linked-list matrix
+!! representation.
 module mod_matrix_node
   use mod_global_variables, only: dp, NaN
   use mod_logging, only: log_message

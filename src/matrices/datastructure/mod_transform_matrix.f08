@@ -1,3 +1,6 @@
+! =============================================================================
+!> Contains various subroutines and functions to switch between linked-list
+!! matrix representations, banded matrix representations, and full array matrices.
 module mod_transform_matrix
   use mod_global_variables, only: dp, NaN
   use mod_matrix_structure, only: matrix_t, new_matrix
@@ -54,7 +57,7 @@ contains
   end subroutine matrix_to_complex_array
 
 
-  !> Converts a matrix data structure into a complex banded matrix
+  !> Converts a matrix data structure into a complex banded matrix.
   subroutine matrix_to_complex_banded(matrix, subdiags, superdiags, banded)
     !> the original matrix datastructure
     type(matrix_t), intent(in) :: matrix

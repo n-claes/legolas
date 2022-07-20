@@ -1,8 +1,13 @@
-submodule (mod_matrix_structure) mod_matrix_maths
+! =============================================================================
+!> Contains the implementation of various operator overloading methods between
+!! linked-list matrix datastructures.
+submodule (mod_matrix_structure) smod_matrix_maths
   implicit none
 
 contains
 
+  !> Overloads the addition operator between two matrix datastructures.
+  !! Raises an error if the two matrices are not compatible.
   module procedure add_matrices
     integer :: irow, inode
     type(node_t), pointer :: current_node
@@ -28,6 +33,8 @@ contains
   end procedure add_matrices
 
 
+  !> Overloads the subtraction operator between two matrix datastructures.
+  !! Raises an error if the two matrices are not compatible.
   module procedure subtract_matrices
     integer :: irow, inode
     type(node_t), pointer :: current_node
@@ -52,6 +59,7 @@ contains
   end procedure subtract_matrices
 
 
+  !> Overloads the multiplication operator between a matrix and a real vector.
   module procedure matrix_x_real_vector
     integer :: irow, inode
     complex(dp) :: array_value
@@ -72,6 +80,7 @@ contains
   end procedure matrix_x_real_vector
 
 
+  !> Overloads the multiplication operator between a matrix and a complex vector.
   module procedure matrix_x_complex_vector
     integer :: irow, inode
     complex(dp) :: array_value
@@ -92,6 +101,7 @@ contains
   end procedure matrix_x_complex_vector
 
 
+  !> Overloads the multiplication operator between a complex number and a matrix
   module procedure matrix_x_number
     integer :: irow, inode
     type(node_t), pointer :: current_node
@@ -108,8 +118,11 @@ contains
   end procedure matrix_x_number
 
 
+  !> Raises an error if two square matrices are not compatible.
   subroutine raise_incompatibility_error(dim1, dim2)
+    !> dimension of the first matrix
     integer, intent(in) :: dim1
+    !> dimension of the second matrix
     integer, intent(in) :: dim2
 
     call log_message( &
@@ -119,4 +132,4 @@ contains
     )
   end subroutine raise_incompatibility_error
 
-end submodule mod_matrix_maths
+end submodule smod_matrix_maths

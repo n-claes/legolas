@@ -1,8 +1,12 @@
+!> Contains a dedicated type for the various settings of the ARPACK solvers.
+!! All variables that are used in different solver settings are defined, initialised
+!! and set in this module.
 module mod_arpack_type
   use mod_logging, only: log_message, str
   use mod_global_variables, only: dp
   implicit none
 
+  !> General type containing the ARPACK configuration.
   type, public :: arpack_t
     !> mode of the solver
     integer, private :: mode
@@ -428,6 +432,7 @@ contains
   !! the number of OP*X and B*X operations and the number of re-orthogonalisation
   !! steps that were needed.
   subroutine parse_finished_stats(this)
+    !> type instance
     class(arpack_t), intent(in) :: this
 
     call log_message("Arnoldi iteration finished. Statistics: ", level="info")

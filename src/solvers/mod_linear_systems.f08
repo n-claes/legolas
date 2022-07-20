@@ -1,3 +1,5 @@
+! =============================================================================
+!> Module containing functions to solve linear systems $$ AX = B $$.
 module mod_linear_systems
   use mod_global_variables, only: dp
   use mod_banded_matrix, only: banded_matrix_t
@@ -10,14 +12,14 @@ module mod_linear_systems
 
 contains
 
-  !> Calculates the solution $X$ to a system of linear equations $AX = B$ where
-  !! $A$ is a complex banded matrix and $B$ is a complex vector.
+  !> Calculates the solution \(X\) to a system of linear equations \(AX = B\) where
+  !! \(A\) is a complex banded matrix and \(B\) is a complex vector.
   function solve_linear_system_complex_banded(bandmatrix, vector) result(xvector)
-    !> the banded A-matrix on the left-hand side
+    !> the banded \(A\)-matrix on the left-hand side
     type(banded_matrix_t), intent(in) :: bandmatrix
-    !> the B-vector on the right-hand side
+    !> the \(B\}-vector on the right-hand side
     complex(dp), intent(in) :: vector(:)
-    !> the solution vector $X$
+    !> the solution vector \(X\)
     complex(dp) :: xvector(size(vector))
     complex(dp), allocatable :: ABmat(:, :)
     integer :: nb_eqs, kl, ku, i, j, info

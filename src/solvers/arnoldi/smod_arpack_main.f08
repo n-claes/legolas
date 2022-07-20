@@ -1,3 +1,6 @@
+! =============================================================================
+!> Main module for the Arnoldi-type solvers. Contains interfaces to the general Arnoldi
+!! procedures (general, shift-invert, etc.).
 submodule (mod_solvers) smod_arpack_main
   use mod_global_variables, only: arpack_mode, dim_quadblock
   use mod_arpack_type, only: arpack_t, new_arpack_config
@@ -5,6 +8,7 @@ submodule (mod_solvers) smod_arpack_main
   implicit none
 
   interface
+    !> Solves the eigenvalue problem using the Arnoldi general method.
     module subroutine solve_arpack_general(arpack_cfg, matrix_A, matrix_B, omega, vr)
       !> arpack configuration
       type(arpack_t), intent(in) :: arpack_cfg
@@ -18,6 +22,7 @@ submodule (mod_solvers) smod_arpack_main
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine solve_arpack_general
 
+    !> Solves the eigenvalue problem using the Arnoldi shift-invert method.
     module subroutine solve_arpack_shift_invert( &
       arpack_cfg, matrix_A, matrix_B, sigma, omega, vr &
     )

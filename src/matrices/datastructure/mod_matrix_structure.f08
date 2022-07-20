@@ -1,3 +1,5 @@
+! =============================================================================
+!> Module that contains the datastructure for a linked-list matrix representation.
 module mod_matrix_structure
   use mod_global_variables, only: dp
   use mod_logging, only: log_message, str
@@ -196,9 +198,9 @@ contains
 
 
   !> Returns the complex element associated with the linked-list node at position
-  !! (row, column) in the matrix datastructure. Throws appropriate errors if the
-  !! node element types do not match. Non-existing nodes correspond to zero elements,
-  !! so in that case this function returns (complex) zero.
+  !! (row, column) in the matrix datastructure. Non-existing nodes correspond to zero
+  !! values, so when a node at (row, column) is not foudn this function returns
+  !! (complex) zero.
   function get_complex_element(this, row, column) result(element)
     !> type instance
     class(matrix_t), intent(in) :: this

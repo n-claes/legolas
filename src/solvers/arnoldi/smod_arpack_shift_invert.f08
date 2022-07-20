@@ -1,3 +1,8 @@
+! =============================================================================
+!> Module containing the implementation for the ARPACK shift-invert-type solver,
+!! that is, given the general eigenvalue problem $$ AX = \omega BX, $$ choose a
+!! shift \(\sigma\) and solve the problem $$ (A - \sigma B)X = \omega X, $$ thereby
+!! finding \(k\) eigenvalues of the shifted problem that satisfy a given criterion.
 submodule (mod_solvers:smod_arpack_main) smod_arpack_shift_invert
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
   use mod_transform_matrix, only: matrix_to_banded
@@ -5,6 +10,7 @@ submodule (mod_solvers:smod_arpack_main) smod_arpack_shift_invert
 
 contains
 
+  !> Implementation of the ARPACK shift-invert solver
   module procedure solve_arpack_shift_invert
     !> contains the basis vectors
     complex(dp) :: basis_vectors(arpack_cfg%get_evpdim(), arpack_cfg%get_ncv())
@@ -30,7 +36,7 @@ contains
 
     call log_message("creating banded A - sigma*B", level="debug")
     diags = dim_quadblock - 1
-    !> @note: we don't do `matrix_to_banded(matrix_A - matrix_B * sigma)` as it appears
+    !> @note we don't do `matrix_to_banded(matrix_A - matrix_B * sigma)` as it appears
     !! that in rare cases this gives rise to numerical difficulties. Depending on the
     !! equilibrium, for some rather small `sigma` the differences between direct
     !! conversion and operating on `band%AB` are on the order of 1e-8 to 1e-9 for the
@@ -138,12 +144,12 @@ contains
       "performing eigenvalue backtransformation to original problem (nu -> omega)", &
       level="debug" &
     )
-    !> @note In applying shift-invert we made the transformation $C = inv[B]*A$ and
-    !! solved the standard eigenvalue problem $Cx = \nu x$ instead since B isn't
+    !> @note In applying shift-invert we made the transformation \(C = inv[B]*A\) and
+    !! solved the standard eigenvalue problem \(CX = \nu X\) instead since B isn't
     !! always Hermitian (e.g. if we include Hall).
     !! According to the ARPACK documentation, section 3.2.2, this
-    !! implies that we must manually transform the eigenvalues $\nu_j$ from $C$ to the
-    !! eigenvalues $\omega_j$ from the original system. This uses the relation
+    !! implies that we must manually transform the eigenvalues \(\nu_j\) from \(C\)
+    !! to the eigenvalues \(\omega_j\) from the original system. This uses the relation
     !! $$ \omega_j = \sigma + \frac{1}{\nu_j} $$
     !! @endnote
     omega = sigma + (1.0d0 / omega)
