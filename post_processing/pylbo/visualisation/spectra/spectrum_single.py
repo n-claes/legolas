@@ -1,8 +1,10 @@
 import numpy as np
 from pylbo.utilities.toolbox import add_pickradius_to_item
 from pylbo.visualisation.continua import ContinuaHandler
-from pylbo.visualisation.derived_eigenfunctions import DerivedEigenfunctionHandler
-from pylbo.visualisation.eigenfunctions import EigenfunctionHandler
+from pylbo.visualisation.eigenfunctions.derived_eigfunc_handler import (
+    DerivedEigenfunctionHandler,
+)
+from pylbo.visualisation.eigenfunctions.eigfunc_handler import EigenfunctionHandler
 from pylbo.visualisation.spectra.spectrum_figure import SpectrumFigure
 
 

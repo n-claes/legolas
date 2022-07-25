@@ -1,6 +1,8 @@
 from pylbo.utilities.toolbox import add_pickradius_to_item
-from pylbo.visualisation.derived_eigenfunctions import DerivedEigenfunctionHandler
-from pylbo.visualisation.eigenfunctions import EigenfunctionHandler
+from pylbo.visualisation.eigenfunctions.derived_eigfunc_handler import (
+    DerivedEigenfunctionHandler,
+)
+from pylbo.visualisation.eigenfunctions.eigfunc_handler import EigenfunctionHandler
 from pylbo.visualisation.legend_interface import LegendHandler
 from pylbo.visualisation.spectra.spectrum_figure import SpectrumFigure
 
