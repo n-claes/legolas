@@ -3,6 +3,8 @@ from pathlib import Path
 
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes as mpl_axes
+from matplotlib.figure import Figure as mpl_fig
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import get_axis_geometry, transform_to_numpy
 
@@ -22,103 +24,6 @@ def refresh_plot(f):
         return f
 
     return refresh
-
-
-class FigureContainer(dict):
-    """
-    A special dictionary containing the currently active figures.
-
-    Attributes
-    ----------
-    stack_is_enabled : bool
-        If `True` (default), the dictionary is unlocked and figures are drawn
-        when calling `plt.show()`.
-        If `False`, the figures in the dictionary will remain
-        closed and will not be drawn.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.stack_is_enabled = True
-
-    def add(self, figure):
-        """
-        Adds a new figure to the stack.
-
-        Parameters
-        ----------
-        figure : ~pylbo.visualisation.figure_manager.FigureWindow
-            The figure to add.
-
-        Raises
-        -------
-        ValueError
-            If the figure id is already present in the stack.
-        """
-        if figure.figure_id in self.figure_id_list:
-            raise ValueError(
-                f"id = '{figure.figure_id}' already in existing list: "
-                f"{self.figure_id_list}"
-            )
-        self.update({figure.figure_id: figure})
-
-    def pop(self, figure_id):
-        """
-        Removes and returns the figure corresponding to the given id from the stack.
-
-        Parameters
-        ----------
-        figure_id : str
-            The figure id, corresponds to the dictionary key.
-
-        Returns
-        -------
-        figure : ~pylbo.visualisation.figure_manager.FigureWindow
-            The figure corresponding to `figure_id`.
-        """
-        self._validate_figure_id(figure_id)
-        plt.close(figure_id)
-        return super().pop(figure_id)
-
-    def _validate_figure_id(self, figure_id):
-        """
-        Checks if the current id is present, needed to avoid matplotlib errors
-        when trying to close.
-
-        Parameters
-        ----------
-        figure_id : str
-            The figure id, corresponds to the dictionary key.
-
-        Raises
-        -------
-        ValueError
-            If the given id is not present in the list.
-        """
-        if figure_id not in self.figure_id_list:
-            raise ValueError(
-                f"id='{figure_id}' not in existing list {self.figure_id_list}"
-            )
-
-    @property
-    def number_of_figures(self):
-        """Returns the total number of figures in the stack."""
-        return len(self)
-
-    @property
-    def figure_id_list(self):
-        """Returns the list of figure ids in the stack."""
-        return list(self.keys())
-
-    @property
-    def figure_list(self):
-        """Returns the list of figures in the stack."""
-        return list(self.values())
-
-    @property
-    def is_empty(self):
-        """Returns `True` if there are no active figures."""
-        return len(self) == 0
 
 
 class FigureWindow:
@@ -153,37 +58,30 @@ class FigureWindow:
         Scaling to apply to the y-axis.
     """
 
-    figure_stack = FigureContainer()
+    figure_stack = dict()
 
-    def __init__(self, figure_type, figsize=None, custom_figure=None):
-        if custom_figure is not None:
-            self.fig, self.ax = custom_figure
-            self.figsize = tuple(self.fig.get_size_inches())
-            if self.fig.get_label() == "":
-                self.figure_id = self._generate_figure_id(figure_type)
-            else:
-                self.figure_id = self._generate_figure_id(self.fig.get_label())
-        else:
-            self.figsize = figsize
-            if self.figsize is None:
-                self.figsize = (12, 8)
-            self.figure_id = self._generate_figure_id(figure_type)
-            self.fig = plt.figure(self.figure_id, figsize=self.figsize)
-            self.ax = self.fig.add_subplot(111)
+    def __init__(
+        self,
+        figure_type: str,
+        figsize: tuple[int, int] = None,
+        custom_figure: tuple[mpl_fig, mpl_axes] = None,
+    ):
+        self.fig, self.ax = self._create_axes_instances(
+            custom_figure, figure_type, figsize
+        )
         self.x_scaling = 1.0
         self.y_scaling = 1.0
         self._mpl_callbacks = []
-        self.__class__.figure_stack.add(self)
 
     @classmethod
-    def _generate_figure_id(cls, figure_type):
+    def _generate_figure_id(cls, figlabel: str) -> str:
         """
         Generates a unique figure id.
 
         Parameters
         ----------
-        figure_type : str
-            The type of figure to create
+        figlabel : str
+            The label of the figure.
 
         Returns
         -------
@@ -191,11 +89,48 @@ class FigureWindow:
             The unique figure id of the form "figure_type-x" where x is an integer.
         """
         # count occurences of this type of id in the list
-        occurences = sum(
-            figure_type in fig_id for fig_id in cls.figure_stack.figure_id_list
-        )
-        suffix = 1 + occurences
-        return f"{figure_type}-{suffix}"
+        occurences = sum(figlabel in fig_id for fig_id in list(cls.figure_stack.keys()))
+        return f"{figlabel}-{1 + occurences}"
+
+    def _create_axes_instances(
+        self,
+        custom_figure: tuple[mpl_fig, mpl_axes],
+        figlabel: str,
+        figsize: tuple[int, int],
+    ) -> tuple[mpl_fig, mpl_axes]:
+        """
+        Creates the figure and axes instances.
+
+        Parameters
+        ----------
+        custom_figure : tuple[~matplotlib.figure.Figure, ~matplotlib.axes.Axes]
+            A custom figure to use, in the form (fig, ax) corresponding to the figure
+            and axis objects from matplotlib.
+        figlabel : str
+            The label of the figure.
+        figsize : tuple[int, int]
+            The size of the figure, default is (10, 6).
+
+        Returns
+        -------
+        fig : ~matplotlib.figure.Figure
+            The figure on which to draw.
+        ax : ~matplotlib.axes.Axes
+            The axes on which to draw.
+        """
+        if custom_figure is not None:
+            fig, ax = custom_figure
+            figsize = tuple(fig.get_size_inches())
+            fig_id = fig.get_label()
+        else:
+            figsize = figsize if figsize is not None else (10, 6)
+            fig_id = self._generate_figure_id(figlabel)
+            fig = plt.figure(fig_id, figsize=figsize)
+            ax = fig.add_subplot(111)
+        self.figsize = figsize
+        self.figure_id = fig_id
+        self.__class__.figure_stack.update({fig_id: self})
+        return fig, ax
 
     def connect_callbacks(self):
         """Connects all callbacks to the canvas"""
@@ -349,15 +284,8 @@ class FigureWindow:
         self.y_scaling = y_scaling
 
     def show(self):
-        """Shows the figures, wrapper to `showall()` for backwards compatibility."""
-        self.showall()
-
-    @classmethod
-    def showall(cls):
-        """Shows all active figures at once through a call to plt.show()."""
-        for figure in cls.figure_stack.figure_list:
-            figure.connect_callbacks()
-        plt.show()
+        """Shows the current figure"""
+        plt.figure(self.figure_id)
 
     def save(self, filename, **kwargs):
         """

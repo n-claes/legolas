@@ -118,7 +118,7 @@ def test_spectrum_plot_figlabel(ds_v112):
     fig = plt.figure("testfig")
     ax = fig.add_subplot(111)
     p = pylbo.plot_spectrum(ds_v112, custom_figure=(fig, ax))
-    assert p.figure_id == "testfig-1"
+    assert p.figure_id == "testfig"
 
 
 def test_multispectrum_plot_invalid_data(ds_v112):
