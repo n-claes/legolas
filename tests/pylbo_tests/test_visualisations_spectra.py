@@ -1,11 +1,11 @@
-import pytest
-import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
 import pylbo
-from pylbo.visualisation.spectra import SingleSpectrumPlot
+import pytest
 from pylbo.exceptions import EigenfunctionsNotPresent
 from pylbo.utilities.toolbox import get_axis_geometry
+from pylbo.visualisation.spectra.spectrum_single import SingleSpectrumPlot
 
 
 def test_spectrum_plot_invalid_data(series_v112):

@@ -1,13 +1,15 @@
-from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
-from pylbo.visualisation.spectra import SingleSpectrumPlot
-from pylbo.visualisation.spectra import MultiSpectrumPlot
-from pylbo.visualisation.spectra import MergedSpectrumPlot
-from pylbo.visualisation.spectra import SpectrumComparisonPlot
-from pylbo.visualisation.profiles import EquilibriumProfile
-from pylbo.visualisation.profiles import EquilibriumBalance
-from pylbo.visualisation.profiles import ContinuumProfile
-from pylbo.visualisation.matrices import MatrixFigure
+from pylbo.data_containers import LegolasDataSeries, LegolasDataSet
 from pylbo.utilities.logger import pylboLogger
+from pylbo.visualisation.matrices import MatrixFigure
+from pylbo.visualisation.profiles import (
+    ContinuumProfile,
+    EquilibriumBalance,
+    EquilibriumProfile,
+)
+from pylbo.visualisation.spectra.spectrum_comparison import SpectrumComparisonPlot
+from pylbo.visualisation.spectra.spectrum_merged import MergedSpectrumPlot
+from pylbo.visualisation.spectra.spectrum_multi import MultiSpectrumPlot
+from pylbo.visualisation.spectra.spectrum_single import SingleSpectrumPlot
 
 forbidden_args = ["linestyle", "linewidth", "lw"]
 

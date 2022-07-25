@@ -1,7 +1,8 @@
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-from pathlib import Path
 from functools import wraps
+from pathlib import Path
+
+import matplotlib.gridspec as gridspec
+import matplotlib.pyplot as plt
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import get_axis_geometry, transform_to_numpy
 
