@@ -1,4 +1,23 @@
+from functools import wraps
+
 import matplotlib.axes
+
+
+def refresh_plot(f: callable) -> callable:
+    """
+    Simple decorator, when a routine is wrapped with this the plot will be
+    cleared and redrawn on calling it.
+    Useful for when the scaling is changed or artists are added/removed.
+    """
+
+    @wraps(f)
+    def refresh(*args, **kwargs):
+        f(*args, **kwargs)
+        window = args[0]
+        window.draw()
+        return f
+
+    return refresh
 
 
 def _validate_textbox_location(loc: str) -> str:

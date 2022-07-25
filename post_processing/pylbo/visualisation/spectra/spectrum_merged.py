@@ -3,7 +3,7 @@ from pylbo.visualisation.eigenfunctions.derived_eigfunc_handler import (
     DerivedEigenfunctionHandler,
 )
 from pylbo.visualisation.eigenfunctions.eigfunc_handler import EigenfunctionHandler
-from pylbo.visualisation.legend_interface import LegendHandler
+from pylbo.visualisation.legend_handler import LegendHandler
 from pylbo.visualisation.spectra.spectrum_figure import SpectrumFigure
 
 
@@ -34,7 +34,7 @@ class MergedSpectrumPlot(SpectrumFigure):
 
     def __init__(self, data, figsize, custom_figure, interactive, legend, **kwargs):
         super().__init__(
-            figure_type="merged-spectrum", figsize=figsize, custom_figure=custom_figure
+            custom_figure=custom_figure, figlabel="merged_spectrum", figsize=figsize
         )
         self.data = data
         self.leg_handle = LegendHandler(interactive)
@@ -45,12 +45,12 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._single_color = True
             # if everything is 1 color no use for a legend
             self._use_legend = False
-        self._add_spectrum()
+        self.add_spectrum()
 
         if self._use_legend and interactive:
-            self._enable_interactive_legend(self.leg_handle)
+            super().make_legend_interactive(self.leg_handle)
 
-    def _add_spectrum(self):
+    def add_spectrum(self):
         """Adds the spectrum to the plot, makes the points pickable."""
         color = None
         if self._single_color:
@@ -82,20 +82,20 @@ class MergedSpectrumPlot(SpectrumFigure):
     def add_eigenfunctions(self):
         """Adds the eigenfunctions to the current figure."""
         if self._ef_ax is None:
-            self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
+            self._ef_ax = super().add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax, self.ax)
-        super()._enable_interface(handle=self._ef_handler)
+        super().add_eigenfunction_interface(efhandler=self._ef_handler)
 
     def add_derived_eigenfunctions(self):
         """Adds the derived eigenfunctions to the current figure."""
         if self._def_ax is None:
-            self._def_ax = super()._add_subplot_axes(self.ax, loc="right")
+            self._def_ax = super().add_subplot_axes(self.ax, loc="right")
         if self._def_handler is None:
             self._def_handler = DerivedEigenfunctionHandler(
                 self.data, self._def_ax, self.ax
             )
-        super()._enable_interface(handle=self._def_handler)
+        super().add_eigenfunction_interface(efhandler=self._def_handler)
 
     def add_continua(self, interactive=True):
         raise NotImplementedError("Continua are not supported for this type of figure.")

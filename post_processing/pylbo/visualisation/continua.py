@@ -1,6 +1,6 @@
 import numpy as np
 from pylbo.utilities.logger import pylboLogger
-from pylbo.visualisation.legend_interface import LegendHandler
+from pylbo.visualisation.legend_handler import LegendHandler
 
 CONTINUA_NAMES = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]
 CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "green", "grey"]

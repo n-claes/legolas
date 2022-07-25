@@ -39,16 +39,16 @@ class SingleSpectrumPlot(SpectrumFigure):
 
     def __init__(self, dataset, figsize, custom_figure, **kwargs):
         super().__init__(
-            figure_type="single-spectrum", figsize=figsize, custom_figure=custom_figure
+            custom_figure=custom_figure, figlabel="single-spectrum", figsize=figsize
         )
         self.dataset = dataset
         super()._set_plot_properties(kwargs)
 
         self.w_real = self.dataset.eigenvalues.real
         self.w_imag = self.dataset.eigenvalues.imag
-        self._add_spectrum()
+        self.add_spectrum()
 
-    def _add_spectrum(self):
+    def add_spectrum(self):
         """Adds the spectrum to the plot, makes the points pickable."""
         (spectrum_point,) = self.ax.plot(
             self.w_real * self.x_scaling,
@@ -108,25 +108,26 @@ class SingleSpectrumPlot(SpectrumFigure):
             )
             self._c_handler.add(item)
         self._c_handler.legend = self.ax.legend(**self._c_handler.legend_properties)
-        super().add_continua(self._c_handler.interactive)
+        if interactive:
+            super().make_legend_interactive(self._c_handler)
         return self._c_handler
 
     def add_eigenfunctions(self):
         """Adds the eigenfunctions to the plot, sets the eigenfunction handler."""
         if self._ef_ax is None:
-            self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
+            self._ef_ax = super().add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax, self.ax)
-        super()._enable_interface(handle=self._ef_handler)
+        super().add_eigenfunction_interface(efhandler=self._ef_handler)
 
     def add_derived_eigenfunctions(self):
         """
         Adds the derived eigenfunctions to the plot, sets the eigenfunction handler.
         """
         if self._def_ax is None:
-            self._def_ax = super()._add_subplot_axes(self.ax, loc="right")
+            self._def_ax = super().add_subplot_axes(self.ax, loc="right")
         if self._def_handler is None:
             self._def_handler = DerivedEigenfunctionHandler(
                 self.dataset, self._def_ax, self.ax
             )
-        super()._enable_interface(handle=self._def_handler)
+        super().add_eigenfunction_interface(efhandler=self._def_handler)

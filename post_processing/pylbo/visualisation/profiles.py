@@ -1,16 +1,20 @@
 import numpy as np
-from pylbo.visualisation.figure_manager import FigureWindow
-from pylbo.visualisation.legend_interface import LegendHandler
 from pylbo.visualisation.continua import ContinuaHandler
+from pylbo.visualisation.figure_window import FigureWindow, InteractiveFigureWindow
+from pylbo.visualisation.legend_handler import LegendHandler
 
 
-class EquilibriumProfile(FigureWindow):
+class EquilibriumProfile(InteractiveFigureWindow):
     """Subclass responsible for drawing the equilibrium profiles."""
 
     def __init__(self, data, figsize, interactive, **kwargs):
-        super().__init__(figure_type="equilibrium-fields", figsize=figsize)
+        fig, ax = super().create_default_figure(
+            figlabel="equilibrium-fields", figsize=figsize
+        )
+        super().__init__(fig)
         self.data = data
         self.kwargs = kwargs
+        self.ax = ax
         self.ax2 = None
         # check if we need an additional axis
         for name in self.data.eq_names:
@@ -18,23 +22,16 @@ class EquilibriumProfile(FigureWindow):
             if name.startswith("d"):
                 values = self.data.equilibria.get(name)
                 if any(values != 0):
-                    self.ax2 = super()._add_subplot_axes(self.ax, "bottom")
+                    self.ax2 = super().add_subplot_axes(self.ax, "bottom")
                     break
         self.leg_handle = LegendHandler(interactive)
         self.draw()
         if interactive:
-            self._enable_interactive_legend(self.leg_handle)
-
-    def draw(self):
-        """Draws the figure."""
-        super().draw()
-        self._add_equilibria()
+            super().make_legend_interactive(self.leg_handle)
         self.fig.tight_layout()
 
-    def _add_equilibria(self):
-        """
-        Adds the equilibria to the figure. Also sets the legend handler items
-        """
+    def draw(self):
+        """Adds the equilibria to the figure. Also sets the legend handler items"""
         items = []
         for name in self.data.eq_names:
             if name.startswith("d"):
@@ -82,25 +79,22 @@ class EquilibriumProfile(FigureWindow):
         self.leg_handle.autoscale = True
 
 
-class ContinuumProfile(FigureWindow):
+class ContinuumProfile(InteractiveFigureWindow):
     """Subclass responsible for drawing the continuum profiles."""
 
     def __init__(self, data, figsize, interactive, **kwargs):
-        super().__init__(figure_type="continua", figsize=figsize)
+        fig, ax = super().create_default_figure(figlabel="continua", figsize=figsize)
+        super().__init__(fig)
+        self.ax = ax
         self.data = data
         self.kwargs = kwargs
         self.handler = ContinuaHandler(interactive)
         self.draw()
         if interactive:
-            self._enable_interactive_legend(self.handler)
-
-    def draw(self):
-        """Draws the continua."""
-        super().draw()
-        self._draw_continua()
+            self.make_legend_interactive(self.handler)
         self.fig.tight_layout()
 
-    def _draw_continua(self):
+    def draw(self):
         """Adds the continua to the plot, also sets the legend handlers."""
         for color, name in zip(
             self.handler.continua_colors, self.handler.continua_names
@@ -147,10 +141,14 @@ class EquilibriumBalance(FigureWindow):
     """Subclass responsible for plotting the equilibrium balance equations."""
 
     def __init__(self, data, figsize, **kwargs):
-        super().__init__(figure_type="equilibrium-balance", figsize=figsize)
+        fig, ax = super().create_default_figure(
+            figlabel="equilibrium-balance", figsize=figsize
+        )
+        super().__init__(fig)
         self.data = data
         self.kwargs = kwargs
-        self.ax2 = super()._add_subplot_axes(self.ax, "bottom")
+        self.ax = ax
+        self.ax2 = super().add_subplot_axes(self.ax, "bottom")
         self.draw()
 
     def draw(self):

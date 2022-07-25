@@ -31,15 +31,13 @@ class SpectrumComparisonPlot(SpectrumFigure):
 
     def __init__(self, ds1, ds2, figsize, custom_figure, lock_zoom, **kwargs):
         super().__init__(
-            figure_type="compare-spectra",
-            figsize=figsize,
-            custom_figure=custom_figure,
+            custom_figure=custom_figure, figlabel="compare-spectra", figsize=figsize
         )
         super()._set_plot_properties(kwargs)
         share = None
         if lock_zoom:
             share = "all"
-        self.ax2 = super()._add_subplot_axes(self.ax, "right", share=share)
+        self.ax2 = super().add_subplot_axes(self.ax, "right", share=share)
         # both panels are essentially single spectra, so create two instances and
         # link that figure with this one
         self.panel1 = SingleSpectrumPlot(
@@ -80,8 +78,8 @@ class SpectrumComparisonPlot(SpectrumFigure):
         """Splits the original 1x2 plot into a 2x2 plot."""
         if self._axes_set:
             return
-        self.panel1._ef_ax = self.panel1._add_subplot_axes(self.panel1.ax, loc="bottom")
-        self.panel2._ef_ax = self.panel2._add_subplot_axes(self.panel2.ax, loc="bottom")
+        self.panel1._ef_ax = self.panel1.add_subplot_axes(self.panel1.ax, loc="bottom")
+        self.panel2._ef_ax = self.panel2.add_subplot_axes(self.panel2.ax, loc="bottom")
         self._axes_set = True
 
     def add_eigenfunctions(self):

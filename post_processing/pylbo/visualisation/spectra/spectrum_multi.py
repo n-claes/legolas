@@ -46,7 +46,7 @@ class MultiSpectrumPlot(SpectrumFigure):
         **kwargs,
     ):
         super().__init__(
-            figure_type="multi-spectrum", figsize=figsize, custom_figure=custom_figure
+            custom_figure=custom_figure, figlabel="multi-spectrum", figsize=figsize
         )
         self.dataseries = dataseries
         self.use_squared_omega = use_squared_omega
@@ -59,7 +59,7 @@ class MultiSpectrumPlot(SpectrumFigure):
         self.x_scaling = np.ones_like(self.dataseries, dtype=float)
         self.y_scaling = np.ones_like(self.dataseries, dtype=float)
         super()._set_plot_properties(kwargs)
-        self._add_spectrum()
+        self.add_spectrum()
 
     def _validate_xdata(self, xdata):
         """
@@ -145,7 +145,7 @@ class MultiSpectrumPlot(SpectrumFigure):
             y_scaling = np.ones_like(self.dataseries, dtype=float) * y_scaling
         super().set_y_scaling(y_scaling)
 
-    def _add_spectrum(self):
+    def add_spectrum(self):
         """
         Draw method, creates the spectrum.
         """
@@ -218,25 +218,26 @@ class MultiSpectrumPlot(SpectrumFigure):
                 )
             self._c_handler.add(item)
         self._c_handler.legend = self.ax.legend(**self._c_handler.legend_properties)
-        super().add_continua(self._c_handler.interactive)
+        if interactive:
+            super().make_legend_interactive(self._c_handler)
         return self._c_handler
 
     def add_eigenfunctions(self):
         """Adds the eigenfunctions to the current figure."""
         if self._ef_ax is None:
-            self._ef_ax = super()._add_subplot_axes(self.ax, loc="right")
+            self._ef_ax = super().add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
             self._ef_handler = EigenfunctionHandler(
                 self.dataseries, self._ef_ax, self.ax
             )
-        super()._enable_interface(handle=self._ef_handler)
+        super().add_eigenfunction_interface(efhandler=self._ef_handler)
 
     def add_derived_eigenfunctions(self):
         """Adds the derived eigenfunctions to the current figure."""
         if self._def_ax is None:
-            self._def_ax = super()._add_subplot_axes(self.ax, loc="right")
+            self._def_ax = super().add_subplot_axes(self.ax, loc="right")
         if self._def_handler is None:
             self._def_handler = DerivedEigenfunctionHandler(
                 self.dataseries, self._def_ax, self.ax
             )
-        super()._enable_interface(handle=self._def_handler)
+        super().add_eigenfunction_interface(efhandler=self._def_handler)
