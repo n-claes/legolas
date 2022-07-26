@@ -85,10 +85,10 @@ This namelist includes all solver-related variables. For more information, see [
 | :---          | :---: | :----         | :---:             |
 | solver        | string    | which solver to use, if 'none' eigenvalues and -functions are set to NaN | `"QR-invert"` |
 | arpack_mode   | string    | the mode for ARPACK, only used if `solver="arnoldi"` | `"standard"`  |
-| number_of_eigenvalues | int   | number of eigenvalues to calculate, only used if `solver="arnoldi"`   | 10    |
+| number_of_eigenvalues | int   | number of eigenvalues to calculate (k) , only used if `solver="arnoldi"`   | 10    |
 | which eigenvalues | string    | which eigenvalues to calculate, only used if `solver="arnoldi"`   |   `"LM"`  |
-| maxiter       | int   | the maximum number of iterations the Arnoldi solver may take, only if `solver="arnoldi"` | 10N   |
-| sigma         | complex   | sigma-value around which to do shift-invert, only for `arpack_mode="shift-invert"`  | - |
+| maxiter       | int   | the maximum number of iterations the Arnoldi or inverse iteration solver may take | max(100, 10k)   |
+| sigma         | complex   | sigma-value around which to do shift-invert, only for `arpack_mode="shift-invert"` and inverse iteration  | - |
 | ncv           | int   | the number of basis vectors used by the Arnoldi solver | 2 $\times$ `number_of_eigenvalues` |
 
 ## unitslist

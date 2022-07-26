@@ -231,7 +231,7 @@ contains
 
 
   !> Sets the maximum number of iterations that ARPACK is allowed to take, defaults
-  !! to 10 * N with N the dimension of the eigenvalue problem.
+  !! to max(100, 10 * k) with k the number of eigenvalues.
   !! @warning Throws a warning if <tt>maxiter</tt> is smaller than 10*N. @endwarning
   subroutine set_maxiter(this, maxiter)
     !> type instance
@@ -240,7 +240,7 @@ contains
     integer, intent(in) :: maxiter
     integer :: min_maxiter
 
-    min_maxiter = 10 * this%get_evpdim()
+    min_maxiter = max(100, 10 * this%get_nev())
     if (maxiter < 0) then
       call log_message( &
         "Arnoldi: maxiter must be positive, but is equal to " // str(maxiter), &
@@ -255,7 +255,7 @@ contains
     end if
     if (this%maxiter < min_maxiter) then ! LCOV_EXCL_START
       call log_message( &
-        "Arnoldi: maxiter (" // str(maxiter) // ") below recommended 10*N (" &
+        "Arnoldi: maxiter (" // str(maxiter) // ") below recommended max(100, 10*k) (" &
         // str(min_maxiter) // ")", &
         level="warning" &
       )

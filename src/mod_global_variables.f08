@@ -272,8 +272,8 @@ contains
     arpack_mode = "standard"
     number_of_eigenvalues = 100
     which_eigenvalues = "LM"
-    ! this defaults to 10*N for Arnoldi, which is changed later,
-    ! for inverse-iteration we default to 100
+    ! this defaults to max(100, 10k) with k the number of
+    ! eigenvalues this is set later
     maxiter = 0
     ncv = 0
     tolerance = DP_limit
