@@ -28,6 +28,18 @@ from pylbo.utilities.toolbox import transform_to_numpy
 from pylbo.visualisation.continua import calculate_continua
 
 
+def ensure_dataset(data: any) -> None:
+    """Ensures that the given data is a :class:`LegolasDataSet`."""
+    if not isinstance(data, LegolasDataSet):
+        raise TypeError(f"expected a LegolasDataSet, got {type(data)}")
+
+
+def ensure_dataseries(data: any) -> None:
+    """Ensures that the given data is a :class:`LegolasDataSeries`."""
+    if not isinstance(data, LegolasDataSeries):
+        raise TypeError(f"expected a LegolasDataSeries, got {type(data)}")
+
+
 class LegolasDataContainer(ABC):
     """
     Baseclass for a Legolas data container.
