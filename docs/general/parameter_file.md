@@ -125,6 +125,7 @@ The level of output is controlled through the integer `logging_level`:
 | write_eigenfunctions  | logical | if `.true.` eigenfunctions are calculated and written to the datfile  |   `.true.`  |
 | write_derived_eigenfunctions | logical | if `.true.` also calculates derived eigenfunction quantities ($\nabla \cdot \mathbf{B_1}$, $S$, $v_\parallel$, etc.) |  `.false.` |
 | write_eigenvectors | logical | if `.true.` the eigenvectors are calculated and written to the datfile   |   `.false.`   |
+| write_residuals | logical | if `.true.` the relative residuals are calculated and written to the datfile   |   `.true.`   |
 | write_eigenfunction_subset | logical | if `.true.` only saves a part of the eigenfunctions to the datfile, based on a given radius and complex point | `.false.` |
 | eigenfunction_subset_center | complex | point in the complex plane that defines the center of the circle in which to save eigenfunctions, needs `eigenfunction_subset_radius` to be set | - |
 | eigenfunction_subset_radius | float | radius around `eigenfunction_subset_center`, all eigenvalues within this circle will have their eigenfunctions saved | - |

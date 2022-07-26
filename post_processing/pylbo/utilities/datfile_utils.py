@@ -102,6 +102,11 @@ def get_header(istream):
     if legolas_version >= "1.2.1":
         hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         h["eigenvecs_written"] = bool(*hdr)
+    # read eigenvectors boolean
+    h["residuals_written"] = False
+    if legolas_version >= "1.2.1":
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        h["residuals_written"] = bool(*hdr)
     # read eigenfunction subset info
     h["eigenfunction_subset_used"] = False
     if legolas_version >= "1.1.4":
@@ -300,6 +305,15 @@ def get_header(istream):
         offsets.update({"eigenvectors": istream.tell()})
         istream.seek(istream.tell() + byte_size)
 
+    # if residuals are written include offset
+    if h["residuals_written"]:
+        fmt = ALIGN + "i"
+        h["nb_residuals"] = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))[0]
+
+        byte_size = SIZE_DOUBLE * h["nb_residuals"]
+        offsets.update({"residuals": istream.tell()})
+        istream.seek(istream.tell() + byte_size)
+
     # if matrices are written, include amount of nonzero elements and offsets
     if h["matrices_written"]:
         fmt = ALIGN + 2 * "i"
@@ -409,6 +423,27 @@ def read_eigenvectors(istream, header):
         (header["eigenvec_len"], header["nb_eigenvecs"]),
         order = 'F'
     )
+
+def read_residuals(istream, header):
+    """
+    Reads the residuals from the datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+
+    Returns
+    -------
+    eigenvectors : numpy.ndarray(dtype=double, ndim=1)
+        The residuals from the datfile.
+    """
+    istream.seek(header["offsets"]["residuals"])
+    fmt = ALIGN + "d" * header["nb_residuals"]
+    res = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+    return np.asarray(res)
 
 
 def read_eigenvalues(istream, header, omit_large_evs=True):

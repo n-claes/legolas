@@ -94,7 +94,10 @@ contains
     real(dp)  :: b01_array(size(B_field % B02))
     character(len=str_len_arr)    :: param_names(34), equil_names(32)
     character(len=2*str_len_arr)  :: unit_names(12)
-    integer :: i
+    real(dp), allocatable         :: residuals(:)
+    integer                       :: N, i, j, nonzero_A_values, nonzero_B_values
+
+    real(dp) :: dznrm2
 
     param_names = [ &
       character(len=str_len_arr) :: "k2", "k3", "cte_rho0", "cte_T0", "cte_B01", &
@@ -132,8 +135,8 @@ contains
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
       gauss_gridpts, dim_matrix, ef_gridpts, gamma, equilibrium_type, &
       write_eigenfunctions, write_derived_eigenfunctions, write_matrices, &
-      write_eigenvectors, write_eigenfunction_subset, eigenfunction_subset_center, &
-      eigenfunction_subset_radius
+      write_eigenvectors, write_residuals, write_eigenfunction_subset, &
+      eigenfunction_subset_center, eigenfunction_subset_radius
     write(dat_fh) size(param_names), len(param_names(1)), param_names
     write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, &
       cte_v03, cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, &
@@ -189,6 +192,38 @@ contains
       call log_message("writing eigenvectors...", level="info")
       write(dat_fh) size(eigenvectors, 1), size(eigenvectors, 2), eigenvectors
     end if
+
+    ! Residuals data [optional]
+    if (write_residuals) then
+      N = size(eigenvalues)
+      allocate(residuals(N))
+
+      call log_message("computing residuals...", level="info")
+      ! TODO: DGEMM and ZGEMM would be more efficient, however idealy
+      !       this would switch to sparese operations anyway
+      do i = 1, N
+        if (abs(eigenvalues(i)) < DP_limit) then
+          residuals(i) = 0.0_dp
+        else
+          residuals(i) = &
+            dznrm2(N, &
+              matmul(matrix_A, eigenvectors(:,i)) - eigenvalues(i) * &
+              matmul((1.0_dp, 0.0_dp) * matrix_B, eigenvectors(:,i)), 1 &
+            ) &
+          / &
+            dznrm2(N, &
+              eigenvalues(i) * eigenvectors(:, i), 1 &
+            )
+        end if
+      end do
+
+      call log_message("writing residuals...", level="info")
+      write(dat_fh) size(residuals), residuals
+      deallocate(residuals)
+    end if
+
+    ! Matrix data [optional]
+    if (write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
 
     ! Matrix data [optional]
     if (write_matrices) call write_matrices_to_file(matrix_A, matrix_B)

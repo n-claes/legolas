@@ -252,6 +252,7 @@ contains
     call log_message("output folder        : " // trim(adjustl(output_folder)))
     call log_message("write matrices       : " // str(write_matrices))
     call log_message("write eigenvectors   : " // str(write_eigenvectors))
+    call log_message("write residuals      : " // str(write_residuals))
     call log_message("write eigenfunctions : " // str(write_eigenfunctions))
     call log_message( &
       "write derived eigenfunctions : " // str(write_derived_eigenfunctions) &

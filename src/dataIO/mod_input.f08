@@ -59,7 +59,7 @@ contains
         equilibrium_type, boundary_type, use_defaults, remove_spurious_eigenvalues, &
         nb_spurious_eigenvalues
     namelist /savelist/ &
-        write_matrices, write_eigenvectors, write_eigenfunctions, show_results, &
+        write_matrices, write_eigenvectors, write_residuals, write_eigenfunctions, show_results, &
         basename_datfile, basename_logfile, output_folder, logging_level, dry_run, &
         write_derived_eigenfunctions, write_eigenfunction_subset, &
         eigenfunction_subset_center, eigenfunction_subset_radius
@@ -124,6 +124,7 @@ contains
     ! Check dry run settings
     if (dry_run) then
       write_eigenvectors = .false.
+      write_residuals = .false.
       write_eigenfunctions = .false.
       write_matrices = .false.
     end if

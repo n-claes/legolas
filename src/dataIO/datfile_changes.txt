@@ -43,3 +43,5 @@ Changes needed an update of the pylbo reader
 1) added electron_fraction to param_list after g
 2) added write_eigenvectors between write_matrices and write_eigenfunction_subset in header
 3) eigenvectors added after derived eigenfunctions and before matrices (optional)
+4) added write_residuals between write_eigenvectors and write_eigenfunction_subset in header
+5) residuals added after eigenvectors and before matrices (optional)
