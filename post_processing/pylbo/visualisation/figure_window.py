@@ -22,10 +22,6 @@ class FigureWindow:
 
     Attributes
     ----------
-    figure_ids : list[str]
-        A list of all the figure ids.
-    figure_stack : dict[str, FigureWindow]
-        A dictionary of all the figure windows.
     fig : ~matplotlib.figure.Figure
         The figure object.
     figsize : tuple[int, int]
