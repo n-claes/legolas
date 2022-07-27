@@ -3,6 +3,7 @@ from pylbo.data_containers import LegolasDataSet
 from pylbo.exceptions import EigenfunctionsNotPresent
 from pylbo.utilities.toolbox import transform_to_numpy
 from pylbo.visualisation.eigenfunctions.eigfunc_interface import EigenfunctionInterface
+from pylbo.visualisation.utils import ef_name_to_latex
 
 
 class EigenfunctionHandler(EigenfunctionInterface):
@@ -58,9 +59,6 @@ class EigenfunctionHandler(EigenfunctionInterface):
         Creates the title of the eigenfunction plot.
         If the eigenfunction is retransformed an 'r' is prepended if appropriate,
         along with Re/Im depending on the real/imaginary part shown.
-        Additionally, LaTeX formatting is used and numbers are replaced with the
-        corresponding suffix: :math:`(1, 2, 3)`
-        becomes :math:`(x, y, z)` or :math:`(r, \\theta, z)`.
 
         Parameters
         ----------
@@ -72,18 +70,17 @@ class EigenfunctionHandler(EigenfunctionInterface):
         name : str
             The 'new' name for the eigenfunction, used as title.
         """
-        part = "Re"
-        if not self._use_real_part:
-            part = "Im"
-        suffix = ("_x", "_y", "_z")
-        if self.data.geometry == "cylindrical":
-            suffix = ("_r", r"_\theta", "_z")
-            if ef_name in ("rho", "v1", "v3", "T", "a2") and self._retransform:
-                ef_name = f"r{ef_name}"
-        for i, idx in enumerate("123"):
-            ef_name = ef_name.replace(idx, suffix[i])
-        ef_name = ef_name.replace("rho", r"\rho")
-        name = f"{part}(${ef_name}$) eigenfunction"
+        if (
+            self.data.geometry == "cylindrical"
+            and ef_name in ("rho", "v1", "v3", "T", "a2")
+            and self._retransform
+        ):
+            ef_name = f"r{ef_name}"
+
+        ef_name = ef_name_to_latex(
+            ef_name, geometry=self.data.geometry, real_part=self._use_real_part
+        )
+        name = rf"{ef_name} eigenfunction"
         return name
 
     def _mark_points_without_data_written(self):

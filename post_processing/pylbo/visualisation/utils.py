@@ -20,6 +20,47 @@ def refresh_plot(f: callable) -> callable:
     return refresh
 
 
+def ef_name_to_latex(
+    ef_name: str, geometry: str = "Cartesian", real_part: bool = None
+) -> str:
+    """
+    Converts an eigenfunction name to latex formatting. Numbers are replaced with a
+    suffix corresponding to the geometry: :math:`(1, 2, 3)` becomes :math:`(x, y, z)`
+    for Cartesian and :math:`(r, \\theta, z)` for cylindrical geometries. Symbols
+    and letters are also converted to LaTeX.
+
+    Parameters
+    ----------
+    ef_name : str
+        The name of the eigenfunction.
+    geometry : str, optional
+        The geometry of the eigenfunction. The default is "Cartesian".
+    real_part : bool, optional
+        Whether the real part of the eigenfunction is being plotted. The default is
+        None.
+    """
+    part = ""
+    if real_part is not None:
+        part = "Re" if real_part else "Im"
+
+    if geometry == "cylindrical":
+        suffix = ("_r", r"_\theta", "_z")
+    else:
+        suffix = ("_x", "_y", "_z")
+    for i, idx in enumerate("123"):
+        ef_name = ef_name.replace(idx, suffix[i])
+
+    ef_name = ef_name.replace("rho", r"\rho")
+    ef_name = ef_name.replace("div", "\\nabla\\cdot")
+    ef_name = ef_name.replace("curl", "\\nabla\\times")
+    ef_name = ef_name.replace("para", "\\parallel")
+    ef_name = ef_name.replace("perp", "\\perp")
+    latex_name = rf"${ef_name}$"
+    if part != "":
+        latex_name = rf"{part}({latex_name})"
+    return latex_name
+
+
 def _validate_textbox_location(loc: str) -> str:
     """
     Validates the location of the textbox.
@@ -240,7 +281,9 @@ def add_axis_label(
     bb_width = 1.02 * (bb.x1 - bb.x0)
     bb_height = 1.02 * (bb.y1 - bb.y0)
     sample.remove()
-    x, y = _get_textbox_axes_coords(bb_width, bb_height, loc, outside)
+    x, y = _get_textbox_axes_coords(
+        loc=loc, outside=outside, width=bb_width, height=bb_height
+    )
 
     return ax.text(
         x,
