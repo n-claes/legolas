@@ -60,12 +60,11 @@ contains
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, dim_matrix, &
       solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma, NaN, &
-      state_vector
+      state_vector, hall_mhd, x_start, x_end
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
     use mod_logging, only: print_logo
-    use mod_global_variables, only: hall_mhd, hall_substitution, elec_inertia, x_end, x_start
 
     character(len=5*str_len)  :: parfile
     integer   :: nb_evs
@@ -98,16 +97,6 @@ contains
       ratio = maxval(hall_field % hallfactor) / (x_end - x_start)
       if (ratio > 0.1d0) then
         call log_message("large ratio Hall scale / system scale: " // str(ratio), level="warning")
-      end if
-    end if
-
-    if (hall_mhd .and. solver == "arnoldi") then
-      if (elec_inertia) then
-        call log_message("electron inertia not compatible with Arnoldi solver", level="error")
-      else if (hall_substitution) then
-        call log_message("Hall by substitution not compatible with Arnoldi solver, &
-                          & changing to direct computation", level="warning")
-        hall_substitution = .false.
       end if
     end if
 

@@ -363,13 +363,18 @@ contains
       )
     case(3)
       call log_message( &
-        "znaupd: no shifts could be applied during Arnoldi iteration", level="error" &
+        "znaupd: no shifts could be applied during a cycle of the Arnoldi iteration." &
+        // " Try increasing the size of ncv relative to number_of_eigenvalues.", &
+        level="error" &
       )
       return
     case(-6)
       call log_message("znaupd: bmat must be 'I' or 'G'", level="error")
     case(-8)
       call log_message("znaupd: error LAPACK eigenvalue calculation", level="error")
+      return
+    case(-9)
+      call log_message("znaupd: starting vector is zero, try rerunning?", level="error")
       return
     case(-11)
       call log_message("mode = 1 and bmat = 'G' are incompatible", level="error")
