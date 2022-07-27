@@ -233,6 +233,31 @@ class LegolasDataSet(LegolasDataContainer):
         yield self
 
     @property
+    def k2_str(self) -> str:
+        """Returns the :math:`k_2` string."""
+        return "$k_y$" if self.geometry.lower() == "cartesian" else "$m$"
+
+    @property
+    def k3_str(self) -> str:
+        """Returns the :math:`k_3` string."""
+        return "$k_z$" if self.geometry.lower() == "cartesian" else "$k$"
+
+    @property
+    def u1_str(self) -> str:
+        """Returns the :math:`u_1` string."""
+        return "x" if self.geometry.lower() == "cartesian" else "r"
+
+    @property
+    def u2_str(self) -> str:
+        """Returns the :math:`u_2` string."""
+        return "y" if self.geometry.lower() == "cartesian" else r"$\theta$"
+
+    @property
+    def u3_str(self) -> str:
+        """Returns the :math:`u_3` string."""
+        return "z"
+
+    @property
     def efs_written(self):
         """
         Checks if eigenfunctions are present.
