@@ -32,9 +32,7 @@ class TemporalEvolutionPlot1D(ModeFigure2D):
         figsize: tuple[int, int],
         **kwargs,
     ) -> None:
-        super().__init__(figsize)
-        self.data = data
-
+        super().__init__(figsize, data)
         self._u2 = u2
         self._u3 = u3
         self._time = time
@@ -51,28 +49,6 @@ class TemporalEvolutionPlot1D(ModeFigure2D):
             t_data=time_data,
         )
         self._kwargs = kwargs
-
-    def draw(self) -> None:
-        """
-        Draws everything on the figure: eigenfunction, eigenmode solution,
-        and the various text boxes.
-        """
-        self.add_eigenfunction()
-        self.add_mode_solution()
-
-        self.add_omega_txt(self.axes["eigfunc"], loc="top left", outside=True)
-        self.add_u2u3_txt(self.axes["eigfunc"], loc="top right", outside=True)
-        self.add_k2k3_txt(self.ax, loc="bottom left", color="white", alpha=0.5)
-
-    def add_eigenfunction(self) -> None:
-        """Adds the eigenfunction to the figure."""
-        ax = self.axes["eigfunc"]
-        ef = getattr(self.data.eigenfunction, self.data.part_name)
-        ax.plot(self.u1_data, ef, lw=2)
-        ax.axvline(x=0, color="grey", ls="--", lw=1)
-        ax.set_xlim(np.min(self.u1_data), np.max(self.u1_data))
-        ax.set_title(rf"Temporal evolution of {self.data._ef_name_latex}")
-        ax.set_ylabel(self.data._ef_name_latex)
 
     def add_mode_solution(self) -> None:
         """Adds the eigenmode solution to the figure."""

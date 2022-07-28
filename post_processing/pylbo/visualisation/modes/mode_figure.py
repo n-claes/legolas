@@ -1,4 +1,3 @@
-from pickletools import pylong
 from typing import Union
 
 import matplotlib.pyplot as plt
@@ -7,6 +6,7 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from pylbo.utilities.logger import pylboLogger
 from pylbo.visualisation.figure_window import FigureWindow
+from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 from pylbo.visualisation.utils import add_axis_label
 
 
@@ -18,6 +18,8 @@ class ModeFigure(FigureWindow):
     ----------
     figsize : tuple[int, int]
         The size of the figure.
+    data : ModeVisualisationData
+        The data used for eigenmode visualisations.
 
     Attributes
     ----------
@@ -43,13 +45,13 @@ class ModeFigure(FigureWindow):
         The data for the time.
     """
 
-    def __init__(self, figsize: tuple[int, int]) -> None:
+    def __init__(self, figsize: tuple[int, int], data: ModeVisualisationData) -> None:
         fig, axes = self._create_figure_layout(figsize)
         super().__init__(fig)
         self.axes = axes
         self.cbar = None
         self.cbar_ax = None
-        self.data = None
+        self.data = data
         [setattr(self, f"{val}_data", None) for val in "(u1, u2, u3, t, ef)"]
         self._solutions = None
 
@@ -128,6 +130,8 @@ class ModeFigure2D(ModeFigure):
     ----------
     figsize : tuple[int, int]
         The size of the figure.
+    data : ModeVisualisationData
+        The data used for eigenmode visualisations.
 
     Attributes
     ----------
@@ -141,10 +145,10 @@ class ModeFigure2D(ModeFigure):
         The textbox for the time.
     """
 
-    def __init__(self, figsize: tuple[int, int]) -> None:
+    def __init__(self, figsize: tuple[int, int], data: ModeVisualisationData) -> None:
         if figsize is None:
             figsize = (14, 8)
-        super().__init__(figsize)
+        super().__init__(figsize, data)
 
         # colorbar
         box = self.ax.get_position()
@@ -157,6 +161,13 @@ class ModeFigure2D(ModeFigure):
         self.u2u3_txt = None
         self.k2k3_txt = None
         self.t_txt = None
+
+    def draw(self) -> None:
+        self.add_eigenfunction()
+        self.add_mode_solution()
+        self.add_omega_txt(self.axes["eigfunc"], loc="top left", outside=True)
+        self.add_u2u3_txt(self.axes["eigfunc"], loc="top right", outside=True)
+        self.add_k2k3_txt(self.ax, loc="bottom left", color="white", alpha=0.5)
 
     def _create_figure_layout(self, figsize: tuple[int, int]) -> tuple[Figure, dict]:
         """
@@ -179,6 +190,21 @@ class ModeFigure2D(ModeFigure):
         fig = plt.figure(figsize=figsize)
         axes = fig.subplot_mosaic(mosaic, gridspec_kw={"hspace": 0.11}, sharex=True)
         return fig, axes
+
+    def add_eigenfunction(self) -> None:
+        """
+        Adds the eigenfunction to the figure.
+        """
+        ax = self.axes["eigfunc"]
+        ef = getattr(self.data.eigenfunction, self.data.part_name)
+        ax.plot(self.u1_data, ef, lw=2)
+        ax.axvline(x=0, color="grey", ls="--", lw=1)
+        ax.set_xlim(np.min(self.u1_data), np.max(self.u1_data))
+        ax.set_ylabel(self.data._ef_name_latex)
+
+    def add_mode_solution(self) -> None:
+        """Adds the mode solution to the figure, should be implemented in subclasses."""
+        raise NotImplementedError()
 
     def add_omega_txt(self, ax, **kwargs) -> None:
         """

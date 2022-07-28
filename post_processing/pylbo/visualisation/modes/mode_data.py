@@ -1,9 +1,7 @@
 import difflib
-from pickletools import pylong
 from typing import Union
 
 import numpy as np
-import pylbo
 from pylbo.data_containers import LegolasDataSet
 from pylbo.utilities.logger import pylboLogger
 from pylbo.visualisation.utils import ef_name_to_latex
@@ -234,5 +232,7 @@ class ModeVisualisationData:
                 "Unable to add a background to the magnetic vector potential."
             )
         (name,) = difflib.get_close_matches(self._ef_name, self.ds.eq_names, 1)
-        pylboLogger.info(f"adding background, closest match is '{name}'")
+        pylboLogger.info(
+            f"adding background for '{self._ef_name}', closest match is '{name}'"
+        )
         return name

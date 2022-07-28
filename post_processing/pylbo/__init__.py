@@ -13,6 +13,6 @@ from pylbo.visualisation.api import (
     plot_spectrum_comparison,
     plot_spectrum_multi,
 )
-from pylbo.visualisation.modes.api import plot_1d_temporal_evolution
+from pylbo.visualisation.modes.api import plot_1d_temporal_evolution, plot_2d_slice
 
 logger.init_logger()
