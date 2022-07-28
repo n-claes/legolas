@@ -206,13 +206,13 @@ contains
     integer, intent(in) :: ncv
 
     if (ncv == 0) then
-      this%ncv = min(this%get_evpdim(), 2 * this%get_nev())
+      this%ncv = max(this%nev+1, min(2 * this % nev, this % evpdim))
     else
       this%ncv = ncv
     end if
-    if (1 > this%ncv - this%get_nev()) then
+    if (1 <= this%ncv - this%get_nev()) then
       call log_message( &
-        "requesting too many eigenvalues, expected ncv - nev > 1 but got " &
+        "ncv too low, expected 1 <= ncv - nev but got ncv - nev = " &
         // str(this%ncv - this%get_nev()), &
         level="error" &
       )
