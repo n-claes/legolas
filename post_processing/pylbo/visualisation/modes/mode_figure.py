@@ -1,9 +1,11 @@
+from pickletools import pylong
 from typing import Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from pylbo.utilities.logger import pylboLogger
 from pylbo.visualisation.figure_window import FigureWindow
 from pylbo.visualisation.utils import add_axis_label
 
@@ -105,15 +107,17 @@ class ModeFigure(FigureWindow):
         t_data : Union[float, np.ndarray]
             The data for the time.
         """
+        pylboLogger.info("setting plot data")
         self.u1_data = u1_data
         self.u2_data = u2_data
         self.u3_data = u3_data
         self.t_data = t_data
         self.ef_data = ef_data
-        # retrieve solutions
+        # set solutions
         self._solutions = self.data.get_mode_solution(
             ef=self.ef_data, u2=self.u2_data, u3=self.u3_data, t=self.t_data
         )
+        pylboLogger.info(f"eigenmode solution shape {self._solutions.shape}")
 
 
 class ModeFigure2D(ModeFigure):

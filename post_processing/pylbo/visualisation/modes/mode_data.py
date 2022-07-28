@@ -1,7 +1,11 @@
+import difflib
+from pickletools import pylong
 from typing import Union
 
 import numpy as np
+import pylbo
 from pylbo.data_containers import LegolasDataSet
+from pylbo.utilities.logger import pylboLogger
 from pylbo.visualisation.utils import ef_name_to_latex
 
 
@@ -55,7 +59,7 @@ class ModeVisualisationData:
         self.complex_factor = self._validate_complex_factor(complex_factor)
         self.add_background = add_background
 
-        self._ef_name = ef_name
+        self._ef_name = self._validate_ef_name(ef_name)
         self._ef_name_latex = self.get_ef_name_latex()
 
     @property
@@ -77,12 +81,19 @@ class ModeVisualisationData:
         return "real" if self.use_real_part else "imag"
 
     def get_ef_name_latex(self) -> str:
-        """
-        Returns the latex representation of the eigenfunction name.
-        """
+        """Returns the latex representation of the eigenfunction name."""
         return ef_name_to_latex(
             self._ef_name, geometry=self.ds.geometry, real_part=self.use_real_part
         )
+
+    def _validate_ef_name(self, ef_name: str) -> str:
+        """Returns the validated eigenfunction name"""
+        if ef_name not in self.ds.ef_names:
+            raise ValueError(
+                f"The eigenfunction '{ef_name}' is not part of the "
+                f"eigenfunctions {self.ds.ef_names}."
+            )
+        return ef_name
 
     def _validate_complex_factor(self, complex_factor: complex) -> complex:
         """
@@ -160,5 +171,68 @@ class ModeVisualisationData:
             * np.exp(1j * self.k2 * u2 + 1j * self.k3 * u3 - 1j * self.omega * t)
         )
         if self.add_background:
-            raise NotImplementedError()
+            solution = solution + self.get_background(solution.shape)
         return getattr(solution, self.part_name)
+
+    def get_background(self, shape: tuple[int, ...]) -> np.ndarray:
+        """
+        Returns the background of the eigenmode solution.
+
+        Parameters
+        ----------
+        shape : tuple[int, ...]
+            The shape of the eigenmode solution.
+
+        Returns
+        -------
+        np.ndarray
+            The background of the eigenmode solution, sampled on the eigenfunction
+            grid and broadcasted to the same shape as the eigenmode solution.
+        """
+        bg = self.ds.equilibria[self._get_background_name()]
+        bg_sampled = self._sample_background_on_ef_grid(bg)
+        pylboLogger.info(f"background broadcasted to shape {shape}")
+        return np.broadcast_to(bg_sampled, shape=reversed(shape)).transpose()
+
+    def _sample_background_on_ef_grid(self, bg: np.ndarray) -> np.ndarray:
+        """
+        Samples the background array on the eigenfunction grid.
+
+        Parameters
+        ----------
+        bg : np.ndarray
+            The background array with Gaussian grid spacing
+
+        Returns
+        -------
+        np.ndarray
+            The background array with eigenfunction grid spacing
+        """
+        pylboLogger.info(
+            f"sampling background [{len(bg)}] on eigenfunction grid "
+            f"[{len(self.ds.ef_grid)}]"
+        )
+        return np.interp(self.ds.ef_grid, self.ds.grid_gauss, bg)
+
+    def _get_background_name(self) -> str:
+        """
+        Returns the name of the background.
+
+        Returns
+        -------
+        str
+            The closest match between the eigenfunction name and the equilibrium
+            name.
+
+        Raises
+        ------
+        ValueError
+            If the eigenfunction name is a magnetic vector potential component.
+        """
+        if self._ef_name in ("a1", "a2", "a3"):
+            raise ValueError(
+                "Unable to add a background to the magnetic vector potential."
+            )
+        (name,) = difflib.get_close_matches(self._ef_name, self.ds.eq_names, 1)
+        pylboLogger.info(f"adding background, closest match is '{name}'")
+        return name
