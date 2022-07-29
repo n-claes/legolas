@@ -39,28 +39,15 @@ class SpatialCartesianPlot2D(ModeFigure2D):
         **kwargs,
     ) -> None:
         super().__init__(figsize, data)
-        self._u2 = u2
-        self._u3 = u3
+
+        self.slicing_axis = self._validate_slicing_axis(
+            slicing_axis, allowed_axes=["z", "y"]
+        )
+        self._u2 = self._validate_u2(u2, slicing_axis, coord_axis="y")
+        self._u3 = self._validate_u3(u3, slicing_axis, coord_axis="z")
         self._time = time
-        self.slicing_axis = self._validate_slicing_axis(slicing_axis)
-        self._validate_coords(u2, u3, self.slicing_axis)
         self._set_plot_data_slice()
         self._kwargs = kwargs
-
-    def _validate_slicing_axis(self, slicing_axis: str) -> str:
-        """Validates the slicing axis."""
-        if slicing_axis not in ["z", "y"]:
-            raise ValueError("Slicing axis must be 'z' or 'y'")
-        return slicing_axis
-
-    def _validate_coords(
-        self, u2: Union[float, np.ndarray], u3: Union[float, np.ndarray], axis: str
-    ) -> None:
-        """Validates the coordinates - slicing axis combination."""
-        if axis == "z" and not isinstance(u3, (int, float)):
-            raise ValueError("u3 must be a number for slicing axis 'z' ('xy' plane)")
-        elif axis == "y" and not isinstance(u2, (int, float)):
-            raise ValueError("u2 must be a number for slicing axis 'y' ('xz' plane)")
 
     def _set_plot_data_slice(self) -> None:
         """

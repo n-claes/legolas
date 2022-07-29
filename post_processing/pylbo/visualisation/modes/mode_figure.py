@@ -163,6 +163,7 @@ class ModeFigure2D(ModeFigure):
         self.t_txt = None
 
     def draw(self) -> None:
+        """Draws the figure."""
         self.add_eigenfunction()
         self.add_mode_solution()
         self.add_omega_txt(self.axes["eigfunc"], loc="top left", outside=True)
@@ -192,9 +193,7 @@ class ModeFigure2D(ModeFigure):
         return fig, axes
 
     def add_eigenfunction(self) -> None:
-        """
-        Adds the eigenfunction to the figure.
-        """
+        """Adds the eigenfunction to the figure."""
         ax = self.axes["eigfunc"]
         ef = getattr(self.data.eigenfunction, self.data.part_name)
         ax.plot(self.u1_data, ef, lw=2)
@@ -269,3 +268,67 @@ class ModeFigure2D(ModeFigure):
             Additional keyword arguments to pass to :meth:`add_axis_label`.
         """
         self.t_txt = None
+
+    def _validate_slicing_axis(self, slicing_axis: str, allowed_axes: list[str]) -> str:
+        """
+        Validates the slicing axis.
+
+        Parameters
+        ----------
+        slicing_axis : str
+            The slicing axis.
+        allowed_axes : list[str]
+            The list of allowed axes.
+
+        Returns
+        -------
+        str
+            The validated slicing axis.
+        """
+        if slicing_axis not in allowed_axes:
+            raise ValueError(f"Slicing axis must be one of {allowed_axes}.")
+        return slicing_axis
+
+    def _validate_u2(self, u2: float, slicing_axis: str, coord_axis: str) -> float:
+        """
+        Validates the combination of u2 and slicing axis.
+
+        Parameters
+        ----------
+        u2 : float
+            The :math:`u_2` coordinate.
+        slicing_axis : str
+            The slicing axis.
+        coord_axis : str
+            The coordinate axis corresponding to :math:`u_2`.
+
+        Returns
+        -------
+        float
+            The validated :math:`u_2` coordinate.
+        """
+        if slicing_axis == coord_axis and not isinstance(u2, (int, float)):
+            raise ValueError(f"u2 must be a number for slicing axis '{coord_axis}'.")
+        return u2
+
+    def _validate_u3(self, u3: float, slicing_axis: str, coord_axis: str) -> float:
+        """
+        Validates the combination of u3 and slicing axis.
+
+        Parameters
+        ----------
+        u3 : float
+            The :math:`u_3` coordinate.
+        slicing_axis : str
+            The slicing axis.
+        coord_axis : str
+            The coordinate axis corresponding to :math:`u_3`.
+
+        Returns
+        -------
+        float
+            The validated :math:`u_3` coordinate.
+        """
+        if slicing_axis == coord_axis and not isinstance(u3, (int, float)):
+            raise ValueError(f"u3 must be a number for slicing axis '{coord_axis}'.")
+        return u3
