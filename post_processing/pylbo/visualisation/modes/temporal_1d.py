@@ -32,7 +32,7 @@ class TemporalEvolutionPlot1D(ModeFigure2D):
         figsize: tuple[int, int],
         **kwargs,
     ) -> None:
-        super().__init__(figsize, data)
+        super().__init__(figsize, data, **kwargs)
         self._u2 = u2
         self._u3 = u3
         self._time = time

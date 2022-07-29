@@ -4,7 +4,10 @@ import numpy as np
 from pylbo.data_containers import LegolasDataSet, ensure_dataset
 from pylbo.utilities.toolbox import transform_to_numpy
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
-from pylbo.visualisation.modes.spatial_2d import SpatialCartesianPlot2D
+from pylbo.visualisation.modes.spatial_2d import (
+    SpatialCartesianPlot2D,
+    SpatialCylindricalPlot2D,
+)
 from pylbo.visualisation.modes.temporal_1d import TemporalEvolutionPlot1D
 
 
@@ -79,6 +82,7 @@ def plot_2d_slice(
     add_background: bool = False,
     use_real_part: bool = True,
     complex_factor: complex = None,
+    polar: bool = False,
     **kwargs,
 ) -> SpatialCartesianPlot2D:
     """
@@ -114,6 +118,9 @@ def plot_2d_slice(
         Whether to use the real part of the eigenmode solution.
     complex_factor : complex
         A complex factor to multiply the eigenmode solution with.
+    polar : bool
+        Whether to use polar coordinates for the 2D view. Only used if the
+        dataset geometry is cylindrical. Default is False.
     kwargs : dict
         Additional keyword arguments to pass to :meth:`~matplotlib.pyplot.imshow`.
 
@@ -128,5 +135,9 @@ def plot_2d_slice(
     )
     if ds.geometry == "Cartesian":
         p = SpatialCartesianPlot2D(data, u2, u3, time, slicing_axis, figsize, **kwargs)
+    else:
+        p = SpatialCylindricalPlot2D(
+            data, u2, u3, time, slicing_axis, figsize, polar, **kwargs
+        )
     p.draw()
     return p

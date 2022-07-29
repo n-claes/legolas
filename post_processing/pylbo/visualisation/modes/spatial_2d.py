@@ -1,6 +1,8 @@
 from typing import Union
 
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.figure import Figure
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 from pylbo.visualisation.modes.mode_figure import ModeFigure2D
 from pylbo.visualisation.utils import add_axis_label
@@ -98,3 +100,58 @@ class SpatialCartesianPlot2D(ModeFigure2D):
         self.ax.set_ylabel(
             self.data.ds.u2_str if self.slicing_axis == "z" else self.data.ds.u3_str
         )
+
+
+class SpatialCylindricalPlot2D(ModeFigure2D):
+    def __init__(
+        self,
+        data: ModeVisualisationData,
+        u2: Union[float, np.ndarray],
+        u3: Union[float, np.ndarray],
+        time: float,
+        slicing_axis: str,
+        figsize: tuple[int, int],
+        polar: bool,
+        **kwargs,
+    ) -> None:
+        super().__init__(figsize, data, polar=polar)
+        self.slicing_axis = self._validate_slicing_axis(
+            slicing_axis, allowed_axes=["theta", "z"]
+        )
+        self._u2 = self._validate_u2(u2, slicing_axis, coord_axis="theta")
+        self._u3 = self._validate_u3(u3, slicing_axis, coord_axis="z")
+        self._time = time
+        self._set_plot_data_slice()
+        self._kwargs = kwargs
+
+    def _set_plot_data_slice(self) -> None:
+        pass
+
+    def add_eigenfunction(self) -> None:
+        pass
+
+    def add_mode_solution(self) -> None:
+        pass
+
+    def _create_figure_layout(self, figsize: tuple[int, int]) -> tuple[Figure, dict]:
+        """
+        Overloads the superclass method for figure layout creation.
+
+        Parameters
+        ----------
+        figsize : tuple[int, int]
+            The size of the figure.
+
+        Returns
+        -------
+        fig : ~matplotlib.figure.Figure
+            The figure to use for the visualisation.
+        axes : dict
+            The axes to use for the visualisation.
+        """
+        fig = plt.figure(figsize=figsize)
+        ax1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])
+        ax2 = fig.add_axes(
+            [0.25, 0.1, 0.5, 0.5], aspect="equal", polar=self._use_polar_axes
+        )
+        return fig, {"eigfunc": ax1, "view": ax2}

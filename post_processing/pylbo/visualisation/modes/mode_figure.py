@@ -49,41 +49,48 @@ class ModeFigure(FigureWindow):
         fig, axes = self._create_figure_layout(figsize)
         super().__init__(fig)
         self.axes = axes
-        self.cbar = None
-        self.cbar_ax = None
         self.data = data
-        [setattr(self, f"{val}_data", None) for val in "(u1, u2, u3, t, ef)"]
+        [setattr(self, f"{val}_data", None) for val in ("u1", "u2", "u3", "t", "ef")]
         self._solutions = None
+        self.cbar = None
+        self.cbar_ax = self.create_cbar_axes()
 
     @property
     def ax(self) -> Axes:
-        """Alias for the axes containing the eigenmode solution view."""
+        """
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Alias for the axes containing the eigenmode solution view.
+        """
         return self.axes["view"]
 
     @property
     def solutions(self) -> np.ndarray:
         """
-        Returns the solutions for the eigenmode.
+        Returns
+        -------
+        np.ndarray
+            The solutions for the eigenmode
         """
         return self._solutions
 
-    def _create_figure_layout(self, figsize: tuple[int, int]) -> tuple[Figure, dict]:
+    def _create_figure_layout(
+        self, figsize: tuple[int, int], **kwargs
+    ) -> tuple[Figure, dict]:
         raise NotImplementedError()
 
-    def set_cbar_ax(
-        self, position: tuple[float, float], dims: tuple[float, float]
-    ) -> None:
+    def create_cbar_axes(self) -> Axes:
         """
-        Set the axes for the colorbar.
-
-        Parameters
-        ----------
-        position : tuple[float, float]
-            The position of the colorbar.
-        dims : tuple[float, float]
-            The dimensions of the colorbar.
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes for the colorbar.
         """
-        self.cbar_ax = self.fig.add_axes([*position, *dims])
+        box = self.ax.get_position()
+        position = (box.x0 + box.width + 0.01, box.y0)
+        dims = (0.02, box.height)
+        return self.fig.add_axes([*position, *dims])
 
     def set_plot_data(
         self,
@@ -132,6 +139,8 @@ class ModeFigure2D(ModeFigure):
         The size of the figure.
     data : ModeVisualisationData
         The data used for eigenmode visualisations.
+    polar : bool
+        Whether to use polar coordinates for the bottom panel
 
     Attributes
     ----------
@@ -145,16 +154,13 @@ class ModeFigure2D(ModeFigure):
         The textbox for the time.
     """
 
-    def __init__(self, figsize: tuple[int, int], data: ModeVisualisationData) -> None:
+    def __init__(
+        self, figsize: tuple[int, int], data: ModeVisualisationData, polar=False
+    ) -> None:
         if figsize is None:
             figsize = (14, 8)
+        self._use_polar_axes = polar
         super().__init__(figsize, data)
-
-        # colorbar
-        box = self.ax.get_position()
-        self.set_cbar_ax(
-            position=(box.x0 + box.width + 0.01, box.y0), dims=(0.02, box.height)
-        )
 
         # init textboxes
         self.omega_txt = None
