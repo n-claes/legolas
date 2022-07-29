@@ -1,9 +1,8 @@
 ! =============================================================================
 !> Submodule containing the implementation of the QR-invert algorithm.
 !! The original problem is written as a standard eigenvalue problem through
-!! $$ \mathcal{B}^{-1}\mathcal{A}\textbf{X} = \omega\textbf{X}\ $$
-!! where \(\mathcal{B}\) is positive definite. This is done using a Cholesky
-!! decomposition via LAPACKS's <tt>zpbsv</tt>.
+!! $$ \mathcal{B}^{-1}\mathcal{A}\textbf{X} = \omega\textbf{X}\ $$. This is
+!! done using a LU decomposition via LAPACKS's <tt>zgbsv</tt>.
 !! Eventually a call to LAPACK's <tt>zgeev</tt> routine is done to obtain
 !! all eigenvalues and eigenvectors.
 submodule (mod_solvers) smod_qr_invert
@@ -22,8 +21,10 @@ contains
     complex(dp), allocatable :: array_B(:, :)
     !> full array containing the \(B^{-1}A\)-matrix
     complex(dp), allocatable :: array_B_invA(:, :)
+    !> pivoting array
+    integer, allocatable     :: ipiv(:)
     !> banded B-matrix
-    type(hermitian_banded_matrix) :: B_band
+    type(banded_matrix) :: B_band
     integer     :: kd
 
     !> order of matrix \(B^{-1}A\)
@@ -48,6 +49,8 @@ contains
     real(dp), allocatable     :: rwork(:)
     !> dummy for left eigenvectors, jobvl = "N" so this is never referenced
     complex(dp) :: vl(2, 2)
+    !> looping indices
+    integer     :: i, j
 
     ! compute B^{-1}A
     allocate(array_B(matrix_B%matrix_dim, matrix_B%matrix_dim))
@@ -58,11 +61,12 @@ contains
     
     allocate(array_B_invA(matrix_A%matrix_dim, matrix_A%matrix_dim))
     call matrix_to_array(matrix=matrix_A, array=array_B_invA)
-    call zpbsv( &
-      B_band%uplo, B_band%n, B_band%kd, N, &
-      B_band%BS, B_band%kd+1, array_B_invA, ldB_invA, info &
+    allocate(ipiv(matrix_A%matrix_dim))
+    call zgbsv( &
+      B_band%n, kd, kd, N, B_band%BS, 2*kd+kd+1, &
+      ipiv, array_B_invA, ldB_invA, info &
     )
-    call deallocate_hermitian_banded_matrix(B_band)
+    call deallocate_banded_matrix(B_band)
     if (info /= 0) then ! LCOV_EXCL_START
       call log_message("zpbtrf failed: B is not positive definite", level="error")
     end if ! LCOV_EXCL_STOP
@@ -110,6 +114,7 @@ contains
 
     ! tear down work arrays
     deallocate(array_B_invA)
+    deallocate(ipiv)
     deallocate(work)
     deallocate(rwork)
 
