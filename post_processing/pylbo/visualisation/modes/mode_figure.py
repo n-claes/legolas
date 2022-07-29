@@ -46,13 +46,16 @@ class ModeFigure(FigureWindow):
     """
 
     def __init__(self, figsize: tuple[int, int], data: ModeVisualisationData) -> None:
+        self.cbar = None
+        self._cbar_hspace = 0.01
+
         fig, axes = self._create_figure_layout(figsize)
         super().__init__(fig)
         self.axes = axes
         self.data = data
-        [setattr(self, f"{val}_data", None) for val in ("u1", "u2", "u3", "t", "ef")]
         self._solutions = None
-        self.cbar = None
+        [setattr(self, f"{val}_data", None) for val in ("u1", "u2", "u3", "t", "ef")]
+
         self.cbar_ax = self.create_cbar_axes()
 
     @property
@@ -80,6 +83,15 @@ class ModeFigure(FigureWindow):
     ) -> tuple[Figure, dict]:
         raise NotImplementedError()
 
+    def get_view_xlabel(self) -> str:
+        return self.data.ds.u1_str
+
+    def get_view_ylabel(self) -> str:
+        return ""
+
+    def get_view_cbar_label(self) -> str:
+        return rf"{self.data._ef_name_latex}"
+
     def create_cbar_axes(self) -> Axes:
         """
         Returns
@@ -88,7 +100,7 @@ class ModeFigure(FigureWindow):
             The axes for the colorbar.
         """
         box = self.ax.get_position()
-        position = (box.x0 + box.width + 0.01, box.y0)
+        position = (box.x0 + box.width + self._cbar_hspace, box.y0)
         dims = (0.02, box.height)
         return self.fig.add_axes([*position, *dims])
 
@@ -154,12 +166,9 @@ class ModeFigure2D(ModeFigure):
         The textbox for the time.
     """
 
-    def __init__(
-        self, figsize: tuple[int, int], data: ModeVisualisationData, polar=False
-    ) -> None:
+    def __init__(self, figsize: tuple[int, int], data: ModeVisualisationData) -> None:
         if figsize is None:
             figsize = (14, 8)
-        self._use_polar_axes = polar
         super().__init__(figsize, data)
 
         # init textboxes
@@ -175,6 +184,7 @@ class ModeFigure2D(ModeFigure):
         self.add_omega_txt(self.axes["eigfunc"], loc="top left", outside=True)
         self.add_u2u3_txt(self.axes["eigfunc"], loc="top right", outside=True)
         self.add_k2k3_txt(self.ax, loc="bottom left", color="white", alpha=0.5)
+        self.add_view_ax_labels()
 
     def _create_figure_layout(self, figsize: tuple[int, int]) -> tuple[Figure, dict]:
         """
@@ -193,18 +203,27 @@ class ModeFigure2D(ModeFigure):
         axes : dict
             The axes to use for the visualisation.
         """
-        mosaic = [["eigfunc"], ["view"], ["view"]]
         fig = plt.figure(figsize=figsize)
-        axes = fig.subplot_mosaic(mosaic, gridspec_kw={"hspace": 0.11}, sharex=True)
-        return fig, axes
+        width = 0.75
+        height_1 = 0.2
+        height_2 = 0.5
+        v_space = 0.1
+        x = (1 - width) / 2
+        y1 = 1 - height_1 - v_space
+        y2 = v_space
+        # left, bottom, width, height in Figure coordinates
+        ax1 = fig.add_axes([x, y1, width, height_1])
+        ax2 = fig.add_axes([x, y2, width, height_2], sharex=ax1)
+        return fig, {"eigfunc": ax1, "view": ax2}
 
     def add_eigenfunction(self) -> None:
         """Adds the eigenfunction to the figure."""
         ax = self.axes["eigfunc"]
         ef = getattr(self.data.eigenfunction, self.data.part_name)
-        ax.plot(self.u1_data, ef, lw=2)
+        grid = self.data.ds.ef_grid
+        ax.plot(grid, ef, lw=2)
         ax.axvline(x=0, color="grey", ls="--", lw=1)
-        ax.set_xlim(np.min(self.u1_data), np.max(self.u1_data))
+        ax.set_xlim(np.min(grid), np.max(grid))
         ax.set_ylabel(self.data._ef_name_latex)
 
     def add_mode_solution(self) -> None:
@@ -275,6 +294,12 @@ class ModeFigure2D(ModeFigure):
         """
         self.t_txt = None
 
+    def add_view_ax_labels(self) -> None:
+        """Adds the labels for the view axes."""
+        self.ax.set_xlabel(self.get_view_xlabel())
+        self.ax.set_ylabel(self.get_view_ylabel())
+        self.cbar.set_label(self.get_view_cbar_label())
+
     def _validate_slicing_axis(self, slicing_axis: str, allowed_axes: list[str]) -> str:
         """
         Validates the slicing axis.
@@ -295,7 +320,7 @@ class ModeFigure2D(ModeFigure):
             raise ValueError(f"Slicing axis must be one of {allowed_axes}.")
         return slicing_axis
 
-    def _validate_u2(self, u2: float, slicing_axis: str, coord_axis: str) -> float:
+    def _validate_u2(self, u2: float, slicing_axis: str, axis: str) -> float:
         """
         Validates the combination of u2 and slicing axis.
 
@@ -305,7 +330,7 @@ class ModeFigure2D(ModeFigure):
             The :math:`u_2` coordinate.
         slicing_axis : str
             The slicing axis.
-        coord_axis : str
+        axis : str
             The coordinate axis corresponding to :math:`u_2`.
 
         Returns
@@ -313,11 +338,11 @@ class ModeFigure2D(ModeFigure):
         float
             The validated :math:`u_2` coordinate.
         """
-        if slicing_axis == coord_axis and not isinstance(u2, (int, float)):
-            raise ValueError(f"u2 must be a number for slicing axis '{coord_axis}'.")
+        if slicing_axis == axis and not isinstance(u2, (int, float)):
+            raise ValueError(f"u2 must be a number for slicing axis '{axis}'.")
         return u2
 
-    def _validate_u3(self, u3: float, slicing_axis: str, coord_axis: str) -> float:
+    def _validate_u3(self, u3: float, slicing_axis: str, axis: str) -> float:
         """
         Validates the combination of u3 and slicing axis.
 
@@ -325,9 +350,9 @@ class ModeFigure2D(ModeFigure):
         ----------
         u3 : float
             The :math:`u_3` coordinate.
-        slicing_axis : str
+        slicining_axis : str
             The slicing axis.
-        coord_axis : str
+        axis : str
             The coordinate axis corresponding to :math:`u_3`.
 
         Returns
@@ -335,6 +360,6 @@ class ModeFigure2D(ModeFigure):
         float
             The validated :math:`u_3` coordinate.
         """
-        if slicing_axis == coord_axis and not isinstance(u3, (int, float)):
-            raise ValueError(f"u3 must be a number for slicing axis '{coord_axis}'.")
+        if slicing_axis == axis and not isinstance(u3, (int, float)):
+            raise ValueError(f"u3 must be a number for slicing axis '{axis}'.")
         return u3

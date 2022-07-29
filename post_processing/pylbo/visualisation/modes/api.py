@@ -77,7 +77,7 @@ def plot_2d_slice(
     u2: Union[float, np.ndarray],
     u3: Union[float, np.ndarray],
     time: float,
-    slicing_axis: str = "z",
+    slicing_axis: str,
     figsize: tuple[int, int] = None,
     add_background: bool = False,
     use_real_part: bool = True,
@@ -92,7 +92,8 @@ def plot_2d_slice(
     for a particular set of coordinates. If `slicing_axis = 'z'` then a 2D view is
     created for a given slicing point along the 'z'-axis (hence a 'xy'-view), for
     `slicing_axis = 'y'` a 'xz'-view will be created. The given spatial coordinates
-    `u2` and `u3` must be consistent with the slicing axis.
+    `u2` and `u3` must be consistent with the slicing axis. For cylindrical geometries
+    slices in both Cartesian and polar coordinates can be created.
 
     Parameters
     ----------
@@ -109,7 +110,7 @@ def plot_2d_slice(
     time : float
         The time at which to visualise the eigenmode solution.
     slicing_axis : str
-        The axis to slice the 2D view along, either 'z' or 'y' with default 'z'.
+        The axis to slice the 2D view along, either 'z', 'y' or 'theta'
     figsize : tuple[int, int]
         The size of the figure.
     add_background : bool

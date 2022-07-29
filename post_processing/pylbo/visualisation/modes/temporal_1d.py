@@ -65,6 +65,12 @@ class TemporalEvolutionPlot1D(ModeFigure2D):
             **self._kwargs,
         )
         self.cbar = self.fig.colorbar(im, cax=self.cbar_ax)
-        self.cbar.set_label(rf"{self.data._ef_name_latex}")
-        self.ax.set_xlabel(self.data.ds.u1_str)
-        self.ax.set_ylabel("time")
+
+    def get_view_ylabel(self) -> str:
+        """
+        Returns
+        -------
+        str
+            The label for the y-axis.
+        """
+        return "time"
