@@ -1,9 +1,9 @@
 import numpy as np
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
-from pylbo.visualisation.modes.mode_figure import ModeFigure2D
+from pylbo.visualisation.modes.mode_figure import ModeFigure
 
 
-class TemporalEvolutionPlot1D(ModeFigure2D):
+class TemporalEvolutionPlot1D(ModeFigure):
     """
     Main class for temporal evolutions of the eigenfunction.
 
@@ -32,33 +32,33 @@ class TemporalEvolutionPlot1D(ModeFigure2D):
         figsize: tuple[int, int],
         **kwargs,
     ) -> None:
-        super().__init__(figsize, data, **kwargs)
-        self._u2 = u2
-        self._u3 = u3
-        self._time = time
-        # transpose here so ef_data[:, i] gives eigenfunction at time i
-        ef_data = np.broadcast_to(
-            self.data.eigenfunction, shape=(len(time), len(self.data.eigenfunction))
-        ).transpose()
-        time_data = np.broadcast_to(time, shape=ef_data.shape)
-        self.set_plot_data(
-            u1_data=self.data.ds.ef_grid,
-            u2_data=u2,
-            u3_data=u3,
-            ef_data=ef_data,
-            t_data=time_data,
-        )
+        self._u1 = data.ds.ef_grid
+        self._u2 = self._check_if_number(u2, "u2")
+        self._u3 = self._check_if_number(u3, "u3")
+        self._time = self._check_if_array(time, "time")
         self._kwargs = kwargs
+        super().__init__(figsize, data)
 
-    def add_mode_solution(self) -> None:
+    def set_plot_arrays(self) -> None:
+        # transpose here so ef_data[:, i] gives eigenfunction at time i
+        self.ef_data = np.broadcast_to(
+            self.data.eigenfunction,
+            shape=(len(self._time), len(self.data.eigenfunction)),
+        ).transpose()
+        self.time_data = np.broadcast_to(self._time, shape=self.ef_data.shape)
+        self.u1_data = self.data.ds.ef_grid
+        self.u2_data = self._u2
+        self.u3_data = self._u3
+
+    def draw_solution(self) -> None:
         """Adds the eigenmode solution to the figure."""
         im = self.ax.imshow(
             self.solutions.transpose(),  # transpose due to the nature of imshow
             extent=[
                 np.min(self.u1_data),
                 np.max(self.u1_data),
-                np.min(self.t_data),
-                np.max(self.t_data),
+                np.min(self.time_data),
+                np.max(self.time_data),
             ],
             aspect="auto",
             origin="lower",

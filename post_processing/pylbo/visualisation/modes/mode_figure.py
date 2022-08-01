@@ -43,20 +43,94 @@ class ModeFigure(FigureWindow):
         The data for the eigenfunction.
     t_data : Union[float, np.ndarray]
         The data for the time.
+    omega_txt: matplotlib.text.Text
+        The text for the :math:`\\omega` label.
+    k2k3_txt: matplotlib.text.Text
+        The text for the :math:`k_2-k_3` label.
+    u2u3_txt: matplotlib.text.Text
+        The text for the :math:`u_2-u_3` label.
+    t_txt: matplotlib.text.Text
+        The text for the time label.
     """
 
     def __init__(self, figsize: tuple[int, int], data: ModeVisualisationData) -> None:
         self.cbar = None
         self._cbar_hspace = 0.01
 
+        if figsize is None:
+            figsize = (14, 8)
         fig, axes = self._create_figure_layout(figsize)
         super().__init__(fig)
         self.axes = axes
-        self.data = data
-        self._solutions = None
-        [setattr(self, f"{val}_data", None) for val in ("u1", "u2", "u3", "t", "ef")]
+        self.cbar_ax = self._create_cbar_axes()
 
-        self.cbar_ax = self.create_cbar_axes()
+        # Main data object
+        self.data = data
+        # textbox objects
+        [setattr(self, f"{val}_txt", None) for val in ("omega", "k2k3", "u2u3", "t")]
+        [self._ensure_attr_set(attr) for attr in ("_u1", "_u2", "_u3", "_time")]
+
+        self.set_plot_arrays()
+        [
+            self._ensure_attr_set(f"{attr}_data")
+            for attr in ("u1", "u2", "u3", "time", "ef")
+        ]
+        self._solutions = self.calculate_mode_solution(
+            ef=self.ef_data, u2=self.u2_data, u3=self.u3_data, t=self.time_data
+        )
+        pylboLogger.info(f"eigenmode solution shape {self._solutions.shape}")
+
+    def _ensure_attr_set(self, attr: str) -> None:
+        if getattr(self, attr, None) is None:
+            raise ValueError(f"attribute '{attr}' not set for {type(self)}")
+
+    def _check_if_number(self, val: float, attr_name: str) -> float:
+        if not isinstance(val, (int, float)):
+            raise ValueError(f"expected a number for {attr_name} but got {type(val)}")
+        return val
+
+    def _check_if_array(self, array: np.ndarray, attr_name: str) -> np.ndarray:
+        if not isinstance(array, np.ndarray):
+            raise ValueError(
+                f"expected a Numpy array for {attr_name} but got {type(array)}"
+            )
+        return array
+
+    def set_plot_arrays(self) -> None:
+        """
+        Sets the arrays used for plotting. This should implement setting of
+        :attr:`u1_data`, :attr:`u2_data`, :attr:`u3_data`, :attr:`t_data` and
+        :attr:`ef_data`.
+        """
+        raise NotImplementedError()
+
+    def calculate_mode_solution(
+        self,
+        ef: np.ndarray,
+        u2: Union[float, np.ndarray],
+        u3: Union[float, np.ndarray],
+        t: Union[float, np.ndarray],
+    ) -> np.ndarray:
+        """
+        Calculates the mode solution.
+
+        Parameters
+        ----------
+        ef : np.ndarray
+            The data for the eigenfunction.
+        u2 : Union[float, np.ndarray]
+            The data for the :math:`u_2` coordinate.
+        u3 : Union[float, np.ndarray]
+            The data for the :math:`u_3` coordinate.
+        t : Union[float, np.ndarray]
+            The data for the time.
+
+        Returns
+        -------
+        np.ndarray
+            The mode solution.
+        """
+        return self.data.get_mode_solution(ef=ef, u2=u2, u3=u3, t=t)
 
     @property
     def ax(self) -> Axes:
@@ -78,21 +152,36 @@ class ModeFigure(FigureWindow):
         """
         return self._solutions
 
-    def _create_figure_layout(
-        self, figsize: tuple[int, int], **kwargs
-    ) -> tuple[Figure, dict]:
+    def draw(self) -> None:
+        self.draw_eigenfunction()
+        self.draw_solution()
+        self.draw_textboxes()
+        self.add_axes_labels()
+
+    def draw_solution(self) -> None:
         raise NotImplementedError()
 
-    def get_view_xlabel(self) -> str:
-        return self.data.ds.u1_str
+    def draw_textboxes(self) -> None:
+        self.add_omega_txt(self.axes["eigfunc"], loc="top left", outside=True)
+        self.add_u2u3_txt(self.axes["eigfunc"], loc="top right", outside=True)
+        self.add_k2k3_txt(self.ax, loc="bottom left", color="white", alpha=0.5)
 
-    def get_view_ylabel(self) -> str:
-        return ""
+    def draw_eigenfunction(self) -> None:
+        """Draws the eigenfunction to the figure."""
+        ax = self.axes["eigfunc"]
+        ef = getattr(self.data.eigenfunction, self.data.part_name)
+        grid = self.data.ds.ef_grid
+        ax.plot(grid, ef, lw=2)
+        ax.axvline(x=0, color="grey", ls="--", lw=1)
+        ax.set_xlim(np.min(grid), np.max(grid))
+        ax.set_ylabel(self.data._ef_name_latex)
 
-    def get_view_cbar_label(self) -> str:
-        return rf"{self.data._ef_name_latex}"
+    def add_axes_labels(self) -> None:
+        self.ax.set_xlabel(self.get_view_xlabel())
+        self.ax.set_ylabel(self.get_view_ylabel())
+        self.cbar.set_label(self.get_view_cbar_label())
 
-    def create_cbar_axes(self) -> Axes:
+    def _create_cbar_axes(self) -> Axes:
         """
         Returns
         -------
@@ -104,87 +193,68 @@ class ModeFigure(FigureWindow):
         dims = (0.02, box.height)
         return self.fig.add_axes([*position, *dims])
 
-    def set_plot_data(
-        self,
-        u1_data: np.ndarray,
-        u2_data: Union[float, np.ndarray],
-        u3_data: Union[float, np.ndarray],
-        ef_data: Union[float, np.ndarray],
-        t_data: Union[float, np.ndarray],
-    ) -> None:
+    def get_view_xlabel(self) -> str:
+        return self.data.ds.u1_str
+
+    def get_view_ylabel(self) -> str:
+        return ""
+
+    def get_view_cbar_label(self) -> str:
+        return rf"{self.data._ef_name_latex}"
+
+    def add_omega_txt(self, ax, **kwargs) -> None:
         """
-        Sets the data to be plotted.
+        Creates a textbox on the axis with the value of the eigenfrequency.
 
         Parameters
         ----------
-        u1_data : np.ndarray
-            The data for the :math:`u_1` coordinate.
-        u2_data : Union[float, np.ndarray]
-            The data for the :math:`u_2` coordinate.
-        u3_data : Union[float, np.ndarray]
-            The data for the :math:`u_3` coordinate.
-        ef_data : Union[complex, np.ndarray]
-            The data for the eigenfunction.
-        t_data : Union[float, np.ndarray]
-            The data for the time.
+        ax : ~matplotlib.axes.Axes
+            The axes to use for the textbox.
+        **kwargs
+            Additional keyword arguments to pass to :meth:`add_axis_label`.
         """
-        pylboLogger.info("setting plot data")
-        self.u1_data = u1_data
-        self.u2_data = u2_data
-        self.u3_data = u3_data
-        self.t_data = t_data
-        self.ef_data = ef_data
-        # set solutions
-        self._solutions = self.data.get_mode_solution(
-            ef=self.ef_data, u2=self.u2_data, u3=self.u3_data, t=self.t_data
+        self.omega_txt = add_axis_label(
+            ax, rf"$\omega$ = {self.data.omega:.5f}", **kwargs
         )
-        pylboLogger.info(f"eigenmode solution shape {self._solutions.shape}")
 
+    def add_k2k3_txt(self, ax, **kwargs) -> None:
+        """
+        Creates a textbox on the figure with the value of the k2 and k3 coordinates.
 
-class ModeFigure2D(ModeFigure):
-    """
-    Class for 2D eigenmode visualisations.
+        Parameters
+        ----------
+        ax : ~matplotlib.axes.Axes
+            The axes to use for the textbox.
+        **kwargs
+            Additional keyword arguments to pass to :meth:`add_axis_label`.
+        """
+        self.k2k3_txt = add_axis_label(
+            ax,
+            f"{self.data.ds.k2_str} = {self.data.k2} | "
+            f"{self.data.ds.k3_str} = {self.data.k3}",
+            **kwargs,
+        )
 
-    Parameters
-    ----------
-    figsize : tuple[int, int]
-        The size of the figure.
-    data : ModeVisualisationData
-        The data used for eigenmode visualisations.
-    polar : bool
-        Whether to use polar coordinates for the bottom panel
+    def add_u2u3_txt(self, ax, **kwargs) -> None:
+        """
+        Creates a textbox on the figure with the value of the :math:`u_2-u_3`
+        coordinates.
 
-    Attributes
-    ----------
-    omega_txt : matplotlib.text.Text
-        The textbox for the eigenmode frequency.
-    u2u3_txt : matplotlib.text.Text
-        The textbox for the :math:`u_2` and :math:`u_3` coordinates.
-    k2k3_txt : matplotlib.text.Text
-        The textbox for the :math:`k_2` and :math:`k_3` coordinates.
-    t_txt : matplotlib.text.Text
-        The textbox for the time.
-    """
+        Parameters
+        ----------
+        ax : ~matplotlib.axes.Axes
+            The axes to use for the textbox.
+        **kwargs
+            Additional keyword arguments to pass to :meth:`add_axis_label`.
+        """
+        self.u2u3_txt = add_axis_label(
+            ax,
+            rf"{self.data.ds.u2_str} = {self._u2} | {self.data.ds.u3_str} = {self._u3}",
+            **kwargs,
+        )
 
-    def __init__(self, figsize: tuple[int, int], data: ModeVisualisationData) -> None:
-        if figsize is None:
-            figsize = (14, 8)
-        super().__init__(figsize, data)
-
-        # init textboxes
-        self.omega_txt = None
-        self.u2u3_txt = None
-        self.k2k3_txt = None
-        self.t_txt = None
-
-    def draw(self) -> None:
-        """Draws the figure."""
-        self.add_eigenfunction()
-        self.add_mode_solution()
-        self.add_omega_txt(self.axes["eigfunc"], loc="top left", outside=True)
-        self.add_u2u3_txt(self.axes["eigfunc"], loc="top right", outside=True)
-        self.add_k2k3_txt(self.ax, loc="bottom left", color="white", alpha=0.5)
-        self.add_view_ax_labels()
+    def add_t_txt(self, ax, **kwargs) -> None:
+        pass
 
     def _create_figure_layout(self, figsize: tuple[int, int]) -> tuple[Figure, dict]:
         """
@@ -215,151 +285,3 @@ class ModeFigure2D(ModeFigure):
         ax1 = fig.add_axes([x, y1, width, height_1])
         ax2 = fig.add_axes([x, y2, width, height_2], sharex=ax1)
         return fig, {"eigfunc": ax1, "view": ax2}
-
-    def add_eigenfunction(self) -> None:
-        """Adds the eigenfunction to the figure."""
-        ax = self.axes["eigfunc"]
-        ef = getattr(self.data.eigenfunction, self.data.part_name)
-        grid = self.data.ds.ef_grid
-        ax.plot(grid, ef, lw=2)
-        ax.axvline(x=0, color="grey", ls="--", lw=1)
-        ax.set_xlim(np.min(grid), np.max(grid))
-        ax.set_ylabel(self.data._ef_name_latex)
-
-    def add_mode_solution(self) -> None:
-        """Adds the mode solution to the figure, should be implemented in subclasses."""
-        raise NotImplementedError()
-
-    def add_omega_txt(self, ax, **kwargs) -> None:
-        """
-        Creates a textbox on the figure with the value of the eigenfrequency.
-
-        Parameters
-        ----------
-        ax : ~matplotlib.axes.Axes
-            The axes to use for the textbox.
-        **kwargs
-            Additional keyword arguments to pass to :meth:`add_axis_label`.
-        """
-        self.omega_txt = add_axis_label(
-            ax, rf"$\omega$ = {self.data.omega:.5f}", **kwargs
-        )
-
-    def add_u2u3_txt(self, ax, **kwargs) -> None:
-        """
-        Creates a textbox on the figure with the value of the :math:`u_2-u_3`
-        coordinates.
-
-        Parameters
-        ----------
-        ax : ~matplotlib.axes.Axes
-            The axes to use for the textbox.
-        **kwargs
-            Additional keyword arguments to pass to :meth:`add_axis_label`.
-        """
-        self.u2u3_txt = add_axis_label(
-            ax,
-            rf"{self.data.ds.u2_str} = {self._u2} | {self.data.ds.u3_str} = {self._u3}",
-            **kwargs,
-        )
-
-    def add_k2k3_txt(self, ax, **kwargs) -> None:
-        """
-        Creates a textbox on the figure with the value of the k2 and k3 coordinates.
-
-        Parameters
-        ----------
-        ax : ~matplotlib.axes.Axes
-            The axes to use for the textbox.
-        **kwargs
-            Additional keyword arguments to pass to :meth:`add_axis_label`.
-        """
-        self.k2k3_txt = add_axis_label(
-            ax,
-            f"{self.data.ds.k2_str} = {self.data.k2} | "
-            f"{self.data.ds.k3_str} = {self.data.k3}",
-            **kwargs,
-        )
-
-    def add_t_txt(self, ax, **kwargs) -> None:
-        """
-        Creates a textbox on the figure with the value of the time.
-
-        Parameters
-        ----------
-        ax : ~matplotlib.axes.Axes
-            The axes to use for the textbox.
-        **kwargs
-            Additional keyword arguments to pass to :meth:`add_axis_label`.
-        """
-        self.t_txt = None
-
-    def add_view_ax_labels(self) -> None:
-        """Adds the labels for the view axes."""
-        self.ax.set_xlabel(self.get_view_xlabel())
-        self.ax.set_ylabel(self.get_view_ylabel())
-        self.cbar.set_label(self.get_view_cbar_label())
-
-    def _validate_slicing_axis(self, slicing_axis: str, allowed_axes: list[str]) -> str:
-        """
-        Validates the slicing axis.
-
-        Parameters
-        ----------
-        slicing_axis : str
-            The slicing axis.
-        allowed_axes : list[str]
-            The list of allowed axes.
-
-        Returns
-        -------
-        str
-            The validated slicing axis.
-        """
-        if slicing_axis not in allowed_axes:
-            raise ValueError(f"Slicing axis must be one of {allowed_axes}.")
-        return slicing_axis
-
-    def _validate_u2(self, u2: float, slicing_axis: str, axis: str) -> float:
-        """
-        Validates the combination of u2 and slicing axis.
-
-        Parameters
-        ----------
-        u2 : float
-            The :math:`u_2` coordinate.
-        slicing_axis : str
-            The slicing axis.
-        axis : str
-            The coordinate axis corresponding to :math:`u_2`.
-
-        Returns
-        -------
-        float
-            The validated :math:`u_2` coordinate.
-        """
-        if slicing_axis == axis and not isinstance(u2, (int, float)):
-            raise ValueError(f"u2 must be a number for slicing axis '{axis}'.")
-        return u2
-
-    def _validate_u3(self, u3: float, slicing_axis: str, axis: str) -> float:
-        """
-        Validates the combination of u3 and slicing axis.
-
-        Parameters
-        ----------
-        u3 : float
-            The :math:`u_3` coordinate.
-        slicining_axis : str
-            The slicing axis.
-        axis : str
-            The coordinate axis corresponding to :math:`u_3`.
-
-        Returns
-        -------
-        float
-            The validated :math:`u_3` coordinate.
-        """
-        if slicing_axis == axis and not isinstance(u3, (int, float)):
-            raise ValueError(f"u3 must be a number for slicing axis '{axis}'.")
-        return u3

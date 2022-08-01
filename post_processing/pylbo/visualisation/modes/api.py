@@ -3,11 +3,9 @@ from typing import Union
 import numpy as np
 from pylbo.data_containers import LegolasDataSet, ensure_dataset
 from pylbo.utilities.toolbox import transform_to_numpy
+from pylbo.visualisation.modes.cartesian_2d import CartesianSlicePlot2D
+from pylbo.visualisation.modes.cylindrical_2d import CylindricalSlicePlot2D
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
-from pylbo.visualisation.modes.spatial_2d import (
-    SpatialCartesianPlot2D,
-    SpatialCylindricalPlot2D,
-)
 from pylbo.visualisation.modes.temporal_1d import TemporalEvolutionPlot1D
 
 
@@ -84,7 +82,7 @@ def plot_2d_slice(
     complex_factor: complex = None,
     polar: bool = False,
     **kwargs,
-) -> SpatialCartesianPlot2D:
+) -> CartesianSlicePlot2D:
     """
     Plot a 2D spatial view of the eigenmode solution, i.e.
     .. math::
@@ -135,9 +133,9 @@ def plot_2d_slice(
         ds, omega, ef_name, use_real_part, complex_factor, add_background
     )
     if ds.geometry == "Cartesian":
-        p = SpatialCartesianPlot2D(data, u2, u3, time, slicing_axis, figsize, **kwargs)
+        p = CartesianSlicePlot2D(data, u2, u3, time, slicing_axis, figsize, **kwargs)
     else:
-        p = SpatialCylindricalPlot2D(
+        p = CylindricalSlicePlot2D(
             data, u2, u3, time, slicing_axis, figsize, polar, **kwargs
         )
     p.draw()
