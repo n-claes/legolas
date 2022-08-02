@@ -6,6 +6,7 @@ from pylbo.utilities.toolbox import transform_to_numpy
 from pylbo.visualisation.modes.cartesian_2d import CartesianSlicePlot2D
 from pylbo.visualisation.modes.cartesian_3d import CartesianSlicePlot3D
 from pylbo.visualisation.modes.cylindrical_2d import CylindricalSlicePlot2D
+from pylbo.visualisation.modes.cylindrical_3d import CylindricalSlicePlot3D
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 from pylbo.visualisation.modes.temporal_1d import TemporalEvolutionPlot1D
 
@@ -193,7 +194,7 @@ def plot_3d_slice(
 
     Returns
     -------
-    p : CartesianSlicePlot3D
+    p : CartesianSlicePlot3D or CylindricalSlicePlot3D
         The plot object.
     """
     ensure_dataset(ds)
@@ -202,5 +203,7 @@ def plot_3d_slice(
     )
     if ds.geometry.lower() == "cartesian":
         p = CartesianSlicePlot3D(data, u2, u3, time, slicing_axis, figsize, **kwargs)
+    else:
+        p = CylindricalSlicePlot3D(data, u2, u3, time, slicing_axis, figsize, **kwargs)
     p.draw()
     return p
