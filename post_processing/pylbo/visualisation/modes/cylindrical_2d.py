@@ -62,7 +62,6 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         self.time_data = self._time
 
     def draw_solution(self) -> None:
-        """Adds the eigenmode solution to the figure"""
         if self.slicing_axis == self._u2axis:
             return super().draw_solution()
         x_2d = self.u1_data * np.cos(self.u2_data)
@@ -80,28 +79,15 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         )
 
     def draw_eigenfunction(self) -> None:
-        """Adds the eigenfunction to the figure."""
         super().draw_eigenfunction()
         self.axes["eigfunc"].set_xlabel(self.data.ds.u1_str)
 
     def get_view_xlabel(self) -> str:
-        """
-        Returns
-        -------
-        str
-            The label for the x-axis on the bottom panel of the figure.
-        """
         if self.slicing_axis == self._u3axis:
             return "x"
         return super().get_view_xlabel()
 
     def get_view_ylabel(self) -> str:
-        """
-        Returns
-        -------
-        str
-            The label for the y-axis on the bottom panel of the figure.
-        """
         if self._use_polar_axes:
             return ""
         if self.slicing_axis == self._u3axis:
@@ -109,21 +95,6 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         return super().get_view_ylabel()
 
     def _create_figure_layout(self, figsize: tuple[int, int]) -> tuple[Figure, dict]:
-        """
-        Overloads the superclass method for figure layout creation.
-
-        Parameters
-        ----------
-        figsize : tuple[int, int]
-            The size of the figure.
-
-        Returns
-        -------
-        fig : ~matplotlib.figure.Figure
-            The figure to use for the visualisation.
-        axes : dict
-            The axes to use for the visualisation.
-        """
         if self.slicing_axis == self._u2axis:
             return super()._create_figure_layout(figsize)
         fig = plt.figure(figsize=figsize)

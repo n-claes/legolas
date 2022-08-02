@@ -89,7 +89,7 @@ class CartesianSlicePlot2D(ModeFigure):
         float
             The validated :math:`u_2` coordinate.
         """
-        if slicing_axis == axis and not isinstance(u2, (int, float)):
+        if slicing_axis == axis and not isinstance(u2, (int, np.integer, float)):
             raise ValueError(f"u2 must be a number for slicing axis '{axis}'.")
         return u2
 
@@ -111,7 +111,7 @@ class CartesianSlicePlot2D(ModeFigure):
         float
             The validated :math:`u_3` coordinate.
         """
-        if slicing_axis == axis and not isinstance(u3, (int, float)):
+        if slicing_axis == axis and not isinstance(u3, (int, np.integer, float)):
             raise ValueError(f"u3 must be a number for slicing axis '{axis}'.")
         return u3
 
@@ -128,17 +128,6 @@ class CartesianSlicePlot2D(ModeFigure):
         self.time_data = self._time
 
     def add_u2u3_txt(self, ax, **kwargs) -> None:
-        """
-        Creates a textbox on the figure with the value of the :math:`u_2-u_3`
-        coordinates.
-
-        Parameters
-        ----------
-        ax : ~matplotlib.axes.Axes
-            The axes to use for the textbox.
-        **kwargs
-            Additional keyword arguments to pass to :meth:`add_axis_label`.
-        """
         if self.slicing_axis == self._u3axis:
             txt = rf"{self.data.ds.u3_str} = {self._u3}"
         else:
@@ -147,7 +136,6 @@ class CartesianSlicePlot2D(ModeFigure):
         self.u2u3_txt = add_axis_label(ax, txt, **kwargs)
 
     def draw_solution(self) -> None:
-        """Adds the eigenmode solution to the figure"""
         if self.slicing_axis == self._u3axis:
             extent_vertical = (np.min(self._u2), np.max(self._u2))
         else:
@@ -166,12 +154,6 @@ class CartesianSlicePlot2D(ModeFigure):
         self.cbar = self.fig.colorbar(im, cax=self.cbar_ax)
 
     def get_view_ylabel(self) -> str:
-        """
-        Returns
-        -------
-        str
-            The label for the y-axis on the bottom panel of the figure.
-        """
         return (
             self.data.ds.u2_str
             if self.slicing_axis == self._u3axis

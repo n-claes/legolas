@@ -4,6 +4,7 @@ import numpy as np
 from pylbo.data_containers import LegolasDataSet, ensure_dataset
 from pylbo.utilities.toolbox import transform_to_numpy
 from pylbo.visualisation.modes.cartesian_2d import CartesianSlicePlot2D
+from pylbo.visualisation.modes.cartesian_3d import CartesianSlicePlot3D
 from pylbo.visualisation.modes.cylindrical_2d import CylindricalSlicePlot2D
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 from pylbo.visualisation.modes.temporal_1d import TemporalEvolutionPlot1D
@@ -101,9 +102,9 @@ def plot_2d_slice(
         The (approximate) eigenvalue of the mode to visualise.
     ef_name : str
         The name of the eigenfunction to visualise.
-    u2 : float
+    u2 : float, np.ndarray
         The y or :math:`\\theta` coordinate of the eigenmode solution.
-    u3 : float
+    u3 : float, np.ndarray
         The z coordinate of the eigenmode solution.
     time : float
         The time at which to visualise the eigenmode solution.
@@ -125,7 +126,7 @@ def plot_2d_slice(
 
     Returns
     -------
-    SpatialCartesianPlot2D
+    p : CartesianSlicePlot2D or CylindricalSlicePlot2D
         The plot object.
     """
     ensure_dataset(ds)
@@ -138,5 +139,68 @@ def plot_2d_slice(
         p = CylindricalSlicePlot2D(
             data, u2, u3, time, slicing_axis, figsize, polar, **kwargs
         )
+    p.draw()
+    return p
+
+
+def plot_3d_slice(
+    ds: LegolasDataSet,
+    omega: complex,
+    ef_name: str,
+    u2: Union[float, np.ndarray],
+    u3: Union[float, np.ndarray],
+    time: float,
+    slicing_axis: str,
+    figsize: tuple[int, int] = None,
+    add_background: bool = False,
+    use_real_part: bool = True,
+    complex_factor: complex = None,
+    **kwargs,
+) -> CartesianSlicePlot3D:
+    """
+    Plot a 3D spatial view of the eigenmode solution, i.e.
+    .. math::
+       f(u_1, u_2, u_3, t) = f_1(u_1) \\exp\\left(ik_2u_2 + ik_3u_3 - i\\omega t\\right)
+    for a particular set of coordinates. Several 2D slices are superimposed on each
+    other for every value of :math:`u_3`.
+
+    Parameters
+    ----------
+    ds : LegolasDataSet
+        The data set containing the eigenfunction.
+    omega : complex
+        The (approximate) eigenvalue of the mode to visualise.
+    ef_name : str
+        The name of the eigenfunction to visualise.
+    u2 : float, np.ndarray
+        The y or :math:`\\theta` coordinate of the eigenmode solution.
+    u3 : float, np.ndarray
+        The z coordinate of the eigenmode solution.
+    time : float
+        The time at which to visualise the eigenmode solution.
+    slicing_axis : str
+        The axis to slice the 2D view along, either 'z', 'y' or 'theta'
+    figsize : tuple[int, int]
+        The size of the figure.
+    add_background : bool
+        Whether to add the equilibrium background to the plot.
+    use_real_part : bool
+        Whether to use the real part of the eigenmode solution.
+    complex_factor : complex
+        A complex factor to multiply the eigenmode solution with.
+    kwargs : dict
+        Additional keyword arguments to pass to :meth:`~matplotlib.pyplot.imshow`.
+
+    Returns
+    -------
+    p : CartesianSlicePlot3D
+        The plot object.
+    """
+    ensure_dataset(ds)
+    data = ModeVisualisationData(
+        ds, omega, ef_name, use_real_part, complex_factor, add_background
+    )
+    if ds.geometry.lower() == "cartesian":
+        p = CartesianSlicePlot3D(data, u2, u3, time, slicing_axis, figsize, **kwargs)
     p.draw()
     return p

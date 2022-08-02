@@ -51,7 +51,6 @@ class TemporalEvolutionPlot1D(ModeFigure):
         self.u3_data = self._u3
 
     def draw_solution(self) -> None:
-        """Adds the eigenmode solution to the figure."""
         im = self.ax.imshow(
             self.solutions.transpose(),  # transpose due to the nature of imshow
             extent=[
@@ -67,10 +66,4 @@ class TemporalEvolutionPlot1D(ModeFigure):
         self.cbar = self.fig.colorbar(im, cax=self.cbar_ax)
 
     def get_view_ylabel(self) -> str:
-        """
-        Returns
-        -------
-        str
-            The label for the y-axis.
-        """
         return "time"

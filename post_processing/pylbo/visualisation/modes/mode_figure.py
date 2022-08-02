@@ -71,25 +71,66 @@ class ModeFigure(FigureWindow):
         [self._ensure_attr_set(attr) for attr in ("_u1", "_u2", "_u3", "_time")]
 
         self.set_plot_arrays()
-        [
+        for attr in ("u1", "u2", "u3", "time", "ef"):
             self._ensure_attr_set(f"{attr}_data")
-            for attr in ("u1", "u2", "u3", "time", "ef")
-        ]
         self._solutions = self.calculate_mode_solution(
             ef=self.ef_data, u2=self.u2_data, u3=self.u3_data, t=self.time_data
         )
         pylboLogger.info(f"eigenmode solution shape {self._solutions.shape}")
 
     def _ensure_attr_set(self, attr: str) -> None:
+        """
+        Ensures that a given attribute is set.
+
+        Parameters
+        ----------
+        attr : str
+            The attribute to check.
+
+        Raises
+        ------
+        ValueError
+            If the attribute is not set.
+        """
         if getattr(self, attr, None) is None:
             raise ValueError(f"attribute '{attr}' not set for {type(self)}")
 
     def _check_if_number(self, val: float, attr_name: str) -> float:
-        if not isinstance(val, (int, float)):
+        """
+        Checks if a given value is a number.
+
+        Parameters
+        ----------
+        val : float
+            The value to check.
+        attr_name : str
+            The name of the value.
+
+        Raises
+        ------
+        ValueError
+            If the value is not a number.
+        """
+        if not isinstance(val, (int, np.integer, float)):
             raise ValueError(f"expected a number for {attr_name} but got {type(val)}")
         return val
 
     def _check_if_array(self, array: np.ndarray, attr_name: str) -> np.ndarray:
+        """
+        Checks is a given value is a numpy array.
+
+        Parameters
+        ----------
+        array : np.ndarray
+            The value to check.
+        attr_name : str
+            The name of the value.
+
+        Raises
+        ------
+        ValueError
+            If the value is not a numpy array.
+        """
         if not isinstance(array, np.ndarray):
             raise ValueError(
                 f"expected a Numpy array for {attr_name} but got {type(array)}"
