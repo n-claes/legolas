@@ -52,6 +52,7 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
 
         self.vmin = np.min(self._solutions) if vmin is None else vmin
         self.vmax = np.max(self._solutions) if vmax is None else vmax
+        self._view = [None] * len(self._u3)
 
     def _create_figure_layout(self, figsize: tuple[int, int]) -> tuple[Figure, dict]:
         fig = plt.figure(figsize=figsize)
@@ -97,7 +98,7 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
 
     def draw_solution(self) -> None:
         for i, z in enumerate(self._u3):
-            im = self.ax.contourf(
+            self._view[i] = self.ax.contourf(
                 self.u1_data,
                 self.u2_data,
                 self.solutions[..., i],
@@ -109,14 +110,52 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
                 vmax=self.vmax,
             )
         self.cbar = self.fig.colorbar(
-            ScalarMappable(norm=im.norm, cmap=im.cmap),
+            ScalarMappable(norm=self._view[0].norm, cmap=self._view[0].cmap),
             cax=self.cbar_ax,
             orientation="horizontal",
         )
         self.ax.set_xlim(np.min(self._u1), np.max(self._u1))
         self.ax.set_ylim(np.min(self._u2), np.max(self._u2))
         self.ax.set_zlim(np.min(self._u3), np.max(self._u3))
+
+    def add_axes_labels(self) -> None:
+        super().add_axes_labels()
         self.ax.set_zlabel("z")
 
     def draw_textboxes(self) -> None:
+        self.t_txt = self.ax.text2D(
+            0.9,
+            0.9,
+            f"t = {self._time:.2f}",
+            fontsize=15,
+            transform=self.ax.transAxes,
+            ha="center",
+            bbox=dict(facecolor="grey", alpha=0.2, boxstyle="round", pad=0.2),
+        )
+
+    def create_animation(
+        self, times: np.ndarray, filename: str, fps: float = 10, dpi: int = 200
+    ) -> None:
+        super().create_animation(times, filename, fps, dpi)
+
+    def _update_view(self, updated_solution: np.ndarray) -> None:
+        # sadly contourf does not support updating the data, so we have to
+        # delete the old contours and create new ones every frame...
+        for view in self._view:
+            for coll in view.collections:
+                try:
+                    coll.remove()
+                except ValueError:
+                    pass
+        self._solutions = updated_solution
+        self.vmin = np.min(self._solutions)
+        self.vmax = np.max(self._solutions)
+        self.draw_solution()
+        self.cbar.set_ticks(np.linspace(self.vmin, self.vmax, 5))
+        self.add_axes_labels()
+
+    def _update_view_clims(self, solution: np.ndarray) -> None:
         pass
+
+    def _set_t_txt(self, t):
+        self.t_txt.set_text(f"t = {t:.2f}")

@@ -173,17 +173,22 @@ class CartesianSlicePlot2D(ModeFigure):
                     self.ef_data, self.u2_data, self.u3_data, t
                 )
                 self._update_view(updated_solution=solution)
-                vmin, vmax = np.min(solution), np.max(solution)
-                self._view.set_clim(vmin, vmax)
+                self._update_view_clims(solution)
                 self._set_t_txt(t)
                 writer.grab_frame()
 
                 pbar.update()
 
     def _set_t_txt(self, t):
+        if self.u2u3_txt is None:
+            return
         txt = self.u2u3_txt.get_text().split("|")[0]
         self.u2u3_txt.set_text(f"{txt}| t = {t:.2f}")
 
-    def _update_view(self, updated_solution: np.ndarray):
+    def _update_view(self, updated_solution: np.ndarray) -> None:
         """Updates the axes with the new solution."""
         self._view.set_data(updated_solution)
+
+    def _update_view_clims(self, solution: np.ndarray) -> None:
+        vmin, vmax = np.min(solution), np.max(solution)
+        self._view.set_clim(vmin, vmax)
