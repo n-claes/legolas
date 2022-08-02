@@ -66,6 +66,8 @@ class ModeFigure(FigureWindow):
 
         # Main data object
         self.data = data
+        # stuff ploted on the view panel
+        self._view = None
         # textbox objects
         [setattr(self, f"{val}_txt", None) for val in ("omega", "k2k3", "u2u3", "t")]
         [self._ensure_attr_set(attr) for attr in ("_u1", "_u2", "_u3", "_time")]
@@ -326,3 +328,22 @@ class ModeFigure(FigureWindow):
         ax1 = fig.add_axes([x, y1, width, height_1])
         ax2 = fig.add_axes([x, y2, width, height_2], sharex=ax1)
         return fig, {"eigfunc": ax1, "view": ax2}
+
+    def create_animation(
+        self, times: np.ndarray, filename: str, fps: float = 10, dpi: int = 200
+    ) -> None:
+        """
+        Creates an animation of the eigenmode solution over a given time interval.
+
+        Parameters
+        ----------
+        times : np.ndarray
+            The times at which to create the animation.
+        filename : str
+            The filename of the animation.
+        fps : float
+            The frames per second of the animation.
+        dpi : int
+            The resolution of the animation.
+        """
+        raise ValueError(f"{self.__class__.__name__} does not support animation.")

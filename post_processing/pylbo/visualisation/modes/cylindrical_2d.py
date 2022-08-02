@@ -69,13 +69,15 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)
             if not self._use_polar_axes:
-                im = self.ax.pcolormesh(x_2d, y_2d, self.solutions, **self._kwargs)
+                self._view = self.ax.pcolormesh(
+                    x_2d, y_2d, self.solutions, **self._kwargs
+                )
             else:
-                im = self.ax.pcolormesh(
+                self._view = self.ax.pcolormesh(
                     self.u2_data, self.u1_data, self.solutions, **self._kwargs
                 )
         self.cbar = self.fig.colorbar(
-            ScalarMappable(norm=im.norm, cmap=im.cmap), cax=self.cbar_ax
+            ScalarMappable(norm=self._view.norm, cmap=self._view.cmap), cax=self.cbar_ax
         )
 
     def draw_eigenfunction(self) -> None:
@@ -83,6 +85,8 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         self.axes["eigfunc"].set_xlabel(self.data.ds.u1_str)
 
     def get_view_xlabel(self) -> str:
+        if self._use_polar_axes:
+            return ""
         if self.slicing_axis == self._u3axis:
             return "x"
         return super().get_view_xlabel()
@@ -104,3 +108,14 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         if polar:
             self._cbar_hspace = 0.05
         return fig, {"eigfunc": ax1, "view": ax2}
+
+    def create_animation(
+        self, times: np.ndarray, filename: str, fps: float = 10, dpi: int = 200
+    ) -> None:
+        return super().create_animation(times, filename, fps, dpi)
+
+    def _update_view(self, updated_solution: np.ndarray):
+        if self.slicing_axis == self._u3axis:
+            # overload view updater due to use of pcolormesh instead of imshow
+            return self._view.set_array(updated_solution.ravel())
+        return super()._update_view(updated_solution)

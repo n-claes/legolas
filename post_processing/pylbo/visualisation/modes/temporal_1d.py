@@ -51,7 +51,7 @@ class TemporalEvolutionPlot1D(ModeFigure):
         self.u3_data = self._u3
 
     def draw_solution(self) -> None:
-        im = self.ax.imshow(
+        self._view = self.ax.imshow(
             self.solutions.transpose(),  # transpose due to the nature of imshow
             extent=[
                 np.min(self.u1_data),
@@ -63,7 +63,7 @@ class TemporalEvolutionPlot1D(ModeFigure):
             origin="lower",
             **self._kwargs,
         )
-        self.cbar = self.fig.colorbar(im, cax=self.cbar_ax)
+        self.cbar = self.fig.colorbar(self._view, cax=self.cbar_ax)
 
     def get_view_ylabel(self) -> str:
         return "time"

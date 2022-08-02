@@ -1,9 +1,11 @@
 from typing import Union
 
 import numpy as np
+from matplotlib import animation
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 from pylbo.visualisation.modes.mode_figure import ModeFigure
 from pylbo.visualisation.utils import add_axis_label
+from tqdm import tqdm
 
 
 class CartesianSlicePlot2D(ModeFigure):
@@ -132,7 +134,7 @@ class CartesianSlicePlot2D(ModeFigure):
             txt = rf"{self.data.ds.u3_str} = {self._u3}"
         else:
             txt = rf"{self.data.ds.u2_str} = {self._u2}"
-        txt = rf"{txt} | t = {self._time}"
+        txt = rf"{txt} | t = {self._time:.2f}"
         self.u2u3_txt = add_axis_label(ax, txt, **kwargs)
 
     def draw_solution(self) -> None:
@@ -140,7 +142,7 @@ class CartesianSlicePlot2D(ModeFigure):
             extent_vertical = (np.min(self._u2), np.max(self._u2))
         else:
             extent_vertical = (np.min(self._u3), np.max(self._u3))
-        im = self.ax.imshow(
+        self._view = self.ax.imshow(
             self.solutions.transpose(),
             extent=[
                 np.min(self.data.ds.ef_grid),
@@ -151,7 +153,7 @@ class CartesianSlicePlot2D(ModeFigure):
             origin="lower",
             **self._kwargs,
         )
-        self.cbar = self.fig.colorbar(im, cax=self.cbar_ax)
+        self.cbar = self.fig.colorbar(self._view, cax=self.cbar_ax)
 
     def get_view_ylabel(self) -> str:
         return (
@@ -159,3 +161,29 @@ class CartesianSlicePlot2D(ModeFigure):
             if self.slicing_axis == self._u3axis
             else self.data.ds.u3_str
         )
+
+    def create_animation(
+        self, times: np.ndarray, filename: str, fps: float = 10, dpi: int = 200
+    ) -> None:
+        writer = animation.FFMpegWriter(fps=fps)
+        pbar = tqdm(total=len(times), unit="frames", desc=f"Creating '{filename}'")
+        with writer.saving(self.fig, filename, dpi=dpi):
+            for t in times:
+                solution = self.calculate_mode_solution(
+                    self.ef_data, self.u2_data, self.u3_data, t
+                )
+                self._update_view(updated_solution=solution)
+                vmin, vmax = np.min(solution), np.max(solution)
+                self._view.set_clim(vmin, vmax)
+                self._set_t_txt(t)
+                writer.grab_frame()
+
+                pbar.update()
+
+    def _set_t_txt(self, t):
+        txt = self.u2u3_txt.get_text().split("|")[0]
+        self.u2u3_txt.set_text(f"{txt}| t = {t:.2f}")
+
+    def _update_view(self, updated_solution: np.ndarray):
+        """Updates the axes with the new solution."""
+        self._view.set_data(updated_solution)
