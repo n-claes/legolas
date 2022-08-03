@@ -61,6 +61,16 @@ def ef_name_to_latex(
     return latex_name
 
 
+def validate_ef_name(ds, ef_name: str) -> str:
+    """Returns the validated eigenfunction name"""
+    if ef_name not in ds.ef_names:
+        raise ValueError(
+            f"The eigenfunction '{ef_name}' is not part of the "
+            f"eigenfunctions {ds.ef_names}."
+        )
+    return ef_name
+
+
 def _validate_textbox_location(loc: str) -> str:
     """
     Validates the location of the textbox.

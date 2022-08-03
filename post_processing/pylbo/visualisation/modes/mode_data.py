@@ -4,7 +4,7 @@ from typing import Union
 import numpy as np
 from pylbo.data_containers import LegolasDataSet
 from pylbo.utilities.logger import pylboLogger
-from pylbo.visualisation.utils import ef_name_to_latex
+from pylbo.visualisation.utils import ef_name_to_latex, validate_ef_name
 
 
 class ModeVisualisationData:
@@ -46,19 +46,22 @@ class ModeVisualisationData:
         self,
         ds: LegolasDataSet,
         omega: complex,
-        ef_name: str,
+        ef_name: str = None,
         use_real_part: bool = True,
         complex_factor: complex = None,
         add_background: bool = False,
     ) -> None:
         self.ds = ds
-        self.omega, self.eigenfunction = self._retrieve_eigenfunction(omega, ef_name)
         self.use_real_part = use_real_part
         self.complex_factor = self._validate_complex_factor(complex_factor)
         self.add_background = add_background
+        self._bg_info_printed = False
 
-        self._ef_name = self._validate_ef_name(ef_name)
-        self._ef_name_latex = self.get_ef_name_latex()
+        (self._efs,) = ds.get_eigenfunctions(omega)
+        self._ef_name = None if ef_name is None else validate_ef_name(ds, ef_name)
+        self._ef_name_latex = None if ef_name is None else self.get_ef_name_latex()
+        self.omega = self._efs.get("eigenvalue")
+        self.eigenfunction = self._efs.get(self._ef_name)
 
     @property
     def k2(self) -> float:
@@ -84,15 +87,6 @@ class ModeVisualisationData:
             self._ef_name, geometry=self.ds.geometry, real_part=self.use_real_part
         )
 
-    def _validate_ef_name(self, ef_name: str) -> str:
-        """Returns the validated eigenfunction name"""
-        if ef_name not in self.ds.ef_names:
-            raise ValueError(
-                f"The eigenfunction '{ef_name}' is not part of the "
-                f"eigenfunctions {self.ds.ef_names}."
-            )
-        return ef_name
-
     def _validate_complex_factor(self, complex_factor: complex) -> complex:
         """
         Validates the complex factor.
@@ -108,29 +102,6 @@ class ModeVisualisationData:
             The complex factor if it is valid, otherwise 1.
         """
         return complex_factor if complex_factor is not None else 1
-
-    def _retrieve_eigenfunction(
-        self, omega: complex, ef_name: str
-    ) -> tuple[complex, np.ndarray]:
-        """
-        Retrieve the eigenfunction from the dataset.
-
-        Parameters
-        ----------
-        omega : complex
-            The (approximate) eigenvalue of the mode to visualise.
-        ef_name : str
-            The name of the eigenfunction to visualise.
-
-        Returns
-        -------
-        complex
-            The eigenvalue of the mode to visualise.
-        np.ndarray
-            The eigenfunction to visualise.
-        """
-        (efs,) = self.ds.get_eigenfunctions(omega)
-        return efs.get("eigenvalue"), efs.get(ef_name)
 
     def get_mode_solution(
         self,
@@ -170,6 +141,7 @@ class ModeVisualisationData:
         )
         if self.add_background:
             solution = solution + self.get_background(solution.shape)
+            self._bg_info_printed = True
         return getattr(solution, self.part_name)
 
     def get_background(self, shape: tuple[int, ...]) -> np.ndarray:
@@ -189,7 +161,8 @@ class ModeVisualisationData:
         """
         bg = self.ds.equilibria[self._get_background_name()]
         bg_sampled = self._sample_background_on_ef_grid(bg)
-        pylboLogger.info(f"background broadcasted to shape {shape}")
+        if not self._bg_info_printed:
+            pylboLogger.info(f"background broadcasted to shape {shape}")
         return np.broadcast_to(bg_sampled, shape=reversed(shape)).transpose()
 
     def _sample_background_on_ef_grid(self, bg: np.ndarray) -> np.ndarray:
@@ -206,10 +179,11 @@ class ModeVisualisationData:
         np.ndarray
             The background array with eigenfunction grid spacing
         """
-        pylboLogger.info(
-            f"sampling background [{len(bg)}] on eigenfunction grid "
-            f"[{len(self.ds.ef_grid)}]"
-        )
+        if not self._bg_info_printed:
+            pylboLogger.info(
+                f"sampling background [{len(bg)}] on eigenfunction grid "
+                f"[{len(self.ds.ef_grid)}]"
+            )
         return np.interp(self.ds.ef_grid, self.ds.grid_gauss, bg)
 
     def _get_background_name(self) -> str:
@@ -232,7 +206,8 @@ class ModeVisualisationData:
                 "Unable to add a background to the magnetic vector potential."
             )
         (name,) = difflib.get_close_matches(self._ef_name, self.ds.eq_names, 1)
-        pylboLogger.info(
-            f"adding background for '{self._ef_name}', closest match is '{name}'"
-        )
+        if not self._bg_info_printed:
+            pylboLogger.info(
+                f"adding background for '{self._ef_name}', closest match is '{name}'"
+            )
         return name

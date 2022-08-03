@@ -186,8 +186,8 @@ class CartesianSlicePlot2D(ModeFigure):
         self.u2u3_txt.set_text(f"{txt}| t = {t:.2f}")
 
     def _update_view(self, updated_solution: np.ndarray) -> None:
-        """Updates the axes with the new solution."""
-        self._view.set_data(updated_solution)
+        """Updates the axes with the new solution, transpose for imshow"""
+        self._view.set_data(updated_solution.transpose())
 
     def _update_view_clims(self, solution: np.ndarray) -> None:
         vmin, vmax = np.min(solution), np.max(solution)

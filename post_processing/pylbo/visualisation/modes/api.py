@@ -9,6 +9,7 @@ from pylbo.visualisation.modes.cylindrical_2d import CylindricalSlicePlot2D
 from pylbo.visualisation.modes.cylindrical_3d import CylindricalSlicePlot3D
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 from pylbo.visualisation.modes.temporal_1d import TemporalEvolutionPlot1D
+from pylbo.visualisation.modes.vtk_export import VTKDataCube3D
 
 
 def plot_1d_temporal_evolution(
@@ -26,8 +27,10 @@ def plot_1d_temporal_evolution(
 ) -> TemporalEvolutionPlot1D:
     """
     Plot the temporal evolution of a 1D eigenmode solution, i.e.
-    .. math::
-       f(u_1, u_2, u_3, t) = f_1(u_1) \\exp\\left(ik_2u_2 + ik_3u_3 - i\\omega t\\right)
+
+    :math:`f(u_1, u_2, u_3, t) =
+    f_1(u_1) \\exp\\left(ik_2u_2 + ik_3u_3 - i\\omega t\\right)`,
+
     for a particular set of coordinates :math:`(u_2, u_3)` over a time interval.
 
     Parameters
@@ -87,8 +90,10 @@ def plot_2d_slice(
 ) -> CartesianSlicePlot2D:
     """
     Plot a 2D spatial view of the eigenmode solution, i.e.
-    .. math::
-       f(u_1, u_2, u_3, t) = f_1(u_1) \\exp\\left(ik_2u_2 + ik_3u_3 - i\\omega t\\right)
+
+    :math:`f(u_1, u_2, u_3, t) =
+    f_1(u_1) \\exp\\left(ik_2u_2 + ik_3u_3 - i\\omega t\\right)`,
+
     for a particular set of coordinates. If `slicing_axis = 'z'` then a 2D view is
     created for a given slicing point along the 'z'-axis (hence a 'xy'-view), for
     `slicing_axis = 'y'` a 'xz'-view will be created. The given spatial coordinates
@@ -160,8 +165,10 @@ def plot_3d_slice(
 ) -> CartesianSlicePlot3D:
     """
     Plot a 3D spatial view of the eigenmode solution, i.e.
-    .. math::
-       f(u_1, u_2, u_3, t) = f_1(u_1) \\exp\\left(ik_2u_2 + ik_3u_3 - i\\omega t\\right)
+
+    :math:`f(u_1, u_2, u_3, t) =
+    f_1(u_1) \\exp\\left(ik_2u_2 + ik_3u_3 - i\\omega t\\right)`,
+
     for a particular set of coordinates. Several 2D slices are superimposed on each
     other for every value of :math:`u_3`.
 
@@ -207,3 +214,43 @@ def plot_3d_slice(
         p = CylindricalSlicePlot3D(data, u2, u3, time, slicing_axis, figsize, **kwargs)
     p.draw()
     return p
+
+
+def prepare_vtk_export(
+    ds: LegolasDataSet,
+    omega: complex,
+    u2: np.ndarray,
+    u3: np.ndarray,
+    add_background: bool = False,
+    use_real_part: bool = False,
+    complex_factor: complex = None,
+) -> VTKDataCube3D:
+    """
+    Prepares for a VTK file export of the eigenmode solution in three dimensions.
+    Returns a :class:`VTKDataCube3D` object which can be used to generate VTK files.
+
+    Parameters
+    ----------
+    ds : LegolasDataSet
+        The data set containing the eigenfunction.
+    omega : complex
+        The (approximate) eigenvalue of the mode to visualise.
+    u2 : np.ndarray
+        The y or :math:`\\theta` coordinates of the eigenmode solution.
+    u3 : np.ndarray
+        The z coordinates of the eigenmode solution.
+    add_background : bool
+        Whether to add the equilibrium background to the solutions.
+    use_real_part : bool
+        Whether to use the real part of the eigenmode solution.
+
+    Returns
+    -------
+    VTKDataCube3D
+        Object that can be used to generate VTK files.
+    """
+    ensure_dataset(ds)
+    data = ModeVisualisationData(
+        ds, omega, None, use_real_part, complex_factor, add_background
+    )
+    return VTKDataCube3D(data, u2, u3)

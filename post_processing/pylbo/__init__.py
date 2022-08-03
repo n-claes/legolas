@@ -17,6 +17,7 @@ from pylbo.visualisation.modes.api import (
     plot_1d_temporal_evolution,
     plot_2d_slice,
     plot_3d_slice,
+    prepare_vtk_export,
 )
 
 logger.init_logger()
