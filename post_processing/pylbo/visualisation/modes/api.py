@@ -9,7 +9,7 @@ from pylbo.visualisation.modes.cylindrical_2d import CylindricalSlicePlot2D
 from pylbo.visualisation.modes.cylindrical_3d import CylindricalSlicePlot3D
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 from pylbo.visualisation.modes.temporal_1d import TemporalEvolutionPlot1D
-from pylbo.visualisation.modes.vtk_export import VTKDataCube3D
+from pylbo.visualisation.modes.vtk_export import VTKCartesianData, VTKCylindricalData
 
 
 def plot_1d_temporal_evolution(
@@ -224,7 +224,7 @@ def prepare_vtk_export(
     add_background: bool = False,
     use_real_part: bool = False,
     complex_factor: complex = None,
-) -> VTKDataCube3D:
+) -> Union[VTKCartesianData, VTKCylindricalData]:
     """
     Prepares for a VTK file export of the eigenmode solution in three dimensions.
     Returns a :class:`VTKDataCube3D` object which can be used to generate VTK files.
@@ -253,4 +253,7 @@ def prepare_vtk_export(
     data = ModeVisualisationData(
         ds, omega, None, use_real_part, complex_factor, add_background
     )
-    return VTKDataCube3D(data, u2, u3)
+    if ds.geometry.lower() == "cartesian":
+        return VTKCartesianData(data, u2, u3)
+    else:
+        return VTKCylindricalData(data, u2, u3)

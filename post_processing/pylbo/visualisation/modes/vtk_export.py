@@ -1,80 +1,173 @@
 import struct
 from pathlib import Path
-from typing import Union
+from typing import Tuple, Union
 
 import numpy as np
 from pylbo.utilities.logger import pylboLogger
-from pylbo.utilities.toolbox import transform_to_numpy
+from pylbo.utilities.toolbox import transform_to_list, transform_to_numpy
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 from pylbo.visualisation.utils import validate_ef_name
 from tqdm import tqdm
 
 
-class VTKDataCube3D:
+class VTKDataExporter:
     """
-    Class to prepare eigenmode solution data for export to VTK files.
+    Main class to prepare data for export to VTK files.
 
     Parameters
     ----------
     data : ModeVisualisationData
-        The data for the visualisation.
+        The data for the visualisation
+    u1 : np.ndarray
+        The 1D :math:`u_1` coordinate array.
     u2 : np.ndarray
-        The :math:`y` or :math:`\\theta` coordinates of the eigenmode solution.
+        The 1D :math:`u_2` coordinate array.
     u3 : np.ndarray
-        The :math:`z` coordinates of the eigenmode solution.
+        The 1D :math:`u_3` coordinate array.
 
     Attributes
     ----------
-    data : ModeVisualisationData
-        The data for the visualisation.
+    _u1 : ndarray
+        The 1D :math:`u_1` coordinates.
+    _u2 : ndarray
+        The 1D :math:`u_2` coordinates.
+    _u3 : ndarray
+        The 1D :math:`u_3` coordinates.
+    u1_data : ndarray
+        The 3D :math:`u_1` coordinate data.
+    u2_data : ndarray
+        The 3D :math:`u_2` coordinate data.
+    u3_data : ndarray
+        The 3D :math:`u_3` coordinate data.
     dims : tuple
-        The dimensions of the eigenmode solution.
-    u1_data : np.ndarray
-        The :math:`x` coordinates of the eigenmode solution.
-    u2_data : np.ndarray
-        The :math:`y` or :math:`\\theta` coordinates of the eigenmode solution.
-    u3_data : np.ndarray
-        The :math:`z` coordinates of the eigenmode solution.
+        The grid dimensions.
     _vtk_dtype : str
         The VTK data type, defaults to "float".
     _vtk_byte_order : str
         The VTK byte order, defaults to ">" (big endian).
     _vtk_fmt : str
         The VTK data format, defaults to ">f".
-    _datacube : np.ndarray
-        The eigenmode solution data in a 3D datacube ordered as :math:`[x, y, z]` in
-        Cartesian coordinates or :math:`[r, \\theta, z]` in cylindrical coordinates.
     """
 
     def __init__(
         self,
         data: ModeVisualisationData,
+        u1: np.ndarray,
         u2: np.ndarray,
         u3: np.ndarray,
     ) -> None:
         self.data = data
-        self._u1 = data.ds.ef_grid
-        self._u2 = u2
-        self._u3 = u3
+
         self._vtk_dtype = None
         self._vtk_byte_order = ">"  # big endian
         self._vtk_fmt = None
-        self._datacube = None
         self._pbar = None
 
-        self.dims = tuple([len(self._u1), len(self._u2), len(self._u3)])
-        geometry = self.data.ds.geometry.lower()
-        pylboLogger.info(f"creating {geometry} datacube with dimensions {self.dims}")
-        if geometry == "cartesian":
-            self.u1_data, self.u2_data, self.u3_data = np.meshgrid(
-                self._u1, self._u2, self._u3, indexing="ij"
-            )
-        else:
-            r_3d, theta_3d, self.u3_data = np.meshgrid(
-                self._u1, self._u2, self._u3, indexing="ij"
-            )
-            self.u1_data = r_3d * np.cos(theta_3d)
-            self.u2_data = r_3d * np.sin(theta_3d)
+        self.dims = None
+        for i in "123":
+            setattr(self, f"_u{i}", None)
+            setattr(self, f"u{i}_data", None)
+        self._set_coordinate_data(u1, u2, u3)
+
+    def _set_coordinate_data(self, u1: np.ndarray, u2: np.ndarray, u3: np.ndarray):
+        """
+        Sets the coordinate data.
+
+        Parameters
+        ----------
+        u1 : np.ndarray
+            The 1D :math:`u_1` coordinate array.
+        u2 : np.ndarray
+            The 1D :math:`u_2` coordinate array.
+        u3 : np.ndarray
+            The 1D :math:`u_3` coordinate array.
+        """
+        self._u1 = u1
+        self._u2 = u2
+        self._u3 = u3
+        self.dims = (len(u1), len(u2), len(u3))
+        self.u1_data, self.u2_data, self.u3_data = np.meshgrid(
+            self._u1, self._u2, self._u3, indexing="ij"
+        )
+
+    def get_coordinate_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Returns the coordinate data. This should always return the data in a Cartesian
+        reference frame (u1, u2, u3), so coordinate transformations should be
+        implemented in subclassed if necessary.
+
+        Returns
+        -------
+        u1_data : ndarray
+            The 3D :math:`u_1` coordinate data.
+        u2_data : ndarray
+            The 3D :math:`u_2` coordinate data.
+        u3_data : ndarray
+            The 3D :math:`u_3` coordinate data.
+        """
+        raise NotImplementedError()
+
+    def broadcast_to_3d(self, array: np.ndarray) -> np.ndarray:
+        """
+        Broadcasts a 1D array to a 3D array with the same shape as the coordinate data.
+
+        Parameters
+        ----------
+        array : np.ndarray
+            The 1D array to broadcast.
+
+        Returns
+        -------
+        np.ndarray
+            The broadcasted array.
+        """
+        return np.broadcast_to(array, shape=tuple(reversed(self.dims))).transpose()
+
+    def get_solution(self, name: str, time: float) -> np.ndarray:
+        """
+        Returns the eigenmode solution for a given time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the eigenfunction.
+        time : float
+            The time at which to get the solution.
+
+        Returns
+        -------
+        np.ndarray
+            The eigenmode solution.
+        """
+        name = validate_ef_name(self.data.ds, name)
+        return self.data.get_mode_solution(
+            ef=self.broadcast_to_3d(self.data._efs.get(name)),
+            u2=self.u2_data,
+            u3=self.u3_data,
+            t=time,
+        )
+
+    def get_background(self, name: str):
+        """
+        Parameters
+        ----------
+        name : str
+            The name of the equilibrium background.
+
+        Returns
+        -------
+        np.ndarray
+            The equilibrium background, broadcasted to 3D.
+        """
+        return self.broadcast_to_3d(self.data.ds.equilibria[name])
+
+    def _log_info(self, msg: str) -> None:
+        """
+        Logs an info message only if the progress bar is inactive.
+        """
+        if self._pbar is not None:
+            return
+        pylboLogger.info(msg)
 
     def _validate_and_set_dtype(self, dtype: str) -> None:
         """
@@ -99,93 +192,6 @@ class VTKDataCube3D:
         else:
             raise ValueError(f"dtype {dtype} not supported.")
 
-    def _log_info(self, msg: str) -> None:
-        if self._pbar is not None:
-            return
-        pylboLogger.info(msg)
-
-    def _update_pbar(self) -> None:
-        if self._pbar is not None:
-            self._pbar.update()
-
-    def get_solution(self, ef_name: str, time: float) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        ef_name : str
-            The name of the eigenfunction to use.
-        time : float
-            The time at which to return the eigenmode solution.
-
-        Returns
-        -------
-        np.ndarray
-            The eigenmode solution at the given time.
-        """
-        name = validate_ef_name(self.data.ds, ef_name)
-        ef_3d = np.broadcast_to(
-            self.data._efs.get(name),
-            shape=(len(self._u3), len(self._u2), len(self._u1)),
-        ).transpose()
-        return self.data.get_mode_solution(ef_3d, self.u2_data, self.u3_data, time)
-
-    def export_to_vtk(
-        self,
-        filename: str,
-        time: Union[float, np.ndarray],
-        names: Union[str, list[str]],
-        dtype: str = "float32",
-    ) -> None:
-        """
-        Exports the current datacube to a VTK file at the given time(s).
-
-        Parameters
-        ----------
-        filename : str
-            The name of the VTK file to export to, no extension needed.
-        time : float
-            The time at which to export the eigenmode solution.
-        names : str or list[str]
-            The name(s) of the eigenfunction(s) to export. If a list is given,
-            the eigenmode solutions will be exported as multiple scalar fields in
-            the VTK file.
-        dtype : str, optional
-            The VTK data type, defaults to "float32" (32 bit floating point).
-            Can be set to "float64" (64 bit floating point) but uses more memory.
-        """
-        time = transform_to_numpy(time)
-        names = transform_to_numpy(names)
-        self._validate_and_set_dtype(dtype)
-        filename = Path(filename).with_suffix("")  # remove extension
-        if len(time) > 1:
-            self._pbar = tqdm(total=len(time), desc="writing VTK files", unit="file")
-        for it, t in enumerate(time):
-            vtkfile = Path(f"{filename}_t{it:04d}.vtk")
-            self._log_info(f"writing {vtkfile.name}...")
-            self._write_vtk_file(vtkfile, t, names)
-            self._log_info(f"export to VTK completed, stored at {vtkfile.resolve()}")
-            self._update_pbar()
-
-    def _write_vtk_file(self, vtkfile: str, time: float, names: np.ndarray) -> None:
-        """
-        Writes the VTK file.
-
-        Parameters
-        ----------
-        vtkfile : str
-            The name of the VTK file to write to.
-        time : float
-            The time at which to export the eigenmode solution.
-        names : np.ndarray
-            The name(s) of the eigenfunction(s) to write.
-        """
-        self._log_info("writing VTK file header...")
-        self._write_vtk_header(vtkfile)
-        self._log_info("writing VTK structured grid data...")
-        self._write_vtk_grid_data(vtkfile)
-        self._log_info("writing VTK point data...")
-        self._write_vtk_point_data(vtkfile, time, names)
-
     def _write_vtk_header(self, vtkfile):
         """
         Writes the VTK file header. This includes the VTK file version, the
@@ -196,6 +202,7 @@ class VTKDataCube3D:
         vtkfile : str
             The name of the VTK file to write to.
         """
+        self._log_info("writing VTK file header...")
         with open(vtkfile, "w") as ostream:
             vtktitle = vtkfile.stem if len(vtkfile.stem) < 256 else "vtk output"
             ostream.write("# vtk DataFile Version 3.0 \n")
@@ -205,7 +212,7 @@ class VTKDataCube3D:
             ostream.write(f"DIMENSIONS {self.dims[0]} {self.dims[1]} {self.dims[2]} \n")
             ostream.write(f"POINTS {np.prod(self.dims)} {self._vtk_dtype} \n")
 
-    def _write_vtk_grid_data(self, vtkfile):
+    def _write_vtk_coordinate_data(self, vtkfile):
         """
         Writes the VTK grid coordinates.
 
@@ -214,37 +221,170 @@ class VTKDataCube3D:
         vtkfile : str
             The name of the VTK file to write to.
         """
+        self._log_info("writing VTK coordinate data...")
+        u1_data, u2_data, u3_data = self.get_coordinate_data()
         with open(vtkfile, "ab") as ostream:
             for k in range(self.dims[2]):
                 for j in range(self.dims[1]):
                     for i in range(self.dims[0]):
-                        ostream.write(struct.pack(self._vtk_fmt, self.u1_data[i, j, k]))
-                        ostream.write(struct.pack(self._vtk_fmt, self.u2_data[i, j, k]))
-                        ostream.write(struct.pack(self._vtk_fmt, self.u3_data[i, j, k]))
+                        ostream.write(struct.pack(self._vtk_fmt, u1_data[i, j, k]))
+                        ostream.write(struct.pack(self._vtk_fmt, u2_data[i, j, k]))
+                        ostream.write(struct.pack(self._vtk_fmt, u3_data[i, j, k]))
 
-    def _write_vtk_point_data(self, vtkfile, time, names):
+    def _write_vtk_point_data_start(self, vtkfile):
         """
-        Writes the VTK point data as a series of scalar fields, one for each
-        eigenfunction name given.
+        Writes the VTK point data start marker, i.e. the 'POINT_DATA' statement and
+        the number of points.
 
         Parameters
         ----------
         vtkfile : str
             The name of the VTK file to write to.
-        time : float
-            The time at which to export the eigenmode solution.
-        names : np.ndarray
-            The name(s) of the eigenfunction(s) to write.
         """
         with open(vtkfile, "a") as ostream:
             ostream.write(f"\nPOINT_DATA {np.prod(self.dims)} \n")
+
+    def _write_vtk_scalar_field(self, vtkfile, fieldname, fielddata):
+        """
+        Writes a 3D VTK scalar field with a given fieldname.
+
+        Parameters
+        ----------
+        vtkfile : str
+            The name of the VTK file to write to.
+        fieldname : str
+            The name of the field.
+        fielddata : ndarray
+            The field data.
+        """
+        with open(vtkfile, "a") as ostream:
+            ostream.write(f"SCALARS {fieldname} {self._vtk_dtype} \n")
+            ostream.write("LOOKUP_TABLE default \n")
+        with open(vtkfile, "ab") as ostream:
+            for k in range(self.dims[2]):
+                for j in range(self.dims[1]):
+                    for i in range(self.dims[0]):
+                        ostream.write(struct.pack(self._vtk_fmt, fielddata[i, j, k]))
+
+    def _write_vtk_auxiliary_coordinates(self, vtkfile):
+        """
+        Writes auxiliary coordinate data to the VTK file, for example the theta values
+        in cylindrical geometry. These are needed for appropriate transformations
+        to draw vector fields in e.g. ParaView.
+
+        Parameters
+        ----------
+        vtkfile : str
+            The name of the VTK file to write to.
+        """
+        pass
+
+    def export_mode_to_vtk(
+        self,
+        filename: str,
+        time: Union[float, np.ndarray],
+        names: Union[str, list[str]],
+        dtype: str = "float32",
+    ) -> None:
+        """
+        Exports the mode solution to a VTK file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the VTK file to write to.
+        time : Union[float, np.ndarray]
+            The time(s) at which to export the mode solution.
+        names : Union[str, list[str]], optional
+            The name of the mode(s) to export.
+        dtype : str, optional
+            The VTK data type, defaults to "float32" (32 bit floating point).
+            Can be set to "float64" (64 bit floating point) but uses more memory.
+        """
+        time = transform_to_numpy(time)
+        names = transform_to_list(names)
+        self._validate_and_set_dtype(dtype)
+        filename = Path(filename).with_suffix("")  # remove extension
+        if len(time) > 1:
+            self._pbar = tqdm(total=len(time), desc="writing VTK files", unit="file")
+        for it, t in enumerate(time):
+            vtkfile = Path(f"{filename}_t{it:04d}.vtk")
+            self._write_vtk_header(vtkfile)
+            self._write_vtk_coordinate_data(vtkfile)
+            self._write_vtk_point_data_start(vtkfile)
+            self._log_info("writing VTK scalar field data...")
+            for name in names:
+                solution = self.get_solution(name, t)
+                self._write_vtk_scalar_field(vtkfile, name, solution)
+            self._write_vtk_auxiliary_coordinates(vtkfile)
+            if self._pbar is not None:
+                self._pbar.update()
+            self._log_info(f"done. File exported to {vtkfile.resolve()}")
+
+    def export_background_to_vtk(
+        self,
+        filename: str,
+        names: Union[str, list[str]],
+        dtype: str = "float32",
+    ) -> None:
+        """
+        Exports the equilibrium background(s) to a VTK file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the VTK file to write to.
+        names : Union[str, list[str]]
+            The name of the background(s) to export.
+        dtype : str, optional
+            The VTK data type, defaults to "float32" (32 bit floating point).
+            Can be set to "float64" (64 bit floating point) but uses more memory.
+        """
+        self._set_coordinate_data(u1=self.data.ds.grid_gauss, u2=self._u2, u3=self._u3)
+
+        names = self._validate_background_names(transform_to_list(names))
+        self._validate_and_set_dtype(dtype)
+        filename = Path(filename).with_suffix("")  # remove extension
+        vtkfile = Path(f"{filename}_background.vtk")
+        self._write_vtk_header(vtkfile)
+        self._write_vtk_coordinate_data(vtkfile)
+        self._write_vtk_point_data_start(vtkfile)
+        self._log_info("writing VTK scalar field data...")
         for name in names:
-            with open(vtkfile, "a") as ostream:
-                ostream.write(f"SCALARS {name} {self._vtk_dtype} \n")
-                ostream.write("LOOKUP_TABLE default \n")
-            solution = self.get_solution(name, time)
-            with open(vtkfile, "ab") as ostream:
-                for k in range(self.dims[2]):
-                    for j in range(self.dims[1]):
-                        for i in range(self.dims[0]):
-                            ostream.write(struct.pack(self._vtk_fmt, solution[i, j, k]))
+            background = self.get_background(name)
+            self._write_vtk_scalar_field(vtkfile, name, background)
+        self._write_vtk_auxiliary_coordinates(vtkfile)
+        self._log_info(f"done. file exported to {vtkfile.resolve()}")
+
+
+class VTKCartesianData(VTKDataExporter):
+    def __init__(
+        self,
+        data: ModeVisualisationData,
+        u2: np.ndarray,
+        u3: np.ndarray,
+    ) -> None:
+        super().__init__(data=data, u1=data.ds.ef_grid, u2=u2, u3=u3)
+
+    def get_coordinate_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        return self.u1_data, self.u2_data, self.u3_data
+
+
+class VTKCylindricalData(VTKDataExporter):
+    def __init__(
+        self,
+        data: ModeVisualisationData,
+        u2: np.ndarray,
+        u3: np.ndarray,
+    ) -> None:
+        super().__init__(data=data, u1=data.ds.ef_grid, u2=u2, u3=u3)
+
+    def get_coordinate_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        return (
+            self.u1_data * np.cos(self.u2_data),
+            self.u1_data * np.sin(self.u2_data),
+            self.u3_data,
+        )
+
+    def _write_vtk_auxiliary_coordinates(self, vtkfile):
+        self._write_vtk_scalar_field(vtkfile, "thetas", self.u2_data)
