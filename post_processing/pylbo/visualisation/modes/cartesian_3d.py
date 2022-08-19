@@ -77,20 +77,23 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
         return u3
 
     def set_plot_arrays(self) -> None:
-        ef = self.data.eigenfunction
+        self.solution_shape = (len(self._u1), len(self._u2))
+        for ef, omega in zip(self.data.eigenfunction, self.data.omega):
+            data = np.broadcast_to(ef, shape=reversed(self.solution_shape)).transpose()
+            self.ef_data.append({"ef": data, "omega": omega})
         x_2d, y_2d = np.meshgrid(self.data.ds.ef_grid, self._u2, indexing="ij")
-        self.ef_data = np.broadcast_to(ef, shape=(len(self._u2), len(ef))).transpose()
         self.u1_data = x_2d
         self.u2_data = y_2d
         self.u3_data = self._u3
         self.time_data = self._time
 
     def calculate_mode_solution(
-        self, ef: np.ndarray, u2: np.ndarray, u3: np.ndarray, t: np.ndarray
+        self, efdata: np.ndarray, u2: np.ndarray, u3: np.ndarray, t: np.ndarray
     ) -> np.ndarray:
-        solutions = np.empty(shape=(*ef.shape, len(u3)))
+        solutions = np.zeros(shape=(*self.solution_shape, len(u3)))
         for i, z in enumerate(u3):
-            solutions[..., i] = super().calculate_mode_solution(ef, u2, z, t)
+            for efdata in self.ef_data:
+                solutions[..., i] += super().calculate_mode_solution(efdata, u2, z, t)
         return solutions
 
     def draw_eigenfunction(self) -> None:

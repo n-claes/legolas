@@ -118,10 +118,12 @@ class CartesianSlicePlot2D(ModeFigure):
         return u3
 
     def set_plot_arrays(self) -> None:
-        ef = self.data.eigenfunction
         axis = self.slicing_axis
         coord = self._u2 if axis == self._u3axis else self._u3
-        self.ef_data = np.broadcast_to(ef, shape=(len(coord), len(ef))).transpose()
+        self.solution_shape = (len(self._u1), len(coord))
+        for ef, omega in zip(self.data.eigenfunction, self.data.omega):
+            data = np.broadcast_to(ef, shape=reversed(self.solution_shape)).transpose()
+            self.ef_data.append({"ef": data, "omega": omega})
         x_2d, coord_2d = np.meshgrid(self.data.ds.ef_grid, coord, indexing="ij")
 
         self.u1_data = x_2d
@@ -169,9 +171,11 @@ class CartesianSlicePlot2D(ModeFigure):
         pbar = tqdm(total=len(times), unit="frames", desc=f"Creating '{filename}'")
         with writer.saving(self.fig, filename, dpi=dpi):
             for t in times:
-                solution = self.calculate_mode_solution(
-                    self.ef_data, self.u2_data, self.u3_data, t
-                )
+                solution = 0
+                for efdata in self.ef_data:
+                    solution += self.calculate_mode_solution(
+                        efdata, self.u2_data, self.u3_data, t
+                    )
                 self._update_view(updated_solution=solution)
                 self._update_view_clims(solution)
                 self._set_t_txt(t)

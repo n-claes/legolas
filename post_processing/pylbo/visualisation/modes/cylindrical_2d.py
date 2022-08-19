@@ -51,10 +51,11 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
     def set_plot_arrays(self) -> None:
         if self.slicing_axis == self._u2axis:
             return super().set_plot_arrays()
-        ef = self.data.eigenfunction
-        thetas = self._u2
-        self.ef_data = np.broadcast_to(ef, shape=(len(thetas), len(ef))).transpose()
-        r_2d, theta_2d = np.meshgrid(self.data.ds.ef_grid, thetas, indexing="ij")
+        self.solution_shape = (len(self._u1), len(self._u2))
+        for ef, omega in zip(self.data.eigenfunction, self.data.omega):
+            data = np.broadcast_to(ef, shape=reversed(self.solution_shape)).transpose()
+            self.ef_data.append({"ef": data, "omega": omega})
+        r_2d, theta_2d = np.meshgrid(self.data.ds.ef_grid, self._u2, indexing="ij")
 
         self.u1_data = r_2d
         self.u2_data = theta_2d

@@ -38,7 +38,7 @@ def plot_1d_temporal_evolution(
     ds : LegolasDataSet
         The data set containing the eigenfunction.
     omega : complex, list[complex], np.ndarray
-        The (approximate) eigenvalue(s) of the mode(s) to visualise.
+        The (approximate) eigenvalue of the mode(s) to visualise.
     ef_name : str
         The name of the eigenfunction to visualise.
     u2 : float
@@ -76,7 +76,7 @@ def plot_1d_temporal_evolution(
 
 def plot_2d_slice(
     ds: LegolasDataSet,
-    omega: complex,
+    omega: Union[complex, list[complex], np.ndarray],
     ef_name: str,
     u2: Union[float, np.ndarray],
     u3: Union[float, np.ndarray],
@@ -105,8 +105,8 @@ def plot_2d_slice(
     ----------
     ds : LegolasDataSet
         The data set containing the eigenfunction.
-    omega : complex
-        The (approximate) eigenvalue of the mode to visualise.
+    omega : complex, list[complex], np.ndarray
+        The (approximate) eigenvalue of the mode(s) to visualise.
     ef_name : str
         The name of the eigenfunction to visualise.
     u2 : float, np.ndarray
@@ -137,6 +137,7 @@ def plot_2d_slice(
         The plot object.
     """
     ensure_dataset(ds)
+    omega = transform_to_list(omega)
     data = ModeVisualisationData(
         ds, omega, ef_name, use_real_part, complex_factor, add_background
     )
@@ -152,7 +153,7 @@ def plot_2d_slice(
 
 def plot_3d_slice(
     ds: LegolasDataSet,
-    omega: complex,
+    omega: Union[complex, list[complex], np.ndarray],
     ef_name: str,
     u2: Union[float, np.ndarray],
     u3: Union[float, np.ndarray],
@@ -177,8 +178,8 @@ def plot_3d_slice(
     ----------
     ds : LegolasDataSet
         The data set containing the eigenfunction.
-    omega : complex
-        The (approximate) eigenvalue of the mode to visualise.
+    omega : complex, list[complex], np.ndarray
+        The (approximate) eigenvalue of the mode(s) to visualise.
     ef_name : str
         The name of the eigenfunction to visualise.
     u2 : float, np.ndarray
@@ -206,6 +207,8 @@ def plot_3d_slice(
         The plot object.
     """
     ensure_dataset(ds)
+    omega = transform_to_list(omega)
+    u3 = transform_to_numpy(u3)
     data = ModeVisualisationData(
         ds, omega, ef_name, use_real_part, complex_factor, add_background
     )

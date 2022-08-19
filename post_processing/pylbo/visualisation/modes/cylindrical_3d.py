@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib.cm import ScalarMappable
 from pylbo.visualisation.modes.cartesian_3d import CartesianSlicePlot3D
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 
@@ -53,19 +54,38 @@ class CylindricalSlicePlot3D(CartesianSlicePlot3D):
         self.vmax = np.max(self._solutions) if vmax is None else vmax
 
     def set_plot_arrays(self) -> None:
-        ef = self.data.eigenfunction
-        rgrid, thetagrid = np.meshgrid(self.data.ds.ef_grid, self._u2, indexing="ij")
-        self.ef_data = np.broadcast_to(ef, shape=(len(self._u2), len(ef))).transpose()
-        self.u1_data = rgrid * np.cos(thetagrid)
-        self.u2_data = rgrid * np.sin(thetagrid)
+        self.solution_shape = (len(self._u1), len(self._u2))
+        for ef, omega in zip(self.data.eigenfunction, self.data.omega):
+            data = np.broadcast_to(ef, shape=reversed(self.solution_shape)).transpose()
+            self.ef_data.append({"ef": data, "omega": omega})
+        r_2d, theta_2d = np.meshgrid(self.data.ds.ef_grid, self._u2, indexing="ij")
+        self.u1_data = r_2d
+        self.u2_data = theta_2d
         self.u3_data = self._u3
         self.time_data = self._time
 
     def draw_solution(self) -> None:
-        super().draw_solution()
+        for i, z in enumerate(self._u3):
+            self._view[i] = self.ax.contourf(
+                self.u1_data * np.cos(self.u2_data),
+                self.u1_data * np.sin(self.u2_data),
+                self.solutions[..., i],
+                levels=50,
+                zdir="z",
+                offset=z,
+                alpha=max(0.4, 1 - i * 0.1),
+                vmin=self.vmin,
+                vmax=self.vmax,
+            )
+        self.cbar = self.fig.colorbar(
+            ScalarMappable(norm=self._view[0].norm, cmap=self._view[0].cmap),
+            cax=self.cbar_ax,
+            orientation="horizontal",
+        )
         xmax = np.max(self._u1)
         self.ax.set_xlim(-xmax, xmax)
         self.ax.set_ylim(-xmax, xmax)
+        self.ax.set_zlim(np.min(self._u3), np.max(self._u3))
 
     def get_view_xlabel(self) -> str:
         return "x"
