@@ -121,7 +121,7 @@ class VTKDataExporter:
         np.ndarray
             The broadcasted array.
         """
-        return np.broadcast_to(array, shape=tuple(reversed(self.dims))).transpose()
+        return np.broadcast_to(array, shape=reversed(self.dims)).transpose()
 
     def get_solution(self, name: str, time: float) -> np.ndarray:
         """
@@ -140,12 +140,16 @@ class VTKDataExporter:
             The eigenmode solution.
         """
         name = validate_ef_name(self.data.ds, name)
-        return self.data.get_mode_solution(
-            ef=self.broadcast_to_3d(self.data._efs.get(name)),
-            u2=self.u2_data,
-            u3=self.u3_data,
-            t=time,
-        )
+        solution = 0
+        for all_efs in self.data._all_efs:
+            solution += self.data.get_mode_solution(
+                ef=self.broadcast_to_3d(all_efs.get(name)),
+                omega=all_efs.get("eigenvalue"),
+                u2=self.u2_data,
+                u3=self.u3_data,
+                t=time,
+            )
+        return solution
 
     def get_background(self, name: str):
         """
@@ -305,6 +309,7 @@ class VTKDataExporter:
         names = transform_to_list(names)
         self._validate_and_set_dtype(dtype)
         filename = Path(filename).with_suffix("")  # remove extension
+        self._log_info("exporting eigenmode(s) to VTK file...")
         if len(time) > 1:
             self._pbar = tqdm(total=len(time), desc="writing VTK files", unit="file")
         for it, t in enumerate(time):
@@ -341,10 +346,9 @@ class VTKDataExporter:
             Can be set to "float64" (64 bit floating point) but uses more memory.
         """
         self._set_coordinate_data(u1=self.data.ds.grid_gauss, u2=self._u2, u3=self._u3)
-
-        names = self._validate_background_names(transform_to_list(names))
         self._validate_and_set_dtype(dtype)
         filename = Path(filename).with_suffix("")  # remove extension
+        self._log_info("exporting equilibrium background(s) to VTK file...")
         vtkfile = Path(f"{filename}_background.vtk")
         self._write_vtk_header(vtkfile)
         self._write_vtk_coordinate_data(vtkfile)

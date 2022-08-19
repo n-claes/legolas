@@ -222,7 +222,7 @@ def plot_3d_slice(
 
 def prepare_vtk_export(
     ds: LegolasDataSet,
-    omega: complex,
+    omega: Union[complex, list[complex], np.ndarray],
     u2: np.ndarray,
     u3: np.ndarray,
     add_background: bool = False,
@@ -237,8 +237,8 @@ def prepare_vtk_export(
     ----------
     ds : LegolasDataSet
         The data set containing the eigenfunction.
-    omega : complex
-        The (approximate) eigenvalue of the mode to visualise.
+    omega : complex, list[complex], np.ndarray
+        The (approximate) eigenvalue of the mode(s) to visualise.
     u2 : np.ndarray
         The y or :math:`\\theta` coordinates of the eigenmode solution.
     u3 : np.ndarray
@@ -254,6 +254,7 @@ def prepare_vtk_export(
         Object that can be used to generate VTK files.
     """
     ensure_dataset(ds)
+    omega = transform_to_list(omega)
     data = ModeVisualisationData(
         ds, omega, None, use_real_part, complex_factor, add_background
     )
