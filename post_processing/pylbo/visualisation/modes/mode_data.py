@@ -15,8 +15,8 @@ class ModeVisualisationData:
     ----------
     ds : ~pylbo.data_containers.LegolasDataSet
         The dataset containing the eigenfunctions and modes to visualise.
-    omega : complex
-        The (approximate) eigenvalue of the mode to visualise.
+    omega : list[complex]
+        The (approximate) eigenvalue(s) of the mode(s) to visualise.
     ef_name : str
         The name of the eigenfunction to visualise.
     use_real_part : bool
@@ -30,10 +30,10 @@ class ModeVisualisationData:
     ----------
     ds : ~pylbo.data_containers.LegolasDataSet
         The dataset containing the eigenfunctions and modes to visualise.
-    omega : complex
-        The (approximate) eigenvalue of the mode to visualise.
-    eigenfunction : np.ndarray
-        The eigenfunction to visualise.
+    omega : list[complex]
+        The (approximate) eigenvalue(s) of the mode(s) to visualise.
+    eigenfunction : list[np.ndarray]
+        The eigenfunction of the mode(s) to visualise.
     use_real_part : bool
         Whether to use the real part of the eigenmode solution.
     complex_factor : complex
@@ -45,7 +45,7 @@ class ModeVisualisationData:
     def __init__(
         self,
         ds: LegolasDataSet,
-        omega: complex,
+        omega: list[complex],
         ef_name: str = None,
         use_real_part: bool = True,
         complex_factor: complex = None,
@@ -57,11 +57,12 @@ class ModeVisualisationData:
         self.add_background = add_background
         self._bg_info_printed = False
 
-        (self._efs,) = ds.get_eigenfunctions(omega)
         self._ef_name = None if ef_name is None else validate_ef_name(ds, ef_name)
         self._ef_name_latex = None if ef_name is None else self.get_ef_name_latex()
-        self.omega = self._efs.get("eigenvalue")
-        self.eigenfunction = self._efs.get(self._ef_name)
+
+        self._all_efs = ds.get_eigenfunctions(omega)
+        self.omega = [all_efs.get("eigenvalue") for all_efs in self._all_efs]
+        self.eigenfunction = [all_efs.get(self._ef_name) for all_efs in self._all_efs]
 
     @property
     def k2(self) -> float:
@@ -106,6 +107,7 @@ class ModeVisualisationData:
     def get_mode_solution(
         self,
         ef: np.ndarray,
+        omega: complex,
         u2: Union[float, np.ndarray],
         u3: Union[float, np.ndarray],
         t: Union[float, np.ndarray],
@@ -121,6 +123,8 @@ class ModeVisualisationData:
         ----------
         ef : np.ndarray
             The eigenfunction to use.
+        omega : complex
+            The eigenvalue to use.
         u2 : Union[float, np.ndarray]
             The y coordinate(s) of the eigenmode solution.
         u3 : Union[float, np.ndarray]
@@ -132,12 +136,12 @@ class ModeVisualisationData:
         -------
         np.ndarray
             The real or imaginary part of the eigenmode solution for the given
-            set of coorinate(s) and time(s).
+            set of coordinate(s) and time(s).
         """
         solution = (
             self.complex_factor
             * ef
-            * np.exp(1j * self.k2 * u2 + 1j * self.k3 * u3 - 1j * self.omega * t)
+            * np.exp(1j * self.k2 * u2 + 1j * self.k3 * u3 - 1j * omega * t)
         )
         if self.add_background:
             solution = solution + self.get_background(solution.shape)

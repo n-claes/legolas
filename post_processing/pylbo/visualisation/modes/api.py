@@ -2,7 +2,7 @@ from typing import Union
 
 import numpy as np
 from pylbo.data_containers import LegolasDataSet, ensure_dataset
-from pylbo.utilities.toolbox import transform_to_numpy
+from pylbo.utilities.toolbox import transform_to_list, transform_to_numpy
 from pylbo.visualisation.modes.cartesian_2d import CartesianSlicePlot2D
 from pylbo.visualisation.modes.cartesian_3d import CartesianSlicePlot3D
 from pylbo.visualisation.modes.cylindrical_2d import CylindricalSlicePlot2D
@@ -14,7 +14,7 @@ from pylbo.visualisation.modes.vtk_export import VTKCartesianData, VTKCylindrica
 
 def plot_1d_temporal_evolution(
     ds: LegolasDataSet,
-    omega: complex,
+    omega: Union[complex, list[complex], np.ndarray],
     ef_name: str,
     u2: float,
     u3: float,
@@ -37,8 +37,8 @@ def plot_1d_temporal_evolution(
     ----------
     ds : LegolasDataSet
         The data set containing the eigenfunction.
-    omega : complex
-        The (approximate) eigenvalue of the mode to visualise.
+    omega : complex, list[complex], np.ndarray
+        The (approximate) eigenvalue(s) of the mode(s) to visualise.
     ef_name : str
         The name of the eigenfunction to visualise.
     u2 : float
@@ -64,6 +64,7 @@ def plot_1d_temporal_evolution(
         The plot object.
     """
     ensure_dataset(ds)
+    omega = transform_to_list(omega)
     data = ModeVisualisationData(
         ds, omega, ef_name, use_real_part, complex_factor, add_background
     )

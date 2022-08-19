@@ -40,12 +40,12 @@ class TemporalEvolutionPlot1D(ModeFigure):
         super().__init__(figsize, data)
 
     def set_plot_arrays(self) -> None:
-        # transpose here so ef_data[:, i] gives eigenfunction at time i
-        self.ef_data = np.broadcast_to(
-            self.data.eigenfunction,
-            shape=(len(self._time), len(self.data.eigenfunction)),
-        ).transpose()
-        self.time_data = np.broadcast_to(self._time, shape=self.ef_data.shape)
+        self.solution_shape = (len(self._u1), len(self._time))
+        for ef, omega in zip(self.data.eigenfunction, self.data.omega):
+            # transpose here so data[:, i] gives eigenfunction data at time i
+            data = np.broadcast_to(ef, shape=reversed(self.solution_shape)).transpose()
+            self.ef_data.append({"ef": data, "omega": omega})
+        self.time_data = np.broadcast_to(self._time, shape=self.solution_shape)
         self.u1_data = self.data.ds.ef_grid
         self.u2_data = self._u2
         self.u3_data = self._u3

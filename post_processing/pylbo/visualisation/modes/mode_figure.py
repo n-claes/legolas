@@ -39,9 +39,9 @@ class ModeFigure(FigureWindow):
         The data for the :math:`u_2` coordinate.
     u3_data : Union[float, np.ndarray]
         The data for the :math:`u_3` coordinate.
-    ef_data : Union[complex, np.ndarray]
+    ef_data : list[dict]
         The data for the eigenfunction.
-    t_data : Union[float, np.ndarray]
+    time_data : Union[float, np.ndarray]
         The data for the time.
     omega_txt: matplotlib.text.Text
         The text for the :math:`\\omega` label.
@@ -70,14 +70,28 @@ class ModeFigure(FigureWindow):
         self._view = None
         # textbox objects
         [setattr(self, f"{val}_txt", None) for val in ("omega", "k2k3", "u2u3", "t")]
+        # data objects
+        [setattr(self, f"{val}_data", None) for val in ("u1", "u2", "u3", "time")]
+        self.ef_data = []
+        self.solution_shape = None
+
         [self._ensure_attr_set(attr) for attr in ("_u1", "_u2", "_u3", "_time")]
 
         self.set_plot_arrays()
-        for attr in ("u1", "u2", "u3", "time", "ef"):
+        for attr in ("u1", "u2", "u3", "time"):
             self._ensure_attr_set(f"{attr}_data")
-        self._solutions = self.calculate_mode_solution(
-            ef=self.ef_data, u2=self.u2_data, u3=self.u3_data, t=self.time_data
-        )
+        self._ensure_attr_set("solution_shape")
+
+        # don't explicitly create an empty array as this may return a broadcasted view
+        self._solutions = 0
+        for efdata in self.ef_data:
+            self._solutions += self.calculate_mode_solution(
+                efdata=efdata,
+                u2=self.u2_data,
+                u3=self.u3_data,
+                t=self.time_data,
+            )
+
         pylboLogger.info(f"eigenmode solution shape {self._solutions.shape}")
 
     def _ensure_attr_set(self, attr: str) -> None:
@@ -95,7 +109,7 @@ class ModeFigure(FigureWindow):
             If the attribute is not set.
         """
         if getattr(self, attr, None) is None:
-            raise ValueError(f"attribute '{attr}' not set for {type(self)}")
+            raise AttributeError(f"attribute '{attr}' not set for {type(self)}")
 
     def _check_if_number(self, val: float, attr_name: str) -> float:
         """
@@ -149,7 +163,7 @@ class ModeFigure(FigureWindow):
 
     def calculate_mode_solution(
         self,
-        ef: np.ndarray,
+        efdata: dict,
         u2: Union[float, np.ndarray],
         u3: Union[float, np.ndarray],
         t: Union[float, np.ndarray],
@@ -159,8 +173,10 @@ class ModeFigure(FigureWindow):
 
         Parameters
         ----------
-        ef : np.ndarray
-            The data for the eigenfunction.
+        efdata : dict
+            The data for the eigenfunction. This should be a dictionary with the
+            keys ``'ef'`` and ``'omega'``, with ``'ef'``containing the eigenfunction
+            and ``'omega'`` the corresponding eigenvalue.
         u2 : Union[float, np.ndarray]
             The data for the :math:`u_2` coordinate.
         u3 : Union[float, np.ndarray]
@@ -173,7 +189,9 @@ class ModeFigure(FigureWindow):
         np.ndarray
             The mode solution.
         """
-        return self.data.get_mode_solution(ef=ef, u2=u2, u3=u3, t=t)
+        return self.data.get_mode_solution(
+            ef=efdata["ef"], omega=efdata["omega"], u2=u2, u3=u3, t=t
+        )
 
     @property
     def ax(self) -> Axes:
@@ -205,19 +223,21 @@ class ModeFigure(FigureWindow):
         raise NotImplementedError()
 
     def draw_textboxes(self) -> None:
-        self.add_omega_txt(self.axes["eigfunc"], loc="top left", outside=True)
         self.add_u2u3_txt(self.axes["eigfunc"], loc="top right", outside=True)
         self.add_k2k3_txt(self.ax, loc="bottom left", color="white", alpha=0.5)
 
     def draw_eigenfunction(self) -> None:
-        """Draws the eigenfunction to the figure."""
+        """Draws the eigenfunction(s) to the figure."""
         ax = self.axes["eigfunc"]
-        ef = getattr(self.data.eigenfunction, self.data.part_name)
         grid = self.data.ds.ef_grid
-        ax.plot(grid, ef, lw=2)
+        for ef, omega in zip(self.data.eigenfunction, self.data.omega):
+            label = rf"$\omega$ = {omega:.5f}"
+            ef = getattr(self.data.complex_factor * ef, self.data.part_name)
+            ax.plot(grid, ef, lw=2, label=label)
         ax.axvline(x=0, color="grey", ls="--", lw=1)
         ax.set_xlim(np.min(grid), np.max(grid))
         ax.set_ylabel(self.data._ef_name_latex)
+        ax.legend(loc="best")
 
     def add_axes_labels(self) -> None:
         self.ax.set_xlabel(self.get_view_xlabel())
