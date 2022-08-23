@@ -55,7 +55,7 @@ class ModeVisualisationData:
         self.use_real_part = use_real_part
         self.complex_factor = self._validate_complex_factor(complex_factor)
         self.add_background = add_background
-        self._bg_info_printed = False
+        self._print_bg_info = True
 
         self._ef_name = None if ef_name is None else validate_ef_name(ds, ef_name)
         self._ef_name_latex = None if ef_name is None else self.get_ef_name_latex()
@@ -143,12 +143,9 @@ class ModeVisualisationData:
             * ef
             * np.exp(1j * self.k2 * u2 + 1j * self.k3 * u3 - 1j * omega * t)
         )
-        if self.add_background:
-            solution = solution + self.get_background(solution.shape)
-            self._bg_info_printed = True
         return getattr(solution, self.part_name)
 
-    def get_background(self, shape: tuple[int, ...]) -> np.ndarray:
+    def get_background(self, shape: tuple[int, ...], name=None) -> np.ndarray:
         """
         Returns the background of the eigenmode solution.
 
@@ -156,6 +153,9 @@ class ModeVisualisationData:
         ----------
         shape : tuple[int, ...]
             The shape of the eigenmode solution.
+        name : str
+            The name of the background to use. If None, the background name
+            will be inferred from the eigenfunction name.
 
         Returns
         -------
@@ -163,10 +163,12 @@ class ModeVisualisationData:
             The background of the eigenmode solution, sampled on the eigenfunction
             grid and broadcasted to the same shape as the eigenmode solution.
         """
-        bg = self.ds.equilibria[self._get_background_name()]
+        if name is None:
+            name = self._get_background_name()
+        bg = self.ds.equilibria[name]
         bg_sampled = self._sample_background_on_ef_grid(bg)
-        if not self._bg_info_printed:
-            pylboLogger.info(f"background broadcasted to shape {shape}")
+        if self._print_bg_info:
+            pylboLogger.info(f"background {name} broadcasted to shape {shape}")
         return np.broadcast_to(bg_sampled, shape=reversed(shape)).transpose()
 
     def _sample_background_on_ef_grid(self, bg: np.ndarray) -> np.ndarray:
@@ -183,7 +185,7 @@ class ModeVisualisationData:
         np.ndarray
             The background array with eigenfunction grid spacing
         """
-        if not self._bg_info_printed:
+        if self._print_bg_info:
             pylboLogger.info(
                 f"sampling background [{len(bg)}] on eigenfunction grid "
                 f"[{len(self.ds.ef_grid)}]"
@@ -210,7 +212,7 @@ class ModeVisualisationData:
                 "Unable to add a background to the magnetic vector potential."
             )
         (name,) = difflib.get_close_matches(self._ef_name, self.ds.eq_names, 1)
-        if not self._bg_info_printed:
+        if self._print_bg_info:
             pylboLogger.info(
                 f"adding background for '{self._ef_name}', closest match is '{name}'"
             )

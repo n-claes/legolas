@@ -91,6 +91,8 @@ class ModeFigure(FigureWindow):
                 u3=self.u3_data,
                 t=self.time_data,
             )
+        if self.data.add_background:
+            self._solutions += self.data.get_background(self.solution_shape)
 
         pylboLogger.info(f"eigenmode solution shape {self._solutions.shape}")
 

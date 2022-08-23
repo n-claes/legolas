@@ -250,7 +250,8 @@ class VTKDataExporter:
 
     def _write_vtk_scalar_field(self, vtkfile, fieldname, fielddata):
         """
-        Writes a 3D VTK scalar field with a given fieldname.
+        Writes a 3D VTK scalar field with a given fieldname. If `fielddata` is
+        smaller than `1e-12` everywhere the field is not written to the VTK file.
 
         Parameters
         ----------
@@ -261,6 +262,11 @@ class VTKDataExporter:
         fielddata : ndarray
             The field data.
         """
+        if np.all(np.isclose(fielddata, 0, atol=1e-12)):
+            pylboLogger.warning(
+                f"field {fieldname} is zero everywhere and thus not written to VTK."
+            )
+            return
         with open(vtkfile, "a") as ostream:
             ostream.write(f"SCALARS {fieldname} {self._vtk_dtype} \n")
             ostream.write("LOOKUP_TABLE default \n")
@@ -283,11 +289,12 @@ class VTKDataExporter:
         """
         pass
 
-    def export_mode_to_vtk(
+    def export_to_vtk(
         self,
         filename: str,
         time: Union[float, np.ndarray],
-        names: Union[str, list[str]],
+        names: Union[str, list[str]] = None,
+        bg_names: Union[str, list[str]] = None,
         dtype: str = "float32",
     ) -> None:
         """
@@ -300,18 +307,22 @@ class VTKDataExporter:
         time : Union[float, np.ndarray]
             The time(s) at which to export the mode solution.
         names : Union[str, list[str]], optional
-            The name of the mode(s) to export.
+            The name(s) of the mode(s) to export.
+        bg_names : Union[str, list[str]], optional
+            The name(s) of the equilibrium background(s) to export.
         dtype : str, optional
             The VTK data type, defaults to "float32" (32 bit floating point).
             Can be set to "float64" (64 bit floating point) but uses more memory.
         """
         time = transform_to_numpy(time)
-        names = transform_to_list(names)
+        names = [] if names is None else transform_to_list(names)
+        bg_names = [] if bg_names is None else transform_to_list(bg_names)
         self._validate_and_set_dtype(dtype)
         filename = Path(filename).with_suffix("")  # remove extension
         self._log_info("exporting eigenmode(s) to VTK file...")
         if len(time) > 1:
             self._pbar = tqdm(total=len(time), desc="writing VTK files", unit="file")
+            self.data._print_bg_info = False
         for it, t in enumerate(time):
             vtkfile = Path(f"{filename}_t{it:04d}.vtk")
             self._write_vtk_header(vtkfile)
@@ -321,44 +332,13 @@ class VTKDataExporter:
             for name in names:
                 solution = self.get_solution(name, t)
                 self._write_vtk_scalar_field(vtkfile, name, solution)
+            for bg_name in bg_names:
+                bg = self.data.get_background(shape=self.dims, name=bg_name)
+                self._write_vtk_scalar_field(vtkfile, bg_name, bg)
             self._write_vtk_auxiliary_coordinates(vtkfile)
             if self._pbar is not None:
                 self._pbar.update()
             self._log_info(f"done. File exported to {vtkfile.resolve()}")
-
-    def export_background_to_vtk(
-        self,
-        filename: str,
-        names: Union[str, list[str]],
-        dtype: str = "float32",
-    ) -> None:
-        """
-        Exports the equilibrium background(s) to a VTK file.
-
-        Parameters
-        ----------
-        filename : str
-            The name of the VTK file to write to.
-        names : Union[str, list[str]]
-            The name of the background(s) to export.
-        dtype : str, optional
-            The VTK data type, defaults to "float32" (32 bit floating point).
-            Can be set to "float64" (64 bit floating point) but uses more memory.
-        """
-        self._set_coordinate_data(u1=self.data.ds.grid_gauss, u2=self._u2, u3=self._u3)
-        self._validate_and_set_dtype(dtype)
-        filename = Path(filename).with_suffix("")  # remove extension
-        self._log_info("exporting equilibrium background(s) to VTK file...")
-        vtkfile = Path(f"{filename}_background.vtk")
-        self._write_vtk_header(vtkfile)
-        self._write_vtk_coordinate_data(vtkfile)
-        self._write_vtk_point_data_start(vtkfile)
-        self._log_info("writing VTK scalar field data...")
-        for name in names:
-            background = self.get_background(name)
-            self._write_vtk_scalar_field(vtkfile, name, background)
-        self._write_vtk_auxiliary_coordinates(vtkfile)
-        self._log_info(f"done. file exported to {vtkfile.resolve()}")
 
 
 class VTKCartesianData(VTKDataExporter):

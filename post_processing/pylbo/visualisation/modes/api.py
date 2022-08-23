@@ -225,7 +225,6 @@ def prepare_vtk_export(
     omega: Union[complex, list[complex], np.ndarray],
     u2: np.ndarray,
     u3: np.ndarray,
-    add_background: bool = False,
     use_real_part: bool = False,
     complex_factor: complex = None,
 ) -> Union[VTKCartesianData, VTKCylindricalData]:
@@ -243,8 +242,6 @@ def prepare_vtk_export(
         The y or :math:`\\theta` coordinates of the eigenmode solution.
     u3 : np.ndarray
         The z coordinates of the eigenmode solution.
-    add_background : bool
-        Whether to add the equilibrium background to the solutions.
     use_real_part : bool
         Whether to use the real part of the eigenmode solution.
 
@@ -256,7 +253,7 @@ def prepare_vtk_export(
     ensure_dataset(ds)
     omega = transform_to_list(omega)
     data = ModeVisualisationData(
-        ds, omega, None, use_real_part, complex_factor, add_background
+        ds, omega, None, use_real_part, complex_factor, add_background=False
     )
     if ds.geometry.lower() == "cartesian":
         return VTKCartesianData(data, u2, u3)

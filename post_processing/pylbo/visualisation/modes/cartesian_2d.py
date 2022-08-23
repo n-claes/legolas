@@ -46,6 +46,7 @@ class CartesianSlicePlot2D(ModeFigure):
         self.slicing_axis = self._validate_slicing_axis(
             slicing_axis, allowed_axes=[self._u2axis, self._u3axis]
         )
+        self.update_colorbar = True
         self._u1 = data.ds.ef_grid
         self._u2 = self._validate_u2(u2, slicing_axis, axis=self._u2axis)
         self._u3 = self._validate_u3(u3, slicing_axis, axis=self._u3axis)
@@ -169,6 +170,7 @@ class CartesianSlicePlot2D(ModeFigure):
     ) -> None:
         writer = animation.FFMpegWriter(fps=fps)
         pbar = tqdm(total=len(times), unit="frames", desc=f"Creating '{filename}'")
+        self.data._print_bg_info = False
         with writer.saving(self.fig, filename, dpi=dpi):
             for t in times:
                 solution = 0
@@ -176,8 +178,11 @@ class CartesianSlicePlot2D(ModeFigure):
                     solution += self.calculate_mode_solution(
                         efdata, self.u2_data, self.u3_data, t
                     )
+                if self.data.add_background:
+                    solution += self.data.get_background(shape=self.solution_shape)
                 self._update_view(updated_solution=solution)
-                self._update_view_clims(solution)
+                if self.update_colorbar:
+                    self._update_view_clims(solution)
                 self._set_t_txt(t)
                 writer.grab_frame()
 
