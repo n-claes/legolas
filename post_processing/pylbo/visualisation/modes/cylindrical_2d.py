@@ -27,6 +27,8 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         The axis along which the eigenmode solution is sliced.
     figsize : tuple[int, int]
         The size of the figure.
+    show_ef_panel : bool
+        Whether to show the eigenfunction panel.
     polar : bool
         Whether to use polar coordinates for the plot.
     **kwargs
@@ -42,11 +44,14 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         time: float,
         slicing_axis: str,
         figsize: tuple[int, int],
+        show_ef_panel: bool,
         polar: bool,
         **kwargs,
     ) -> None:
         self._use_polar_axes = polar
-        super().__init__(data, u2, u3, time, slicing_axis, figsize, **kwargs)
+        super().__init__(
+            data, u2, u3, time, slicing_axis, figsize, show_ef_panel, **kwargs
+        )
 
     def set_plot_arrays(self) -> None:
         if self.slicing_axis == self._u2axis:
@@ -83,7 +88,8 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
 
     def draw_eigenfunction(self) -> None:
         super().draw_eigenfunction()
-        self.axes["eigfunc"].set_xlabel(self.data.ds.u1_str)
+        if self._show_ef_panel:
+            self.axes["eigfunc"].set_xlabel(self.data.ds.u1_str)
 
     def get_view_xlabel(self) -> str:
         if self._use_polar_axes:
@@ -104,8 +110,12 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
             return super()._create_figure_layout(figsize)
         fig = plt.figure(figsize=figsize)
         polar = self._use_polar_axes
-        ax1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])
-        ax2 = fig.add_axes([0.25, 0.1, 0.5, 0.5], aspect="equal", polar=polar)
+        if self._show_ef_panel:
+            ax1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])
+            ax2 = fig.add_axes([0.25, 0.1, 0.5, 0.5], aspect="equal", polar=polar)
+        else:
+            ax1 = None
+            ax2 = fig.add_axes([0.1, 0.1, 0.8, 0.8], aspect="equal", polar=polar)
         if polar:
             self._cbar_hspace = 0.05
         return fig, {"eigfunc": ax1, "view": ax2}

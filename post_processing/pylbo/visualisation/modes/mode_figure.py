@@ -53,9 +53,12 @@ class ModeFigure(FigureWindow):
         The text for the time label.
     """
 
-    def __init__(self, figsize: tuple[int, int], data: ModeVisualisationData) -> None:
+    def __init__(
+        self, figsize: tuple[int, int], data: ModeVisualisationData, show_ef_panel: bool
+    ) -> None:
         self.cbar = None
         self._cbar_hspace = 0.01
+        self._show_ef_panel = show_ef_panel
 
         if figsize is None:
             figsize = (14, 8)
@@ -225,12 +228,15 @@ class ModeFigure(FigureWindow):
         raise NotImplementedError()
 
     def draw_textboxes(self) -> None:
-        self.add_u2u3_txt(self.axes["eigfunc"], loc="top right", outside=True)
+        u2u3ax = self.axes.get("eigfunc", None) or self.ax
+        self.add_u2u3_txt(u2u3ax, loc="top right", outside=True)
         self.add_k2k3_txt(self.ax, loc="bottom left", color="white", alpha=0.5)
 
     def draw_eigenfunction(self) -> None:
         """Draws the eigenfunction(s) to the figure."""
-        ax = self.axes["eigfunc"]
+        ax = self.axes.get("eigfunc", None)
+        if ax is None:
+            return
         grid = self.data.ds.ef_grid
         for ef, omega in zip(self.data.eigenfunction, self.data.omega):
             label = rf"$\omega$ = {omega:.5f}"
@@ -339,6 +345,10 @@ class ModeFigure(FigureWindow):
             The axes to use for the visualisation.
         """
         fig = plt.figure(figsize=figsize)
+        if not self._show_ef_panel:
+            ax2 = fig.add_subplot()
+            return fig, {"view": ax2}
+
         width = 0.75
         height_1 = 0.2
         height_2 = 0.5

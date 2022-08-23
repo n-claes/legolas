@@ -26,6 +26,8 @@ class CartesianSlicePlot2D(ModeFigure):
         The axis along which the eigenmode solution is sliced.
     figsize : tuple[int, int]
         The size of the figure.
+    show_ef_panel: bool
+        Whether to show the eigenfunction panel.
     **kwargs
         Additional keyword arguments to be passed to :meth:`matplotlib.pyplot.imshow`.
     """
@@ -38,6 +40,7 @@ class CartesianSlicePlot2D(ModeFigure):
         time: float,
         slicing_axis: str,
         figsize: tuple[int, int],
+        show_ef_panel: bool,
         **kwargs,
     ) -> None:
         for i in "123":
@@ -52,7 +55,7 @@ class CartesianSlicePlot2D(ModeFigure):
         self._u3 = self._validate_u3(u3, slicing_axis, axis=self._u3axis)
         self._time = self._check_if_number(time, "time")
         self._kwargs = kwargs
-        super().__init__(figsize, data)
+        super().__init__(figsize, data, show_ef_panel)
 
     def _validate_slicing_axis(self, slicing_axis: str, allowed_axes: list[str]) -> str:
         """

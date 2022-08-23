@@ -23,6 +23,7 @@ def plot_1d_temporal_evolution(
     add_background: bool = False,
     use_real_part: bool = True,
     complex_factor: complex = None,
+    show_ef_panel: bool = True,
     **kwargs,
 ) -> TemporalEvolutionPlot1D:
     """
@@ -55,6 +56,8 @@ def plot_1d_temporal_evolution(
         Whether to use the real part of the eigenmode solution.
     complex_factor : complex
         A complex factor to multiply the eigenmode solution with.
+    show_ef_panel : bool
+        Whether to show the eigenfunction panel.
     kwargs : dict
         Additional keyword arguments to pass to :meth:`~matplotlib.pyplot.imshow`.
 
@@ -69,7 +72,7 @@ def plot_1d_temporal_evolution(
         ds, omega, ef_name, use_real_part, complex_factor, add_background
     )
     time = transform_to_numpy(time)
-    p = TemporalEvolutionPlot1D(data, u2, u3, time, figsize, **kwargs)
+    p = TemporalEvolutionPlot1D(data, u2, u3, time, figsize, show_ef_panel, **kwargs)
     p.draw()
     return p
 
@@ -86,6 +89,7 @@ def plot_2d_slice(
     add_background: bool = False,
     use_real_part: bool = True,
     complex_factor: complex = None,
+    show_ef_panel: bool = True,
     polar: bool = False,
     **kwargs,
 ) -> CartesianSlicePlot2D:
@@ -125,6 +129,8 @@ def plot_2d_slice(
         Whether to use the real part of the eigenmode solution.
     complex_factor : complex
         A complex factor to multiply the eigenmode solution with.
+    show_ef_panel : bool
+        Whether to show the eigenfunction panel.
     polar : bool
         Whether to use polar coordinates for the 2D view. Only used if the
         dataset geometry is cylindrical. Default is False.
@@ -142,10 +148,12 @@ def plot_2d_slice(
         ds, omega, ef_name, use_real_part, complex_factor, add_background
     )
     if ds.geometry == "Cartesian":
-        p = CartesianSlicePlot2D(data, u2, u3, time, slicing_axis, figsize, **kwargs)
+        p = CartesianSlicePlot2D(
+            data, u2, u3, time, slicing_axis, figsize, show_ef_panel, **kwargs
+        )
     else:
         p = CylindricalSlicePlot2D(
-            data, u2, u3, time, slicing_axis, figsize, polar, **kwargs
+            data, u2, u3, time, slicing_axis, figsize, show_ef_panel, polar, **kwargs
         )
     p.draw()
     return p

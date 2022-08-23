@@ -19,6 +19,8 @@ class TemporalEvolutionPlot1D(ModeFigure):
         The data for the time.
     figsize : tuple[int, int]
         The size of the figure.
+    show_ef_panel : bool
+        Whether to show the eigenfunction panel.
     **kwargs
         Additional keyword arguments to be passed to :meth:`matplotlib.pyplot.imshow`.
     """
@@ -30,6 +32,7 @@ class TemporalEvolutionPlot1D(ModeFigure):
         u3: float,
         time: np.ndarray,
         figsize: tuple[int, int],
+        show_ef_panel: bool,
         **kwargs,
     ) -> None:
         self._u1 = data.ds.ef_grid
@@ -37,7 +40,7 @@ class TemporalEvolutionPlot1D(ModeFigure):
         self._u3 = self._check_if_number(u3, "u3")
         self._time = self._check_if_array(time, "time")
         self._kwargs = kwargs
-        super().__init__(figsize, data)
+        super().__init__(figsize, data, show_ef_panel)
 
     def set_plot_arrays(self) -> None:
         self.solution_shape = (len(self._u1), len(self._time))
