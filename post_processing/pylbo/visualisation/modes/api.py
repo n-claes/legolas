@@ -233,7 +233,7 @@ def prepare_vtk_export(
     omega: Union[complex, list[complex], np.ndarray],
     u2: np.ndarray,
     u3: np.ndarray,
-    use_real_part: bool = False,
+    use_real_part: bool = True,
     complex_factor: complex = None,
 ) -> Union[VTKCartesianData, VTKCylindricalData]:
     """
