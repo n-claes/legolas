@@ -48,7 +48,7 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
             figsize = (8, 8)
         if slicing_axis == "y":
             raise NotImplementedError("3D slicing is not implemented for y-axis.")
-        super().__init__(data, u2, u3, time, slicing_axis, figsize, **kwargs)
+        super().__init__(data, u2, u3, time, slicing_axis, figsize, False, **kwargs)
 
         self.vmin = np.min(self._solutions) if vmin is None else vmin
         self.vmax = np.max(self._solutions) if vmax is None else vmax
@@ -151,8 +151,9 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
                 except ValueError:
                     pass
         self._solutions = updated_solution
-        self.vmin = np.min(self._solutions)
-        self.vmax = np.max(self._solutions)
+        if self.update_colorbar:
+            self.vmin = np.min(self._solutions)
+            self.vmax = np.max(self._solutions)
         self.draw_solution()
         self.cbar.set_ticks(np.linspace(self.vmin, self.vmax, 5))
         self.add_axes_labels()
