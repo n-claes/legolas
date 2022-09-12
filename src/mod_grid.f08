@@ -180,7 +180,7 @@ contains
   !!        If not needed, they can be set to NaN. See the individual
   !!        accumulation profiles to determine their necessity. @endnote
   subroutine get_accumulated_grid(accumulated_grid, grid_profile, p1, p2, p3, p4)
-    use mod_global_variables, only: x_start, x_end, gridpts, set_gridpts
+    use mod_global_variables, only: x_start, x_end, gridpts, set_gridpts, dp_LIMIT
     use mod_logging, only: log_message
     use mod_grid_profiles
 
@@ -188,7 +188,7 @@ contains
     character(len=*), intent(in) :: grid_profile
     real(dp), intent(in) :: p1, p2, p3, p4
 
-    integer  :: i, new_gpts
+    integer  :: i, new_gpts, idx(gridpts)
     real(dp) :: cx, dx, kappa, xbar(gridpts)
 
     abstract interface
@@ -235,6 +235,19 @@ contains
     end do
     accumulated_grid(new_gpts) = x_end
 
+    if (grid_profile == 'gaussian' .and. (x_start + x_end < dp_LIMIT) .and. abs(p2) < dp_LIMIT) then
+      do i = 1, new_gpts
+        if (accumulated_grid(i) > 0) then
+          idx = i
+          exit
+        end if
+      end do
+      new_gpts = 2*idx(1)-1
+      accumulated_grid(idx(1)) = 0.0d0
+      do i = 1, idx(1)-1
+        accumulated_grid(idx(1)+i) = -accumulated_grid(idx(1)-i)
+      end do
+    end if
     call set_gridpts(new_gpts)
   end subroutine get_accumulated_grid
 
