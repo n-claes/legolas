@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from copy import copy
 
 from matplotlib.axes import Axes as mpl_axes

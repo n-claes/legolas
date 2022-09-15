@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import struct
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Union
 
 import numpy as np
 from pylbo.utilities.logger import pylboLogger
@@ -90,7 +92,7 @@ class VTKDataExporter:
             self._u1, self._u2, self._u3, indexing="ij"
         )
 
-    def get_coordinate_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def get_coordinate_data(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Returns the coordinate data. This should always return the data in a Cartesian
         reference frame (u1, u2, u3), so coordinate transformations should be
@@ -350,7 +352,7 @@ class VTKCartesianData(VTKDataExporter):
     ) -> None:
         super().__init__(data=data, u1=data.ds.ef_grid, u2=u2, u3=u3)
 
-    def get_coordinate_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def get_coordinate_data(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         return self.u1_data, self.u2_data, self.u3_data
 
 
@@ -363,7 +365,7 @@ class VTKCylindricalData(VTKDataExporter):
     ) -> None:
         super().__init__(data=data, u1=data.ds.ef_grid, u2=u2, u3=u3)
 
-    def get_coordinate_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def get_coordinate_data(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         return (
             self.u1_data * np.cos(self.u2_data),
             self.u1_data * np.sin(self.u2_data),

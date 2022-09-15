@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 from pylbo.visualisation.modes.mode_figure import ModeFigure

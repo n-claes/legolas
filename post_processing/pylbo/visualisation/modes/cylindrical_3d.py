@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 from matplotlib.cm import ScalarMappable
 from pylbo.visualisation.modes.cartesian_3d import CartesianSlicePlot3D
