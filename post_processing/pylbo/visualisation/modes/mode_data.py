@@ -62,7 +62,18 @@ class ModeVisualisationData:
         self._ef_name = None if ef_name is None else validate_ef_name(ds, ef_name)
         self._ef_name_latex = None if ef_name is None else self.get_ef_name_latex()
 
-        self._all_efs = ds.get_eigenfunctions(omega)
+        if ds.header.get("derived_eigenfuncs_written", False):
+            dict1 = ds.get_eigenfunctions(omega)
+            dict2 = ds.get_derived_eigenfunctions(omega)
+            if abs(dict1[0]['eigenvalue']-dict2[0]['eigenvalue']) > 1e-12:
+                pylboLogger.info(
+                    "Eigenvalues in ef and derived ef do not match. Proceeding with ef only."
+                )
+                self._all_efs = dict1
+            else:
+                self._all_efs = np.array([{**dict1[0], **dict2[0]}])
+        else:
+            self._all_efs = ds.get_eigenfunctions(omega)
         self.omega = [all_efs.get("eigenvalue") for all_efs in self._all_efs]
         self.eigenfunction = [all_efs.get(self._ef_name) for all_efs in self._all_efs]
 

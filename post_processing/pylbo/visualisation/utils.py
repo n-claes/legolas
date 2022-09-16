@@ -63,10 +63,14 @@ def ef_name_to_latex(
 
 def validate_ef_name(ds, ef_name: str) -> str:
     """Returns the validated eigenfunction name"""
-    if ef_name not in ds.ef_names:
+    if ds.header.get("derived_eigenfuncs_written", False):
+        names = ds.ef_names + ds.derived_ef_names
+    else:
+        names = ds.ef_names
+    if ef_name not in names:
         raise ValueError(
             f"The eigenfunction '{ef_name}' is not part of the "
-            f"eigenfunctions {ds.ef_names}."
+            f"eigenfunctions {names}."
         )
     return ef_name
 
