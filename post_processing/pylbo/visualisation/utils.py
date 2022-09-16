@@ -62,11 +62,29 @@ def ef_name_to_latex(
 
 
 def validate_ef_name(ds, ef_name: str) -> str:
-    """Returns the validated eigenfunction name"""
-    if ds.header.get("derived_eigenfuncs_written", False):
-        names = ds.ef_names + ds.derived_ef_names
-    else:
-        names = ds.ef_names
+    """
+    Returns the validated eigenfunction name.
+
+    Parameters
+    ----------
+    ds : ~pylbo.data_containers.LegolasDataSet
+        The dataset containing the eigenfunctions.
+    ef_name : str
+        The name of the eigenfunction.
+
+    Raises
+    ------
+    ValueError
+        If the eigenfunction name is not valid.
+
+    Returns
+    -------
+    str
+        The validated eigenfunction name.
+    """
+    names = ds.ef_names
+    if ds.derived_efs_written:
+        names += ds.derived_ef_names
     if ef_name not in names:
         raise ValueError(
             f"The eigenfunction '{ef_name}' is not part of the "
