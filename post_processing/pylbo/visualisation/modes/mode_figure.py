@@ -87,6 +87,8 @@ class ModeFigure(FigureWindow):
             self._ensure_attr_set(f"{attr}_data")
         self._ensure_attr_set("solution_shape")
 
+        self._figure_drawn = False
+
         # don't explicitly create an empty array as this may return a broadcasted view
         self._solutions = 0
         for efdata in self.ef_data:
@@ -225,6 +227,7 @@ class ModeFigure(FigureWindow):
         self.draw_solution()
         self.draw_textboxes()
         self.add_axes_labels()
+        self._figure_drawn = True
 
     def draw_solution(self) -> None:
         raise NotImplementedError()
@@ -381,3 +384,9 @@ class ModeFigure(FigureWindow):
             The resolution of the animation.
         """
         raise ValueError(f"{self.__class__.__name__} does not support animation.")
+
+    def show(self):
+        """Shows the selected figure"""
+        if not self._figure_drawn:
+            self.draw()
+        plt.show()

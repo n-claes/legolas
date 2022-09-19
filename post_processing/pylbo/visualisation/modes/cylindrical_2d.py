@@ -69,21 +69,53 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         self.u3_data = self._u3
         self.time_data = self._time
 
-    def draw_solution(self) -> None:
+    def _draw_image(self) -> None:
         if self.slicing_axis == self._u2axis:
-            return super().draw_solution()
-        x_2d = self.u1_data * np.cos(self.u2_data)
-        y_2d = self.u1_data * np.sin(self.u2_data)
+            return super()._draw_image()
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)
-            if not self._use_polar_axes:
-                self._view = self.ax.pcolormesh(
-                    x_2d, y_2d, self.solutions, **self._kwargs
-                )
-            else:
+            if self._use_polar_axes:
                 self._view = self.ax.pcolormesh(
                     self.u2_data, self.u1_data, self.solutions, **self._kwargs
                 )
+            else:
+                x_2d = self.u1_data * np.cos(self.u2_data)
+                y_2d = self.u1_data * np.sin(self.u2_data)
+                self._view = self.ax.pcolormesh(
+                    x_2d, y_2d, self.solutions, **self._kwargs
+                )
+        self.cbar = self.fig.colorbar(
+            ScalarMappable(norm=self._view.norm, cmap=self._view.cmap), cax=self.cbar_ax
+        )
+
+    def _draw_contours(self) -> None:
+        if self.slicing_axis == self._u2axis:
+            return super()._draw_contours()
+        additional_kwargs = {}
+        if self._contour_levels is not None:
+            additional_kwargs["levels"] = self._contour_levels
+        if self._use_polar_axes:
+            self._view = self._contour_recipe(
+                self.u2_data,
+                self.u1_data,
+                self.solutions,
+                vmin=self.vmin,
+                vmax=self.vmax,
+                **additional_kwargs,
+                **self._kwargs,
+            )
+        else:
+            x_2d = self.u1_data * np.cos(self.u2_data)
+            y_2d = self.u1_data * np.sin(self.u2_data)
+            self._view = self._contour_recipe(
+                x_2d,
+                y_2d,
+                self.solutions,
+                vmin=self.vmin,
+                vmax=self.vmax,
+                **additional_kwargs,
+                **self._kwargs,
+            )
         self.cbar = self.fig.colorbar(
             ScalarMappable(norm=self._view.norm, cmap=self._view.cmap), cax=self.cbar_ax
         )
@@ -122,13 +154,8 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
             self._cbar_hspace = 0.05
         return fig, {"eigfunc": ax1, "view": ax2}
 
-    def create_animation(
-        self, times: np.ndarray, filename: str, fps: float = 10, dpi: int = 200
-    ) -> None:
-        return super().create_animation(times, filename, fps, dpi)
-
     def _update_view(self, updated_solution: np.ndarray):
-        if self.slicing_axis == self._u3axis:
-            # overload view updater due to use of pcolormesh instead of imshow
+        if self.slicing_axis == self._u3axis and not self._use_contour_plot:
+            # pcolormesh uses a different view update method
             return self._view.set_array(updated_solution.ravel())
         return super()._update_view(updated_solution)

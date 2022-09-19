@@ -55,6 +55,7 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
         self.vmin = np.min(self._solutions) if vmin is None else vmin
         self.vmax = np.max(self._solutions) if vmax is None else vmax
         self._view = [None] * len(self._u3)
+        self.set_contours(levels=25, fill=True)
 
     def _create_figure_layout(self, figsize: tuple[int, int]) -> tuple[Figure, dict]:
         fig = plt.figure(figsize=figsize)
@@ -102,17 +103,21 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
         pass
 
     def draw_solution(self) -> None:
+        level_kwargs = {}
+        if self._contour_levels is not None:
+            level_kwargs["levels"] = self._contour_levels
         for i, z in enumerate(self._u3):
-            self._view[i] = self.ax.contourf(
+            self._view[i] = self._contour_recipe(
                 self.u1_data,
                 self.u2_data,
                 self.solutions[..., i],
-                levels=50,
                 zdir="z",
                 offset=z,
                 alpha=max(0.4, 1 - i * 0.1),
                 vmin=self.vmin,
                 vmax=self.vmax,
+                **level_kwargs,
+                **self._kwargs,
             )
         self.cbar = self.fig.colorbar(
             ScalarMappable(norm=self._view[0].norm, cmap=self._view[0].cmap),
@@ -138,30 +143,20 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
             bbox=dict(facecolor="grey", alpha=0.2, boxstyle="round", pad=0.2),
         )
 
-    def create_animation(
-        self, times: np.ndarray, filename: str, fps: float = 10, dpi: int = 200
-    ) -> None:
-        super().create_animation(times, filename, fps, dpi)
-
-    def _update_view(self, updated_solution: np.ndarray) -> None:
-        # sadly contourf does not support updating the data, so we have to
-        # delete the old contours and create new ones every frame...
+    def _clear_contours(self) -> None:
         for view in self._view:
             for coll in view.collections:
                 try:
                     coll.remove()
                 except ValueError:
                     pass
-        self._solutions = updated_solution
-        if self.update_colorbar:
-            self.vmin = np.min(self._solutions)
-            self.vmax = np.max(self._solutions)
-        self.draw_solution()
-        self.cbar.set_ticks(np.linspace(self.vmin, self.vmax, 5))
-        self.add_axes_labels()
+
+    def _update_view(self, updated_solution: np.ndarray) -> None:
+        super()._update_contour_plot(updated_solution)
 
     def _update_view_clims(self, solution: np.ndarray) -> None:
-        pass
+        if self.update_colorbar:
+            self.vmin, self.vmax = np.min(solution), np.max(solution)
 
     def _set_t_txt(self, t):
         self.t_txt.set_text(f"t = {t:.2f}")

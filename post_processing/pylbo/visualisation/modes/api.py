@@ -75,7 +75,6 @@ def plot_1d_temporal_evolution(
     )
     time = transform_to_numpy(time)
     p = TemporalEvolutionPlot1D(data, u2, u3, time, figsize, show_ef_panel, **kwargs)
-    p.draw()
     return p
 
 
@@ -137,7 +136,7 @@ def plot_2d_slice(
         Whether to use polar coordinates for the 2D view. Only used if the
         dataset geometry is cylindrical. Default is False.
     kwargs : dict
-        Additional keyword arguments to pass to :meth:`~matplotlib.pyplot.imshow`.
+        Additional keyword arguments to pass to the plotting function.
 
     Returns
     -------
@@ -157,7 +156,6 @@ def plot_2d_slice(
         p = CylindricalSlicePlot2D(
             data, u2, u3, time, slicing_axis, figsize, show_ef_panel, polar, **kwargs
         )
-    p.draw()
     return p
 
 
@@ -209,7 +207,7 @@ def plot_3d_slice(
     complex_factor : complex
         A complex factor to multiply the eigenmode solution with.
     kwargs : dict
-        Additional keyword arguments to pass to :meth:`~matplotlib.pyplot.imshow`.
+        Additional keyword arguments to pass to the plotting function.
 
     Returns
     -------
@@ -226,7 +224,6 @@ def plot_3d_slice(
         p = CartesianSlicePlot3D(data, u2, u3, time, slicing_axis, figsize, **kwargs)
     else:
         p = CylindricalSlicePlot3D(data, u2, u3, time, slicing_axis, figsize, **kwargs)
-    p.draw()
     return p
 
 
@@ -257,7 +254,7 @@ def prepare_vtk_export(
 
     Returns
     -------
-    VTKDataCube3D
+    VTKCartesianData or VTKCylindricalData
         Object that can be used to generate VTK files.
     """
     ensure_dataset(ds)

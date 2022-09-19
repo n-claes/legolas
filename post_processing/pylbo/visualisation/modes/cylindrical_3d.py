@@ -54,6 +54,7 @@ class CylindricalSlicePlot3D(CartesianSlicePlot3D):
 
         self.vmin = np.min(self._solutions) if vmin is None else vmin
         self.vmax = np.max(self._solutions) if vmax is None else vmax
+        self.set_contours(levels=25, fill=True)
 
     def set_plot_arrays(self) -> None:
         self.solution_shape = (len(self._u1), len(self._u2))
@@ -67,17 +68,21 @@ class CylindricalSlicePlot3D(CartesianSlicePlot3D):
         self.time_data = self._time
 
     def draw_solution(self) -> None:
+        level_kwargs = {}
+        if self._contour_levels is not None:
+            level_kwargs["levels"] = self._contour_levels
         for i, z in enumerate(self._u3):
-            self._view[i] = self.ax.contourf(
+            self._view[i] = self._contour_recipe(
                 self.u1_data * np.cos(self.u2_data),
                 self.u1_data * np.sin(self.u2_data),
                 self.solutions[..., i],
-                levels=50,
                 zdir="z",
                 offset=z,
                 alpha=max(0.4, 1 - i * 0.1),
                 vmin=self.vmin,
                 vmax=self.vmax,
+                **level_kwargs,
+                **self._kwargs,
             )
         self.cbar = self.fig.colorbar(
             ScalarMappable(norm=self._view[0].norm, cmap=self._view[0].cmap),
