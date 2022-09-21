@@ -9,7 +9,7 @@ from pylbo.visualisation.spectra.spectrum_single import SingleSpectrumPlot
 
 
 def test_spectrum_plot_invalid_data(series_v112):
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         pylbo.plot_spectrum(series_v112)
 
 
@@ -122,7 +122,7 @@ def test_spectrum_plot_figlabel(ds_v112):
 
 
 def test_multispectrum_plot_invalid_data(ds_v112):
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         pylbo.plot_spectrum_multi(ds_v112, xdata="k2")
 
 
