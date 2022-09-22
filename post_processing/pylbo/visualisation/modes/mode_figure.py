@@ -363,7 +363,7 @@ class ModeFigure(FigureWindow):
         y2 = v_space
         # left, bottom, width, height in Figure coordinates
         ax1 = fig.add_axes([x, y1, width, height_1])
-        ax2 = fig.add_axes([x, y2, width, height_2], sharex=ax1)
+        ax2 = fig.add_axes([x, y2, width, height_2])
         return fig, {"eigfunc": ax1, "view": ax2}
 
     def create_animation(
