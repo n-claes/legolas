@@ -64,7 +64,7 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
             ax.spines[side].set_color("none")
         ax.grid(False)
         for attr in "xyz":
-            getattr(ax, f"w_{attr}axis").set_pane_color((1.0, 1.0, 1.0, 1.0))
+            getattr(ax, f"{attr}axis").set_pane_color((1.0, 1.0, 1.0, 1.0))
         return fig, {"view": ax}
 
     def _create_cbar_axes(self):
