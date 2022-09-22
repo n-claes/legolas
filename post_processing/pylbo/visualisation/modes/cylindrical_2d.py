@@ -7,6 +7,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib.figure import Figure
+from pylbo._version import _mpl_version
 from pylbo.visualisation.modes.cartesian_2d import CartesianSlicePlot2D
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 
@@ -72,18 +73,20 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
     def _draw_image(self) -> None:
         if self.slicing_axis == self._u2axis:
             return super()._draw_image()
+        if self._use_polar_axes:
+            xdata = self.u2_data
+            ydata = self.u1_data
+            if _mpl_version >= "3.5":
+                # auto-grid removal deprecates from MPL 3.5 onwards
+                self.ax.grid(False)
+        else:
+            xdata = self.u1_data * np.cos(self.u2_data)
+            ydata = self.u1_data * np.sin(self.u2_data)
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)
-            if self._use_polar_axes:
-                self._view = self.ax.pcolormesh(
-                    self.u2_data, self.u1_data, self.solutions, **self._kwargs
-                )
-            else:
-                x_2d = self.u1_data * np.cos(self.u2_data)
-                y_2d = self.u1_data * np.sin(self.u2_data)
-                self._view = self.ax.pcolormesh(
-                    x_2d, y_2d, self.solutions, **self._kwargs
-                )
+            self._view = self.ax.pcolormesh(
+                xdata, ydata, self.solutions, **self._kwargs
+            )
         self.cbar = self.fig.colorbar(
             ScalarMappable(norm=self._view.norm, cmap=self._view.cmap), cax=self.cbar_ax
         )
@@ -95,27 +98,20 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         if self._contour_levels is not None:
             additional_kwargs["levels"] = self._contour_levels
         if self._use_polar_axes:
-            self._view = self._contour_recipe(
-                self.u2_data,
-                self.u1_data,
-                self.solutions,
-                vmin=self.vmin,
-                vmax=self.vmax,
-                **additional_kwargs,
-                **self._kwargs,
-            )
+            xdata = self.u2_data
+            ydata = self.u1_data
         else:
-            x_2d = self.u1_data * np.cos(self.u2_data)
-            y_2d = self.u1_data * np.sin(self.u2_data)
-            self._view = self._contour_recipe(
-                x_2d,
-                y_2d,
-                self.solutions,
-                vmin=self.vmin,
-                vmax=self.vmax,
-                **additional_kwargs,
-                **self._kwargs,
-            )
+            xdata = self.u1_data * np.cos(self.u2_data)
+            ydata = self.u1_data * np.sin(self.u2_data)
+        self._view = self._contour_recipe(
+            xdata,
+            ydata,
+            self.solutions,
+            vmin=self.vmin,
+            vmax=self.vmax,
+            **additional_kwargs,
+            **self._kwargs,
+        )
         self.cbar = self.fig.colorbar(
             ScalarMappable(norm=self._view.norm, cmap=self._view.cmap), cax=self.cbar_ax
         )
