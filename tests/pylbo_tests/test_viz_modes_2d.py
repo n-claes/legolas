@@ -30,12 +30,16 @@ class Slice2D(ModeVizTest):
     def background(self):
         return False
 
+    @property
+    def ef_name(self):
+        return "rho"
+
     @pytest.fixture(scope="function")  # function scope to avoid caching
     def view(self, ds):
         p = pylbo.plot_2d_slice(
             ds,
             omega=self.omega,
-            ef_name="rho",
+            ef_name=self.ef_name,
             u2=self.u2vals,
             u3=self.u3vals,
             time=0,
@@ -52,6 +56,14 @@ class Slice2D(ModeVizTest):
         assert view.ax.get_xlabel() == self.xlabel
         assert view.ax.get_ylabel() == self.ylabel
         assert view.cbar.ax.get_ylabel() == "Re($\\rho$)"
+
+    def test_animation(self, view, tmpdir, mode_solution):
+        view.create_animation(
+            times=np.arange(5), filename=tmpdir / "test_2d.mp4", fps=1
+        )
+        assert view.update_colorbar is True
+        # check this did not modify solutions
+        assert np.allclose(view.solutions, mode_solution)
 
 
 class TestSliceZ_2DCart(Slice2D):
@@ -85,20 +97,6 @@ class TestSliceZ_2DCart(Slice2D):
         with pytest.raises(ValueError):
             pylbo.plot_2d_slice(ds, self.omega, "rho", self.u2vals, self.u3vals, 0, "x")
 
-    def test_animation(self, view, tmpdir, mode_solution):
-        view.create_animation(times=np.arange(5), filename=tmpdir / "test.mp4", fps=1)
-        # check this did not modify solutions
-        assert np.allclose(view.solutions, mode_solution)
-
-    def test_animation_cbar_lock(self, view, tmpdir, mode_solution):
-        view.update_colorbar = False
-        view.create_animation(
-            times=np.arange(5), filename=tmpdir / "test_cbar_lock.mp4", fps=1
-        )
-        assert view.update_colorbar is False
-        assert self.cbar_matches(view, mode_solution)
-        assert np.allclose(view.solutions, mode_solution)
-
     def test_animation_contour(self, view, tmpdir, mode_solution):
         view.set_contours(20, fill=False)
         view.draw()
@@ -107,8 +105,17 @@ class TestSliceZ_2DCart(Slice2D):
         )
         assert np.allclose(view.solutions, mode_solution)
 
+    def test_animation_cbar_lock(self, view, tmpdir, mode_solution):
+        view.update_colorbar = False
+        view.create_animation(
+            times=np.arange(5), filename=tmpdir / "test_2d_cbar_lock.mp4", fps=1
+        )
+        assert view.update_colorbar is False
+        assert self.cbar_matches(view, mode_solution)
+        assert np.allclose(view.solutions, mode_solution)
 
-class TestSliceZ_2DCartBackground(TestSliceZ_2DCart):
+
+class TestSliceZ_2DCartBackground(Slice2D):
     filename = "slice_2d_z_cart_rho_bg.npy"
     omega = 1.19029 + 3.75969j
     slicing_axis = "z"
@@ -117,6 +124,43 @@ class TestSliceZ_2DCartBackground(TestSliceZ_2DCart):
     xlabel = "x"
     ylabel = "y"
     background = True
+
+    @pytest.fixture(scope="class")
+    def ds(self, ds_v121_rti_khi):
+        return ds_v121_rti_khi
+
+    def test_bg_with_vector_potential(self, ds):
+        with pytest.raises(ValueError):
+            pylbo.plot_2d_slice(
+                ds,
+                self.omega,
+                "a1",
+                self.u2vals,
+                self.u3vals,
+                0,
+                "z",
+                add_background=True,
+            )
+
+
+class TestSliceZ_2DCartDerivedEigenfunctions(Slice2D):
+    filename = "slice_2d_z_cart_b2.npy"
+    omega = 1.19029 + 3.75969j
+    slicing_axis = "z"
+    u2vals = np.linspace(0, 2, 50)
+    u3vals = 0
+    xlabel = "x"
+    ylabel = "y"
+    ef_name = "B2"
+
+    @pytest.fixture(scope="class")
+    def ds(self, ds_v121_rti_khi):
+        return ds_v121_rti_khi
+
+    def test_labels(self, view):
+        assert view.ax.get_xlabel() == self.xlabel
+        assert view.ax.get_ylabel() == self.ylabel
+        assert view.cbar.ax.get_ylabel() == "Re($B_y$)"
 
 
 class TestSliceY_2DCart(Slice2D):

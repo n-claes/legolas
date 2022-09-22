@@ -16,15 +16,13 @@ class TestTemporal1DCart1Mode(ModeVizTest):
             ef_name="rho",
             u2=1,
             u3=1,
-            time=np.linspace(0, 5, 100),
+            time=np.linspace(0, 2, 100),
         )
         p.draw()
         return p
 
     def test_1d_mode_cbar_lims(self, view, mode_solution):
-        actual = (view.cbar.vmin, view.cbar.vmax)
-        expected = (mode_solution.min(), mode_solution.max())
-        assert np.allclose(actual, expected)
+        assert self.cbar_matches(view, mode_solution)
 
     def test_1d_ylabel(self, view):
         assert view.ax.get_ylabel() == "time"
@@ -61,7 +59,7 @@ class TestTemporal1dCart3Modes(TestTemporal1DCart1Mode):
             ef_name="rho",
             u2=1,
             u3=1,
-            time=np.linspace(0, 5, 100),
+            time=np.linspace(0, 2, 100),
         )
         p.draw()
         return p
