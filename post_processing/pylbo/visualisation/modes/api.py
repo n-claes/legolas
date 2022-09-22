@@ -73,7 +73,8 @@ def plot_1d_temporal_evolution(
     data = ModeVisualisationData(
         ds, omega, ef_name, use_real_part, complex_factor, add_background
     )
-    time = transform_to_numpy(time)
+    if isinstance(time, list):
+        time = transform_to_numpy(time)
     p = TemporalEvolutionPlot1D(data, u2, u3, time, figsize, show_ef_panel, **kwargs)
     return p
 

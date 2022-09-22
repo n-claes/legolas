@@ -57,14 +57,6 @@ class Slice2D(ModeVizTest):
         assert view.ax.get_ylabel() == self.ylabel
         assert view.cbar.ax.get_ylabel() == "Re($\\rho$)"
 
-    def test_animation(self, view, tmpdir, mode_solution):
-        view.create_animation(
-            times=np.arange(5), filename=tmpdir / "test_2d.mp4", fps=1
-        )
-        assert view.update_colorbar is True
-        # check this did not modify solutions
-        assert np.allclose(view.solutions, mode_solution)
-
 
 class TestSliceZ_2DCart(Slice2D):
     filename = "slice_2d_z_cart_rho.npy"
@@ -83,6 +75,12 @@ class TestSliceZ_2DCart(Slice2D):
         with pytest.raises(ValueError):
             pylbo.plot_2d_slice(ds, self.omega, "rho", self.u2vals, self.u2vals, 0, "z")
 
+    def test_invalid_time(self, ds):
+        with pytest.raises(ValueError):
+            pylbo.plot_2d_slice(
+                ds, self.omega, "rho", self.u2vals, self.u3vals, [1, 2, 3], "z"
+            )
+
     def test_contour_empty(self, view, mode_solution):
         view.set_contours(levels=20, fill=False)
         view.draw()
@@ -96,6 +94,22 @@ class TestSliceZ_2DCart(Slice2D):
     def test_invalid_slicing_axis(self, ds):
         with pytest.raises(ValueError):
             pylbo.plot_2d_slice(ds, self.omega, "rho", self.u2vals, self.u3vals, 0, "x")
+
+    def test_no_top_panel(self, ds, view):
+        assert len(view.fig.get_axes()) == 3
+        view = pylbo.plot_2d_slice(
+            ds, self.omega, "rho", self.u2vals, self.u3vals, 0, "z", show_ef_panel=False
+        )
+        view.draw()
+        assert len(view.fig.get_axes()) == 2
+
+    def test_animation(self, view, tmpdir, mode_solution):
+        view.create_animation(
+            times=np.arange(5), filename=tmpdir / "test_2d.mp4", fps=1
+        )
+        assert view.update_colorbar is True
+        # check this did not modify solutions
+        assert np.allclose(view.solutions, mode_solution)
 
     def test_animation_contour(self, view, tmpdir, mode_solution):
         view.set_contours(20, fill=False)
@@ -141,6 +155,13 @@ class TestSliceZ_2DCartBackground(Slice2D):
                 "z",
                 add_background=True,
             )
+
+    def test_animation_with_bg(self, view, tmpdir, mode_solution):
+        view.create_animation(
+            times=np.arange(5), filename=tmpdir / "test_2d.mp4", fps=1
+        )
+        assert view.update_colorbar is True
+        assert np.allclose(view.solutions, mode_solution)
 
 
 class TestSliceZ_2DCartDerivedEigenfunctions(Slice2D):
@@ -209,6 +230,43 @@ class TestSliceZ_2DCyl(Slice2D):
         view.draw()
         assert self.cbar_matches(view, mode_solution)
 
+    def test_polar_plot(self, ds, mode_solution):
+        view = pylbo.plot_2d_slice(
+            ds, self.omega, "rho", self.u2vals, self.u3vals, 0, "z", polar=True
+        )
+        view.draw()
+        assert self.cbar_matches(view, mode_solution)
+
+    def test_no_top_panel(self, ds, view):
+        assert len(view.fig.get_axes()) == 3
+        view = pylbo.plot_2d_slice(
+            ds, self.omega, "rho", self.u2vals, self.u3vals, 0, "z", show_ef_panel=False
+        )
+        assert len(view.fig.get_axes()) == 2
+
+    def test_polar_contour(self, ds, mode_solution):
+        view = pylbo.plot_2d_slice(
+            ds, self.omega, "rho", self.u2vals, self.u3vals, 0, "z", polar=True
+        )
+        view.set_contours(levels=20, fill=False)
+        view.draw()
+        assert self.cbar_matches(view, mode_solution)
+
+    def test_animation(self, view, tmpdir, mode_solution):
+        view.create_animation(
+            times=np.arange(5), filename=tmpdir / "test_2d.mp4", fps=1
+        )
+        assert view.update_colorbar is True
+        assert np.allclose(view.solutions, mode_solution)
+
+    def test_animation_contour(self, view, tmpdir, mode_solution):
+        view.set_contours(20, fill=False)
+        view.draw()
+        view.create_animation(
+            times=np.arange(5), filename=tmpdir / "test_contour.mp4", fps=1
+        )
+        assert np.allclose(view.solutions, mode_solution)
+
 
 class TestSliceTheta_2DCyl(Slice2D):
     filename = "slice_2d_theta_cyl_rho.npy"
@@ -222,3 +280,8 @@ class TestSliceTheta_2DCyl(Slice2D):
     @pytest.fixture(scope="class")
     def ds(self, ds_v121_magth):
         return ds_v121_magth
+
+    def test_contour_filled(self, view, mode_solution):
+        view.set_contours(levels=25, fill=True)
+        view.draw()
+        assert self.cbar_matches(view, mode_solution)
