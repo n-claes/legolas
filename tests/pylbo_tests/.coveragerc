@@ -20,3 +20,5 @@ exclude_lines =
     def _terminate_workers
     pass
     def timethis
+    def show
+    raise NotImplementedError
