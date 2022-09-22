@@ -70,6 +70,10 @@ class TestTemporal1DCart1Mode(TemporalTest):
                 ds, self.omega, "rho", u2=1, u3=[0], time=0
             )
 
+    def test_animation_fail(self, view):
+        with pytest.raises(ValueError):
+            view.create_animation(times=np.linspace(0, 1, 10), filename="test.mp4")
+
 
 class TestTemporal1dCyl1Mode(TemporalTest):
     filename = "temporal_1d_cyl_1mode_rho.npy"
