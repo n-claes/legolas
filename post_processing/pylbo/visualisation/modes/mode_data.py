@@ -107,7 +107,7 @@ class ModeVisualisationData:
             return arr1
 
         arr2 = ds.get_derived_eigenfunctions(omega)
-        arr = np.empty(len(arr1) + len(arr2), dtype=dict)
+        arr = np.empty(len(omega), dtype=dict)
         for i, (dict1, dict2) in enumerate(zip(arr1, arr2)):
             ev1 = dict1.get("eigenvalue")
             ev2 = dict2.get("eigenvalue")
