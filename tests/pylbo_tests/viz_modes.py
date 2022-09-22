@@ -26,6 +26,11 @@ class ModeVizTest:
     def filename(self):
         raise NotImplementedError
 
+    def cbar_matches(self, view, mode_solution):
+        actual = (view.cbar.vmin, view.cbar.vmax)
+        expected = (mode_solution.min(), mode_solution.max())
+        return np.allclose(actual, expected)
+
     @pytest.fixture(scope="session")
     def capturemanager(self, pytestconfig):
         return pytestconfig.pluginmanager.getplugin("capturemanager")

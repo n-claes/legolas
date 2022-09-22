@@ -1,5 +1,3 @@
-from multiprocessing.sharedctypes import Value
-
 import numpy as np
 import pylbo
 import pytest
@@ -7,7 +5,7 @@ import pytest
 from .viz_modes import ModeVizTest
 
 
-class SliceSetup(ModeVizTest):
+class Slice2D(ModeVizTest):
     @property
     def xlabel(self):
         pass
@@ -24,24 +22,31 @@ class SliceSetup(ModeVizTest):
     def u3vals(self):
         pass
 
-    @pytest.fixture(scope="class")
-    def view(self, ds_v121_rti_khi):
+    @property
+    def omega(self):
+        pass
+
+    @property
+    def background(self):
+        return False
+
+    @pytest.fixture(scope="function")  # function scope to avoid caching
+    def view(self, ds):
         p = pylbo.plot_2d_slice(
-            ds_v121_rti_khi,
-            omega=1.19029 + 3.75969j,
+            ds,
+            omega=self.omega,
             ef_name="rho",
             u2=self.u2vals,
             u3=self.u3vals,
             time=0,
             slicing_axis=self.slicing_axis,
+            add_background=self.background,
         )
         p.draw()
         return p
 
     def test_cbar_lims(self, view, mode_solution):
-        actual = (view.cbar.vmin, view.cbar.vmax)
-        expected = (mode_solution.min(), mode_solution.max())
-        assert np.allclose(actual, expected)
+        assert self.cbar_matches(view, mode_solution)
 
     def test_labels(self, view):
         assert view.ax.get_xlabel() == self.xlabel
@@ -49,66 +54,127 @@ class SliceSetup(ModeVizTest):
         assert view.cbar.ax.get_ylabel() == "Re($\\rho$)"
 
 
-class Slice2D(SliceSetup):
-    def test_invalid_slicing_axis(self, ds_v121_rti_khi):
-        with pytest.raises(ValueError):
-            pylbo.plot_2d_slice(
-                ds_v121_rti_khi,
-                omega=1.19029 + 3.75969j,
-                ef_name="rho",
-                u2=np.linspace(0, 1, 10),
-                u3=1,
-                time=0,
-                slicing_axis="x",
-            )
-
-
 class TestSliceZ_2DCart(Slice2D):
     filename = "slice_2d_z_cart_rho.npy"
+    omega = 1.19029 + 3.75969j
     slicing_axis = "z"
     u2vals = np.linspace(0, 2, 50)
     u3vals = 0
     xlabel = "x"
     ylabel = "y"
 
-    def test_invalid_coords(self, ds_v121_rti_khi):
+    @pytest.fixture(scope="class")
+    def ds(self, ds_v121_rti_khi):
+        return ds_v121_rti_khi
+
+    def test_invalid_coords(self, ds):
         with pytest.raises(ValueError):
-            pylbo.plot_2d_slice(
-                ds_v121_rti_khi,
-                omega=1.19029 + 3.75969j,
-                ef_name="rho",
-                u2=0,
-                u3=np.linspace(0, 1, 10),
-                time=0,
-                slicing_axis="z",
-            )
+            pylbo.plot_2d_slice(ds, self.omega, "rho", self.u2vals, self.u2vals, 0, "z")
+
+    def test_contour_empty(self, view, mode_solution):
+        view.set_contours(levels=20, fill=False)
+        view.draw()
+        assert self.cbar_matches(view, mode_solution)
+
+    def test_contour_filled(self, view, mode_solution):
+        view.set_contours(levels=20, fill=True)
+        view.draw()
+        assert self.cbar_matches(view, mode_solution)
+
+    def test_invalid_slicing_axis(self, ds):
+        with pytest.raises(ValueError):
+            pylbo.plot_2d_slice(ds, self.omega, "rho", self.u2vals, self.u3vals, 0, "x")
+
+    def test_animation(self, view, tmpdir, mode_solution):
+        view.create_animation(times=np.arange(5), filename=tmpdir / "test.mp4", fps=1)
+        # check this did not modify solutions
+        assert np.allclose(view.solutions, mode_solution)
+
+    def test_animation_cbar_lock(self, view, tmpdir, mode_solution):
+        view.update_colorbar = False
+        view.create_animation(
+            times=np.arange(5), filename=tmpdir / "test_cbar_lock.mp4", fps=1
+        )
+        assert view.update_colorbar is False
+        assert self.cbar_matches(view, mode_solution)
+        assert np.allclose(view.solutions, mode_solution)
+
+    def test_animation_contour(self, view, tmpdir, mode_solution):
+        view.set_contours(20, fill=False)
+        view.draw()
+        view.create_animation(
+            times=np.arange(5), filename=tmpdir / "test_contour.mp4", fps=1
+        )
+        assert np.allclose(view.solutions, mode_solution)
 
 
-class TestSliceZ_2DCyl(Slice2D):
-    filename = "slice_2d_z_cyl_rho.npy"
+class TestSliceZ_2DCartBackground(TestSliceZ_2DCart):
+    filename = "slice_2d_z_cart_rho_bg.npy"
+    omega = 1.19029 + 3.75969j
     slicing_axis = "z"
-    u2vals = np.linspace(0, 2 * np.pi, 50)
-    u3vals = 1
+    u2vals = np.linspace(0, 2, 50)
+    u3vals = 0
     xlabel = "x"
     ylabel = "y"
+    background = True
 
 
 class TestSliceY_2DCart(Slice2D):
     filename = "slice_2d_y_cart_rho.npy"
+    omega = 1.19029 + 3.75969j
     slicing_axis = "y"
     u2vals = 1
     u3vals = np.linspace(0, 2, 50)
     xlabel = "x"
     ylabel = "z"
 
-    def test_invalid_coords(self, ds_v121_rti_khi):
+    @pytest.fixture(scope="class")
+    def ds(self, ds_v121_rti_khi):
+        return ds_v121_rti_khi
+
+    def test_invalid_coords(self, ds):
         with pytest.raises(ValueError):
-            pylbo.plot_2d_slice(
-                ds_v121_rti_khi,
-                omega=1.19029 + 3.75969j,
-                ef_name="rho",
-                u2=np.linspace(0, 1, 10),
-                u3=0,
-                time=0,
-                slicing_axis="y",
-            )
+            pylbo.plot_2d_slice(ds, self.omega, "rho", self.u3vals, self.u3vals, 0, "y")
+
+    def test_contour_empty(self, view, mode_solution):
+        view.set_contours(levels=20, fill=False)
+        view.draw()
+        assert self.cbar_matches(view, mode_solution)
+
+
+class TestSliceZ_2DCyl(Slice2D):
+    filename = "slice_2d_z_cyl_rho.npy"
+    omega = 0.01746995 + 0.02195201j
+    slicing_axis = "z"
+    u2vals = np.linspace(0, 2 * np.pi, 50)
+    u3vals = 1
+    xlabel = "x"
+    ylabel = "y"
+
+    @pytest.fixture(scope="class")
+    def ds(self, ds_v121_magth):
+        return ds_v121_magth
+
+    def test_contour_empty(self, view, mode_solution):
+        view.set_contours(levels=20, fill=False)
+        view.draw()
+        assert self.cbar_matches(view, mode_solution)
+
+    def test_contour_filled(self, view, mode_solution):
+        view.set_contours(levels=20, fill=True)
+        view.draw()
+        assert self.cbar_matches(view, mode_solution)
+
+
+class TestSliceTheta_2DCyl(Slice2D):
+    filename = "slice_2d_theta_cyl_rho.npy"
+    omega = 0.01746995 + 0.02195201j
+    slicing_axis = "theta"
+    u2vals = np.pi
+    u3vals = np.linspace(0, 2, 50)
+    xlabel = "r"
+    ylabel = "z"
+
+    @pytest.fixture(scope="class")
+    def ds(self, ds_v121_magth):
+        return ds_v121_magth
