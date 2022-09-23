@@ -76,9 +76,7 @@ contains
     ! add quadblock elements to left edge
     do j = 1, dim_quadblock
       do i = 1, dim_quadblock
-        call matrix%add_element( &
-          row=i, column=j, element=get_quadblock_element(matrix, quadblock(i, j)) &
-        )
+        call matrix%add_element(row=i, column=j, element=quadblock(i, j))
       end do
     end do
   end procedure apply_natural_boundaries_left
@@ -111,9 +109,7 @@ contains
     do j = 1, dim_quadblock
       do i = 1, dim_quadblock
         call matrix%add_element( &
-          row=i + ishift, &
-          column=j + ishift, &
-          element=get_quadblock_element(matrix, quadblock(i, j)) &
+          row=i + ishift, column=j + ishift, element=quadblock(i, j) &
         )
       end do
     end do
@@ -169,29 +165,5 @@ contains
     end if
     allocate(positions(new_size, 2))
   end subroutine reset_factor_positions
-
-
-  !> Returns either the full complex or the real part of the quadblock element,
-  !! based on the matrix label (A or B).
-  function get_quadblock_element(matrix, qb_element) result(element)
-    !> current matrix to which the quadblock corresponds
-    type(matrix_t), intent(in) :: matrix
-    !> element in the quadblock
-    complex(dp), intent(in) :: qb_element
-    !> element returned
-    class(*), allocatable :: element
-
-    if (matrix%get_label() == "A") then
-      element = qb_element
-    else if (matrix%get_label() == "B") then
-      element = real(qb_element)
-    else
-      element = NaN
-      call log_message( &
-        "get_quadblock_element: invalid or empty matrix label " // matrix%get_label(), &
-        level="error" &
-      )
-    end if
-  end function get_quadblock_element
 
 end submodule smod_natural_boundaries

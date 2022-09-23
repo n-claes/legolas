@@ -150,10 +150,10 @@ contains
     use mod_global_variables, only: NaN
 
     type(matrix_t), intent(in) :: matrix
-    class(*), allocatable :: diagonal_factor
+    complex(dp) :: diagonal_factor
 
     if (matrix%get_label() == "B") then
-      diagonal_factor = 1.0d0
+      diagonal_factor = (1.0d0, 0.0d0)
     else if (matrix%get_label() == "A") then
       diagonal_factor = (0.0d0, 0.0d0)
     else
