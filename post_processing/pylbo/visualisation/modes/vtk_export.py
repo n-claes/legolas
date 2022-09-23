@@ -153,20 +153,6 @@ class VTKDataExporter:
             )
         return solution
 
-    def get_background(self, name: str):
-        """
-        Parameters
-        ----------
-        name : str
-            The name of the equilibrium background.
-
-        Returns
-        -------
-        np.ndarray
-            The equilibrium background, broadcasted to 3D.
-        """
-        return self.broadcast_to_3d(self.data.ds.equilibria[name])
-
     def _log_info(self, msg: str) -> None:
         """
         Logs an info message only if the progress bar is inactive.
