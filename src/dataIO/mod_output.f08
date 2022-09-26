@@ -1,7 +1,7 @@
 ! =============================================================================
 !> This module contains all routines for file opening and file writing.
 module mod_output
-  use mod_global_variables, only: dp, str_len
+  use mod_global_variables, only: dp, str_len, dp_LIMIT
   use mod_matrix_structure, only: matrix_t
   implicit none
 
@@ -81,6 +81,8 @@ contains
     use mod_eigenfunctions
     use mod_equilibrium_params
     use mod_units
+    use mod_banded_matrix, only: banded_matrix_t
+    use mod_transform_matrix, only: matrix_to_banded
 
     !> the eigenvalues
     complex(dp), intent(in)       :: eigenvalues(:)
@@ -95,9 +97,9 @@ contains
     character(len=str_len_arr)    :: param_names(34), equil_names(32)
     character(len=2*str_len_arr)  :: unit_names(12)
     real(dp), allocatable         :: residuals(:)
-    integer                       :: N, i, j, nonzero_A_values, nonzero_B_values
-
-    real(dp) :: dznrm2
+    integer                       :: i
+    type(banded_matrix_t) :: matrix_A_banded, matrix_B_banded
+    integer :: diags
 
     param_names = [ &
       character(len=str_len_arr) :: "k2", "k3", "cte_rho0", "cte_T0", "cte_B01", &
@@ -195,26 +197,19 @@ contains
 
     ! Residuals data [optional]
     if (write_residuals) then
-      N = size(eigenvalues)
-      allocate(residuals(N))
-
+      allocate(residuals(size(eigenvalues)))
+      diags = dim_quadblock - 1
+      call matrix_to_banded( &
+        matrix=matrix_A, subdiags=diags, superdiags=diags, banded=matrix_A_banded &
+      )
+      call matrix_to_banded( &
+        matrix=matrix_B, subdiags=diags, superdiags=diags, banded=matrix_B_banded &
+      )
       call log_message("computing residuals...", level="info")
-      ! TODO: DGEMM and ZGEMM would be more efficient, however idealy
-      !       this would switch to sparese operations anyway
-      do i = 1, N
-        if (abs(eigenvalues(i)) < DP_limit) then
-          residuals(i) = 0.0_dp
-        else
-          residuals(i) = &
-            dznrm2(N, &
-              matmul(matrix_A, eigenvectors(:,i)) - eigenvalues(i) * &
-              matmul((1.0_dp, 0.0_dp) * matrix_B, eigenvectors(:,i)), 1 &
-            ) &
-          / &
-            dznrm2(N, &
-              eigenvalues(i) * eigenvectors(:, i), 1 &
-            )
-        end if
+      do i = 1, size(eigenvalues)
+        residuals(i) = get_residual( &
+          matrix_A_banded, matrix_B_banded, eigenvalues(i), eigenvectors(:, i) &
+        )
       end do
 
       call log_message("writing residuals...", level="info")
@@ -303,5 +298,41 @@ contains
     call log_message("eigenvalues logged to " // trim(logfile_name), level="info")
     close(log_fh)
   end subroutine create_logfile
+
+
+  real(dp) function get_residual(amat_band, bmat_band, eigenvalue, eigenvector)
+    use mod_banded_matrix, only: banded_matrix_t
+    use mod_banded_operations, only: multiply
+
+    !> the matrix A in banded form
+    type(banded_matrix_t), intent(in) :: amat_band
+    !> the matrix B in banded form
+    type(banded_matrix_t), intent(in) :: bmat_band
+    !> the eigenvalue
+    complex(dp), intent(in) :: eigenvalue
+    !> the eigenvector
+    complex(dp), intent(in) :: eigenvector(:)
+
+    integer :: N
+    real(dp) :: dznrm2
+
+    if (abs(eigenvalue) < DP_limit) then
+      get_residual = 0.0_dp
+      return
+    end if
+    N = size(eigenvector)
+
+    get_residual = ( &
+      dznrm2( &
+        N, &
+        ( &
+          multiply(amat_band, eigenvector) &
+          - eigenvalue * multiply(bmat_band, eigenvector) &
+        ), &
+        1 &
+      ) &
+      / dznrm2(N, eigenvalue * eigenvector, 1) &
+    )
+end function get_residual
 
 end module mod_output
