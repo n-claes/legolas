@@ -1,4 +1,5 @@
 import struct
+
 import numpy as np
 from pylbo._version import VersionHandler
 from pylbo.utilities.logger import pylboLogger
@@ -99,12 +100,12 @@ def get_header(istream):
     h["matrices_written"] = bool(*hdr)
     # read eigenvectors boolean
     h["eigenvecs_written"] = False
-    if legolas_version >= "1.2.1":
+    if legolas_version >= "1.3.0":
         hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         h["eigenvecs_written"] = bool(*hdr)
     # read eigenvectors boolean
     h["residuals_written"] = False
-    if legolas_version >= "1.2.1":
+    if legolas_version >= "1.3.0":
         hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         h["residuals_written"] = bool(*hdr)
     # read eigenfunction subset info
@@ -297,7 +298,7 @@ def get_header(istream):
 
     # if eigenvectors are written include offset
     if h["eigenvecs_written"]:
-        fmt = ALIGN + 2*"i"
+        fmt = ALIGN + 2 * "i"
         hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         h["eigenvec_len"], h["nb_eigenvecs"] = hdr
 
@@ -421,8 +422,9 @@ def read_eigenvectors(istream, header):
     return np.reshape(
         np.asarray([complex(x, y) for x, y in zip(reals, imags)]),
         (header["eigenvec_len"], header["nb_eigenvecs"]),
-        order = 'F'
+        order="F",
     )
+
 
 def read_residuals(istream, header):
     """
