@@ -27,74 +27,7 @@ module mod_matrix_structure
     procedure :: get_label
     procedure :: copy
     procedure :: delete_matrix
-
-    procedure, private :: add_matrices
-    generic :: operator(+) => add_matrices
-    procedure, private :: subtract_matrices
-    generic :: operator(-) => subtract_matrices
-    procedure, private :: matrix_x_real_vector
-    procedure, private :: matrix_x_complex_vector
-    procedure, private :: matrix_x_number
-    generic :: operator(*) => matrix_x_real_vector, matrix_x_complex_vector
-    generic :: operator(*) => matrix_x_number
   end type matrix_t
-
-  ! interface for submodule implementations
-  interface addition
-    !> Overloads the addition operator between two matrix datastructures
-    module function add_matrices(matrix1, matrix2) result(matrix)
-      !> left-hand side of + operator
-      class(matrix_t), intent(in) :: matrix1
-      !> right-hand side of + operator
-      class(matrix_t), intent(in) :: matrix2
-      !> result of addition
-      type(matrix_t) :: matrix
-    end function add_matrices
-  end interface addition
-
-  interface subtraction
-    !> Overloads the subtraction operator between two matrix datastructures
-    module function subtract_matrices(matrix1, matrix2) result(matrix)
-      !> left-hand side of - operator
-      class(matrix_t), intent(in) :: matrix1
-      !> right-hand side of + operator
-      class(matrix_t), intent(in) :: matrix2
-      !> result of subtraction
-      type(matrix_t) :: matrix
-    end function subtract_matrices
-  end interface subtraction
-
-  interface multiplication
-    !> Overloads the multiplication operator between a matrix and a real vector
-    module function matrix_x_real_vector(matrix, vector) result(array)
-      !> left-hand side
-      class(matrix_t), intent(in) :: matrix
-      !> right-hand side
-      real(dp), intent(in) :: vector(matrix%matrix_dim)
-      !> result of multiplication
-      complex(dp) :: array(matrix%matrix_dim)
-    end function matrix_x_real_vector
-
-    !> Overloads the multiplication operator between a matrix and a complex vector
-    module function matrix_x_complex_vector(matrix, vector) result(array)
-      !> left-hand side
-      class(matrix_t), intent(in) :: matrix
-      !> right-hand side
-      complex(dp), intent(in) :: vector(matrix%matrix_dim)
-      !> result of multiplication
-      complex(dp) :: array(matrix%matrix_dim)
-    end function matrix_x_complex_vector
-
-    !> Overloads the multiplication operator between a complex number and a matrix
-    module function matrix_x_number(matrix, number) result(matrix_out)
-      !> left-hand side
-      class(matrix_t), intent(in) :: matrix
-      !> right-hand side
-      class(*), intent(in) :: number
-      !> result of multiplication
-      type(matrix_t) :: matrix_out
-    end function matrix_x_number
-  end interface multiplication
 
   public :: new_matrix
 

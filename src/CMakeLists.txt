@@ -13,7 +13,6 @@ set (sources
         matrices/datastructure/mod_banded_matrix.f08
         matrices/datastructure/mod_banded_matrix_hermitian.f08
         matrices/datastructure/mod_banded_operations.f08
-        matrices/datastructure/smod_matrix_maths.f08
         matrices/datastructure/mod_transform_matrix.f08
         mod_units.f08
         mod_grid.f08
