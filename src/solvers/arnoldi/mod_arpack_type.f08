@@ -210,9 +210,9 @@ contains
     else
       this%ncv = ncv
     end if
-    if (1 <= this%ncv - this%get_nev()) then
+    if (1 > this%ncv - this%get_nev()) then
       call log_message( &
-        "ncv too low, expected 1 <= ncv - nev but got ncv - nev = " &
+        "ncv too low, expected ncv - nev >= 1 but got ncv - nev = " &
         // str(this%ncv - this%get_nev()), &
         level="error" &
       )
