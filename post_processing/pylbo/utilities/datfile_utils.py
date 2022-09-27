@@ -291,7 +291,7 @@ def get_header(istream):
             h["derived_ef_names"] = pp_names
             # derived eigenfunction offsets
             byte_size = (
-                h["ef_gridpts"] * len(h["ef_written_flags"]) * nb_pp * SIZE_COMPLEX
+                h["ef_gridpts"] * len(h["ef_written_idxs"]) * nb_pp * SIZE_COMPLEX
             )
             offsets.update({"derived_ef_arrays": istream.tell()})
             istream.seek(istream.tell() + byte_size)
