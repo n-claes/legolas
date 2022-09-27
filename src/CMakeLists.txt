@@ -12,14 +12,13 @@ set (sources
         matrices/datastructure/mod_matrix_structure.f08
         matrices/datastructure/mod_banded_matrix.f08
         matrices/datastructure/mod_banded_matrix_hermitian.f08
-        matrices/datastructure/mod_bandeD_operations.f08
+        matrices/datastructure/mod_banded_operations.f08
         matrices/datastructure/smod_matrix_maths.f08
         matrices/datastructure/mod_transform_matrix.f08
         mod_units.f08
         mod_grid.f08
         mod_types.f08
         mod_check_values.f08
-        solvers/mod_banded_matrices.f08
         mod_spline_functions.f08
         mod_interpolation.f08
         mod_integration.f08
