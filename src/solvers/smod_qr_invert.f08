@@ -7,7 +7,8 @@
 !! all eigenvalues and eigenvectors.
 submodule (mod_solvers) smod_qr_invert
   use mod_global_variables, only: dim_subblock
-  use mod_banded_matrices
+  use mod_banded_matrix, only: banded_matrix_t
+  use mod_transform_matrix, only: matrix_to_banded
   implicit none
 
 contains
@@ -17,14 +18,12 @@ contains
   !! @warning Throws an error if <tt>matrix_A</tt> or <tt>matrix_B</tt>
   !!          is not a square matrix. @endwarning
   module procedure qr_invert
-    !> full array containing the B-matrix
-    complex(dp), allocatable :: array_B(:, :)
     !> full array containing the \(B^{-1}A\)-matrix
     complex(dp), allocatable :: array_B_invA(:, :)
     !> pivoting array
     integer, allocatable     :: ipiv(:)
     !> banded B-matrix
-    type(banded_matrix) :: B_band
+    type(banded_matrix_t) :: B_band
     integer     :: kd
 
     !> order of matrix \(B^{-1}A\)
@@ -49,27 +48,17 @@ contains
     real(dp), allocatable     :: rwork(:)
     !> dummy for left eigenvectors, jobvl = "N" so this is never referenced
     complex(dp) :: vl(2, 2)
-    !> looping indices
-    integer     :: i, j
 
-    ! compute B^{-1}A
-    allocate(array_B(matrix_B%matrix_dim, matrix_B%matrix_dim))
-    call matrix_to_array(matrix=matrix_B, array=array_B)
     kd = 2*dim_subblock+1 ! at most 2 subblocks away from diag
-    call real_dense_to_hermitian_banded(array_B, "U", kd, B_band)
-    deallocate(array_B)
-    
+    call matrix_to_banded(matrix=matrix_B, subdiags=kd, superdiags=kd, banded=B_band)
+
     allocate(array_B_invA(matrix_A%matrix_dim, matrix_A%matrix_dim))
     call matrix_to_array(matrix=matrix_A, array=array_B_invA)
     allocate(ipiv(matrix_A%matrix_dim))
     call zgbsv( &
-      B_band%n, kd, kd, N, B_band%BS, 2*kd+kd+1, &
-      ipiv, array_B_invA, ldB_invA, info &
+      B_band%n, kd, kd, N, B_band%AB, 2*kd+kd+1, ipiv, array_B_invA, ldB_invA, info &
     )
-    call deallocate_banded_matrix(B_band)
-    if (info /= 0) then ! LCOV_EXCL_START
-      call log_message("zpbtrf failed: B is not positive definite", level="error")
-    end if ! LCOV_EXCL_STOP
+    call B_band%destroy()
 
     ! calculate eigenvectors, we don't use the left ones
     jobvl = "N"
@@ -117,8 +106,6 @@ contains
     deallocate(ipiv)
     deallocate(work)
     deallocate(rwork)
-
-    call set_small_values_to_zero(omega)
   end procedure qr_invert
 
 end submodule smod_qr_invert

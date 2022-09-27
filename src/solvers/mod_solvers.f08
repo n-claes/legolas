@@ -27,9 +27,9 @@ module mod_solvers
 
     module subroutine qr_cholesky(matrix_A, matrix_B, omega, vr)
       !> matrix A
-      complex(dp), intent(in)   :: matrix_A(:, :)
+      type(matrix_t), intent(in) :: matrix_A
       !> matrix B
-      real(dp), intent(in)      :: matrix_B(:, :)
+      type(matrix_t), intent(in) :: matrix_B
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
@@ -60,9 +60,9 @@ module mod_solvers
 
     module subroutine inverse_iteration(matrix_A, matrix_B, omega, vr)
       !> matrix A
-      complex(dp), intent(in)   :: matrix_A(:, :)
+      type(matrix_t), intent(in) :: matrix_A
       !> matrix B
-      real(dp), intent(in)      :: matrix_B(:, :)
+      type(matrix_t), intent(in) :: matrix_B
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
