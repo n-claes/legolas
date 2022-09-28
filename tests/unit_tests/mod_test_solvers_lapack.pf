@@ -17,6 +17,16 @@ module mod_test_solvers_lapack
     ], &
     shape=[5, 5] &
   )
+  real(dp), parameter :: bmat_array_hermitian(5, 5) = reshape( &
+    [ &
+      55.0d0,  13.0d0,   6.0d0,  -3.0d0, -10.0d0, &
+      13.0d0,  39.0d0,  28.0d0,  13.0d0,  -1.0d0, &
+      6.0d0,  28.0d0,  24.0d0,  12.0d0,  -2.0d0, &
+      -3.0d0,  13.0d0,  12.0d0,  14.0d0,   0.0d0, &
+      -10.0d0,  -1.0d0,  -2.0d0,   0.0d0,  22.0d0 &
+    ], &
+    shape=[5, 5] &
+  )
   complex(dp), parameter :: amat_array(5, 5) = reshape( &
     [ &
       (1.0d0, 0.0d0), (2.0d0, 0.0d0), (3.0d0, 0.0d0), (1.0d0, 0.0d0), (0.0d0, 0.0d0), &
@@ -27,7 +37,7 @@ module mod_test_solvers_lapack
     ], &
     shape=[5, 5] &
   )
-  type(matrix_t) :: amat, bmat, idmat
+  type(matrix_t) :: amat, bmat, bmat_hermitian, idmat
   complex(dp) :: vr(5, 5)
   complex(dp) :: eigenvals(5), expected(5)
 
@@ -47,6 +57,7 @@ contains
   @after
   subroutine tear_down()
     call bmat%delete_matrix()
+    call bmat_hermitian%delete_matrix()
     call amat%delete_matrix()
     call idmat%delete_matrix()
   end subroutine tear_down
@@ -56,6 +67,7 @@ contains
     integer :: i
 
     bmat = array_to_matrix(array=bmat_array)
+    bmat_hermitian = array_to_matrix(array=bmat_array_hermitian)
     amat = array_to_matrix(array=amat_array)
     idmat = new_matrix(nb_rows=5)
     do i = 1, 5
@@ -74,7 +86,7 @@ contains
 
 
   @test
-  subroutine test_lapack_qr_simple()
+  subroutine test_lapack_qr_invert_simple()
     call set_name("solver QR-invert (AX = wX)")
     solver = "QR-invert"
     ! these come from scipy.linalg.eigvals
@@ -88,11 +100,11 @@ contains
     call solve_evp(amat, idmat, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected, eigenvals, tolerance=TOL)
-  end subroutine test_lapack_qr_simple
+  end subroutine test_lapack_qr_invert_simple
 
 
   @test
-  subroutine test_lapack_qr_general()
+  subroutine test_lapack_qr_invert_general()
     call set_name("solver QR-invert (AX = wBX)")
     solver = "QR-invert"
     write_eigenfunctions = .true.
@@ -107,7 +119,7 @@ contains
     call solve_evp(amat, bmat, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected, eigenvals, tolerance=TOL)
-  end subroutine test_lapack_qr_general
+  end subroutine test_lapack_qr_invert_general
 
 
   @test
@@ -144,5 +156,53 @@ contains
     call sort_complex_array(eigenvals)
     @assertEqual(expected, eigenvals, tolerance=TOL)
   end subroutine test_lapack_qz_general
+
+
+  @test
+  subroutine test_lapack_qr_cholesky_simple()
+    call set_name("solver QR-cholesky (AX = wX)")
+    solver = "QR-cholesky"
+    ! these come from scipy.linalg.eigvals
+    expected = [ &
+      (-4.82361603918897d0, -0.55489270355141d0), &
+      (-2.01155112095697d0, -2.49781686227086d0), &
+      (-0.05902597975282d0, 2.062061812204889d0), &
+      (0.663744370985872d0, -5.82933550828359d0), &
+      (2.230448768912873d0, 2.819983261900966d0) &
+    ]
+    call solve_evp(amat, idmat, eigenvals, vr)
+    call sort_complex_array(eigenvals)
+    @assertEqual(expected, eigenvals, tolerance=TOL)
+  end subroutine test_lapack_qr_cholesky_simple
+
+
+
+  @test
+  subroutine test_lapack_qr_cholesky_general()
+    call set_name("solver QR-cholesky (AX = wBX)")
+    solver = "QR-cholesky"
+    write_eigenfunctions = .true.
+    ! these come from scipy.linalg.eigvals
+    expected = [ &
+      (-0.7573291032244991d0, -0.8342746803823134d0), &
+      (-0.20842078110630927d0, -0.32089038501060607d0), &
+      (-0.043930679967276426d0, -0.06224543824036125d0), &
+      (0.010698560246044606d0, 0.3788642492245973d0), &
+      (0.03473565736521634d0, 0.040781546673737325d0) &
+    ]
+    call solve_evp(amat, bmat_hermitian, eigenvals, vr)
+    call sort_complex_array(eigenvals)
+    @assertEqual(expected, eigenvals, tolerance=TOL)
+  end subroutine test_lapack_qr_cholesky_general
+
+
+  @test
+  subroutine test_lapack_qr_cholesky_general_unequal_diags()
+    call set_name("solver QR-cholesky (AX = wBX) B unequal diagonals")
+    solver = "QR-cholesky"
+    write_eigenfunctions = .true.
+    call solve_evp(amat, bmat, eigenvals, vr)
+    @assertExceptionRaised("B has unequal sub/super diagonals: 3/4")
+  end subroutine test_lapack_qr_cholesky_general_unequal_diags
 
 end module mod_test_solvers_lapack
