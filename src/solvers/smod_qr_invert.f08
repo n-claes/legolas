@@ -38,21 +38,27 @@ contains
     real(dp), allocatable :: rwork(:)
     !> dummy for left eigenvectors, jobvl = "N" so this is never referenced
     complex(dp) :: vl(2, 2)
-    !> number of super/subdiagonals
-    integer :: diags
+    !> number of superdiagonals
+    integer :: ku
+    !> number of subdiagonals
+    integer :: kl
     integer :: irow, icol
 
-    diags = dim_quadblock - 1 ! at most 2 subblocks away from diag
+    call matrix_B%get_nb_diagonals(ku=ku, kl=kl)
+    call log_message( &
+      "B has " // str(ku) // " superdiagonals and " // str(kl) // " subdiagonals", &
+      level="debug" &
+    )
     N = matrix_B%matrix_dim
     call log_message("converting B to banded form", level="debug")
     ! for zgbsv later on we need double the amount of subdiagonals
-    B_band = new_banded_matrix(rows=N, cols=N, subdiags=2*diags, superdiags=diags)
+    B_band = new_banded_matrix(rows=N, cols=N, subdiags=2*kl, superdiags=ku)
     ! fill banded matrix, see documentation: "The j-th column of B is stored in the
     ! j-th column of the array AB as follows:
     ! AB(KL+KU+1+i-j,j) = B(i,j) for max(1,j-KU)<=i<=min(N,j+KL)"
     do icol = 1, N
-      do irow = max(1, icol - diags), min(N, icol + diags)
-        B_band%AB(2*diags+1+irow-icol, icol) = matrix_B%get_complex_element(irow, icol)
+      do irow = max(1, icol - ku), min(N, icol + kl)
+        B_band%AB(kl+ku+1+irow-icol, icol) = matrix_B%get_complex_element(irow, icol)
       end do
     end do
 
@@ -65,8 +71,8 @@ contains
     call log_message("calling LAPACK's zgbsv", level="debug")
     call zgbsv( &
       B_band%m, &
-      diags, &
-      diags, &
+      kl, &
+      ku, &
       matrix_A%matrix_dim, &
       B_band%AB, &
       size(B_band%AB, dim=1), &

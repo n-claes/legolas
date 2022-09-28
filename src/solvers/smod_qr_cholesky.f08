@@ -22,7 +22,6 @@ contains
   module procedure qr_cholesky
     !> banded \(U^HU\)
     type(hermitian_banded_matrix_t) :: UU
-    integer     :: kd
     !> matrix \(U^{-H}A^U{-1}\)
     complex(dp) :: UAU(matrix_A%matrix_dim, matrix_A%matrix_dim)
     !> order of matrix \(U^{-H}A^U{-1}\)
@@ -47,6 +46,10 @@ contains
     real(dp), allocatable     :: rwork(:)
     !> dummy for left eigenvectors, jobvl = "N" so this is never referenced
     complex(dp) :: vl(2, 2)
+    !> number of subdiagonals
+    integer :: kl
+    !> number of superdiagonals
+    integer :: ku
 
     integer :: i
 
@@ -62,9 +65,16 @@ contains
     ! compute B = U^HU
     call log_message("computing B = U^HU", level="debug")
     ! first convert B to banded
-    kd = 2*dim_subblock+1 ! at most 2 subblocks away from diag
+    call matrix_B%get_nb_diagonals(ku=ku, kl=kl)
+    if (ku /= kl) then
+      call log_message( &
+        "B has unequal sub/super diagonals: " // str(kl) // "/" // str(ku), &
+        level="error" &
+      )
+      return
+    end if
     ! NOTE: We need a banded hermitian matrix with uplo = "U" to get U^HU!
-    call matrix_to_hermitian_banded(matrix=matrix_B, diags=kd, uplo="U", banded=UU)
+    call matrix_to_hermitian_banded(matrix=matrix_B, diags=ku, uplo="U", banded=UU)
     call zpbtrf("U", UU%n, UU%kd, UU%AB, UU%kd+1, info)
     if (info /= 0) then ! LCOV_EXCL_START
       call log_message("zpbtrf failed: B is not positive definite", level="error")
