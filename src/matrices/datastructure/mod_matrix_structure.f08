@@ -25,6 +25,7 @@ module mod_matrix_structure
     procedure :: get_complex_element
     procedure :: get_total_nb_elements
     procedure :: get_label
+    procedure :: get_nb_diagonals
     procedure :: copy
     procedure :: delete_matrix
   end type matrix_t
@@ -176,6 +177,31 @@ contains
 
     label = this%label
   end function get_label
+
+
+  !> Subroutine to get the number of super- and sub-diagonals in the matrix.
+  subroutine get_nb_diagonals(this, ku, kl)
+    !> type instance
+    class(matrix_t), intent(in) :: this
+    !> number of superdiagonals
+    integer, intent(out) :: ku
+    !> number of subdiagonals
+    integer, intent(out) :: kl
+    type(node_t), pointer :: current_node
+    integer :: irow, inode
+
+    ku = 0
+    kl = 0
+    do irow = 1, this%matrix_dim
+      current_node => this%rows(irow)%head
+      do inode = 1, this%rows(irow)%nb_elements
+        ku = max(ku, current_node%column - irow)
+        kl = max(kl, irow - current_node%column)
+        current_node => current_node%next
+      end do
+    end do
+    nullify(current_node)
+  end subroutine get_nb_diagonals
 
 
   !> Dedicated function to copy a matrix structure into a new matrix structure.
