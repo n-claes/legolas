@@ -2,6 +2,20 @@ import pytest
 
 from .regression import RegressionTest
 
+spectrum_limits = [
+    {"xlim": (-1100, 1100), "ylim": (-155, 5)},
+    {"xlim": (-175, 175), "ylim": (-35, 4)},
+    {"xlim": (-18, 18), "ylim": (-3, 0.3)},
+    {"xlim": (-1.5, 1.5), "ylim": (-1.25, 0.2)},
+]
+eigenfunctions = [
+    {"eigenvalue": 0.87784 - 0.04820j},
+    {"eigenvalue": 0.49861 - 0.08124j},
+    {"eigenvalue": 0.34390 - 0.13832j},
+    {"eigenvalue": 0.26543 - 0.21655j},
+    {"eigenvalue": 0.21295 - 0.31135j},
+]
+
 
 class TaylorCouette(RegressionTest):
     equilibrium = "taylor_couette"
@@ -34,18 +48,43 @@ class TaylorCouette(RegressionTest):
 class TestTaylorCouetteQR(TaylorCouette):
     name = "Taylor Couette k2=0 k3=1 QR"
     filename = "taylor_couette_QR_k2_0_k3_1"
-    spectrum_limits = [
-        {"xlim": (-1100, 1100), "ylim": (-155, 5)},
-        {"xlim": (-175, 175), "ylim": (-35, 4)},
-        {"xlim": (-18, 18), "ylim": (-3, 0.3)},
-        {"xlim": (-1.5, 1.5), "ylim": (-1.25, 0.2)},
-    ]
+
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
+
+    @pytest.mark.parametrize("eigenfunction", eigenfunctions)
+    def test_eigenfunction(self, eigenfunction, ds_test, ds_base):
+        super().run_eigenfunction_test(eigenfunction, ds_test, ds_base)
+
+    @pytest.mark.parametrize("derived_eigenfunction", eigenfunctions)
+    def test_derived_eigenfunction(self, derived_eigenfunction, ds_test, ds_base):
+        super().run_derived_eigenfunction_test(derived_eigenfunction, ds_test, ds_base)
+
+
+class TestTaylorCouetteQZ(TaylorCouette):
+    name = "Taylor Couette k2=0 k3=1 QZ"
+    filename = "taylor_couette_QZ_k2_0_k3_1"
+    use_custom_baseline = "taylor_couette_QR_k2_0_k3_1"
+    solver_settings = {"solver": "QZ-direct"}
+
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
+
+
+class TestTaylorCouetteQRCholesky(TaylorCouette):
+    name = "Taylor Couette k2=0 k3=1 QR Cholesky"
+    filename = "taylor_couette_QR_cholesky_k2_0_k3_1"
+    use_custom_baseline = "taylor_couette_QR_k2_0_k3_1"
+    solver_settings = {"solver": "QR-cholesky"}
+
     eigenfunctions = [
-        {"eigenvalue": 0.87784 - 0.04820j},
+        {"eigenvalue": 0.87784 - 0.04820j, "RMS_TOLERANCE": 10},
         {"eigenvalue": 0.49861 - 0.08124j},
-        {"eigenvalue": 0.34390 - 0.13832j},
-        {"eigenvalue": 0.26543 - 0.21655j},
-        {"eigenvalue": 0.21295 - 0.31135j},
+        {"eigenvalue": 0.34390 - 0.13832j, "RMS_TOLERANCE": 3},
+        {"eigenvalue": 0.26543 - 0.21655j, "RMS_TOLERANCE": 6.5},
+        {"eigenvalue": 0.21295 - 0.31135j, "RMS_TOLERANCE": 7},
     ]
 
     @pytest.mark.parametrize("limits", spectrum_limits)

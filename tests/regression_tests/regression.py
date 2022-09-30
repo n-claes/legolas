@@ -258,8 +258,10 @@ class RegressionTest(TestCase):
     def test_eigenvalue_types(self, ds_test, ds_base):
         if not self.eigenvalues_are_real:
             return
-        assert np.all(ds_test.eigenvalues.imag == pytest.approx(0))
-        assert np.all(ds_base.eigenvalues.imag == pytest.approx(0))
+        tol = getattr(self, "custom_evs_all_real_tol", None)
+
+        assert np.all(ds_test.eigenvalues.imag == pytest.approx(0, abs=tol))
+        assert np.all(ds_base.eigenvalues.imag == pytest.approx(0, abs=tol))
 
     def run_spectrum_test(self, limits, ds_test, ds_base):
         image_test, image_baseline = self.generate_spectrum_images(

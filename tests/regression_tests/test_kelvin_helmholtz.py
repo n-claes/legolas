@@ -1,9 +1,10 @@
-from .regression import RegressionTest
 import pytest
+
+from .regression import RegressionTest
 
 
 class TestKelvinHelmholtzQR(RegressionTest):
-    name = "kelvin helmholtz k2=0 k3=1"
+    name = "kelvin helmholtz k2=0 k3=1 QR"
     filename = "kelvin_helmholtz_QR_k2_0_k3_1"
     equilibrium = "kelvin_helmholtz"
     geometry = "Cartesian"
@@ -34,3 +35,17 @@ class TestKelvinHelmholtzQR(RegressionTest):
     @pytest.mark.parametrize("limits", spectrum_limits)
     def test_spectrum(self, limits, ds_test, ds_base):
         super().run_spectrum_test(limits, ds_test, ds_base)
+
+
+class TestKelvinHelmholtzQZ(TestKelvinHelmholtzQR):
+    name = "kelvin helmholtz k2=0 k3=1 QZ"
+    filename = "kelvin_helmholtz_QZ_k2_0_k3_1"
+    use_custom_baseline = "kelvin_helmholtz_QR_k2_0_k3_1"
+    solver_settings = {"solver": "QZ-direct"}
+
+
+class TestKelvinHelmholtzQRCholesky(TestKelvinHelmholtzQR):
+    name = "kelvin helmholtz k2=0 k3=1 QR Cholesky"
+    filename = "kelvin_helmholtz_QR_cholesky_k2_0_k3_1"
+    use_custom_baseline = "kelvin_helmholtz_QR_k2_0_k3_1"
+    solver_settings = {"solver": "QR-cholesky"}

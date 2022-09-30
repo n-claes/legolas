@@ -1,6 +1,7 @@
-from .regression import RegressionTest
-import pytest
 import numpy as np
+import pytest
+
+from .regression import RegressionTest
 
 
 class UniResistive(RegressionTest):
@@ -61,6 +62,20 @@ class TestUniResistiveQR(UniResistive):
             ds_test.equilibria.get("eta")
             == pytest.approx(self.physics_settings["fixed_eta_value"])
         )
+
+
+class TestUniResistiveQZ(TestUniResistiveQR):
+    name = "uniform resistive k2=0 k3=1 QZ"
+    filename = "uni_resistive_QZ_k2_0_k3_1"
+    use_custom_baseline = "uni_resistive_QR_k2_0_k3_1"
+    solver_settings = {"solver": "QZ-direct"}
+
+
+class TestUniResistiveQRCholesky(TestUniResistiveQR):
+    name = "uniform resistive k2=0 k3=1 QR Cholesky"
+    filename = "uni_resistive_QR_cholesky_k2_0_k3_1"
+    use_custom_baseline = "uni_resistive_QR_k2_0_k3_1"
+    solver_settings = {"solver": "QR-cholesky"}
 
 
 class TestUniResistiveSI(UniResistive):
