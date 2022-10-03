@@ -212,7 +212,7 @@ contains
       maxiter=0, &
       ncv=5 &
     )
-    msg = "requesting too many eigenvalues, expected ncv - nev > 1 but got -5"
+    msg = "ncv too low, expected ncv - nev >= 1 but got ncv - nev = -5"
     @assertExceptionRaised(msg)
   end subroutine test_arpack_invalid_ncv1
 
@@ -237,8 +237,8 @@ contains
 
 
   @test
-  subroutine test_arpack_default_maxiter()
-    call set_name("arpack type: set default maxiter")
+  subroutine test_arpack_default_maxiter_100()
+    call set_name("arpack type: set default maxiter 100")
     test_config = new_arpack_config( &
       evpdim=100, &
       mode=2, &
@@ -249,8 +249,25 @@ contains
       maxiter=0, &
       ncv=0 &
     )
-    @assertEqual(1000, test_config%iparam(3))
-  end subroutine test_arpack_default_maxiter
+    @assertEqual(100, test_config%iparam(3))
+  end subroutine test_arpack_default_maxiter_100
+
+
+  @test
+  subroutine test_arpack_default_maxiter_10k()
+    call set_name("arpack type: set default maxiter 10k")
+    test_config = new_arpack_config( &
+      evpdim=100, &
+      mode=2, &
+      bmat="G", &
+      which="LM", &
+      nev=25, &
+      tolerance=1.0d-12, &
+      maxiter=0, &
+      ncv=0 &
+    )
+    @assertEqual(250, test_config%iparam(3))
+  end subroutine test_arpack_default_maxiter_10k
 
 
   @test
