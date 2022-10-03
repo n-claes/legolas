@@ -56,6 +56,20 @@ class TestUniAdiabaticQR(UniAdiabatic):
         super().run_derived_eigenfunction_test(derived_eigenfunction, ds_test, ds_base)
 
 
+class TestUniAdiabaticQZ(TestUniAdiabaticQR):
+    name = "uniform adiabatic k2=0 k3=pi QZ"
+    filename = "uni_adiab_QZ_k2_0_k3_pi"
+    use_custom_baseline = "uni_adiab_QR_k2_0_k3_pi"
+    solver_settings = {"solver": "QZ-direct"}
+
+
+class TestUniAdiabaticQRCholesky(TestUniAdiabaticQR):
+    name = "uniform adiabatic k2=0 k3=pi QR Cholesky"
+    filename = "uni_adiab_QR_cholesky_k2_0_k3_pi"
+    use_custom_baseline = "uni_adiab_QR_k2_0_k3_pi"
+    solver_settings = {"solver": "QR-cholesky"}
+
+
 class TestUniAdiabaticSI(UniAdiabatic):
     name = "uniform adiabatic k2=0 k3=pi shift-invert"
     filename = "uni_adiab_SI_k2_0_k3_pi"

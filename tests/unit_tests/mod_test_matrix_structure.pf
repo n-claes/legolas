@@ -2,9 +2,11 @@ module mod_test_matrix_structure
   use mod_suite_utils
   use funit
   use mod_matrix_structure, only: matrix_t, new_matrix
+  use mod_transform_matrix, only: array_to_matrix
   implicit none
 
   type(matrix_t) :: matrix
+  type(matrix_t) :: dmatrix
 
 contains
 
@@ -18,6 +20,7 @@ contains
   @after
   subroutine tear_down()
     call matrix%delete_matrix()
+    call dmatrix%delete_matrix()
   end subroutine tear_down
 
 
@@ -29,6 +32,16 @@ contains
       call matrix%add_element(row=row, column=i, element=2.0d0 * i)
     end do
   end subroutine add_nodes_to_matrix
+
+
+  subroutine fill_idmatrix(idmatrix)
+    type(matrix_t), intent(inout) :: idmatrix
+    integer :: i
+
+    do i = 1, idmatrix%matrix_dim
+      call idmatrix%add_element(row=i, column=i, element=1.0d0)
+    end do
+  end subroutine fill_idmatrix
 
 
   @test
@@ -324,5 +337,50 @@ contains
     @assertEqual(5, matrix%rows(row)%nb_elements)
     @assertEqual((4.0d0, -3.5d0), matrix%get_complex_element(1, 3), tolerance=TOL)
   end subroutine test_add_to_existing_nodes
+
+
+  @test
+  subroutine test_nb_diagonals_idmatrix()
+    integer :: ku, kl
+
+    call set_name("matrix datastructure: nb diagonals idmatrix")
+    dmatrix = new_matrix(nb_rows=10)
+    call fill_idmatrix(dmatrix)
+    call dmatrix%get_nb_diagonals(ku=ku, kl=kl)
+    @assertEqual([0, 0], [ku, kl])
+  end subroutine test_nb_diagonals_idmatrix
+
+
+  @test
+  subroutine test_nb_diagonals()
+    integer :: ku, kl
+
+    call set_name("matrix datastructure: nb diagonals")
+    dmatrix = new_matrix(nb_rows=10)
+    call fill_idmatrix(dmatrix)
+    ! add some elements to the upper part
+    call dmatrix%add_element(row=3, column=5, element=1.0d0)
+    call dmatrix%get_nb_diagonals(ku=ku, kl=kl)
+    @assertEqual([2, 0], [ku, kl])
+
+    call dmatrix%add_element(row=5, column=8, element=1.0d0)
+    call dmatrix%get_nb_diagonals(ku=ku, kl=kl)
+    @assertEqual([3, 0], [ku, kl])
+
+    call dmatrix%add_element(row=7, column=6, element=1.0d0)
+    call dmatrix%add_element(row=2, column=1, element=1.0d0)
+    call dmatrix%get_nb_diagonals(ku=ku, kl=kl)
+    @assertEqual([3, 1], [ku, kl])
+
+    call dmatrix%add_element(row=4, column=8, element=1.0d0)
+    call dmatrix%add_element(row=4, column=2, element=1.0d0)
+    call dmatrix%get_nb_diagonals(ku=ku, kl=kl)
+    @assertEqual([4, 2], [ku, kl])
+
+    call dmatrix%add_element(row=6, column=9, element=1.0d0)
+    call dmatrix%add_element(row=8, column=3, element=1.0d0)
+    call dmatrix%get_nb_diagonals(ku=ku, kl=kl)
+    @assertEqual([4, 5], [ku, kl])
+  end subroutine test_nb_diagonals
 
 end module mod_test_matrix_structure

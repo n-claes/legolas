@@ -1,6 +1,15 @@
-from .regression import RegressionTest
-import pytest
 import numpy as np
+import pytest
+
+from .regression import RegressionTest
+
+spectrum_limits = [
+    {"xlim": (-650, 650), "ylim": (-0.15, 0.12)},
+    {"xlim": (-40, 40), "ylim": (-0.15, 0.12)},
+    {"xlim": (-5, 5), "ylim": (-0.15, 0.12)},
+    {"xlim": (-0.1, 0.1), "ylim": (-0.15, 0.12)},
+    {"xlim": (-0.025, 0.025), "ylim": (-0.015, 0.12), "RMS_TOLERANCE": 2.2},
+]
 
 
 class MagnetoThermalModes(RegressionTest):
@@ -24,13 +33,6 @@ class MagnetoThermalModes(RegressionTest):
 class TestMagnetoThermalModesQR(MagnetoThermalModes):
     name = "magnetothermal modes k2=0 k3=1 QR"
     filename = "magnetothermal_QR_k2_0_k3_1"
-    spectrum_limits = [
-        {"xlim": (-650, 650), "ylim": (-0.15, 0.12)},
-        {"xlim": (-40, 40), "ylim": (-0.15, 0.12)},
-        {"xlim": (-5, 5), "ylim": (-0.15, 0.12)},
-        {"xlim": (-0.1, 0.1), "ylim": (-0.15, 0.12)},
-        {"xlim": (-0.025, 0.025), "ylim": (-0.015, 0.12), "RMS_TOLERANCE": 2.2},
-    ]
 
     @pytest.mark.parametrize("limits", spectrum_limits)
     def test_spectrum(self, limits, ds_test, ds_base):
@@ -48,6 +50,30 @@ class TestMagnetoThermalModesQR(MagnetoThermalModes):
             assert (
                 ds_test.units.get(f"unit_{val}") == self.physics_settings[f"unit_{val}"]
             )
+
+
+class TestMagnetoThermalModesQZ(MagnetoThermalModes):
+    name = "magnetothermal modes k2=0 k3=1 QZ"
+    filename = "magnetothermal_QZ_k2_0_k3_1"
+    use_custom_baseline = "magnetothermal_QR_k2_0_k3_1"
+    solver_settings = {"solver": "QZ-direct"}
+
+    spectrum_limits = spectrum_limits[:-1]
+
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
+
+
+class TestMagnetoThermalModesQRCholesky(MagnetoThermalModes):
+    name = "magnetothermal modes k2=0 k3=1 QR Cholesky"
+    filename = "magnetothermal_QR_cholesky_k2_0_k3_1"
+    use_custom_baseline = "magnetothermal_QR_k2_0_k3_1"
+    solver_settings = {"solver": "QR-cholesky"}
+
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
 
 
 class TestMagnetoThermalModesSI(MagnetoThermalModes):
