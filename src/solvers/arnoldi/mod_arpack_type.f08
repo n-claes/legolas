@@ -54,6 +54,7 @@ module mod_arpack_type
     procedure, private :: set_bmat
     procedure, private :: set_which
     procedure, private :: set_nev
+    procedure, private :: set_residual
     procedure, private :: set_ncv
     procedure, private :: set_maxiter
   end type arpack_t
@@ -99,7 +100,7 @@ contains
     call arpack_config%set_which(which)
     call arpack_config%set_nev(nev)
     arpack_config%tolerance = tolerance
-    allocate(arpack_config%residual(evpdim))
+    call arpack_config%set_residual(evpdim)
     call arpack_config%set_ncv(ncv)
     call arpack_config%set_maxiter(maxiter)
     ! iparam(1) = ishift = 1 means restart with shifts from Hessenberg matrix
@@ -194,6 +195,29 @@ contains
     this%nev = nev
     call log_message("Arnoldi: nev set to " // str(this%nev), level="debug")
   end subroutine set_nev
+
+
+  !> Setter for the residual vector, allocates and manually initialises the
+  !! residual (= starting) vector using a uniform distribution on (-1, 1)
+  !! for both the real and imaginary parts. Relies on the LAPACK routine `zlarnv`.
+  subroutine set_residual(this, evpdim)
+    !> type instance
+    class(arpack_t), intent(inout) :: this
+    !> dimension of the eigenvalue problem
+    integer, intent(in) :: evpdim
+    !> which distribution to take, we set idist = 2 for uniform in (-1, 1)
+    integer :: idist
+    !> seed for the random number generator, last entry must be odd (see `zlarnv`)
+    integer :: iseed(4)
+
+    allocate(this%residual(evpdim))
+
+    iseed = [2022, 9, 30, 179]
+    idist = 2  ! real and imaginary parts each uniform (-1,1)
+    call zlarnv(idist, iseed, evpdim, this%residual)
+    ! tell arpack that we generated starting vector ourselves (info = 1)
+    this%info = 1
+  end subroutine set_residual
 
 
   !> Setter for ncv, the number of Arnoldi basis vectors to calculate.
