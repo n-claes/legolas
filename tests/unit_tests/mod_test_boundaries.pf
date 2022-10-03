@@ -69,7 +69,7 @@ contains
       bmat_expected(j, j) = 1.0d0
       amat_expected(j, 1:left_end) = (0.0d0, 0.0d0)
       amat_expected(1:left_end, j) = (0.0d0, 0.0d0)
-      amat_expected(j, j) = (1.0d20, 0.0d0)
+      amat_expected(j, j) = (0.0d0, 0.0d0)
     end do
   end subroutine zero_out_expected_left_idxs
 
@@ -85,7 +85,7 @@ contains
       bmat_expected(j, j) = 1.0d0
       amat_expected(j, right_start:) = (0.0d0, 0.0d0)
       amat_expected(right_start:, j) = (0.0d0, 0.0d0)
-      amat_expected(j, j) = (1.0d20, 0.0d0)
+      amat_expected(j, j) = (0.0d0, 0.0d0)
     end do
   end subroutine zero_out_expected_right_idxs
 
