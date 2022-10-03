@@ -3,7 +3,12 @@ from pathlib import Path
 
 import numpy as np
 
-from pylbo.exceptions import EigenfunctionsNotPresent, MatricesNotPresent
+from pylbo.exceptions import (
+    EigenfunctionsNotPresent,
+    EigenvectorsNotPresent,
+    MatricesNotPresent,
+    ResidualsNotPresent,
+)
 from pylbo.utilities.datfile_utils import (
     get_header,
     read_derived_eigenfunction,
@@ -11,16 +16,15 @@ from pylbo.utilities.datfile_utils import (
     read_eigenfunction,
     read_eigenvalues,
     read_eigenvectors,
-    read_residuals,
     read_equilibrium_arrays,
     read_grid,
     read_grid_gauss,
     read_matrix_A,
     read_matrix_B,
+    read_residuals,
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import transform_to_numpy
-from pylbo.exceptions import MatricesNotPresent, EigenvectorsNotPresent, ResidualsNotPresent
 from pylbo.visualisation.continua import calculate_continua
 
 
@@ -554,7 +558,7 @@ class LegolasDataSet(LegolasDataContainer):
         with open(self.datfile, "rb") as istream:
             evs = read_eigenvectors(istream, self.header)
         return evs
-    
+
     def get_residuals(self):
         """
         Retrieves the residuals from the datfile.

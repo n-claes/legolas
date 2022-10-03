@@ -80,7 +80,7 @@ class TestTaylorCouetteQRCholesky(TaylorCouette):
     solver_settings = {"solver": "QR-cholesky"}
 
     eigenfunctions = [
-        {"eigenvalue": 0.87784 - 0.04820j, "RMS_TOLERANCE": 10},
+        {"eigenvalue": 0.87784 - 0.04820j, "RMS_TOLERANCE": 11.5},
         {"eigenvalue": 0.49861 - 0.08124j},
         {"eigenvalue": 0.34390 - 0.13832j, "RMS_TOLERANCE": 3},
         {"eigenvalue": 0.26543 - 0.21655j, "RMS_TOLERANCE": 6.5},
