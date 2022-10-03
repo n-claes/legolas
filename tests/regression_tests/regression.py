@@ -260,8 +260,13 @@ class RegressionTest(TestCase):
             return
         tol = getattr(self, "custom_evs_all_real_tol", None)
 
-        assert np.all(ds_test.eigenvalues.imag == pytest.approx(0, abs=tol))
-        assert np.all(ds_base.eigenvalues.imag == pytest.approx(0, abs=tol))
+        for ds, name in zip((ds_test, ds_base), ("test", "base")):
+            if not np.all(ds.eigenvalues.imag == pytest.approx(0, abs=tol)):
+                pytest.fail(
+                    f"{name} ds: eigenvalues are not all real, found largest non-zero "
+                    f"imaginary part abs(Im) = {np.max(np.abs(ds.eigenvalues.imag))} "
+                    f"which is not within tolerance {1e-12 if tol is None else tol:.1e}"
+                )
 
     def run_spectrum_test(self, limits, ds_test, ds_base):
         image_test, image_baseline = self.generate_spectrum_images(
