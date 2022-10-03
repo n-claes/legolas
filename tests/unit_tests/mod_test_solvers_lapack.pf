@@ -55,6 +55,13 @@ module mod_test_solvers_lapack
     (0.6276596796722511d0, 0.48642862257574954d0), &
     (0.6282488405860116d0, -0.23788823614350615d0) &
   ]
+  complex(dp), parameter :: expected_b_hermitian(5) = [ &
+    (-0.7573291032244991d0, -0.8342746803823134d0), &
+    (-0.20842078110630927d0, -0.32089038501060607d0), &
+    (-0.043930679967276426d0, -0.06224543824036125d0), &
+    (0.010698560246044606d0, 0.3788642492245973d0), &
+    (0.03473565736521634d0, 0.040781546673737325d0) &
+  ]
 
 
 contains
@@ -153,21 +160,12 @@ contains
 
   @test
   subroutine test_lapack_qr_cholesky_general()
-    complex(dp) :: expected(5)
     call set_name("solver QR-cholesky (AX = wBX)")
     solver = "QR-cholesky"
     write_eigenfunctions = .true.
-    ! these come from scipy.linalg.eigvals
-    expected = [ &
-      (-0.7573291032244991d0, -0.8342746803823134d0), &
-      (-0.20842078110630927d0, -0.32089038501060607d0), &
-      (-0.043930679967276426d0, -0.06224543824036125d0), &
-      (0.010698560246044606d0, 0.3788642492245973d0), &
-      (0.03473565736521634d0, 0.040781546673737325d0) &
-    ]
     call solve_evp(amat, bmat_hermitian, eigenvals, vr)
     call sort_complex_array(eigenvals)
-    @assertEqual(expected, eigenvals, tolerance=TOL)
+    @assertEqual(expected_b_hermitian, eigenvals, tolerance=TOL)
   end subroutine test_lapack_qr_cholesky_general
 
 
@@ -220,11 +218,11 @@ contains
   subroutine test_inverse_iteration_general_1()
     complex(dp) :: omega(1)
 
-    call set_name("inverse iteration (AX = wBX, sigma = -1 - 1.5i)")
+    call set_name("inverse iteration (AX = wBX, sigma = -1 - i)")
     solver = "inverse-iteration"
-    sigma = (-1.0d0, -1.5d0)
+    sigma = (-1.0d0, -1.0d0)
     call solve_evp(amat, bmat_hermitian, omega, vr)
-    @assertEqual(expected_general(1), omega(1), tolerance=TOL)
+    @assertEqual(expected_b_hermitian(1), omega(1), tolerance=TOL)
   end subroutine test_inverse_iteration_general_1
 
 
@@ -232,22 +230,22 @@ contains
   subroutine test_inverse_iteration_general_2()
     complex(dp) :: omega(1)
 
-    call set_name("inverse iteration (AX = wBX, sigma = -0.6 + 0.5i)")
+    call set_name("inverse iteration (AX = wBX, sigma = -0.1 - 0.2i)")
     solver = "inverse-iteration"
-    sigma = (-0.6d0, 0.5d0)
+    sigma = (-0.1d0, -0.2d0)
     call solve_evp(amat, bmat_hermitian, omega, vr)
-    @assertEqual(expected_general(2), omega(1), tolerance=TOL)
+    @assertEqual(expected_b_hermitian(2), omega(1), tolerance=TOL)
   end subroutine test_inverse_iteration_general_2
 
   @test
   subroutine test_inverse_iteration_general_3()
     complex(dp) :: omega(1)
 
-    call set_name("inverse iteration (AX = wBX, sigma = 0.6 + 0.5i)")
+    call set_name("inverse iteration (AX = wBX, sigma = 0.4i)")
     solver = "inverse-iteration"
-    sigma = (0.6d0, 0.5d0)
+    sigma = (0.0d0, 0.4d0)
     call solve_evp(amat, bmat_hermitian, omega, vr)
-    @assertEqual(expected_general(4), omega(1), tolerance=TOL)
+    @assertEqual(expected_b_hermitian(4), omega(1), tolerance=TOL)
   end subroutine test_inverse_iteration_general_3
 
 end module mod_test_solvers_lapack

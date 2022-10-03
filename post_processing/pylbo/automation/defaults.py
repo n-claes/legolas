@@ -81,5 +81,6 @@ namelist_items = {
         ("maxiter", (int, np.integer)),
         ("sigma", (int, np.integer, float, complex)),
         ("ncv", (int, np.integer)),
+        ("tolerance", (int, np.integer, float)),
     ],
 }
