@@ -69,9 +69,9 @@ class TestMRI_AccretionQRCholesky(MRI_Accretion):
     solver_settings = {"solver": "QR-cholesky"}
 
     eigenfunctions = [
-        {"eigenvalue": -0.002028 + 0.627722j, "RMS_TOLERANCE": 3.5},
-        {"eigenvalue": -0.00186038 + 0.5804956j, "RMS_TOLERANCE": 4.5},
-        {"eigenvalue": -0.0017397 + 0.5443967j, "RMS_TOLERANCE": 5},
+        {"eigenvalue": -0.002028 + 0.627722j, "RMS_TOLERANCE": 3.8},
+        {"eigenvalue": -0.00186038 + 0.5804956j, "RMS_TOLERANCE": 4.7},
+        {"eigenvalue": -0.0017397 + 0.5443967j, "RMS_TOLERANCE": 5.6},
     ]
 
     @pytest.mark.parametrize("limits", spectrum_limits)
