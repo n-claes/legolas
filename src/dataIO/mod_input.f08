@@ -70,7 +70,7 @@ contains
         r0, rc, rj, Bth0, Bz0, V, j0, g, eq_bool
     namelist /solvelist/  &
         solver, arpack_mode, number_of_eigenvalues, which_eigenvalues, maxiter, sigma, &
-        ncv
+        ncv, tolerance
 
     call init_equilibrium_params()
     ! if no parfile supplied flag error

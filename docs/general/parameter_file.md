@@ -7,7 +7,7 @@ sidebar:
 toc: true
 toc_label: "Namelists"
 toc_icon: "code"
-last_modified_at: 2022-07-20
+last_modified_at: 2022-10-03
 ---
 
 The Legolas parfile allows for a full customisation of all Legolas variables. Lots of these variables
@@ -86,10 +86,11 @@ This namelist includes all solver-related variables. For more information, see [
 | solver        | string    | which solver to use, if 'none' eigenvalues and -functions are set to NaN | `"QR-invert"` |
 | arpack_mode   | string    | the mode for ARPACK, only used if `solver="arnoldi"` | `"standard"`  |
 | number_of_eigenvalues | int   | number of eigenvalues to calculate (k) , only used if `solver="arnoldi"`   | 10    |
-| which eigenvalues | string    | which eigenvalues to calculate, only used if `solver="arnoldi"`   |   `"LM"`  |
+| which_eigenvalues | string    | which eigenvalues to calculate, only used if `solver="arnoldi"`   |   `"LM"`  |
 | maxiter       | int   | the maximum number of iterations the Arnoldi or inverse iteration solver may take | max(100, 10k)   |
 | sigma         | complex   | sigma-value around which to do shift-invert, only for `arpack_mode="shift-invert"` and inverse iteration  | - |
 | ncv           | int   | the number of basis vectors used by the Arnoldi solver | 2 $\times$ `number_of_eigenvalues` |
+| tolerance     | real  | tolerance used for eigenvalue convergence in the solvers | $5 \times 10^{-15}$ |
 
 ## unitslist
 This namelist includes all units-related variables.
