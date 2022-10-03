@@ -107,7 +107,6 @@ jobs:
 
     - name: Run tests
       run: |
-        # depending on unit or regression tests we use different coverage options
         if [[ "${{ matrix.name }}" == "unit-tests" ]]; then
           cd $LEGOLASDIR/tests/unit_tests
           mkdir build
@@ -120,15 +119,15 @@ jobs:
           cd $LEGOLASDIR/tests/regression_tests
           pytest
         fi
-        if [[ "${{ matrix.coverage }}" ]]; then
-          # generate coverage report
-          cd $LEGOLASDIR
-          mkdir coverage
-          cd coverage
-          lcov --capture --directory $LEGOLASDIR/build \
-             --output-file ${{ matrix.name }}.info \
-             --gcov-tool /usr/bin/gcov-9
-        fi
+
+    - name: Generate coverage report
+      if: ${{ matrix.coverage }}
+      run: |
+        mkdir coverage
+        cd coverage
+        lcov --capture --directory $LEGOLASDIR/build \
+            --output-file ${{ matrix.name }}.info \
+            --gcov-tool /usr/bin/gcov-9
         # filter out coverage files
         find $LEGOLASDIR/build -name '*.gc*' -delete
 
