@@ -24,7 +24,6 @@ module mod_banded_matrix_hermitian
     procedure, public :: get_element
     procedure, public :: set_element
     procedure, public :: get_total_nb_elements
-    procedure, public :: get_total_nb_nonzero_elements
     procedure, public :: is_compatible_with
     procedure, public :: destroy
   end type hermitian_banded_matrix_t
@@ -76,14 +75,23 @@ contains
     !> the element at the original position (row, col)
     complex(dp) :: element
 
-    if (is_within_band(matrix=this, row=row, col=col)) then
-      if (this%uplo == "U") then
+    if (this%uplo == "U") then
+      if (is_within_band(matrix=this, row=row, col=col)) then
         element = this%AB(this%kd + 1 + row - col, col)
+        ! check if transpose element is within band, if so return transpose conjugate
+      else if (is_within_band(matrix=this, row=col, col=row)) then
+        element = conjg(this%AB(this%kd + 1 + col - row, row))
       else
-        element = this%AB(1 + row - col, col)
+        element = (0.0_dp, 0.0_dp)
       end if
-    else
-      element = (0.0_dp, 0.0_dp)
+    else  ! uplo == "L"
+      if (is_within_band(matrix=this, row=row, col=col)) then
+        element = this%AB(1 + row - col, col)
+      else if (is_within_band(matrix=this, row=col, col=row)) then
+        element = conjg(this%AB(1 + col - row, row))
+      else
+        element = (0.0_dp, 0.0_dp)
+      end if
     end if
   end function get_element
 
@@ -134,17 +142,6 @@ contains
       get_total_nb_elements = get_total_nb_elements + 2*(this%n - i)
     end do
   end function get_total_nb_elements
-
-
-  !> Returns the total number of nonzero elements inside the banded matrix.
-  pure integer function get_total_nb_nonzero_elements(this)
-    use mod_check_values, only: is_zero
-
-    !> type instance
-    class(hermitian_banded_matrix_t), intent(in) :: this
-
-    get_total_nb_nonzero_elements = count(.not. is_zero(this%AB))
-  end function get_total_nb_nonzero_elements
 
 
   !> Checks whether the given <tt>uplo</tt> parameter is valid.
