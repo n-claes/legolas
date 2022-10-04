@@ -213,6 +213,7 @@ contains
       call log_message( &
         "array_to_complex_hermitian_banded: array is not square", level="error" &
       )
+      return
     end if
     banded = new_hermitian_banded_matrix(rows=nrows, diags=diags, uplo=uplo)
     if (uplo == "U") then
