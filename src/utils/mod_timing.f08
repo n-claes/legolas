@@ -86,15 +86,18 @@ contains
   !!
   !! `toc(message, start_time)` logs the elapsed wall clock time in seconds since
   !! the call of `tic(start_time)`, along with **message**.
-  subroutine toc(message, start_time)
+  subroutine toc(message, start_time, level)
     !> Message to log along elapsed time.
-    character(*),      intent(in) :: message
+    character(len=*), intent(in)            :: message
     !> Optional starting time. If not present the time recorded in
     !! the module variable is used.
-    integer, optional, intent(in) :: start_time
+    integer, intent(in), optional           :: start_time
+    !> The level (severity) of the message, default is <tt>"debug"</tt>.
+    character(len=*), intent(in), optional  :: level
 
-    integer  :: selected_start_time, rate, end_time
-    real(dp) :: elapsed_time
+    integer                   :: selected_start_time, rate, end_time
+    real(dp)                  :: elapsed_time
+    character(:), allocatable :: loglevel
 
     if (present(start_time)) then
         selected_start_time = start_time
@@ -102,11 +105,17 @@ contains
         selected_start_time = wall_clock_tic
     end if
 
+    if (present(level)) then
+      loglevel = level
+    else
+      loglevel = "debug"
+    end if
+
     call system_clock(end_time, rate)
 
     elapsed_time = real(end_time - selected_start_time, kind=dp) / rate
     call log_message(message // " (" // str(elapsed_time, fmt="f20.3") // " s)", &
-                   & level="debug")
+                   & level=loglevel)
   end subroutine toc
 
   !> Subroutine to start a CPU timer.
@@ -146,15 +155,18 @@ contains
   !!
   !! `cputoc(message, start_time)` logs the elapsed CPU time in seconds since the
   !! call of `cputic(start_time)`, along with **message**.
-  subroutine cputoc(message, start_time)
+  subroutine cputoc(message, start_time, level)
     !> Message to log along elapsed time.
-    character(*),   intent(in) :: message
+    character(len=*), intent(in)           :: message
     !> Optional starting time. If not present the time recorded in
     !! the module variable is used.
-    real, optional, intent(in) :: start_time
+    real, intent(in), optional             :: start_time
+    !> The level (severity) of the message, default is <tt>"debug"</tt>.
+    character(len=*), intent(in), optional :: level
 
-    real     :: selected_start_time, end_time
-    real(dp) :: elapsed_time
+    real                      :: selected_start_time, end_time
+    real(dp)                  :: elapsed_time
+    character(:), allocatable :: loglevel
 
     if (present(start_time)) then
         selected_start_time = start_time
@@ -162,11 +174,17 @@ contains
         selected_start_time = cpu_clock_tic
     end if
 
+    if (present(level)) then
+      loglevel = level
+    else
+      loglevel = "debug"
+    end if
+
     call cpu_time(end_time)
 
     elapsed_time = end_time - selected_start_time
     call log_message(message // " (" // str(elapsed_time, fmt="f20.3") // " s, CPU time)", &
-                   & level="debug")
+                   & level=loglevel)
   end subroutine cputoc
 
 end module mod_timing

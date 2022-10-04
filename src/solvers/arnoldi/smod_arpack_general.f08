@@ -5,6 +5,7 @@
 submodule (mod_solvers:smod_arpack_main) smod_arpack_general
   use mod_banded_matrix, only: banded_matrix_t
   use mod_transform_matrix, only: matrix_to_banded
+  use mod_banded_operations, only: multiply
   implicit none
 
 contains
@@ -28,14 +29,19 @@ contains
 
     integer :: diags
     logical :: converged
-    type(banded_matrix_t) :: bmat_banded
+    type(banded_matrix_t) :: amat_banded, bmat_banded
     integer :: xstart, xend, ystart, yend
+    complex(dp) :: axvector(arpack_cfg%get_evpdim())
 
     ! we fill at most the full quadblock, so -1 diagonals
     ! IDEA: maybe do a pass over the B-matrix first to figure out how many diagonals
     ! we need? This is problem-dependent so in some cases there might be quite some
     ! room here for optimisations
     diags = dim_quadblock - 1
+    call log_message("converting A-matrix into banded structure", level="debug")
+    call matrix_to_banded( &
+      matrix=matrix_A, subdiags=diags, superdiags=diags, banded=amat_banded &
+    )
     call log_message("converting B-matrix into banded structure", level="debug")
     call matrix_to_banded( &
       matrix=matrix_B, subdiags=diags, superdiags=diags, banded=bmat_banded &
@@ -74,16 +80,15 @@ contains
       ystart = ipntr(2)
       yend = ystart + arpack_cfg%get_evpdim() - 1
 
-      ! note that the linked-list datastructures have the matrix-vector product
-      ! implemented using the operator (*).
       select case(arpack_cfg%ido)
       case(-1, 1)
         ! get y <--- OP*x, we do not calculate OP*x explicitly.
         ! We need R = OP*x = inv[B]*A*x, so do the following:
         ! 1. calculate u = A*x
         ! 2. solve linear system B * R = u for R
+        axvector = multiply(amat_banded, workd(xstart:xend))
         workd(ystart:yend) = solve_linear_system_complex_banded( &
-          bandmatrix=bmat_banded, vector=matrix_A * workd(xstart:xend) &
+          bandmatrix=bmat_banded, vector=axvector &
         )
       case default
         ! when convergence is achieved or maxiter is reached

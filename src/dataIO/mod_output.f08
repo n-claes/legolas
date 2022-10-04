@@ -1,7 +1,7 @@
 ! =============================================================================
 !> This module contains all routines for file opening and file writing.
 module mod_output
-  use mod_global_variables, only: dp, str_len
+  use mod_global_variables, only: dp, str_len, dp_LIMIT
   use mod_matrix_structure, only: matrix_t
   implicit none
 
@@ -68,8 +68,10 @@ contains
   !!          first pass is performed locating the non-zero values, and then the
   !!          values are saved to file in the format
   !!          <tt>(row_idx, column_idx, value)</tt>. @endnote
+  !! @note    Eigenvectors are only written if this is enabled in the
+  !!          global variables. @endnote
   !! @note    The extension <tt>".dat"</tt> is appended to the filename. @endnote
-  subroutine create_datfile(eigenvalues, matrix_A, matrix_B)
+  subroutine create_datfile(eigenvalues, matrix_A, matrix_B, eigenvectors)
     use mod_global_variables
     use mod_version, only: LEGOLAS_VERSION
     use mod_logging, only: log_message
@@ -79,6 +81,8 @@ contains
     use mod_eigenfunctions
     use mod_equilibrium_params
     use mod_units
+    use mod_banded_matrix, only: banded_matrix_t
+    use mod_transform_matrix, only: matrix_to_banded
 
     !> the eigenvalues
     complex(dp), intent(in)       :: eigenvalues(:)
@@ -86,11 +90,16 @@ contains
     type(matrix_t), intent(in) :: matrix_A
     !> the B-matrix
     type(matrix_t), intent(in) :: matrix_B
+    !> the eigenvectors
+    complex(dp), intent(in)       :: eigenvectors(:, :)
 
     real(dp)  :: b01_array(size(B_field % B02))
     character(len=str_len_arr)    :: param_names(34), equil_names(32)
     character(len=2*str_len_arr)  :: unit_names(12)
-    integer :: i
+    real(dp), allocatable         :: residuals(:)
+    integer                       :: i
+    type(banded_matrix_t) :: matrix_A_banded, matrix_B_banded
+    integer :: diags
 
     param_names = [ &
       character(len=str_len_arr) :: "k2", "k3", "cte_rho0", "cte_T0", "cte_B01", &
@@ -128,8 +137,8 @@ contains
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
       gauss_gridpts, dim_matrix, ef_gridpts, gamma, equilibrium_type, &
       write_eigenfunctions, write_derived_eigenfunctions, write_matrices, &
-      write_eigenfunction_subset, eigenfunction_subset_center, &
-      eigenfunction_subset_radius
+      write_eigenvectors, write_residuals, write_eigenfunction_subset, &
+      eigenfunction_subset_center, eigenfunction_subset_radius
     write(dat_fh) size(param_names), len(param_names(1)), param_names
     write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, &
       cte_v03, cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, &
@@ -179,6 +188,37 @@ contains
         write(dat_fh) derived_eigenfunctions(i)%quantities
       end do
     end if
+
+    ! Eigenvector data [optional]
+    if (write_eigenvectors) then
+      call log_message("writing eigenvectors...", level="info")
+      write(dat_fh) size(eigenvectors, 1), size(eigenvectors, 2), eigenvectors
+    end if
+
+    ! Residuals data [optional]
+    if (write_residuals) then
+      allocate(residuals(size(eigenvalues)))
+      diags = dim_quadblock - 1
+      call matrix_to_banded( &
+        matrix=matrix_A, subdiags=diags, superdiags=diags, banded=matrix_A_banded &
+      )
+      call matrix_to_banded( &
+        matrix=matrix_B, subdiags=diags, superdiags=diags, banded=matrix_B_banded &
+      )
+      call log_message("computing residuals...", level="info")
+      do i = 1, size(eigenvalues)
+        residuals(i) = get_residual( &
+          matrix_A_banded, matrix_B_banded, eigenvalues(i), eigenvectors(:, i) &
+        )
+      end do
+
+      call log_message("writing residuals...", level="info")
+      write(dat_fh) size(residuals), residuals
+      deallocate(residuals)
+    end if
+
+    ! Matrix data [optional]
+    if (write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
 
     ! Matrix data [optional]
     if (write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
@@ -258,5 +298,41 @@ contains
     call log_message("eigenvalues logged to " // trim(logfile_name), level="info")
     close(log_fh)
   end subroutine create_logfile
+
+
+  real(dp) function get_residual(amat_band, bmat_band, eigenvalue, eigenvector)
+    use mod_banded_matrix, only: banded_matrix_t
+    use mod_banded_operations, only: multiply
+
+    !> the matrix A in banded form
+    type(banded_matrix_t), intent(in) :: amat_band
+    !> the matrix B in banded form
+    type(banded_matrix_t), intent(in) :: bmat_band
+    !> the eigenvalue
+    complex(dp), intent(in) :: eigenvalue
+    !> the eigenvector
+    complex(dp), intent(in) :: eigenvector(:)
+
+    integer :: N
+    real(dp) :: dznrm2
+
+    if (abs(eigenvalue) < DP_limit) then
+      get_residual = 0.0_dp
+      return
+    end if
+    N = size(eigenvector)
+
+    get_residual = ( &
+      dznrm2( &
+        N, &
+        ( &
+          multiply(amat_band, eigenvector) &
+          - eigenvalue * multiply(bmat_band, eigenvector) &
+        ), &
+        1 &
+      ) &
+      / dznrm2(N, eigenvalue * eigenvector, 1) &
+    )
+end function get_residual
 
 end module mod_output

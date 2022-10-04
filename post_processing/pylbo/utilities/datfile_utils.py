@@ -1,4 +1,5 @@
 import struct
+
 import numpy as np
 from pylbo._version import VersionHandler
 from pylbo.utilities.logger import pylboLogger
@@ -97,6 +98,16 @@ def get_header(istream):
     fmt = ALIGN + "i"
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     h["matrices_written"] = bool(*hdr)
+    # read eigenvectors boolean
+    h["eigenvecs_written"] = False
+    if legolas_version >= "1.3.0":
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        h["eigenvecs_written"] = bool(*hdr)
+    # read eigenvectors boolean
+    h["residuals_written"] = False
+    if legolas_version >= "1.3.0":
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        h["residuals_written"] = bool(*hdr)
     # read eigenfunction subset info
     h["eigenfunction_subset_used"] = False
     if legolas_version >= "1.1.4":
@@ -280,10 +291,29 @@ def get_header(istream):
             h["derived_ef_names"] = pp_names
             # derived eigenfunction offsets
             byte_size = (
-                h["ef_gridpts"] * len(h["ef_written_flags"]) * nb_pp * SIZE_COMPLEX
+                h["ef_gridpts"] * len(h["ef_written_idxs"]) * nb_pp * SIZE_COMPLEX
             )
             offsets.update({"derived_ef_arrays": istream.tell()})
             istream.seek(istream.tell() + byte_size)
+
+    # if eigenvectors are written include offset
+    if h["eigenvecs_written"]:
+        fmt = ALIGN + 2 * "i"
+        hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+        h["eigenvec_len"], h["nb_eigenvecs"] = hdr
+
+        byte_size = SIZE_COMPLEX * h["eigenvec_len"] * h["nb_eigenvecs"]
+        offsets.update({"eigenvectors": istream.tell()})
+        istream.seek(istream.tell() + byte_size)
+
+    # if residuals are written include offset
+    if h["residuals_written"]:
+        fmt = ALIGN + "i"
+        h["nb_residuals"] = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))[0]
+
+        byte_size = SIZE_DOUBLE * h["nb_residuals"]
+        offsets.update({"residuals": istream.tell()})
+        istream.seek(istream.tell() + byte_size)
 
     # if matrices are written, include amount of nonzero elements and offsets
     if h["matrices_written"]:
@@ -297,6 +327,7 @@ def get_header(istream):
         istream.seek(istream.tell() + byte_size)
         # matrix A offset
         offsets.update({"matrix_A": istream.tell()})
+
     h["offsets"] = offsets
     return h
 
@@ -365,6 +396,56 @@ def read_ef_grid(istream, header):
     fmt = ALIGN + header["ef_gridpts"] * "d"
     ef_grid = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     return np.asarray(ef_grid)
+
+
+def read_eigenvectors(istream, header):
+    """
+    Reads the eigenvectors from the datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+
+    Returns
+    -------
+    eigenvectors : numpy.ndarray(dtype=complex, ndim=2)
+        The eigenvectors from the datfile, one in each column.
+    """
+    istream.seek(header["offsets"]["eigenvectors"])
+    fmt = ALIGN + (2 * "d") * header["eigenvec_len"] * header["nb_eigenvecs"]
+    hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+    reals = hdr[::2]
+    imags = hdr[1::2]
+    return np.reshape(
+        np.asarray([complex(x, y) for x, y in zip(reals, imags)]),
+        (header["eigenvec_len"], header["nb_eigenvecs"]),
+        order="F",
+    )
+
+
+def read_residuals(istream, header):
+    """
+    Reads the residuals from the datfile.
+
+    Parameters
+    ----------
+    istream : ~io.BufferedReader
+        Datfile opened in binary mode.
+    header : dict
+        Dictionary containing the datfile header, output from :func:`get_header`.
+
+    Returns
+    -------
+    eigenvectors : numpy.ndarray(dtype=double, ndim=1)
+        The residuals from the datfile.
+    """
+    istream.seek(header["offsets"]["residuals"])
+    fmt = ALIGN + "d" * header["nb_residuals"]
+    res = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
+    return np.asarray(res)
 
 
 def read_eigenvalues(istream, header, omit_large_evs=True):

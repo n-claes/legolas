@@ -3,8 +3,11 @@
 !! matrix representations, banded matrix representations, and full array matrices.
 module mod_transform_matrix
   use mod_global_variables, only: dp, NaN
+  use mod_logging, only: log_message
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
+  use mod_banded_matrix_hermitian, only: hermitian_banded_matrix_t, &
+    new_hermitian_banded_matrix
   implicit none
 
   private
@@ -17,6 +20,10 @@ module mod_transform_matrix
     module procedure matrix_to_complex_banded
   end interface matrix_to_banded
 
+  interface matrix_to_hermitian_banded
+    module procedure matrix_to_complex_hermitian_banded
+  end interface matrix_to_hermitian_banded
+
   interface array_to_matrix
     module procedure general_array_to_matrix
   end interface array_to_matrix
@@ -25,17 +32,29 @@ module mod_transform_matrix
     module procedure array_to_complex_banded
   end interface array_to_banded
 
+  interface array_to_hermitian_banded
+    module procedure array_to_complex_hermitian_banded
+  end interface array_to_hermitian_banded
+
   interface banded_to_array
     module procedure banded_to_complex_array
   end interface banded_to_array
 
+
+  interface hermitian_banded_to_array
+    module procedure hermitian_banded_to_complex_array
+  end interface hermitian_banded_to_array
+
   public :: matrix_to_array
   public :: matrix_to_banded
+  public :: matrix_to_hermitian_banded
 
   public :: array_to_matrix
   public :: array_to_banded
+  public :: array_to_hermitian_banded
 
   public :: banded_to_array
+  public :: hermitian_banded_to_array
 
 
 contains
@@ -87,6 +106,47 @@ contains
   end subroutine matrix_to_complex_banded
 
 
+  !> Converts a matrix data structure into a complex Hermitian banded matrix.
+  subroutine matrix_to_complex_hermitian_banded(matrix, diags, uplo, banded)
+    !> the original matrix datastructure
+    type(matrix_t), intent(in) :: matrix
+    !> number of sub/superdiagonals
+    integer, intent(in) :: diags
+    !> upper or lower triangular part of the matrix
+    character, intent(in) :: uplo
+    !> the resulting banded datastructure
+    type(hermitian_banded_matrix_t), intent(out) :: banded
+    integer :: irow, icol
+
+    banded = new_hermitian_banded_matrix( &
+      rows=matrix%matrix_dim, &
+      diags=diags, &
+      uplo=uplo &
+    )
+    if (uplo == "U") then
+      do icol = 1, matrix%matrix_dim
+        do irow = max(1, icol - diags), icol
+          call banded%set_element( &
+            row=irow, &
+            col=icol, &
+            element=matrix%get_complex_element(row=irow, column=icol) &
+          )
+        end do
+      end do
+    else  ! uplo == "L"
+      do icol = 1, matrix%matrix_dim
+        do irow = icol, min(matrix%matrix_dim, icol + diags)
+          call banded%set_element( &
+            row=irow, &
+            col=icol, &
+            element=matrix%get_complex_element(row=irow, column=icol) &
+          )
+        end do
+      end do
+    end if
+  end subroutine matrix_to_complex_hermitian_banded
+
+
   !> Converts a given 2D array to the linked-list matrix datastructure.
   function general_array_to_matrix(array, label) result(matrix)
     !> the original array
@@ -106,7 +166,7 @@ contains
   end function general_array_to_matrix
 
 
-  !> Converts a given real array to a banded datastructure.
+  !> Converts a given array to a banded datastructure.
   subroutine array_to_complex_banded(array, subdiags, superdiags, banded)
     !> the original array
     class(*), intent(in) :: array(:, :)
@@ -135,6 +195,51 @@ contains
   end subroutine array_to_complex_banded
 
 
+  !> Converts a given array to a Hermitian banded datastructure.
+  subroutine array_to_complex_hermitian_banded(array, diags, uplo, banded)
+    !> the original array
+    class(*), intent(in) :: array(:, :)
+    !> the number of sub/superdiagonals
+    integer, intent(in) :: diags
+    !> upper or lower triangular part of the matrix
+    character, intent(in) :: uplo
+    !> the resulting banded datastructure
+    type(hermitian_banded_matrix_t), intent(out) :: banded
+    integer :: irow, icol, nrows, ncols
+
+    nrows = size(array, dim=1)
+    ncols = size(array, dim=2)
+    if (nrows /= ncols) then
+      call log_message( &
+        "array_to_complex_hermitian_banded: array is not square", level="error" &
+      )
+      return
+    end if
+    banded = new_hermitian_banded_matrix(rows=nrows, diags=diags, uplo=uplo)
+    if (uplo == "U") then
+      do icol = 1, ncols
+        do irow = max(1, icol - diags), icol
+          call banded%set_element( &
+            row=irow, &
+            col=icol, &
+            element=get_array_element(array, irow, icol) &
+          )
+        end do
+      end do
+    else  ! uplo == "L"
+      do icol = 1, ncols
+        do irow = icol, min(nrows, icol + diags)
+          call banded%set_element( &
+            row=irow, &
+            col=icol, &
+            element=get_array_element(array, irow, icol) &
+          )
+        end do
+      end do
+    end if
+  end subroutine array_to_complex_hermitian_banded
+
+
   !> Converts a banded datastructure to a full complex array.
   pure function banded_to_complex_array(banded) result(array)
     !> the original banded datastructure
@@ -149,6 +254,22 @@ contains
       end do
     end do
   end function banded_to_complex_array
+
+
+  !> Converts a Hermitian banded datastructure to a full complex array.
+  pure function hermitian_banded_to_complex_array(banded) result(array)
+    !> the original banded structure
+    type(hermitian_banded_matrix_t), intent(in) :: banded
+    !> the resulting complex array
+    complex(dp) :: array(banded%n, banded%n)
+    integer :: irow, icol
+
+    do icol = 1, banded%n
+      do irow = 1, banded%n
+        array(irow, icol) = banded%get_element(row=irow, col=icol)
+      end do
+    end do
+  end function hermitian_banded_to_complex_array
 
 
   !> Retrieves the element at index (i, j) for an array of general type.

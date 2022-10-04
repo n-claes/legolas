@@ -2,6 +2,7 @@ module mod_test_banded_matrix
   use mod_suite_utils
   use funit
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
+  use mod_banded_operations, only: multiply
   use mod_transform_matrix, only: banded_to_array, array_to_banded, matrix_to_banded, &
     array_to_matrix
   use mod_matrix_structure, only: matrix_t, new_matrix
@@ -30,6 +31,7 @@ contains
     call reset_globals()
     bandmatrix = new_banded_matrix(rows=5, cols=5, subdiags=2, superdiags=1)
     matrix = new_matrix(nb_rows=5)
+    call fill_bandmatrix()
   end subroutine init_test
 
 
@@ -66,7 +68,6 @@ contains
   @test
   subroutine test_banded_get_element_inside()
     call set_name("banded matrix: get element inside band")
-    call fill_bandmatrix()
     ! a22 -> AB22
     @assertEqual(array(2, 2), bandmatrix%get_element(row=2, col=2), tolerance=TOL)
     @assertEqual(array(2, 2), bandmatrix%AB(2, 2), tolerance=TOL)
@@ -85,7 +86,6 @@ contains
   @test
   subroutine test_banded_get_element_outside()
     call set_name("banded matrix: get element outside band")
-    call fill_bandmatrix()
     ! a13 -> not in banded
     @assertEqual(izero, array(1, 3), tolerance=TOL)
     @assertEqual(izero, bandmatrix%get_element(row=1, col=3), tolerance=TOL)
@@ -99,7 +99,6 @@ contains
   subroutine test_banded_set_element_inside()
     complex(dp), parameter :: element = (-7.0d0, 3.5d0)
     call set_name("banded matrix: set element inside band")
-    call fill_bandmatrix()
     call bandmatrix%set_element(row=2, col=3, element=element)
     @assertEqual(element, bandmatrix%get_element(row=2, col=3), tolerance=TOL)
     @assertEqual(element, bandmatrix%AB(1, 3), tolerance=TOL)
@@ -109,7 +108,6 @@ contains
   @test
   subroutine test_banded_set_element_outside()
     call set_name("banded matrix: set element outside band")
-    call fill_bandmatrix()
     call bandmatrix%set_element(row=1, col=4, element=(1.0d0, 1.0d0))
     ! has no effect
     @assertEqual(izero, bandmatrix%get_element(row=1, col=4), tolerance=TOL)
@@ -119,7 +117,6 @@ contains
   @test
   subroutine test_transform_array_to_banded()
     call set_name("banded matrix: array to banded")
-    call fill_bandmatrix()
     call array_to_banded(array, subdiags=2, superdiags=1, banded=actual)
     @assertEqual(bandmatrix%AB, actual%AB, tolerance=TOL)
   end subroutine test_transform_array_to_banded
@@ -130,7 +127,6 @@ contains
     complex(dp) :: actual_array(5, 5)
 
     call set_name("banded matrix: banded to array")
-    call fill_bandmatrix()
     actual_array = banded_to_array(bandmatrix)
     @assertEqual(array, actual_array, tolerance=TOL)
   end subroutine test_transform_banded_to_array
@@ -139,11 +135,8 @@ contains
   @test
   subroutine test_transform_matrix_to_banded()
     call set_name("banded matrix: matrix to banded")
-    call fill_bandmatrix()
-
     call matrix_to_banded(matrix=matrix, subdiags=2, superdiags=1, banded=actual)
     call array_to_banded(array, subdiags=2, superdiags=1, banded=bandmatrix)
-
     ! in AB elements 11, 35, 44 and 45 are not referenced (and not set)
     @assertEqual(bandmatrix%AB, actual%AB, tolerance=TOL)
   end subroutine test_transform_matrix_to_banded
@@ -163,7 +156,6 @@ contains
   @test
   subroutine test_banded_total_elements()
     call set_name("banded matrix: get total number of elements")
-    call fill_bandmatrix()
     @assertEqual(16, bandmatrix%get_total_nb_elements())
   end subroutine test_banded_total_elements
 
@@ -171,9 +163,43 @@ contains
   @test
   subroutine test_banded_nb_nonzero_elements()
     call set_name("banded matrix: get total number of nonzero elements")
-    call fill_bandmatrix()
     call bandmatrix%set_element(row=3, col=3, element=(0.0d0, 0.0d0))
     @assertEqual(15, bandmatrix%get_total_nb_nonzero_elements())
   end subroutine test_banded_nb_nonzero_elements
 
+
+  @test
+  subroutine test_banded_matrix_x_unitvector()
+    complex(dp) :: unitvec(5), expected_vector(5), actual_vector(5)
+
+    call set_name("banded matrix: matrix-vector multiplication 1")
+    unitvec = (1.0_dp, 0.0_dp)
+    expected_vector = sum(array, dim=2)
+    actual_vector = multiply(bandmatrix, unitvec)
+    @assertEqual(expected_vector, actual_vector, tolerance=TOL)
+  end subroutine test_banded_matrix_x_unitvector
+
+
+  @test
+  subroutine test_banded_matrix_x_vector()
+    integer :: i, j
+    complex(dp) :: vector(5), expected_vector(5), actual_vector(5)
+
+    call set_name("banded matrix: matrix-vector multiplication 2")
+    vector = [ &
+      (1.0_dp, -2.0_dp), &
+      (0.0_dp, 3.5_dp), &
+      (-3.2_dp, 1.6_dp), &
+      (5.6_dp, -1.9_dp), &
+      (6.3_dp, 0.0_dp) &
+    ]
+    expected_vector = (0.0_dp, 0.0_dp)
+    do i = 1, 5
+      do j = 1, 5
+        expected_vector(i) = expected_vector(i) + array(i, j) * vector(j)
+      end do
+    end do
+    actual_vector = multiply(bandmatrix, vector)
+    @assertEqual(expected_vector, actual_vector, tolerance=TOL)
+  end subroutine test_banded_matrix_x_vector
 end module mod_test_banded_matrix

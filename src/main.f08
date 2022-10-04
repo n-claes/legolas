@@ -14,6 +14,7 @@ program legolas
   use mod_output, only: datfile_name, create_datfile
   use mod_logging, only: log_message, str, print_console_info, print_whitespace
   use mod_inspections, only: handle_spurious_eigenvalues
+  use mod_timing, only: tic, toc
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -24,6 +25,8 @@ program legolas
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
   complex(dp), allocatable  :: eigenvecs_right(:, :)
+  !> start time of eigenvalue solver
+  integer                   :: start_time_evp
 
   call initialisation()
   call print_console_info()
@@ -32,7 +35,10 @@ program legolas
 
   if (.not. dry_run) then
     call log_message("solving eigenvalue problem...", level="info")
+
+    call tic(start_time_evp)
     call solve_evp(matrix_A, matrix_B, omega, eigenvecs_right)
+    call toc("solved eigenvalue problem", start_time_evp, level="info")
   else
     call log_message( &
       "running dry, overriding parfile and setting eigenvalues to zero", level="info"  &
@@ -43,7 +49,7 @@ program legolas
   call handle_spurious_eigenvalues(omega)
 
   call create_eigenfunctions()
-  call create_datfile(omega, matrix_A, matrix_B)
+  call create_datfile(omega, matrix_A, matrix_B, eigenvecs_right)
 
   call cleanup()
 
@@ -59,7 +65,7 @@ contains
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, dim_matrix, &
-      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma, NaN, &
+      solver, number_of_eigenvalues, should_compute_eigenvectors, gamma, set_gamma, NaN, &
       state_vector, hall_mhd, x_start, x_end
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
@@ -82,6 +88,8 @@ contains
 
     if (solver == "arnoldi") then
       nb_evs = number_of_eigenvalues
+    elseif (solver == "inverse-iteration") then
+      nb_evs = 1
     else
       nb_evs = dim_matrix
     end if
@@ -101,7 +109,7 @@ contains
     end if
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
-    if (write_eigenfunctions .or. solver == "arnoldi") then
+    if (should_compute_eigenvectors() .or. solver == "arnoldi") then
       call log_message("allocating eigenvector arrays", level="debug")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
       allocate(eigenvecs_right(dim_matrix, nb_evs))

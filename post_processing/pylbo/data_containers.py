@@ -3,18 +3,25 @@ from pathlib import Path
 
 import numpy as np
 
-from pylbo.exceptions import EigenfunctionsNotPresent, MatricesNotPresent
+from pylbo.exceptions import (
+    EigenfunctionsNotPresent,
+    EigenvectorsNotPresent,
+    MatricesNotPresent,
+    ResidualsNotPresent,
+)
 from pylbo.utilities.datfile_utils import (
     get_header,
     read_derived_eigenfunction,
     read_ef_grid,
     read_eigenfunction,
     read_eigenvalues,
+    read_eigenvectors,
     read_equilibrium_arrays,
     read_grid,
     read_grid_gauss,
     read_matrix_A,
     read_matrix_B,
+    read_residuals,
 )
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import transform_to_numpy
@@ -530,6 +537,47 @@ class LegolasDataSet(LegolasDataContainer):
         with open(self.datfile, "rb") as istream:
             rows, cols, vals = read_matrix_A(istream, self.header)
         return rows, cols, vals
+
+    def get_eigenvectors(self):
+        """
+        Retrieves the eigenvectors from the datfile.
+
+        Returns
+        -------
+        eigenvectors : numpy.ndarray(dtype=complex, ndim=2)
+            Array containing the eigenvectors. One eigenvector
+            in each column.
+
+        Raises
+        ------
+        EigenvectorsNotPresent
+            If the eigenvectors were not saved to the datfile.
+        """
+        if not self.header["eigenvecs_written"]:
+            raise EigenvectorsNotPresent(self.datfile)
+        with open(self.datfile, "rb") as istream:
+            evs = read_eigenvectors(istream, self.header)
+        return evs
+
+    def get_residuals(self):
+        """
+        Retrieves the residuals from the datfile.
+
+        Returns
+        -------
+        residuals : numpy.ndarray(dtype=double, ndim=1)
+            Array containing the residuals.
+
+        Raises
+        ------
+        ResidualsNotPresent
+            If the residuals were not saved to the datfile.
+        """
+        if not self.header["residuals_written"]:
+            raise ResidualsNotPresent(self.datfile)
+        with open(self.datfile, "rb") as istream:
+            res = read_residuals(istream, self.header)
+        return res
 
     def get_eigenfunctions(self, ev_guesses=None, ev_idxs=None):
         """

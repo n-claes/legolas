@@ -59,8 +59,8 @@ contains
         equilibrium_type, boundary_type, use_defaults, remove_spurious_eigenvalues, &
         nb_spurious_eigenvalues
     namelist /savelist/ &
-        write_matrices, write_eigenfunctions, show_results, basename_datfile, &
-        basename_logfile, output_folder, logging_level, dry_run, &
+        write_matrices, write_eigenvectors, write_residuals, write_eigenfunctions, show_results, &
+        basename_datfile, basename_logfile, output_folder, logging_level, dry_run, &
         write_derived_eigenfunctions, write_eigenfunction_subset, &
         eigenfunction_subset_center, eigenfunction_subset_radius
     namelist /paramlist/  &
@@ -70,7 +70,7 @@ contains
         r0, rc, rj, Bth0, Bz0, V, j0, g, eq_bool
     namelist /solvelist/  &
         solver, arpack_mode, number_of_eigenvalues, which_eigenvalues, maxiter, sigma, &
-        ncv
+        ncv, tolerance
 
     call init_equilibrium_params()
     ! if no parfile supplied flag error
@@ -123,6 +123,8 @@ contains
 
     ! Check dry run settings
     if (dry_run) then
+      write_eigenvectors = .false.
+      write_residuals = .false.
       write_eigenfunctions = .false.
       write_matrices = .false.
     end if
@@ -285,8 +287,9 @@ contains
       end select
     end do
 
+    ! If no parfile supplied, flag an error
     if (filename_par == "") then
-      call log_message("no parfile supplied, using default configuration", level='info')
+      call log_message("no parfile supplied, please provide the file path with the -i flag", level="error")
     end if
 
     !! Check if supplied file exists

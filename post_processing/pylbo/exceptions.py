@@ -65,6 +65,42 @@ class MatricesNotPresent(LegolasException):
         return f"No matrices present in {self.file}"
 
 
+class EigenvectorsNotPresent(LegolasException):
+    """
+    Handles trying to query for eigenvectors when
+    these are not present in the datfile.
+
+    Parameters
+    ----------
+    file : str, ~os.PathLike
+        The path to the file.
+    """
+
+    def __init__(self, file):
+        self.file = file
+
+    def __str__(self):
+        return f"No eigenvectors present in {self.file}"
+
+
+class ResidualsNotPresent(LegolasException):
+    """
+    Handles trying to query for residuals when
+    these are not present in the datfile.
+
+    Parameters
+    ----------
+    file : str, ~os.PathLike
+        The path to the file.
+    """
+
+    def __init__(self, file):
+        self.file = file
+
+    def __str__(self):
+        return f"No residuals present in {self.file}"
+
+
 class ParfileGenerationError(LegolasException):
     """
     Gets thrown when something went wrong during parfile generation.

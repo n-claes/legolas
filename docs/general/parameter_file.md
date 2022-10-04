@@ -7,7 +7,7 @@ sidebar:
 toc: true
 toc_label: "Namelists"
 toc_icon: "code"
-last_modified_at: 2022-07-20
+last_modified_at: 2022-10-03
 ---
 
 The Legolas parfile allows for a full customisation of all Legolas variables. Lots of these variables
@@ -83,13 +83,14 @@ This namelist includes all solver-related variables. For more information, see [
 
 | Parameter     | Type  | Description   | Default value     |
 | :---          | :---: | :----         | :---:             |
-| solver        | string    | which solver to use | `"QR-invert"` |
+| solver        | string    | which solver to use, if 'none' eigenvalues and -functions are set to NaN | `"QR-invert"` |
 | arpack_mode   | string    | the mode for ARPACK, only used if `solver="arnoldi"` | `"standard"`  |
-| number_of_eigenvalues | int   | number of eigenvalues to calculate, only used if `solver="arnoldi"`   | 10    |
-| which eigenvalues | string    | which eigenvalues to calculate, only used if `solver="arnoldi"`   |   `"LM"`  |
-| maxiter       | int   | the maximum number of iterations the Arnoldi solver may take, only if `solver="arnoldi"` | 10N   |
-| sigma         | complex   | sigma-value around which to do shift-invert, only for `arpack_mode="shift-invert"`  | - |
+| number_of_eigenvalues | int   | number of eigenvalues to calculate (k) , only used if `solver="arnoldi"`   | 10    |
+| which_eigenvalues | string    | which eigenvalues to calculate, only used if `solver="arnoldi"`   |   `"LM"`  |
+| maxiter       | int   | the maximum number of iterations the Arnoldi or inverse iteration solver may take | max(100, 10k)   |
+| sigma         | complex   | sigma-value around which to do shift-invert, only for `arpack_mode="shift-invert"` and inverse iteration  | - |
 | ncv           | int   | the number of basis vectors used by the Arnoldi solver | 2 $\times$ `number_of_eigenvalues` |
+| tolerance     | real  | tolerance used for eigenvalue convergence in the solvers | $5 \times 10^{-15}$ |
 
 ## unitslist
 This namelist includes all units-related variables.
@@ -124,6 +125,8 @@ The level of output is controlled through the integer `logging_level`:
 | write_matrices    | logical | if `.true.` the matrices are written to the datfile   |   `.false.`   |
 | write_eigenfunctions  | logical | if `.true.` eigenfunctions are calculated and written to the datfile  |   `.true.`  |
 | write_derived_eigenfunctions | logical | if `.true.` also calculates derived eigenfunction quantities ($\nabla \cdot \mathbf{B_1}$, $S$, $v_\parallel$, etc.) |  `.false.` |
+| write_eigenvectors | logical | if `.true.` the eigenvectors are calculated and written to the datfile   |   `.false.`   |
+| write_residuals | logical | if `.true.` the relative residuals are calculated and written to the datfile   |   `.true.`   |
 | write_eigenfunction_subset | logical | if `.true.` only saves a part of the eigenfunctions to the datfile, based on a given radius and complex point | `.false.` |
 | eigenfunction_subset_center | complex | point in the complex plane that defines the center of the circle in which to save eigenfunctions, needs `eigenfunction_subset_radius` to be set | - |
 | eigenfunction_subset_radius | float | radius around `eigenfunction_subset_center`, all eigenvalues within this circle will have their eigenfunctions saved | - |

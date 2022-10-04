@@ -15,6 +15,8 @@ only_for_baseline_generation = pytest.mark.skipif(
     reason="'--generate' option not passed",
 )
 
+SOLVERS_WITHOUT_BASELINE_GENERATION = ["QZ-direct", "QR-cholesky"]
+
 
 def use_existing_baseline(capturemanager, baseline):
     use_existing = False
@@ -139,6 +141,9 @@ class TestCase:
 
     @pytest.fixture(scope="class")
     def file_base(self, baselinedir):
+        custom_baseline = getattr(self, "use_custom_baseline", None)
+        if custom_baseline is not None:
+            return baselinedir / f"BASE_{custom_baseline}.dat"
         return baselinedir / f"BASE_{self.filename}.dat"
 
     @pytest.fixture(scope="class")
@@ -153,10 +158,12 @@ class TestCase:
 class RegressionTest(TestCase):
     @only_for_baseline_generation
     def test_generate_baseline(self, capturemanager, file_base):
-        if use_existing_baseline(capturemanager, file_base):
-            pytest.skip("using existing file")
         setup = self.setup(outputdir=file_base.parent)
         setup.update({"basename_datfile": file_base.stem})
+        if setup.get("solver") in SOLVERS_WITHOUT_BASELINE_GENERATION:
+            pytest.skip(f"solver '{setup.get('solver')}' uses the QR-invert baseline")
+        if use_existing_baseline(capturemanager, file_base):
+            pytest.skip("using existing file")
         self.generate_test_dataset(setup)
 
     @pytest.fixture(scope="class")
@@ -251,8 +258,15 @@ class RegressionTest(TestCase):
     def test_eigenvalue_types(self, ds_test, ds_base):
         if not self.eigenvalues_are_real:
             return
-        assert np.all(ds_test.eigenvalues.imag == pytest.approx(0))
-        assert np.all(ds_base.eigenvalues.imag == pytest.approx(0))
+        tol = getattr(self, "custom_evs_all_real_tol", None)
+
+        for ds, name in zip((ds_test, ds_base), ("test", "base")):
+            if not np.all(ds.eigenvalues.imag == pytest.approx(0, abs=tol)):
+                pytest.fail(
+                    f"{name} ds: eigenvalues are not all real, found largest non-zero "
+                    f"imaginary part abs(Im) = {np.max(np.abs(ds.eigenvalues.imag))} "
+                    f"which is not within tolerance {1e-12 if tol is None else tol:.1e}"
+                )
 
     def run_spectrum_test(self, limits, ds_test, ds_base):
         image_test, image_baseline = self.generate_spectrum_images(

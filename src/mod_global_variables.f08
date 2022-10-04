@@ -147,6 +147,10 @@ module mod_global_variables
 
   !> boolean to write both matrices to the datfile, defaults to <tt>False</tt>
   logical, save             :: write_matrices
+  !> boolean to write the eigenvectors to the datfile, defaults to <tt>False</tt>
+  logical, save             :: write_eigenvectors
+  !> boolean to write the residuals to the datfile, defaults to <tt>True</tt>
+  logical, save             :: write_residuals
   !> boolean to write the eigenfunctions to the datfile, defaults to <tt>True</tt>
   logical, save             :: write_eigenfunctions
   !> boolean to write postprocessed quantities to the datfile, defaults to <tt>True</tt>
@@ -178,12 +182,14 @@ module mod_global_variables
   integer                   :: number_of_eigenvalues
   !> which eigenvalues to calculate, defaults to <tt>"LM"<tt> (largest magnitude)
   character(len=2)          :: which_eigenvalues
-  !> maximum number of Arnoldi iterations
+  !> maximum number iterations of Arnoldi or inverse iteration
   integer                   :: maxiter
-  !> sigma value, only used in shift-invert mode
+  !> sigma value, used in Arnoldi shift-invert mode and inverse iteration
   complex(dp)               :: sigma
   !> value for ncv, only used for Arnoldi
   integer :: ncv
+  !> the tolerance used by inverse-iteration, defaults to dp_LIMIT
+  real(dp)                  :: tolerance
 
 contains
 
@@ -247,6 +253,8 @@ contains
     nb_spurious_eigenvalues = 1
 
     !! post-processing parameters
+    write_eigenvectors = .false.
+    write_residuals = .true.
     write_matrices = .false.
     write_eigenfunctions = .true.
     write_derived_eigenfunctions = .false.
@@ -267,11 +275,21 @@ contains
     arpack_mode = "standard"
     number_of_eigenvalues = 100
     which_eigenvalues = "LM"
-    ! this defaults to 10*N, but we technically don't know N yet
+    ! this defaults to max(100, 10k) with k the number of
+    ! eigenvalues this is set later
     maxiter = 0
     ncv = 0
+    tolerance = DP_limit
   end subroutine initialise_globals
 
+  !> See if any output options require us to compute the eigenvectors
+  function should_compute_eigenvectors()
+    !> the result
+    logical :: should_compute_eigenvectors
+
+    should_compute_eigenvectors = &
+      write_eigenfunctions .or. write_eigenvectors .or. write_residuals
+  end function
 
   !> Sets the ratio of specific heats gamma and its corresponding
   !! value gamma - 1.

@@ -3,6 +3,7 @@ module mod_test_matrices_big
   use funit
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
+  use mod_banded_operations, only: multiply
   use mod_transform_matrix, only: matrix_to_banded
   implicit none
 
@@ -162,89 +163,5 @@ contains
     call matrix_to_banded(matrix2, nb_diags, nb_diags, banded_result)
     @assertEqual(bandmatrix2%AB, banded_result%AB, tolerance=TOL)
   end subroutine test_band_band_equality2
-
-
-  @test
-  subroutine test_big_matrix_addition()
-    call set_name(get_title() // "addition")
-    call matrix_to_banded(matrix1 + matrix2, nb_diags, nb_diags, banded_result)
-    banded_expected%AB = bandmatrix1%AB + bandmatrix2%AB
-    @assertEqual(banded_expected%AB, banded_result%AB, tolerance=TOL)
-  end subroutine test_big_matrix_addition
-
-
-  @test
-  subroutine test_big_matrix_subtraction()
-    call set_name(get_title() // "subtraction")
-    call matrix_to_banded(matrix1 - matrix2, nb_diags, nb_diags, banded_result)
-    banded_expected%AB = bandmatrix1%AB - bandmatrix2%AB
-    @assertEqual(banded_expected%AB, banded_result%AB, tolerance=TOL)
-  end subroutine test_big_matrix_subtraction
-
-
-  @test
-  subroutine test_big_matrix_plus_multiply1()
-    real(dp), parameter :: sigma = 3.5d0
-
-    call set_name(get_title() // "addition + multiplication (sigma 3.5)")
-    call matrix_to_banded(matrix1 + matrix2 * sigma, nb_diags, nb_diags, banded_result)
-    banded_expected%AB = bandmatrix1%AB + sigma * bandmatrix2%AB
-    @assertEqual(banded_expected%AB, banded_result%AB, tolerance=TOL)
-  end subroutine test_big_matrix_plus_multiply1
-
-
-  @test
-  subroutine test_big_matrix_plus_multiply2()
-    complex(dp), parameter :: sigma = (0.0d0, 1.3d0)
-
-    call set_name(get_title() // "addition + multiplication (sigma 1.3i)")
-    call matrix_to_banded(matrix1 + matrix2 * sigma, nb_diags, nb_diags, banded_result)
-    banded_expected%AB = bandmatrix1%AB + sigma * bandmatrix2%AB
-    @assertEqual(banded_expected%AB, banded_result%AB, tolerance=TOL)
-  end subroutine test_big_matrix_plus_multiply2
-
-
-  @test
-  subroutine test_big_matrix_plus_multiply3()
-    complex(dp), parameter :: sigma = (-3.4d0, 7.5d0)
-
-    call set_name(get_title() // "addition + multiplication (sigma -3.4 + 7.5i)")
-    call matrix_to_banded(matrix1 + matrix2 * sigma, nb_diags, nb_diags, banded_result)
-    banded_expected%AB = bandmatrix1%AB + sigma * bandmatrix2%AB
-    @assertEqual(banded_expected%AB, banded_result%AB, tolerance=TOL)
-  end subroutine test_big_matrix_plus_multiply3
-
-
-  @test
-  subroutine test_big_matrix_minus_multiply1()
-    real(dp), parameter :: sigma = 1.8d0
-
-    call set_name(get_title() // "subtraction + multiplication (sigma 1.8)")
-    call matrix_to_banded(matrix1 - matrix2 * sigma, nb_diags, nb_diags, banded_result)
-    banded_expected%AB = bandmatrix1%AB - sigma * bandmatrix2%AB
-    @assertEqual(banded_expected%AB, banded_result%AB, tolerance=TOL)
-  end subroutine test_big_matrix_minus_multiply1
-
-
-  @test
-  subroutine test_big_matrix_minus_multiply2()
-    complex(dp), parameter :: sigma = (0.0d0, -3.3d0)
-
-    call set_name(get_title() // "subtraction + multiplication (sigma -3.3i)")
-    call matrix_to_banded(matrix1 - matrix2 * sigma, nb_diags, nb_diags, banded_result)
-    banded_expected%AB = bandmatrix1%AB - sigma * bandmatrix2%AB
-    @assertEqual(banded_expected%AB, banded_result%AB, tolerance=TOL)
-  end subroutine test_big_matrix_minus_multiply2
-
-
-  @test
-  subroutine test_big_matrix_minus_multiply3()
-    complex(dp), parameter :: sigma = (-3.4d0, 13.5d0)
-
-    call set_name(get_title() // "subtraction + multiplication (sigma -3.4 + 13.5i)")
-    call matrix_to_banded(matrix1 - matrix2 * sigma, nb_diags, nb_diags, banded_result)
-    banded_expected%AB = bandmatrix1%AB - sigma * bandmatrix2%AB
-    @assertEqual(banded_expected%AB, banded_result%AB, tolerance=TOL)
-  end subroutine test_big_matrix_minus_multiply3
 
 end module mod_test_matrices_big

@@ -143,20 +143,19 @@ contains
   end subroutine zero_out_row_and_col
 
 
+  !> Returns the value that is introduced on the main block diagonal after
+  !! zeroing out the corresponding row and column.
+  !! Depends on the matrix that is used.
   function get_diagonal_factor(matrix) result(diagonal_factor)
-    use mod_global_variables, only: solver, NaN
+    use mod_global_variables, only: NaN
 
     type(matrix_t), intent(in) :: matrix
-    class(*), allocatable :: diagonal_factor
+    complex(dp) :: diagonal_factor
 
     if (matrix%get_label() == "B") then
-      diagonal_factor = 1.0d0
+      diagonal_factor = (1.0d0, 0.0d0)
     else if (matrix%get_label() == "A") then
-      if (solver == "arnoldi") then
-        diagonal_factor = (0.0d0, 0.0d0)
-      else
-        diagonal_factor = (1.0d20, 0.0d0)
-      end if
+      diagonal_factor = (0.0d0, 0.0d0)
     else
       diagonal_factor = NaN
       call log_message( &

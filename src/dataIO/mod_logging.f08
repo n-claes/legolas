@@ -234,16 +234,25 @@ contains
     if (solver == "arnoldi") then
       call log_message("ARPACK mode : " // trim(adjustl(arpack_mode)))
       if (arpack_mode == "shift-invert") then
-        call log_message("sigma value : " // str(sigma))
+        call log_message("sigma : " // str(sigma))
       end if
       call log_message("number of eigenvalues : " // str(number_of_eigenvalues))
       call log_message("which eigenvalues     : " // trim(adjustl(which_eigenvalues)))
+      call log_message("maxiter               : " // str(maxiter))
+      call log_message("tolerance             : " // str(tolerance, exp_fmt))
+    end if
+    if (solver == "inverse-iteration") then
+      call log_message("sigma     : " // str(sigma))
+      call log_message("maxiter   : " // str(maxiter))
+      call log_message("tolerance : " // str(tolerance, exp_fmt))
     end if
 
     call log_message("            << DataIO settings >>")
     call log_message("datfile name         : " // trim(adjustl(basename_datfile)))
     call log_message("output folder        : " // trim(adjustl(output_folder)))
     call log_message("write matrices       : " // str(write_matrices))
+    call log_message("write eigenvectors   : " // str(write_eigenvectors))
+    call log_message("write residuals      : " // str(write_residuals))
     call log_message("write eigenfunctions : " // str(write_eigenfunctions))
     call log_message( &
       "write derived eigenfunctions : " // str(write_derived_eigenfunctions) &

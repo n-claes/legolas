@@ -25,76 +25,10 @@ module mod_matrix_structure
     procedure :: get_complex_element
     procedure :: get_total_nb_elements
     procedure :: get_label
+    procedure :: get_nb_diagonals
     procedure :: copy
     procedure :: delete_matrix
-
-    procedure, private :: add_matrices
-    generic :: operator(+) => add_matrices
-    procedure, private :: subtract_matrices
-    generic :: operator(-) => subtract_matrices
-    procedure, private :: matrix_x_real_vector
-    procedure, private :: matrix_x_complex_vector
-    procedure, private :: matrix_x_number
-    generic :: operator(*) => matrix_x_real_vector, matrix_x_complex_vector
-    generic :: operator(*) => matrix_x_number
   end type matrix_t
-
-  ! interface for submodule implementations
-  interface addition
-    !> Overloads the addition operator between two matrix datastructures
-    module function add_matrices(matrix1, matrix2) result(matrix)
-      !> left-hand side of + operator
-      class(matrix_t), intent(in) :: matrix1
-      !> right-hand side of + operator
-      class(matrix_t), intent(in) :: matrix2
-      !> result of addition
-      type(matrix_t) :: matrix
-    end function add_matrices
-  end interface addition
-
-  interface subtraction
-    !> Overloads the subtraction operator between two matrix datastructures
-    module function subtract_matrices(matrix1, matrix2) result(matrix)
-      !> left-hand side of - operator
-      class(matrix_t), intent(in) :: matrix1
-      !> right-hand side of + operator
-      class(matrix_t), intent(in) :: matrix2
-      !> result of subtraction
-      type(matrix_t) :: matrix
-    end function subtract_matrices
-  end interface subtraction
-
-  interface multiplication
-    !> Overloads the multiplication operator between a matrix and a real vector
-    module function matrix_x_real_vector(matrix, vector) result(array)
-      !> left-hand side
-      class(matrix_t), intent(in) :: matrix
-      !> right-hand side
-      real(dp), intent(in) :: vector(matrix%matrix_dim)
-      !> result of multiplication
-      complex(dp) :: array(matrix%matrix_dim)
-    end function matrix_x_real_vector
-
-    !> Overloads the multiplication operator between a matrix and a complex vector
-    module function matrix_x_complex_vector(matrix, vector) result(array)
-      !> left-hand side
-      class(matrix_t), intent(in) :: matrix
-      !> right-hand side
-      complex(dp), intent(in) :: vector(matrix%matrix_dim)
-      !> result of multiplication
-      complex(dp) :: array(matrix%matrix_dim)
-    end function matrix_x_complex_vector
-
-    !> Overloads the multiplication operator between a complex number and a matrix
-    module function matrix_x_number(matrix, number) result(matrix_out)
-      !> left-hand side
-      class(matrix_t), intent(in) :: matrix
-      !> right-hand side
-      class(*), intent(in) :: number
-      !> result of multiplication
-      type(matrix_t) :: matrix_out
-    end function matrix_x_number
-  end interface multiplication
 
   public :: new_matrix
 
@@ -171,6 +105,8 @@ contains
         is_valid = (.not. is_zero(element))
       type is (complex(dp))
         is_valid = (.not. is_zero(element))
+      type is (integer)
+        is_valid = (element /= 0)
       class default
         call log_message("adding unexpected element type", level="error")
     end select
@@ -243,6 +179,31 @@ contains
 
     label = this%label
   end function get_label
+
+
+  !> Subroutine to get the number of super- and sub-diagonals in the matrix.
+  subroutine get_nb_diagonals(this, ku, kl)
+    !> type instance
+    class(matrix_t), intent(in) :: this
+    !> number of superdiagonals
+    integer, intent(out) :: ku
+    !> number of subdiagonals
+    integer, intent(out) :: kl
+    type(node_t), pointer :: current_node
+    integer :: irow, inode
+
+    ku = 0
+    kl = 0
+    do irow = 1, this%matrix_dim
+      current_node => this%rows(irow)%head
+      do inode = 1, this%rows(irow)%nb_elements
+        ku = max(ku, current_node%column - irow)
+        kl = max(kl, irow - current_node%column)
+        current_node => current_node%next
+      end do
+    end do
+    nullify(current_node)
+  end subroutine get_nb_diagonals
 
 
   !> Dedicated function to copy a matrix structure into a new matrix structure.

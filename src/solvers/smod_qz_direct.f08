@@ -2,11 +2,7 @@
 !> Submodule containing the implementation of the QZ-direct algorithm.
 !! We keep the general form of the eigenvalue problem
 !! $$ \mathcal{A}\textbf{X} = \omega\mathcal{B}\textbf{X}\ $$
-!! and solve this directly by calling LAPACK's <tt>zggev</tt> routine.
-!! @note  Because the eigenvalue problem remains in general form, this
-!!        routine returns the generalised eigenvectors instead of the ordinary ones.
-!!        If you want eigenvectors as well, either use the QR-invert solvers
-!!        or one of the ARPACK methods.
+!! and solve this directly by calling LAPACK's <tt>zggev3</tt> routine.
 submodule (mod_solvers) smod_qz_direct
   implicit none
 
@@ -52,39 +48,34 @@ contains
     allocate(array_A(matrix_A%matrix_dim, matrix_A%matrix_dim))
     call matrix_to_array(matrix=matrix_A, array=array_A)
 
-    !> @warning The LAPACK routine <tt>zggev</tt> returns the _generalised_
-    !! eigenvectors, which are different from the ordinary ones returned
-    !! by the QR algorithm <tt>zgeev</tt>.
-    !! For the moment we don't calculate eigenvectors with the direct solver until
-    !! we get consistent results between QZ and QR. In the meantime,
-    !! use <tt>solver = "QR-invert"</tt> if eigenvectors are needed. @endwarning
     jobvl = "N"
-    jobvr = "N"
-    if (write_eigenfunctions) then  ! LCOV_EXCL_START
-      call log_message( &
-        "eigenvector calculations with the direct QZ solver are disabled for now,", &
-        level="warning" &
-      )
-      call log_message( &
-        "use the QR-invert solver instead", &
-        level="warning", &
-        use_prefix=.false. &
-      )
-    end if  ! LCOV_EXCL_STOP
+    if (should_compute_eigenvectors()) then
+      jobvr = "V"
+    else
+      jobvr = "N"
+    end if
     ! set array dimensions
     N = matrix_A%matrix_dim
     lda = N
     ldb = N
     ldvl = N
     ldvr = N
-    ! set work arrays
-    lwork = 4 * N
-    allocate(work(lwork))
+    ! allocate rwork array
     allocate(rwork(8 * N))
+    ! get lwork
+    allocate(work(1))
+    call zggev3( &
+      jobvl, jobvr, N, array_A, lda, array_B, ldb, &
+      alpha, beta, vl, ldvl, vr, ldvr, work, -1, rwork, info &
+    )
+    lwork = int(work(1))
+    deallocate(work)
+    ! allocate work array
+    allocate(work(lwork))
 
     ! solve eigenvalue problem
     call log_message("solving evp using QZ algorithm zggev (LAPACK)", level="debug")
-    call zggev( &
+    call zggev3( &
       jobvl, jobvr, N, array_A, lda, array_B, ldb, &
       alpha, beta, vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )

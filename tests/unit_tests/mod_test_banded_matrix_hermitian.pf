@@ -1,0 +1,315 @@
+module mod_test_banded_matrix_hermitian
+  use mod_suite_utils
+  use funit
+  use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
+  use mod_banded_matrix_hermitian, only: hermitian_banded_matrix_t, &
+    new_hermitian_banded_matrix
+  use mod_matrix_structure, only: matrix_t, new_matrix
+  use mod_transform_matrix, only: array_to_hermitian_banded, &
+    hermitian_banded_to_array, matrix_to_hermitian_banded
+
+
+  implicit none
+
+  complex(dp), parameter :: izero = (0.0d0, 0.0d0)
+  complex(dp), parameter :: array(5, 5) = reshape( &
+    [ &
+      (1.0d0, 0.0d0), (0.0d0, 2.0d0), (-3.0d0, 0.0d0), izero, izero, & ! column 1
+      (2.0d0, 1.0d0), (0.0d0, 1.0d0), (3.0d0, 0.0d0), (0.0d0, 5.0d0), izero, &
+      izero, (9.0d0, 0.0d0), (0.0d0, -2.0d0), (4.0d0, 0.0d0), (2.0d0, 0.0d0), &
+      izero, izero, (1.0d0, 1.0d0), (0.0d0, -3.0d0), (0.0d0, 6.0d0), &
+      izero, izero, izero, (0.0d0, 7.0d0), (-5.0d0, 0.0d0) &
+    ], &
+    shape=[5, 5] &
+  )
+  complex(dp), parameter :: array_hermitian(5, 5) = reshape ( &
+    [ &
+      (1.0d0, 0.0d0), (0.0d0, -2.0d0), (-6.0d0, 0.0d0), izero, izero, &
+      (0.0d0, 2.0d0), (-1.0d0, 0.0d0), (-4.0d0, 0.0d0), (2.0d0, -1.0d0), izero, &
+      (-6.0d0, 0.0d0), (-4.0d0, 0.0d0), izero, (3.0d0, 1.0d0), (8.0d0, 0.0d0), &
+      izero, (2.0d0, 1.0d0), (3.0d0, -1.0d0), (7.0d0, 0.0d0), (-5.0d0, 0.0d0), &
+      izero, izero, (8.0d0, 0.0d0), (-5.0d0, 0.0d0), (3.0d0, 0.0d0) &
+    ], &
+    shape=[5, 5] &
+  )
+  type(banded_matrix_t) :: bandmatrix
+  type(banded_matrix_t) :: actual_band
+  type(hermitian_banded_matrix_t) :: hbandmatrix
+  type(hermitian_banded_matrix_t) :: actual_hband
+  type(matrix_t) :: matrix
+  type(matrix_t) :: hmatrix
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    bandmatrix = new_banded_matrix(rows=5, cols=5, subdiags=2, superdiags=1)
+    matrix = new_matrix(nb_rows=5)
+    hmatrix = new_matrix(nb_rows=5)
+    call fill_matrices()
+  end subroutine init_test
+
+  @after
+  subroutine tear_down()
+    call bandmatrix%destroy()
+    call actual_band%destroy()
+    call hbandmatrix%destroy()
+    call actual_hband%destroy()
+    call matrix%delete_matrix()
+    call hmatrix%delete_matrix()
+  end subroutine tear_down
+
+
+  subroutine fill_matrices()
+    integer :: i, j
+    do j = 1, 5
+      do i = 1, 5
+        call bandmatrix%set_element(row=i, col=j, element=array(i, j))
+        call matrix%add_element(row=i, column=j, element=array(i, j))
+        call hmatrix%add_element(row=i, column=j, element=array_hermitian(i, j))
+      end do
+    end do
+  end subroutine fill_matrices
+
+
+  subroutine fill_hbandmatrix(uplo)
+    character, intent(in) :: uplo
+    integer :: i, j
+
+    hbandmatrix = new_hermitian_banded_matrix(rows=5, diags=2, uplo=uplo)
+    do j = 1, 5
+      do i = 1, 5
+        call hbandmatrix%set_element(row=i, col=j, element=array_hermitian(i, j))
+      end do
+    end do
+  end subroutine fill_hbandmatrix
+
+  @test
+  subroutine test_init_banded_invalid_uplo()
+    call set_name("H banded matrix: invalid uplo")
+    hbandmatrix = new_hermitian_banded_matrix(rows=5, diags=2, uplo="T")
+    @assertExceptionRaised("invalid uplo argument, expected 'U' or 'L', got 'T'")
+  end subroutine test_init_banded_invalid_uplo
+
+
+  @test
+  subroutine test_init_hbanded_U()
+    call set_name("H banded matrix: initialisation U")
+    call fill_hbandmatrix(uplo="U")
+    @assertEqual(5, hbandmatrix%n)
+    @assertEqual(2, hbandmatrix%kd)
+    @assertEqual("U", hbandmatrix%uplo)
+    @assertEqual([3, 5], shape(hbandmatrix%AB))
+  end subroutine test_init_hbanded_U
+
+
+  @test
+  subroutine test_init_hbanded_L()
+    call set_name("H banded matrix: initialisation L")
+    call fill_hbandmatrix(uplo="L")
+    @assertEqual(5, hbandmatrix%n)
+    @assertEqual(2, hbandmatrix%kd)
+    @assertEqual("L", hbandmatrix%uplo)
+    @assertEqual([3, 5], shape(hbandmatrix%AB))
+  end subroutine test_init_hbanded_L
+
+
+  @test
+  subroutine test_hbanded_U_get_element_inside()
+    call set_name("H banded matrix: get element inside U band")
+    call fill_hbandmatrix(uplo="U")
+    ! a24 -> AB14
+    @assertEqual(array_hermitian(2, 4), hbandmatrix%get_element(2, 4), tolerance=TOL)
+    @assertEqual(array_hermitian(2, 4), hbandmatrix%AB(1, 4), tolerance=TOL)
+    ! a23 -> AB23
+    @assertEqual(array_hermitian(2, 3), hbandmatrix%get_element(2, 3), tolerance=TOL)
+    @assertEqual(array_hermitian(2, 3), hbandmatrix%AB(2, 3), tolerance=TOL)
+    ! a11 -> AB31
+    @assertEqual(array_hermitian(1, 1), hbandmatrix%get_element(1, 1), tolerance=TOL)
+    @assertEqual(array_hermitian(1, 1), hbandmatrix%AB(3, 1), tolerance=TOL)
+    ! a45 -> AB25
+    @assertEqual(array_hermitian(4, 5), hbandmatrix%get_element(4, 5), tolerance=TOL)
+    @assertEqual(array_hermitian(4, 5), hbandmatrix%AB(2, 5), tolerance=TOL)
+  end subroutine test_hbanded_U_get_element_inside
+
+
+  @test
+  subroutine test_hbanded_L_get_element_inside()
+    call set_name("H banded matrix: get element inside L band")
+    call fill_hbandmatrix(uplo="L")
+    ! a32 -> AB22
+    @assertEqual(array_hermitian(3, 2), hbandmatrix%get_element(3, 2), tolerance=TOL)
+    @assertEqual(array_hermitian(3, 2), hbandmatrix%AB(2, 2), tolerance=TOL)
+    ! a44 -> AB14
+    @assertEqual(array_hermitian(4, 4), hbandmatrix%get_element(4, 4), tolerance=TOL)
+    @assertEqual(array_hermitian(4, 4), hbandmatrix%AB(1, 4), tolerance=TOL)
+    ! a54 -> AB24
+    @assertEqual(array_hermitian(5, 4), hbandmatrix%get_element(5, 4), tolerance=TOL)
+    @assertEqual(array_hermitian(5, 4), hbandmatrix%AB(2, 4), tolerance=TOL)
+    ! a31 -> AB31
+    @assertEqual(array_hermitian(3, 1), hbandmatrix%get_element(3, 1), tolerance=TOL)
+    @assertEqual(array_hermitian(3, 1), hbandmatrix%AB(3, 1), tolerance=TOL)
+  end subroutine test_hbanded_L_get_element_inside
+
+
+  @test
+  subroutine test_hbanded_U_get_element_outside()
+    call set_name("H banded matrix: get element outside U band")
+    call fill_hbandmatrix(uplo="U")
+    ! a14 -> not in banded
+    @assertEqual(izero, array_hermitian(1, 4), tolerance=TOL)
+    @assertEqual(izero, hbandmatrix%get_element(row=1, col=4), tolerance=TOL)
+    ! a52 -> not in banded
+    @assertEqual(izero, array_hermitian(5, 2), tolerance=TOL)
+    @assertEqual(izero, hbandmatrix%get_element(row=5, col=2), tolerance=TOL)
+  end subroutine test_hbanded_U_get_element_outside
+
+
+  @test
+  subroutine test_hbanded_L_get_element_outside()
+    call set_name("H banded matrix: get element outside L band")
+    call fill_hbandmatrix(uplo="L")
+    ! a51 -> not in banded
+    @assertEqual(izero, array_hermitian(5, 1), tolerance=TOL)
+    @assertEqual(izero, hbandmatrix%get_element(5, 1), tolerance=TOL)
+    ! a25 -> not in banded
+    @assertEqual(izero, array_hermitian(2, 5), tolerance=TOL)
+    @assertEqual(izero, hbandmatrix%get_element(2, 5), tolerance=TOL)
+  end subroutine test_hbanded_L_get_element_outside
+
+
+  @test
+  subroutine test_hbanded_U_get_element_across_diagonal()
+    call set_name("H banded matrix: get element across U diagonal")
+    call fill_hbandmatrix(uplo="U")
+    ! a31 -> AB13.T
+    @assertEqual(array_hermitian(3, 1), hbandmatrix%get_element(3, 1), tolerance=TOL)
+    @assertEqual(array_hermitian(3, 1), conjg(hbandmatrix%AB(1, 3)), tolerance=TOL)
+    ! a43 -> AB24.T
+    @assertEqual(array_hermitian(4, 3), hbandmatrix%get_element(4, 3), tolerance=TOL)
+    @assertEqual(array_hermitian(4, 3), conjg(hbandmatrix%AB(2, 4)), tolerance=TOL)
+    ! a53 -> AB15.T
+    @assertEqual(array_hermitian(5, 3), hbandmatrix%get_element(5, 3), tolerance=TOL)
+    @assertEqual(array_hermitian(5, 3), conjg(hbandmatrix%AB(1, 5)), tolerance=TOL)
+  end subroutine test_hbanded_U_get_element_across_diagonal
+
+
+  @test
+  subroutine test_hbanded_L_get_element_across_diagonal()
+    call set_name("H banded matrix: get element across L diagonal")
+    call fill_hbandmatrix(uplo="L")
+    ! a24 -> AB32.T
+    @assertEqual(array_hermitian(2, 4), hbandmatrix%get_element(2, 4), tolerance=TOL)
+    @assertEqual(array_hermitian(2, 4), conjg(hbandmatrix%AB(3, 2)), tolerance=TOL)
+    ! a12 -> AB21.T
+    @assertEqual(array_hermitian(1, 2), hbandmatrix%get_element(1, 2), tolerance=TOL)
+    @assertEqual(array_hermitian(1, 2), conjg(hbandmatrix%AB(2, 1)), tolerance=TOL)
+    ! a35 -> AB33.T
+    @assertEqual(array_hermitian(3, 5), hbandmatrix%get_element(3, 5), tolerance=TOL)
+    @assertEqual(array_hermitian(3, 5), conjg(hbandmatrix%AB(3, 3)), tolerance=TOL)
+  end subroutine test_hbanded_L_get_element_across_diagonal
+
+
+  @test
+  subroutine test_hbanded_U_set_element_outside()
+    call set_name("H banded matrix: set element outside U band")
+    call fill_hbandmatrix(uplo="U")
+    call hbandmatrix%set_element(row=1, col=4, element=(1.0_dp, 1.0_dp))
+    @assertEqual(izero, bandmatrix%get_element(row=1, col=4), tolerance=TOL)
+  end subroutine test_hbanded_U_set_element_outside
+
+
+  @test
+  subroutine test_hbanded_L_set_element_outside()
+    call set_name("H banded matrix: set element outside L band")
+    call fill_hbandmatrix(uplo="L")
+    call hbandmatrix%set_element(row=5, col=2, element=(1.0_dp, 1.0_dp))
+    @assertEqual(izero, bandmatrix%get_element(row=5, col=2), tolerance=TOL)
+  end subroutine test_hbanded_L_set_element_outside
+
+
+  @test
+  subroutine test_hbanded_transform_array_to_hbanded_notsquare()
+    complex(dp) :: tmp_array(4, 5)
+    call set_name("H banded matrix: array to H banded not square")
+    tmp_array = (1.0_dp, 1.0_dp)
+    call array_to_hermitian_banded(tmp_array, 2, "U", hbandmatrix)
+    @assertExceptionRaised("array_to_complex_hermitian_banded: array is not square")
+  end subroutine test_hbanded_transform_array_to_hbanded_notsquare
+
+
+  @test
+  subroutine test_hbanded_transform_array_to_hbanded_U()
+    call set_name("H banded matrix: array to U H banded ")
+    call array_to_hermitian_banded(array_hermitian, 2, "U", actual_hband)
+    call fill_hbandmatrix(uplo="U")
+    @assertEqual(hbandmatrix%AB, actual_hband%AB, tolerance=TOL)
+  end subroutine test_hbanded_transform_array_to_hbanded_U
+
+
+  @test
+  subroutine test_hbanded_transform_array_to_hbanded_L()
+    call set_name("H banded matrix: array to L H banded ")
+    call array_to_hermitian_banded(array_hermitian, 2, "L", actual_hband)
+    call fill_hbandmatrix(uplo="L")
+    @assertEqual(hbandmatrix%AB, actual_hband%AB, tolerance=TOL)
+  end subroutine test_hbanded_transform_array_to_hbanded_L
+
+
+  @test
+  subroutine test_hbanded_transform_U_banded_to_array()
+    complex(dp) :: actual_array(5, 5)
+
+    call set_name("H banded matrix: U H banded to array")
+    call fill_hbandmatrix(uplo="U")
+    actual_array = hermitian_banded_to_array(hbandmatrix)
+    @assertEqual(array_hermitian, actual_array, tolerance=TOL)
+  end subroutine test_hbanded_transform_U_banded_to_array
+
+
+  @test
+  subroutine test_hbanded_transform_L_banded_to_array()
+    complex(dp) :: actual_array(5, 5)
+
+    call set_name("H banded matrix: L H banded to array")
+    call fill_hbandmatrix(uplo="L")
+    actual_array = hermitian_banded_to_array(hbandmatrix)
+    @assertEqual(array_hermitian, actual_array, tolerance=TOL)
+  end subroutine test_hbanded_transform_L_banded_to_array
+
+
+  @test
+  subroutine test_hbanded_transform_hmatrix_to_U_hbanded()
+    call set_name("H banded matrix: matrix to U H banded")
+    call matrix_to_hermitian_banded(hmatrix, 2, "U", actual_hband)
+    call fill_hbandmatrix(uplo="U")
+    @assertEqual(hbandmatrix%AB, actual_hband%AB, tolerance=TOL)
+  end subroutine test_hbanded_transform_hmatrix_to_U_hbanded
+
+
+  @test
+  subroutine test_hbanded_transform_hmatrix_to_L_hbanded()
+    call set_name("H banded matrix: matrix to L H banded")
+    call matrix_to_hermitian_banded(hmatrix, 2, "L", actual_hband)
+    call fill_hbandmatrix(uplo="L")
+    @assertEqual(hbandmatrix%AB, actual_hband%AB, tolerance=TOL)
+  end subroutine test_hbanded_transform_hmatrix_to_L_hbanded
+
+
+  @test
+  subroutine test_hbanded_U_total_elements()
+    call set_name("H banded matrix: get total number of elements U")
+    call fill_hbandmatrix(uplo="U")
+    @assertEqual(19, hbandmatrix%get_total_nb_elements())
+  end subroutine test_hbanded_U_total_elements
+
+
+  @test
+  subroutine test_hbanded_L_total_elements()
+    call set_name("H banded matrix: get total number of elements L")
+    call fill_hbandmatrix(uplo="L")
+    @assertEqual(19, hbandmatrix%get_total_nb_elements())
+  end subroutine test_hbanded_L_total_elements
+
+end module mod_test_banded_matrix_hermitian

@@ -57,8 +57,8 @@ set( test_sources
         mod_test_variables.pf
         mod_test_logging.pf
         mod_test_banded_matrix.pf
+        mod_test_banded_matrix_hermitian.pf
         mod_test_matrix_structure.pf
-        mod_test_matrix_maths.pf
         mod_test_transform_matrix.pf
         mod_test_matrices_big.pf
         mod_test_solvers_linear_systems.pf
@@ -79,7 +79,6 @@ set( test_sources
         mod_test_boundaries.pf
         mod_test_splines.pf
         mod_test_subblock.pf
-        mod_test_matrixoperations.pf
         mod_test_matrix_operators.pf
         mod_test_interpolation.pf
         mod_test_integration.pf

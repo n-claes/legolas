@@ -54,6 +54,7 @@ module mod_arpack_type
     procedure, private :: set_bmat
     procedure, private :: set_which
     procedure, private :: set_nev
+    procedure, private :: set_residual
     procedure, private :: set_ncv
     procedure, private :: set_maxiter
   end type arpack_t
@@ -99,7 +100,7 @@ contains
     call arpack_config%set_which(which)
     call arpack_config%set_nev(nev)
     arpack_config%tolerance = tolerance
-    allocate(arpack_config%residual(evpdim))
+    call arpack_config%set_residual(evpdim)
     call arpack_config%set_ncv(ncv)
     call arpack_config%set_maxiter(maxiter)
     ! iparam(1) = ishift = 1 means restart with shifts from Hessenberg matrix
@@ -196,6 +197,29 @@ contains
   end subroutine set_nev
 
 
+  !> Setter for the residual vector, allocates and manually initialises the
+  !! residual (= starting) vector using a uniform distribution on (-1, 1)
+  !! for both the real and imaginary parts. Relies on the LAPACK routine `zlarnv`.
+  subroutine set_residual(this, evpdim)
+    !> type instance
+    class(arpack_t), intent(inout) :: this
+    !> dimension of the eigenvalue problem
+    integer, intent(in) :: evpdim
+    !> which distribution to take, we set idist = 2 for uniform in (-1, 1)
+    integer :: idist
+    !> seed for the random number generator, last entry must be odd (see `zlarnv`)
+    integer :: iseed(4)
+
+    allocate(this%residual(evpdim))
+
+    iseed = [2022, 9, 30, 179]
+    idist = 2  ! real and imaginary parts each uniform (-1,1)
+    call zlarnv(idist, iseed, evpdim, this%residual)
+    ! tell arpack that we generated starting vector ourselves (info = 1)
+    this%info = 1
+  end subroutine set_residual
+
+
   !> Setter for ncv, the number of Arnoldi basis vectors to calculate.
   !! This should satisfy 1 <= ncv - nev and ncv <= evpdim, with recommended
   !! value ncv = 2 * nev (see arpack docs).
@@ -206,13 +230,13 @@ contains
     integer, intent(in) :: ncv
 
     if (ncv == 0) then
-      this%ncv = min(this%get_evpdim(), 2 * this%get_nev())
+      this%ncv = max(this%nev+1, min(2 * this % nev, this % evpdim))
     else
       this%ncv = ncv
     end if
     if (1 > this%ncv - this%get_nev()) then
       call log_message( &
-        "requesting too many eigenvalues, expected ncv - nev > 1 but got " &
+        "ncv too low, expected ncv - nev >= 1 but got ncv - nev = " &
         // str(this%ncv - this%get_nev()), &
         level="error" &
       )
@@ -231,7 +255,7 @@ contains
 
 
   !> Sets the maximum number of iterations that ARPACK is allowed to take, defaults
-  !! to 10 * N with N the dimension of the eigenvalue problem.
+  !! to max(100, 10 * k) with k the number of eigenvalues.
   !! @warning Throws a warning if <tt>maxiter</tt> is smaller than 10*N. @endwarning
   subroutine set_maxiter(this, maxiter)
     !> type instance
@@ -240,7 +264,7 @@ contains
     integer, intent(in) :: maxiter
     integer :: min_maxiter
 
-    min_maxiter = 10 * this%get_evpdim()
+    min_maxiter = max(100, 10 * this%get_nev())
     if (maxiter < 0) then
       call log_message( &
         "Arnoldi: maxiter must be positive, but is equal to " // str(maxiter), &
@@ -255,7 +279,7 @@ contains
     end if
     if (this%maxiter < min_maxiter) then ! LCOV_EXCL_START
       call log_message( &
-        "Arnoldi: maxiter (" // str(maxiter) // ") below recommended 10*N (" &
+        "Arnoldi: maxiter (" // str(maxiter) // ") below recommended max(100, 10*k) (" &
         // str(min_maxiter) // ")", &
         level="warning" &
       )

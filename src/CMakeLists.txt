@@ -11,13 +11,13 @@ set (sources
         matrices/datastructure/mod_matrix_row.f08
         matrices/datastructure/mod_matrix_structure.f08
         matrices/datastructure/mod_banded_matrix.f08
-        matrices/datastructure/smod_matrix_maths.f08
+        matrices/datastructure/mod_banded_matrix_hermitian.f08
+        matrices/datastructure/mod_banded_operations.f08
         matrices/datastructure/mod_transform_matrix.f08
         mod_units.f08
         mod_grid.f08
         mod_types.f08
         mod_check_values.f08
-        solvers/mod_matrix_operations.f08
         mod_spline_functions.f08
         mod_interpolation.f08
         mod_integration.f08
@@ -84,10 +84,12 @@ set (sources
         solvers/mod_linear_systems.f08
         solvers/mod_solvers.f08
         solvers/smod_qr_invert.f08
+        solvers/smod_qr_cholesky.f08
         solvers/smod_qz_direct.f08
         solvers/arnoldi/smod_arpack_main.f08
         solvers/arnoldi/smod_arpack_general.f08
         solvers/arnoldi/smod_arpack_shift_invert.f08
+        solvers/smod_inverse_iteration.f08
         eigenfunctions/mod_eigenfunctions.f08
         eigenfunctions/smod_ef_operations.f08
         eigenfunctions/smod_base_efs.f08

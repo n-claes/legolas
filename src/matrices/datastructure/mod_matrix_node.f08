@@ -20,7 +20,6 @@ module mod_matrix_node
     contains
 
     procedure :: add_to_node_element
-    procedure :: multiply_node_element_with
     procedure :: get_node_element
     procedure :: delete
   end type node_t
@@ -80,25 +79,6 @@ contains
         this%element = this%element + cmplx(element, kind=dp)
     end select
   end subroutine add_to_node_element
-
-
-  !> Multiplies the node element with a given number, does type-checking of the
-  !! polymorphic number given. Allowed types are complex, real, integer.
-  subroutine multiply_node_element_with(this, number)
-    !> type instance
-    class(node_t), intent(inout) :: this
-    !> number to multiply the element with
-    class(*), intent(in) :: number
-
-    select type(number)
-      type is (complex(dp))
-        this%element = this%element * number
-      type is (real(dp))
-        this%element = this%element * cmplx(number, kind=dp)
-      type is (integer)
-        this%element = this%element * cmplx(number, kind=dp)
-    end select
-  end subroutine multiply_node_element_with
 
 
   !> Returns the node element.

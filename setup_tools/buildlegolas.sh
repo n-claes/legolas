@@ -46,7 +46,7 @@ fi
 cd build || exit
 if [[ "$1" == "debug" ]]; then
   echo "Configuring Legolas in debug mode..."
-  cmake -DCMAKE_BUILD_TYPE=Debug ..
+  cmake -DCMAKE_BUILD_TYPE=Debug -DDebug=ON ..
 elif [[ "$1" == "coverage" ]]; then
   echo "Configuring Legolas in debug mode with code coverage enabled..."
   cmake -DCMAKE_BUILD_TYPE=Debug -DCoverage=ON ..
