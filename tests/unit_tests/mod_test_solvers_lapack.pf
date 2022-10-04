@@ -1,7 +1,7 @@
 module mod_test_solvers_lapack
   use mod_suite_utils
   use funit
-  use mod_global_variables, only: solver, write_eigenfunctions, sigma
+  use mod_global_variables, only: solver, write_eigenfunctions, sigma, maxiter
   use mod_solvers, only: solve_evp
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_transform_matrix, only: array_to_matrix
@@ -72,6 +72,7 @@ contains
     eigenvals = (0.0d0, 0.0d0)
     write_eigenfunctions = .false.
     call set_matrices()
+    maxiter = 2500
   end subroutine init_test
 
 
