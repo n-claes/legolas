@@ -230,6 +230,16 @@ contains
 
 
   @test
+  subroutine test_hbanded_transform_array_to_hbanded_notsquare()
+    complex(dp) :: tmp_array(4, 5)
+    call set_name("H banded matrix: array to H banded not square")
+    tmp_array = (1.0_dp, 1.0_dp)
+    call array_to_hermitian_banded(tmp_array, 2, "U", hbandmatrix)
+    @assertExceptionRaised("array_to_complex_hermitian_banded: array is not square")
+  end subroutine test_hbanded_transform_array_to_hbanded_notsquare
+
+
+  @test
   subroutine test_hbanded_transform_array_to_hbanded_U()
     call set_name("H banded matrix: array to U H banded ")
     call array_to_hermitian_banded(array_hermitian, 2, "U", actual_hband)

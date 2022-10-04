@@ -105,6 +105,8 @@ contains
         is_valid = (.not. is_zero(element))
       type is (complex(dp))
         is_valid = (.not. is_zero(element))
+      type is (integer)
+        is_valid = (element /= 0)
       class default
         call log_message("adding unexpected element type", level="error")
     end select

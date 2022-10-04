@@ -2,7 +2,6 @@ module mod_test_matrix_structure
   use mod_suite_utils
   use funit
   use mod_matrix_structure, only: matrix_t, new_matrix
-  use mod_transform_matrix, only: array_to_matrix
   implicit none
 
   type(matrix_t) :: matrix
@@ -220,6 +219,16 @@ contains
   end subroutine test_add_zero_real_element
 
 
+  @test
+  subroutine test_add_integer_element()
+    call set_name("matrix datastructure: add integer")
+    @assertEqual(0, matrix%rows(2)%nb_elements)
+    call matrix%add_element(row=2, column=4, element=3)
+    @assertEqual(1, matrix%rows(2)%nb_elements)
+    @assertTrue(associated(matrix%rows(2)%head))
+    @assertEqual((3.0d0, 0.0d0), matrix%get_complex_element(2, 4), tolerance=TOL)
+  end subroutine test_add_integer_element
+
 
   @test
   subroutine test_add_real_element()
@@ -244,6 +253,15 @@ contains
 
 
   @test
+  subroutine test_add_element_unexpected()
+    call set_name("matrix datastructure: add unexpected")
+    @assertEqual(0, matrix%rows(2)%nb_elements)
+    call matrix%add_element(row=2, column=3, element="3.0")
+    @assertExceptionRaised("adding unexpected element type")
+  end subroutine test_add_element_unexpected
+
+
+  @test
   subroutine test_sum_real_element_to_node()
     call set_name("matrix datastructure: sum real element to node")
     call matrix%add_element(row=2, column=3, element=(1.5d0, 2.0d0))
@@ -259,6 +277,15 @@ contains
     call matrix%add_element(row=2, column=3, element=(1.0d0, -0.5d0))
     @assertEqual((2.5d0, 1.5d0), matrix%get_complex_element(2, 3), tolerance=TOL)
   end subroutine test_sum_complex_element_to_node
+
+
+  @test
+  subroutine test_sum_integer_element_to_node()
+    call set_name("matrix datastructure: add integer element to complex node")
+    call matrix%add_element(row=2, column=3, element=(2.0d0, 1.5d0))
+    call matrix%add_element(row=2, column=3, element=3)
+    @assertEqual((5.0d0, 1.5d0), matrix%get_complex_element(2, 3), tolerance=TOL)
+  end subroutine test_sum_integer_element_to_node
 
 
   @test
@@ -382,5 +409,27 @@ contains
     call dmatrix%get_nb_diagonals(ku=ku, kl=kl)
     @assertEqual([4, 5], [ku, kl])
   end subroutine test_nb_diagonals
+
+
+  @test
+  subroutine test_copy_matrix()
+    use mod_transform_matrix, only: array_to_matrix, matrix_to_array
+    complex(dp) :: array(10, 10), actual_array(10, 10)
+    integer :: iseed(4)
+    type(matrix_t) :: actual_matrix
+    call set_name("matrix datastructure: copy matrix")
+
+    ! fill array with random numbers uniformly distributed in [-1, 1]
+    iseed = [2022, 10, 4, 571]
+    call zlarnv(2, iseed, 100, array)
+
+    call matrix%delete_matrix()
+    matrix = array_to_matrix(array)
+    actual_matrix = matrix%copy()
+    call matrix_to_array(actual_matrix, actual_array)
+    call actual_matrix%delete_matrix()
+
+    @assertEqual(array, actual_array, tolerance=TOL)
+  end subroutine test_copy_matrix
 
 end module mod_test_matrix_structure
