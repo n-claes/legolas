@@ -61,15 +61,6 @@ class TestFluxtubePhotosphericQR(RegressionTest):
         super().run_spectrum_test(limits, ds_test, ds_base)
 
 
-class TestFluxtubePhotosphericQZ(TestFluxtubePhotosphericQR):
-    name = "fluxtube photospheric k2=0 k3=4 QZ"
-    filename = "fluxtube_photospheric_QZ_k2_0_k3_4"
-    use_custom_baseline = "fluxtube_photospheric_QR_k2_0_k3_4"
-    solver_settings = {"solver": "QZ-direct"}
-    # 2 datapoints are finnicky...
-    custom_evs_all_real_tol = 1e-7
-
-
 class TestFluxtubePhotosphericQRCholesky(TestFluxtubePhotosphericQR):
     name = "fluxtube photospheric k2=0 k3=4 QR Cholesky"
     filename = "fluxtube_photospheric_QR_cholesky_k2_0_k3_4"
