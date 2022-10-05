@@ -14,7 +14,7 @@ def refresh_plot(f: callable) -> callable:
     def refresh(*args, **kwargs):
         f(*args, **kwargs)
         window = args[0]
-        window.draw()
+        window.redraw()
         return f
 
     return refresh

@@ -62,26 +62,13 @@ class SpectrumFigure(InteractiveFigureWindow):
         self.markersize = None
         self.alpha = None
 
-    def clear_axes(self):
-        """
-        Clears the axes and disconnects all callbacks.
-        """
-        self.ax.cla()
-        super().disconnect_callbacks()
-
     def draw(self):
         """
         Called on plot refreshing, the super call clears the figure and then redraws
         everything.
         """
-        self.clear_axes()
         self.add_spectrum()
-        if self._c_handler is not None:
-            self.add_continua(self._c_handler.interactive)
-        if self._ef_handler is not None:
-            self.add_eigenfunctions()
-        if self._def_handler is not None:
-            self.add_derived_eigenfunctions()
+        super().draw()
 
     @refresh_plot
     def set_x_scaling(self, x_scaling):

@@ -46,7 +46,6 @@ class SingleSpectrumPlot(SpectrumFigure):
 
         self.w_real = self.dataset.eigenvalues.real
         self.w_imag = self.dataset.eigenvalues.imag
-        self.add_spectrum()
 
     def add_spectrum(self):
         """Adds the spectrum to the plot, makes the points pickable."""
@@ -110,7 +109,6 @@ class SingleSpectrumPlot(SpectrumFigure):
         self._c_handler.legend = self.ax.legend(**self._c_handler.legend_properties)
         if interactive:
             super().make_legend_interactive(self._c_handler)
-        return self._c_handler
 
     def add_eigenfunctions(self):
         """Adds the eigenfunctions to the plot, sets the eigenfunction handler."""

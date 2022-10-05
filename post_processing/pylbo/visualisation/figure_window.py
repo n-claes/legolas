@@ -38,6 +38,7 @@ class FigureWindow:
         self.fig = fig
         self.figsize = fig.get_size_inches()
         self.figure_id = fig.get_label()
+        self._figure_drawn = False
         self.add_to_stack()
 
     @property
@@ -166,6 +167,12 @@ class FigureWindow:
             self.fig.tight_layout()
         return new_axis
 
+    def draw(self) -> None:
+        self._figure_drawn = True
+
+    def redraw(self) -> None:
+        self.ax.cla()
+
     def save(self, filename: str, **kwargs) -> None:
         """
         Saves the current figure.
@@ -183,6 +190,8 @@ class FigureWindow:
 
     def show(self):
         """Shows the selected figure"""
+        if not self._figure_drawn:
+            self.draw()
         plt.show()
 
 
@@ -192,6 +201,10 @@ class InteractiveFigureWindow(FigureWindow):
     def __init__(self, fig: mpl_fig) -> None:
         super().__init__(fig)
         self._mpl_callbacks = []
+
+    def redraw(self) -> None:
+        self.disconnect_callbacks()
+        super().redraw()
 
     def connect_callbacks(self) -> None:
         """Connects all callbacks to the canvas"""

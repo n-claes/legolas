@@ -59,7 +59,6 @@ class MultiSpectrumPlot(SpectrumFigure):
         self.x_scaling = np.ones_like(self.dataseries, dtype=float)
         self.y_scaling = np.ones_like(self.dataseries, dtype=float)
         super()._set_plot_properties(kwargs)
-        self.add_spectrum()
 
     def _validate_xdata(self, xdata):
         """
@@ -220,7 +219,6 @@ class MultiSpectrumPlot(SpectrumFigure):
         self._c_handler.legend = self.ax.legend(**self._c_handler.legend_properties)
         if interactive:
             super().make_legend_interactive(self._c_handler)
-        return self._c_handler
 
     def add_eigenfunctions(self):
         """Adds the eigenfunctions to the current figure."""

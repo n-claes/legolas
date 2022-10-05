@@ -45,7 +45,6 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._single_color = True
             # if everything is 1 color no use for a legend
             self._use_legend = False
-        self.add_spectrum()
 
         if self._use_legend and interactive:
             super().make_legend_interactive(self.leg_handle)
