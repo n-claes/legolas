@@ -14,7 +14,9 @@ from pylbo.visualisation.spectra.spectrum_single import SingleSpectrumPlot
 forbidden_args = ["linestyle", "linewidth", "lw"]
 
 
-def plot_spectrum(data, figsize=None, custom_figure=None, **kwargs):
+def plot_spectrum(
+    data, figsize=None, custom_figure=None, use_residuals=False, **kwargs
+):
     """
     Plots the spectrum of a single dataset.
 
@@ -28,6 +30,8 @@ def plot_spectrum(data, figsize=None, custom_figure=None, **kwargs):
         Optional, in the form (fig, ax). If supplied no new figure will be created
         but this one will be used instead. `fig` refers to the matplotlib figure and
         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+    use_residuals : bool
+        If `True`, colors the spectrum based on the residual in the datfile.
 
     Returns
     -------
@@ -39,7 +43,7 @@ def plot_spectrum(data, figsize=None, custom_figure=None, **kwargs):
     for arg in forbidden_args:
         if kwargs.pop(arg, None) is not None:
             pylboLogger.warning(f"plot_spectrum does not accept the '{arg}' argument.")
-    p = SingleSpectrumPlot(data, figsize, custom_figure, **kwargs)
+    p = SingleSpectrumPlot(data, figsize, custom_figure, use_residuals, **kwargs)
     return p
 
 
@@ -50,6 +54,7 @@ def plot_spectrum_multi(
     use_real_parts=True,
     figsize=None,
     custom_figure=None,
+    use_residuals=False,
     **kwargs,
 ):
     """

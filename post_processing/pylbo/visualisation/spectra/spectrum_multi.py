@@ -1,5 +1,5 @@
+import matplotlib.colors as mpl_colors
 import numpy as np
-from matplotlib import colors
 from pylbo.utilities.toolbox import add_pickradius_to_item, transform_to_numpy
 from pylbo.visualisation.continua import ContinuaHandler
 from pylbo.visualisation.eigenfunctions.derived_eigfunc_handler import (
@@ -149,7 +149,7 @@ class MultiSpectrumPlot(SpectrumFigure):
         Draw method, creates the spectrum.
         """
         for i, ds in enumerate(self.dataseries):
-            (spectrum_point,) = self.ax.plot(
+            (spectrum_point,) = self.ax.scatter(
                 self.xdata[i]
                 * np.ones_like(self.ydata[i], dtype=float)
                 * self.x_scaling[i],
@@ -207,8 +207,8 @@ class MultiSpectrumPlot(SpectrumFigure):
                     self.xdata * self.x_scaling,
                     min_values * self.y_scaling,
                     max_values * self.y_scaling,
-                    facecolor=colors.to_rgba(color, self._c_handler.alpha_region),
-                    edgecolor=colors.to_rgba(color, self._c_handler.alpha_point),
+                    facecolor=mpl_colors.to_rgba(color, self._c_handler.alpha_region),
+                    edgecolor=mpl_colors.to_rgba(color, self._c_handler.alpha_point),
                     linewidth=self._c_handler.linewidth,
                     label=key,
                 )
