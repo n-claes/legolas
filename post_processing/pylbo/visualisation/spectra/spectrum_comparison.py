@@ -82,14 +82,16 @@ class SpectrumComparisonPlot(SpectrumFigure):
         self.panel2._ef_ax = self.panel2.add_subplot_axes(self.panel2.ax, loc="bottom")
         self._axes_set = True
 
+    def add_spectrum(self) -> None:
+        """Adds the spectra for both datasets"""
+        self.panel1.add_spectrum()
+        self.panel2.add_spectrum()
+
     def add_eigenfunctions(self):
         """Adds the eigenfunctions for both datasets and merges the mpl callbacks."""
         self._use_custom_axes()
         for panel in [self.panel1, self.panel2]:
             panel.add_eigenfunctions()
-            panel.disconnect_callbacks()
-            # merge callbacks
-            self._mpl_callbacks.extend(panel._mpl_callbacks)
 
     def add_derived_eigenfunctions(self):
         """
@@ -99,13 +101,8 @@ class SpectrumComparisonPlot(SpectrumFigure):
         self._use_custom_axes()
         for panel in [self.panel1, self.panel2]:
             panel.add_derived_eigenfunctions()
-            panel.disconnect_callbacks()
-            # merge callbacks
-            self._mpl_callbacks.extend(panel._mpl_callbacks)
 
     def add_continua(self, interactive=True):
         """Adds the continua for both datasets and merges the mpl callbacks."""
         for panel in (self.panel1, self.panel2):
             panel.add_continua(interactive)
-            panel.disconnect_callbacks()
-            self._mpl_callbacks.extend(panel._mpl_callbacks)
