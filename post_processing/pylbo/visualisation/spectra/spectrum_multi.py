@@ -187,10 +187,7 @@ class MultiSpectrumPlot(SpectrumFigure):
                 continue
             # retrieve continuum, calculate region boundaries
             continuum = self.dataseries.continua[key] ** self._w_pow
-            if self.use_real_parts:
-                continuum = continuum.real
-            else:
-                continuum = continuum.imag
+            continuum = continuum.real if self.use_real_parts else continuum.imag
             min_values = np.array([np.min(c_ds) for c_ds in continuum])
             max_values = np.array([np.max(c_ds) for c_ds in continuum])
             # skip if continua are all zero

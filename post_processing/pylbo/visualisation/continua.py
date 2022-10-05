@@ -202,39 +202,3 @@ class ContinuaHandler(LegendHandler):
                 f"continua_colors should be of length {len(CONTINUA_COLORS)}"
             )
         self._continua_colors = colors
-
-    @staticmethod
-    def check_if_collapsed(continuum):
-        """
-        Checks if a given continuum is "collapsed" to a single point.
-
-        Parameters
-        ----------
-        continuum : numpy.ndarray
-            Array with values.
-
-        Returns
-        -------
-        True if all values are the same, false otherwise.
-        """
-        if np.all(np.isclose(np.diff(continuum), 0)):
-            return True
-        return False
-
-    @staticmethod
-    def check_if_all_zero(continuum):
-        """
-        Checks if a given continuum is pure zero.
-
-        Parameters
-        ----------
-        continuum : numpy.ndarray
-            Array with values.
-
-        Returns
-        -------
-        True if all values are zero, false otherwise.
-        """
-        if all(continuum == 0):
-            return True
-        return False

@@ -89,16 +89,13 @@ class SingleSpectrumPlot(SpectrumFigure):
             self._c_handler.continua_names, self._c_handler.continua_colors
         ):
             continuum = self.dataset.continua[key]
-            if self._c_handler.check_if_all_zero(continuum=continuum):
+            if np.allclose(continuum, 0, atol=1e-12):
                 continue
-            realvals = continuum.real * self.x_scaling
-            imagvals = continuum.imag * self.y_scaling
-            if self._c_handler.check_if_collapsed(continuum=continuum):
-                realvals = np.min(realvals)
-                imagvals = 0
+            # removes duplicates
+            continuum = np.array(list(set(continuum)), dtype=complex)
             item = self.ax.scatter(
-                realvals,
-                imagvals,
+                continuum.real * self.x_scaling,
+                continuum.imag * self.y_scaling,
                 marker=self._c_handler.marker,
                 linewidth=self._c_handler.markersize,
                 c=color,
