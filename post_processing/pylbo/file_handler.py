@@ -33,7 +33,7 @@ def _validate_file(file):
         raise InvalidLegolasFile(path_to_file)
 
 
-def load(datfile):
+def load(datfile, display_info=True):
     """
     Loads a single Legolas datfile.
 
@@ -56,24 +56,25 @@ def load(datfile):
         raise ValueError("load() takes a single datfile.")
     _validate_file(datfile)
     ds = LegolasDataSet(datfile)
-    pylboLogger.info(f"Legolas version  : {ds.legolas_version}")
-    pylboLogger.info(f"file loaded      : {ds.datfile.parent} -- {ds.datfile.name}")
-    pylboLogger.info(f"gridpoints       : {ds.gridpoints}")
-    pylboLogger.info(f"geometry         : {ds.geometry} in {ds.x_start, ds.x_end}")
-    pylboLogger.info(f"equilibrium      : {ds.eq_type}")
-    if ds.header["matrices_written"]:
-        pylboLogger.info("matrices present in datfile")
-    if ds.header["eigenfuncs_written"]:
-        pylboLogger.info("eigenfunctions present in datfile")
-    if ds.header.get("derived_eigenfuncs_written", False):
-        pylboLogger.info("derived eigenfunctions present in datfile")
-    if ds.header.get("eigenfunction_subset_used", False):
-        saved_efs = len(ds.header["ef_written_idxs"])
-        total_efs = len(ds.eigenvalues)
-        pylboLogger.info(
-            f"subset saved: {saved_efs}/{total_efs} eigenvalues have eigenfunctions"
-        )
-    pylboLogger.info("-" * 75)
+    if display_info:
+        pylboLogger.info(f"Legolas version  : {ds.legolas_version}")
+        pylboLogger.info(f"file loaded      : {ds.datfile.parent} -- {ds.datfile.name}")
+        pylboLogger.info(f"gridpoints       : {ds.gridpoints}")
+        pylboLogger.info(f"geometry         : {ds.geometry} in {ds.x_start, ds.x_end}")
+        pylboLogger.info(f"equilibrium      : {ds.eq_type}")
+        if ds.header["matrices_written"]:
+            pylboLogger.info("matrices present in datfile")
+        if ds.header["eigenfuncs_written"]:
+            pylboLogger.info("eigenfunctions present in datfile")
+        if ds.header.get("derived_eigenfuncs_written", False):
+            pylboLogger.info("derived eigenfunctions present in datfile")
+        if ds.header.get("eigenfunction_subset_used", False):
+            saved_efs = len(ds.header["ef_written_idxs"])
+            total_efs = len(ds.eigenvalues)
+            pylboLogger.info(
+                f"subset saved: {saved_efs}/{total_efs} eigenvalues have eigenfunctions"
+            )
+        pylboLogger.info("-" * 75)
     return ds
 
 
