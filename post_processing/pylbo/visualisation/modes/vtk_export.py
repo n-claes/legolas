@@ -284,6 +284,7 @@ class VTKDataExporter:
         names: Union[str, list[str]] = None,
         bg_names: Union[str, list[str]] = None,
         dtype: str = "float32",
+        starting_index: int = 0,
     ) -> None:
         """
         Exports the mode solution to a VTK file.
@@ -301,6 +302,8 @@ class VTKDataExporter:
         dtype : str, optional
             The VTK data type, defaults to "float32" (32 bit floating point).
             Can be set to "float64" (64 bit floating point) but uses more memory.
+        starting_index : int, optional
+            The starting index for filenames, defaults to 0.
         """
         time = transform_to_numpy(time)
         names = [] if names is None else transform_to_list(names)
@@ -311,7 +314,7 @@ class VTKDataExporter:
         if len(time) > 1:
             self._pbar = tqdm(total=len(time), desc="writing VTK files", unit="file")
             self.data._print_bg_info = False
-        for it, t in enumerate(time):
+        for it, t in enumerate(time, start=starting_index):
             vtkfile = Path(f"{filename}_t{it:04d}.vtk")
             self._write_vtk_header(vtkfile)
             self._write_vtk_coordinate_data(vtkfile)
