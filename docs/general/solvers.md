@@ -308,6 +308,7 @@ This solver can be specified in the parfile by setting
   solver = "inverse-iteration"
   sigma = (1.0d0, 0.05d0)
   maxiter = 100
+  tolerance = 1.0d-12
 /
 ```
-The quantity `maxiter` (default 100 if not given) specifies the maximum number of iterations, the inverse iteration process will continue until the eigenvalue is either converged or `maxiter` is reached.
+The quantity `maxiter` (default 100 if not given) specifies the maximum number of iterations, the inverse iteration process will continue until the eigenvalue is either converged or `maxiter` is reached. Note that is no tolerance is given the solver defaults to a tolerance near machine precision (`5e-15`). In some cases this may be too strict such that Legolas will have difficulties converging, typically warnings will be raised that `maxiter` is reached. Reducing `tolerance` to something like `1e-12` may help with convergence in those cases, as well as providing a better shift.

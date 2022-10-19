@@ -1,7 +1,8 @@
 module mod_test_solvers_lapack
   use mod_suite_utils
   use funit
-  use mod_global_variables, only: solver, write_eigenfunctions, sigma, maxiter
+  use mod_global_variables, only: solver, write_eigenfunctions, sigma, maxiter, &
+    tolerance
   use mod_solvers, only: solve_evp
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_transform_matrix, only: array_to_matrix
@@ -72,7 +73,8 @@ contains
     eigenvals = (0.0d0, 0.0d0)
     write_eigenfunctions = .false.
     call set_matrices()
-    maxiter = 2500
+    maxiter = 100
+    tolerance = 1.0d-13
   end subroutine init_test
 
 
@@ -231,9 +233,9 @@ contains
   subroutine test_inverse_iteration_general_2()
     complex(dp) :: omega(1)
 
-    call set_name("inverse iteration (AX = wBX, sigma = -0.1 - 0.2i)")
+    call set_name("inverse iteration (AX = wBX, sigma = -0.1 - 0.3i)")
     solver = "inverse-iteration"
-    sigma = (-0.1d0, -0.2d0)
+    sigma = (-0.1d0, -0.3d0)
     call solve_evp(amat, bmat_hermitian, omega, vr)
     @assertEqual(expected_b_hermitian(2), omega(1), tolerance=TOL)
   end subroutine test_inverse_iteration_general_2
