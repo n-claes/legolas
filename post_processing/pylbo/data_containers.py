@@ -24,7 +24,7 @@ from pylbo.utilities.datfile_utils import (
     read_matrix_B,
     read_residuals,
 )
-from pylbo.utilities.datfiles.file_manager import LegolasFileManager
+from pylbo.utilities.datfiles.file_reader import LegolasFileReader
 from pylbo.utilities.datfiles.header_legacy import LegolasLegacyHeader
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import get_values, transform_to_numpy
@@ -171,10 +171,10 @@ class LegolasDataSet(LegolasDataContainer):
     def __init__(self, datfile):
         self.datfile = Path(datfile)
         with open(self.datfile, "rb") as istream:
-            filemanager = LegolasFileManager(istream)
-            self.legolas_version = filemanager.legolas_version
+            filereader = LegolasFileReader(istream)
+            self.legolas_version = filereader.legolas_version
             if self.legolas_version < "2.0":
-                self.header = LegolasLegacyHeader(filemanager)
+                self.header = LegolasLegacyHeader(filereader)
             self.grid = read_grid(istream, self.header)
             self.grid_gauss = read_grid_gauss(istream, self.header)
             self.equilibria = read_equilibrium_arrays(istream, self.header)

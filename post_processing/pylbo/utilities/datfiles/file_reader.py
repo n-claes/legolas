@@ -18,7 +18,7 @@ def requires_version(version_needed, default=None):
     return check_version
 
 
-class LegolasFileManager:
+class LegolasFileReader:
     SIZE_CHAR = struct.calcsize("c")
     SIZE_INT = struct.calcsize("i")
     SIZE_BOOL = SIZE_INT  # fortran logical is 4-byte integer
