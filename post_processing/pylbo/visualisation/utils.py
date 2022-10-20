@@ -83,7 +83,7 @@ def validate_ef_name(ds, ef_name: str) -> str:
         The validated eigenfunction name.
     """
     names = ds.ef_names
-    if ds.derived_efs_written:
+    if ds.has_derived_efs:
         names += ds.derived_ef_names
     if ef_name not in names:
         raise ValueError(

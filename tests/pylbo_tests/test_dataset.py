@@ -1,6 +1,6 @@
 import numpy as np
-from pylbo.exceptions import MatricesNotPresent
 import pytest
+from pylbo.exceptions import MatricesNotPresent
 
 ds_v112_ev_guess = -0.14360602 + 0.00688731j
 ds_v112_ev_idx = 158
@@ -12,9 +12,9 @@ def test_ds_iterable(ds_v112):
     assert gen.pop() == ds_v112
 
 
-def test_ds_efs_written(ds_v112):
-    assert isinstance(ds_v112.efs_written, bool)
-    assert ds_v112.efs_written
+def test_ds_has_efs(ds_v112):
+    assert isinstance(ds_v112.has_efs, bool)
+    assert ds_v112.has_efs
 
 
 def test_ds_ef_names(ds_v112):
@@ -162,7 +162,7 @@ def test_ds_get_efs_idx(ds_v112):
 def test_ds_get_efs_idx_list(ds_v112):
     efs = ds_v112.get_eigenfunctions(ev_idxs=[ds_v112_ev_idx] * 2)
     assert isinstance(efs, np.ndarray)
-    for i, ef in enumerate(efs):
+    for ef in efs:
         assert np.isclose(ds_v112_ev_guess, ef.get("eigenvalue", np.NaN))
 
 

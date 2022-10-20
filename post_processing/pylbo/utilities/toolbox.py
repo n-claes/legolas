@@ -46,6 +46,40 @@ def get_axis_geometry(ax):
     return axis_geometry
 
 
+def get_values(array, which_values):
+    """
+    Determines which values to retrieve from an array.
+
+    Parameters
+    ----------
+    array : numpy.ndarray
+        The array with values.
+    which_values : str
+        Can be one of the following:
+
+            - "average": returns the average of the array
+            - "minimum": returns the minimum of the array
+            - "maximum": returns the maximum of the array
+
+        If not supplied or equal to None, simply returns the array.
+
+    Returns
+    -------
+    array : numpy.ndarray
+        Numpy array with values depending on the argument provided.
+    """
+    if which_values is None:
+        return array
+    elif which_values == "average":
+        return np.average(array)
+    elif which_values == "minimum":
+        return np.min(array)
+    elif which_values == "maximum":
+        return np.max(array)
+    else:
+        raise ValueError(f"unknown argument which_values: {which_values}")
+
+
 def add_pickradius_to_item(item, pickradius):
     """
     Makes a matplotlib artist pickable and adds a pickradius.

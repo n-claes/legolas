@@ -349,7 +349,7 @@ def read_grid(istream, header):
         The base grid from the datfile.
     """
     istream.seek(header["offsets"]["grid"])
-    fmt = ALIGN + header["gridpts"] * "d"
+    fmt = ALIGN + header["gridpoints"] * "d"
     grid = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     return np.asarray(grid)
 
@@ -371,7 +371,7 @@ def read_grid_gauss(istream, header):
         The Gaussian grid from the datfile.
     """
     istream.seek(header["offsets"]["grid_gauss"])
-    fmt = ALIGN + header["gauss_gridpts"] * "d"
+    fmt = ALIGN + header["gauss_gridpoints"] * "d"
     grid_gauss = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     return np.asarray(grid_gauss)
 
@@ -393,7 +393,7 @@ def read_ef_grid(istream, header):
         The eigenfunction grid from the datfile.
     """
     istream.seek(header["offsets"]["ef_grid"])
-    fmt = ALIGN + header["ef_gridpts"] * "d"
+    fmt = ALIGN + header["ef_gridpoints"] * "d"
     ef_grid = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     return np.asarray(ef_grid)
 
@@ -414,14 +414,17 @@ def read_eigenvectors(istream, header):
     eigenvectors : numpy.ndarray(dtype=complex, ndim=2)
         The eigenvectors from the datfile, one in each column.
     """
-    istream.seek(header["offsets"]["eigenvectors"])
-    fmt = ALIGN + (2 * "d") * header["eigenvec_len"] * header["nb_eigenvecs"]
+    offsets = header["offsets"]
+    ev_length = offsets["eigenvector_length"]
+    nb_evs = offsets["nb_eigenvectors"]
+    istream.seek(offsets["eigenvectors"])
+    fmt = ALIGN + (2 * "d") * ev_length * nb_evs
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     reals = hdr[::2]
     imags = hdr[1::2]
     return np.reshape(
         np.asarray([complex(x, y) for x, y in zip(reals, imags)]),
-        (header["eigenvec_len"], header["nb_eigenvecs"]),
+        (ev_length, nb_evs),
         order="F",
     )
 
@@ -468,7 +471,7 @@ def read_eigenvalues(istream, header, omit_large_evs=True):
         The eigenvalues from the datfile, with optionally omitted large values.
     """
     istream.seek(header["offsets"]["eigenvalues"])
-    fmt = ALIGN + 2 * header["nb_eigenvals"] * "d"
+    fmt = ALIGN + 2 * header["nb_eigenvalues"] * "d"
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     # hdr is a 1D list with [real, imag, real, imag, real, imag...]
     reals = hdr[::2]
@@ -496,10 +499,10 @@ def read_equilibrium_arrays(istream, header):
         Dictionary containing the equilibrium arrays, with keys given by
         `header['equil_names']`.
     """
-    istream.seek(header["offsets"]["equil_arrays"])
+    istream.seek(header["offsets"]["equilibrium_arrays"])
     equil_arrays = {}
-    for name in header["equil_names"]:
-        fmt = ALIGN + header["gauss_gridpts"] * "d"
+    for name in header["equilibrium_names"]:
+        fmt = ALIGN + header["gauss_gridpoints"] * "d"
         equil_array = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
         equil_arrays.update({name: np.asarray(equil_array)})
     return equil_arrays
@@ -530,7 +533,7 @@ def read_eigenfunction(istream, header, ev_index):
         eigenvalue, associated with the same `ef_index`.
     """
     ef_offset = header["offsets"]["ef_arrays"]
-    ef_gridpts = header["ef_gridpts"]
+    ef_gridpts = header["ef_gridpoints"]
     nb_eigenfuncs = len(header["ef_written_idxs"])
     eigenfunctions = {}
 
@@ -587,7 +590,7 @@ def read_derived_eigenfunction(istream, header, ev_index):
         eigenvalue, associated with the same `ev_index`.
     """
     ef_offset = header["offsets"]["derived_ef_arrays"]
-    ef_gridpts = header["ef_gridpts"]
+    ef_gridpts = header["ef_gridpoints"]
     nb_eigenfuncs = len(header["ef_written_idxs"])
     eigenfunctions = {}
 
@@ -636,7 +639,7 @@ def read_matrix_B(istream, header):
         the rows and column indices.
     """
     istream.seek(header["offsets"]["matrix_B"])
-    fmt = ALIGN + (2 * "i" + "d") * header["nonzero_B_elements"]
+    fmt = ALIGN + (2 * "i" + "d") * header["offsets"]["nonzero_B_elements"]
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     rows = np.asarray(hdr[::3])  # rows are 1, 4, 7, 10 etc (Fortran indexing)
     cols = np.asarray(hdr[1::3])  # columns are 2, 5, 8, 11 etc (Fortran indexing)
@@ -666,7 +669,7 @@ def read_matrix_A(istream, header):
         the row and column indices.
     """
     istream.seek(header["offsets"]["matrix_A"])
-    fmt = ALIGN + (2 * "i" + 2 * "d") * header["nonzero_A_elements"]
+    fmt = ALIGN + (2 * "i" + 2 * "d") * header["offsets"]["nonzero_A_elements"]
     hdr = struct.unpack(fmt, istream.read(struct.calcsize(fmt)))
     rows = np.asarray(hdr[::4])
     cols = np.asarray(hdr[1::4])

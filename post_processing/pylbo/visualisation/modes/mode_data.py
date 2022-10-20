@@ -103,7 +103,7 @@ class ModeVisualisationData:
             An array of dicts with all eigenfunctions for every eigenvalue.
         """
         arr1 = ds.get_eigenfunctions(omega)
-        if not ds.derived_efs_written:
+        if not ds.has_derived_efs:
             return arr1
 
         arr2 = ds.get_derived_eigenfunctions(omega)

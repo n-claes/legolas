@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Union
 
 import numpy as np
-
 from pylbo.exceptions import (
     EigenfunctionsNotPresent,
     EigenvectorsNotPresent,
@@ -10,7 +12,6 @@ from pylbo.exceptions import (
     ResidualsNotPresent,
 )
 from pylbo.utilities.datfile_utils import (
-    get_header,
     read_derived_eigenfunction,
     read_ef_grid,
     read_eigenfunction,
@@ -23,8 +24,10 @@ from pylbo.utilities.datfile_utils import (
     read_matrix_B,
     read_residuals,
 )
+from pylbo.utilities.datfiles.file_manager import LegolasFileManager
+from pylbo.utilities.datfiles.header_legacy import LegolasLegacyHeader
 from pylbo.utilities.logger import pylboLogger
-from pylbo.utilities.toolbox import transform_to_numpy
+from pylbo.utilities.toolbox import get_values, transform_to_numpy
 from pylbo.visualisation.continua import calculate_continua
 
 
@@ -45,61 +48,16 @@ class LegolasDataContainer(ABC):
     Baseclass for a Legolas data container.
     """
 
-    @property
+    @abstractmethod
     def continua(self):
-        """
-        Retrieves the continua based on the type of subclass, returns a dictionary
-        with the names of the continua as keys.
-
-            - :class:`LegolasDataSet`: the values are single Numpy arrays.
-            - :class:`LegolasDataSeries`: every value is an array of Numpy arrays,
-              one for each dataset in the series.
-
-        Returns
-        -------
-        continua : dict
-            Dictionary containing the continua values.
-        """
-        if isinstance(self, LegolasDataSet):
-            return self._continua
-        elif isinstance(self, LegolasDataSeries):
-            keys = self[0].continua.keys()
-            _continua = {key: [] for key in keys}
-            for ds in self:
-                for key in keys:
-                    _continua[key].append(ds.continua[key])
-            return {key: np.array(values) for key, values in _continua.items()}
-        else:
-            raise TypeError(f"unexpected instance: {type(self)}")
-
-    @property
-    def parameters(self):
-        """
-        Retrieves the parameters based on the type of subclass, returns a dictionary
-        with the parameter names as keys.
-
-            - :class:`LegolasDataSet`: values are single items.
-            - :class:`LegolasDataSeries`: values are Numpy arrays.
-
-        Returns
-        -------
-        parameters : dict
-            Dictionary containing the parameters.
-        """
-        if isinstance(self, LegolasDataSet):
-            return self._parameters
-        elif isinstance(self, LegolasDataSeries):
-            keys = self[0].parameters.keys()
-            _params = {key: [] for key in keys}
-            for ds in self:
-                for key in keys:
-                    _params[key].append(ds.parameters[key])
-            return {key: np.array(values) for key, values in _params.items()}
-        else:
-            raise TypeError(f"unexpected instance: {type(self)}")
+        pass
 
     @abstractmethod
-    def efs_written(self):
+    def parameters(self):
+        pass
+
+    @abstractmethod
+    def has_efs(self):
         pass
 
     @abstractmethod
@@ -111,11 +69,27 @@ class LegolasDataContainer(ABC):
         pass
 
     @abstractmethod
-    def derived_efs_written(self):
+    def has_derived_efs(self):
         pass
 
     @abstractmethod
     def derived_ef_names(self):
+        pass
+
+    @abstractmethod
+    def has_ef_subset(self):
+        pass
+
+    @abstractmethod
+    def has_matrices(self):
+        pass
+
+    @abstractmethod
+    def has_eigenvectors(self):
+        pass
+
+    @abstractmethod
+    def has_residuals(self):
         pass
 
     @abstractmethod
@@ -197,7 +171,10 @@ class LegolasDataSet(LegolasDataContainer):
     def __init__(self, datfile):
         self.datfile = Path(datfile)
         with open(self.datfile, "rb") as istream:
-            self.header = get_header(istream)
+            filemanager = LegolasFileManager(istream)
+            self.legolas_version = filemanager.legolas_version
+            if self.legolas_version < "2.0":
+                self.header = LegolasLegacyHeader(filemanager)
             self.grid = read_grid(istream, self.header)
             self.grid_gauss = read_grid_gauss(istream, self.header)
             self.equilibria = read_equilibrium_arrays(istream, self.header)
@@ -215,17 +192,16 @@ class LegolasDataSet(LegolasDataContainer):
 
         self.x_start = self.header["x_start"]
         self.x_end = self.header["x_end"]
-        self.gridpoints = self.header["gridpts"]
-        self.gauss_gridpoints = self.header["gauss_gridpts"]
-        self.matrix_gridpoints = self.header["matrix_gridpts"]
-        self.ef_gridpoints = self.header["ef_gridpts"]
+        self.gridpoints = self.header["gridpoints"]
+        self.gauss_gridpoints = self.header["gauss_gridpoints"]
+        self.matrix_gridpoints = self.header["matrix_gridpoints"]
+        self.ef_gridpoints = self.header["ef_gridpoints"]
         self.gamma = self.header["gamma"]
         self.eq_type = self.header["eq_type"]
-        self._parameters = self.header["params"]
-        self.cgs = self.header["cgs"]
+        self._parameters = self.header["parameters"]
         self.units = self.header["units"]
-        self.eq_names = self.header["equil_names"]
-        self.legolas_version = self.header["legolas_version"]
+        self.cgs = self.units["cgs"]
+        self.eq_names = self.header["equilibrium_names"]
 
         self._continua = calculate_continua(self)
 
@@ -275,107 +251,66 @@ class LegolasDataSet(LegolasDataContainer):
         return self.header["eigenfuncs_written"]
 
     @property
-    def ef_names(self):
-        """
-        Retrieves the eigenfunction names.
+    def continua(self) -> dict:
+        """Returns the continua in a dict with the continua names as keys."""
+        return self._continua
 
-        Returns
-        -------
-        ef_names : numpy.ndarray
-            Array containing the names of the eigenfunctions as strings.
-            None if no eigenfunctions are present.
-        """
+    @property
+    def parameters(self) -> dict:
+        """Returns the parameters in a dict with the parameter names as keys"""
+        return self._parameters
+
+    @property
+    def has_efs(self) -> bool:
+        """Returns `True` if eigenfunctions are present."""
+        return self.header["has_efs"]
+
+    @property
+    def ef_grid(self) -> np.ndarray:
+        """Returns the eigenfunction grid, None if eigenfunctions are not present."""
+        if not self.has_efs:
+            return None
+        if getattr(self, "_ef_grid", None) is None:
+            with open(self.datfile, "rb") as istream:
+                self._ef_grid = read_ef_grid(istream, self.header)
+        return self._ef_grid
+
+    @property
+    def ef_names(self) -> np.ndarray:
+        """Retrieves the eigenfunction names, None if eigenfunctions are not present."""
         return self.header.get("ef_names", None)
 
     @property
-    def ef_grid(self):
-        """
-        Retrieves the eigenfunction grid.
-
-        Returns
-        -------
-        ef_grid : numpy.ndarray
-            The eigenfunction grid. Returns None if eigenfunctions are not present.
-        """
-        if self.efs_written:
-            with open(self.datfile, "rb") as istream:
-                grid = read_ef_grid(istream, self.header)
-            return grid
-        else:
-            return None
+    def has_derived_efs(self) -> bool:
+        """Returns `True` if derived eigenfunctions are present."""
+        return self.header["has_derived_efs"]
 
     @property
-    def ef_subset(self):
-        """
-        Checks if dataset contains a subset of the eigenfunctions
-
-        Returns
-        -------
-        bool
-            `True` if subset present, `False` otherwise
-        """
-        return self.header["eigenfunction_subset_used"]
-
-    @property
-    def derived_efs_written(self):
-        """
-        Checks if derived eigenfunctions are present.
-
-        Returns
-        -------
-        bool
-            If `True`, derived eigenfunctions are present in the datfile.
-        """
-        return self.header["derived_eigenfuncs_written"]
-
-    @property
-    def derived_ef_names(self):
-        """
-        Retrieves the derived eigenfunction names.
-
-        Returns
-        -------
-        numpy.ndarray
-            Array containing the names of the derived eigenfunctions as strings.
-            None if no derived eigenfunctions are present.
-        """
+    def derived_ef_names(self) -> np.ndarray:
+        """Retrieves the derived eigenfunction names, None if not present."""
         return self.header.get("derived_ef_names", None)
 
-    @staticmethod
-    def _get_values(array, which_values):
-        """
-        Determines which values to retrieve from an array.
+    @property
+    def has_ef_subset(self) -> bool:
+        """Returns `True` if the dataset contains a subset of the eigenfunctions."""
+        return self.header["ef_subset_used"]
 
-        Parameters
-        ----------
-        array : numpy.ndarray
-            The array with values.
-        which_values : str
-            Can be one of the following:
+    @property
+    def has_matrices(self) -> bool:
+        """Checks if matrices are present."""
+        return self.header["has_matrices"]
 
-                - "average": returns the average of the array
-                - "minimum": returns the minimum of the array
-                - "maximum": returns the maximum of the array
+    @property
+    def has_eigenvectors(self) -> bool:
+        """Checks if eigenvectors are present."""
+        return self.header["has_eigenvectors"]
 
-            If not supplied or equal to None, simply returns the array.
+    @property
+    def has_residuals(self) -> bool:
+        """Checks if residuals are present."""
+        return self.header["has_residuals"]
 
-        Returns
-        -------
-        array : numpy.ndarray
-            Numpy array with values depending on the argument provided.
-        """
-        if which_values is None:
-            return array
-        elif which_values == "average":
-            return np.average(array)
-        elif which_values == "minimum":
-            return np.min(array)
-        elif which_values == "maximum":
-            return np.max(array)
-        else:
-            raise ValueError(f"unknown argument which_values: {which_values}")
-
-    def get_sound_speed(self, which_values=None):
+    def get_sound_speed(self, which_values=None) -> Union[float, np.ndarray]:
         """
         Calculates the sound speed based on the equilibrium arrays,
         given by :math:`c_s = \\sqrt{\\frac{\\gamma p_0}{\\rho_0}}`.
@@ -383,23 +318,19 @@ class LegolasDataSet(LegolasDataContainer):
         Parameters
         ----------
         which_values : str
-            Can be one of the following:
-                - None : returns the sound speed as a function of the grid.
-                - "average": returns the average sound speed over the grid.
-                - "minimum": returns the minimum sound speed over the grid.
-                - "maximum": returns the maximum sound speed over the grid.
+            Callback to :meth:`get_values`, either "average"/"minimum"/"maximum".
 
         Returns
         -------
-        cs : float, numpy.ndarray
+        float or numpy.ndarray
             Array with the sound speed at every grid point, or a float corresponding
             to the value of `which_values` if provided.
         """
         pressure = self.equilibria["T0"] * self.equilibria["rho0"]
         cs = np.sqrt(self.gamma * pressure / self.equilibria["rho0"])
-        return self._get_values(cs, which_values)
+        return get_values(cs, which_values)
 
-    def get_alfven_speed(self, which_values=None):
+    def get_alfven_speed(self, which_values=None) -> Union[float, np.ndarray]:
         """
         Calculates the Alfvén speed based on the equilibrium arrays,
         given by :math:`c_A = \\sqrt{\\frac{B_0^2}{\\rho_0}}`.
@@ -407,22 +338,18 @@ class LegolasDataSet(LegolasDataContainer):
         Parameters
         ----------
         which_values : str
-            Can be one of the following:
-                - None : returns the Alfvén speed as a function of the grid.
-                - "average": returns the average Alfvén speed over the grid.
-                - "minimum": returns the minimum Alfvén speed over the grid.
-                - "maximum": returns the maximum Alfvén speed over the grid.
+            Callback to :meth:`get_values`, either "average"/"minimum"/"maximum".
 
         Returns
         -------
-        cA : float, numpy.ndarray
+        float or numpy.ndarray
             Array with the Alfvén speed at every grid point,
             or a float corresponding to the value of `which_values` if provided.
         """
         cA = self.equilibria["B0"] / np.sqrt(self.equilibria["rho0"])
-        return self._get_values(cA, which_values)
+        return get_values(cA, which_values)
 
-    def get_tube_speed(self, which_values=None):
+    def get_tube_speed(self, which_values=None) -> Union[float, np.ndarray]:
         """
         Calculates the tube speed for a cylinder, given by
         :math:`c_t = \\frac{c_s c_A}{\\sqrt{c_s^2 + c_A^2}}`.
@@ -430,15 +357,11 @@ class LegolasDataSet(LegolasDataContainer):
         Parameters
         ----------
         which_values : str
-            Can be one of the following:
-                - None : returns the tube speed as a function of the grid.
-                - "average": returns the average tube speed over the grid.
-                - "minimum": returns the minimum tube speed over the grid.
-                - "maximum": returns the maximum tube speed over the grid.
+            Callback to :meth:`get_values`, either "average"/"minimum"/"maximum".
 
         Returns
         -------
-        ct = float, numpy.ndarray
+        float or numpy.ndarray
             Array with the tube speed at every grid point,
             or a float corresponding to the value of `which_values` if provided.
             Returns `None` if the geometry is not cylindrical.
@@ -452,9 +375,9 @@ class LegolasDataSet(LegolasDataContainer):
             cA = self.get_alfven_speed()
             cs = self.get_sound_speed()
             ct = cs * cA / np.sqrt(cs**2 + cA**2)
-            return self._get_values(ct, which_values)
+            return get_values(ct, which_values)
 
-    def get_reynolds_nb(self, which_values=None):
+    def get_reynolds_nb(self, which_values=None) -> Union[float, np.ndarray]:
         """
         Calculates the Reynolds number, defined as
         :math:`R_e = \\frac{ac_s}{\\eta}` where the slabsize is given by
@@ -463,15 +386,11 @@ class LegolasDataSet(LegolasDataContainer):
         Parameters
         ----------
         which_values : str
-             Can be one of the following:
-                - None : returns the Reynolds number as a function of the grid.
-                - "average": returns the average Reynolds number over the grid.
-                - "minimum": returns the minimum Reynolds number over the grid.
-                - "maximum": returns the maximum Reynolds number the grid
+            Callback to :meth:`get_values`, either "average"/"minimum"/"maximum".
 
         Returns
         -------
-        Re : float, numpy.ndarray
+        float or numpy.ndarray
             Array with the Reynolds number at every grid point,
             or a float corresponding to the value of `which_values` if provided.
             Returns `None` if the resistivity is zero somewhere on the domain.
@@ -487,9 +406,9 @@ class LegolasDataSet(LegolasDataContainer):
             return None
         else:
             Re = a * cs / eta
-            return self._get_values(Re, which_values)
+            return get_values(Re, which_values)
 
-    def get_magnetic_reynolds_nb(self, which_values=None):
+    def get_magnetic_reynolds_nb(self, which_values=None) -> Union[float, np.ndarray]:
         """
         Calculates the magnetic Reynolds number, defined as
         :math:`R_m = \\frac{ac_A}{\\eta}` where the slabsize is given by
@@ -498,15 +417,11 @@ class LegolasDataSet(LegolasDataContainer):
         Parameters
         ----------
         which_values : str
-            Can be one of the following:
-                - None : returns the magnetic Reynolds number as a function of the grid.
-                - "average": returns the average magnetic Reynolds number over the grid.
-                - "minimum": returns the minimum magnetic Reynolds number over the grid.
-                - "maximum": returns the maximum magnetic Reynolds number over the grid
+            Callback to :meth:`get_values`, either "average"/"minimum"/"maximum".
 
         Returns
         -------
-        Rm : float, numpy.ndarray(dtype=float, ndim=1)
+        float or numpy.ndarray
             Array with the magnetic Reynolds number at every grid point,
             or a float corresponding to the value of `which_values` if provided.
             Returns `None` if the resistivity is zero somewhere on the domain.
@@ -522,29 +437,22 @@ class LegolasDataSet(LegolasDataContainer):
             return None
         else:
             Rm = a * cA / eta
-            return self._get_values(Rm, which_values)
+            return get_values(Rm, which_values)
 
-    def get_k0_squared(self):
+    def get_k0_squared(self) -> float:
         """
         Calculates the squared wave number, defined as
         :math:`k_0^2 = k_2^2 + k_3^2`.
-
-        Returns
-        -------
-        k0_sq : float
-            The wave number squared.
-
         """
-        k0_sq = self.parameters.get("k2") ** 2 + self.parameters.get("k3") ** 2
-        return k0_sq
+        return self.parameters.get("k2") ** 2 + self.parameters.get("k3") ** 2
 
-    def get_matrix_B(self):
+    def get_matrix_B(self) -> tuple(np.ndarray, np.ndarray, np.ndarray):
         """
         Retrieves the matrix B from the datfile.
 
         Returns
         -------
-        3-tuple of numpy.ndarray(dtype=int, ndim=1)
+        Tuple(rows: numpy.ndarray, cols: numpy.ndarray, vals: numpy.ndarray)
             Tuple containing the rows, columns and values of the non-zero B-matrix
             elements. Rows and columns are integers, values are real.
 
@@ -553,19 +461,19 @@ class LegolasDataSet(LegolasDataContainer):
         MatricesNotPresent
             If the matrices were not saved to the datfile.
         """
-        if not self.header["matrices_written"]:
+        if not self.has_matrices:
             raise MatricesNotPresent(self.datfile)
         with open(self.datfile, "rb") as istream:
             rows, cols, vals = read_matrix_B(istream, self.header)
         return rows, cols, vals
 
-    def get_matrix_A(self):
+    def get_matrix_A(self) -> tuple(np.ndarray, np.ndarray, np.ndarray):
         """
         Retrieves the matrix A from the datfile.
 
         Returns
         -------
-        3-tuple of numpy.ndarray(dtype=int, ndim=1)
+        Tuple(rows: numpy.ndarray, cols: numpy.ndarray, vals: numpy.ndarray)
             Tuple containing the rows, columns and values of the non-zero A-matrix
             elements. Rows and columns are integers, values are complex.
 
@@ -574,19 +482,19 @@ class LegolasDataSet(LegolasDataContainer):
         MatricesNotPresent
             If the matrices were not saved to the datfile.
         """
-        if not self.header["matrices_written"]:
+        if not self.has_matrices:
             raise MatricesNotPresent(self.datfile)
         with open(self.datfile, "rb") as istream:
             rows, cols, vals = read_matrix_A(istream, self.header)
         return rows, cols, vals
 
-    def get_eigenvectors(self):
+    def get_eigenvectors(self) -> np.ndarray:
         """
         Retrieves the eigenvectors from the datfile.
 
         Returns
         -------
-        eigenvectors : numpy.ndarray(dtype=complex, ndim=2)
+        numpy.ndarray
             Array containing the eigenvectors. One eigenvector
             in each column.
 
@@ -595,19 +503,19 @@ class LegolasDataSet(LegolasDataContainer):
         EigenvectorsNotPresent
             If the eigenvectors were not saved to the datfile.
         """
-        if not self.header["eigenvecs_written"]:
+        if not self.has_eigenvectors:
             raise EigenvectorsNotPresent(self.datfile)
         with open(self.datfile, "rb") as istream:
             evs = read_eigenvectors(istream, self.header)
         return evs
 
-    def get_residuals(self):
+    def get_residuals(self) -> np.ndarray:
         """
         Retrieves the residuals from the datfile.
 
         Returns
         -------
-        residuals : numpy.ndarray(dtype=double, ndim=1)
+        numpy.ndarray
             Array containing the residuals.
 
         Raises
@@ -621,7 +529,7 @@ class LegolasDataSet(LegolasDataContainer):
             res = read_residuals(istream, self.header)
         return res
 
-    def get_eigenfunctions(self, ev_guesses=None, ev_idxs=None):
+    def get_eigenfunctions(self, ev_guesses=None, ev_idxs=None) -> np.ndarray:
         """
         Returns the eigenfunctions based on given eigenvalue guesses or their
         indices. An array will be returned where every item is a dictionary, containing
@@ -637,13 +545,13 @@ class LegolasDataSet(LegolasDataContainer):
 
         Returns
         -------
-        eigenfuncs : numpy.ndarray(dtype=dict, ndim=1)
+        numpy.ndarray
             Array containing the eigenfunctions and eigenvalues corresponding to the
             supplied indices. Every index in this array contains a dictionary with the
             eigenfunctions and corresponding eigenvalue.
             The keys of each dictionary are the eigenfunction names.
         """
-        if not self.efs_written:
+        if not self.has_efs:
             raise EigenfunctionsNotPresent("eigenfunctions not written to datfile")
         if ev_guesses is not None and ev_idxs is not None:
             raise ValueError(
@@ -665,7 +573,7 @@ class LegolasDataSet(LegolasDataContainer):
                 eigenfuncs[dict_idx] = efs
         return eigenfuncs
 
-    def get_derived_eigenfunctions(self, ev_guesses=None, ev_idxs=None):
+    def get_derived_eigenfunctions(self, ev_guesses=None, ev_idxs=None) -> np.ndarray:
         """
         Returns the derived eigenfunctions based on given eigenvalue guesses or their
         indices. An array will be returned where every item is a dictionary, containing
@@ -681,14 +589,14 @@ class LegolasDataSet(LegolasDataContainer):
 
         Returns
         -------
-        numpy.ndarray(dtype=dict, ndim=1)
+        numpy.ndarray
             Array containing the derived eigenfunctions and eigenvalues
             corresponding to the supplied indices. Every index in this array
             contains a dictionary with the derived eigenfunctions and
             corresponding eigenvalue. The keys of each dictionary are the
             corresponding eigenfunction names.
         """
-        if not self.derived_efs_written:
+        if not self.has_derived_efs:
             raise EigenfunctionsNotPresent(
                 "derived eigenfunctions not written to datfile"
             )
@@ -710,7 +618,7 @@ class LegolasDataSet(LegolasDataContainer):
                 derived_efs[dict_idx] = defs
         return derived_efs
 
-    def get_nearest_eigenvalues(self, ev_guesses):
+    def get_nearest_eigenvalues(self, ev_guesses) -> tuple(np.ndarray, np.ndarray):
         """
         Calculates the eigenvalues nearest to a given guess. This calculates
         the nearest eigenvalue based on the distance between two points.
@@ -723,9 +631,8 @@ class LegolasDataSet(LegolasDataContainer):
 
         Returns
         -------
-        idxs : numpy.ndarray(dtype=int, ndim=1)
+        Tuple(numpy.ndarray, numpy.ndarray)
             The indices of the nearest eigenvalues in the :attr:`eigenvalues` array.
-        eigenvalues: numpy.ndarray(dtype=complex, ndim=1)
             The nearest eigenvalues to the provided guesses, corresponding with the
             indices `idxs`.
         """
@@ -767,150 +674,124 @@ class LegolasDataSeries(LegolasDataContainer):
         return len(self.datasets)
 
     @property
-    def efs_written(self):
+    def continua(self) -> dict:
         """
-        Checks if the eigenfunctions are written.
-
-        Returns
-        -------
-        efs_written : numpy.ndarray
-            An array of bools corresponding to the various datasets, `True` if a
-            dataset has eigenfunctions present.
+        Returns the continua. Each key corresponds to a multiple Numpy arrays,
+        one for each dataset.
         """
-        return np.array([ds.efs_written for ds in self.datasets])
-
-    @property
-    def ef_names(self):
-        """
-        Returns the eigenfunction names.
-
-        Returns
-        -------
-        ef_names : numpy.ndarray
-            An array with the eigenfunction names as strings.
-        """
-        names = np.array([ds.ef_names for ds in self.datasets], dtype=object)
-        for item in names:
-            if item is None:
-                continue
-            else:
-                return item
-        else:
-            return None
+        keys = self[0].continua.keys()
+        _continua = {key: [] for key in keys}
+        for ds in self:
+            for key in keys:
+                _continua[key].append(ds.continua[key])
+        return {key: np.array(values) for key, values in _continua.items()}
 
     @property
-    def ef_grid(self):
+    def parameters(self) -> dict:
         """
-        Retrieves the eigenfunction grid.
+        Returns the parameters. Each key corresponds to multiple Numpy arrays,
+        one for each dataset.
+        """
+        keys = self[0].parameters.keys()
+        _params = {key: [] for key in keys}
+        for ds in self:
+            for key in keys:
+                _params[key].append(ds.parameters[key])
+        return {key: np.array(values) for key, values in _params.items()}
 
-        Returns
-        -------
-        ef_grid : numpy.ndarray
-            An array with arrays, containing the eigenfunction grids for each dataset.
-        """
+    @property
+    def has_efs(self) -> np.ndarray:
+        """Returns `True` if eigenfunctions are present."""
+        return np.array([ds.has_efs for ds in self.datasets], dtype=bool)
+
+    @property
+    def ef_names(self) -> np.ndarray:
+        """Returns the eigenfunction names."""
+        return np.array([ds.ef_names for ds in self.datasets], dtype=object)
+
+    @property
+    def ef_grid(self) -> np.ndarray:
+        """Returns the eigenfunction grid."""
         return np.array([ds.ef_grid for ds in self.datasets], dtype=object)
 
     @property
-    def derived_efs_written(self):
-        """
-        Checks if the derived eigenfunctions are written.
-
-        Returns
-        -------
-        numpy.ndarray(dtype=bool)
-            An array of bools corresponding to the various datasets, `True` if a
-            dataset has derived eigenfunctions present.
-        """
-        return np.array([ds.derived_efs_written for ds in self.datasets])
+    def has_derived_efs(self) -> np.ndarray:
+        """Returns `True` at index `i` if eigenfunctions are present in dataset `i`."""
+        return np.array([ds.has_derived_efs for ds in self.datasets])
 
     @property
-    def derived_ef_names(self):
-        """
-        Returns the derived eigenfunction names.
+    def derived_ef_names(self) -> np.ndarray:
+        """Returns the derived eigenfunction names."""
+        return np.array([ds.derived_ef_names for ds in self.datasets], dtype=object)
 
-        Returns
-        -------
-        numpy.ndarray(dtype=str)
-            An array with the derived eigenfunction names as strings.
-        """
-        names = np.array([ds.derived_ef_names for ds in self.datasets], dtype=object)
-        for item in names:
-            if item is None:
-                continue
-            else:
-                return item
-        else:
-            return None
+    @property
+    def has_ef_subset(self) -> np.ndarray:
+        """Returns `True` at index `i` if the `i`-th dataset contains a subset."""
+        return np.array([ds.has_ef_subset for ds in self.datasets], dtype=object)
 
-    def get_sound_speed(self, which_values=None):
+    @property
+    def has_matrices(self) -> np.ndarray:
+        """Returns `True` at index `i` if the `i`-th dataset contains matrices."""
+        return np.array([ds.has_matrices for ds in self.datasets], dtype=object)
+
+    @property
+    def has_eigenvectors(self) -> np.ndarray:
+        """Returns `True` at index `i` if the `i`-th dataset contains eigenvectorst."""
+        return np.array([ds.has_eigenvectors for ds in self.datasets], dtype=object)
+
+    @property
+    def has_residuals(self) -> np.ndarray:
+        """Returns `True` at index `i` if the `i`-th dataset contains residuals."""
+        return np.array([ds.has_residuals for ds in self.datasets], dtype=object)
+
+    def get_sound_speed(self, which_values=None) -> np.ndarray:
         """
         Calculates the sound speed for the various datasets.
 
         Parameters
         ----------
         which_values : str
-            Which values to return, can be one of the following:
-                - None: every element of the return array will be an array in itself.
-                - "average": every element of the return array is a float, equal to
-                  the average sound speed for that dataset.
-                - "minimum": every element of the return array is a float, equal to
-                  the minimum sound speed for that dataset.
-                - "maximum": every element of the return array is a float, equal to
-                  the minimum sound speed for that dataset.
+            Callback to :meth:`get_values`, either "average"/"minimum"/"maximum".
 
         Returns
         -------
-        cs : numpy.ndarray
+        numpy.ndarray
             A Numpy array of same length as the number of datasets, containing the
             sound speeds. Elements are either arrays themselves or floats, depending
             on the value of `which_values`.
         """
         return np.array([ds.get_sound_speed(which_values) for ds in self.datasets])
 
-    def get_alfven_speed(self, which_values=None):
+    def get_alfven_speed(self, which_values=None) -> np.ndarray:
         """
         Calculates the Alfvén speed for the various datasets.
 
         Parameters
         ----------
         which_values : str
-            Which values to return, can be one of the following:
-                - None: every element of the return array will be an array in itself.
-                - "average": every element of the return array is a float, equal to
-                  the average Alfvén speed for that dataset.
-                - "minimum": every element of the return array is a float, equal to
-                  the minimum Alfvén speed for that dataset.
-                - "maximum": every element of the return array is a float, equal to
-                  the minimum Alfvén speed for that dataset.
+            Callback to :meth:`get_values`, either "average"/"minimum"/"maximum".
 
         Returns
         -------
-        cA : numpy.ndarray
+        numpy.ndarray
             A Numpy array of same length as the number of datasets, containing the
             Alfvén speeds. Elements are either arrays themselves or floats, depending
             on the value of `which_values`.
         """
         return np.array([ds.get_alfven_speed(which_values) for ds in self.datasets])
 
-    def get_tube_speed(self, which_values=None):
+    def get_tube_speed(self, which_values=None) -> np.ndarray:
         """
         Calculates the tube speed for the various datasets.
 
         Parameters
         ----------
         which_values : str
-            Which values to return, can be one of the following:
-                - None: every element of the return array will be an array in itself.
-                - "average": every element of the return array is a float, equal to
-                  the average tube speed for that dataset.
-                - "minimum": every element of the return array is a float, equal to
-                  the minimum tube speed for that dataset.
-                - "maximum": every element of the return array is a float, equal to
-                  the minimum tube speed for that dataset.
+            Callback to :meth:`get_values`, either "average"/"minimum"/"maximum".
 
         Returns
         -------
-        cA : numpy.ndarray
+        numpy.ndarray
             A Numpy array of same length as the number of datasets, containing the
             tube speeds. Elements are either arrays themselves or floats, depending
             on the value of `which_values`. Elements are None if the geometry is
@@ -918,25 +799,18 @@ class LegolasDataSeries(LegolasDataContainer):
         """
         return np.array([ds.get_tube_speed(which_values) for ds in self.datasets])
 
-    def get_reynolds_nb(self, which_values=None):
+    def get_reynolds_nb(self, which_values=None) -> np.ndarray:
         """
         Calculates the Reynolds number for the various datasets.
 
         Parameters
         ----------
         which_values : str
-            Which values to return, can be one of the following:
-                - None: every element of the return array will be an array in itself.
-                - "average": every element of the return array is a float, equal to
-                  the average Reynolds number for that dataset.
-                - "minimum": every element of the return array is a float, equal to
-                  the minimum Reynolds number for that dataset.
-                - "maximum": every element of the return array is a float, equal to
-                  the minimum Reynolds number for that dataset.
+            Callback to :meth:`get_values`, either "average"/"minimum"/"maximum".
 
         Returns
         -------
-        Re : numpy.ndarray
+        numpy.ndarray
             A Numpy array of same length as the number of datasets, containing the
             Reynolds number. Elements are either arrays themselves or floats, depending
             on the value of `which_values`.
@@ -944,25 +818,18 @@ class LegolasDataSeries(LegolasDataContainer):
         """
         return np.array([ds.get_reynolds_nb(which_values) for ds in self.datasets])
 
-    def get_magnetic_reynolds_nb(self, which_values=None):
+    def get_magnetic_reynolds_nb(self, which_values=None) -> np.ndarray:
         """
         Calculates the magnetic Reynolds number for the various datasets.
 
         Parameters
         ----------
         which_values : str
-            Which values to return, can be one of the following:
-                - None: every element of the return array will be an array in itself.
-                - "average": every element of the return array is a float, equal to
-                  the average magnetic Reynolds number for that dataset.
-                - "minimum": every element of the return array is a float, equal to
-                  the minimum magnetic Reynolds number for that dataset.
-                - "maximum": every element of the return array is a float, equal to
-                  the minimum magnetic Reynolds number for that dataset.
+            Callback to :meth:`get_values`, either "average"/"minimum"/"maximum".
 
         Returns
         -------
-        Re : numpy.ndarray
+        numpy.ndarray
             A Numpy array of same length as the number of datasets, containing the
             magnetic Reynolds number. Elements are either arrays themselves
             or floats, depending on the value of `which_values`.
@@ -972,14 +839,14 @@ class LegolasDataSeries(LegolasDataContainer):
             [ds.get_magnetic_reynolds_nb(which_values) for ds in self.datasets]
         )
 
-    def get_k0_squared(self):
+    def get_k0_squared(self) -> np.ndarray:
         """
         Calculates the squared wave number for the various datasets.
 
         Returns
         -------
-        k0_sq : numpy.ndarray
+        numpy.ndarray
             A Numpy array of same length as the number of datasets, containing the
             squared wavenumber for each.
         """
-        return np.array([ds.get_k0_squared() for ds in self.datasets])
+        return np.array([ds.get_k0_squared() for ds in self.datasets], dtype=float)

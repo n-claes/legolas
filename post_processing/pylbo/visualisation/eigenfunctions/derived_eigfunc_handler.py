@@ -19,7 +19,7 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
         )
 
     def _check_data_is_present(self):
-        if not any(transform_to_numpy(self.data.derived_efs_written)):
+        if not any(transform_to_numpy(self.data.has_derived_efs)):
             raise EigenfunctionsNotPresent(
                 "None of the given datfiles has derived eigenfunctions "
                 "written to it."
@@ -69,5 +69,5 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
         )
 
     def _mark_points_without_data_written(self):
-        self._condition_to_make_transparent = "derived_efs_written"
+        self._condition_to_make_transparent = "has_derived_efs"
         super()._mark_points_without_data_written()

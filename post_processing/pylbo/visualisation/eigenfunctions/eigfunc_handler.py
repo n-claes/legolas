@@ -17,7 +17,7 @@ class EigenfunctionHandler(EigenfunctionInterface):
         self.spec_axis.set_title(f"{self.spec_axis.get_title()} -- eigenfunctions")
 
     def _check_data_is_present(self):
-        if not any(transform_to_numpy(self.data.efs_written)):
+        if not any(transform_to_numpy(self.data.has_efs)):
             raise EigenfunctionsNotPresent(
                 "None of the given datfiles has eigenfunctions written to it."
             )
@@ -84,5 +84,5 @@ class EigenfunctionHandler(EigenfunctionInterface):
         return name
 
     def _mark_points_without_data_written(self):
-        self._condition_to_make_transparent = "efs_written"
+        self._condition_to_make_transparent = "has_efs"
         super()._mark_points_without_data_written()
