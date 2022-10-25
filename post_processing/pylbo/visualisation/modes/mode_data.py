@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import difflib
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 from pylbo.data_containers import LegolasDataSet
@@ -83,7 +83,7 @@ class ModeVisualisationData:
         """
         return "real" if self.use_real_part else "imag"
 
-    def _get_all_efs(self, ds, omega):
+    def _get_all_efs(self, ds: LegolasDataSet, omega: List[complex]) -> np.ndarray:
         """
         Returns an array of dicts with all eigenfunctions for every eigenvalue.
         The dictionaries will be updated with the derived eigenfunctions if they

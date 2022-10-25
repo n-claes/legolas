@@ -166,16 +166,6 @@ def test_ds_get_efs_idx_list(ds_v112):
         assert np.isclose(ds_v112_ev_guess, ef.get("eigenvalue", np.NaN))
 
 
-def test_ds_get_efs_idx_invalid(ds_v112):
-    with pytest.raises(ValueError):
-        ds_v112.get_eigenfunctions(ev_idxs=10.5)
-
-
-def test_ds_get_efs_idx_list_invalid(ds_v112):
-    with pytest.raises(ValueError):
-        ds_v112.get_eigenfunctions(ev_idxs=[10, 1.2])
-
-
 def test_ds_get_evs(ds_v112):
     idxs, evs = ds_v112.get_nearest_eigenvalues(ds_v112_ev_guess)
     assert isinstance(idxs, np.ndarray)

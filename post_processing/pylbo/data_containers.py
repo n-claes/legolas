@@ -2,30 +2,17 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Union
+from typing import Callable, Union
 
 import numpy as np
+from pylbo._version import VersionHandler
 from pylbo.exceptions import (
     EigenfunctionsNotPresent,
     EigenvectorsNotPresent,
     MatricesNotPresent,
     ResidualsNotPresent,
 )
-from pylbo.utilities.datfile_utils import (
-    read_derived_eigenfunction,
-    read_ef_grid,
-    read_eigenfunction,
-    read_eigenvalues,
-    read_eigenvectors,
-    read_equilibrium_arrays,
-    read_grid,
-    read_grid_gauss,
-    read_matrix_A,
-    read_matrix_B,
-    read_residuals,
-)
 from pylbo.utilities.datfiles.file_reader import LegolasFileReader
-from pylbo.utilities.datfiles.header_legacy import LegolasLegacyHeader
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import get_values, transform_to_numpy
 from pylbo.visualisation.continua import calculate_continua
@@ -170,15 +157,13 @@ class LegolasDataSet(LegolasDataContainer):
 
     def __init__(self, datfile):
         self.datfile = Path(datfile)
-        with open(self.datfile, "rb") as istream:
-            filereader = LegolasFileReader(istream)
-            self.legolas_version = filereader.legolas_version
-            if self.legolas_version < "2.0":
-                self.header = LegolasLegacyHeader(filereader)
-            self.grid = read_grid(istream, self.header)
-            self.grid_gauss = read_grid_gauss(istream, self.header)
-            self.equilibria = read_equilibrium_arrays(istream, self.header)
-            self.eigenvalues = read_eigenvalues(istream, self.header)
+        self.filereader = LegolasFileReader(self.datfile)
+        self.header = self.filereader.get_header()
+
+        self.grid = self.filereader.read_grid(self.header)
+        self.grid_gauss = self.filereader.read_gaussian_grid(self.header)
+        self.equilibria = self.filereader.read_equilibrium_arrays(self.header)
+        self.eigenvalues = self.filereader.read_eigenvalues(self.header)
 
         self.geometry = self.header["geometry"]
         if self.geometry == "Cartesian":
@@ -207,6 +192,10 @@ class LegolasDataSet(LegolasDataContainer):
 
     def __iter__(self):
         yield self
+
+    @property
+    def legolas_version(self) -> VersionHandler:
+        return self.filereader.legolas_version
 
     @property
     def k2_str(self) -> str:
@@ -271,8 +260,7 @@ class LegolasDataSet(LegolasDataContainer):
         if not self.has_efs:
             return None
         if getattr(self, "_ef_grid", None) is None:
-            with open(self.datfile, "rb") as istream:
-                self._ef_grid = read_ef_grid(istream, self.header)
+            self._ef_grid = self.filereader.read_ef_grid(self.header)
         return self._ef_grid
 
     @property
@@ -446,7 +434,7 @@ class LegolasDataSet(LegolasDataContainer):
         """
         return self.parameters.get("k2") ** 2 + self.parameters.get("k3") ** 2
 
-    def get_matrix_B(self) -> tuple(np.ndarray, np.ndarray, np.ndarray):
+    def get_matrix_B(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Retrieves the matrix B from the datfile.
 
@@ -463,11 +451,9 @@ class LegolasDataSet(LegolasDataContainer):
         """
         if not self.has_matrices:
             raise MatricesNotPresent(self.datfile)
-        with open(self.datfile, "rb") as istream:
-            rows, cols, vals = read_matrix_B(istream, self.header)
-        return rows, cols, vals
+        return self.filereader.read_matrix_B(self.header)
 
-    def get_matrix_A(self) -> tuple(np.ndarray, np.ndarray, np.ndarray):
+    def get_matrix_A(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Retrieves the matrix A from the datfile.
 
@@ -484,9 +470,7 @@ class LegolasDataSet(LegolasDataContainer):
         """
         if not self.has_matrices:
             raise MatricesNotPresent(self.datfile)
-        with open(self.datfile, "rb") as istream:
-            rows, cols, vals = read_matrix_A(istream, self.header)
-        return rows, cols, vals
+        return self.filereader.read_matrix_A(self.header)
 
     def get_eigenvectors(self) -> np.ndarray:
         """
@@ -505,9 +489,7 @@ class LegolasDataSet(LegolasDataContainer):
         """
         if not self.has_eigenvectors:
             raise EigenvectorsNotPresent(self.datfile)
-        with open(self.datfile, "rb") as istream:
-            evs = read_eigenvectors(istream, self.header)
-        return evs
+        return self.filereader.read_eigenvectors(self.header)
 
     def get_residuals(self) -> np.ndarray:
         """
@@ -525,9 +507,43 @@ class LegolasDataSet(LegolasDataContainer):
         """
         if not self.has_residuals:
             raise ResidualsNotPresent(self.datfile)
-        with open(self.datfile, "rb") as istream:
-            res = read_residuals(istream, self.header)
-        return res
+        return self.filereader.read_residuals(self.header)
+
+    def _get_eigenfunction_like(
+        self, ev_guesses: np.ndarray, ev_idxs: np.ndarray, getter_func: Callable
+    ) -> np.ndarray:
+        """
+        Returns the eigenfunctions based on the supplied getter function.
+
+        Parameters
+        ----------
+        ev_guesses : complex, numpy.ndarray
+            Eigenvalue guesses.
+        ev_idxs : int, numpy.ndarray
+            Indices of the eigenvalues to retrieve.
+        getter_func : function
+            Function to retrieve the eigenfunctions.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array containing the eigenfunctions, items are dictionaries.
+        """
+        if ev_guesses is not None and ev_idxs is not None:
+            raise ValueError(
+                "get_eigenfunctions: either provide guesses or indices but not both"
+            )
+        if ev_guesses is not None:
+            idxs, _ = self.get_nearest_eigenvalues(ev_guesses)
+        else:
+            idxs = transform_to_numpy(ev_idxs)
+        eigenfunctions = np.array([{}] * len(idxs), dtype=dict)
+        for i, ef_idx in enumerate(idxs):
+            efs = getter_func(self.header, ef_idx)
+            if efs is not None:
+                efs["eigenvalue"] = self.eigenvalues[ef_idx]
+            eigenfunctions[i] = efs
+        return eigenfunctions
 
     def get_eigenfunctions(self, ev_guesses=None, ev_idxs=None) -> np.ndarray:
         """
@@ -538,9 +554,9 @@ class LegolasDataSet(LegolasDataContainer):
 
         Parameters
         ----------
-        ev_guesses : (list of) int, float, complex
+        ev_guesses : complex, numpy.ndarray
             Eigenvalue guesses.
-        ev_idxs : (list of) int
+        ev_idxs : int, numpy.ndarray
             Indices corresponding to the eigenvalues that need to be retrieved.
 
         Returns
@@ -553,25 +569,9 @@ class LegolasDataSet(LegolasDataContainer):
         """
         if not self.has_efs:
             raise EigenfunctionsNotPresent("eigenfunctions not written to datfile")
-        if ev_guesses is not None and ev_idxs is not None:
-            raise ValueError(
-                "get_eigenfunctions: either provide guesses or indices but not both"
-            )
-        if ev_guesses is not None:
-            idxs, _ = self.get_nearest_eigenvalues(ev_guesses)
-        else:
-            idxs = transform_to_numpy(ev_idxs)
-            for idx in idxs:
-                if not isinstance(idx, (int, np.int64)):
-                    raise ValueError("get_eigenfunctions: ev_idxs should be integers")
-        eigenfuncs = np.array([{}] * len(idxs), dtype=dict)
-        with open(self.datfile, "rb") as istream:
-            for dict_idx, ef_idx in enumerate(idxs):
-                efs = read_eigenfunction(istream, self.header, ef_idx)
-                if efs is not None:
-                    efs.update({"eigenvalue": self.eigenvalues[ef_idx]})
-                eigenfuncs[dict_idx] = efs
-        return eigenfuncs
+        return self._get_eigenfunction_like(
+            ev_guesses, ev_idxs, getter_func=self.filereader.read_eigenfunction
+        )
 
     def get_derived_eigenfunctions(self, ev_guesses=None, ev_idxs=None) -> np.ndarray:
         """
@@ -582,9 +582,9 @@ class LegolasDataSet(LegolasDataContainer):
 
         Parameters
         ----------
-        ev_guesses : (list of) int, float, complex
+        ev_guesses : complex, numpy.ndarray
             Eigenvalue guesses.
-        ev_idxs : (list of) int
+        ev_idxs : int, numpy.ndarray
             Indices corresponding to the eigenvalues that need to be retrieved.
 
         Returns
@@ -600,23 +600,11 @@ class LegolasDataSet(LegolasDataContainer):
             raise EigenfunctionsNotPresent(
                 "derived eigenfunctions not written to datfile"
             )
-        if ev_guesses is not None and ev_idxs is not None:
-            raise ValueError("either provide guesses or indices but not both")
-        if ev_guesses is not None:
-            idxs, _ = self.get_nearest_eigenvalues(ev_guesses)
-        else:
-            idxs = transform_to_numpy(ev_idxs)
-            for idx in idxs:
-                if not isinstance(idx, (int, np.int64)):
-                    raise ValueError("ev_idxs should be integers")
-        derived_efs = np.array([{}] * len(idxs), dtype=dict)
-        with open(self.datfile, "rb") as istream:
-            for dict_idx, ef_idx in enumerate(idxs):
-                defs = read_derived_eigenfunction(istream, self.header, ef_idx)
-                if defs is not None:
-                    defs.update({"eigenvalue": self.eigenvalues[ef_idx]})
-                derived_efs[dict_idx] = defs
-        return derived_efs
+        return self._get_eigenfunction_like(
+            ev_guesses,
+            ev_idxs,
+            getter_func=self.filereader.read_derived_eigenfunction,
+        )
 
     def get_nearest_eigenvalues(self, ev_guesses) -> tuple(np.ndarray, np.ndarray):
         """

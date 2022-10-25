@@ -1,140 +1,208 @@
-import struct
-from functools import wraps
-from typing import BinaryIO, List, Union
+from os import PathLike
+from typing import BinaryIO
 
+import numpy as np
 from pylbo._version import VersionHandler
-
-
-def requires_version(version_needed, default=None):
-    def check_version(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if args[0].legolas_version < version_needed:
-                return default
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    return check_version
+from pylbo.utilities.datfiles.header_legacy import LegolasLegacyHeader
+from pylbo.utilities.datfiles.istream_reader import (
+    read_complex_from_istream,
+    read_float_from_istream,
+    read_int_from_istream,
+    read_mixed_from_istream,
+    read_string_from_istream,
+)
+from pylbo.utilities.logger import pylboLogger
 
 
 class LegolasFileReader:
-    SIZE_CHAR = struct.calcsize("c")
-    SIZE_INT = struct.calcsize("i")
-    SIZE_BOOL = SIZE_INT  # fortran logical is 4-byte integer
-    SIZE_DOUBLE = struct.calcsize("d")
-    SIZE_COMPLEX = struct.calcsize(2 * "d")
-    ALIGN = "="
+    def __init__(self, datfile: PathLike, byte_order: str = "native"):
+        self._byte_order = byte_order
+        self.datfile = datfile
+        with open(self.datfile, "rb") as istream:
+            istream.seek(0)
+            self.legolas_version = self._read_legolas_version(istream)
+            self._offset = istream.tell()
 
-    def __init__(self, istream: BinaryIO):
-        self._istream = istream
-        self.istream.seek(0)
-        self.legolas_version = self._read_legolas_version()
-
-    @property
-    def istream(self) -> BinaryIO:
-        """Returns the input stream of the file manager."""
-        return self._istream
-
-    def read_string_from_istream(
-        self, length: int, amount: int = 1
-    ) -> Union[str, List[str]]:
-        """
-        Reads a string from the input stream.
-
-        Parameters
-        ----------
-        length : int
-            The length of the string to read.
-        amount : int, optional
-            The amount of strings to read, by default 1
-
-        Returns
-        -------
-        str, list of str
-            The string or list of strings read from the input stream.
-        """
-        fmt = self.ALIGN + amount * length * "c"
-        hdr = struct.unpack(fmt, self.istream.read(struct.calcsize(fmt)))
-        if amount == 1:
-            return b"".join(hdr).strip().decode()
-        else:
-            return [
-                b"".join(hdr[i : i + length]).strip().decode()
-                for i in range(0, amount * length, length)
-            ]
-
-    def _read_number_from_istream(self, kind: str, amount: int = 1) -> complex:
-        """
-        Reads a number from the input stream.
-
-        Parameters
-        ----------
-        kind : str
-            The kind of number to read.
-            Can be "i" for integer, "d" for double or "c" for complex.
-        amount : int, optional
-            The amount of numbers to read, by default 1
-
-        Returns
-        -------
-        int, float, complex
-            The number or list of numbers read from the input stream.
-        """
-        fmt = self.ALIGN + amount * kind
-        hdr = struct.unpack(fmt, self.istream.read(struct.calcsize(fmt)))
-        if amount == 1:
-            # for single values unpack and return single number
-            (hdr,) = hdr
-        return hdr
-
-    def read_int_from_istream(self, amount: int = 1) -> int:
-        """
-        Reads an integer from the input stream.
-
-        Parameters
-        ----------
-        amount : int, optional
-            The amount of integers to read, by default 1
-        """
-        return self._read_number_from_istream(kind="i", amount=amount)
-
-    def read_float_from_istream(self, amount: int = 1) -> float:
-        """
-        Reads a float from the input stream.
-
-        Parameters
-        ----------
-        amount : int, optional
-            The amount of floats to read, by default 1
-        """
-        return self._read_number_from_istream(kind="d", amount=amount)
-
-    def read_complex_from_istream(self, amount: int = 1) -> complex:
-        """
-        Reads a complex number from the input stream.
-
-        Parameters
-        ----------
-        amount : int, optional
-            The amount of complex numbers to read, by default 1
-        """
-        return complex(*self._read_number_from_istream(kind="d", amount=2 * amount))
-
-    def read_boolean_from_istream(self) -> bool:
-        """Reads a boolean from the input stream."""
-        return bool(self.read_int_from_istream())
-
-    def _read_legolas_version(self):
-        version_name = self.read_string_from_istream(length=len("legolas_version"))
+    def _read_legolas_version(self, istream: BinaryIO) -> VersionHandler:
+        version_name = read_string_from_istream(istream, length=len("legolas_version"))
         if version_name == "legolas_version":
             # formatted version is character of length 10
-            version = self.read_string_from_istream(length=10)
+            version = read_string_from_istream(istream, length=10)
         elif version_name == "datfile_version":
             # old numbering, single integer
-            version = f"0.{str(self.read_int_from_istream())}.0"
+            version = f"0.{str(read_int_from_istream(istream))}.0"
         else:
             # very old numbering
-            self.istream.seek(0)
+            istream.seek(0)
             version = "0.0.0"
         return VersionHandler(version)
+
+    def get_header(self) -> LegolasLegacyHeader:
+        with open(self.datfile, "rb") as istream:
+            istream.seek(self._offset)
+            if self.legolas_version < "2.0":
+                return LegolasLegacyHeader(istream, self.legolas_version)
+        return None
+
+    def read_grid(self, header: LegolasLegacyHeader) -> np.ndarray:
+        with open(self.datfile, "rb") as istream:
+            grid = read_float_from_istream(
+                istream, amount=header["gridpoints"], offset=header["offsets"]["grid"]
+            )
+        return np.asarray(grid, dtype=float)
+
+    def read_gaussian_grid(self, header: LegolasLegacyHeader) -> np.ndarray:
+        with open(self.datfile, "rb") as istream:
+            grid = read_float_from_istream(
+                istream,
+                amount=header["gauss_gridpoints"],
+                offset=header["offsets"]["grid_gauss"],
+            )
+        return np.asarray(grid, dtype=float)
+
+    def read_ef_grid(self, header: LegolasLegacyHeader) -> np.ndarray:
+        with open(self.datfile, "rb") as istream:
+            grid = read_float_from_istream(
+                istream,
+                amount=header["ef_gridpoints"],
+                offset=header["offsets"]["ef_grid"],
+            )
+        return np.asarray(grid, dtype=float)
+
+    def read_equilibrium_arrays(self, header: LegolasLegacyHeader) -> dict:
+        arrays = {}
+        with open(self.datfile, "rb") as istream:
+            istream.seek(header["offsets"]["equilibrium_arrays"])
+            for name in header["equilibrium_names"]:
+                arrays[name] = np.asarray(
+                    read_float_from_istream(istream, amount=header["gauss_gridpoints"]),
+                    dtype=float,
+                )
+        return arrays
+
+    def read_eigenvalues(self, header: LegolasLegacyHeader) -> np.ndarray:
+        with open(self.datfile, "rb") as istream:
+            eigenvalues = read_complex_from_istream(
+                istream,
+                amount=header["nb_eigenvalues"],
+                offset=header["offsets"]["eigenvalues"],
+            )
+        return np.asarray(eigenvalues, dtype=complex)
+
+    def read_eigenvectors(self, header: LegolasLegacyHeader) -> np.ndarray:
+        with open(self.datfile, "rb") as istream:
+            offsets = header["offsets"]
+            eigvec_length = offsets["eigenvector_length"]
+            nb_eigvecs = offsets["nb_eigenvectors"]
+            eigenvectors = read_complex_from_istream(
+                istream,
+                amount=eigvec_length * nb_eigvecs,
+                offset=offsets["eigenvectors"],
+            )
+        return np.reshape(
+            np.asarray(eigenvectors, dtype=complex),
+            (eigvec_length, nb_eigvecs),
+            order="F",
+        )
+
+    def read_residuals(self, header: LegolasLegacyHeader) -> np.ndarray:
+        with open(self.datfile, "rb") as istream:
+            residuals = read_float_from_istream(
+                istream,
+                amount=header["nb_residuals"],
+                offset=header["offsets"]["residuals"],
+            )
+        return np.asarray(residuals, dtype=float)
+
+    def read_matrix_A(
+        self, header: LegolasLegacyHeader
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        with open(self.datfile, "rb") as istream:
+            hdr = read_mixed_from_istream(
+                istream,
+                fmt=(2 * "i" + 2 * "d"),
+                amount=header["nonzero_A_elements"],
+                offset=header["offsets"]["matrix_A"],
+            )
+            rows, cols, reals, imags = hdr[::4], hdr[1::4], hdr[2::4], hdr[3::4]
+            vals = [complex(x, y) for x, y in zip(reals, imags)]
+        return (
+            np.asarray(rows, dtype=int),
+            np.asarray(cols, dtype=int),
+            np.asarray(vals, dtype=complex),
+        )
+
+    def read_matrix_B(
+        self, header: LegolasLegacyHeader
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        with open(self.datfile, "rb") as istream:
+            hdr = read_mixed_from_istream(
+                istream,
+                fmt=(2 * "i" + "d"),
+                amount=header["nonzero_B_elements"],
+                offset=header["offsets"]["matrix_B"],
+            )
+            rows, cols, vals = hdr[::3], hdr[1::3], hdr[2::3]
+        return (
+            np.asarray(rows, dtype=int),
+            np.asarray(cols, dtype=int),
+            np.asarray(vals, dtype=float),
+        )
+
+    def read_eigenfunction(self, header: LegolasLegacyHeader, ev_index: int) -> dict:
+        # extract corresponding index in the array with written indices
+        ef_index = self._get_ef_index(header, ev_index)
+        if ef_index is None:
+            return None
+        return self._read_eigenfunction_like(
+            header,
+            offset=header["offsets"]["ef_arrays"],
+            ef_index=ef_index,
+            state_vector=header["ef_names"],
+        )
+
+    def read_derived_eigenfunction(
+        self, header: LegolasLegacyHeader, ev_index: int
+    ) -> dict:
+        ef_index = self._get_ef_index(header, ev_index)
+        if ef_index is None:
+            return None
+        return self._read_eigenfunction_like(
+            header,
+            offset=header["offsets"]["derived_ef_arrays"],
+            ef_index=ef_index,
+            state_vector=header["derived_ef_names"],
+        )
+
+    def _read_eigenfunction_like(
+        self,
+        header: LegolasLegacyHeader,
+        offset: int,
+        ef_index: int,
+        state_vector: np.ndarray,
+    ) -> dict:
+        eigenfunctions = {}
+        with open(self.datfile, "rb") as istream:
+            for name_idx, name in enumerate(state_vector):
+                # get offset of particular eigenfunction block
+                block_offset = name_idx * header["offsets"]["ef_block_bytesize"]
+                # get offset of requested eigenfunction in block
+                ef_offset = ef_index * header["offsets"]["ef_bytesize"]
+                eigenfunctions[name] = np.asarray(
+                    read_complex_from_istream(
+                        istream,
+                        amount=header["ef_gridpoints"],
+                        offset=offset + block_offset + ef_offset,
+                    ),
+                    dtype=complex,
+                )
+        return eigenfunctions
+
+    def _get_ef_index(self, header: LegolasLegacyHeader, ev_index: int) -> int:
+        # extract eigenfunction index from the array with written indices
+        try:
+            ((ef_index,),) = np.where(header["ef_written_idxs"] == ev_index)
+        except ValueError:
+            pylboLogger.warning("selected eigenvalue has no eigenfunctions!")
+            return None
+        return ef_index
