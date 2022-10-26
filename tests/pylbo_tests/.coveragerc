@@ -7,6 +7,7 @@ omit =
     *testing.py
     *__init__.py*
     *debug.py*
+    pylbo/visualisation/utils.py
 
 [report]
 exclude_lines =
@@ -19,3 +20,5 @@ exclude_lines =
     def _terminate_workers
     pass
     def timethis
+    def show
+    raise NotImplementedError

@@ -28,6 +28,18 @@ from pylbo.utilities.toolbox import transform_to_numpy
 from pylbo.visualisation.continua import calculate_continua
 
 
+def ensure_dataset(data: any) -> None:
+    """Ensures that the given data is a :class:`LegolasDataSet`."""
+    if not isinstance(data, LegolasDataSet):
+        raise TypeError(f"expected a LegolasDataSet, got {type(data)}")
+
+
+def ensure_dataseries(data: any) -> None:
+    """Ensures that the given data is a :class:`LegolasDataSeries`."""
+    if not isinstance(data, LegolasDataSeries):
+        raise TypeError(f"expected a LegolasDataSeries, got {type(data)}")
+
+
 class LegolasDataContainer(ABC):
     """
     Baseclass for a Legolas data container.
@@ -219,6 +231,31 @@ class LegolasDataSet(LegolasDataContainer):
 
     def __iter__(self):
         yield self
+
+    @property
+    def k2_str(self) -> str:
+        """Returns the :math:`k_2` string."""
+        return "$k_y$" if self.geometry.lower() == "cartesian" else "$m$"
+
+    @property
+    def k3_str(self) -> str:
+        """Returns the :math:`k_3` string."""
+        return "$k_z$" if self.geometry.lower() == "cartesian" else "$k$"
+
+    @property
+    def u1_str(self) -> str:
+        """Returns the :math:`u_1` string."""
+        return "x" if self.geometry.lower() == "cartesian" else "r"
+
+    @property
+    def u2_str(self) -> str:
+        """Returns the :math:`u_2` string."""
+        return "y" if self.geometry.lower() == "cartesian" else r"$\theta$"
+
+    @property
+    def u3_str(self) -> str:
+        """Returns the :math:`u_3` string."""
+        return "z"
 
     @property
     def efs_written(self):

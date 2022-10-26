@@ -1,6 +1,6 @@
 import numpy as np
 from pylbo.utilities.logger import pylboLogger
-from pylbo.visualisation.legend_interface import LegendHandler
+from pylbo.visualisation.legend_handler import LegendHandler
 
 CONTINUA_NAMES = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]
 CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "green", "grey"]
@@ -202,39 +202,3 @@ class ContinuaHandler(LegendHandler):
                 f"continua_colors should be of length {len(CONTINUA_COLORS)}"
             )
         self._continua_colors = colors
-
-    @staticmethod
-    def check_if_collapsed(continuum):
-        """
-        Checks if a given continuum is "collapsed" to a single point.
-
-        Parameters
-        ----------
-        continuum : numpy.ndarray
-            Array with values.
-
-        Returns
-        -------
-        True if all values are the same, false otherwise.
-        """
-        if np.all(np.isclose(np.diff(continuum), 0)):
-            return True
-        return False
-
-    @staticmethod
-    def check_if_all_zero(continuum):
-        """
-        Checks if a given continuum is pure zero.
-
-        Parameters
-        ----------
-        continuum : numpy.ndarray
-            Array with values.
-
-        Returns
-        -------
-        True if all values are zero, false otherwise.
-        """
-        if all(continuum == 0):
-            return True
-        return False

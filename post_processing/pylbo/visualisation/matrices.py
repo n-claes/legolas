@@ -1,28 +1,25 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.colors import LogNorm
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from pylbo.visualisation.figure_manager import FigureWindow
+from pylbo.visualisation.figure_window import FigureWindow
 
 
 class MatrixFigure(FigureWindow):
     """Figure showing both matrices from a dataset."""
 
     def __init__(self, dataset, figsize, **kwargs):
-        super().__init__(figure_type="matrices", figsize=figsize)
+        fig, ax = super().create_default_figure(figlabel="matrices", figsize=figsize)
+        super().__init__(fig)
         self.dataset = dataset
         self.kwargs = kwargs
 
-        self.ax2 = self._add_subplot_axes(self.ax, loc="right")
+        self.ax = ax
+        self.ax2 = super().add_subplot_axes(self.ax, loc="right")
         self.draw()
 
     def draw(self):
         """Draws the matrices."""
-        super().draw()
-        self._add_matrices()
-
-    def _add_matrices(self):
-        """Adds the matrices to the figure windows."""
         # matrix A
         rows, cols, vals = self.dataset.get_matrix_A()
         # take modulus of values

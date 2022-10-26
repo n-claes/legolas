@@ -1,8 +1,9 @@
 import numpy as np
-from pylbo.utilities.toolbox import transform_to_numpy
 from pylbo.data_containers import LegolasDataSet
 from pylbo.exceptions import EigenfunctionsNotPresent
-from pylbo.visualisation.eigenfunction_interface import EigenfunctionInterface
+from pylbo.utilities.toolbox import transform_to_numpy
+from pylbo.visualisation.eigenfunctions.eigfunc_interface import EigenfunctionInterface
+from pylbo.visualisation.utils import ef_name_to_latex
 
 
 class DerivedEigenfunctionHandler(EigenfunctionInterface):
@@ -52,9 +53,6 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
     def _get_title(self, ef_name):
         """
         Creates the title of the derived eigenfunction plot.
-        LaTeX formatting is used and numbers are replaced with the
-        corresponding suffix: :math:`(1, 2, 3)`
-        becomes :math:`(x, y, z)` or :math:`(r, \\theta, z)`.
 
         Parameters
         ----------
@@ -66,20 +64,9 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
         name : str
             The 'new' name for the derived eigenfunction, used as title.
         """
-        part = "Re"
-        if not self._use_real_part:
-            part = "Im"
-        suffix = ("_x", "_y", "_z")
-        if self.data.geometry == "cylindrical":
-            suffix = ("_r", r"_\theta", "_z")
-        for i, idx in enumerate("123"):
-            ef_name = ef_name.replace(idx, suffix[i])
-        ef_name = ef_name.replace("div", "\\nabla\\cdot")
-        ef_name = ef_name.replace("curl", "\\nabla\\times")
-        ef_name = ef_name.replace("para", "\\parallel")
-        ef_name = ef_name.replace("perp", "\\perp")
-        name = rf"{part}(${ef_name}$)"
-        return name
+        return ef_name_to_latex(
+            ef_name, geometry=self.data.geometry, real_part=self._use_real_part
+        )
 
     def _mark_points_without_data_written(self):
         self._condition_to_make_transparent = "derived_efs_written"
