@@ -45,9 +45,7 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._single_color = True
             # if everything is 1 color no use for a legend
             self._use_legend = False
-
-        if self._use_legend and interactive:
-            super().make_legend_interactive(self.leg_handle)
+        self._interactive = interactive
 
     def add_spectrum(self):
         """Adds the spectrum to the plot, makes the points pickable."""
@@ -76,6 +74,8 @@ class MergedSpectrumPlot(SpectrumFigure):
         if self._use_legend:
             self.leg_handle.legend = self.ax.legend(loc="best")
             self.leg_handle._make_visible_by_default = True
+            if self._interactive:
+                super().make_legend_interactive(self.leg_handle)
         self.fig.tight_layout()
 
     def add_eigenfunctions(self):

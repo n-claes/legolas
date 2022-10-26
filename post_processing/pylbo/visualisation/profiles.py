@@ -112,7 +112,7 @@ class ContinuumProfile(InteractiveFigureWindow):
             self.handler.continua_colors, self.handler.continua_names
         ):
             continuum = self.data.continua[name]
-            if self.handler.check_if_all_zero(continuum):
+            if np.allclose(abs(continuum), 0, atol=1e-12):
                 continue
             # non-adiabatic slow continua have real and imaginary parts
             if np.any(np.iscomplex(continuum)) and "slow" in name:

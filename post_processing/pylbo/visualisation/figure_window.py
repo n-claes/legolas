@@ -172,6 +172,7 @@ class FigureWindow:
 
     def redraw(self) -> None:
         self.ax.cla()
+        self.draw()
 
     def save(self, filename: str, **kwargs) -> None:
         """
