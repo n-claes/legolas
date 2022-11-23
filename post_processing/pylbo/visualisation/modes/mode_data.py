@@ -154,8 +154,7 @@ class ModeVisualisationData:
         Calculates the full eigenmode solution for given coordinates and time.
         If a complex factor was given, the eigenmode solution is multiplied with the
         complex factor. If :attr:`use_real_part` is True the real part of the eigenmode
-        solution is returned, otherwise the complex part. If :attr:`add_background` is
-        True, the background is added to the eigenmode solution.
+        solution is returned, otherwise the complex part.
 
         Parameters
         ----------

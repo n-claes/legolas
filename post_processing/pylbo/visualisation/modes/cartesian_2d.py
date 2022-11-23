@@ -234,7 +234,7 @@ class CartesianSlicePlot2D(ModeFigure):
                         efdata, self.u2_data, self.u3_data, t
                     )
                 if self.data.add_background:
-                    solution += self.data.get_background(shape=self.solution_shape)
+                    solution += self.data.get_background(shape=self._solutions.shape)
                 self._update_view(updated_solution=solution)
                 if self.update_colorbar:
                     self._update_view_clims(solution)
