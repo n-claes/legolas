@@ -61,7 +61,7 @@ class SingleSpectrumPlot(SpectrumFigure):
             alpha=self.alpha,
             linestyle="None",
             norm=mpl_colors.LogNorm() if self._use_residuals else None,
-            cmap=self.plot_props.pop("cmap", "jet"),
+            cmap=self.plot_props.pop("cmap", "jet") if self._use_residuals else None,
             **self.plot_props,
         )
         # set dataset associated with this line of points
