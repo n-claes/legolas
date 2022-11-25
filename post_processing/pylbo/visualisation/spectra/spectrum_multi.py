@@ -149,21 +149,21 @@ class MultiSpectrumPlot(SpectrumFigure):
         Draw method, creates the spectrum.
         """
         for i, ds in enumerate(self.dataseries):
-            (spectrum_point,) = self.ax.scatter(
+            spectrum_points = self.ax.scatter(
                 self.xdata[i]
                 * np.ones_like(self.ydata[i], dtype=float)
                 * self.x_scaling[i],
                 self.ydata[i] * self.y_scaling[i],
                 marker=self.marker,
                 color=self.color,
-                markersize=self.markersize,
+                s=10 * self.markersize,
                 alpha=self.alpha,
                 linestyle="None",
                 **self.plot_props,
             )
-            add_pickradius_to_item(item=spectrum_point, pickradius=10)
+            add_pickradius_to_item(item=spectrum_points, pickradius=10)
             # set dataset associated with this line of points
-            setattr(spectrum_point, "dataset", ds)
+            setattr(spectrum_points, "dataset", ds)
         self.ax.axhline(y=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
 

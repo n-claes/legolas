@@ -54,7 +54,6 @@ def plot_spectrum_multi(
     use_real_parts=True,
     figsize=None,
     custom_figure=None,
-    use_residuals=False,
     **kwargs,
 ):
     """
@@ -71,9 +70,6 @@ def plot_spectrum_multi(
         If `True`, this will square the eigenvalues when they are plotted on the
         vertical axis. If `False` (default), either the real or imaginary part of the
         eigenvalues will be plotted depending on the value of `use_real_parts`.
-    use_real_parts : bool
-        If `True` (default), this will plot the real part of the eigenvalues on the
-        vertical axis. If `False` the imaginary part will be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
     custom_figure : tuple
@@ -144,6 +140,7 @@ def plot_spectrum_comparison(
     figsize=None,
     custom_figure=None,
     lock_zoom=False,
+    use_residuals=False,
     **kwargs,
 ):
     """
@@ -163,6 +160,8 @@ def plot_spectrum_comparison(
         If `True` (`False` by default), locks the zoom of both axis. When locked,
         zoomin in on one of the axis automatically scales the zoom on the other one
         as well.
+    use_residuals : bool
+        If `True`, colors the spectrum based on the residual in the datfile.
 
     Returns
     -------
@@ -172,7 +171,9 @@ def plot_spectrum_comparison(
     """
     ensure_dataset(ds1)
     ensure_dataset(ds2)
-    p = SpectrumComparisonPlot(ds1, ds2, figsize, custom_figure, lock_zoom, **kwargs)
+    p = SpectrumComparisonPlot(
+        ds1, ds2, figsize, custom_figure, lock_zoom, use_residuals, **kwargs
+    )
     return p
 
 

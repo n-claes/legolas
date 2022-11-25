@@ -46,7 +46,7 @@ def _main():
     if ds.efs_written:
         p.add_eigenfunctions()
     if ds.derived_efs_written:
-        p2 = pylbo.plot_spectrum(ds)
+        p2 = pylbo.plot_spectrum(ds, use_residuals=ds.has_residuals)
         p2.add_continua()
         p2.add_derived_eigenfunctions()
     p.show()
