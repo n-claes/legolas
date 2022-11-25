@@ -49,6 +49,7 @@ def _main():
         p2 = pylbo.plot_spectrum(ds, use_residuals=ds.has_residuals)
         p2.add_continua()
         p2.add_derived_eigenfunctions()
+        p2.draw()
     p.show()
 
 
