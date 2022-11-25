@@ -40,14 +40,64 @@ module mod_timing
   private
   public tic, toc, cputic, cputoc
 
-  !> Wall clock time at last call of `tic()`.
-  !! Intially -1000 to more easily detect incorrect use.
+  !> Wall clock time at last call of `tic()`, init -1000 to easily detect incorrect use.
   integer, save :: wall_clock_tic = -1000
-  !> CPU time at last call of `cputic()`.
-  !! Intially -1000 to more easily detect incorrect use.
-  real,    save :: cpu_clock_tic = -1000.0
+  !> CPU time at last call of `cputic()`, init -1000 to easily detect incorrect use.
+  real(dp), save :: cpu_clock_tic = -1000.0_dp
+
+  type, public :: timer_t
+    integer, private :: start_time
+    integer, private :: program_start_time
+    real(dp) :: init_time
+    real(dp) :: matrix_time
+    real(dp) :: evp_time
+    real(dp) :: eigenfunction_time
+    real(dp) :: datfile_time
+
+    contains
+
+    procedure :: start_timer
+    procedure :: end_timer
+    procedure :: get_total_time
+  end type timer_t
+
+  public :: new_timer
 
 contains
+
+  function new_timer() result(timer)
+    type(timer_t) :: timer
+    timer%start_time = -1000
+    call system_clock(timer%program_start_time)
+  end function new_timer
+
+
+  subroutine start_timer(this)
+    class(timer_t), intent(inout) :: this
+    call system_clock(this%start_time)
+  end subroutine start_timer
+
+
+  function end_timer(this) result(elapsed_time)
+    class(timer_t), intent(inout) :: this
+    integer :: end_time, rate
+    real(dp) :: elapsed_time
+
+    call system_clock(end_time, rate)
+    elapsed_time = real(end_time - this%start_time, kind=dp) / rate
+    this%start_time = -1000
+  end function end_timer
+
+
+  function get_total_time(this) result(total_time)
+    class(timer_t), intent(in) :: this
+    integer :: end_time, rate
+    real(dp) :: total_time
+
+    call system_clock(end_time, rate)
+    total_time = real(end_time - this%program_start_time, kind=dp) / rate
+  end function get_total_time
+
 
   !> Subroutine to start a wall clock timer.
   !!
@@ -114,8 +164,10 @@ contains
     call system_clock(end_time, rate)
 
     elapsed_time = real(end_time - selected_start_time, kind=dp) / rate
-    call log_message(message // " (" // str(elapsed_time, fmt="f20.3") // " s)", &
-                   & level=loglevel)
+    call log_message( &
+      message // " (" // str(elapsed_time, fmt="f20.3") // " s)", &
+      level=loglevel &
+      )
   end subroutine toc
 
   !> Subroutine to start a CPU timer.
@@ -160,12 +212,12 @@ contains
     character(len=*), intent(in)           :: message
     !> Optional starting time. If not present the time recorded in
     !! the module variable is used.
-    real, intent(in), optional             :: start_time
+    real(dp), intent(in), optional :: start_time
     !> The level (severity) of the message, default is <tt>"debug"</tt>.
     character(len=*), intent(in), optional :: level
 
-    real                      :: selected_start_time, end_time
-    real(dp)                  :: elapsed_time
+    real(dp) :: selected_start_time, end_time
+    real(dp) :: elapsed_time
     character(:), allocatable :: loglevel
 
     if (present(start_time)) then
@@ -183,8 +235,10 @@ contains
     call cpu_time(end_time)
 
     elapsed_time = end_time - selected_start_time
-    call log_message(message // " (" // str(elapsed_time, fmt="f20.3") // " s, CPU time)", &
-                   & level=loglevel)
+    call log_message( &
+      message // " (" // str(elapsed_time, fmt="f20.3") // " s, CPU time)", &
+      level=loglevel &
+    )
   end subroutine cputoc
 
 end module mod_timing
