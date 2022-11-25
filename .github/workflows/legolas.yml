@@ -34,10 +34,14 @@ jobs:
       with:
         python-version: 3.9
 
+    - name: Install cmake
+      uses: jwlawson/actions-setup-cmake@v1.13.0
+      with:
+        cmake-version: "3.24.x"
+
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt-get -y install cmake
         sudo apt-get install libblas-dev
         sudo apt-get install liblapack-dev
         sudo apt-get install lcov

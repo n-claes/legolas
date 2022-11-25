@@ -1,6 +1,5 @@
 import os
 import sys
-
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -42,14 +41,15 @@ def _main():
 
     ds = pylbo.load(datfile)
     pylbo.plot_equilibrium(ds)
-    p = pylbo.plot_spectrum(ds)
+    p = pylbo.plot_spectrum(ds, use_residuals=ds.has_residuals)
     p.add_continua()
     if ds.efs_written:
         p.add_eigenfunctions()
     if ds.derived_efs_written:
-        p2 = pylbo.plot_spectrum(ds)
+        p2 = pylbo.plot_spectrum(ds, use_residuals=ds.has_residuals)
         p2.add_continua()
         p2.add_derived_eigenfunctions()
+        p2.draw()
     p.show()
 
 

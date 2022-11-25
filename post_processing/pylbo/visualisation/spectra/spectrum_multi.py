@@ -1,5 +1,5 @@
+import matplotlib.colors as mpl_colors
 import numpy as np
-from matplotlib import colors
 from pylbo.utilities.toolbox import add_pickradius_to_item, transform_to_numpy
 from pylbo.visualisation.continua import ContinuaHandler
 from pylbo.visualisation.eigenfunctions.derived_eigfunc_handler import (
@@ -149,21 +149,21 @@ class MultiSpectrumPlot(SpectrumFigure):
         Draw method, creates the spectrum.
         """
         for i, ds in enumerate(self.dataseries):
-            (spectrum_point,) = self.ax.plot(
+            spectrum_points = self.ax.scatter(
                 self.xdata[i]
                 * np.ones_like(self.ydata[i], dtype=float)
                 * self.x_scaling[i],
                 self.ydata[i] * self.y_scaling[i],
                 marker=self.marker,
                 color=self.color,
-                markersize=self.markersize,
+                s=10 * self.markersize,
                 alpha=self.alpha,
                 linestyle="None",
                 **self.plot_props,
             )
-            add_pickradius_to_item(item=spectrum_point, pickradius=10)
+            add_pickradius_to_item(item=spectrum_points, pickradius=10)
             # set dataset associated with this line of points
-            setattr(spectrum_point, "dataset", ds)
+            setattr(spectrum_points, "dataset", ds)
         self.ax.axhline(y=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
 
@@ -207,8 +207,8 @@ class MultiSpectrumPlot(SpectrumFigure):
                     self.xdata * self.x_scaling,
                     min_values * self.y_scaling,
                     max_values * self.y_scaling,
-                    facecolor=colors.to_rgba(color, self._c_handler.alpha_region),
-                    edgecolor=colors.to_rgba(color, self._c_handler.alpha_point),
+                    facecolor=mpl_colors.to_rgba(color, self._c_handler.alpha_region),
+                    edgecolor=mpl_colors.to_rgba(color, self._c_handler.alpha_point),
                     linewidth=self._c_handler.linewidth,
                     label=key,
                 )

@@ -1,3 +1,4 @@
+import matplotlib.colors as mpl_colors
 import numpy as np
 from pylbo.utilities.toolbox import add_pickradius_to_item
 from pylbo.visualisation.continua import ContinuaHandler
@@ -20,6 +21,8 @@ class SingleSpectrumPlot(SpectrumFigure):
         Figure size used when creating a window, analogous to matplotlib.
     custom_figure : tuple
         The custom figure to use in the form (fig, axes).
+    use_residuals : bool
+        If `True`, colors the spectrum points based on the residuals.
 
     Attributes
     ----------
@@ -37,31 +40,35 @@ class SingleSpectrumPlot(SpectrumFigure):
         Alpha value of the points.
     """
 
-    def __init__(self, dataset, figsize, custom_figure, **kwargs):
+    def __init__(self, dataset, figsize, custom_figure, use_residuals, **kwargs):
         super().__init__(
             custom_figure=custom_figure, figlabel="single-spectrum", figsize=figsize
         )
         self.dataset = dataset
         super()._set_plot_properties(kwargs)
 
-        self.w_real = self.dataset.eigenvalues.real
-        self.w_imag = self.dataset.eigenvalues.imag
+        self._use_residuals = use_residuals
+        (self._nonzero_w_idxs,) = np.where(abs(dataset.eigenvalues) > 1e-12)
 
     def add_spectrum(self):
         """Adds the spectrum to the plot, makes the points pickable."""
-        (spectrum_point,) = self.ax.plot(
-            self.w_real * self.x_scaling,
-            self.w_imag * self.y_scaling,
+        spectrum_points = self.ax.scatter(
+            self.dataset.eigenvalues[self._nonzero_w_idxs].real * self.x_scaling,
+            self.dataset.eigenvalues[self._nonzero_w_idxs].imag * self.y_scaling,
             marker=self.marker,
-            color=self.color,
-            markersize=self.markersize,
+            c=self._get_colors(),
+            s=10 * self.markersize,
             alpha=self.alpha,
             linestyle="None",
+            norm=mpl_colors.LogNorm() if self._use_residuals else None,
+            cmap=self.plot_props.pop("cmap", "jet") if self._use_residuals else None,
             **self.plot_props,
         )
         # set dataset associated with this line of points
-        setattr(spectrum_point, "dataset", self.dataset)
-        add_pickradius_to_item(item=spectrum_point, pickradius=10)
+        setattr(spectrum_points, "dataset", self.dataset)
+        add_pickradius_to_item(item=spectrum_points, pickradius=10)
+        if self._use_residuals:
+            self.cbar = self.fig.colorbar(spectrum_points, ax=self.ax, label="Residual")
         self.ax.axhline(y=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.set_xlabel(r"Re($\omega$)")
@@ -126,3 +133,9 @@ class SingleSpectrumPlot(SpectrumFigure):
                 self.dataset, self._def_ax, self.ax
             )
         super().add_eigenfunction_interface(efhandler=self._def_handler)
+
+    def _get_colors(self) -> np.ndarray:
+        """Returns the colors for the spectrum points."""
+        if self._use_residuals:
+            return self.dataset.get_residuals()[self._nonzero_w_idxs]
+        return self.color

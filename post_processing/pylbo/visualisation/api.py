@@ -14,7 +14,9 @@ from pylbo.visualisation.spectra.spectrum_single import SingleSpectrumPlot
 forbidden_args = ["linestyle", "linewidth", "lw"]
 
 
-def plot_spectrum(data, figsize=None, custom_figure=None, **kwargs):
+def plot_spectrum(
+    data, figsize=None, custom_figure=None, use_residuals=False, **kwargs
+):
     """
     Plots the spectrum of a single dataset.
 
@@ -28,6 +30,8 @@ def plot_spectrum(data, figsize=None, custom_figure=None, **kwargs):
         Optional, in the form (fig, ax). If supplied no new figure will be created
         but this one will be used instead. `fig` refers to the matplotlib figure and
         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+    use_residuals : bool
+        If `True`, colors the spectrum based on the residual in the datfile.
 
     Returns
     -------
@@ -39,7 +43,7 @@ def plot_spectrum(data, figsize=None, custom_figure=None, **kwargs):
     for arg in forbidden_args:
         if kwargs.pop(arg, None) is not None:
             pylboLogger.warning(f"plot_spectrum does not accept the '{arg}' argument.")
-    p = SingleSpectrumPlot(data, figsize, custom_figure, **kwargs)
+    p = SingleSpectrumPlot(data, figsize, custom_figure, use_residuals, **kwargs)
     return p
 
 
@@ -66,9 +70,6 @@ def plot_spectrum_multi(
         If `True`, this will square the eigenvalues when they are plotted on the
         vertical axis. If `False` (default), either the real or imaginary part of the
         eigenvalues will be plotted depending on the value of `use_real_parts`.
-    use_real_parts : bool
-        If `True` (default), this will plot the real part of the eigenvalues on the
-        vertical axis. If `False` the imaginary part will be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
     custom_figure : tuple
@@ -139,6 +140,7 @@ def plot_spectrum_comparison(
     figsize=None,
     custom_figure=None,
     lock_zoom=False,
+    use_residuals=False,
     **kwargs,
 ):
     """
@@ -158,6 +160,8 @@ def plot_spectrum_comparison(
         If `True` (`False` by default), locks the zoom of both axis. When locked,
         zoomin in on one of the axis automatically scales the zoom on the other one
         as well.
+    use_residuals : bool
+        If `True`, colors the spectrum based on the residual in the datfile.
 
     Returns
     -------
@@ -167,7 +171,9 @@ def plot_spectrum_comparison(
     """
     ensure_dataset(ds1)
     ensure_dataset(ds2)
-    p = SpectrumComparisonPlot(ds1, ds2, figsize, custom_figure, lock_zoom, **kwargs)
+    p = SpectrumComparisonPlot(
+        ds1, ds2, figsize, custom_figure, lock_zoom, use_residuals, **kwargs
+    )
     return p
 
 

@@ -18,6 +18,8 @@ class SpectrumComparisonPlot(SpectrumFigure):
         The custom figure to use in the form (fig, axes).
     lock_zoom : bool
         If `True`, locks the zoom for both spectrum plots.
+    use_residuals : bool
+        If `True`, colors the spectrum points based on the residuals.
 
     Attributes
     ----------
@@ -29,7 +31,9 @@ class SpectrumComparisonPlot(SpectrumFigure):
         The spectrum instance associated with the right side.
     """
 
-    def __init__(self, ds1, ds2, figsize, custom_figure, lock_zoom, **kwargs):
+    def __init__(
+        self, ds1, ds2, figsize, custom_figure, lock_zoom, use_residuals, **kwargs
+    ):
         super().__init__(
             custom_figure=custom_figure, figlabel="compare-spectra", figsize=figsize
         )
@@ -41,11 +45,17 @@ class SpectrumComparisonPlot(SpectrumFigure):
         # both panels are essentially single spectra, so create two instances and
         # link that figure with this one
         self.panel1 = SingleSpectrumPlot(
-            ds1, figsize=figsize, custom_figure=(self.fig, self.ax)
+            ds1,
+            figsize=figsize,
+            custom_figure=(self.fig, self.ax),
+            use_residuals=use_residuals,
         )
         self.panel1.ax.set_title(ds1.datfile.stem)
         self.panel2 = SingleSpectrumPlot(
-            ds2, figsize=figsize, custom_figure=(self.fig, self.ax2)
+            ds2,
+            figsize=figsize,
+            custom_figure=(self.fig, self.ax2),
+            use_residuals=use_residuals,
         )
         self.panel2.ax.set_title(ds2.datfile.stem)
         self._axes_set = False

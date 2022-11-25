@@ -258,6 +258,11 @@ class LegolasDataSet(LegolasDataContainer):
         return "z"
 
     @property
+    def has_residuals(self) -> bool:
+        """Returns `True` if the dataset has residuals."""
+        return self.header["residuals_written"]
+
+    @property
     def efs_written(self):
         """
         Checks if eigenfunctions are present.
@@ -610,7 +615,7 @@ class LegolasDataSet(LegolasDataContainer):
         ResidualsNotPresent
             If the residuals were not saved to the datfile.
         """
-        if not self.header["residuals_written"]:
+        if not self.has_residuals:
             raise ResidualsNotPresent(self.datfile)
         with open(self.datfile, "rb") as istream:
             res = read_residuals(istream, self.header)
