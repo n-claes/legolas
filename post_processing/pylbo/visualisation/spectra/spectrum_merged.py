@@ -48,6 +48,11 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._single_color = True
             # if everything is 1 color no use for a legend
             self._use_legend = False
+        if isinstance(kwargs.get("colours", None), dict):
+            if isinstance(kwargs.get("colour_parameter", None), str):
+                self._colour_from_parameter = True
+                self._colours = kwargs.get("colours", None) # could automise colour picking per parameter by first looping over ds and counting nr of parameters
+                self._colour_parameter = kwargs.get("colour_parameter", None)
         self._interactive = interactive
 
     def add_spectrum(self):
@@ -56,6 +61,8 @@ class MergedSpectrumPlot(SpectrumFigure):
         if self._single_color:
             color = self.color
         for ds in self.data:
+            if self._colour_from_parameter:
+                color = self._colours[ds.parameters[self._colour_parameter]]
             spectrum_point = self.ax.scatter(
                 ds.eigenvalues.real * self.x_scaling,
                 ds.eigenvalues.imag * self.y_scaling,
