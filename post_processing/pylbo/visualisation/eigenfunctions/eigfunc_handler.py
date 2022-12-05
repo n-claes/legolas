@@ -10,7 +10,7 @@ class EigenfunctionHandler(EigenfunctionInterface):
     Main handler for eigenfunctions.
     """
 
-    def __init__(self, data, ef_ax, spec_ax, draw_resonance):
+    def __init__(self, data, ef_ax, spec_ax, draw_resonance=False):
         super().__init__(data, ef_ax, spec_ax, draw_resonance)
         self._function_names = self.data.ef_names
         self.spec_axis.set_title(f"{self.spec_axis.get_title()} -- eigenfunctions")

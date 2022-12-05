@@ -39,7 +39,7 @@ def get_artist_data(artist: plt.Artist) -> tuple[np.ndarray, np.ndarray]:
 class EigenfunctionInterface:
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, data, axis, spec_axis, draw_resonance):
+    def __init__(self, data, axis, spec_axis, draw_resonance=False):
         self.data = data
         self.axis = axis
         self.spec_axis = spec_axis
