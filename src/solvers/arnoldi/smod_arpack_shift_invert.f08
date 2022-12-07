@@ -34,6 +34,8 @@ contains
     type(banded_matrix_t) :: bmat_banded
     integer :: xstart, xend, ystart, yend
     complex(dp) :: bxvector(arpack_cfg%get_evpdim())
+    complex(dp), allocatable :: amat_min_sigmab_LU(:, :)
+    integer, allocatable :: ipiv_LU(:)
 
     call log_message("creating banded A - sigma*B", level="debug")
     diags = dim_quadblock - 1
@@ -52,6 +54,9 @@ contains
 
     ! form A - sigma*B, we ensured the banded matrices are compatible
     amat_min_sigmab_banded%AB = amat_min_sigmab_banded%AB - sigma * bmat_banded%AB
+    call get_LU_factorisation_banded( &
+      bandmatrix=amat_min_sigmab_banded, LU=amat_min_sigmab_LU, ipiv=ipiv_LU &
+    )
 
     call log_message("doing Arnoldi shift-invert", level="debug")
     converged = .false.
@@ -91,14 +96,22 @@ contains
         ! 1. calculate u = B*x
         ! 2. solve linear system [A - sigma*B] * R = u for R
         bxvector = multiply(bmat_banded, workd(xstart:xend))
-        workd(ystart:yend) = solve_linear_system_complex_banded( &
-          bandmatrix=amat_min_sigmab_banded, vector=bxvector &
+        workd(ystart:yend) = solve_linear_system_complex_banded_LU( &
+          bandmatrix=amat_min_sigmab_banded, &
+          vector=bxvector, &
+          LU=amat_min_sigmab_LU, &
+          ipiv=ipiv_LU &
         )
       case default
         ! when convergence is achieved or maxiter is reached
         exit
       end select
     end do
+
+    deallocate(ipiv_LU)
+    deallocate(amat_min_sigmab_LU)
+    call bmat_banded%destroy()
+    call amat_min_sigmab_banded%destroy()
 
     ! check info parameter from znaupd, this errors if necessary
     call arpack_cfg%parse_znaupd_info(converged)
