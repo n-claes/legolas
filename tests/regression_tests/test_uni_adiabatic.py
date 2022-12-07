@@ -61,6 +61,7 @@ class TestUniAdiabaticQZ(TestUniAdiabaticQR):
     filename = "uni_adiab_QZ_k2_0_k3_pi"
     use_custom_baseline = "uni_adiab_QR_k2_0_k3_pi"
     solver_settings = {"solver": "QZ-direct"}
+    custom_evs_all_real_tol = 5e-9
 
 
 class TestUniAdiabaticQRCholesky(TestUniAdiabaticQR):
