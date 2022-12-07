@@ -133,6 +133,19 @@ contains
   end subroutine sort_complex_array
 
 
+  function create_identity_matrix(nbrows, diagonal_value) result(idmat)
+    integer, intent(in) :: nbrows
+    complex(dp), intent(in) :: diagonal_value
+    complex(dp) :: idmat(nbrows, nbrows)
+    integer :: i
+
+    idmat = (0.0d0, 0.0d0)
+    do i = 1, nbrows
+      idmat(i, i) = diagonal_value
+    end do
+  end function create_identity_matrix
+
+
   subroutine create_banded_array(subdiags, superdiags, mat)
     integer, intent(in) :: subdiags, superdiags
     complex(dp), intent(out) :: mat(8, 8)

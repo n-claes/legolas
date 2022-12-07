@@ -1,7 +1,8 @@
 module mod_test_solvers_linear_systems
   use mod_suite_utils
   use funit
-  use mod_linear_systems, only: solve_linear_system_complex_banded
+  use mod_linear_systems, only: solve_linear_system_complex_banded, &
+    solve_linear_system_complex_banded_LU, get_LU_factorisation_banded
   use mod_banded_matrix, only: banded_matrix_t
   use mod_transform_matrix, only: array_to_banded
   implicit none
@@ -10,8 +11,41 @@ module mod_test_solvers_linear_systems
   complex(dp), parameter :: bvector(8) = [ &
     1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0, 6.0d0, 7.0d0, 8.0d0 &
   ] * (1.0d0, 1.0d0)
+  complex(dp), allocatable :: LU(:, :)
+  integer, allocatable :: ipiv(:)
 
   complex(dp) :: actual(8), expected(8)
+   ! these come from scipy.linalg.solve
+  complex(dp), parameter :: expected_equal_diags(8) = [ &
+    (-0.99619592d0, -0.55662593d0), &
+    (-0.17362219d0, -0.79248836d0), &
+    (-0.09418966d0, 0.51696661d0), &
+    (0.28437612d0, -0.25123575d0), &
+    (0.39204755d0, -0.1898519d0), &
+    (0.49666747d0, 0.12248596d0), &
+    (0.79643255d0, -0.6140133d0), &
+    (1.3064335d0, 2.44482155d0) &
+  ]
+  complex(dp), parameter :: expected_more_superdiags(8) = [ &
+    (-2.51878679d0, 0.04721232d0), &
+    (-0.50188952d0, 0.27246476d0), &
+    (-0.32133333d0, -0.7792381d0), &
+    (0.46285714d0, -0.66857143d0), &
+    (0.6d0, -0.2d0), &
+    (0.88884952d0, 0.67224381d0), &
+    (1.05531683d0, -1.3486146d0), &
+    (7.10217872d0, 5.8510766d0) &
+  ]
+  complex(dp), parameter :: expected_more_subdiags(8) = [ &
+    (0.02350837d0, -0.31515451d0), &
+    (0.05757693d0, -0.20216356d0), &
+    (0.29984402d0, -0.13860867d0), &
+    (0.35918888d0, 0.47923489d0), &
+    (0.49440269d0, -0.16181365d0), &
+    (0.51407726d0, -0.74773964d0), &
+    (1.00769576d0, -0.63968409d0), &
+    (1.12949026d0, 0.19710028d0) &
+  ]
 
 contains
 
@@ -24,19 +58,17 @@ contains
   @after
   subroutine tear_down()
     call bandmatrix%destroy()
+    if (allocated(LU)) deallocate(LU)
+    if (allocated(ipiv)) deallocate(ipiv)
   end subroutine tear_down
 
 
   @test
   subroutine test_solve_linear_real_identity_matrix()
-    integer :: i
     complex(dp) :: idmat(8, 8)
 
     call set_name("solve linear system: real identity matrix")
-    idmat = (0.0d0, 0.0d0)
-    do i = 1, 8
-      idmat(i, i) = (1.0d0, 0.0d0)
-    end do
+    idmat = create_identity_matrix(nbrows=8, diagonal_value=(1.0d0, 0.0d0))
     call array_to_banded(array=idmat, subdiags=0, superdiags=0, banded=bandmatrix)
     actual = solve_linear_system_complex_banded(bandmatrix, bvector)
     @assertEqual(bvector, actual, tolerance=TOL)
@@ -45,14 +77,10 @@ contains
 
   @test
   subroutine test_solve_linear_pure_complex_identity_matrix()
-    integer :: i
     complex(dp) :: idmat(8, 8)
 
     call set_name("solve linear system: pure complex identity matrix")
-    idmat = (0.0d0, 0.0d0)
-    do i = 1, 8
-      idmat(i, i) = (0.0d0, 1.0d0)
-    end do
+    idmat = create_identity_matrix(nbrows=8, diagonal_value=(0.0d0, 1.0d0))
     call array_to_banded(array=idmat, subdiags=0, superdiags=0, banded=bandmatrix)
     actual = solve_linear_system_complex_banded(bandmatrix, bvector)
     ! solution should be complex conjugate of B-vector
@@ -66,15 +94,31 @@ contains
     complex(dp) :: idmat(8, 8)
 
     call set_name("solve linear system: complex identity matrix")
-    idmat = (0.0d0, 0.0d0)
+    idmat = create_identity_matrix(nbrows=8, diagonal_value=(1.0d0, 1.0d0))
     do i = 1, 8
-      idmat(i, i) = (1.0d0, 1.0d0)
       expected(i) = cmplx(i, 0.0d0, kind=dp)
     end do
     call array_to_banded(array=idmat, subdiags=0, superdiags=0, banded=bandmatrix)
     actual = solve_linear_system_complex_banded(bandmatrix, bvector)
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_solve_linear_complex_identity_matrix
+
+
+  @test
+  subroutine test_solve_linear_complex_identity_matrix_LU()
+    integer :: i
+    complex(dp) :: idmat(8, 8)
+
+    call set_name("solve linear system: complex identity matrix (LU)")
+    idmat = create_identity_matrix(nbrows=8, diagonal_value=(1.0d0, 1.0d0))
+    do i = 1, 8
+      expected(i) = cmplx(i, 0.0d0, kind=dp)
+    end do
+    call array_to_banded(array=idmat, subdiags=0, superdiags=0, banded=bandmatrix)
+    call get_LU_factorisation_banded(bandmatrix, LU, ipiv)
+    actual = solve_linear_system_complex_banded_LU(bandmatrix, bvector, LU, ipiv)
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_solve_linear_complex_identity_matrix_LU
 
 
   @test
@@ -86,20 +130,25 @@ contains
     call array_to_banded(array=bandarray, subdiags=2, superdiags=2, banded=bandmatrix)
     actual = solve_linear_system_complex_banded(bandmatrix, bvector)
     call sort_complex_array(actual)
-
-    ! these come from scipy.linalg.solve
-    expected = [ &
-      (-0.99619592d0, -0.55662593d0), &
-      (-0.17362219d0, -0.79248836d0), &
-      (-0.09418966d0, 0.51696661d0), &
-      (0.28437612d0, -0.25123575d0), &
-      (0.39204755d0, -0.1898519d0), &
-      (0.49666747d0, 0.12248596d0), &
-      (0.79643255d0, -0.6140133d0), &
-      (1.3064335d0, 2.44482155d0) &
-    ]
-    @assertEqual(expected, actual, tolerance=1.0d-8)
+    @assertEqual(expected_equal_diags, actual, tolerance=1.0d-8)
   end subroutine test_solve_linear_complex_equal_diags
+
+
+  @test
+  subroutine test_solve_linear_complex_equal_diags_LU()
+    complex(dp) :: bandarray(8, 8)
+
+    call set_name( &
+      "solve linear system: complex matrix with equal number of diagonals (LU)" &
+    )
+    call create_banded_array(subdiags=2, superdiags=2, mat=bandarray)
+    call array_to_banded(array=bandarray, subdiags=2, superdiags=2, banded=bandmatrix)
+
+    call get_LU_factorisation_banded(bandmatrix, LU, ipiv)
+    actual = solve_linear_system_complex_banded_LU(bandmatrix, bvector, LU, ipiv)
+    call sort_complex_array(actual)
+    @assertEqual(expected_equal_diags, actual, tolerance=1.0d-8)
+  end subroutine test_solve_linear_complex_equal_diags_LU
 
 
   @test
@@ -112,19 +161,23 @@ contains
     actual = solve_linear_system_complex_banded(bandmatrix, bvector)
     call sort_complex_array(actual)
 
-    ! from scipy.linalg.solve
-    expected = [ &
-      (-2.51878679d0, 0.04721232d0), &
-      (-0.50188952d0, 0.27246476d0), &
-      (-0.32133333d0, -0.7792381d0), &
-      (0.46285714d0, -0.66857143d0), &
-      (0.6d0, -0.2d0), &
-      (0.88884952d0, 0.67224381d0), &
-      (1.05531683d0, -1.3486146d0), &
-      (7.10217872d0, 5.8510766d0) &
-    ]
-    @assertEqual(expected, actual, tolerance=1.0d-8)
+    @assertEqual(expected_more_superdiags, actual, tolerance=1.0d-8)
   end subroutine test_solve_linear_complex_more_superdiags
+
+
+  @test
+  subroutine test_solve_linear_complex_more_superdiags_LU()
+    complex(dp) :: bandarray(8, 8)
+
+    call set_name("solve linear system: complex matrix with superdiags > subdiags (LU)")
+    call create_banded_array(subdiags=0, superdiags=2, mat=bandarray)
+    call array_to_banded(array=bandarray, subdiags=0, superdiags=2, banded=bandmatrix)
+    call get_LU_factorisation_banded(bandmatrix, LU, ipiv)
+    actual = solve_linear_system_complex_banded_LU(bandmatrix, bvector, LU, ipiv)
+    call sort_complex_array(actual)
+
+    @assertEqual(expected_more_superdiags, actual, tolerance=1.0d-8)
+  end subroutine test_solve_linear_complex_more_superdiags_LU
 
 
   @test
@@ -136,19 +189,21 @@ contains
     call array_to_banded(array=bandarray, subdiags=2, superdiags=1, banded=bandmatrix)
     actual = solve_linear_system_complex_banded(bandmatrix, bvector)
     call sort_complex_array(actual)
-
-    ! from scipy.linalg.solve
-    expected = [ &
-      (0.02350837d0, -0.31515451d0), &
-      (0.05757693d0, -0.20216356d0), &
-      (0.29984402d0, -0.13860867d0), &
-      (0.35918888d0, 0.47923489d0), &
-      (0.49440269d0, -0.16181365d0), &
-      (0.51407726d0, -0.74773964d0), &
-      (1.00769576d0, -0.63968409d0), &
-      (1.12949026d0, 0.19710028d0) &
-    ]
-    @assertEqual(expected, actual, tolerance=1.0d-8)
+    @assertEqual(expected_more_subdiags, actual, tolerance=1.0d-8)
   end subroutine test_solve_linear_complex_more_subdiags
+
+
+  @test
+  subroutine test_solve_linear_complex_more_subdiags_LU()
+    complex(dp) :: bandarray(8, 8)
+
+    call set_name("solve linear system: complex matrix with subdiags > superdiags (LU)")
+    call create_banded_array(subdiags=2, superdiags=1, mat=bandarray)
+    call array_to_banded(array=bandarray, subdiags=2, superdiags=1, banded=bandmatrix)
+    call get_LU_factorisation_banded(bandmatrix, LU, ipiv)
+    actual = solve_linear_system_complex_banded_LU(bandmatrix, bvector, LU, ipiv)
+    call sort_complex_array(actual)
+    @assertEqual(expected_more_subdiags, actual, tolerance=1.0d-8)
+  end subroutine test_solve_linear_complex_more_subdiags_LU
 
 end module mod_test_solvers_linear_systems
