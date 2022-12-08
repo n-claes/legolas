@@ -91,7 +91,7 @@ class TestCase:
     def eigenvalues_are_real(self):
         return False
 
-    def setup(self, outputdir):
+    def run_settings(self, outputdir):
         _setup = {
             "geometry": self.geometry,
             "x_start": getattr(self, "x_start", 0),
@@ -158,7 +158,7 @@ class TestCase:
 class RegressionTest(TestCase):
     @only_for_baseline_generation
     def test_generate_baseline(self, capturemanager, file_base):
-        setup = self.setup(outputdir=file_base.parent)
+        setup = self.run_settings(outputdir=file_base.parent)
         setup.update({"basename_datfile": file_base.stem})
         if setup.get("solver") in SOLVERS_WITHOUT_BASELINE_GENERATION:
             pytest.skip(f"solver '{setup.get('solver')}' uses the QR-invert baseline")
@@ -172,7 +172,7 @@ class RegressionTest(TestCase):
 
     @pytest.fixture(scope="class")
     def ds_test(self, file_test, datfiledir):
-        setup = self.setup(datfiledir)
+        setup = self.run_settings(datfiledir)
         self.generate_test_dataset(setup)
         return pylbo.load(file_test)
 
@@ -196,6 +196,7 @@ class RegressionTest(TestCase):
             pp.ax.set_xlim(xlim)
             pp.ax.set_ylim(ylim)
             pp.ax.set_title(self.name)
+            pp.draw()
             pp.fig.savefig(name, **self.SAVEFIG_KWARGS)
             plt.close(pp.fig)
         return (figname_test, figname_base)
@@ -328,7 +329,7 @@ class MultiRegressionTest(TestCase):
     def test_generate_baseline(self, capturemanager, file_base):
         if use_existing_baseline(capturemanager, file_base.with_suffix(".pickle")):
             pytest.skip("using existing file")
-        setup = self.setup(outputdir=file_base.parent)
+        setup = self.run_settings(outputdir=file_base.parent)
         setup.update({"basename_datfile": file_base.stem})
         self.generate_test_dataseries(setup, capturemanager)
         # get generated files
@@ -347,7 +348,7 @@ class MultiRegressionTest(TestCase):
 
     @pytest.fixture(scope="class")
     def series_test(self, capturemanager, datfiledir):
-        setup = self.setup(datfiledir)
+        setup = self.run_settings(datfiledir)
         setup.update({"number_of_runs": self.number_of_runs})
         self.generate_test_dataseries(setup, capturemanager)
         return pylbo.load_series(sorted(datfiledir.glob(f"*{self.filename}.dat")))
@@ -391,6 +392,7 @@ class MultiRegressionTest(TestCase):
             pp.ax.set_xlim(xlim)
             pp.ax.set_ylim(ylim)
             pp.ax.set_title(self.name)
+            pp.draw()
             pp.fig.savefig(name, **self.SAVEFIG_KWARGS)
             plt.close(pp.fig)
         return (figname_test, figname_base)
