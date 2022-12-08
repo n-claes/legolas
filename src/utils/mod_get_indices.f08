@@ -36,7 +36,7 @@ contains
 
     match_idx = 0
     do i = 1, size(array)
-      if (array(i) == name) then
+      if (array(i) == trim(adjustl(name))) then
         match_idx = i
         exit
       end if
