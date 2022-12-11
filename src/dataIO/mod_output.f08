@@ -3,6 +3,7 @@
 module mod_output
   use mod_global_variables, only: dp, str_len, dp_LIMIT
   use mod_matrix_structure, only: matrix_t
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -71,7 +72,7 @@ contains
   !! @note    Eigenvectors are only written if this is enabled in the
   !!          global variables. @endnote
   !! @note    The extension <tt>".dat"</tt> is appended to the filename. @endnote
-  subroutine create_datfile(eigenvalues, matrix_A, matrix_B, eigenvectors)
+  subroutine create_datfile(eigenvalues, matrix_A, matrix_B, eigenvectors, settings)
     use mod_global_variables
     use mod_version, only: LEGOLAS_VERSION
     use mod_logging, only: log_message
@@ -92,6 +93,8 @@ contains
     type(matrix_t), intent(in) :: matrix_B
     !> the eigenvectors
     complex(dp), intent(in)       :: eigenvectors(:, :)
+    !> the settings object
+    type(settings_t), intent(in)  :: settings
 
     real(dp)  :: b01_array(size(B_field % B02))
     character(len=str_len_arr)    :: param_names(34), equil_names(32)
@@ -171,7 +174,7 @@ contains
     ! Eigenfunction data [optional]
     if (write_eigenfunctions) then
       call log_message("writing eigenfunctions...", level="info")
-      write(dat_fh) size(state_vector), state_vector
+      write(dat_fh) settings%dims%get_nb_eqs(), settings%get_state_vector()
       write(dat_fh) ef_grid
       write(dat_fh) size(ef_written_flags), ef_written_flags
       write(dat_fh) size(ef_written_idxs), ef_written_idxs

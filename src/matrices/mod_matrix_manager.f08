@@ -6,6 +6,7 @@ module mod_matrix_manager
   use mod_equilibrium_params, only: k2, k3
   use mod_logging, only: log_message, str
   use mod_matrix_shortcuts, only: get_G_operator, get_F_operator, get_wv_operator
+  use mod_settings, only: settings_t
   implicit none
 
   !> quadratic basis functions
@@ -84,7 +85,7 @@ module mod_matrix_manager
 
 contains
 
-  subroutine build_matrices(matrix_B, matrix_A)
+  subroutine build_matrices(matrix_B, matrix_A, settings)
     use mod_global_variables, only: gridpts, dim_quadblock, dim_subblock, &
         n_gauss, gaussian_weights, flow, resistivity, radiative_cooling, &
         thermal_conduction, viscosity, hall_mhd
@@ -97,6 +98,8 @@ contains
     type(matrix_t), intent(inout) :: matrix_B
     !> the A-matrix
     type(matrix_t), intent(inout) :: matrix_A
+    !> the settings object
+    type(settings_t), intent(in) :: settings
 
     !> quadblock for the A-matrix
     complex(dp) :: quadblock_A(dim_quadblock, dim_quadblock)
@@ -185,7 +188,7 @@ contains
       quadblock_idx = quadblock_idx + dim_subblock
     end do
 
-    call apply_boundary_conditions(matrix_A, matrix_B)
+    call apply_boundary_conditions(matrix_A, matrix_B, settings)
   end subroutine build_matrices
 
 

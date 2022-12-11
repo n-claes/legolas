@@ -105,9 +105,6 @@ module mod_global_variables
   !> size of a single eigenfunction array, automatically set by \p gridpts
   integer, protected        :: ef_gridpts
 
-  !> array containing the current state vector
-  character(len=str_len_arr), protected, allocatable :: state_vector(:)
-
   !> number of Gaussian nodes
   integer, parameter           :: n_gauss = 4
   !> values for the Gaussian nodes in [-1, 1]
@@ -325,10 +322,7 @@ contains
     !> gridpoints for the base grid
     integer, intent(in) :: points
 
-    state_vector = [ &
-      character(len=str_len_arr) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
-    ]
-    nb_eqs = size(state_vector)
+    nb_eqs = 8
     dim_integralblock = 2
     dim_subblock = nb_eqs * dim_integralblock
     dim_quadblock = dim_integralblock * dim_subblock

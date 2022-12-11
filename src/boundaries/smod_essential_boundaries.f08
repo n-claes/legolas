@@ -23,7 +23,10 @@ contains
     call zero_out_row_and_col( &
       matrix=matrix, &
       idxs=get_subblock_index( &
-        [character(len=3) :: "rho", "v2", "v3", "T", "a1"], odd=.true., edge="left" &
+        variables=[character(len=3) :: "rho", "v2", "v3", "T", "a1"], &
+        state_vector=settings%get_state_vector(), &
+        odd=.true., &
+        edge="left" &
       ), &
       limits=limits &
     )
@@ -42,7 +45,9 @@ contains
     ! apply wall/regularity conditions
     call zero_out_row_and_col( &
       matrix=matrix, &
-      idxs=get_subblock_index(cubic_vars_to_zero_out, odd=.true., edge="left"), &
+      idxs=get_subblock_index( &
+        cubic_vars_to_zero_out, settings%get_state_vector(), odd=.true., edge="left" &
+      ), &
       limits=limits &
     )
 
@@ -50,7 +55,9 @@ contains
     if (apply_T_bounds) then
       call zero_out_row_and_col( &
         matrix=matrix, &
-        idxs=get_subblock_index(["T"], odd=.false., edge="left"), &
+        idxs=get_subblock_index( &
+          ["T"], settings%get_state_vector(), odd=.false., edge="left" &
+        ), &
         limits=limits &
       )
     end if
@@ -59,7 +66,9 @@ contains
     if (apply_noslip_bounds_left) then
       call zero_out_row_and_col( &
         matrix=matrix, &
-        idxs=get_subblock_index(["v2", "v3"], odd=.false., edge="left"), &
+        idxs=get_subblock_index( &
+          ["v2", "v3"], settings%get_state_vector(), odd=.false., edge="left" &
+        ), &
         limits=limits &
       )
     end if
@@ -92,7 +101,7 @@ contains
     call zero_out_row_and_col( &
       matrix=matrix, &
       idxs=ishift + get_subblock_index( &
-        cubic_vars_to_zero_out, odd=.true., edge="right" &
+        cubic_vars_to_zero_out, settings%get_state_vector(), odd=.true., edge="right" &
       ), &
       limits=limits &
     )
@@ -101,7 +110,9 @@ contains
     if (apply_T_bounds) then
       call zero_out_row_and_col( &
         matrix=matrix, &
-        idxs=ishift + get_subblock_index(["T"], odd=.false., edge="right"), &
+        idxs=ishift + get_subblock_index( &
+          ["T"], settings%get_state_vector(), odd=.false., edge="right" &
+        ), &
         limits=limits &
       )
     end if
@@ -109,7 +120,9 @@ contains
     if (apply_noslip_bounds_right) then
       call zero_out_row_and_col( &
         matrix=matrix, &
-        idxs=ishift + get_subblock_index(["v2", "v3"], odd=.false., edge="right"), &
+        idxs=ishift + get_subblock_index( &
+          ["v2", "v3"], settings%get_state_vector(), odd=.false., edge="right" &
+        ), &
         limits=limits &
       )
     end if

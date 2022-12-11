@@ -42,7 +42,7 @@ program legolas
   call print_console_info(settings)
 
   call timer%start_timer()
-  call build_matrices(matrix_B, matrix_A)
+  call build_matrices(matrix_B, matrix_A, settings)
   timer%matrix_time = timer%end_timer()
 
   if (.not. dry_run) then
@@ -62,7 +62,7 @@ program legolas
   timer%eigenfunction_time = timer%end_timer()
 
   call timer%start_timer()
-  call create_datfile(omega, matrix_A, matrix_B, eigenvecs_right)
+  call create_datfile(omega, matrix_A, matrix_B, eigenvecs_right, settings)
   timer%datfile_time = timer%end_timer()
 
   call cleanup()
@@ -149,8 +149,8 @@ contains
     use mod_eigenfunctions, only: initialise_eigenfunctions, calculate_eigenfunctions
 
     if (write_eigenfunctions) then
-      call initialise_eigenfunctions(omega)
-      call calculate_eigenfunctions(eigenvecs_right)
+      call initialise_eigenfunctions(omega, settings%get_state_vector())
+      call calculate_eigenfunctions(eigenvecs_right, settings%get_state_vector())
     end if
   end subroutine create_eigenfunctions
 
