@@ -5,6 +5,7 @@ set (sources
         mod_equilibrium_params.f08
         dataIO/mod_exceptions.f08
         dataIO/mod_logging.f08
+        dataIO/mod_console.f08
         mod_physical_constants.f08
         utils/mod_get_indices.f08
         matrices/datastructure/mod_matrix_node.f08

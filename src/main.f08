@@ -12,7 +12,8 @@ program legolas
   use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_name, create_datfile
-  use mod_logging, only: log_message, str, print_console_info, print_whitespace
+  use mod_logging, only: log_message, str
+  use mod_console, only: print_console_info, print_whitespace
   use mod_inspections, only: handle_spurious_eigenvalues
   use mod_timing, only: timer_t, new_timer
   implicit none
@@ -81,7 +82,7 @@ contains
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
-    use mod_logging, only: print_logo
+    use mod_console, only: print_logo
 
     character(len=5*str_len)  :: parfile
     integer   :: nb_evs
