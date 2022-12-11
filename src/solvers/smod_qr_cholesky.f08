@@ -91,11 +91,8 @@ contains
     end do
     ! calculate eigenvectors, we don't use the left ones
     jobvl = "N"
-    if (should_compute_eigenvectors()) then
-      jobvr = "V"
-    else
-      jobvr = "N"
-    end if
+    jobvr = "N"
+    if (settings%io%should_compute_eigenvectors()) jobvr = "V"
     ! allocate rwork array
     allocate(rwork(2 * N))
     ! get lwork
@@ -128,7 +125,7 @@ contains
     deallocate(rwork)
 
     ! convert from Y to X by solving UX = Y
-    if (should_compute_eigenvectors()) then
+    if (settings%io%should_compute_eigenvectors()) then
       call log_message("computing evs as X = U^{-1}Y", level="debug")
       do i = 1, N
         call ztbsv("U", "N", "N", N, UU%kd, UU%AB, UU%kd+1, vr(1, i), 1)

@@ -196,7 +196,7 @@ contains
     omega = ev
 
     ! write eigenvector if requested
-    if (should_compute_eigenvectors()) then
+    if (settings%io%should_compute_eigenvectors()) then
       ! make largest coefficient real
       i = idamax(N, abs(x), 1)
       call zscal(N, conjg(x(i))/abs(x(i)), x, 1)

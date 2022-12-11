@@ -81,7 +81,7 @@ contains
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
     use mod_global_variables, only: initialise_globals, solver, number_of_eigenvalues, &
-     should_compute_eigenvectors, gamma, set_gamma, NaN, hall_mhd, x_start, x_end
+     gamma, set_gamma, NaN, hall_mhd, x_start, x_end
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
@@ -129,7 +129,7 @@ contains
     end if
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
-    if (should_compute_eigenvectors() .or. solver == "arnoldi") then
+    if (settings%io%should_compute_eigenvectors() .or. solver == "arnoldi") then
       call log_message("allocating eigenvector arrays", level="debug")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
       allocate(eigenvecs_right(settings%dims%get_dim_matrix(), nb_evs))
@@ -180,6 +180,7 @@ contains
       call radiative_cooling_clean()
     end if
     call eigenfunctions_clean()
+    call settings%delete()
   end subroutine cleanup
 
 

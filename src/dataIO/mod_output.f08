@@ -140,7 +140,8 @@ contains
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
       gauss_gridpts, settings%dims%get_dim_matrix(), ef_gridpts, gamma, &
       equilibrium_type, write_eigenfunctions, write_derived_eigenfunctions, &
-      write_matrices, write_eigenvectors, write_residuals, write_eigenfunction_subset, &
+      settings%io%write_matrices, settings%io%write_eigenvectors, &
+      settings%io%write_residuals, write_eigenfunction_subset, &
       eigenfunction_subset_center, eigenfunction_subset_radius
     write(dat_fh) size(param_names), len(param_names(1)), param_names
     write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, &
@@ -172,7 +173,7 @@ contains
       hall_field % hallfactor, hall_field % inertiafactor
 
     ! Eigenfunction data [optional]
-    if (write_eigenfunctions) then
+    if (settings%io%write_eigenfunctions) then
       call log_message("writing eigenfunctions...", level="info")
       write(dat_fh) settings%dims%get_nb_eqs(), settings%get_state_vector()
       write(dat_fh) ef_grid
@@ -193,13 +194,13 @@ contains
     end if
 
     ! Eigenvector data [optional]
-    if (write_eigenvectors) then
+    if (settings%io%write_eigenvectors) then
       call log_message("writing eigenvectors...", level="info")
       write(dat_fh) size(eigenvectors, 1), size(eigenvectors, 2), eigenvectors
     end if
 
     ! Residuals data [optional]
-    if (write_residuals) then
+    if (settings%io%write_residuals) then
       allocate(residuals(size(eigenvalues)))
       diags = settings%dims%get_dim_quadblock() - 1
       call matrix_to_banded( &
@@ -221,10 +222,10 @@ contains
     end if
 
     ! Matrix data [optional]
-    if (write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
+    if (settings%io%write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
 
     ! Matrix data [optional]
-    if (write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
+    if (settings%io%write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
 
     call log_message("results saved to " // trim(datfile_name), level="info")
     close(dat_fh)

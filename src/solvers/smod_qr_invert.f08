@@ -88,7 +88,7 @@ contains
 
     ! calculate eigenvectors, we don't use the left ones
     jobvr = "N"
-    if (should_compute_eigenvectors()) jobvr = "V"
+    if (settings%io%should_compute_eigenvectors()) jobvr = "V"
     ! allocate rwork array
     allocate(rwork(2 * N))
     ! get lwork

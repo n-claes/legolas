@@ -16,7 +16,7 @@ module mod_global_variables
   !> quadruple-precision value
   integer, parameter :: qp = real128
   !> default length for strings
-  integer, parameter :: str_len = 125
+  integer, parameter :: str_len = 500
   !> default length for strings in arrays
   integer, parameter :: str_len_arr = 16
 
@@ -131,12 +131,6 @@ module mod_global_variables
   !> amount of eigenvalues to remove on each side of the imaginary axis, defaults to 1
   integer                      :: nb_spurious_eigenvalues
 
-  !> boolean to write both matrices to the datfile, defaults to <tt>False</tt>
-  logical, save             :: write_matrices
-  !> boolean to write the eigenvectors to the datfile, defaults to <tt>False</tt>
-  logical, save             :: write_eigenvectors
-  !> boolean to write the residuals to the datfile, defaults to <tt>True</tt>
-  logical, save             :: write_residuals
   !> boolean to write the eigenfunctions to the datfile, defaults to <tt>True</tt>
   logical, save             :: write_eigenfunctions
   !> boolean to write postprocessed quantities to the datfile, defaults to <tt>True</tt>
@@ -239,9 +233,6 @@ contains
     nb_spurious_eigenvalues = 1
 
     !! post-processing parameters
-    write_eigenvectors = .false.
-    write_residuals = .true.
-    write_matrices = .false.
     write_eigenfunctions = .true.
     write_derived_eigenfunctions = .false.
     show_results = .true.
@@ -267,15 +258,6 @@ contains
     ncv = 0
     tolerance = DP_limit
   end subroutine initialise_globals
-
-  !> See if any output options require us to compute the eigenvectors
-  function should_compute_eigenvectors()
-    !> the result
-    logical :: should_compute_eigenvectors
-
-    should_compute_eigenvectors = &
-      write_eigenfunctions .or. write_eigenvectors .or. write_residuals
-  end function
 
   !> Sets the ratio of specific heats gamma and its corresponding
   !! value gamma - 1.

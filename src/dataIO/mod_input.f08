@@ -44,6 +44,7 @@ contains
     real(dp)    :: unit_density, unit_temperature, unit_magneticfield, unit_length
     real(dp)    :: mean_molecular_weight
     integer     :: gridpoints
+    logical :: write_matrices, write_eigenvectors, write_residuals
 
     namelist /physicslist/  &
         physics_type, mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
@@ -129,15 +130,11 @@ contains
     if (physics_type == "") physics_type = "mhd"
     call settings%initialise(physics_type, gridpoints)
 
-    ! Check dry run settings
-    if (dry_run) then
-      write_eigenvectors = .false.
-      write_residuals = .false.
-      write_eigenfunctions = .false.
-      write_matrices = .false.
-    end if
+    settings%io%write_matrices = write_matrices
+    settings%io%write_eigenvectors = write_eigenvectors
+    settings%io%write_residuals = write_residuals
+    if (dry_run) call settings%io%set_all_io_to_false()
 
-    ! Check eigenfunction settings
     if (write_derived_eigenfunctions .and. (.not. write_eigenfunctions)) then
       call log_message( &
         "derived quantities need eigenfunctions, these will also be saved in datfile", &
