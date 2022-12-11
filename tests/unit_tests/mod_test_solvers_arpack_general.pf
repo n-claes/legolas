@@ -5,10 +5,12 @@ module mod_test_solvers_arpack_general
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_global_variables, only: which_eigenvalues
   use mod_solvers, only: solve_evp
+  use mod_settings, only: settings_t, new_settings
   implicit none
 
   type(matrix_t) :: amat
   type(matrix_t) :: bmat
+  type(settings_t) :: settings
   complex(dp) :: vr(10, 10)
   integer, parameter :: nb_eigenvals = 4
   integer :: idxs(nb_eigenvals)
@@ -33,6 +35,8 @@ contains
   subroutine init_test()
     use mod_global_variables, only: solver, arpack_mode, number_of_eigenvalues, maxiter
     call reset_globals()
+    settings = new_settings()
+    call settings%initialise(physics_type="mhd", gridpts=10)
     solver = "arnoldi"
     arpack_mode = "general"
     number_of_eigenvalues = nb_eigenvals
@@ -44,6 +48,7 @@ contains
   subroutine tear_down()
     call amat%delete_matrix()
     call bmat%delete_matrix()
+    call settings%delete()
   end subroutine tear_down
 
 
@@ -86,7 +91,7 @@ contains
     integer :: i
     call set_name("solving EVP, arpack standard LM")
     which_eigenvalues = "LM"
-    call solve_evp(amat, bmat, actual, vr)
+    call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [4, 7, 9, 10]
     do i = 1, nb_eigenvals
@@ -101,7 +106,7 @@ contains
     call set_name("solving EVP, arpack standard SM")
     which_eigenvalues = "SM"
 
-    call solve_evp(amat, bmat, actual, vr)
+    call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [1, 2, 3, 5]
     do i = 1, nb_eigenvals
@@ -116,7 +121,7 @@ contains
     call set_name("solving EVP, arpack standard LR")
     which_eigenvalues = "LR"
 
-    call solve_evp(amat, bmat, actual, vr)
+    call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [7, 8, 9, 10]
     do i = 1, nb_eigenvals
@@ -131,7 +136,7 @@ contains
     call set_name("solving EVP, arpack standard SR")
     which_eigenvalues = "SR"
 
-    call solve_evp(amat, bmat, actual, vr)
+    call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [1, 2, 3, 4]
     do i = 1, nb_eigenvals
@@ -146,7 +151,7 @@ contains
     call set_name("solving EVP, arpack standard LI")
     which_eigenvalues = "LI"
 
-    call solve_evp(amat, bmat, actual, vr)
+    call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [4, 7, 9, 10]
     do i = 1, nb_eigenvals
@@ -161,7 +166,7 @@ contains
     call set_name("solving EVP, arpack standard SI")
     which_eigenvalues = "SI"
 
-    call solve_evp(amat, bmat, actual, vr)
+    call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [1, 2, 3, 8]
     do i = 1, nb_eigenvals

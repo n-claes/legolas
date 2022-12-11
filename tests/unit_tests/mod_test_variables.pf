@@ -54,12 +54,11 @@ contains
   @test
   subroutine test_matrix_properties_mhd()
     call set_name("matrix properties MHD")
-    call set_gridpts(10)
     @assertEqual(settings%dims%get_nb_eqs(), 8)
     @assertEqual(size(settings%get_state_vector()), 8)
-    @assertEqual(16, dim_subblock)
-    @assertEqual(32, dim_quadblock)
-    @assertEqual(160, dim_matrix)
+    @assertEqual(16, settings%dims%get_dim_subblock())
+    @assertEqual(32, settings%dims%get_dim_quadblock())
+    @assertEqual(160, settings%dims%get_dim_matrix())
   end subroutine test_matrix_properties_mhd
 
 end module mod_test_variables

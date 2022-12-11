@@ -95,6 +95,7 @@ contains
     idxs = get_subblock_index( &
       variables=["test1", "test2"], &
       state_vector=settings%get_state_vector(), &
+      dim_subblock=settings%dims%get_dim_subblock(), &
       odd=.true., &
       edge="left" &
     )
@@ -108,6 +109,7 @@ contains
     idxs = get_subblock_index( &
       variables=["v1", "v2", "a1"], &
       state_vector=settings%get_state_vector(), &
+      dim_subblock=settings%dims%get_dim_subblock(), &
       odd=.true., &
       edge="left" &
     )
@@ -121,6 +123,7 @@ contains
     idxs = get_subblock_index( &
       variables=["v1", "v2", "a1"], &
       state_vector=settings%get_state_vector(), &
+      dim_subblock=settings%dims%get_dim_subblock(), &
       odd=.false., &
       edge="left" &
     )
@@ -134,6 +137,7 @@ contains
     idxs = get_subblock_index( &
       variables=["v1", "v2", "a1"], &
       state_vector=settings%get_state_vector(), &
+      dim_subblock=settings%dims%get_dim_subblock(), &
       odd=.true., &
       edge="right" &
     )
@@ -147,6 +151,7 @@ contains
     idxs = get_subblock_index( &
       variables=["v1", "v2", "a1"], &
       state_vector=settings%get_state_vector(), &
+      dim_subblock=settings%dims%get_dim_subblock(), &
       odd=.false., &
       edge="right" &
     )
@@ -160,6 +165,7 @@ contains
     idxs = get_subblock_index( &
       variables=["v1", "00", "v2", "va", "T4"], &
       state_vector=settings%get_state_vector(), &
+      dim_subblock=settings%dims%get_dim_subblock(), &
       odd=.true., &
       edge="left" &
     )
@@ -173,6 +179,7 @@ contains
     idxs = get_subblock_index( &
       variables=["v1", "00", "v7", "v2", "T4"], &
       state_vector=settings%get_state_vector(), &
+      dim_subblock=settings%dims%get_dim_subblock(), &
       odd=.false., &
       edge="left" &
     )
@@ -186,6 +193,7 @@ contains
     idxs = get_subblock_index( &
       variables=["v1", "00", "v2", "va", "T4"], &
       state_vector=settings%get_state_vector(), &
+      dim_subblock=settings%dims%get_dim_subblock(), &
       odd=.true., &
       edge="right" &
     )
@@ -199,6 +207,7 @@ contains
     idxs = get_subblock_index( &
       variables=["v1", "00", "v7", "v2", "T4"], &
       state_vector=settings%get_state_vector(), &
+      dim_subblock=settings%dims%get_dim_subblock(), &
       odd=.false., &
       edge="right" &
     )

@@ -196,9 +196,11 @@ contains
     complex(dp) :: eigenfunc(ef_gridpts)
 
     call set_name("eigenfunctions - get from index")
-    call create_eigenvectors(dim_matrix)
+    call create_eigenvectors(settings%dims%get_dim_matrix())
     call calculate_eigenfunctions( &
-      right_eigenvectors=eigenvectors, state_vector=settings%get_state_vector() &
+      right_eigenvectors=eigenvectors, &
+      state_vector=settings%get_state_vector(), &
+      dims=settings%dims &
     )
     eigenfunc = retrieve_eigenfunction_from_index( &
       name="rho", state_vector=settings%get_state_vector(), ef_index=5 &
@@ -212,9 +214,11 @@ contains
 
     call set_name("eigenfunctions - get from index (invalid name)")
     call enable_derived_efs()
-    call create_eigenvectors(dim_matrix)
+    call create_eigenvectors(settings%dims%get_dim_matrix())
     call calculate_eigenfunctions( &
-      right_eigenvectors=eigenvectors, state_vector=settings%get_state_vector() &
+      right_eigenvectors=eigenvectors, &
+      state_vector=settings%get_state_vector(), &
+      dims=settings%dims &
     )
     eigenfunc = retrieve_eigenfunction_from_index( &
       name="S", state_vector=settings%get_state_vector(), ef_index=5 &
@@ -252,9 +256,11 @@ contains
     call set_name("eigenfunctions - pp sizes with bfield")
     call enable_derived_efs()
     call use_bfield(use_b01=.false.)
-    call create_eigenvectors(dim_matrix)
+    call create_eigenvectors(settings%dims%get_dim_matrix())
     call calculate_eigenfunctions( &
-      right_eigenvectors=eigenvectors, state_vector=settings%get_state_vector() &
+      right_eigenvectors=eigenvectors, &
+      state_vector=settings%get_state_vector(), &
+      dims=settings%dims &
     )
     @assertEqual(size(derived_ef_names), size(derived_eigenfunctions))
     @assertTrue((any(derived_ef_names == "B_para")))
