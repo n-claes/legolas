@@ -80,7 +80,7 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, solver, number_of_eigenvalues, &
+    use mod_global_variables, only: initialise_globals, &
      gamma, set_gamma, NaN, hall_mhd, x_start, x_end
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
@@ -106,13 +106,14 @@ contains
       "the state vector is " // str(settings%get_state_vector()), level="info" &
     )
 
-    if (solver == "arnoldi") then
-      nb_evs = number_of_eigenvalues
-    elseif (solver == "inverse-iteration") then
+    select case(settings%solvers%get_solver())
+    case ("arnoldi")
+      nb_evs = settings%solvers%number_of_eigenvalues
+    case ("inverse-iteration")
       nb_evs = 1
-    else
+    case default
       nb_evs = settings%dims%get_dim_matrix()
-    end if
+    end select
     call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
     allocate(omega(nb_evs))
     matrix_A = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="A")
@@ -129,7 +130,10 @@ contains
     end if
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
-    if (settings%io%should_compute_eigenvectors() .or. solver == "arnoldi") then
+    if ( &
+      settings%io%should_compute_eigenvectors() &
+      .or. settings%solvers%get_solver() == "arnoldi" &
+    ) then
       call log_message("allocating eigenvector arrays", level="debug")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
       allocate(eigenvecs_right(settings%dims%get_dim_matrix(), nb_evs))

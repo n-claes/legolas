@@ -2,7 +2,6 @@
 !> Submodule containing the implementation of the inverse iteration algorithm.
 !! TODO more docs
 submodule (mod_solvers) smod_inverse_iteration
-  use mod_global_variables, only: maxiter, tolerance, sigma
   use mod_check_values, only: is_equal
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
   use mod_banded_matrix_hermitian, only: hermitian_banded_matrix_t
@@ -46,6 +45,11 @@ contains
     real(dp)                      :: dznrm2
     complex(dp)                   :: zdotc
     integer                       :: idamax
+    integer :: maxiter
+    complex(dp) :: sigma
+
+    maxiter = settings%solvers%maxiter
+    sigma = settings%solvers%sigma
 
     ! check input sanity
     if (.not. (matrix_A%matrix_dim == matrix_B%matrix_dim)) then
@@ -106,7 +110,7 @@ contains
     end if ! LCOV_EXCL_STOP
 
     ! start iteration
-    tol = tolerance
+    tol = settings%solvers%tolerance
     i = 0
     ev = sigma
     ! use solution of U x = 1 as initial guess

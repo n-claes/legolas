@@ -36,7 +36,9 @@ contains
     complex(dp) :: bxvector(arpack_cfg%get_evpdim())
     complex(dp), allocatable :: amat_min_sigmab_LU(:, :)
     integer, allocatable :: ipiv_LU(:)
+    complex(dp) :: sigma
 
+    sigma = settings%solvers%sigma
     call log_message("creating banded A - sigma*B", level="debug")
     diags = settings%dims%get_dim_quadblock() - 1
     call matrix_to_banded(matrix_A, diags, diags, amat_min_sigmab_banded)

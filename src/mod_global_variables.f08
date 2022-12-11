@@ -142,23 +142,6 @@ module mod_global_variables
   !> boolean for doing a dry run, defaults to <tt>False</tt>
   logical, save             :: dry_run
 
-  !> method to solve the eigenvalue problem, defaults to <tt>"QR-invert"</tt>
-  character(len=str_len)    :: solver
-  !> selected mode for ARPACK, defaults to <tt>"standard"</tt>
-  character(len=str_len)    :: arpack_mode
-  !> number of eigenvalues to calculate with ARPACK, defaults to 100
-  integer                   :: number_of_eigenvalues
-  !> which eigenvalues to calculate, defaults to <tt>"LM"<tt> (largest magnitude)
-  character(len=2)          :: which_eigenvalues
-  !> maximum number iterations of Arnoldi or inverse iteration
-  integer                   :: maxiter
-  !> sigma value, used in Arnoldi shift-invert mode and inverse iteration
-  complex(dp)               :: sigma
-  !> value for ncv, only used for Arnoldi
-  integer :: ncv
-  !> the tolerance used by inverse-iteration, defaults to dp_LIMIT
-  real(dp)                  :: tolerance
-
 contains
 
 
@@ -226,17 +209,6 @@ contains
     write_eigenfunction_subset = .false.
     eigenfunction_subset_center = cmplx(NaN, NaN, kind=dp)
     eigenfunction_subset_radius = NaN
-
-    !! solution method variables
-    solver = "QR-invert"
-    arpack_mode = "standard"
-    number_of_eigenvalues = 100
-    which_eigenvalues = "LM"
-    ! this defaults to max(100, 10k) with k the number of
-    ! eigenvalues this is set later
-    maxiter = 0
-    ncv = 0
-    tolerance = DP_limit
   end subroutine initialise_globals
 
   !> Sets the ratio of specific heats gamma and its corresponding

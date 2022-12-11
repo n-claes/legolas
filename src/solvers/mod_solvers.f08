@@ -90,8 +90,6 @@ contains
   !! passed in the parfile, different solvers are called.
   !! @warning Throws an error if an unknown solver is passed. @endwarning
   subroutine solve_evp(matrix_A, matrix_B, settings, omega, vr)
-    use mod_global_variables, only: solver
-
     !> A-matrix
     type(matrix_t), intent(in) :: matrix_A
     !> B-matrix
@@ -103,7 +101,7 @@ contains
     !> right eigenvectors
     complex(dp), intent(out)  :: vr(:, :)
 
-    select case(solver)
+    select case(settings%solvers%get_solver())
     case("QR-invert")
       call qr_invert(matrix_A, matrix_B, settings, omega, vr)
     case("QR-cholesky")
@@ -119,7 +117,9 @@ contains
       omega = NaN * (1, 1)
       if (settings%io%should_compute_eigenvectors()) vr = NaN * (1, 1)
     case default
-      call log_message("unknown solver passed: " // solver, level="error")
+      call log_message( &
+        "unknown solver passed: " // settings%solvers%get_solver(), level="error" &
+      )
       return
     end select
   end subroutine solve_evp

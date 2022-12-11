@@ -52,6 +52,12 @@ contains
     logical :: write_eigenfunctions, write_derived_eigenfunctions
     logical :: show_results
     character(len=str_len) :: basename_datfile, output_folder
+    ! solvelist params
+    character(len=str_len) :: solver, arpack_mode
+    character(len=2) :: which_eigenvalues
+    integer :: number_of_eigenvalues, maxiter, ncv
+    real(dp) :: tolerance
+    complex(dp) :: sigma
 
     namelist /physicslist/  &
         physics_type, mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
@@ -111,6 +117,14 @@ contains
     write_eigenfunctions = .true.
     write_derived_eigenfunctions = .false.
     show_results = .true.
+    ! solvelist defaults
+    solver = "QR-invert"
+    arpack_mode = "standard"
+    number_of_eigenvalues = 100
+    which_eigenvalues = "LM"
+    maxiter = 0
+    ncv = 0
+    tolerance = DP_limit
 
     open(unit_par, file=trim(parfile), status='old')
     !! Start reading namelists, rewind so they can appear out of order
@@ -148,6 +162,7 @@ contains
     if (physics_type == "") physics_type = "mhd"
     call settings%initialise(physics_type, gridpoints)
 
+    ! set io settings
     settings%io%write_matrices = write_matrices
     settings%io%write_eigenvectors = write_eigenvectors
     settings%io%write_residuals = write_residuals
@@ -157,6 +172,15 @@ contains
     if (dry_run) call settings%io%set_all_io_to_false()
     call settings%io%set_basename_datfile(basename_datfile)
     call settings%io%set_output_folder(output_folder)
+
+    ! set solver settings
+    call settings%solvers%set_solver(solver)
+    call settings%solvers%set_arpack_mode(arpack_mode)
+    settings%solvers%number_of_eigenvalues = number_of_eigenvalues
+    settings%solvers%which_eigenvalues = which_eigenvalues
+    settings%solvers%maxiter = maxiter
+    settings%solvers%ncv = ncv
+    settings%solvers%tolerance = tolerance
 
     call check_and_set_supplied_unit_normalisations( &
       unit_density, &

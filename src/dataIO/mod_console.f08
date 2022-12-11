@@ -123,21 +123,27 @@ contains
     end if
 
     call log_message("            << Solver settings >>")
-    call log_message("solver      : " // trim(adjustl(solver)))
-    if (solver == "arnoldi") then
-      call log_message("ARPACK mode : " // trim(adjustl(arpack_mode)))
-      if (arpack_mode == "shift-invert") then
-        call log_message("sigma : " // str(sigma))
+    call log_message("solver      : " // settings%solvers%get_solver())
+    if (settings%solvers%get_solver() == "arnoldi") then
+      call log_message("ARPACK mode : " // settings%solvers%get_arpack_mode())
+      if (settings%solvers%get_arpack_mode() == "shift-invert") then
+        call log_message("sigma : " // str(settings%solvers%sigma))
       end if
-      call log_message("number of eigenvalues : " // str(number_of_eigenvalues))
-      call log_message("which eigenvalues     : " // trim(adjustl(which_eigenvalues)))
-      call log_message("maxiter               : " // str(maxiter))
-      call log_message("tolerance             : " // str(tolerance, exp_fmt))
+      call log_message( &
+        "number of eigenvalues : " // str(settings%solvers%number_of_eigenvalues) &
+      )
+      call log_message( &
+        "which eigenvalues     : " // settings%solvers%which_eigenvalues &
+      )
+      call log_message("maxiter               : " // str(settings%solvers%maxiter))
+      call log_message( &
+        "tolerance             : " // str(settings%solvers%tolerance, exp_fmt) &
+      )
     end if
-    if (solver == "inverse-iteration") then
-      call log_message("sigma     : " // str(sigma))
-      call log_message("maxiter   : " // str(maxiter))
-      call log_message("tolerance : " // str(tolerance, exp_fmt))
+    if (settings%solvers%get_solver() == "inverse-iteration") then
+      call log_message("sigma     : " // str(settings%solvers%sigma))
+      call log_message("maxiter   : " // str(settings%solvers%maxiter))
+      call log_message("tolerance : " // str(settings%solvers%tolerance, exp_fmt))
     end if
 
     call log_message("            << DataIO settings >>")
