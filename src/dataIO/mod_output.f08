@@ -47,15 +47,18 @@ contains
   !! output folder defined in the global variables module.
   !! The output folder is prepended to the base filename.
   !! @note    At this point filenames are not yet given extensions.
-  subroutine make_filename(base_filename, filename)
-    use mod_global_variables, only: output_folder
-
-    !> the base filename to use
-    character(len=*), intent(in)  :: base_filename
+  subroutine make_filename(settings, extension, filename)
+    type(settings_t), intent(in) :: settings
+    character(len=*), intent(in) :: extension
     !> the filename that is created
     character(len=*), intent(out) :: filename
 
-    filename = trim(trim(output_folder) // "/" // base_filename)
+    filename = trim( &
+      trim(settings%io%get_output_folder()) &
+      // "/" &
+      // settings%io%get_basename_datfile() &
+      // extension &
+    )
   end subroutine make_filename
 
 
@@ -132,7 +135,7 @@ contains
     ! fill B01 array
     b01_array = B_field % B01
 
-    call make_filename(trim(basename_datfile) // ".dat", datfile_name)
+    call make_filename(settings=settings, extension=".dat", filename=datfile_name)
     call open_file(dat_fh, datfile_name)
 
     ! First we write all header information
@@ -230,7 +233,7 @@ contains
     call log_message("results saved to " // trim(datfile_name), level="info")
     close(dat_fh)
 
-    call create_logfile(eigenvalues)
+    call create_logfile(settings, eigenvalues)
   end subroutine create_datfile
 
 
@@ -277,20 +280,16 @@ contains
   !! @note    If <tt>basename_logfile</tt> is unspecified in the parfile,
   !!          no logfile is written. @endnote
   !! @note    The extension <tt>".log"</tt> is appended to the filename. @endnote
-  subroutine create_logfile(eigenvalues)
-    use mod_global_variables, only: basename_logfile
+  subroutine create_logfile(settings, eigenvalues)
     use mod_logging, only: log_message, exp_fmt
 
+    type(settings_t), intent(in) :: settings
     !> the eigenvalues
     complex(dp), intent(in)   :: eigenvalues(:)
     character(20)             :: real_part, imag_part
     integer   :: i
 
-    if (basename_logfile == "") then
-      return
-    end if
-
-    call make_filename(trim(basename_logfile) // ".log", logfile_name)
+    logfile_name = trim(settings%io%get_output_folder() // "logfile.log")
     ! open manually since this is not a binary file
     open(unit=log_fh, file=logfile_name, status="unknown", action="write")
     do i = 1, size(eigenvalues)

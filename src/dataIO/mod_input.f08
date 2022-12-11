@@ -45,6 +45,7 @@ contains
     real(dp)    :: mean_molecular_weight
     integer     :: gridpoints
     logical :: write_matrices, write_eigenvectors, write_residuals
+    character(len=str_len) :: basename_datfile, output_folder
 
     namelist /physicslist/  &
         physics_type, mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
@@ -65,7 +66,7 @@ contains
         nb_spurious_eigenvalues
     namelist /savelist/ &
         write_matrices, write_eigenvectors, write_residuals, write_eigenfunctions, show_results, &
-        basename_datfile, basename_logfile, output_folder, logging_level, dry_run, &
+        basename_datfile, output_folder, logging_level, dry_run, &
         write_derived_eigenfunctions, write_eigenfunction_subset, &
         eigenfunction_subset_center, eigenfunction_subset_radius
     namelist /paramlist/  &
@@ -93,6 +94,8 @@ contains
     unit_length = NaN
     mean_molecular_weight = NaN
     physics_type = ""
+    basename_datfile = "datfile"
+    output_folder = "output"
 
     open(unit_par, file=trim(parfile), status='old')
     !! Start reading namelists, rewind so they can appear out of order
@@ -134,6 +137,8 @@ contains
     settings%io%write_eigenvectors = write_eigenvectors
     settings%io%write_residuals = write_residuals
     if (dry_run) call settings%io%set_all_io_to_false()
+    call settings%io%set_basename_datfile(basename_datfile)
+    call settings%io%set_output_folder(output_folder)
 
     if (write_derived_eigenfunctions .and. (.not. write_eigenfunctions)) then
       call log_message( &

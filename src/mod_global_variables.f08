@@ -143,12 +143,6 @@ module mod_global_variables
   real(dp)                  :: eigenfunction_subset_radius
   !> boolean to call the Python wrapper and plot the results, defaults to <tt>True</tt>
   logical, save             :: show_results
-  !> base name for the datfile, defaults to \p "datfile"
-  character(len=str_len)    :: basename_datfile
-  !> base name for the logfile, defaults to ""
-  character(len=str_len)    :: basename_logfile
-  !> path to the output folder, defaults to "."
-  character(len=3*str_len)    :: output_folder
   !> sets the logging level, defaults to 2 (errors, warnings and info)
   integer                   :: logging_level
   !> boolean for doing a dry run, defaults to <tt>False</tt>
@@ -241,11 +235,6 @@ contains
     write_eigenfunction_subset = .false.
     eigenfunction_subset_center = cmplx(NaN, NaN, kind=dp)
     eigenfunction_subset_radius = NaN
-
-    !! file-saving variables
-    basename_datfile = "datfile"
-    basename_logfile = ""
-    output_folder = "output"
 
     !! solution method variables
     solver = "QR-invert"

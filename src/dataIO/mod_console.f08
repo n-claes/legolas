@@ -141,8 +141,8 @@ contains
     end if
 
     call log_message("            << DataIO settings >>")
-    call log_message("datfile name         : " // trim(adjustl(basename_datfile)))
-    call log_message("output folder        : " // trim(adjustl(output_folder)))
+    call log_message("datfile name         : " // settings%io%get_basename_datfile())
+    call log_message("output folder        : " // settings%io%get_output_folder())
     call log_message("write matrices       : " // str(settings%io%write_matrices))
     call log_message("write eigenvectors   : " // str(settings%io%write_eigenvectors))
     call log_message("write residuals      : " // str(settings%io%write_residuals))
