@@ -78,7 +78,7 @@ contains
         nb_spurious_eigenvalues
     namelist /savelist/ &
         write_matrices, write_eigenvectors, write_residuals, write_eigenfunctions, show_results, &
-        basename_datfile, output_folder, logging_level, dry_run, &
+        basename_datfile, output_folder, logging_level, &
         write_derived_eigenfunctions, write_eigenfunction_subset, &
         eigenfunction_subset_center, eigenfunction_subset_radius
     namelist /paramlist/  &
@@ -169,7 +169,6 @@ contains
     settings%io%write_eigenfunctions = write_eigenfunctions
     settings%io%write_derived_eigenfunctions = write_derived_eigenfunctions
     settings%io%show_results = show_results
-    if (dry_run) call settings%io%set_all_io_to_false()
     call settings%io%set_basename_datfile(basename_datfile)
     call settings%io%set_output_folder(output_folder)
 
@@ -181,6 +180,7 @@ contains
     settings%solvers%maxiter = maxiter
     settings%solvers%ncv = ncv
     settings%solvers%tolerance = tolerance
+    if (settings%solvers%get_solver() == "none") call settings%io%set_all_io_to_false()
 
     call check_and_set_supplied_unit_normalisations( &
       unit_density, &

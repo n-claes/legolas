@@ -139,8 +139,6 @@ module mod_global_variables
   real(dp)                  :: eigenfunction_subset_radius
   !> sets the logging level, defaults to 2 (errors, warnings and info)
   integer                   :: logging_level
-  !> boolean for doing a dry run, defaults to <tt>False</tt>
-  logical, save             :: dry_run
 
 contains
 
@@ -205,7 +203,6 @@ contains
 
     !! post-processing parameters
     logging_level = 2
-    dry_run = .false.
     write_eigenfunction_subset = .false.
     eigenfunction_subset_center = cmplx(NaN, NaN, kind=dp)
     eigenfunction_subset_radius = NaN

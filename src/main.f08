@@ -7,7 +7,7 @@
 !! and Rony Keppens, at the Centre for mathematical Plasma-Astrophysics (CmPA),
 !! KU Leuven, Belgium.
 program legolas
-  use mod_global_variables, only: dp, str_len, dry_run
+  use mod_global_variables, only: dp, str_len
   use mod_matrix_structure, only: matrix_t
   use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
@@ -45,17 +45,10 @@ program legolas
   call build_matrices(matrix_B, matrix_A, settings)
   timer%matrix_time = timer%end_timer()
 
-  if (.not. dry_run) then
-    call log_message("solving eigenvalue problem...", level="info")
-    call timer%start_timer()
-    call solve_evp(matrix_A, matrix_B, settings, omega, eigenvecs_right)
-    timer%evp_time = timer%end_timer()
-  else
-    call log_message( &
-      "running dry, overriding parfile and setting eigenvalues to zero", level="info"  &
-    )
-    omega = (0.0d0, 0.0d0)
-  end if
+  call log_message("solving eigenvalue problem...", level="info")
+  call timer%start_timer()
+  call solve_evp(matrix_A, matrix_B, settings, omega, eigenvecs_right)
+  timer%evp_time = timer%end_timer()
 
   call timer%start_timer()
   call create_eigenfunctions()
