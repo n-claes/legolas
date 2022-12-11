@@ -131,18 +131,12 @@ module mod_global_variables
   !> amount of eigenvalues to remove on each side of the imaginary axis, defaults to 1
   integer                      :: nb_spurious_eigenvalues
 
-  !> boolean to write the eigenfunctions to the datfile, defaults to <tt>True</tt>
-  logical, save             :: write_eigenfunctions
-  !> boolean to write postprocessed quantities to the datfile, defaults to <tt>True</tt>
-  logical, save             :: write_derived_eigenfunctions
   !> boolean to select subset of the eigenfunctions to save, defaults to <tt>False</tt>
   logical, save             :: write_eigenfunction_subset
   !> point used as the center for the eigenfunction subset
   complex(dp)               :: eigenfunction_subset_center
   !> radius used to determine eigenfunction subset
   real(dp)                  :: eigenfunction_subset_radius
-  !> boolean to call the Python wrapper and plot the results, defaults to <tt>True</tt>
-  logical, save             :: show_results
   !> sets the logging level, defaults to 2 (errors, warnings and info)
   integer                   :: logging_level
   !> boolean for doing a dry run, defaults to <tt>False</tt>
@@ -227,9 +221,6 @@ contains
     nb_spurious_eigenvalues = 1
 
     !! post-processing parameters
-    write_eigenfunctions = .true.
-    write_derived_eigenfunctions = .false.
-    show_results = .true.
     logging_level = 2
     dry_run = .false.
     write_eigenfunction_subset = .false.

@@ -7,7 +7,7 @@
 !! and Rony Keppens, at the Centre for mathematical Plasma-Astrophysics (CmPA),
 !! KU Leuven, Belgium.
 program legolas
-  use mod_global_variables, only: dp, str_len, show_results, dry_run
+  use mod_global_variables, only: dp, str_len, dry_run
   use mod_matrix_structure, only: matrix_t
   use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
@@ -69,7 +69,7 @@ program legolas
 
   call print_timelog()
 
-  if (show_results) then
+  if (settings%io%show_results) then
     call print_whitespace(1)
     call execute_command_line("python3 pylbo_wrapper.py -i " // trim(datfile_name))
   end if
@@ -145,14 +145,11 @@ contains
 
   !> Initialises and calculates the eigenfunctions if requested.
   subroutine create_eigenfunctions()
-    use mod_global_variables, only: write_eigenfunctions
     use mod_eigenfunctions, only: initialise_eigenfunctions, calculate_eigenfunctions
 
-    if (write_eigenfunctions) then
-      call initialise_eigenfunctions(omega, settings%get_state_vector())
-      call calculate_eigenfunctions( &
-        eigenvecs_right, settings%get_state_vector(), settings%dims &
-      )
+    if (settings%io%write_eigenfunctions) then
+      call initialise_eigenfunctions(omega, settings)
+      call calculate_eigenfunctions(eigenvecs_right, settings)
     end if
   end subroutine create_eigenfunctions
 

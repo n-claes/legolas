@@ -142,10 +142,11 @@ contains
     write(dat_fh) "legolas_version", LEGOLAS_VERSION
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
       gauss_gridpts, settings%dims%get_dim_matrix(), ef_gridpts, gamma, &
-      equilibrium_type, write_eigenfunctions, write_derived_eigenfunctions, &
-      settings%io%write_matrices, settings%io%write_eigenvectors, &
-      settings%io%write_residuals, write_eigenfunction_subset, &
-      eigenfunction_subset_center, eigenfunction_subset_radius
+      equilibrium_type, settings%io%write_eigenfunctions, &
+      settings%io%write_derived_eigenfunctions, settings%io%write_matrices, &
+      settings%io%write_eigenvectors, settings%io%write_residuals, &
+      write_eigenfunction_subset, eigenfunction_subset_center, &
+      eigenfunction_subset_radius
     write(dat_fh) size(param_names), len(param_names(1)), param_names
     write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, &
       cte_v03, cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, &
@@ -188,7 +189,7 @@ contains
     end if
 
     ! Data for quantities derived from eigenfunctions [optional]
-    if (write_derived_eigenfunctions) then
+    if (settings%io%write_derived_eigenfunctions) then
       call log_message("writing derived eigenfunction quantities...", level="info")
       write(dat_fh) size(derived_ef_names), derived_ef_names
       do i = 1, size(derived_eigenfunctions)

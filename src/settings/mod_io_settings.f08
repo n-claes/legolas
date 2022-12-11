@@ -10,6 +10,7 @@ module mod_io_settings
     logical, public :: write_residuals
     logical, public :: write_eigenfunctions
     logical, public :: write_derived_eigenfunctions
+    logical, public :: show_results
 
     character(:), private, allocatable :: basename_datfile
     character(:), private, allocatable :: output_folder
@@ -32,12 +33,6 @@ contains
 
   pure function new_io_settings() result(io)
     type(io_t) :: io
-
-    io%write_matrices = .false.
-    io%write_eigenvectors = .false.
-    io%write_residuals = .false.
-    io%write_eigenfunctions = .false.
-    io%write_derived_eigenfunctions = .false.
   end function new_io_settings
 
 

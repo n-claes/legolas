@@ -39,12 +39,18 @@ contains
     !> the settings object
     type(settings_t), intent(inout) :: settings
 
+    ! physicslist params
     character(str_len) :: physics_type
     real(dp)    :: mhd_gamma
+    ! unitlist params
     real(dp)    :: unit_density, unit_temperature, unit_magneticfield, unit_length
     real(dp)    :: mean_molecular_weight
+    ! gridlist params
     integer     :: gridpoints
+    ! savelist params
     logical :: write_matrices, write_eigenvectors, write_residuals
+    logical :: write_eigenfunctions, write_derived_eigenfunctions
+    logical :: show_results
     character(len=str_len) :: basename_datfile, output_folder
 
     namelist /physicslist/  &
@@ -85,17 +91,26 @@ contains
       return
     end if
 
-    ! initialise local variables
+    ! physicslist defaults
+    physics_type = ""
     mhd_gamma = 0.0d0
+    ! gridlist defaults
     gridpoints = 0
+    ! unitlist defaults
     unit_density = NaN
     unit_temperature = NaN
     unit_magneticfield = NaN
     unit_length = NaN
     mean_molecular_weight = NaN
-    physics_type = ""
+    ! savelist defaults
     basename_datfile = "datfile"
     output_folder = "output"
+    write_matrices = .false.
+    write_eigenvectors = .false.
+    write_residuals = .false.
+    write_eigenfunctions = .true.
+    write_derived_eigenfunctions = .false.
+    show_results = .true.
 
     open(unit_par, file=trim(parfile), status='old')
     !! Start reading namelists, rewind so they can appear out of order
@@ -136,17 +151,12 @@ contains
     settings%io%write_matrices = write_matrices
     settings%io%write_eigenvectors = write_eigenvectors
     settings%io%write_residuals = write_residuals
+    settings%io%write_eigenfunctions = write_eigenfunctions
+    settings%io%write_derived_eigenfunctions = write_derived_eigenfunctions
+    settings%io%show_results = show_results
     if (dry_run) call settings%io%set_all_io_to_false()
     call settings%io%set_basename_datfile(basename_datfile)
     call settings%io%set_output_folder(output_folder)
-
-    if (write_derived_eigenfunctions .and. (.not. write_eigenfunctions)) then
-      call log_message( &
-        "derived quantities need eigenfunctions, these will also be saved in datfile", &
-        level="warning" &
-      )
-      write_eigenfunctions = .true.
-    end if
 
     call check_and_set_supplied_unit_normalisations( &
       unit_density, &

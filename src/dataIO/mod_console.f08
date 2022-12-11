@@ -146,9 +146,10 @@ contains
     call log_message("write matrices       : " // str(settings%io%write_matrices))
     call log_message("write eigenvectors   : " // str(settings%io%write_eigenvectors))
     call log_message("write residuals      : " // str(settings%io%write_residuals))
-    call log_message("write eigenfunctions : " // str(write_eigenfunctions))
+    call log_message("write eigenfunctions : " // str(settings%io%write_eigenfunctions))
     call log_message( &
-      "write derived eigenfunctions : " // str(write_derived_eigenfunctions) &
+      "write derived eigenfunctions : " &
+      // str(settings%io%write_derived_eigenfunctions) &
     )
     call log_message("write eigenfunction subset : " // str(write_eigenfunction_subset))
     if (write_eigenfunction_subset) then
