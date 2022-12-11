@@ -3,7 +3,6 @@ module mod_test_solvers_arpack_general
   use funit
   use mod_arpack_type, only: arpack_t, new_arpack_config
   use mod_matrix_structure, only: matrix_t, new_matrix
-  use mod_global_variables, only: which_eigenvalues
   use mod_solvers, only: solve_evp
   use mod_settings, only: settings_t, new_settings
   implicit none
@@ -33,14 +32,14 @@ contains
 
   @before
   subroutine init_test()
-    use mod_global_variables, only: solver, arpack_mode, number_of_eigenvalues, maxiter
     call reset_globals()
     settings = new_settings()
     call settings%initialise(physics_type="mhd", gridpts=10)
-    solver = "arnoldi"
-    arpack_mode = "general"
-    number_of_eigenvalues = nb_eigenvals
-    maxiter = 500  ! increase, some smaller evs have difficulty converging
+    call settings%solvers%set_solver("arnoldi")
+    call settings%solvers%set_arpack_mode("general")
+    settings%solvers%number_of_eigenvalues = nb_eigenvals
+    ! increase, some smaller evs have difficulty converging
+    settings%solvers%maxiter = 500
     call create_matrices()
   end subroutine init_test
 
@@ -90,7 +89,7 @@ contains
   subroutine test_arpack_general_LM()
     integer :: i
     call set_name("solving EVP, arpack standard LM")
-    which_eigenvalues = "LM"
+    settings%solvers%which_eigenvalues = "LM"
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [4, 7, 9, 10]
@@ -104,7 +103,7 @@ contains
   subroutine test_arpack_general_SM()
     integer :: i
     call set_name("solving EVP, arpack standard SM")
-    which_eigenvalues = "SM"
+    settings%solvers%which_eigenvalues = "SM"
 
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
@@ -119,7 +118,7 @@ contains
   subroutine test_arpack_general_LR()
     integer :: i
     call set_name("solving EVP, arpack standard LR")
-    which_eigenvalues = "LR"
+    settings%solvers%which_eigenvalues = "LR"
 
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
@@ -134,7 +133,7 @@ contains
   subroutine test_arpack_general_SR()
     integer :: i
     call set_name("solving EVP, arpack standard SR")
-    which_eigenvalues = "SR"
+    settings%solvers%which_eigenvalues = "SR"
 
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
@@ -149,7 +148,7 @@ contains
   subroutine test_arpack_general_LI()
     integer :: i
     call set_name("solving EVP, arpack standard LI")
-    which_eigenvalues = "LI"
+    settings%solvers%which_eigenvalues = "LI"
 
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
@@ -164,7 +163,7 @@ contains
   subroutine test_arpack_general_SI()
     integer :: i
     call set_name("solving EVP, arpack standard SI")
-    which_eigenvalues = "SI"
+    settings%solvers%which_eigenvalues = "SI"
 
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)

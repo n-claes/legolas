@@ -1,8 +1,6 @@
 module mod_test_solvers_lapack
   use mod_suite_utils
   use funit
-  use mod_global_variables, only: solver, write_eigenfunctions, sigma, maxiter, &
-    tolerance
   use mod_solvers, only: solve_evp
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_transform_matrix, only: array_to_matrix
@@ -75,10 +73,10 @@ contains
     call settings%initialise(physics_type="mhd", gridpts=10)
     vr = (0.0d0, 0.0d0)
     eigenvals = (0.0d0, 0.0d0)
-    write_eigenfunctions = .false.
+    settings%io%write_eigenfunctions = .false.
     call set_matrices()
-    maxiter = 100
-    tolerance = 1.0d-13
+    settings%solvers%maxiter = 100
+    settings%solvers%tolerance = 1.0d-13
   end subroutine init_test
 
 
@@ -108,7 +106,7 @@ contains
   @test
   subroutine test_unknown_solver()
     call set_name("solver (unknown)")
-    solver = "unknown"
+    call settings%solvers%set_solver("unknown")
     call solve_evp(amat, bmat, settings, eigenvals, vr)
     @assertExceptionRaised("unknown solver passed: unknown")
   end subroutine test_unknown_solver
@@ -117,7 +115,7 @@ contains
   @test
   subroutine test_lapack_qr_invert_simple()
     call set_name("solver QR-invert (AX = wX)")
-    solver = "QR-invert"
+    call settings%solvers%set_solver("QR-invert")
     call solve_evp(amat, idmat, settings, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected_simple, eigenvals, tolerance=TOL)
@@ -127,8 +125,8 @@ contains
   @test
   subroutine test_lapack_qr_invert_general()
     call set_name("solver QR-invert (AX = wBX)")
-    solver = "QR-invert"
-    write_eigenfunctions = .true.
+    call settings%solvers%set_solver("QR-invert")
+    settings%io%write_eigenfunctions = .true.
     call solve_evp(amat, bmat, settings, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected_general, eigenvals, tolerance=TOL)
@@ -138,7 +136,7 @@ contains
   @test
   subroutine test_lapack_qz_simple()
     call set_name("solver QZ-direct (AX = wX)")
-    solver = "QZ-direct"
+    call settings%solvers%set_solver("QZ-direct")
     call solve_evp(amat, idmat, settings, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected_simple, eigenvals, tolerance=TOL)
@@ -148,7 +146,7 @@ contains
     @test
   subroutine test_lapack_qz_general()
     call set_name("solver QZ-direct (AX = wBX)")
-    solver = "QZ-direct"
+    call settings%solvers%set_solver("QZ-direct")
     call solve_evp(amat, bmat, settings, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected_general, eigenvals, tolerance=TOL)
@@ -158,7 +156,7 @@ contains
   @test
   subroutine test_lapack_qr_cholesky_simple()
     call set_name("solver QR-cholesky (AX = wX)")
-    solver = "QR-cholesky"
+    call settings%solvers%set_solver("QR-cholesky")
     call solve_evp(amat, idmat, settings, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected_simple, eigenvals, tolerance=TOL)
@@ -169,8 +167,8 @@ contains
   @test
   subroutine test_lapack_qr_cholesky_general()
     call set_name("solver QR-cholesky (AX = wBX)")
-    solver = "QR-cholesky"
-    write_eigenfunctions = .true.
+    call settings%solvers%set_solver("QR-cholesky")
+    settings%io%write_eigenfunctions = .true.
     call solve_evp(amat, bmat_hermitian, settings, eigenvals, vr)
     call sort_complex_array(eigenvals)
     @assertEqual(expected_b_hermitian, eigenvals, tolerance=TOL)
@@ -180,8 +178,8 @@ contains
   @test
   subroutine test_lapack_qr_cholesky_general_unequal_diags()
     call set_name("solver QR-cholesky (AX = wBX) B unequal diagonals")
-    solver = "QR-cholesky"
-    write_eigenfunctions = .true.
+    call settings%solvers%set_solver("QR-cholesky")
+    settings%io%write_derived_eigenfunctions = .true.
     call solve_evp(amat, bmat, settings, eigenvals, vr)
     @assertExceptionRaised("B has unequal sub/super diagonals: 3/4")
   end subroutine test_lapack_qr_cholesky_general_unequal_diags
@@ -192,8 +190,8 @@ contains
     complex(dp) :: omega(1)
 
     call set_name("inverse iteration (AX = wX, sigma = -4.5 - 0.2i)")
-    solver = "inverse-iteration"
-    sigma = (-4.5d0, -0.2d0)
+    call settings%solvers%set_solver("inverse-iteration")
+    settings%solvers%sigma = (-4.5d0, -0.2d0)
     call solve_evp(amat, idmat, settings, omega, vr)
     @assertEqual(expected_simple(1), omega(1), tolerance=TOL)
   end subroutine test_inverse_iteration_simple_1
@@ -204,8 +202,8 @@ contains
     complex(dp) :: omega(1)
 
     call set_name("inverse iteration (AX = wX, sigma = -0.06 + 2i)")
-    solver = "inverse-iteration"
-    sigma = (-0.06d0, 2.0d0)
+    call settings%solvers%set_solver("inverse-iteration")
+    settings%solvers%sigma = (-0.06d0, 2.0d0)
     call solve_evp(amat, idmat, settings, omega, vr)
     @assertEqual(expected_simple(3), omega(1), tolerance=TOL)
   end subroutine test_inverse_iteration_simple_2
@@ -215,8 +213,8 @@ contains
     complex(dp) :: omega(1)
 
     call set_name("inverse iteration (AX = wX, sigma = 2 + 2.5i)")
-    solver = "inverse-iteration"
-    sigma = (2.0d0, 2.5d0)
+    call settings%solvers%set_solver("inverse-iteration")
+    settings%solvers%sigma = (2.0d0, 2.5d0)
     call solve_evp(amat, idmat, settings, omega, vr)
     @assertEqual(expected_simple(5), omega(1), tolerance=TOL)
   end subroutine test_inverse_iteration_simple_3
@@ -227,8 +225,8 @@ contains
     complex(dp) :: omega(1)
 
     call set_name("inverse iteration (AX = wBX, sigma = -1 - i)")
-    solver = "inverse-iteration"
-    sigma = (-1.0d0, -1.0d0)
+    call settings%solvers%set_solver("inverse-iteration")
+    settings%solvers%sigma = (-1.0d0, -1.0d0)
     call solve_evp(amat, bmat_hermitian, settings, omega, vr)
     @assertEqual(expected_b_hermitian(1), omega(1), tolerance=TOL)
   end subroutine test_inverse_iteration_general_1
@@ -239,8 +237,8 @@ contains
     complex(dp) :: omega(1)
 
     call set_name("inverse iteration (AX = wBX, sigma = -0.1 - 0.3i)")
-    solver = "inverse-iteration"
-    sigma = (-0.1d0, -0.3d0)
+    call settings%solvers%set_solver("inverse-iteration")
+    settings%solvers%sigma = (-0.1d0, -0.3d0)
     call solve_evp(amat, bmat_hermitian, settings, omega, vr)
     @assertEqual(expected_b_hermitian(2), omega(1), tolerance=TOL)
   end subroutine test_inverse_iteration_general_2
@@ -250,8 +248,8 @@ contains
     complex(dp) :: omega(1)
 
     call set_name("inverse iteration (AX = wBX, sigma = 0.4i)")
-    solver = "inverse-iteration"
-    sigma = (0.0d0, 0.4d0)
+    call settings%solvers%set_solver("inverse-iteration")
+    settings%solvers%sigma = (0.0d0, 0.4d0)
     call solve_evp(amat, bmat_hermitian, settings, omega, vr)
     @assertEqual(expected_b_hermitian(4), omega(1), tolerance=TOL)
   end subroutine test_inverse_iteration_general_3

@@ -2,24 +2,35 @@ module mod_test_solvers_arpack_type
   use mod_suite_utils
   use funit
   use mod_arpack_type, only: arpack_t, new_arpack_config
+  use mod_settings, only: settings_t, new_settings
   implicit none
 
+  type(settings_t) :: settings
   type(arpack_t) :: test_config
 
 contains
+
+  @before
+  subroutine init_test()
+    settings = new_settings()
+    call settings%initialise(physics_type="mhd", gridpts=10)
+    settings%solvers%which_eigenvalues = "LM"
+    settings%solvers%number_of_eigenvalues = 10
+    settings%solvers%tolerance = 1.0d-12
+    settings%solvers%maxiter = 0
+    settings%solvers%ncv = 0
+  end subroutine init_test
+
+  @after
+  subroutine tear_down()
+    call settings%delete()
+  end subroutine tear_down
 
   @test
   subroutine test_arpack_mode()
     call set_name("arpack type: set mode")
     test_config = new_arpack_config( &
-      evpdim=10, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=2, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
+      evpdim=100, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     @assertEqual(2, test_config%iparam(7))
   end subroutine test_arpack_mode
@@ -29,14 +40,7 @@ contains
   subroutine test_invalid_arpack_mode()
     call set_name("arpack type: set invalid mode")
     test_config = new_arpack_config( &
-      evpdim=10, &
-      mode=4, &
-      bmat="G", &
-      which="LM", &
-      nev=2, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
+      evpdim=100, mode=4, bmat="G", solver_settings=settings%solvers &
     )
     @assertExceptionRaised("Arnoldi: mode = 4 is invalid, expected 1, 2 or 3")
   end subroutine test_invalid_arpack_mode
@@ -46,15 +50,8 @@ contains
   subroutine test_arpack_bmat()
     call set_name("arpack type: set bmat")
     test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="I", &
-      which="LM", &
-      nev=10, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
-    )
+      evpdim=1000, mode=2, bmat="I", solver_settings=settings%solvers &
+      )
     @assertEqual("I", test_config%get_bmat())
   end subroutine test_arpack_bmat
 
@@ -63,14 +60,7 @@ contains
   subroutine test_arpack_bmat_invalid()
     call set_name("arpack type: set invalid bmat")
     test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="M", &
-      which="LM", &
-      nev=10, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
+      evpdim=1000, mode=2, bmat="M", solver_settings=settings%solvers &
     )
     @assertExceptionRaised("Arnoldi: bmat = M is invalid, expected 'I' or 'G'")
   end subroutine test_arpack_bmat_invalid
@@ -79,15 +69,9 @@ contains
   @test
   subroutine test_arpack_which()
     call set_name("arpack type: set which")
+    settings%solvers%which_eigenvalues = "LR"
     test_config = new_arpack_config( &
-      evpdim=10, &
-      mode=2, &
-      bmat="G", &
-      which="LR", &
-      nev=2, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
+      evpdim=100, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     @assertEqual("LR", test_config%get_which())
   end subroutine test_arpack_which
@@ -97,15 +81,9 @@ contains
   subroutine test_arpack_invalid_which()
     character(125) :: msg
     call set_name("arpack type: set invalid which")
+    settings%solvers%which_eigenvalues = "LL"
     test_config = new_arpack_config( &
-      evpdim=10, &
-      mode=2, &
-      bmat="G", &
-      which="LL", &
-      nev=2, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
+      evpdim=100, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     msg = "Arnoldi: which_eigenvalues = LL is invalid, " &
       // "expected one of [LM, SM, LR, SR, LI, SI]"
@@ -116,15 +94,9 @@ contains
   @test
   subroutine test_arpack_nev()
     call set_name("arpack type: set nev")
+    settings%solvers%number_of_eigenvalues = 5
     test_config = new_arpack_config( &
-      evpdim=10, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=5, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
+      evpdim=10, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     @assertEqual(5, test_config%get_nev())
   end subroutine test_arpack_nev
@@ -133,15 +105,9 @@ contains
   @test
   subroutine test_arpack_nev_negative()
     call set_name("arpack type: set negative nev")
+    settings%solvers%number_of_eigenvalues = -3
     test_config = new_arpack_config( &
-      evpdim=10, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=-3, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=7 &
+      evpdim=10, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     @assertExceptionRaised("Arnoldi: number of eigenvalues must be >= 0 but got -3")
   end subroutine test_arpack_nev_negative
@@ -150,15 +116,9 @@ contains
   @test
   subroutine test_arpack_nev_invalid()
     call set_name("arpack type: set invalid nev")
+    settings%solvers%number_of_eigenvalues = 12
     test_config = new_arpack_config( &
-      evpdim=10, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=12, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=7 &
+      evpdim=10, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     @assertExceptionRaised("Arnoldi: number of eigenvalues (12) >= matrix size (10)")
   end subroutine test_arpack_nev_invalid
@@ -168,14 +128,7 @@ contains
   subroutine test_arpack_default_ncv()
     call set_name("arpack type: set default ncv")
     test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=10, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
+      evpdim=100, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     @assertEqual(20, test_config%get_ncv())
   end subroutine test_arpack_default_ncv
@@ -184,15 +137,9 @@ contains
   @test
   subroutine test_arpack_ncv()
     call set_name("arpack type: set ncv")
+    settings%solvers%ncv = 35
     test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=10, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=35 &
+      evpdim=100, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     @assertEqual(35, test_config%get_ncv())
   end subroutine test_arpack_ncv
@@ -202,15 +149,9 @@ contains
   subroutine test_arpack_invalid_ncv1()
     character(125) :: msg
     call set_name("arpack type: set invalid ncv (eq 1)")
+    settings%solvers%ncv = 5
     test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=10, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=5 &
+      evpdim=100, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     msg = "ncv too low, expected ncv - nev >= 1 but got ncv - nev = -5"
     @assertExceptionRaised(msg)
@@ -221,15 +162,9 @@ contains
   subroutine test_arpack_invalid_ncv2()
     character(125) :: msg
     call set_name("arpack type: set invalid ncv (eq 2)")
+    settings%solvers%ncv = 120
     test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=10, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=120 &
+      evpdim=100, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     msg = "ncv too high, expected ncv < N but got ncv = 120 and N = 100"
     @assertExceptionRaised(msg)
@@ -240,48 +175,18 @@ contains
   subroutine test_arpack_default_maxiter_100()
     call set_name("arpack type: set default maxiter 100")
     test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=10, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
+      evpdim=100, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     @assertEqual(100, test_config%iparam(3))
   end subroutine test_arpack_default_maxiter_100
 
 
   @test
-  subroutine test_arpack_default_maxiter_10k()
-    call set_name("arpack type: set default maxiter 10k")
-    test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=25, &
-      tolerance=1.0d-12, &
-      maxiter=0, &
-      ncv=0 &
-    )
-    @assertEqual(250, test_config%iparam(3))
-  end subroutine test_arpack_default_maxiter_10k
-
-
-  @test
   subroutine test_arpack_maxiter()
     call set_name("arpack type: set maxiter")
+    settings%solvers%maxiter = 5000
     test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=10, &
-      tolerance=1.0d-12, &
-      maxiter=5000, &
-      ncv=0 &
+      evpdim=100, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     @assertEqual(5000, test_config%iparam(3))
   end subroutine test_arpack_maxiter
@@ -290,15 +195,9 @@ contains
   @test
   subroutine test_arpack_maxiter_negative()
     call set_name("arpack type: set negative maxiter")
+    settings%solvers%maxiter = -1000
     test_config = new_arpack_config( &
-      evpdim=100, &
-      mode=2, &
-      bmat="G", &
-      which="LM", &
-      nev=10, &
-      tolerance=1.0d-12, &
-      maxiter=-1000, &
-      ncv=0 &
+      evpdim=100, mode=2, bmat="G", solver_settings=settings%solvers &
     )
     @assertExceptionRaised("Arnoldi: maxiter must be positive, but is equal to -1000")
   end subroutine test_arpack_maxiter_negative

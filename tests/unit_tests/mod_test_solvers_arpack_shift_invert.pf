@@ -3,8 +3,7 @@ module mod_test_solvers_arpack_shift_invert
   use funit
   use mod_arpack_type, only: arpack_t, new_arpack_config
   use mod_matrix_structure, only: matrix_t, new_matrix
-  use mod_global_variables, only: sigma
-    use mod_solvers, only: solve_evp
+  use mod_solvers, only: solve_evp
   use mod_settings, only: settings_t, new_settings
   implicit none
 
@@ -33,16 +32,14 @@ contains
 
   @before
   subroutine init_test()
-    use mod_global_variables, only: solver, arpack_mode, number_of_eigenvalues, &
-      maxiter, which_eigenvalues
     call reset_globals()
     settings = new_settings()
     call settings%initialise(physics_type="mhd", gridpts=10)
-    solver = "arnoldi"
-    arpack_mode = "shift-invert"
-    number_of_eigenvalues = nb_eigenvals
-    maxiter = 500
-    which_eigenvalues = "LM"
+    call settings%solvers%set_solver("arnoldi")
+    call settings%solvers%set_arpack_mode("shift-invert")
+    settings%solvers%number_of_eigenvalues = nb_eigenvals
+    settings%solvers%maxiter = 500
+    settings%solvers%which_eigenvalues = "LM"
     call create_matrices()
   end subroutine init_test
 
@@ -92,7 +89,7 @@ contains
   subroutine test_arpack_shift_invert0()
     integer :: i
     call set_name("solving EVP, arpack shift-invert (sigma = 0)")
-    sigma = (0.0d0, 0.0d0)
+    settings%solvers%sigma = (0.0d0, 0.0d0)
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [1, 2, 3, 5]
@@ -106,7 +103,7 @@ contains
   subroutine test_arpack_shift_invert1()
     integer :: i
     call set_name("solving EVP, arpack shift-invert (sigma = 1.0)")
-    sigma = (1.0d0, 0.0d0)
+    settings%solvers%sigma = (1.0d0, 0.0d0)
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [3, 5, 6, 8]
@@ -120,7 +117,7 @@ contains
   subroutine test_arpack_shift_invert2()
     integer :: i
     call set_name("solving EVP, arpack shift-invert (sigma = 0.5i)")
-    sigma = (0.0d0, 0.5d0)
+    settings%solvers%sigma = (0.0d0, 0.5d0)
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [3, 4, 5, 6]
@@ -134,7 +131,7 @@ contains
   subroutine test_arpack_shift_invert3()
     integer :: i
     call set_name("solving EVP, arpack shift-invert (sigma = -1 + 0.2i)")
-    sigma = (-1.0d0, 0.2d0)
+    settings%solvers%sigma = (-1.0d0, 0.2d0)
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [1, 2, 3, 5]
@@ -148,7 +145,7 @@ contains
   subroutine test_arpack_shift_invert4()
     integer :: i
     call set_name("solving EVP, arpack shift-invert (sigma = -0.5 - 0.35i)")
-    sigma = (-0.5d0, -0.35d0)
+    settings%solvers%sigma = (-0.5d0, -0.35d0)
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [1, 2, 3, 5]
@@ -162,7 +159,7 @@ contains
   subroutine test_arpack_shift_invert5()
     integer :: i
     call set_name("solving EVP, arpack shift-invert (sigma = 10 + 2i)")
-    sigma = (10.0d0, 2.0d0)
+    settings%solvers%sigma = (10.0d0, 2.0d0)
     call solve_evp(amat, bmat, settings, actual, vr)
     call sort_complex_array(actual)
     idxs = [7, 8, 9, 10]

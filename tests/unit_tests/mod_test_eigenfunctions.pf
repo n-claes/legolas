@@ -45,18 +45,14 @@ contains
     end if
     B_field % B02 = 1.0d0
     B_field % B03 = 2.0d0
-    call initialise_eigenfunctions( &
-      omega=eigenvals, state_vector=settings%get_state_vector() &
-    )
+    call initialise_eigenfunctions(omega=eigenvals, settings=settings)
   end subroutine use_bfield
 
 
   subroutine enable_derived_efs()
-    write_derived_eigenfunctions = .true.
+    settings%io%write_derived_eigenfunctions = .true.
     call eigenfunctions_clean()
-    call initialise_eigenfunctions( &
-      omega=eigenvals, state_vector=settings%get_state_vector() &
-    )
+    call initialise_eigenfunctions(omega=eigenvals, settings=settings)
   end subroutine enable_derived_efs
 
 
@@ -77,9 +73,7 @@ contains
         pos = pos + 1
       end do
     end do
-    call initialise_eigenfunctions( &
-      omega=eigenvals, state_vector=settings%get_state_vector() &
-    )
+    call initialise_eigenfunctions(omega=eigenvals, settings=settings)
   end subroutine init_test
 
 
@@ -111,9 +105,7 @@ contains
     call set_name("eigenfunctions - subset selection")
     call use_subset()
     call eigenfunctions_clean()
-    call initialise_eigenfunctions( &
-      omega=eigenvals, state_vector=settings%get_state_vector() &
-    )
+    call initialise_eigenfunctions(omega=eigenvals, settings=settings)
     actual_shape = shape(base_eigenfunctions(1)%quantities)
     @assertEqual([ef_gridpts, 4], actual_shape)
   end subroutine test_select_eigenfunction_subset
@@ -124,9 +116,7 @@ contains
     call set_name("eigenfunctions - subset indices")
     call use_subset()
     call eigenfunctions_clean()
-    call initialise_eigenfunctions( &
-      omega=eigenvals, state_vector=settings%get_state_vector() &
-    )
+    call initialise_eigenfunctions(omega=eigenvals, settings=settings)
     @assertEqual(4, size(ef_written_idxs))
     @assertEqual([5, 9, 10, 15], ef_written_idxs)
   end subroutine test_eigenfunction_subset_idxs
@@ -197,11 +187,7 @@ contains
 
     call set_name("eigenfunctions - get from index")
     call create_eigenvectors(settings%dims%get_dim_matrix())
-    call calculate_eigenfunctions( &
-      right_eigenvectors=eigenvectors, &
-      state_vector=settings%get_state_vector(), &
-      dims=settings%dims &
-    )
+    call calculate_eigenfunctions(right_eigenvectors=eigenvectors, settings=settings)
     eigenfunc = retrieve_eigenfunction_from_index( &
       name="rho", state_vector=settings%get_state_vector(), ef_index=5 &
     )
@@ -215,11 +201,7 @@ contains
     call set_name("eigenfunctions - get from index (invalid name)")
     call enable_derived_efs()
     call create_eigenvectors(settings%dims%get_dim_matrix())
-    call calculate_eigenfunctions( &
-      right_eigenvectors=eigenvectors, &
-      state_vector=settings%get_state_vector(), &
-      dims=settings%dims &
-    )
+    call calculate_eigenfunctions(right_eigenvectors=eigenvectors, settings=settings)
     eigenfunc = retrieve_eigenfunction_from_index( &
       name="S", state_vector=settings%get_state_vector(), ef_index=5 &
     )
@@ -257,11 +239,7 @@ contains
     call enable_derived_efs()
     call use_bfield(use_b01=.false.)
     call create_eigenvectors(settings%dims%get_dim_matrix())
-    call calculate_eigenfunctions( &
-      right_eigenvectors=eigenvectors, &
-      state_vector=settings%get_state_vector(), &
-      dims=settings%dims &
-    )
+    call calculate_eigenfunctions(right_eigenvectors=eigenvectors, settings=settings)
     @assertEqual(size(derived_ef_names), size(derived_eigenfunctions))
     @assertTrue((any(derived_ef_names == "B_para")))
   end subroutine test_eigenfunction_calculations_with_bfield

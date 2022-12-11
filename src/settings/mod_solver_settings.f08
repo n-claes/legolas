@@ -29,6 +29,10 @@ contains
 
   pure function new_solver_settings() result(solvers)
     type(solvers_t) :: solvers
+
+    solvers%number_of_eigenvalues = 0
+    solvers%maxiter = 0
+    solvers%ncv = 0
   end function new_solver_settings
 
 
@@ -67,8 +71,8 @@ contains
   pure subroutine delete(this)
     class(solvers_t), intent(inout) :: this
 
-    deallocate(this%solver)
-    deallocate(this%arpack_mode)
+    if (allocated(this%solver)) deallocate(this%solver)
+    if (allocated(this%arpack_mode)) deallocate(this%arpack_mode)
   end subroutine delete
 
 
