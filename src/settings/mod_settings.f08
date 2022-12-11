@@ -1,6 +1,7 @@
 module mod_settings
   use mod_global_variables, only: str_len_arr
   use mod_dims, only: dims_t, new_block_dims
+  use mod_io_settings, only: io_t, new_io_settings
   implicit none
 
   private
@@ -9,6 +10,7 @@ module mod_settings
     character(len=:), private, allocatable :: state_vector(:)
     character(len=:), private, allocatable :: physics_type
     type(dims_t), public :: dims
+    type(io_t), public :: io
 
   contains
 
@@ -35,6 +37,7 @@ contains
     this%physics_type = physics_type
     call set_state_vector(this, physics_type)
     call this%dims%set_block_dims(nb_eqs=size(this%state_vector), gridpts=gridpts)
+    this%io = new_io_settings()
   end subroutine initialise
 
 
@@ -76,6 +79,7 @@ contains
 
     if (allocated(this%state_vector)) deallocate(this%state_vector)
     if (allocated(this%physics_type)) deallocate(this%physics_type)
+    call this%io%delete()
   end subroutine delete
 
 end module mod_settings
