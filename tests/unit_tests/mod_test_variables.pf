@@ -1,8 +1,11 @@
 module mod_test_variables
   use mod_global_variables
   use mod_suite_utils
+  use mod_settings, only: settings_t, new_settings
   use funit
   implicit none
+
+  type(settings_t) :: settings
 
 contains
 
@@ -10,12 +13,14 @@ contains
   @before
   subroutine init_test()
     call reset_globals()
+    settings = new_settings()
+    call settings%initialise(physics_type="mhd", gridpts=10)
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
-    ! nothing to do
+    call settings%delete()
   end subroutine teardown_test
 
 
@@ -49,8 +54,9 @@ contains
   @test
   subroutine test_matrix_properties_mhd()
     call set_name("matrix properties MHD")
-    call set_matrix_properties(points=10)
-    @assertEqual(size(state_vector), 8)
+    call set_gridpts(10)
+    @assertEqual(settings%dims%get_nb_eqs(), 8)
+    @assertEqual(size(settings%get_state_vector()), 8)
     @assertEqual(16, dim_subblock)
     @assertEqual(32, dim_quadblock)
     @assertEqual(160, dim_matrix)

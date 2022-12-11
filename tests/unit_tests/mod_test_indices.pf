@@ -2,9 +2,11 @@ module mod_test_indices
   use mod_suite_utils
   use funit
   use mod_get_indices
+  use mod_settings, only: settings_t, new_settings
   implicit none
 
   integer, allocatable :: idxs(:)
+  type(settings_t) :: settings
 
   character(len=10) :: test_names(5) = ["name1", "name2", "name3", "name4", "name5"]
 
@@ -13,12 +15,15 @@ contains
   @before
   subroutine init_test()
     call reset_globals()
+    settings = new_settings()
+    call settings%initialise(physics_type="mhd", gridpts=10)
   end subroutine init_test
 
 
   @after
   subroutine tear_down()
     if (allocated(idxs)) deallocate(idxs)
+    call settings%delete()
   end subroutine tear_down
 
 
@@ -87,7 +92,12 @@ contains
       "could not retrieve subblock indices for any variable in [test1, test2] " &
       // "for state vector [rho, v1, v2, v3, T, a1, a2, a3]" &
     )
-    idxs = get_subblock_index(variables=["test1", "test2"], odd=.true., edge="left")
+    idxs = get_subblock_index( &
+      variables=["test1", "test2"], &
+      state_vector=settings%get_state_vector(), &
+      odd=.true., &
+      edge="left" &
+    )
     @assertExceptionRaised(trim(error_msg))
   end subroutine test_subblock_indices_fail
 
@@ -95,7 +105,12 @@ contains
   @test
   subroutine test_subblock_indices_odd_left_mhd()
     call set_name("get subblock indices (odd, left, MHD)")
-    idxs = get_subblock_index(variables=["v1", "v2", "a1"], odd=.true., edge="left")
+    idxs = get_subblock_index( &
+      variables=["v1", "v2", "a1"], &
+      state_vector=settings%get_state_vector(), &
+      odd=.true., &
+      edge="left" &
+    )
     @assertEqual([3, 5, 11], idxs)
   end subroutine test_subblock_indices_odd_left_mhd
 
@@ -103,7 +118,12 @@ contains
   @test
   subroutine test_subblock_indices_even_left_mhd()
     call set_name("get subblock indices (even, left, MHD)")
-    idxs = get_subblock_index(variables=["v1", "v2", "a1"], odd=.false., edge="left")
+    idxs = get_subblock_index( &
+      variables=["v1", "v2", "a1"], &
+      state_vector=settings%get_state_vector(), &
+      odd=.false., &
+      edge="left" &
+    )
     @assertEqual([4, 6, 12], idxs)
   end subroutine test_subblock_indices_even_left_mhd
 
@@ -111,7 +131,12 @@ contains
   @test
   subroutine test_subblock_indices_odd_right_mhd()
     call set_name("get subblock indices (odd, right, MHD)")
-    idxs = get_subblock_index(variables=["v1", "v2", "a1"], odd=.true., edge="right")
+    idxs = get_subblock_index( &
+      variables=["v1", "v2", "a1"], &
+      state_vector=settings%get_state_vector(), &
+      odd=.true., &
+      edge="right" &
+    )
     @assertEqual([19, 21, 27], idxs)
   end subroutine test_subblock_indices_odd_right_mhd
 
@@ -119,7 +144,12 @@ contains
   @test
   subroutine test_subblock_indices_even_right_mhd()
     call set_name("get subblock indices (even, right, MHD)")
-    idxs = get_subblock_index(variables=["v1", "v2", "a1"], odd=.false., edge="right")
+    idxs = get_subblock_index( &
+      variables=["v1", "v2", "a1"], &
+      state_vector=settings%get_state_vector(), &
+      odd=.false., &
+      edge="right" &
+    )
     @assertEqual([20, 22, 28], idxs)
   end subroutine test_subblock_indices_even_right_mhd
 
@@ -128,7 +158,10 @@ contains
   subroutine test_subblock_indices_odd_left_mhd_zero()
     call set_name("get subblock indices (odd, left, MHD, with zero)")
     idxs = get_subblock_index( &
-      variables=["v1", "00", "v2", "va", "T4"], odd=.true., edge="left" &
+      variables=["v1", "00", "v2", "va", "T4"], &
+      state_vector=settings%get_state_vector(), &
+      odd=.true., &
+      edge="left" &
     )
     @assertEqual([3, 5], idxs)
   end subroutine test_subblock_indices_odd_left_mhd_zero
@@ -138,7 +171,10 @@ contains
   subroutine test_subblock_indices_even_left_mhd_zero()
     call set_name("get subblock indices (even, left, MHD, with zero)")
     idxs = get_subblock_index( &
-      variables=["v1", "00", "v7", "v2", "T4"], odd=.false., edge="left" &
+      variables=["v1", "00", "v7", "v2", "T4"], &
+      state_vector=settings%get_state_vector(), &
+      odd=.false., &
+      edge="left" &
     )
     @assertEqual([4, 6], idxs)
   end subroutine test_subblock_indices_even_left_mhd_zero
@@ -148,7 +184,10 @@ contains
   subroutine test_subblock_indices_odd_right_mhd_zero()
     call set_name("get subblock indices (odd, right, MHD, with zero)")
     idxs = get_subblock_index( &
-      variables=["v1", "00", "v2", "va", "T4"], odd=.true., edge="right" &
+      variables=["v1", "00", "v2", "va", "T4"], &
+      state_vector=settings%get_state_vector(), &
+      odd=.true., &
+      edge="right" &
     )
     @assertEqual([19, 21], idxs)
   end subroutine test_subblock_indices_odd_right_mhd_zero
@@ -158,7 +197,10 @@ contains
   subroutine test_subblock_indices_even_right_mhd_zero()
     call set_name("get subblock indices (even, right, MHD, with zero)")
     idxs = get_subblock_index( &
-      variables=["v1", "00", "v7", "v2", "T4"], odd=.false., edge="right" &
+      variables=["v1", "00", "v7", "v2", "T4"], &
+      state_vector=settings%get_state_vector(), &
+      odd=.false., &
+      edge="right" &
     )
     @assertEqual([20, 22], idxs)
   end subroutine test_subblock_indices_even_right_mhd_zero

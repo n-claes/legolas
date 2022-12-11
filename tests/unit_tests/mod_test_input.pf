@@ -2,9 +2,11 @@ module mod_test_input
   use funit
   use mod_suite_utils
   use mod_input, only: read_parfile
+  use mod_settings, only: settings_t, new_settings
   implicit none
 
   character(len=125) :: error_msg
+  type(settings_t) :: settings
 
 contains
 
@@ -12,19 +14,21 @@ contains
   subroutine init_test()
     call reset_globals()
     call reset_fields(init_fields=.true.)
+    settings = new_settings()
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
     call clean_up()
+    call settings%delete()
   end subroutine teardown_test
 
 
   @test
   subroutine test_no_parfile_given()
     call set_name("no parfile given")
-    call read_parfile(parfile="")
+    call read_parfile(parfile="", settings=settings)
     @assertExceptionRaised("no parfile supplied!")
   end subroutine test_no_parfile_given
 
@@ -34,7 +38,7 @@ contains
     use mod_global_variables, only: gridpts
 
     call set_name("setting gridpoints through parfile")
-    call read_parfile("test_parfiles/parfile_gridpts.par")
+    call read_parfile("test_parfiles/parfile_gridpts.par", settings)
     @assertEqual(100, gridpts)
   end subroutine test_parfile_gridpoints
 
@@ -44,7 +48,7 @@ contains
     use mod_global_variables, only: gamma, gamma_1
 
     call set_name("setting gamma through parfile")
-    call read_parfile("test_parfiles/parfile_gamma.par")
+    call read_parfile("test_parfiles/parfile_gamma.par", settings)
     @assertEqual(2.0d0, gamma, tolerance=TOL)
     @assertEqual(1.0d0, gamma_1, tolerance=TOL)
   end subroutine test_parfile_gamma
@@ -55,7 +59,7 @@ contains
     use mod_global_variables, only: write_eigenfunctions, write_matrices
 
     call set_name("setting dry run flag")
-    call read_parfile("test_parfiles/parfile_dryrun.par")
+    call read_parfile("test_parfiles/parfile_dryrun.par", settings)
     @assertFalse(write_eigenfunctions)
     @assertFalse(write_matrices)
   end subroutine test_parfile_dryrun
@@ -64,7 +68,7 @@ contains
   @test
   subroutine test_parfile_doubleunits()
     call set_name("setting rho + T unit in parfile")
-    call read_parfile("test_parfiles/parfile_doubleunits.par")
+    call read_parfile("test_parfiles/parfile_doubleunits.par", settings)
     error_msg = ( &
       "unit density and unit temperature cannot both be provided in the parfile!" &
     )
@@ -75,7 +79,7 @@ contains
   @test
   subroutine test_parfile_onlyrhounit()
     call set_name("setting only rho unit in parfile")
-    call read_parfile("test_parfiles/parfile_onlyrhounit.par")
+    call read_parfile("test_parfiles/parfile_onlyrhounit.par", settings)
     error_msg = "unit_density found, unit_magneticfield and unit_length also required."
     @assertExceptionRaised(error_msg)
   end subroutine test_parfile_onlyrhounit
@@ -84,7 +88,7 @@ contains
   @test
   subroutine test_parfile_onlyTunit()
     call set_name("setting only T unit in parfile")
-    call read_parfile("test_parfiles/parfile_onlytempunit.par")
+    call read_parfile("test_parfiles/parfile_onlytempunit.par", settings)
     error_msg = ( &
       "unit_temperature found, unit_magneticfield and unit_length also required." &
     )
@@ -98,7 +102,7 @@ contains
     use mod_global_variables, only: cgs_units
 
     call set_name("setting units through parfile (rho)")
-    call read_parfile("test_parfiles/parfile_units_rho.par")
+    call read_parfile("test_parfiles/parfile_units_rho.par", settings)
     @assertTrue(cgs_units)
     @assertEqual(unit_density, 1.0d-15, tolerance=TOL)
     @assertEqual(unit_magneticfield, 10.0d0, tolerance=TOL)
@@ -112,7 +116,7 @@ contains
     use mod_global_variables, only: cgs_units
 
     call set_name("setting units through parfile (T)")
-    call read_parfile("test_parfiles/parfile_units_temp.par")
+    call read_parfile("test_parfiles/parfile_units_temp.par", settings)
     @assertTrue(cgs_units)
     @assertEqual(unit_temperature, 1.0d7, tolerance=TOL)
     @assertEqual(unit_magneticfield, 10.0d0, tolerance=TOL)
@@ -127,7 +131,7 @@ contains
 
     logging_level = 0
     call set_name("setting eigenfunctions false but derived true")
-    call read_parfile("test_parfiles/parfile_only_derived_efs.par")
+    call read_parfile("test_parfiles/parfile_only_derived_efs.par", settings)
     @assertTrue(write_eigenfunctions)
     @assertTrue(write_derived_eigenfunctions)
   end subroutine test_parfile_derived_efs_but_no_efs
@@ -136,7 +140,7 @@ contains
   @test
   subroutine test_parfile_invalid_subset_center()
     call set_name("invalid subset center through parfile")
-    call read_parfile("test_parfiles/parfile_invalid_subset_center.par")
+    call read_parfile("test_parfiles/parfile_invalid_subset_center.par", settings)
     @assertExceptionRaised("eigenfunction_subset_center must be set!")
   end subroutine test_parfile_invalid_subset_center
 
@@ -144,7 +148,7 @@ contains
   @test
   subroutine test_parfile_invalid_subset_radius()
     call set_name("invalid subset radius through parfile")
-    call read_parfile("test_parfiles/parfile_invalid_subset_radius.par")
+    call read_parfile("test_parfiles/parfile_invalid_subset_radius.par", settings)
     @assertExceptionRaised("eigenfunction_subset_radius must be set!")
   end subroutine test_parfile_invalid_subset_radius
 
