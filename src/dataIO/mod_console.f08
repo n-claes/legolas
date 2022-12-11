@@ -56,9 +56,12 @@ contains
   ! LCOV_EXCL_START <we don't print info to console when testing>
   !> Prints various console messages showing geometry, grid parameters,
   !! equilibrium parameters etc. Only for logging level "info" or above.
-  subroutine print_console_info()
+  subroutine print_console_info(settings)
     use mod_global_variables
     use mod_equilibrium_params, only: k2, k3
+    use mod_settings, only: settings_t
+
+    type(settings_t), intent(in) :: settings
 
     if (logging_level <= 1) then
       return
@@ -75,7 +78,7 @@ contains
     call log_message("grid end           : " // str(x_end))
     call log_message("gridpoints (base)  : " // str(gridpts))
     call log_message("gridpoints (Gauss) : " // str(gauss_gridpts))
-    call log_message("gridpoints (matrix): " // str(dim_matrix))
+    call log_message("gridpoints (matrix): " // str(settings%dims%get_dim_matrix()))
 
     call log_message("          << Equilibrium settings >>")
     call log_message("equilibrium    : " // trim(adjustl(equilibrium_type)))

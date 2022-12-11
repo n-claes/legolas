@@ -16,6 +16,7 @@ program legolas
   use mod_console, only: print_console_info, print_whitespace
   use mod_inspections, only: handle_spurious_eigenvalues
   use mod_timing, only: timer_t, new_timer
+  use mod_settings, only: settings_t, new_settings
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -24,18 +25,21 @@ program legolas
   type(matrix_t) :: matrix_B
   !> timer used by the whole program
   type(timer_t) :: timer
+  !> dedicated settings type
+  type(settings_t) :: settings
   !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
   complex(dp), allocatable  :: eigenvecs_right(:, :)
 
   timer = new_timer()
+  settings = new_settings()
 
   call timer%start_timer()
   call initialisation()
   timer%init_time = timer%end_timer()
 
-  call print_console_info()
+  call print_console_info(settings)
 
   call timer%start_timer()
   call build_matrices(matrix_B, matrix_A)
@@ -76,9 +80,8 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, dim_matrix, &
-      solver, number_of_eigenvalues, should_compute_eigenvectors, gamma, set_gamma, NaN, &
-      state_vector, hall_mhd, x_start, x_end
+    use mod_global_variables, only: initialise_globals, solver, number_of_eigenvalues, &
+     should_compute_eigenvectors, gamma, set_gamma, NaN, hall_mhd, x_start, x_end
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
@@ -92,23 +95,28 @@ contains
 
     call initialise_globals()
     call get_parfile(parfile)
-    call read_parfile(parfile)
+    call read_parfile(parfile, settings)
     call set_gamma(gamma)
 
     call print_logo()
-    call log_message("the state vector is set to " // str(state_vector), level="info")
+    call log_message( &
+      "the physics type is " // settings%get_physics_type(), level="info" &
+    )
+    call log_message( &
+      "the state vector is " // str(settings%get_state_vector()), level="info" &
+    )
 
     if (solver == "arnoldi") then
       nb_evs = number_of_eigenvalues
     elseif (solver == "inverse-iteration") then
       nb_evs = 1
     else
-      nb_evs = dim_matrix
+      nb_evs = settings%dims%get_dim_matrix()
     end if
     call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
     allocate(omega(nb_evs))
-    matrix_A = new_matrix(nb_rows=dim_matrix, label="A")
-    matrix_B = new_matrix(nb_rows=dim_matrix, label="B")
+    matrix_A = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="A")
+    matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
 
     call initialise_equilibrium()
     call set_equilibrium()
@@ -124,7 +132,7 @@ contains
     if (should_compute_eigenvectors() .or. solver == "arnoldi") then
       call log_message("allocating eigenvector arrays", level="debug")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
-      allocate(eigenvecs_right(dim_matrix, nb_evs))
+      allocate(eigenvecs_right(settings%dims%get_dim_matrix(), nb_evs))
     else
       ! @note: this is needed to prevent segfaults, since it seems that in some
       ! cases for macOS the routine zgeev references the right eigenvectors even

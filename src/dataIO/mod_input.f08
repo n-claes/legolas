@@ -6,6 +6,7 @@ module mod_input
   use mod_global_variables
   use mod_equilibrium_params
   use mod_logging, only: log_message
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -30,19 +31,22 @@ contains
   !! - a <tt>unit_temprature</tt> is supplied, but no length or magnetic field unit. @endwarning
   !! @warning If <tt>dry_run</tt> is <tt>True</tt>, this automatically sets eigenfunction
   !!          and matrix saving to <tt>False</tt>, independent of the settings in the parfile! @endwarning
-  subroutine read_parfile(parfile)
+  subroutine read_parfile(parfile, settings)
     use mod_check_values, only: is_equal, is_NaN
 
     !> the name of the parfile
     character(len=*), intent(in)  :: parfile
+    !> the settings object
+    type(settings_t), intent(inout) :: settings
 
+    character(str_len) :: physics_type
     real(dp)    :: mhd_gamma
     real(dp)    :: unit_density, unit_temperature, unit_magneticfield, unit_length
     real(dp)    :: mean_molecular_weight
     integer     :: gridpoints
 
     namelist /physicslist/  &
-        mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
+        physics_type, mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
         external_gravity, thermal_conduction, use_fixed_tc_para, &
         fixed_tc_para_value, use_fixed_tc_perp, fixed_tc_perp_value, &
         resistivity, use_fixed_resistivity, fixed_eta_value, &
@@ -87,6 +91,7 @@ contains
     unit_magneticfield = NaN
     unit_length = NaN
     mean_molecular_weight = NaN
+    physics_type = ""
 
     open(unit_par, file=trim(parfile), status='old')
     !! Start reading namelists, rewind so they can appear out of order
@@ -120,6 +125,9 @@ contains
     if (.not. is_equal(mhd_gamma, 0.0d0)) then
       call set_gamma(mhd_gamma)
     end if
+
+    if (physics_type == "") physics_type = "mhd"
+    call settings%initialise(physics_type, gridpoints)
 
     ! Check dry run settings
     if (dry_run) then
