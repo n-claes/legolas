@@ -8,6 +8,7 @@ module mod_solvers
   use mod_check_values, only: set_small_values_to_zero
   use mod_matrix_structure, only: matrix_t
   use mod_transform_matrix, only: matrix_to_array
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -47,22 +48,26 @@ module mod_solvers
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine qz_direct
 
-    module subroutine arnoldi(matrix_A, matrix_B, omega, vr)
+    module subroutine arnoldi(matrix_A, matrix_B, settings, omega, vr)
       !> matrix A
       type(matrix_t), intent(in) :: matrix_A
       !> matrix B
       type(matrix_t), intent(in) :: matrix_B
+      !> settings object
+      type(settings_t), intent(in) :: settings
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
       complex(dp), intent(out)  :: vr(:, :)
     end subroutine arnoldi
 
-    module subroutine inverse_iteration(matrix_A, matrix_B, omega, vr)
+    module subroutine inverse_iteration(matrix_A, matrix_B, settings, omega, vr)
       !> matrix A
       type(matrix_t), intent(in) :: matrix_A
       !> matrix B
       type(matrix_t), intent(in) :: matrix_B
+      !> settings object
+      type(settings_t), intent(in) :: settings
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
@@ -78,13 +83,15 @@ contains
   !> Main subroutine to solve the eigenvalue problem. Depending on the solvelist
   !! passed in the parfile, different solvers are called.
   !! @warning Throws an error if an unknown solver is passed. @endwarning
-  subroutine solve_evp(matrix_A, matrix_B, omega, vr)
+  subroutine solve_evp(matrix_A, matrix_B, settings, omega, vr)
     use mod_global_variables, only: solver
 
     !> A-matrix
     type(matrix_t), intent(in) :: matrix_A
     !> B-matrix
     type(matrix_t), intent(in) :: matrix_B
+    !> settings object
+    type(settings_t), intent(in) :: settings
     !> eigenvalues
     complex(dp), intent(out)  :: omega(:)
     !> right eigenvectors
@@ -98,9 +105,9 @@ contains
     case("QZ-direct")
       call qz_direct(matrix_A, matrix_B, omega, vr)
     case("arnoldi")
-      call arnoldi(matrix_A, matrix_B, omega, vr)
+      call arnoldi(matrix_A, matrix_B, settings, omega, vr)
     case("inverse-iteration")
-      call inverse_iteration(matrix_A, matrix_B, omega, vr)
+      call inverse_iteration(matrix_A, matrix_B, settings, omega, vr)
     case("none")
       ! Set eigenvalues and vectors to NaN.
       omega = NaN * (1, 1)

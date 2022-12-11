@@ -2,7 +2,7 @@
 !> Module containing Hall-related routines.
 !! Sets the Hall and electron inertia factors based on normalisations and specified profiles.
 module mod_hall
-  use mod_global_variables, only: dp, dim_quadblock
+  use mod_global_variables, only: dp
 
 implicit none
 

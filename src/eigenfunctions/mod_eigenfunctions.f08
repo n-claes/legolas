@@ -5,6 +5,7 @@
 module mod_eigenfunctions
   use mod_global_variables, only: dp, str_len_arr, ef_gridpts
   use mod_types, only: ef_type
+  use mod_dims, only: dims_t
   implicit none
 
   private
@@ -42,24 +43,30 @@ module mod_eigenfunctions
       character(len=*), intent(in) :: state_vector(:)
     end subroutine initialise_derived_eigenfunctions
 
-    module subroutine calculate_base_eigenfunctions(right_eigenvectors)
+    module subroutine calculate_base_eigenfunctions(right_eigenvectors, dims)
       complex(dp), intent(in) :: right_eigenvectors(:, :)
+      type(dims_t), intent(in) :: dims
     end subroutine calculate_base_eigenfunctions
 
-    module subroutine calculate_derived_eigenfunctions(right_eigenvectors, state_vector)
+    module subroutine calculate_derived_eigenfunctions( &
+      right_eigenvectors, state_vector, dims &
+    )
       complex(dp), intent(in) :: right_eigenvectors(:, :)
       character(len=*), intent(in) :: state_vector(:)
+      type(dims_t), intent(in) :: dims
     end subroutine calculate_derived_eigenfunctions
   end interface
 
   interface
     module function assemble_eigenfunction( &
-      base_ef, eigenvector, derivative_order &
+      base_ef, eigenvector, dims, derivative_order &
     ) result(assembled_ef)
       !> the base eigenfunction at the current position in the eigenfunction array
       type(ef_type), intent(in) :: base_ef
       !> the eigenvector for the eigenvalue under consideration
       complex(dp), intent(in) :: eigenvector(:)
+      !> the dimensions object
+      type(dims_t), intent(in) :: dims
       !> derivative order of the eigenfunction, defaults to 0
       integer, intent(in), optional :: derivative_order
       !> the assembled eigenfunction (not yet transformed to "actual" values)
@@ -114,13 +121,14 @@ contains
 
   !> Calculates both the base eigenfunctions and the derived quantities thereof
   !! based on a 2D array of right eigenvectors.
-  subroutine calculate_eigenfunctions(right_eigenvectors, state_vector)
+  subroutine calculate_eigenfunctions(right_eigenvectors, state_vector, dims)
     complex(dp), intent(in) :: right_eigenvectors(:, :)
     character(len=*), intent(in) :: state_vector(:)
+    type(dims_t), intent(in) :: dims
 
-    call calculate_base_eigenfunctions(right_eigenvectors)
+    call calculate_base_eigenfunctions(right_eigenvectors, dims)
     if (derived_efs_initialised) then
-      call calculate_derived_eigenfunctions(right_eigenvectors, state_vector)
+      call calculate_derived_eigenfunctions(right_eigenvectors, state_vector, dims)
     end if
   end subroutine calculate_eigenfunctions
 

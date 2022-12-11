@@ -1,5 +1,5 @@
 module mod_boundary_manager
-  use mod_global_variables, only: dp, dim_quadblock
+  use mod_global_variables, only: dp
   use mod_logging, only: log_message, str
   use mod_matrix_structure, only: matrix_t
   use mod_settings, only: settings_t

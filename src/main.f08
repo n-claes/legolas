@@ -48,7 +48,7 @@ program legolas
   if (.not. dry_run) then
     call log_message("solving eigenvalue problem...", level="info")
     call timer%start_timer()
-    call solve_evp(matrix_A, matrix_B, omega, eigenvecs_right)
+    call solve_evp(matrix_A, matrix_B, settings, omega, eigenvecs_right)
     timer%evp_time = timer%end_timer()
   else
     call log_message( &
@@ -150,7 +150,9 @@ contains
 
     if (write_eigenfunctions) then
       call initialise_eigenfunctions(omega, settings%get_state_vector())
-      call calculate_eigenfunctions(eigenvecs_right, settings%get_state_vector())
+      call calculate_eigenfunctions( &
+        eigenvecs_right, settings%get_state_vector(), settings%dims &
+      )
     end if
   end subroutine create_eigenfunctions
 

@@ -15,7 +15,7 @@ contains
     integer :: limits(2)
 
     ! left side quadblock limits are (1, 1) -> (dim_quadblock, dim_quadblock)
-    limits = [1, dim_quadblock]
+    limits = [1, settings%dims%get_dim_quadblock()]
 
     ! on the left side we have a zero in a quadratic basis function (number 2), which
     ! zeroes out the odd rows/columns. We explicitly handle this by introducing an
@@ -25,6 +25,7 @@ contains
       idxs=get_subblock_index( &
         variables=[character(len=3) :: "rho", "v2", "v3", "T", "a1"], &
         state_vector=settings%get_state_vector(), &
+        dim_subblock=settings%dims%get_dim_subblock(), &
         odd=.true., &
         edge="left" &
       ), &
@@ -46,7 +47,11 @@ contains
     call zero_out_row_and_col( &
       matrix=matrix, &
       idxs=get_subblock_index( &
-        cubic_vars_to_zero_out, settings%get_state_vector(), odd=.true., edge="left" &
+        cubic_vars_to_zero_out, &
+        settings%get_state_vector(), &
+        settings%dims%get_dim_subblock(), &
+        odd=.true., &
+        edge="left" &
       ), &
       limits=limits &
     )
@@ -56,7 +61,11 @@ contains
       call zero_out_row_and_col( &
         matrix=matrix, &
         idxs=get_subblock_index( &
-          ["T"], settings%get_state_vector(), odd=.false., edge="left" &
+          ["T"], &
+          settings%get_state_vector(), &
+          settings%dims%get_dim_subblock(), &
+          odd=.false., &
+          edge="left" &
         ), &
         limits=limits &
       )
@@ -67,7 +76,11 @@ contains
       call zero_out_row_and_col( &
         matrix=matrix, &
         idxs=get_subblock_index( &
-          ["v2", "v3"], settings%get_state_vector(), odd=.false., edge="left" &
+          ["v2", "v3"], &
+          settings%get_state_vector(), &
+          settings%dims%get_dim_subblock(), &
+          odd=.false., &
+          edge="left" &
         ), &
         limits=limits &
       )
@@ -84,7 +97,7 @@ contains
     integer :: limits(2)
 
     ! index shift, even number so end of previous quadblock
-    ishift = matrix%matrix_dim - dim_quadblock
+    ishift = matrix%matrix_dim - settings%dims%get_dim_quadblock()
     ! last quadblock indices hence run from ishift + 1 to matrix dimension
     limits = [ishift + 1, matrix%matrix_dim]
 
@@ -101,7 +114,11 @@ contains
     call zero_out_row_and_col( &
       matrix=matrix, &
       idxs=ishift + get_subblock_index( &
-        cubic_vars_to_zero_out, settings%get_state_vector(), odd=.true., edge="right" &
+        cubic_vars_to_zero_out, &
+        settings%get_state_vector(), &
+        settings%dims%get_dim_subblock(), &
+        odd=.true., &
+        edge="right" &
       ), &
       limits=limits &
     )
@@ -111,7 +128,11 @@ contains
       call zero_out_row_and_col( &
         matrix=matrix, &
         idxs=ishift + get_subblock_index( &
-          ["T"], settings%get_state_vector(), odd=.false., edge="right" &
+          ["T"], &
+          settings%get_state_vector(), &
+          settings%dims%get_dim_subblock(), &
+          odd=.false., &
+          edge="right" &
         ), &
         limits=limits &
       )
@@ -121,7 +142,11 @@ contains
       call zero_out_row_and_col( &
         matrix=matrix, &
         idxs=ishift + get_subblock_index( &
-          ["v2", "v3"], settings%get_state_vector(), odd=.false., edge="right" &
+          ["v2", "v3"], &
+          settings%get_state_vector(), &
+          settings%dims%get_dim_subblock(), &
+          odd=.false., &
+          edge="right" &
         ), &
         limits=limits &
       )

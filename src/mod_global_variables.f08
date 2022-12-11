@@ -131,17 +131,6 @@ module mod_global_variables
   !> amount of eigenvalues to remove on each side of the imaginary axis, defaults to 1
   integer                      :: nb_spurious_eigenvalues
 
-  !> total number of equations
-  integer, protected  :: nb_eqs
-  !> dimension of one finite element integral block, e.g. A(1, 2)
-  integer, protected  :: dim_integralblock
-  !> dimension of one subblock, 4 of these define a quadblock
-  integer, protected  :: dim_subblock
-  !> dimension of one quadblock, this is the block shifted along the main diagonal
-  integer, protected  :: dim_quadblock
-  !> size of the A and B matrices
-  integer, protected  :: dim_matrix
-
   !> boolean to write both matrices to the datfile, defaults to <tt>False</tt>
   logical, save             :: write_matrices
   !> boolean to write the eigenvectors to the datfile, defaults to <tt>False</tt>
@@ -313,20 +302,6 @@ contains
     gridpts = points
     gauss_gridpts = n_gauss * (gridpts - 1)
     ef_gridpts  = 2 * gridpts - 1
-    call set_matrix_properties(points)
   end subroutine set_gridpts
-
-
-  !> Sets dimensions for matrix A and B, subblock sizes and state vector
-  subroutine set_matrix_properties(points)
-    !> gridpoints for the base grid
-    integer, intent(in) :: points
-
-    nb_eqs = 8
-    dim_integralblock = 2
-    dim_subblock = nb_eqs * dim_integralblock
-    dim_quadblock = dim_integralblock * dim_subblock
-    dim_matrix = dim_subblock * points
-  end subroutine set_matrix_properties
 
 end module mod_global_variables

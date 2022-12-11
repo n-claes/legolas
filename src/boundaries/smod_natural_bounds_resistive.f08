@@ -31,7 +31,7 @@ contains
     ! R(5, 6)
     factors(1) = 2.0d0 * ic * gamma_1 * eta * (k3 * drB02 - k2 * dB03)
     positions(1, :) = [5, 6]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_quad)
+    call subblock(quadblock, factors, positions, weight, h_quad, h_quad, dims)
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -41,7 +41,7 @@ contains
     ! R(5, 8)
     factors(2) = -2.0d0 * ic * gamma_1 * eta * drB02
     positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic)
+    call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic, dims)
 
     ! ==================== Cubic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -51,7 +51,7 @@ contains
     ! R(8, 6)
     factors(2) = -ic * eta * eps * k3
     positions(2, :) = [8, 6]
-    call subblock(quadblock, factors, positions, weight, h_cubic, h_quad)
+    call subblock(quadblock, factors, positions, weight, h_cubic, h_quad, dims)
 
     ! ==================== Cubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -61,7 +61,7 @@ contains
     ! R(8, 8)
     factors(2) = ic * eta * eps
     positions(2, :) = [8, 8]
-    call subblock(quadblock, factors, positions, weight, h_cubic, dh_cubic)
+    call subblock(quadblock, factors, positions, weight, h_cubic, dh_cubic, dims)
   end procedure add_natural_resistive_terms
 
 end submodule smod_natural_bounds_resistive

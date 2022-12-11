@@ -54,14 +54,14 @@ contains
     ! K(5, 6)
     factors(3) = 2.0d0 * ic * gamma_1 * eps * dT0 * Gop_min * Kp_plusplus
     positions(3, :) = [5, 6]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_quad)
+    call subblock(quadblock, factors, positions, weight, h_quad, h_quad, dims)
 
     ! ==================== Quadratic * dQuadratic ====================
     call reset_factor_positions(new_size=1)
     ! K(5, 5)
     factors(1) = ic * gamma_1 * (2.0d0 * B01**2 * Kp + kappa_perp)
     positions(1, :) = [5, 5]
-    call subblock(quadblock, factors, positions, weight, h_quad, dh_quad)
+    call subblock(quadblock, factors, positions, weight, h_quad, dh_quad, dims)
 
     ! ==================== Quadratic * Cubic ====================
     call reset_factor_positions(new_size=2)
@@ -71,7 +71,7 @@ contains
     ! K(5, 8)
     factors(2) = -2.0d0 * gamma_1 * k2 * dT0 * B01 * Kp_plusplus
     positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_cubic)
+    call subblock(quadblock, factors, positions, weight, h_quad, h_cubic, dims)
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -81,7 +81,7 @@ contains
     ! K(5, 8)
     factors(2) = -2.0d0 * ic * gamma_1 * dT0 * eps * B02 * Kp_plusplus
     positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic)
+    call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic, dims)
   end procedure add_natural_conduction_terms
 
 end submodule smod_natural_bounds_conduction

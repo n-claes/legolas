@@ -138,9 +138,9 @@ contains
     ! First we write all header information
     write(dat_fh) "legolas_version", LEGOLAS_VERSION
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
-      gauss_gridpts, dim_matrix, ef_gridpts, gamma, equilibrium_type, &
-      write_eigenfunctions, write_derived_eigenfunctions, write_matrices, &
-      write_eigenvectors, write_residuals, write_eigenfunction_subset, &
+      gauss_gridpts, settings%dims%get_dim_matrix(), ef_gridpts, gamma, &
+      equilibrium_type, write_eigenfunctions, write_derived_eigenfunctions, &
+      write_matrices, write_eigenvectors, write_residuals, write_eigenfunction_subset, &
       eigenfunction_subset_center, eigenfunction_subset_radius
     write(dat_fh) size(param_names), len(param_names(1)), param_names
     write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, &
@@ -201,7 +201,7 @@ contains
     ! Residuals data [optional]
     if (write_residuals) then
       allocate(residuals(size(eigenvalues)))
-      diags = dim_quadblock - 1
+      diags = settings%dims%get_dim_quadblock() - 1
       call matrix_to_banded( &
         matrix=matrix_A, subdiags=diags, superdiags=diags, banded=matrix_A_banded &
       )

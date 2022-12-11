@@ -38,7 +38,7 @@ contains
     integer, allocatable :: ipiv_LU(:)
 
     call log_message("creating banded A - sigma*B", level="debug")
-    diags = dim_quadblock - 1
+    diags = settings%dims%get_dim_quadblock() - 1
     call matrix_to_banded(matrix_A, diags, diags, amat_min_sigmab_banded)
     call matrix_to_banded(matrix_B, diags, diags, bmat_banded)
 

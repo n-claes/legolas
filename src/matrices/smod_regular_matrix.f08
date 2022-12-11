@@ -26,7 +26,7 @@ contains
     ! B(6, 6)
     factors(5) = eps
     positions(5, :) = [6, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad, dims)
 
     ! Cubic * Cubic
     call reset_factor_positions(new_size=3)
@@ -39,7 +39,7 @@ contains
     ! B(8, 8)
     factors(3) = eps
     positions(3, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic, dims)
   end procedure add_bmatrix_terms
 
 
@@ -98,7 +98,7 @@ contains
       factors(6) = -dT0 * rho
     end if
     positions(6, :) = [5, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
+    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic, dims)
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=6)
@@ -120,7 +120,7 @@ contains
     ! A(5, 2)
     factors(6) = -gamma_1 * T0 * rho
     positions(6, :) = [5, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
+    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic, dims)
 
     ! ==================== Quadratic * Quadratic ====================
     call reset_factor_positions(new_size=12)
@@ -160,7 +160,7 @@ contains
     ! A(6, 4)
     factors(12) = B02
     positions(12, :) = [6, 4]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad, dims)
 
     ! ==================== Cubic * Quadratic ====================
     call reset_factor_positions(new_size=5)
@@ -183,7 +183,7 @@ contains
     ! A(8, 3)
     factors(5) = -ic * eps * B01
     positions(5, :) = [8, 3]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
+    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad, dims)
 
     ! ==================== dCubic * Quadratic ====================
     call reset_factor_positions(new_size=3)
@@ -196,7 +196,7 @@ contains
     ! A(2, 6)
     factors(3) = -eps * Gop_min
     positions(3, :) = [2, 6]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad)
+    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad, dims)
 
     ! ==================== Cubic * Cubic ====================
     call reset_factor_positions(new_size=4)
@@ -212,7 +212,7 @@ contains
     ! A(8, 2)
     factors(4) = B02
     positions(4, :) = [8, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic, dims)
 
     ! ==================== Cubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -222,7 +222,9 @@ contains
     ! A(2, 8)
     factors(2) = -deps * B02
     positions(2, :) = [2, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, dh_cubic, dims &
+    )
 
     ! ==================== dCubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -232,7 +234,9 @@ contains
     ! A(2, 8)
     factors(2) = eps * B02
     positions(2, :) = [2, 8]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_cubic, dh_cubic, dims &
+    )
 
     ! ==================== dQuadratic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -242,7 +246,7 @@ contains
     ! A(4, 6)
     factors(2) = ic * k2 * B01
     positions(2, :) = [4, 6]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
+    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad, dims)
 
     ! ==================== dQuadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -252,7 +256,9 @@ contains
     ! A(4, 7)
     factors(2) = -ic * B01
     positions(2, :) = [4, 7]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, dh_cubic, dims &
+    )
 
   end procedure add_regular_matrix_terms
 

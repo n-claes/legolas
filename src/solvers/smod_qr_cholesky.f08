@@ -8,7 +8,6 @@
 !! Eventually a call to LAPACK's <tt>zgeev</tt> routine is done to obtain
 !! all eigenvalues and eigenvectors.
 submodule (mod_solvers) smod_qr_cholesky
-  use mod_global_variables, only: dim_subblock
   use mod_banded_matrix_hermitian, only: hermitian_banded_matrix_t
   use mod_transform_matrix, only: matrix_to_hermitian_banded
   implicit none

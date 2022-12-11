@@ -2,7 +2,7 @@
 !> Submodule containing the implementation of the inverse iteration algorithm.
 !! TODO more docs
 submodule (mod_solvers) smod_inverse_iteration
-  use mod_global_variables, only: dim_subblock, maxiter, tolerance, sigma
+  use mod_global_variables, only: maxiter, tolerance, sigma
   use mod_check_values, only: is_equal
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
   use mod_banded_matrix_hermitian, only: hermitian_banded_matrix_t
@@ -72,7 +72,7 @@ contains
 
     ! set array dimensions
     N = matrix_A%matrix_dim
-    kd = 2*dim_subblock+1 ! at most 2 subblocks away from diag
+    kd = 2 * settings%dims%get_dim_subblock() + 1 ! at most 2 subblocks away from diag
 
     ! allocate iteration vectors
     allocate(x(N))

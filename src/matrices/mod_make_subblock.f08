@@ -3,6 +3,7 @@
 !! This is done for every grid interval, for specific integral elements
 !! and spline functions.
 module mod_make_subblock
+  use mod_dims, only: dims_t
   implicit none
 
   private
@@ -32,8 +33,10 @@ contains
   !!        For example, the first index could be <tt>positions(1, :)=(1, 2)</tt>
   !!        which means that the quantity in <tt>factors(1)</tt> goes into
   !!        the 2x2 block at <tt>(1, 2)</tt>. @endnote
-  subroutine subblock(quadblock, factors, positions, curr_weight, spline1, spline2)
-    use mod_global_variables, only: dp, dim_subblock
+  subroutine subblock( &
+    quadblock, factors, positions, curr_weight, spline1, spline2, dims &
+  )
+    use mod_global_variables, only: dp
 
     !> the quadblock, filled on exit
     complex(dp), intent(inout)  :: quadblock(:, :)
@@ -47,14 +50,18 @@ contains
     real(dp), intent(in)  :: spline1(4)
     !> the second basis function
     real(dp), intent(in)  :: spline2(4)
+    !> dimensions object
+    type(dims_t), intent(in) :: dims
 
     integer :: i
     integer :: curr_position(2)
     integer :: idx(2)
+    integer :: dim_subblock
     complex(dp)  :: weighted_factors(size(factors))
 
     idx(:) = 0
     weighted_factors = factors * curr_weight
+    dim_subblock = dims%get_dim_subblock()
 
     do i = 1, size(weighted_factors)
       curr_position = positions(i, :)

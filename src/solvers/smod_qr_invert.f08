@@ -6,7 +6,6 @@
 !! Eventually a call to LAPACK's <tt>zgeev</tt> routine is done to obtain
 !! all eigenvalues and eigenvectors.
 submodule (mod_solvers) smod_qr_invert
-  use mod_global_variables, only: dim_quadblock
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
   use mod_transform_matrix, only: matrix_to_banded
   implicit none

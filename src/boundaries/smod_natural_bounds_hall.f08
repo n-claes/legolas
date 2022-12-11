@@ -27,7 +27,7 @@ contains
     ! B_H(8, 6)
     factors(2) = eta_e * k3 * eps / rho
     positions(2, :) = [8, 6]
-    call subblock(quadblock, factors, positions, weight, h_cubic, h_quad)
+    call subblock(quadblock, factors, positions, weight, h_cubic, h_quad, dims)
 
     ! ==================== Cubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -37,7 +37,7 @@ contains
     ! B_H(8, 8)
     factors(2) = -eta_e * eps / rho
     positions(2, :) = [8, 8]
-    call subblock(quadblock, factors, positions, weight, h_cubic, dh_cubic)
+    call subblock(quadblock, factors, positions, weight, h_cubic, dh_cubic, dims)
 
   end procedure add_natural_hall_Bterms
 
@@ -75,14 +75,14 @@ contains
         ! H(6, 2)
         factors(1) = -eta_H * ic * mu * deps / (eps * rho)
         positions(1, :) = [6, 2]
-        call subblock(quadblock, factors, positions, weight, h_quad, h_cubic)
+        call subblock(quadblock, factors, positions, weight, h_quad, h_cubic, dims)
 
         ! ==================== Quadratic * dCubic ====================
         call reset_factor_positions(new_size=1)
         ! H(6, 2)
         factors(1) = 4.0d0 * eta_H * ic * mu / (3.0d0 * rho)
         positions(1, :) = [6, 2]
-        call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic)
+        call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic, dims)
 
         ! ==================== Cubic * dQuadratic ====================
         call reset_factor_positions(new_size=2)
@@ -92,14 +92,14 @@ contains
         ! H(8, 4)
         factors(2) = eta_H * ic * mu / rho
         positions(2, :) = [8, 4]
-        call subblock(quadblock, factors, positions, weight, h_cubic, dh_quad)
+        call subblock(quadblock, factors, positions, weight, h_cubic, dh_quad, dims)
 
         ! ==================== Cubic * Quadratic ====================
         call reset_factor_positions(new_size=1)
         ! H(8, 4)
         factors(1) = -eta_H * ic * mu * deps / (eps * rho)
         positions(1, :) = [8, 4]
-        call subblock(quadblock, factors, positions, weight, h_cubic, h_quad)
+        call subblock(quadblock, factors, positions, weight, h_cubic, h_quad, dims)
       end if
 
     ! Hall without substitution, only E redefinition up to a gradient
@@ -109,7 +109,7 @@ contains
       ! H(6, 6)
       factors(1) = eta_H * (k2 * B03 - eps * k3 * B02) / rho
       positions(1, :) = [6, 6]
-      call subblock(quadblock, factors, positions, weight, h_quad, h_quad)
+      call subblock(quadblock, factors, positions, weight, h_quad, h_quad, dims)
 
       ! ==================== Quadratic * dCubic ====================
       call reset_factor_positions(new_size=2)
@@ -119,7 +119,7 @@ contains
       ! H(6, 8)
       factors(2) = eta_H * eps * B02 / rho
       positions(2, :) = [6, 8]
-      call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic)
+      call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic, dims)
 
       ! ==================== Cubic * Quadratic ====================
       call reset_factor_positions(new_size=2)
@@ -129,7 +129,7 @@ contains
       ! H(8, 6)
       factors(2) = eta_H * ic * B01 * k2 / rho
       positions(2, :) = [8, 6]
-      call subblock(quadblock, factors, positions, weight, h_cubic, h_quad)
+      call subblock(quadblock, factors, positions, weight, h_cubic, h_quad, dims)
 
       ! ==================== Cubic * dCubic ====================
       call reset_factor_positions(new_size=2)
@@ -139,7 +139,7 @@ contains
       ! H(8, 7)
       factors(2) = -eta_H * ic * B01 / rho
       positions(2, :) = [8, 7]
-      call subblock(quadblock, factors, positions, weight, h_cubic, dh_cubic)
+      call subblock(quadblock, factors, positions, weight, h_cubic, dh_cubic, dims)
     end if
 
   end procedure add_natural_hall_terms

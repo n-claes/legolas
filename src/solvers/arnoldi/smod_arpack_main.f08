@@ -2,21 +2,26 @@
 !> Main module for the Arnoldi-type solvers. Contains interfaces to the general Arnoldi
 !! procedures (general, shift-invert, etc.).
 submodule (mod_solvers) smod_arpack_main
-  use mod_global_variables, only: arpack_mode, dim_quadblock, tolerance
+  use mod_global_variables, only: arpack_mode, tolerance
   use mod_arpack_type, only: arpack_t, new_arpack_config
   use mod_linear_systems, only: solve_linear_system_complex_banded, &
     solve_linear_system_complex_banded_LU, get_LU_factorisation_banded
+  use mod_settings, only: settings_t
   implicit none
 
   interface
     !> Solves the eigenvalue problem using the Arnoldi general method.
-    module subroutine solve_arpack_general(arpack_cfg, matrix_A, matrix_B, omega, vr)
+    module subroutine solve_arpack_general( &
+      arpack_cfg, matrix_A, matrix_B, settings, omega, vr &
+    )
       !> arpack configuration
       type(arpack_t), intent(in) :: arpack_cfg
       !> matrix A
       type(matrix_t), intent(in) :: matrix_A
       !> matrix B
       type(matrix_t), intent(in) :: matrix_B
+      !> settings object
+      type(settings_t), intent(in) :: settings
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
@@ -25,7 +30,7 @@ submodule (mod_solvers) smod_arpack_main
 
     !> Solves the eigenvalue problem using the Arnoldi shift-invert method.
     module subroutine solve_arpack_shift_invert( &
-      arpack_cfg, matrix_A, matrix_B, sigma, omega, vr &
+      arpack_cfg, matrix_A, matrix_B, settings, sigma, omega, vr &
     )
       !> arpack configuration
       type(arpack_t), intent(in) :: arpack_cfg
@@ -33,6 +38,8 @@ submodule (mod_solvers) smod_arpack_main
       type(matrix_t), intent(in) :: matrix_A
       !> matrix B
       type(matrix_t), intent(in) :: matrix_B
+      !> settings object
+      type(settings_t), intent(in) :: settings
       !> the shift to apply
       complex(dp), intent(in) :: sigma
       !> array with eigenvalues
@@ -66,7 +73,7 @@ contains
         maxiter=maxiter, &
         ncv=ncv &
       )
-      call solve_arpack_general(arpack_cfg, matrix_A, matrix_B, omega, vr)
+      call solve_arpack_general(arpack_cfg, matrix_A, matrix_B, settings, omega, vr)
     case("shift-invert")
       call log_message("Arnoldi iteration, shift-invert mode", level="debug")
       arpack_cfg = new_arpack_config( &
@@ -79,7 +86,9 @@ contains
         maxiter=maxiter, &
         ncv=ncv &
       )
-      call solve_arpack_shift_invert(arpack_cfg, matrix_A, matrix_B, sigma, omega, vr)
+      call solve_arpack_shift_invert( &
+        arpack_cfg, matrix_A, matrix_B, settings, sigma, omega, vr &
+      )
     case default
       call log_message("unknown mode for ARPACK: " // arpack_mode, level="error")
       return

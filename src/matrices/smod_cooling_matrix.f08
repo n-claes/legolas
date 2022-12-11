@@ -27,7 +27,7 @@ contains
     ! Lambda(5, 5)
     factors(2) = -ic * gamma_1 * rho * LT
     positions(2, :) = [5, 5]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad, dims)
 
   end procedure add_cooling_matrix_terms
 

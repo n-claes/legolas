@@ -67,7 +67,7 @@ contains
     ! Phi(6, 6)
     factors(8) = eps * Vop
     positions(8, :) = [6, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad, dims)
 
     ! ==================== Quadratic * dQuadratic ====================
     call reset_factor_positions(new_size=2)
@@ -77,7 +77,7 @@ contains
     ! Phi(3, 3)
     factors(2) = -ic * eps * rho * v01
     positions(2, :) = [3, 3]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_quad)
+    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_quad, dims)
 
     ! ==================== Cubic * Quadratic ====================
     call reset_factor_positions(new_size=4)
@@ -93,7 +93,7 @@ contains
     ! Phi(8, 6)
     factors(4) = eps * k3 * ic * v01
     positions(4, :) = [8, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
+    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad, dims)
 
     ! ==================== Cubic * Cubic ====================
     call reset_factor_positions(new_size=5)
@@ -112,14 +112,16 @@ contains
     ! Phi(8, 8)
     factors(5) = k2 * v02
     positions(5, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic, dims)
 
     ! ==================== dCubic * Cubic ====================
     call reset_factor_positions(new_size=1)
     ! Phi(2, 2)
     factors(1) = ic * rho * v01
     positions(1, :) = [2, 2]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_cubic, h_cubic, dims &
+    )
 
     ! ==================== Quadratic * Cubic ====================
     call reset_factor_positions(new_size=2)
@@ -129,7 +131,7 @@ contains
     ! Phi(4, 2)
     factors(2) = -rho * dv03
     positions(2, :) = [4, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
+    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic, dims)
 
     ! ==================== dQuadratic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -142,7 +144,7 @@ contains
       factors(2) = ic * rho * v01
     end if
     positions(2, :) = [5, 5]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
+    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad, dims)
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -152,7 +154,7 @@ contains
     ! Phi(6, 8)
     factors(2) = -eps * v03
     positions(2, :) = [6, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
+    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic, dims)
 
     ! ==================== Cubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -162,7 +164,9 @@ contains
     ! Phi(8, 8)
     factors(2) = - ic * v01
     positions(2, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, dh_cubic, dims &
+    )
 
   end procedure add_flow_matrix_terms
 

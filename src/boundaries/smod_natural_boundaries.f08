@@ -1,10 +1,11 @@
 submodule (mod_boundary_manager) smod_natural_boundaries
-  use mod_global_variables, only: ic, dim_matrix, NaN
+  use mod_global_variables, only: ic, NaN
   use mod_make_subblock, only: subblock
   use mod_grid, only: grid, eps_grid, d_eps_grid_dr
   use mod_equilibrium, only: rho_field, T_field, B_field
   use mod_equilibrium_params, only: k2, k3
   use mod_matrix_structure, only: matrix_t
+  use mod_dims, only: dims_t
   implicit none
 
   !> current position in the grid
@@ -25,53 +26,62 @@ submodule (mod_boundary_manager) smod_natural_boundaries
   integer, allocatable  :: positions(:, :)
 
   interface
-    module subroutine add_natural_regular_terms(quadblock)
+    module subroutine add_natural_regular_terms(quadblock, dims)
       complex(dp), intent(inout)  :: quadblock(:, :)
+      type(dims_t), intent(in) :: dims
     end subroutine add_natural_regular_terms
 
-    module subroutine add_natural_flow_terms(quadblock)
+    module subroutine add_natural_flow_terms(quadblock, dims)
       complex(dp), intent(inout)  :: quadblock(:, :)
+      type(dims_t), intent(in) :: dims
     end subroutine add_natural_flow_terms
 
-    module subroutine add_natural_resistive_terms(quadblock)
+    module subroutine add_natural_resistive_terms(quadblock, dims)
       complex(dp), intent(inout)  :: quadblock(:, :)
+      type(dims_t), intent(in) :: dims
     end subroutine add_natural_resistive_terms
 
-    module subroutine add_natural_conduction_terms(quadblock)
+    module subroutine add_natural_conduction_terms(quadblock, dims)
       complex(dp), intent(inout)  :: quadblock(:, :)
+      type(dims_t), intent(in) :: dims
     end subroutine add_natural_conduction_terms
 
-    module subroutine add_natural_viscosity_terms(quadblock)
+    module subroutine add_natural_viscosity_terms(quadblock, dims)
       complex(dp), intent(inout)  :: quadblock(:, :)
+      type(dims_t), intent(in) :: dims
     end subroutine add_natural_viscosity_terms
 
-    module subroutine add_natural_hall_terms(quadblock)
+    module subroutine add_natural_hall_terms(quadblock, dims)
       complex(dp), intent(inout)  :: quadblock(:, :)
+      type(dims_t), intent(in) :: dims
     end subroutine add_natural_hall_terms
 
-    module subroutine add_natural_hall_Bterms(quadblock)
+    module subroutine add_natural_hall_Bterms(quadblock, dims)
       complex(dp), intent(inout)  :: quadblock(:, :)
+      type(dims_t), intent(in) :: dims
     end subroutine add_natural_hall_Bterms
   end interface
 
 contains
 
   module procedure apply_natural_boundaries_left
-    complex(dp) :: quadblock(dim_quadblock, dim_quadblock)
-    integer :: i, j
+    complex(dp), allocatable :: quadblock(:, :)
+    integer :: i, j, dim_quadblock
 
+    dim_quadblock = settings%dims%get_dim_quadblock()
+    allocate(quadblock(dim_quadblock, dim_quadblock))
     quadblock = (0.0d0, 0.0d0)
     call set_basis_functions(edge="left")
 
     if (matrix%get_label() == "A") then
-      call add_natural_regular_terms(quadblock)
-      call add_natural_flow_terms(quadblock)
-      call add_natural_resistive_terms(quadblock)
-      call add_natural_conduction_terms(quadblock)
-      call add_natural_viscosity_terms(quadblock)
-      call add_natural_hall_terms(quadblock)
+      call add_natural_regular_terms(quadblock, settings%dims)
+      call add_natural_flow_terms(quadblock, settings%dims)
+      call add_natural_resistive_terms(quadblock, settings%dims)
+      call add_natural_conduction_terms(quadblock, settings%dims)
+      call add_natural_viscosity_terms(quadblock, settings%dims)
+      call add_natural_hall_terms(quadblock, settings%dims)
     else if (matrix%get_label() == "B") then
-      call add_natural_hall_Bterms(quadblock)
+      call add_natural_hall_Bterms(quadblock, settings%dims)
     end if
     ! add quadblock elements to left edge
     do j = 1, dim_quadblock
@@ -79,13 +89,16 @@ contains
         call matrix%add_element(row=i, column=j, element=quadblock(i, j))
       end do
     end do
+    deallocate(quadblock)
   end procedure apply_natural_boundaries_left
 
 
   module procedure apply_natural_boundaries_right
-    complex(dp) :: quadblock(dim_quadblock, dim_quadblock)
-    integer :: i, j, ishift
+    complex(dp), allocatable :: quadblock(:, :)
+    integer :: i, j, ishift, dim_quadblock
 
+    dim_quadblock = settings%dims%get_dim_quadblock()
+    allocate(quadblock(dim_quadblock, dim_quadblock))
     quadblock = (0.0d0, 0.0d0)
     call set_basis_functions(edge="right")
 
@@ -96,14 +109,14 @@ contains
     ishift = matrix%matrix_dim - dim_quadblock
 
     if (matrix%get_label() == "A") then
-      call add_natural_regular_terms(quadblock)
-      call add_natural_flow_terms(quadblock)
-      call add_natural_resistive_terms(quadblock)
-      call add_natural_conduction_terms(quadblock)
-      call add_natural_viscosity_terms(quadblock)
-      call add_natural_hall_terms(quadblock)
+      call add_natural_regular_terms(quadblock, settings%dims)
+      call add_natural_flow_terms(quadblock, settings%dims)
+      call add_natural_resistive_terms(quadblock, settings%dims)
+      call add_natural_conduction_terms(quadblock, settings%dims)
+      call add_natural_viscosity_terms(quadblock, settings%dims)
+      call add_natural_hall_terms(quadblock, settings%dims)
     else if (matrix%get_label() == "B") then
-      call add_natural_hall_Bterms(quadblock)
+      call add_natural_hall_Bterms(quadblock, settings%dims)
     end if
     ! add quadblock elements to right edge
     do j = 1, dim_quadblock
@@ -113,6 +126,7 @@ contains
         )
       end do
     end do
+    deallocate(quadblock)
   end procedure apply_natural_boundaries_right
 
 
