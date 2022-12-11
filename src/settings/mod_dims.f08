@@ -44,7 +44,7 @@ contains
     this%dim_subblock = nb_eqs * this%dim_integralblock
     this%dim_quadblock = this%dim_integralblock * this%dim_subblock
     this%nb_eqs = nb_eqs
-    this%dim_matrix = gridpts * this%dim_quadblock
+    this%dim_matrix = gridpts * this%dim_subblock
   end subroutine set_block_dims
 
 
