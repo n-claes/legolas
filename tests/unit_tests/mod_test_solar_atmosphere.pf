@@ -6,12 +6,15 @@ module mod_test_solar_atmosphere
   use mod_global_variables, only: logging_level
   implicit none
 
+  type(settings_t) :: settings
+
 contains
 
   @before
   subroutine init_test()
-    call create_test_grid(pts=100, geom="Cartesian", start=0.05d0, end=0.35d0)
-    call reset_fields(init_fields=.true.)
+    settings = get_settings()
+    call create_test_grid(settings, 100, "Cartesian", 0.05d0, 0.35d0)
+    call reset_fields(settings, init_fields=.true.)
     call set_default_units()
     logging_level = 1
   end subroutine init_test
@@ -20,13 +23,14 @@ contains
   @after
   subroutine tear_down()
     call clean_up()
+    call settings%delete()
   end subroutine tear_down
 
 
   @test
   subroutine test_sa_no_db02()
     call set_name("solar atmosphere (no dB02)")
-    call set_solar_atmosphere(f_b02=b02)
+    call set_solar_atmosphere(settings, f_b02=b02)
     @assertExceptionRaised("solar atmosphere: B02 defined but no dB02")
     contains
       function b02(x)
@@ -40,7 +44,7 @@ contains
   @test
   subroutine test_sa_no_db03()
     call set_name("solar atmosphere (no dB03)")
-    call set_solar_atmosphere(f_b03=b03)
+    call set_solar_atmosphere(settings, f_b03=b03)
     @assertExceptionRaised("solar atmosphere: B03 defined but no dB03")
     contains
       function b03(x)
@@ -53,11 +57,9 @@ contains
 
   @test
   subroutine test_sa_invalid_geometry()
-    use mod_global_variables, only: geometry
-
     call set_name("solar atmosphere (invalid geometry)")
-    geometry = "cylindrical"
-    call set_solar_atmosphere()
+    call settings%grid%set_geometry("cylindrical")
+    call set_solar_atmosphere(settings)
     @assertExceptionRaised("solar atmosphere can only be set in Cartesian geometries!")
   end subroutine test_sa_invalid_geometry
 
@@ -65,7 +67,9 @@ contains
   @test
   subroutine test_sa_default_profile_saving()
     call set_name("solar atmosphere (default profile saving)")
-    call set_solar_atmosphere(n_interp=5000, save_to="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, save_to="test_sa_profiles/default" &
+    )
   end subroutine test_sa_default_profile_saving
 
 
@@ -76,6 +80,7 @@ contains
 
     call set_name("solar atmosphere (custom profile saving)")
     call set_solar_atmosphere( &
+      settings,  &
       f_b02=b02, &
       f_db02=db02, &
       f_b03=b03, &
@@ -129,10 +134,12 @@ contains
     real(dp) :: rho_expected(size(rho_field % rho0))
 
     call set_name("solar atmosphere (default profile loading - density)")
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     rho_expected = rho_field % rho0
-    call reset_fields(init_fields=.true.)
-    call set_solar_atmosphere(n_interp=5000)
+    call reset_fields(settings, init_fields=.true.)
+    call set_solar_atmosphere(settings, n_interp=5000)
     @assertEqual(rho_expected, rho_field % rho0, tolerance=TOL)
   end subroutine test_sa_default_profile_loading_density
 
@@ -144,10 +151,12 @@ contains
     real(dp) :: temp_expected(size(T_field % T0))
 
     call set_name("solar atmosphere (default profile loading - temperature)")
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     temp_expected = T_field % T0
-    call reset_fields(init_fields=.true.)
-    call set_solar_atmosphere(n_interp=5000)
+    call reset_fields(settings, init_fields=.true.)
+    call set_solar_atmosphere(settings, n_interp=5000)
     @assertEqual(temp_expected, T_field % T0, tolerance=TOL)
   end subroutine test_sa_default_profile_loading_temperature
 
@@ -163,7 +172,9 @@ contains
       new_unit_length=5.0d6 &
     )
     logging_level = 0
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
   end subroutine test_sa_profile_loading_invalid_unit_length
 
@@ -179,7 +190,9 @@ contains
       new_unit_length=unit_length &
     )
     logging_level = 0
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
   end subroutine test_sa_profile_loading_invalid_unit_temperature
 
@@ -195,7 +208,9 @@ contains
       new_unit_length=unit_length &
     )
     logging_level = 0
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
   end subroutine test_sa_profile_loading_invalid_unit_magneticfield
 
@@ -211,7 +226,9 @@ contains
       new_unit_length=unit_length &
     )
     logging_level = 0
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
   end subroutine test_sa_profile_loading_invalid_unit_density
 
@@ -221,6 +238,7 @@ contains
     call set_name("solar atmosphere (loading - B02 inconsistent)")
     logging_level = 0
     call set_solar_atmosphere( &
+      settings,  &
       f_b02=b02, &
       f_db02=db02, &
       n_interp=5000, &
@@ -246,6 +264,7 @@ contains
     call set_name("solar atmosphere (loading - dB02 inconsistent)")
     logging_level = 0
     call set_solar_atmosphere( &
+      settings,  &
       f_b02=b02, &
       f_db02=db02, &
       n_interp=5000, &
@@ -271,6 +290,7 @@ contains
     call set_name("solar atmosphere (loading - B03 inconsistent)")
     logging_level = 0
     call set_solar_atmosphere( &
+      settings,  &
       f_b03=b03, &
       f_db03=db03, &
       n_interp=5000, &
@@ -296,6 +316,7 @@ contains
     call set_name("solar atmosphere (loading - dB03 inconsistent)")
     logging_level = 0
     call set_solar_atmosphere( &
+      settings,  &
       f_b03=b03, &
       f_db03=db03, &
       n_interp=5000, &
@@ -321,6 +342,7 @@ contains
     call set_name("solar atmosphere (loading - gravity inconsistent)")
     logging_level = 0
     call set_solar_atmosphere( &
+      settings,  &
       f_g=gprof, &
       n_interp=5000, &
       load_from="test_sa_profiles/default" &

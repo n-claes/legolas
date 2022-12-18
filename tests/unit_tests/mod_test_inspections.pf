@@ -4,21 +4,25 @@ module mod_test_inspections
   use mod_equilibrium
   use mod_inspections, only: check_wavenumbers
   use mod_equilibrium_params, only: k2, k3
-  use mod_global_variables, only: NaN, geometry
+  use mod_global_variables, only: NaN
   implicit none
+
+  type(settings_t) :: settings
 
 contains
 
   @before
   subroutine init_test()
     call reset_globals()
-    call reset_fields(init_fields=.true.)
+    settings = get_settings()
+    call reset_fields(settings, init_fields=.true.)
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
     call clean_up()
+    call settings%delete()
   end subroutine teardown_test
 
 
@@ -134,9 +138,9 @@ contains
   subroutine test_invalid_k2()
     character(len=100) :: error_msg
     call set_name("wavenumber k2 non-int in cylindrical")
-    geometry = "cylindrical"
+    call settings%grid%set_geometry("cylindrical")
     k2 = 1.2d0
-    call check_wavenumbers()
+    call check_wavenumbers(settings%grid%get_geometry())
     error_msg = "cylindrical geometry but k2 is not an integer! Value: 1.20000000"
     @assertExceptionRaised(error_msg)
   end subroutine test_invalid_k2
@@ -145,9 +149,9 @@ contains
   @test
   subroutine test_integer_k2()
     call set_name("wavenumber k2 cylindrical")
-    geometry = "cylindrical"
+    call settings%grid%set_geometry("cylindrical")
     k2 = 2.0d0
-    call check_wavenumbers()
+    call check_wavenumbers(settings%grid%get_geometry())
     @assertEqual(2.0d0, k2, tolerance=TOL)
   end subroutine test_integer_k2
 
@@ -155,9 +159,8 @@ contains
   @test
   subroutine test_k2_cartesian()
     call set_name("wavenumber k2 Cartesian")
-    geometry = "Cartesian"
     k2 = 0.5d0
-    call check_wavenumbers()
+    call check_wavenumbers(settings%grid%get_geometry())
     @assertEqual(0.5d0, k2, tolerance=TOL)
   end subroutine test_k2_cartesian
 

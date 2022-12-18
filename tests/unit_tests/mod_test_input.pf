@@ -2,7 +2,6 @@ module mod_test_input
   use funit
   use mod_suite_utils
   use mod_input, only: read_parfile
-  use mod_settings, only: settings_t, new_settings
   implicit none
 
   character(len=125) :: error_msg
@@ -13,8 +12,8 @@ contains
   @before
   subroutine init_test()
     call reset_globals()
-    call reset_fields(init_fields=.true.)
-    settings = new_settings()
+    settings = get_settings()
+    call reset_fields(settings, init_fields=.true.)
   end subroutine init_test
 
 
@@ -35,11 +34,9 @@ contains
 
   @test
   subroutine test_parfile_gridpoints()
-    use mod_global_variables, only: gridpts
-
     call set_name("setting gridpoints through parfile")
     call read_parfile("test_parfiles/parfile_gridpts.par", settings)
-    @assertEqual(100, gridpts)
+    @assertEqual(100, settings%grid%get_gridpts())
   end subroutine test_parfile_gridpoints
 
 

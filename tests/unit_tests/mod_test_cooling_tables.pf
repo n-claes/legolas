@@ -3,13 +3,15 @@ module mod_test_cooling_tables
   use funit
   use mod_cooling_curves
   use mod_units, only: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
-  use mod_global_variables, only: cooling_curve, gauss_gridpts
+  use mod_global_variables, only: cooling_curve
   use mod_radiative_cooling, only: initialise_radiative_cooling, &
     set_radiative_cooling_values
   use mod_equilibrium, only: rho_field, T_field, rc_field
   implicit none
 
   real(dp), allocatable :: expected(:)
+  integer :: gauss_gridpts
+  type(settings_t) :: settings
 
 contains
 
@@ -17,10 +19,12 @@ contains
   subroutine init_test()
     use mod_global_variables, only: radiative_cooling
 
-    call create_test_grid(pts=50, geom="Cartesian", start=0.0d0, end=1.0d0)
-    allocate(expected(gauss_gridpts))
+    settings = get_settings()
+    call create_test_grid(settings, pts=50, geometry="Cartesian")
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
+    allocate(expected(settings%grid%get_gauss_gridpts()))
     radiative_cooling = .true.
-    call reset_fields(init_fields=.true.)
+    call reset_fields(settings, init_fields=.true.)
     call set_default_units()
     rho_field % rho0 = 1.0d0
     expected = 0.0d0
@@ -31,12 +35,13 @@ contains
   subroutine teardown_test()
     deallocate(expected)
     call clean_up()
+    call settings%delete()
   end subroutine teardown_test
 
 
   subroutine set_cooling()
     call initialise_radiative_cooling()
-    call set_radiative_cooling_values(rho_field, T_field, rc_field)
+    call set_radiative_cooling_values(settings, rho_field, T_field, rc_field)
   end subroutine set_cooling
 
 

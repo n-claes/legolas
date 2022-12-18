@@ -4,7 +4,7 @@ module mod_test_conduction
   use mod_thermal_conduction, only: set_conduction_values
   use mod_equilibrium, only: rho_field, T_field, B_field, kappa_field
   use mod_global_variables, only: use_fixed_tc_para, fixed_tc_para_value, &
-    use_fixed_tc_perp, fixed_tc_perp_value, gauss_gridpts, gridpts
+    use_fixed_tc_perp, fixed_tc_perp_value
   use mod_physical_constants, only: coulomb_log
   use mod_units
   use mod_grid, only: grid_gauss
@@ -13,14 +13,16 @@ module mod_test_conduction
   real(dp), parameter   :: pf_para = 1.8d-5
   real(dp), parameter   :: pf_perp = 8.2d-10
   integer   :: array_size
+  type(settings_t) :: settings
 
 contains
 
   @before
   subroutine init_test()
     call reset_globals()
-    call create_test_grid(pts=51, geom="Cartesian", start=0.0d0, end=1.0d0)
-    call reset_fields(init_fields=.true.)
+    settings = get_settings()
+    call create_test_grid(settings, pts=51, geometry="Cartesian")
+    call reset_fields(settings, init_fields=.true.)
     array_size = size(T_field % T0)
     call set_default_units()
   end subroutine init_test
@@ -29,6 +31,7 @@ contains
   @after
   subroutine teardown_test()
     call clean_up()
+    call settings%delete()
   end subroutine teardown_test
 
 

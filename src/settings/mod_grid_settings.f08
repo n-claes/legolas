@@ -103,7 +103,7 @@ contains
 
   pure subroutine set_defaults(this)
     class(grid_settings_t), intent(inout) :: this
-    call this%set_geometry("Cartesian")
+    call this%set_geometry("")
     call this%set_gridpts(50)
     call this%set_grid_boundaries(0.0_dp, 1.0_dp)
     this%coaxial = .false.
@@ -113,7 +113,7 @@ contains
 
   pure subroutine delete(this)
     class(grid_settings_t), intent(inout) :: this
-    deallocate(this%geometry)
+    if (allocated(this%geometry)) deallocate(this%geometry)
   end subroutine delete
 
 end module mod_grid_settings

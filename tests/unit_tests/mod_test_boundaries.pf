@@ -27,9 +27,9 @@ contains
     use mod_equilibrium, only: B_field
 
     call reset_globals()
-    call reset_fields(init_fields=.true.)
-    call create_test_grid(pts=10, geom='Cartesian')
-    settings = get_settings("mhd", 10)
+    settings = get_settings()
+    call reset_fields(settings, init_fields=.true.)
+    call create_test_grid(settings, pts=10, geometry="Cartesian")
     ! avoid division by B0 if conduction is enabled
     B_field % B0 = 1.0d0
 
@@ -216,7 +216,7 @@ contains
     call set_name("viscous boundary conditions (B-matrix, wall, cylindrical)")
     ! reset the grid to cylindrical
     call grid_clean()
-    call create_test_grid(pts=10, geom="cylindrical", start=0.0d0, end=1.0d0)
+    call create_test_grid(settings, pts=10, geometry="cylindrical")
     viscosity = .true.
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=bmat, array=bmat_array)
@@ -235,7 +235,7 @@ contains
     call set_name("viscous boundary conditions (A-matrix, wall, cylindrical)")
     ! reset the grid to cylindrical
     call grid_clean()
-    call create_test_grid(pts=10, geom="cylindrical", start=0.0d0, end=1.0d0)
+    call create_test_grid(settings, pts=10, geometry="cylindrical")
     viscosity = .true.
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=amat, array=amat_array)
@@ -250,14 +250,13 @@ contains
   @test
   subroutine test_viscous_boundaries_cylindrical_coax_wall_bmat()
     use mod_grid, only: grid_clean
-    use mod_global_variables, only: coaxial
 
     call set_name("viscous boundary conditions (B-matrix, wall, coaxial)")
     ! reset the grid to cylindrical
     call grid_clean()
-    call create_test_grid(pts=10, geom="cylindrical", start=0.0d0, end=1.0d0)
+    call create_test_grid(settings, pts=10, geometry="cylindrical")
     viscosity = .true.
-    coaxial = .true.
+    settings%grid%coaxial = .true.
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=bmat, array=bmat_array)
     call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
@@ -270,14 +269,13 @@ contains
   @test
   subroutine test_viscous_boundaries_cylindrical_coax_wall_amat()
     use mod_grid, only: grid_clean
-    use mod_global_variables, only: coaxial
 
     call set_name("viscous boundary conditions (A-matrix, wall, coaxial)")
     ! reset the grid to cylindrical
     call grid_clean()
-    call create_test_grid(pts=10, geom="cylindrical", start=0.0d0, end=1.0d0)
+    call create_test_grid(settings, pts=10, geometry="cylindrical")
     viscosity = .true.
-    coaxial = .true.
+    settings%grid%coaxial = .true.
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 6, 8, 13, 15])

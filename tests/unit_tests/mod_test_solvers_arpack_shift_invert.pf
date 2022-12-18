@@ -32,7 +32,7 @@ contains
   @before
   subroutine init_test()
     call reset_globals()
-    settings = get_settings("mhd", 10)
+    settings = get_settings()
     call settings%solvers%set_solver("arnoldi")
     call settings%solvers%set_arpack_mode("shift-invert")
     settings%solvers%number_of_eigenvalues = nb_eigenvals

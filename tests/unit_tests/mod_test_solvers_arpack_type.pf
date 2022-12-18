@@ -11,7 +11,7 @@ contains
 
   @before
   subroutine init_test()
-    settings = get_settings("mhd", 10)
+    settings = get_settings()
     settings%solvers%which_eigenvalues = "LM"
     settings%solvers%number_of_eigenvalues = 10
     settings%solvers%tolerance = 1.0d-12

@@ -14,7 +14,7 @@ contains
   @before
   subroutine init_test()
     call reset_globals()
-    settings = get_settings("mhd", 10)
+    settings = get_settings()
   end subroutine init_test
 
 

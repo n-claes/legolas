@@ -27,9 +27,9 @@ contains
 
 
   subroutine use_subset()
-    write_eigenfunction_subset = .true.
-    eigenfunction_subset_center = (2.0d0, 1.0d0)
-    eigenfunction_subset_radius = 1.1d0
+    settings%io%write_ef_subset = .true.
+    settings%io%ef_subset_center = (2.0d0, 1.0d0)
+    settings%io%ef_subset_radius = 1.1d0
   end subroutine use_subset
 
 
@@ -60,9 +60,9 @@ contains
     integer :: i, j, pos
 
     call reset_globals()
-    call reset_fields(init_fields=.true.)
-    call create_test_grid(pts=20, geom='Cartesian')
-    settings = get_settings("mhd", 20)
+    settings = get_settings()
+    call reset_fields(settings, init_fields=.true.)
+    call create_test_grid(settings, pts=20, geometry="Cartesian")
     ! creates a square grid between (-2, 2) and (2, -2)
     pos = 1
     do i = 2, -2, -1
@@ -92,7 +92,7 @@ contains
 
     call set_name("eigenfunctions - no subset")
     actual_shape = shape(base_eigenfunctions(1)%quantities)
-    @assertEqual([ef_gridpts, size(eigenvals)], actual_shape)
+    @assertEqual([settings%grid%get_ef_gridpts(), size(eigenvals)], actual_shape)
   end subroutine test_select_all_eigenfunctions
 
 
@@ -105,7 +105,7 @@ contains
     call eigenfunctions_clean()
     call initialise_eigenfunctions(omega=eigenvals, settings=settings)
     actual_shape = shape(base_eigenfunctions(1)%quantities)
-    @assertEqual([ef_gridpts, 4], actual_shape)
+    @assertEqual([settings%grid%get_ef_gridpts(), 4], actual_shape)
   end subroutine test_select_eigenfunction_subset
 
 
@@ -181,7 +181,7 @@ contains
 
   @test
   subroutine test_ef_retrieval_index()
-    complex(dp) :: eigenfunc(ef_gridpts)
+    complex(dp) :: eigenfunc(settings%grid%get_ef_gridpts())
 
     call set_name("eigenfunctions - get from index")
     call create_eigenvectors(settings%dims%get_dim_matrix())
@@ -194,7 +194,7 @@ contains
 
   @test
   subroutine test_ef_retrieval_index_derived_ef()
-    complex(dp) :: eigenfunc(ef_gridpts)
+    complex(dp) :: eigenfunc(settings%grid%get_ef_gridpts())
 
     call set_name("eigenfunctions - get from index (invalid name)")
     call enable_derived_efs()

@@ -26,27 +26,25 @@ contains
   end subroutine reset_globals
 
 
-  function get_settings(physics_type, gridpts) result(settings)
-    character(len=*), intent(in) :: physics_type
-    integer, intent(in) :: gridpts
+  function get_settings() result(settings)
     type(settings_t) :: settings
 
     settings = new_settings()
-    call settings%set_state_vector(physics_type)
-    call settings%dims%set_block_dims(size(settings%get_state_vector()), gridpts)
+    call settings%set_defaults()
   end function get_settings
 
 
-  subroutine reset_fields(init_fields)
+  subroutine reset_fields(settings, init_fields)
     use mod_equilibrium, only: rho_field, equilibrium_clean, initialise_equilibrium
 
+    type(settings_t), intent(inout), optional :: settings
     logical, intent(in) :: init_fields
 
     if (allocated(rho_field % rho0)) then
       call equilibrium_clean()
     end if
     if (init_fields) then
-      call initialise_equilibrium()
+      call initialise_equilibrium(settings)
     end if
   end subroutine reset_fields
 
@@ -66,27 +64,29 @@ contains
   end subroutine clean_up
 
 
-  subroutine create_test_grid(pts, geom, start, end)
-    use mod_global_variables, only: x_start, x_end, geometry, set_gridpts
+  subroutine create_test_grid(settings, pts, geometry, grid_start, grid_end)
     use mod_grid, only: initialise_grid
 
+    type(settings_t), intent(inout) :: settings
     integer, intent(in)             :: pts
-    character(len=*), intent(in)    :: geom
-    real(dp), intent(in), optional  :: start, end
+    character(len=*), intent(in)    :: geometry
+    real(dp), intent(in), optional  :: grid_start, grid_end
+    real(dp) :: x_start, x_end
 
-    geometry = geom
-    if (present(start)) then
-      x_start = start
+    if (present(grid_start)) then
+      x_start = grid_start
     else
       x_start = 0.0d0
     end if
-    if (present(end)) then
-      x_end = end
+    if (present(grid_end)) then
+      x_end = grid_end
     else
       x_end = 1.0d0
     end if
-    call set_gridpts(pts)
-    call initialise_grid()
+    call settings%grid%set_geometry(geometry)
+    call settings%grid%set_grid_boundaries(x_start, x_end)
+    call settings%grid%set_gridpts(pts)
+    call initialise_grid(settings)
   end subroutine create_test_grid
 
 

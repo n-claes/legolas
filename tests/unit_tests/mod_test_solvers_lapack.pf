@@ -68,7 +68,7 @@ contains
 
   @before
   subroutine init_test()
-    settings = get_settings("mhd", 10)
+    settings = get_settings()
     vr = (0.0d0, 0.0d0)
     eigenvals = (0.0d0, 0.0d0)
     settings%io%write_eigenfunctions = .false.

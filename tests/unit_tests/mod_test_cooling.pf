@@ -3,18 +3,22 @@ module mod_test_cooling
   use funit
   implicit none
 
+  type(settings_t) :: settings
+
 contains
 
   @before
   subroutine init_test()
     call reset_globals()
-    call reset_fields(init_fields=.true.)
+    settings = get_settings()
+    call reset_fields(settings, init_fields=.true.)
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
     call clean_up()
+    call settings%delete()
   end subroutine teardown_test
 
 

@@ -4,12 +4,15 @@ module mod_test_units
   use mod_units
   implicit none
 
+  type(settings_t) :: settings
+
 contains
 
   @before
   subroutine init_test()
     call reset_globals()
-    call reset_fields(init_fields=.true.)
+    settings = get_settings()
+    call reset_fields(settings, init_fields=.true.)
     call set_default_units()
   end subroutine init_test
 
@@ -17,6 +20,7 @@ contains
   @after
   subroutine teardown_test()
     call clean_up()
+    call settings%delete()
   end subroutine teardown_test
 
 
@@ -94,7 +98,7 @@ contains
     call set_name("setting unit resistivity")
     T_field % T0 = 1.0d0
     ! at 1 MK normalised resistivity should be 0.1
-    call set_resistivity_values(T_field, eta_field)
+    call set_resistivity_values(settings, T_field, eta_field)
     @assertEqual(0.1d0, eta_field % eta(:), tolerance=TOL)
   end subroutine test_unit_resistivity
 
