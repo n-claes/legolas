@@ -45,12 +45,10 @@ contains
 
   @test
   subroutine test_parfile_gamma()
-    use mod_global_variables, only: gamma, gamma_1
-
     call set_name("setting gamma through parfile")
     call read_parfile("test_parfiles/parfile_gamma.par", settings)
-    @assertEqual(2.0d0, gamma, tolerance=TOL)
-    @assertEqual(1.0d0, gamma_1, tolerance=TOL)
+    @assertEqual(2.0d0, settings%physics%get_gamma(), tolerance=TOL)
+    @assertEqual(1.0d0, settings%physics%get_gamma_1(), tolerance=TOL)
   end subroutine test_parfile_gamma
 
 

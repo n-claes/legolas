@@ -101,6 +101,7 @@ contains
     ! physicslist defaults
     physics_type = ""
     mhd_gamma = 0.0d0
+    incompressible = .false.
     ! gridlist defaults
     gridpoints = 0
     ! unitlist defaults

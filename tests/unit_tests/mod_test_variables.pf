@@ -27,18 +27,18 @@ contains
   @test
   subroutine test_gamma()
     call set_name("setting gamma")
-    call set_gamma(5.0d0 / 3.0d0)
-    @assertEqual(5.0d0 / 3.0d0, gamma, tolerance=TOL)
-    @assertEqual(2.0d0 / 3.0d0, gamma_1, tolerance=TOL)
+    call settings%physics%set_gamma(5.0d0 / 3.0d0)
+    @assertEqual(5.0d0 / 3.0d0, settings%physics%get_gamma(), tolerance=TOL)
+    @assertEqual(2.0d0 / 3.0d0, settings%physics%get_gamma_1(), tolerance=TOL)
   end subroutine test_gamma
 
 
   @test
   subroutine test_gamma_incompressible()
     call set_name("setting incompressible")
-    incompressible = .true.
-    call set_gamma(1.0d0)
-    @assertGreaterThan(gamma, 1.0d5)
+    call settings%physics%set_gamma(1.0_dp)
+    call settings%physics%set_incompressible()
+    @assertGreaterThan(settings%physics%get_gamma(), 1.0d5)
   end subroutine test_gamma_incompressible
 
 
