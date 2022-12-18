@@ -4,7 +4,6 @@ module mod_test_solvers_arpack_shift_invert
   use mod_arpack_type, only: arpack_t, new_arpack_config
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_solvers, only: solve_evp
-  use mod_settings, only: settings_t, new_settings
   implicit none
 
   type(matrix_t) :: amat
@@ -33,8 +32,7 @@ contains
   @before
   subroutine init_test()
     call reset_globals()
-    settings = new_settings()
-    call settings%initialise(physics_type="mhd", gridpts=10)
+    settings = get_settings("mhd", 10)
     call settings%solvers%set_solver("arnoldi")
     call settings%solvers%set_arpack_mode("shift-invert")
     settings%solvers%number_of_eigenvalues = nb_eigenvals

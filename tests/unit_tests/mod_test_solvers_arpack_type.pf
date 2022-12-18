@@ -2,7 +2,6 @@ module mod_test_solvers_arpack_type
   use mod_suite_utils
   use funit
   use mod_arpack_type, only: arpack_t, new_arpack_config
-  use mod_settings, only: settings_t, new_settings
   implicit none
 
   type(settings_t) :: settings
@@ -12,8 +11,7 @@ contains
 
   @before
   subroutine init_test()
-    settings = new_settings()
-    call settings%initialise(physics_type="mhd", gridpts=10)
+    settings = get_settings("mhd", 10)
     settings%solvers%which_eigenvalues = "LM"
     settings%solvers%number_of_eigenvalues = 10
     settings%solvers%tolerance = 1.0d-12

@@ -5,7 +5,6 @@ module mod_test_boundaries
   use mod_global_variables, only: thermal_conduction, viscosity
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_transform_matrix, only: matrix_to_array, array_to_matrix
-  use mod_settings, only: settings_t, new_settings
   implicit none
 
   integer, parameter :: points = 160
@@ -30,8 +29,7 @@ contains
     call reset_globals()
     call reset_fields(init_fields=.true.)
     call create_test_grid(pts=10, geom='Cartesian')
-    settings = new_settings()
-    call settings%initialise(physics_type="mhd", gridpts=10)
+    settings = get_settings("mhd", 10)
     ! avoid division by B0 if conduction is enabled
     B_field % B0 = 1.0d0
 

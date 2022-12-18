@@ -1,5 +1,6 @@
 module mod_suite_utils
   use mod_global_variables, only: dp
+  use mod_settings, only: settings_t, new_settings
   implicit none
 
   real(dp), parameter :: TOL = 1.0d-12
@@ -23,6 +24,17 @@ contains
     k2 = 1.0d0
     k3 = 2.5d0
   end subroutine reset_globals
+
+
+  function get_settings(physics_type, gridpts) result(settings)
+    character(len=*), intent(in) :: physics_type
+    integer, intent(in) :: gridpts
+    type(settings_t) :: settings
+
+    settings = new_settings()
+    call settings%set_state_vector(physics_type)
+    call settings%dims%set_block_dims(size(settings%get_state_vector()), gridpts)
+  end function get_settings
 
 
   subroutine reset_fields(init_fields)

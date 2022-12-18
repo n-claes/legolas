@@ -18,8 +18,9 @@ module mod_settings
 
   contains
 
-    procedure, public :: initialise
+    procedure, public :: set_state_vector
     procedure, public :: get_state_vector
+    procedure, public :: state_vector_is_set
     procedure, public :: get_physics_type
     procedure, public :: delete
   end type settings_t
@@ -30,38 +31,37 @@ contains
 
   pure function new_settings() result(settings)
     type(settings_t) :: settings
+
+    settings%dims = new_block_dims()
+    settings%io = new_io_settings()
+    settings%solvers = new_solver_settings()
+    settings%physics = new_physics_settings()
   end function new_settings
 
 
-  pure subroutine initialise(this, physics_type, gridpts)
+  pure subroutine set_state_vector(this, physics_type)
     class(settings_t), intent(inout) :: this
     character(len=*), intent(in) :: physics_type
-    integer, intent(in) :: gridpts
 
     this%physics_type = physics_type
-    call set_state_vector(this, physics_type)
-    call this%dims%set_block_dims(nb_eqs=size(this%state_vector), gridpts=gridpts)
-    this%io = new_io_settings()
-    this%solvers = new_solver_settings()
-    this%physics = new_physics_settings()
-  end subroutine initialise
-
-
-  pure subroutine set_state_vector(settings, physics_type)
-    type(settings_t), intent(inout) :: settings
-    character(len=*), intent(in) :: physics_type
-
     select case(physics_type)
       case("hd")
-        settings%state_vector = [ &
+        this%state_vector = [ &
           character(len=str_len_arr) :: "rho", "v1", "v2", "v3", "T" &
         ]
       case default
-        settings%state_vector = [ &
+        this%state_vector = [ &
           character(len=str_len_arr) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
         ]
       end select
   end subroutine set_state_vector
+
+
+  pure logical function state_vector_is_set(this)
+    class(settings_t), intent(in) :: this
+
+    state_vector_is_set = allocated(this%state_vector)
+  end function state_vector_is_set
 
 
   pure function get_state_vector(this) result(state_vector)

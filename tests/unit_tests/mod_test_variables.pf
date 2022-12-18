@@ -1,7 +1,6 @@
 module mod_test_variables
   use mod_global_variables
   use mod_suite_utils
-  use mod_settings, only: settings_t, new_settings
   use funit
   implicit none
 
@@ -13,8 +12,7 @@ contains
   @before
   subroutine init_test()
     call reset_globals()
-    settings = new_settings()
-    call settings%initialise(physics_type="mhd", gridpts=10)
+    settings = get_settings("mhd", 10)
   end subroutine init_test
 
 

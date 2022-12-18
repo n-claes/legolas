@@ -4,7 +4,6 @@ module mod_test_solvers_lapack
   use mod_solvers, only: solve_evp
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_transform_matrix, only: array_to_matrix
-  use mod_settings, only: settings_t, new_settings
   implicit none
 
   real(dp), parameter :: bmat_array(5, 5) = reshape( &
@@ -69,8 +68,7 @@ contains
 
   @before
   subroutine init_test()
-    settings = new_settings()
-    call settings%initialise(physics_type="mhd", gridpts=10)
+    settings = get_settings("mhd", 10)
     vr = (0.0d0, 0.0d0)
     eigenvals = (0.0d0, 0.0d0)
     settings%io%write_eigenfunctions = .false.

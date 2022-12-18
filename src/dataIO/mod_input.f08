@@ -159,7 +159,10 @@ contains
     end if
 
     if (physics_type == "") physics_type = "mhd"
-    call settings%initialise(physics_type, gridpoints)
+    call settings%set_state_vector(physics_type=physics_type)
+    call settings%dims%set_block_dims( &
+      nb_eqs=size(settings%get_state_vector()), gridpts=gridpoints &
+    )
 
     ! set io settings
     settings%io%write_matrices = write_matrices

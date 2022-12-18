@@ -4,7 +4,6 @@ module mod_test_eigenfunctions
   use mod_eigenfunctions
   use mod_global_variables
   use mod_types, only: ef_type
-  use mod_settings, only: settings_t, new_settings
   implicit none
 
   complex(dp) :: eigenvals(25)
@@ -63,8 +62,7 @@ contains
     call reset_globals()
     call reset_fields(init_fields=.true.)
     call create_test_grid(pts=20, geom='Cartesian')
-    settings = new_settings()
-    call settings%initialise(physics_type="mhd", gridpts=20)
+    settings = get_settings("mhd", 20)
     ! creates a square grid between (-2, 2) and (2, -2)
     pos = 1
     do i = 2, -2, -1
