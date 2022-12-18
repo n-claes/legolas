@@ -20,6 +20,7 @@ module mod_solver_settings
     procedure, public :: get_solver
     procedure, public :: set_arpack_mode
     procedure, public :: get_arpack_mode
+    procedure, public :: set_defaults
     procedure, public :: delete
   end type solvers_t
 
@@ -66,6 +67,22 @@ contains
 
     arpack_mode = this%arpack_mode
   end function get_arpack_mode
+
+
+  pure subroutine set_defaults(this)
+    use mod_global_variables, only: dp_LIMIT
+
+    class(solvers_t), intent(inout) :: this
+
+    call this%set_solver("QR-cholesky")
+    call this%set_arpack_mode("standard")
+    this%which_eigenvalues = "LM"
+    this%number_of_eigenvalues = 10
+    this%maxiter = 0
+    this%ncv = 0
+    this%tolerance = dp_LIMIT
+    this%sigma = (0.0_dp, 0.0_dp)
+  end subroutine set_defaults
 
 
   pure subroutine delete(this)

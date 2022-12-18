@@ -14,7 +14,7 @@ module mod_physics_settings
     procedure, public :: get_gamma
     procedure, public :: get_gamma_1
     procedure, public :: set_incompressible
-
+    procedure, public :: set_defaults
   end type physics_t
 
   public :: new_physics_settings
@@ -53,5 +53,11 @@ contains
     call this%set_gamma(1.0e12_dp)
   end subroutine set_incompressible
 
+
+  pure subroutine set_defaults(this)
+    class(physics_t), intent(inout) :: this
+    call this%set_gamma(5.0_dp / 3.0_dp)
+    this%is_incompressible = .false.
+  end subroutine set_defaults
 
 end module mod_physics_settings

@@ -24,6 +24,7 @@ module mod_settings
     procedure, public :: get_state_vector
     procedure, public :: state_vector_is_set
     procedure, public :: get_physics_type
+    procedure, public :: set_defaults
     procedure, public :: delete
   end type settings_t
 
@@ -83,6 +84,21 @@ contains
   end function get_physics_type
 
 
+  pure subroutine set_defaults(this)
+    class(settings_t), intent(inout) :: this
+
+    call this%set_state_vector(physics_type="mhd")
+    call this%io%set_defaults()
+    call this%solvers%set_defaults()
+    call this%physics%set_defaults()
+    call this%grid%set_defaults()
+
+    call this%dims%set_block_dims( &
+      nb_eqs=size(this%state_vector), gridpts=this%grid%get_gridpts() &
+    )
+  end subroutine set_defaults
+
+
   pure subroutine delete(this)
     class(settings_t), intent(inout) :: this
 
@@ -90,6 +106,7 @@ contains
     if (allocated(this%physics_type)) deallocate(this%physics_type)
     call this%io%delete()
     call this%solvers%delete()
+    call this%grid%delete()
   end subroutine delete
 
 end module mod_settings
