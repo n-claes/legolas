@@ -93,12 +93,6 @@ module mod_global_variables
     0.347854845137454, 0.652145154862546, 0.652145154862546, 0.347854845137454 &
   ]
 
-  !> name of the equilibrium to set up, determines the submodule, defaults to \p "adiabatic_homo"
-  character(len=str_len)       :: equilibrium_type
-  !> type of boundary conditions, defaults to \p "wall"
-  character(len=str_len)       :: boundary_type
-  !> use default values for parameters in the chosen submodule, defaults to <tt>True</tt>
-  logical, save                :: use_defaults
   !> sets the logging level, defaults to 2 (errors, warnings and info)
   integer                   :: logging_level
 
@@ -143,11 +137,6 @@ contains
     elec_inertia = .false.
     inertia_dropoff = .false.
     electron_fraction = 0.5d0
-
-    !! equilibrium variables
-    equilibrium_type = 'adiabatic_homo'
-    boundary_type = 'wall'
-    use_defaults = .true.
 
     !! post-processing parameters
     logging_level = 2

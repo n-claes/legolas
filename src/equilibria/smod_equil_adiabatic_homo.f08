@@ -20,7 +20,7 @@ contains
   module procedure adiabatic_homo_eq
     use mod_equilibrium_params, only: cte_rho0, cte_T0, cte_B02, cte_B03
 
-    if (use_defaults) then ! LCOV_EXCL_START
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       k2 = 0

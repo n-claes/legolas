@@ -147,7 +147,7 @@ contains
       settings%grid%get_grid_end(), settings%grid%get_gridpts(), &
       settings%grid%get_gauss_gridpts(), settings%dims%get_dim_matrix(), &
       settings%grid%get_ef_gridpts(), settings%physics%get_gamma(), &
-      equilibrium_type, settings%io%write_eigenfunctions, &
+      settings%equilibrium%get_equilibrium_type(), settings%io%write_eigenfunctions, &
       settings%io%write_derived_eigenfunctions, settings%io%write_matrices, &
       settings%io%write_eigenvectors, settings%io%write_residuals, &
       settings%io%write_ef_subset, settings%io%ef_subset_center, &

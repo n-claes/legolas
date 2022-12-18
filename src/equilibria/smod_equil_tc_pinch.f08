@@ -40,7 +40,7 @@ contains
     viscosity = .true.
     settings%grid%coaxial = .true.
 
-    if (use_defaults) then
+    if (settings%equilibrium%use_defaults) then
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(1.0_dp, 2.0_dp)
       cte_rho0 = 1.0d3

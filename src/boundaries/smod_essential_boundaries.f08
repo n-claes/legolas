@@ -1,5 +1,5 @@
 submodule (mod_boundary_manager) smod_essential_boundaries
-  use mod_global_variables, only: dp_LIMIT, boundary_type
+  use mod_global_variables, only: dp_LIMIT
   use mod_equilibrium_params, only: k2, k3
   use mod_check_values, only: is_zero
 
@@ -35,14 +35,15 @@ contains
     ! wall/regularity conditions: v1 has to be zero. Cubic, odd row/col to zero
     cubic_vars_to_zero_out = ["v1"]
     ! wall/regularity conditions: (k3 * a2 - k2 * a3) has to be zero.
-    if (boundary_type == "wall") then
+    select case(settings%equilibrium%get_boundary_type())
+    case("wall")
       ! for "wall" we force a2 = a3 = 0 regardless of k2 and k3
       cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a2", "a3"]
-    else if (boundary_type == "wall_weak") then
+    case("wall_weak")
       ! for "wall_weak" we only force a2 resp. a3 to zero if k3 resp. k2 is nonzero
       if (.not. is_zero(k2)) cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a3"]
       if (.not. is_zero(k3)) cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a2"]
-    end if
+    end select
     ! apply wall/regularity conditions
     call zero_out_row_and_col( &
       matrix=matrix, &
@@ -103,13 +104,14 @@ contains
 
     ! fixed wall: v1 should be zero
     cubic_vars_to_zero_out = ["v1"]
-    if (boundary_type == "wall") then
+    select case(settings%equilibrium%get_boundary_type())
+    case("wall")
       cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a2", "a3"]
-    else if (boundary_type == "wall_weak") then
+    case("wall_weak")
       ! (k3 * a2 - k2 * a3) should be zero
       if (.not. is_zero(k2)) cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a3"]
       if (.not. is_zero(k3)) cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a2"]
-    end if
+    end select
     ! apply wall/regularity conditions
     call zero_out_row_and_col( &
       matrix=matrix, &

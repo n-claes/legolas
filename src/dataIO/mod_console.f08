@@ -81,10 +81,12 @@ contains
     call log_message("gridpoints (matrix): " // str(settings%dims%get_dim_matrix()))
 
     call log_message("          << Equilibrium settings >>")
-    call log_message("equilibrium    : " // trim(adjustl(equilibrium_type)))
+    call log_message( &
+      "equilibrium    : " // settings%equilibrium%get_equilibrium_type() &
+    )
     call log_message("wave number k2 : " // str(k2))
     call log_message("wave number k3 : " // str(k3))
-    call log_message("default params : " // str(use_defaults))
+    call log_message("default params : " // str(settings%equilibrium%use_defaults))
 
     call log_message("            << Physics settings >>")
     call log_message("flow               : " // str(flow))

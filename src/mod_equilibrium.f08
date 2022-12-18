@@ -13,7 +13,7 @@ module mod_equilibrium
   use mod_types
   use mod_global_variables, only: dp, &
     flow, resistivity, external_gravity, radiative_cooling, &
-    thermal_conduction, viscosity, hall_mhd, use_defaults, cgs_units
+    thermal_conduction, viscosity, hall_mhd, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
@@ -190,7 +190,7 @@ contains
     type(settings_t), intent(inout) :: settings
 
     ! Set equilibrium submodule to use
-    call set_equilibrium_pointer()
+    call set_equilibrium_pointer(settings)
     ! Call submodule
     call set_equilibrium_values(settings)
     ! Set normalisations if needed
@@ -241,10 +241,10 @@ contains
   !> Selects the submodule based on the specified equilibrium
   !! in the parfile. Works on a case-select basis.
   !! @warning   Throws an error if the equilibrium type is not recognised.
-  subroutine set_equilibrium_pointer()
-    use mod_global_variables, only: equilibrium_type
+  subroutine set_equilibrium_pointer(settings)
+    type(settings_t), intent(in) :: settings
 
-    select case(equilibrium_type)
+    select case(settings%equilibrium%get_equilibrium_type())
     case("adiabatic_homo")
       set_equilibrium_values => adiabatic_homo_eq
     case("constant_current_tokamak")
@@ -305,7 +305,9 @@ contains
       set_equilibrium_values => user_defined_eq
     case default
       call log_message( &
-        "equilibrium not recognised: " // trim(equilibrium_type), level="error" &
+        "equilibrium not recognised: " &
+        // trim(settings%equilibrium%get_equilibrium_type()), &
+        level="error" &
       )
     end select
   end subroutine set_equilibrium_pointer

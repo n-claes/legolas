@@ -32,7 +32,7 @@ contains
     real(dp)    :: r, a
     integer     :: i
 
-    if (use_defaults) then ! LCOV_EXCL_START
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       flow = .true.
 
       V = 1.63d0

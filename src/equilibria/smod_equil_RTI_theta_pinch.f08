@@ -46,7 +46,7 @@ contains
     flow = .true.
     call settings%grid%set_geometry("cylindrical")
 
-    if (use_defaults) then ! LCOV_EXCL_START
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       cte_rho0 = 1.0d0
       alpha = 2.0d0

@@ -5,6 +5,7 @@ module mod_settings
   use mod_solver_settings, only: solvers_t, new_solver_settings
   use mod_physics_settings, only: physics_t, new_physics_settings
   use mod_grid_settings, only: grid_settings_t, new_grid_settings
+  use mod_equilibrium_settings, only: equilibrium_settings_t, new_equilibrium_settings
   implicit none
 
   private
@@ -18,6 +19,7 @@ module mod_settings
     type(solvers_t), public :: solvers
     type(physics_t), public :: physics
     type(grid_settings_t), public :: grid
+    type(equilibrium_settings_t), public :: equilibrium
 
   contains
 
@@ -45,6 +47,7 @@ contains
     settings%solvers = new_solver_settings()
     settings%physics = new_physics_settings()
     settings%grid = new_grid_settings()
+    settings%equilibrium = new_equilibrium_settings()
   end function new_settings
 
 
@@ -131,6 +134,7 @@ contains
     call this%io%delete()
     call this%solvers%delete()
     call this%grid%delete()
+    call this%equilibrium%delete()
   end subroutine delete
 
 end module mod_settings

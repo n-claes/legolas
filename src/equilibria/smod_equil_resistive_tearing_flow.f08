@@ -28,7 +28,7 @@ contains
     real(dp)    :: x
     integer     :: i
 
-    if (use_defaults) then ! LCOV_EXCL_START
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(-0.5_dp, 0.5_dp)
       flow = .true.

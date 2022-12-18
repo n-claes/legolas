@@ -29,7 +29,7 @@ contains
     real(dp)      :: x
     integer       :: i
 
-    if (use_defaults) then
+    if (settings%equilibrium%use_defaults) then
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(-15.0_dp, 15.0_dp)
       resistivity = .true.

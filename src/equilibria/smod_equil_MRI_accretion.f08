@@ -40,7 +40,7 @@ contains
 
     call settings%grid%set_geometry("cylindrical")
 
-    if (use_defaults) then ! LCOV_EXCL_START
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_grid_boundaries(1.0_dp, 2.0_dp)
 
       flow = .true.

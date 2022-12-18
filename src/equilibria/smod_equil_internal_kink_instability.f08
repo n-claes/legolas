@@ -33,7 +33,7 @@ contains
     call initialise_grid(settings)
 
     a0 = settings%grid%get_grid_end()
-    if (use_defaults) then ! LCOV_EXCL_START
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       flow = .true.
       cte_rho0 = 1.0d0
       cte_v03  = 1.0d0

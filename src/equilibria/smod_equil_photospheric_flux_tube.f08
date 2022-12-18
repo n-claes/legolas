@@ -37,7 +37,7 @@ contains
     integer :: gridpts
     integer :: i, N1, N2, N3
 
-    if (use_defaults) then ! LCOV_EXCL_START
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       x_start = 0.0_dp
       x_end = 10.0_dp
