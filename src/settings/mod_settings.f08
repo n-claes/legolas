@@ -12,6 +12,7 @@ module mod_settings
   type, public :: settings_t
     character(len=:), private, allocatable :: state_vector(:)
     character(len=:), private, allocatable :: physics_type
+    integer, private :: nb_eqs
     type(dims_t), public :: dims
     type(io_t), public :: io
     type(solvers_t), public :: solvers
@@ -24,8 +25,12 @@ module mod_settings
     procedure, public :: get_state_vector
     procedure, public :: state_vector_is_set
     procedure, public :: get_physics_type
+    procedure, public :: get_nb_eqs
+    procedure, public :: update_block_dimensions
     procedure, public :: set_defaults
     procedure, public :: delete
+
+    procedure, private :: set_nb_eqs
   end type settings_t
 
   public :: new_settings
@@ -58,6 +63,7 @@ contains
           character(len=str_len_arr) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
         ]
       end select
+    call this%set_nb_eqs(size(this%state_vector))
   end subroutine set_state_vector
 
 
@@ -84,6 +90,27 @@ contains
   end function get_physics_type
 
 
+  pure subroutine set_nb_eqs(this, nb_eqs)
+    class(settings_t), intent(inout) :: this
+    integer, intent(in) :: nb_eqs
+    this%nb_eqs = nb_eqs
+    call this%update_block_dimensions()
+  end subroutine set_nb_eqs
+
+
+  pure integer function get_nb_eqs(this)
+    class(settings_t), intent(in) :: this
+    get_nb_eqs = this%nb_eqs
+  end function get_nb_eqs
+
+
+  pure subroutine update_block_dimensions(this)
+    class(settings_t), intent(inout) :: this
+
+    call this%dims%set_block_dims(nb_eqs=this%nb_eqs, gridpts=this%grid%get_gridpts())
+  end subroutine update_block_dimensions
+
+
   pure subroutine set_defaults(this)
     class(settings_t), intent(inout) :: this
 
@@ -92,10 +119,7 @@ contains
     call this%solvers%set_defaults()
     call this%physics%set_defaults()
     call this%grid%set_defaults()
-
-    call this%dims%set_block_dims( &
-      nb_eqs=size(this%state_vector), gridpts=this%grid%get_gridpts() &
-    )
+    call this%update_block_dimensions()
   end subroutine set_defaults
 
 

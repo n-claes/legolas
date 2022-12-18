@@ -164,7 +164,7 @@ contains
   !! eigenvalues and sets them as attributes for the corresponding types.
   module procedure calculate_derived_eigenfunctions
     integer :: i, eigenvalue_idx
-    character(len=str_len_arr) :: state_vector(settings%dims%get_nb_eqs())
+    character(len=str_len_arr) :: state_vector(settings%get_nb_eqs())
 
     state_vector = settings%get_state_vector()
 
