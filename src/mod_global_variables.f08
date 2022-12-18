@@ -99,10 +99,6 @@ module mod_global_variables
   character(len=str_len)       :: boundary_type
   !> use default values for parameters in the chosen submodule, defaults to <tt>True</tt>
   logical, save                :: use_defaults
-  !> boolean for spurious eigenvalue removal, defaults to <tt>False</tt>
-  logical, save                :: remove_spurious_eigenvalues
-  !> amount of eigenvalues to remove on each side of the imaginary axis, defaults to 1
-  integer                      :: nb_spurious_eigenvalues
   !> sets the logging level, defaults to 2 (errors, warnings and info)
   integer                   :: logging_level
 
@@ -152,8 +148,6 @@ contains
     equilibrium_type = 'adiabatic_homo'
     boundary_type = 'wall'
     use_defaults = .true.
-    remove_spurious_eigenvalues = .false.
-    nb_spurious_eigenvalues = 1
 
     !! post-processing parameters
     logging_level = 2

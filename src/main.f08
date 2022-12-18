@@ -14,7 +14,6 @@ program legolas
   use mod_output, only: datfile_name, create_datfile
   use mod_logging, only: log_message, str
   use mod_console, only: print_console_info, print_whitespace
-  use mod_inspections, only: handle_spurious_eigenvalues
   use mod_timing, only: timer_t, new_timer
   use mod_settings, only: settings_t, new_settings
   implicit none

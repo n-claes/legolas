@@ -17,7 +17,6 @@ module mod_inspections
   public :: perform_NaN_and_negative_checks
   public :: perform_sanity_checks
   public :: check_wavenumbers
-  public :: handle_spurious_eigenvalues
 
 contains
 
@@ -115,50 +114,6 @@ contains
       settings, rho_field, T_field, B_field, v_field, rc_field, kappa_field &
     )
   end subroutine perform_sanity_checks
-
-
-  !> Handles spurious eigenvalue through removal.
-  !! If requested, this can remove spurious eigenvalues on the edges
-  !! of the spectrum. This usually only occurs in cylindrical geometries
-  !! with forced on-axis conditions. The amount of eigenvalues to handle on every side
-  !! of the imaginary axis is specified in the parfile.
-  !! Example: <tt>nb_spurious_eigenvalues = 1</tt> removes the outermost
-  !! eigenvalue on each side of the imaginary axis (so two in total).
-  !! @note We don't actually _remove_ the spurious eigenvalues, but replace their value
-  !!       with a large number so they can be filtered out during post-processing. @endnote
-  !! @warning This routine should **ONLY** be used if **ABSOLUTELY** necessary. A better
-  !!          on-axis treatment (e.g. <tt>r = 0.025</tt> instead of <tt>r = 0</tt>)
-  !!          usually does a better job. A warning will be thrown if eigenvalues are removed.
-  subroutine handle_spurious_eigenvalues(eigenvalues)
-    use mod_global_variables, only: remove_spurious_eigenvalues, nb_spurious_eigenvalues
-
-    !> the eigenvalues with spurious modes replaced on exit
-    complex(dp), intent(inout)  :: eigenvalues(:)
-    integer                     :: i, idx
-    complex(dp)                 :: replacement
-
-    if (.not. remove_spurious_eigenvalues) then
-      return
-    end if
-    ! LCOV_EXCL_START
-    call log_message("handling spurious eigenvalues", level="debug")
-    ! For now, the largest real eigenvalues are set to a large number so they
-    ! do not appear on the plots.
-    ! Do NOT sort the eigenvalues, otherwise the order is messed up for the eigenfunctions
-    replacement = (1.0d20, 0.0d0)
-    do i = 1, nb_spurious_eigenvalues
-      ! handle real values, take large values from boundaries into account
-      idx = maxloc(real(eigenvalues), dim=1, mask=(real(eigenvalues) < 1.0d15))
-      eigenvalues(idx) = replacement
-      idx = minloc(real(eigenvalues), dim=1, mask=(real(eigenvalues) < 1.0d15))
-      eigenvalues(idx) = replacement
-    end do
-    call log_message( &
-      "spurious eigenvalues removed on every side: " // str(nb_spurious_eigenvalues), &
-      level="warning" &
-    )
-    ! LCOV_EXCL_STOP
-  end subroutine handle_spurious_eigenvalues
 
 
   !> Sanity check on the wavenumbers.

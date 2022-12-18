@@ -18,8 +18,6 @@ namelist_items = {
         ("equilibrium_type", str),
         ("boundary_type", str),
         ("use_defaults", bool),
-        ("remove_spurious_eigenvalues", bool),
-        ("nb_spurious_eigenvalues", (int, np.integer)),
     ],
     "savelist": [
         ("write_matrices", bool),
