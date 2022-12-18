@@ -7,7 +7,7 @@ submodule (mod_equilibrium) smod_user_defined
 contains
 
   ! LCOV_EXCL_START <exclude this file from code coverage>
-  module subroutine user_defined_eq()
+  module procedure user_defined_eq
     real(dp)    :: x
     integer     :: i
 
@@ -43,7 +43,7 @@ contains
       eta_field%dd_B03_dr = 0.0d0
     end do
 
-  end subroutine user_defined_eq
+  end procedure user_defined_eq
   ! LCOV_EXCL_STOP
 
 end submodule smod_user_defined

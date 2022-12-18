@@ -24,7 +24,7 @@ submodule (mod_equilibrium) smod_equil_rotating_plasma_cylinder
 
 contains
 
-  module subroutine rotating_plasma_cyl_eq()
+  module procedure rotating_plasma_cyl_eq
     use mod_equilibrium_params, only: cte_rho0, cte_p0, p1, p2, p3, p4, p5, p6
 
     real(dp)    :: a21, a22, a3, b21, b22, b3
@@ -82,6 +82,6 @@ contains
         + (a22**2 - b22**2)*r**3 &
       )
     end do
-  end subroutine rotating_plasma_cyl_eq
+  end procedure rotating_plasma_cyl_eq
 
 end submodule smod_equil_rotating_plasma_cylinder

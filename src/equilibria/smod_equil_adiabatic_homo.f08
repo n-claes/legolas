@@ -17,7 +17,7 @@ submodule (mod_equilibrium) smod_equil_adiabatic_homo
 contains
 
   !> Sets the equilibrium.
-  module subroutine adiabatic_homo_eq()
+  module procedure adiabatic_homo_eq
     use mod_equilibrium_params, only: cte_rho0, cte_T0, cte_B02, cte_B03
 
     call allow_geometry_override( &
@@ -40,6 +40,6 @@ contains
     B_field % B02    = cte_B02
     B_field % B03    = cte_B03
     B_field % B0     = sqrt((B_field % B02)**2 + (B_field % B03)**2)
-  end subroutine adiabatic_homo_eq
+  end procedure adiabatic_homo_eq
 
 end submodule smod_equil_adiabatic_homo

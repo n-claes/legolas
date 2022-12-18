@@ -21,7 +21,7 @@ submodule (mod_equilibrium) smod_equil_internal_kink_instability
 
 contains
 
-  module subroutine internal_kink_eq()
+  module procedure internal_kink_eq
     use mod_equilibrium_params, only: cte_rho0, cte_v03, cte_p0, alpha
 
     real(dp)      :: r, x, a0
@@ -70,6 +70,6 @@ contains
       B_field % d_B02_dr(i)    = DJ1
       B_field % d_B03_dr(i)    = DJ0
     end do
-  end subroutine internal_kink_eq
+  end procedure internal_kink_eq
 
 end submodule smod_equil_internal_kink_instability

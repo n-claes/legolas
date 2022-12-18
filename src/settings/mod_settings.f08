@@ -3,6 +3,7 @@ module mod_settings
   use mod_dims, only: dims_t, new_block_dims
   use mod_io_settings, only: io_t, new_io_settings
   use mod_solver_settings, only: solvers_t, new_solver_settings
+  use mod_physics_settings, only: physics_t, new_physics_settings
   implicit none
 
   private
@@ -13,6 +14,7 @@ module mod_settings
     type(dims_t), public :: dims
     type(io_t), public :: io
     type(solvers_t), public :: solvers
+    type(physics_t), public :: physics
 
   contains
 
@@ -41,6 +43,7 @@ contains
     call this%dims%set_block_dims(nb_eqs=size(this%state_vector), gridpts=gridpts)
     this%io = new_io_settings()
     this%solvers = new_solver_settings()
+    this%physics = new_physics_settings()
   end subroutine initialise
 
 

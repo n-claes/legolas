@@ -22,7 +22,7 @@ submodule (mod_equilibrium) smod_equil_resistive_homo
 contains
 
   !> Sets the equilibrium.
-  module subroutine resistive_homo_eq()
+  module procedure resistive_homo_eq
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_params, only: beta, cte_rho0, cte_B02, cte_B03
 
@@ -50,6 +50,6 @@ contains
     B_field % B03    = cte_B03
     B_field % B0     = sqrt((B_field % B02)**2 + (B_field % B03)**2)
     T_field % T0     = beta * (B_field % B0)**2 / (2.0d0)
-  end subroutine resistive_homo_eq
+  end procedure resistive_homo_eq
 
 end submodule smod_equil_resistive_homo

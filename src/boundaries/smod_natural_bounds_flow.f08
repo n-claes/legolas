@@ -22,7 +22,9 @@ contains
     ! Phi(2, 2)
     factors(1) = -ic * rho * v01
     positions(1, :) = [2, 2]
-    call subblock(quadblock, factors, positions, weight, h_cubic, h_cubic, dims)
+    call subblock( &
+      quadblock, factors, positions, weight, h_cubic, h_cubic, settings%dims &
+    )
 
     ! ==================== Quadratic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -32,7 +34,7 @@ contains
     ! Phi(5, 5)
     factors(2) = -ic * rho * v01
     positions(2, :) = [5, 5]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_quad, dims)
+    call subblock(quadblock, factors, positions, weight, h_quad, h_quad, settings%dims)
   end procedure add_natural_flow_terms
 
 end submodule smod_natural_bounds_flow

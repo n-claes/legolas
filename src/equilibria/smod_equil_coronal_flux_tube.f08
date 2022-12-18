@@ -25,13 +25,14 @@ submodule(mod_equilibrium) smod_equil_coronal_flux_tube
 
 contains
 
-  module subroutine coronal_flux_tube_eq()
-    use mod_global_variables, only: dp_LIMIT, gamma, gridpts, force_r0
+  module procedure coronal_flux_tube_eq
+    use mod_global_variables, only: dp_LIMIT, gridpts, force_r0
     use mod_equilibrium_params, only: cte_rho0, cte_p0, r0
 
     real(dp)  :: r, rho_e, p_e, B_0, B_e
     real(dp)  :: custom_grid(gridpts)
     real(dp)  :: width, a_l, a_r, pct1, pct2, pct3, dx, dx1, dx2, dx3
+    real(dp) :: gamma
     integer   :: i, N1, N2, N3
 
     call allow_geometry_override( &
@@ -46,6 +47,7 @@ contains
       k2 = 0.0d0
       k3 = 2.0d0
     end if ! LCOV_EXCL_STOP
+    gamma = settings%physics%get_gamma()
 
     ! width of transition region
     width = 0.1d0
@@ -117,6 +119,6 @@ contains
       B_field % B0(i)  = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
     end do
 
-  end subroutine coronal_flux_tube_eq
+  end procedure coronal_flux_tube_eq
 
 end submodule smod_equil_coronal_flux_tube

@@ -31,12 +31,6 @@ module mod_global_variables
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
   !> boolean for cgs units, defaults to <tt>True</tt>
   logical, save             :: cgs_units
-  !> ratio of specific heats gamma, defaults to 5/3
-  real(dp), protected       :: gamma
-  !> variable for (gamma - 1)
-  real(dp), protected       :: gamma_1
-  !> boolean for incompressible approximation, defaults to <tt>False</tt>
-  logical, save             :: incompressible
   !> boolean for flow, defaults to <tt>False</tt>
   logical, save             :: flow
   !> boolean for radiative cooling, defaults to <tt>False</tt>
@@ -156,8 +150,6 @@ contains
 
     !! physics variables
     cgs_units = .true.
-    call set_gamma(5.0d0/3.0d0)
-    incompressible = .false.
     flow = .false.
     radiative_cooling = .false.
     ncool = 4000
@@ -207,20 +199,6 @@ contains
     eigenfunction_subset_center = cmplx(NaN, NaN, kind=dp)
     eigenfunction_subset_radius = NaN
   end subroutine initialise_globals
-
-  !> Sets the ratio of specific heats gamma and its corresponding
-  !! value gamma - 1.
-  subroutine set_gamma(gamma_in)
-    !> the value for gamma
-    real(dp), intent(in)    :: gamma_in
-
-    if (incompressible) then
-      gamma = 1.0d12
-    else
-      gamma = gamma_in
-    end if
-    gamma_1 = gamma - 1.0d0
-  end subroutine set_gamma
 
 
   !> Sets all gridpoint-related variables: sets the base number of gridpoints,

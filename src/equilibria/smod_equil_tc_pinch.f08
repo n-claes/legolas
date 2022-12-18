@@ -25,7 +25,7 @@ submodule (mod_equilibrium) smod_equil_tc_pinch
 
 contains
 
-  module subroutine tc_pinch_eq()
+  module procedure tc_pinch_eq
     use mod_global_variables, only: coaxial
     use mod_equilibrium_params, only: cte_rho0, cte_B02, alpha, beta, tau
     use mod_global_variables, only: viscosity_value, use_fixed_resistivity, fixed_eta_value
@@ -114,6 +114,6 @@ contains
     Re = alpha * cte_rho0 * x_start * (x_end - x_start) / viscosity_value
     call log_message('Reynolds number:  ' // str(Re, fmt='(e8.2)'), level='info')
 
-  end subroutine tc_pinch_eq
+  end procedure tc_pinch_eq
 
 end submodule smod_equil_tc_pinch

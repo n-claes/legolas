@@ -21,7 +21,7 @@ submodule (mod_equilibrium) smod_equil_resistive_tearing_flow
 
 contains
 
-  module subroutine resistive_tearing_modes_flow_eq()
+  module procedure resistive_tearing_modes_flow_eq
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_params, only: alpha, beta, cte_rho0
 
@@ -66,6 +66,6 @@ contains
       eta_field % dd_B03_dr(i) = -alpha**2 * cos(alpha * x)
     end do
 
-  end subroutine resistive_tearing_modes_flow_eq
+  end procedure resistive_tearing_modes_flow_eq
 
 end submodule smod_equil_resistive_tearing_flow

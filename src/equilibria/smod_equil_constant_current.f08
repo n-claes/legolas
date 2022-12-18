@@ -21,7 +21,7 @@ submodule (mod_equilibrium) smod_equil_constant_current
 contains
 
   !> Sets the equilibrium.
-  module subroutine constant_current_eq()
+  module procedure constant_current_eq
     use mod_equilibrium_params, only: j0, cte_rho0, cte_B03
 
     real(dp)  :: r
@@ -59,6 +59,6 @@ contains
         dp_x(i) * (rho_field % rho0(i)) - (rho_field % d_rho0_dr(i)) * p_x(i) &
       ) / (rho_field % rho0(i))**2
     end do
-  end subroutine constant_current_eq
+  end procedure constant_current_eq
 
 end submodule smod_equil_constant_current

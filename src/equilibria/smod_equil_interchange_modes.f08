@@ -22,7 +22,7 @@ submodule (mod_equilibrium) smod_equil_interchange_modes
 contains
 
   !> Sets the equilibrium.
-  module subroutine interchange_modes_eq()
+  module procedure interchange_modes_eq
     use mod_equilibrium_params, only: g, cte_rho0, cte_p0, alpha, beta, lambda
 
     real(dp)  :: x, B0
@@ -66,6 +66,6 @@ contains
       B_field % d_B03_dr(i) = -0.5d0 * alpha * (B_field % B03(i)) &
         - lambda * (B_field % B02(i))
     end do
-  end subroutine interchange_modes_eq
+  end procedure interchange_modes_eq
 
 end submodule smod_equil_interchange_modes

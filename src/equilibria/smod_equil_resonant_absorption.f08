@@ -28,7 +28,7 @@ submodule (mod_equilibrium) smod_equil_resonant_absorption
 contains
 
   !> Sets the equilibrium
-  module subroutine resonant_absorption_eq()
+  module procedure resonant_absorption_eq
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_params, only: p1, p2, r0, cte_T0, cte_B02, cte_B03
 
@@ -82,6 +82,6 @@ contains
         rho_field % rho0(i) = rho_right
       end if
     end do
-  end subroutine resonant_absorption_eq
+  end procedure resonant_absorption_eq
 
 end submodule smod_equil_resonant_absorption

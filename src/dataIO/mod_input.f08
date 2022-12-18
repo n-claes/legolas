@@ -42,6 +42,7 @@ contains
     ! physicslist params
     character(str_len) :: physics_type
     real(dp)    :: mhd_gamma
+    logical :: incompressible
     ! unitlist params
     real(dp)    :: unit_density, unit_temperature, unit_magneticfield, unit_length
     real(dp)    :: mean_molecular_weight
@@ -155,9 +156,6 @@ contains
     if (.not. gridpoints == 0) then
       call set_gridpts(gridpoints)
     end if
-    if (.not. is_equal(mhd_gamma, 0.0d0)) then
-      call set_gamma(mhd_gamma)
-    end if
 
     if (physics_type == "") physics_type = "mhd"
     call settings%initialise(physics_type, gridpoints)
@@ -182,6 +180,11 @@ contains
     settings%solvers%tolerance = tolerance
     if (settings%solvers%get_solver() == "none") call settings%io%set_all_io_to_false()
 
+    ! set physics settings
+    if (.not. is_equal(mhd_gamma, 0.0d0)) then
+      call settings%physics%set_gamma(mhd_gamma)
+    end if
+    if (incompressible) call settings%physics%set_incompressible()
     call check_and_set_supplied_unit_normalisations( &
       unit_density, &
       unit_temperature, &

@@ -27,7 +27,7 @@ contains
       factors(1) = eta_H
       positions(1, :) = [6, 2]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_quad, h_cubic, dims &
+        quadblock, factors, positions, current_weight, h_quad, h_cubic, settings%dims &
       )
 
       ! ==================== Cubic * Quadratic ====================
@@ -39,7 +39,7 @@ contains
       factors(2) = eta_H
       positions(2, :) = [8, 4]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_cubic, h_quad, dims &
+        quadblock, factors, positions, current_weight, h_cubic, h_quad, settings%dims &
       )
     end if
 
@@ -49,7 +49,9 @@ contains
       ! B_H(6, 6)
       factors(1) = eta_e * WVop / rho
       positions(1, :) = [6, 6]
-      call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad, dims)
+      call subblock( &
+        quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
+      )
 
       ! ==================== Quadratic * dCubic ====================
       call reset_factor_positions(new_size=2)
@@ -60,7 +62,7 @@ contains
       factors(2) = -eta_e * eps * k3 / rho
       positions(2, :) = [6, 8]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_quad, dh_cubic, dims &
+        quadblock, factors, positions, current_weight, h_quad, dh_cubic, settings%dims &
       )
 
       ! ==================== Cubic * Quadratic ====================
@@ -72,7 +74,7 @@ contains
       factors(2) = eta_e * drho * eps * k3 / rho**2
       positions(2, :) = [8, 6]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_cubic, h_quad, dims &
+        quadblock, factors, positions, current_weight, h_cubic, h_quad, settings%dims &
       )
 
       ! ==================== dCubic * Quadratic ====================
@@ -84,7 +86,7 @@ contains
       factors(2) = -eta_e * eps * k3 / rho
       positions(2, :) = [8, 6]
       call subblock( &
-        quadblock, factors, positions, current_weight, dh_cubic, h_quad, dims &
+        quadblock, factors, positions, current_weight, dh_cubic, h_quad, settings%dims &
       )
 
       ! ==================== Cubic * Cubic ====================
@@ -102,7 +104,7 @@ contains
       factors(4) = eta_e * k2**2 / (eps * rho)
       positions(4, :) = [8, 8]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_cubic, h_cubic, dims &
+        quadblock, factors, positions, current_weight, h_cubic, h_cubic, settings%dims &
       )
 
       ! ==================== Cubic * dCubic ====================
@@ -114,7 +116,13 @@ contains
       factors(2) = -eta_e * eps * drho / rho**2
       positions(2, :) = [8, 8]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_cubic, dh_cubic, dims &
+        quadblock, &
+        factors, &
+        positions, &
+        current_weight, &
+        h_cubic, &
+        dh_cubic, &
+        settings%dims &
       )
 
       ! ==================== dCubic * dCubic ====================
@@ -126,7 +134,13 @@ contains
       factors(2) = eta_e * eps / rho
       positions(2, :) = [8, 8]
       call subblock( &
-        quadblock, factors, positions, current_weight, dh_cubic, dh_cubic, dims &
+        quadblock, &
+        factors, &
+        positions, &
+        current_weight, &
+        dh_cubic, &
+        dh_cubic, &
+        settings%dims &
       )
     end if
 
@@ -189,7 +203,7 @@ contains
       factors(1) = eta_H * (k2 * v02 / eps + k3 * v03)
       positions(1, :) = [6, 2]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_quad, h_cubic, dims &
+        quadblock, factors, positions, current_weight, h_quad, h_cubic, settings%dims &
       )
 
       ! ==================== Quadratic * Quadratic ====================
@@ -203,7 +217,9 @@ contains
       ! H(6, 5)
       factors(3) = eta_H * (1.0d0-efrac) * drho / rho
       positions(3, :) = [6, 5]
-      call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad, dims)
+      call subblock( &
+        quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
+      )
 
       ! ==================== Cubic * Cubic ====================
       call reset_factor_positions(new_size=2)
@@ -214,7 +230,7 @@ contains
       factors(2) = -eta_H * dv03
       positions(2, :) = [8, 2]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_cubic, h_cubic, dims &
+        quadblock, factors, positions, current_weight, h_cubic, h_cubic, settings%dims &
       )
 
       ! ==================== Cubic * Quadratic ====================
@@ -226,7 +242,7 @@ contains
       factors(2) = eta_H * (k2 * v02 / eps + k3 * v03)
       positions(2, :) = [8, 4]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_cubic, h_quad, dims &
+        quadblock, factors, positions, current_weight, h_cubic, h_quad, settings%dims &
       )
 
       if (viscosity) then
@@ -237,7 +253,13 @@ contains
                       + (k2 / eps)**2 + k3**2) / rho
         positions(1, :) = [6, 2]
         call subblock( &
-          quadblock, factors, positions, current_weight, h_quad, h_cubic, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          h_quad, &
+          h_cubic, &
+          settings%dims &
         )
 
         ! ==================== Quadratic * dCubic ====================
@@ -246,7 +268,13 @@ contains
         factors(1) = eta_H * ic * mu * (4.0d0 * drho / rho - deps / eps) / (3.0d0 * rho)
         positions(1, :) = [6, 2]
         call subblock( &
-          quadblock, factors, positions, current_weight, h_quad, dh_cubic, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          h_quad, &
+          dh_cubic, &
+          settings%dims &
         )
 
         ! ==================== dQuadratic * Cubic ====================
@@ -255,7 +283,13 @@ contains
         factors(1) = eta_H * ic * mu * deps / (eps * rho)
         positions(1, :) = [6, 2]
         call subblock( &
-          quadblock, factors, positions, current_weight, dh_quad, h_cubic, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          dh_quad, &
+          h_cubic, &
+          settings%dims &
         )
 
         ! ==================== dQuadratic * dCubic ====================
@@ -264,7 +298,13 @@ contains
         factors(1) = -4.0d0 * eta_H * ic * mu / (3.0d0 * rho)
         positions(1, :) = [6, 2]
         call subblock( &
-          quadblock, factors, positions, current_weight, dh_quad, dh_cubic, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          dh_quad, &
+          dh_cubic, &
+          settings%dims &
         )
 
         ! ==================== Quadratic * Quadratic ====================
@@ -279,7 +319,7 @@ contains
         factors(3) = eta_H * ic * mu * k3 * deps / (3.0d0 * eps * rho)
         positions(3, :) = [6, 4]
         call subblock( &
-          quadblock, factors, positions, current_weight, h_quad, h_quad, dims &
+          quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
         )
 
         ! ==================== Quadratic * dQuadratic ====================
@@ -291,7 +331,13 @@ contains
         factors(2) = -eta_H * ic * mu * k3 / (3.0d0 * rho)
         positions(2, :) = [6, 4]
         call subblock( &
-          quadblock, factors, positions, current_weight, h_quad, dh_quad, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          h_quad, &
+          dh_quad, &
+          settings%dims &
         )
 
         ! ==================== Cubic * Cubic ====================
@@ -300,7 +346,13 @@ contains
         factors(1) = 2.0d0 * eta_H * ic * mu * k2 * deps / (eps**2 * rho)
         positions(1, :) = [7, 2]
         call subblock( &
-          quadblock, factors, positions, current_weight, h_cubic, h_cubic, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          h_cubic, &
+          h_cubic, &
+          settings%dims &
         )
 
         ! ==================== Cubic * dCubic ====================
@@ -312,7 +364,13 @@ contains
         factors(2) = eta_H * ic * mu * k3 / (3.0d0 * rho)
         positions(2, :) = [8, 2]
         call subblock( &
-          quadblock, factors, positions, current_weight, h_cubic, dh_cubic, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          h_cubic, &
+          dh_cubic, &
+          settings%dims &
         )
 
         ! ==================== Cubic * Quadratic ====================
@@ -338,7 +396,13 @@ contains
                       + drho * deps / (eps * rho)) / rho
         positions(6, :) = [8, 4]
         call subblock( &
-          quadblock, factors, positions, current_weight, h_cubic, h_quad, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          h_cubic, &
+          h_quad, &
+          settings%dims &
         )
 
         ! ==================== Cubic * dQuadratic ====================
@@ -350,7 +414,13 @@ contains
         factors(2) = eta_H * ic * mu * drho / rho**2
         positions(2, :) = [8, 4]
         call subblock( &
-          quadblock, factors, positions, current_weight, h_cubic, dh_quad, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          h_cubic, &
+          dh_quad, &
+          settings%dims &
         )
 
         ! ==================== dCubic * dQuadratic ====================
@@ -362,7 +432,13 @@ contains
         factors(2) = -eta_H * ic * mu / rho
         positions(2, :) = [8, 4]
         call subblock( &
-          quadblock, factors, positions, current_weight, dh_cubic, dh_quad, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          dh_cubic, &
+          dh_quad, &
+          settings%dims &
         )
 
         ! ==================== dCubic * Quadratic ====================
@@ -371,7 +447,13 @@ contains
         factors(1) = eta_H * ic * mu * deps / (eps * rho)
         positions(1, :) = [8, 4]
         call subblock( &
-          quadblock, factors, positions, current_weight, dh_cubic, h_quad, dims &
+          quadblock, &
+          factors, &
+          positions, &
+          current_weight, &
+          dh_cubic, &
+          h_quad, &
+          settings%dims &
         )
       end if
 
@@ -389,7 +471,7 @@ contains
       factors(3) = -eta_H * (eps * drho * Gop_min / rho + deps * Gop_plus) / rho
       positions(3, :) = [6, 6]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_quad, h_quad, dims &
+        quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
       )
 
       ! ==================== dQuadratic * Quadratic ====================
@@ -398,7 +480,7 @@ contains
       factors(1) = eta_H * eps * Gop_min / rho
       positions(1, :) = [6, 6]
       call subblock( &
-        quadblock, factors, positions, current_weight, dh_quad, h_quad, dims &
+        quadblock, factors, positions, current_weight, dh_quad, h_quad, settings%dims &
       )
 
       ! ==================== Quadratic * Cubic ====================
@@ -410,7 +492,7 @@ contains
       factors(2) = -eta_H * k2 * Fop_plus / rho
       positions(2, :) = [6, 8]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_quad, h_cubic, dims &
+        quadblock, factors, positions, current_weight, h_quad, h_cubic, settings%dims &
       )
 
       ! ==================== Quadratic * dCubic ====================
@@ -422,7 +504,7 @@ contains
       factors(2) = eta_H * B02 * (deps + eps * drho / rho) / rho
       positions(2, :) = [6, 8]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_quad, dh_cubic, dims &
+        quadblock, factors, positions, current_weight, h_quad, dh_cubic, settings%dims &
       )
 
       ! ==================== dQuadratic * dCubic ====================
@@ -434,7 +516,13 @@ contains
       factors(2) = -eta_H * eps * B02 / rho
       positions(2, :) = [6, 8]
       call subblock( &
-        quadblock, factors, positions, current_weight, dh_quad, dh_cubic, dims &
+        quadblock, &
+        factors, &
+        positions, &
+        current_weight, &
+        dh_quad, &
+        dh_cubic, &
+        settings%dims &
       )
 
       ! ==================== Cubic * Quadratic ====================
@@ -452,7 +540,7 @@ contains
       factors(4) = -eta_H * (WVop * B02 + ic * B01 * k2 * (deps / eps - drho / rho)) / rho
       positions(4, :) = [8, 6]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_cubic, h_quad, dims &
+        quadblock, factors, positions, current_weight, h_cubic, h_quad, settings%dims &
       )
 
       ! ==================== dCubic * Quadratic ====================
@@ -464,7 +552,7 @@ contains
       factors(2) = -eta_H * ic * B01 * k2 / rho
       positions(2, :) = [8, 6]
       call subblock( &
-        quadblock, factors, positions, current_weight, dh_cubic, h_quad, dims &
+        quadblock, factors, positions, current_weight, dh_cubic, h_quad, settings%dims &
       )
 
       ! ==================== Cubic * Cubic ====================
@@ -482,7 +570,7 @@ contains
       factors(4) = -eta_H * k2 * (ic * B01 * k3 - dB03) / rho
       positions(4, :) = [8, 8]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_cubic, h_cubic, dims &
+        quadblock, factors, positions, current_weight, h_cubic, h_cubic, settings%dims &
       )
 
       ! ==================== Cubic * dCubic ====================
@@ -500,7 +588,13 @@ contains
       factors(4) = eta_H * eps * k3 * B02 / rho
       positions(4, :) = [8, 8]
       call subblock( &
-        quadblock, factors, positions, current_weight, h_cubic, dh_cubic, dims &
+        quadblock, &
+        factors, &
+        positions, &
+        current_weight, &
+        h_cubic, &
+        dh_cubic, &
+        settings%dims &
       )
 
       ! ==================== dCubic * dCubic ====================
@@ -512,7 +606,13 @@ contains
       factors(2) = eta_H * ic * B01 / rho
       positions(2, :) = [8, 7]
       call subblock( &
-        quadblock, factors, positions, current_weight, dh_cubic, dh_cubic, dims &
+        quadblock, &
+        factors, &
+        positions, &
+        current_weight, &
+        dh_cubic, &
+        dh_cubic, &
+        settings%dims &
       )
     end if
 

@@ -141,7 +141,8 @@ contains
     ! First we write all header information
     write(dat_fh) "legolas_version", LEGOLAS_VERSION
     write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
-      gauss_gridpts, settings%dims%get_dim_matrix(), ef_gridpts, gamma, &
+      gauss_gridpts, settings%dims%get_dim_matrix(), ef_gridpts, &
+      settings%physics%get_gamma(), &
       equilibrium_type, settings%io%write_eigenfunctions, &
       settings%io%write_derived_eigenfunctions, settings%io%write_matrices, &
       settings%io%write_eigenvectors, settings%io%write_residuals, &

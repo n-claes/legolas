@@ -30,7 +30,7 @@ submodule (mod_equilibrium) smod_equil_MRI
 
 contains
 
-  module subroutine MRI_accretion_eq()
+  module procedure MRI_accretion_eq
     use mod_equilibrium_params, only: beta, tau, nu
 
     real(dp)      :: r, Bth1, Bz1, p1, delta, epsilon, mu1, vth1
@@ -82,6 +82,6 @@ contains
       B_field % d_B02_dr(i) = -1.25d0 * Bth1 * r**(-2.25d0)
       B_field % d_B03_dr(i) = -1.25d0 * Bz1 * r**(-2.25d0)
     end do
-  end subroutine MRI_accretion_eq
+  end procedure MRI_accretion_eq
 
 end submodule smod_equil_MRI

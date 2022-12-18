@@ -9,6 +9,7 @@ module mod_inspections
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
     gravity_type, cooling_type, conduction_type
   use mod_logging, only: log_message, str
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -83,8 +84,10 @@ contains
   !! We check the wavenumbers and on-axis values, as well as standard
   !! and non-adiabatic equilibrium force balance.
   subroutine perform_sanity_checks( &
-    rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field &
+    settings, rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field &
   )
+    !> the settings object
+    type(settings_t), intent(in) :: settings
     !> the type containing the density attributes
     type(density_type), intent(in)      :: rho_field
     !> the type containing the temperature attributes
@@ -106,7 +109,9 @@ contains
     call continuity_equil_conditions(rho_field, v_field)
     call induction_equil_conditions(B_field, v_field)
     ! set the energy balance based on the equilibrium conditions
-    call set_energy_balance(rho_field, T_field, B_field, v_field, rc_field, kappa_field)
+    call set_energy_balance( &
+      settings, rho_field, T_field, B_field, v_field, rc_field, kappa_field &
+    )
   end subroutine perform_sanity_checks
 
 
@@ -356,11 +361,13 @@ contains
   !! $\mathscr{L}_0 = 0$ is no longer true.
   !!  The <tt>rc_field % heat_loss</tt> attribute is modified on exit.
   subroutine set_energy_balance( &
-    rho_field, T_field, B_field, v_field, rc_field, kappa_field &
+    settings, rho_field, T_field, B_field, v_field, rc_field, kappa_field &
   )
-    use mod_global_variables, only: gauss_gridpts, dp_LIMIT, gamma_1
+    use mod_global_variables, only: gauss_gridpts, dp_LIMIT
     use mod_grid, only: eps_grid, d_eps_grid_dr
 
+    !> the settings object
+    type(settings_t), intent(in) :: settings
     !> the type containing the density attributes
     type(density_type), intent(in)  :: rho_field
     !> the type containing the temperature attributes
@@ -407,7 +414,7 @@ contains
       ! rho * lambda(T0) factor cancels out with the radiative cooling contribution
       rc_field % heat_loss(i) = ( &
         (T0 / eps) * (deps * v01 + eps * dv01) &
-        + dT0 * v01 / gamma_1 &
+        + dT0 * v01 / settings%physics%get_gamma_1() &
         - (B01**2 / rho) * (dKp * dT0 + Kp * ddT0) &
         - ( &
           deps * kappa_perp * dT0 &

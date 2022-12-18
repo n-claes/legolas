@@ -24,7 +24,7 @@ submodule (mod_equilibrium) smod_equil_suydam_cluster
 contains
 
   !> Sets the equilibrium
-  module subroutine suydam_cluster_eq()
+  module procedure suydam_cluster_eq
     use mod_equilibrium_params, only: cte_rho0, cte_v02, cte_v03, cte_p0, p1, alpha
 
     real(dp)      :: r
@@ -73,6 +73,6 @@ contains
       B_field % d_B02_dr(i) = DJ1
       B_field % d_B03_dr(i) = -alpha * sqrt(1.0d0 - p1) * J1
     end do
-  end subroutine suydam_cluster_eq
+  end procedure suydam_cluster_eq
 
 end submodule smod_equil_suydam_cluster

@@ -21,7 +21,7 @@ submodule (mod_equilibrium) smod_equil_gravito_acoustic
 
 contains
 
-  module subroutine gravito_acoustic_eq()
+  module procedure gravito_acoustic_eq
     use mod_equilibrium_params, only: g, cte_rho0, cte_p0, alpha
 
     real(dp)  :: x, g
@@ -53,6 +53,6 @@ contains
       rho_field % d_rho0_dr(i) = -alpha * (rho_field % rho0(i))
     end do
 
-  end subroutine gravito_acoustic_eq
+  end procedure gravito_acoustic_eq
 
 end submodule smod_equil_gravito_acoustic

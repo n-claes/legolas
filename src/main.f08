@@ -73,8 +73,7 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, &
-     gamma, set_gamma, NaN, hall_mhd, x_start, x_end
+    use mod_global_variables, only: initialise_globals, NaN, hall_mhd, x_start, x_end
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
@@ -89,7 +88,6 @@ contains
     call initialise_globals()
     call get_parfile(parfile)
     call read_parfile(parfile, settings)
-    call set_gamma(gamma)
 
     call print_logo()
     call log_message( &
@@ -113,7 +111,7 @@ contains
     matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
 
     call initialise_equilibrium()
-    call set_equilibrium()
+    call set_equilibrium(settings)
 
     if (hall_mhd) then
       ratio = maxval(hall_field % hallfactor) / (x_end - x_start)

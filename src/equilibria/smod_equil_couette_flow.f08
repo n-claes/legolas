@@ -18,7 +18,7 @@ submodule (mod_equilibrium) smod_equil_couette_flow
 
 contains
 
-  module subroutine couette_flow_eq()
+  module procedure couette_flow_eq
     use mod_equilibrium_params, only: cte_rho0, cte_v02, cte_v03, cte_T0
     use mod_global_variables, only: viscosity_value
 
@@ -57,6 +57,6 @@ contains
       v_field % d_v02_dr(i)    = cte_v02 / h
       v_field % d_v03_dr(i)    = cte_v03 / h
     end do
-  end subroutine couette_flow_eq
+  end procedure couette_flow_eq
 
 end submodule smod_equil_couette_flow

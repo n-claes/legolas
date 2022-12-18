@@ -20,7 +20,7 @@ submodule (mod_equilibrium) smod_equil_gravito_mhd
 
 contains
 
-  module subroutine gravito_mhd_eq()
+  module procedure gravito_mhd_eq
     use mod_equilibrium_params, only: g, cte_rho0, cte_p0, alpha, beta
 
     real(dp)  :: x, B0
@@ -62,6 +62,6 @@ contains
       B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
     end do
 
-  end subroutine gravito_mhd_eq
+  end procedure gravito_mhd_eq
 
 end submodule smod_equil_gravito_mhd

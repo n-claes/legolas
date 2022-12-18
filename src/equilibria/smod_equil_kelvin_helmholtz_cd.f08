@@ -26,7 +26,7 @@ submodule (mod_equilibrium) smod_equil_kelvin_helmholtz_cd
 contains
 
   !> Sets the equilibrium.
-  module subroutine kh_cd_instability_eq()
+  module procedure kh_cd_instability_eq
     use mod_equilibrium_params, only: V, cte_rho0, cte_p0, Bz0, rc, Bth0, rj
 
     real(dp)    :: r, a
@@ -70,6 +70,6 @@ contains
       T_field % d_T0_dr(i)  = - (2.0d0*Bth0**2/(rho_field % rho0(i))) &
         * rc**4*r / (r**2+rc**2)**3
     end do
-  end subroutine kh_cd_instability_eq
+  end procedure kh_cd_instability_eq
 
 end submodule smod_equil_kelvin_helmholtz_cd

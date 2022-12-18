@@ -39,7 +39,7 @@ submodule (mod_equilibrium) smod_equil_gold_hoyle
 
 contains
 
-  module subroutine gold_hoyle_eq()
+  module procedure gold_hoyle_eq
     use mod_equilibrium_params, only: cte_T0, cte_rho0, alpha
     use mod_global_variables, only: cooling_curve, use_fixed_tc_perp, fixed_tc_perp_value
 
@@ -102,6 +102,6 @@ contains
       )
       B_field % d_B03_dr(i) = -2.0d0 * alpha**2 * r / (alpha**2 * r**2 + 1.0d0)**2
     end do
-  end subroutine gold_hoyle_eq
+  end procedure gold_hoyle_eq
 
 end submodule smod_equil_gold_hoyle

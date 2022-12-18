@@ -13,7 +13,7 @@ submodule (mod_equilibrium) smod_equil_flow_driven_instabilities
 
 contains
 
-  module subroutine flow_driven_instabilities_eq()
+  module procedure flow_driven_instabilities_eq
     use mod_equilibrium_params, only: g, delta, theta, p1, p2, p3, tau, &
                                       p4, alpha, cte_rho0, cte_p0
 
@@ -58,6 +58,6 @@ contains
       T_field % d_T0_dr(i)     = (-g * cte_rho0 * (1.0d0 - delta * x)**2 + cte_rho0 * delta * p_prof) &
                                   / (rho_field % rho0(i))**2
     end do
-  end subroutine flow_driven_instabilities_eq
+  end procedure flow_driven_instabilities_eq
 
 end submodule smod_equil_flow_driven_instabilities

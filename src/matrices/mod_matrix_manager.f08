@@ -1,5 +1,5 @@
 module mod_matrix_manager
-  use mod_global_variables, only: dp, ir, ic, gamma_1
+  use mod_global_variables, only: dp, ir, ic
   use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
   use mod_make_subblock, only: subblock
   use mod_equilibrium, only: rho_field, T_field, B_field
@@ -7,7 +7,6 @@ module mod_matrix_manager
   use mod_logging, only: log_message, str
   use mod_matrix_shortcuts, only: get_G_operator, get_F_operator, get_wv_operator
   use mod_settings, only: settings_t
-  use mod_dims, only: dims_t
   implicit none
 
   !> quadratic basis functions
@@ -24,77 +23,83 @@ module mod_matrix_manager
   integer, allocatable  :: positions(:, :)
 
   interface
-    module subroutine add_bmatrix_terms(gauss_idx, current_weight, quadblock, dims)
+    module subroutine add_bmatrix_terms(gauss_idx, current_weight, quadblock, settings)
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
-      type(dims_t), intent(in) :: dims
+      type(settings_t), intent(in) :: settings
     end subroutine add_bmatrix_terms
 
     module subroutine add_regular_matrix_terms( &
-      gauss_idx, current_weight, quadblock, dims &
+      gauss_idx, current_weight, quadblock, settings &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
-      type(dims_t), intent(in) :: dims
+      type(settings_t), intent(in) :: settings
     end subroutine add_regular_matrix_terms
 
-    module subroutine add_flow_matrix_terms(gauss_idx, current_weight, quadblock, dims)
+    module subroutine add_flow_matrix_terms( &
+      gauss_idx, current_weight, quadblock, settings &
+    )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
-      type(dims_t), intent(in) :: dims
+      type(settings_t), intent(in) :: settings
     end subroutine add_flow_matrix_terms
 
     module subroutine add_resistive_matrix_terms( &
-      gauss_idx, current_weight, quadblock, dims &
+      gauss_idx, current_weight, quadblock, settings &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
-      type(dims_t), intent(in) :: dims
+      type(settings_t), intent(in) :: settings
     end subroutine add_resistive_matrix_terms
 
     module subroutine add_cooling_matrix_terms( &
-      gauss_idx, current_weight, quadblock, dims &
+      gauss_idx, current_weight, quadblock, settings &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
-      type(dims_t), intent(in) :: dims
+      type(settings_t), intent(in) :: settings
     end subroutine add_cooling_matrix_terms
 
     module subroutine add_conduction_matrix_terms( &
-      gauss_idx, current_weight, quadblock, dims &
+      gauss_idx, current_weight, quadblock, settings &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
-      type(dims_t), intent(in) :: dims
+      type(settings_t), intent(in) :: settings
     end subroutine add_conduction_matrix_terms
 
     module subroutine add_viscosity_matrix_terms( &
-      gauss_idx, current_weight, quadblock, dims &
+      gauss_idx, current_weight, quadblock, settings &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
-      type(dims_t), intent(in) :: dims
+      type(settings_t), intent(in) :: settings
     end subroutine add_viscosity_matrix_terms
 
-    module subroutine add_hall_matrix_terms(gauss_idx, current_weight, quadblock, dims)
+    module subroutine add_hall_matrix_terms( &
+      gauss_idx, current_weight, quadblock, settings &
+    )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
-      type(dims_t), intent(in) :: dims
+      type(settings_t), intent(in) :: settings
     end subroutine add_hall_matrix_terms
 
-    module subroutine add_hall_bmatrix_terms(gauss_idx, current_weight, quadblock, dims)
+    module subroutine add_hall_bmatrix_terms( &
+      gauss_idx, current_weight, quadblock, settings &
+    )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
-      type(dims_t), intent(in) :: dims
+      type(settings_t), intent(in) :: settings
     end subroutine add_hall_bmatrix_terms
   end interface
 
@@ -166,32 +171,26 @@ contains
         call cubic_factors_deriv(current_x_gauss, x_left, x_right, dh_cubic)
 
         ! get matrix elements
-        call add_bmatrix_terms(gauss_idx, current_weight, quadblock_B, settings%dims)
-        call add_regular_matrix_terms( &
-          gauss_idx, current_weight, quadblock_A, settings%dims &
-        )
+        call add_bmatrix_terms(gauss_idx, current_weight, quadblock_B, settings)
+        call add_regular_matrix_terms(gauss_idx, current_weight, quadblock_A, settings)
         if (flow) call add_flow_matrix_terms( &
-          gauss_idx, current_weight, quadblock_A, settings%dims &
+          gauss_idx, current_weight, quadblock_A, settings &
         )
         if (resistivity) call add_resistive_matrix_terms( &
-          gauss_idx, current_weight, quadblock_A, settings%dims &
+          gauss_idx, current_weight, quadblock_A, settings &
         )
         if (radiative_cooling) call add_cooling_matrix_terms( &
-          gauss_idx, current_weight, quadblock_A, settings%dims &
+          gauss_idx, current_weight, quadblock_A, settings &
         )
         if (thermal_conduction) call add_conduction_matrix_terms( &
-          gauss_idx, current_weight, quadblock_A, settings%dims &
+          gauss_idx, current_weight, quadblock_A, settings &
         )
         if (viscosity) call add_viscosity_matrix_terms( &
-          gauss_idx, current_weight, quadblock_A, settings%dims &
+          gauss_idx, current_weight, quadblock_A, settings &
         )
         if (hall_mhd) then
-          call add_hall_matrix_terms( &
-            gauss_idx, current_weight, quadblock_A, settings%dims &
-          )
-          call add_hall_bmatrix_terms( &
-            gauss_idx, current_weight, quadblock_B, settings%dims &
-          )
+          call add_hall_matrix_terms(gauss_idx, current_weight, quadblock_A, settings)
+          call add_hall_bmatrix_terms(gauss_idx, current_weight, quadblock_B, settings)
         end if
       end do
 

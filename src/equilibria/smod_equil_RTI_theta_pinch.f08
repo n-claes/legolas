@@ -35,7 +35,7 @@ submodule (mod_equilibrium) smod_equil_RTI_theta_pinch
 
 contains
 
-  module subroutine RTI_theta_pinch_eq()
+  module procedure RTI_theta_pinch_eq
     use mod_equilibrium_params, only: cte_rho0, cte_p0, alpha, delta, r0
 
     real(dp)      :: B_inf, bigO, a
@@ -78,6 +78,6 @@ contains
       v_field % d_v02_dr(i) = bigO
       B_field % d_B03_dr(i) = B_inf * (1.0d0 - delta ) * dfx / cosh(fx)**2
     end do
-  end subroutine RTI_theta_pinch_eq
+  end procedure RTI_theta_pinch_eq
 
 end submodule smod_equil_RTI_theta_pinch

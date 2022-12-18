@@ -22,7 +22,7 @@ submodule (mod_equilibrium) smod_equil_harris_sheet
 
 contains
 
-  module subroutine harris_sheet_eq()
+  module procedure harris_sheet_eq
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_params, only: cte_rho0, cte_B02, cte_B03, cte_T0, alpha, eq_bool
 
@@ -96,6 +96,6 @@ contains
         eta_field % dd_B03_dr(i) = 0.0d0
       end do
     end if
-  end subroutine harris_sheet_eq
+  end procedure harris_sheet_eq
 
 end submodule smod_equil_harris_sheet

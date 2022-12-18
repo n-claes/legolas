@@ -29,7 +29,7 @@ submodule (mod_equilibrium) smod_equil_discrete_alfven
 
 contains
 
-  module subroutine discrete_alfven_eq()
+  module procedure discrete_alfven_eq
     use mod_equilibrium_params, only: j0, delta
     use mod_global_variables, only: cooling_curve, use_fixed_tc_perp, fixed_tc_perp_value
 
@@ -86,6 +86,6 @@ contains
         dp_r(i) * (rho_field % rho0(i)) - (rho_field % d_rho0_dr(i)) * p_r(i) &
       ) / (rho_field % rho0(i))**2
     end do
-  end subroutine discrete_alfven_eq
+  end procedure discrete_alfven_eq
 
 end submodule smod_equil_discrete_alfven

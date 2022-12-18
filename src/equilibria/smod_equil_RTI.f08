@@ -28,7 +28,7 @@ submodule (mod_equilibrium) smod_equil_RTI
 
 contains
 
-  module subroutine RTI_eq()
+  module procedure RTI_eq
     use mod_equilibrium_params, only: g, delta, theta, p1, p2, p3, tau, &
       p4, alpha, cte_rho0, cte_p0
 
@@ -50,7 +50,7 @@ contains
       tau = 0.0d0
     end if ! LCOV_EXCL_STOP
 
-    call flow_driven_instabilities_eq()
-  end subroutine RTI_eq
+    call flow_driven_instabilities_eq(settings)
+  end procedure RTI_eq
 
 end submodule smod_equil_RTI

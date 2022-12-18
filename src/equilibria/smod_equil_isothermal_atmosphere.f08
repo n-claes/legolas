@@ -27,7 +27,7 @@ submodule (mod_equilibrium) smod_equil_isothermal_atmosphere
 
 contains
 
-  module subroutine isothermal_atmosphere_eq()
+  module procedure isothermal_atmosphere_eq
     use mod_equilibrium_params, only: cte_rho0, cte_B02, cte_B03, cte_T0, g
 
     real(dp)  :: x, scale_height
@@ -63,5 +63,5 @@ contains
       rho_field % d_rho0_dr(i) = -cte_rho0 * exp(-x / scale_height) / scale_height
     end do
 
-  end subroutine isothermal_atmosphere_eq
+  end procedure isothermal_atmosphere_eq
 end submodule smod_equil_isothermal_atmosphere

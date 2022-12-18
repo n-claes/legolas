@@ -23,7 +23,7 @@ submodule (mod_equilibrium) smod_equil_taylor_couette
 
 contains
 
-  module subroutine taylor_couette_eq()
+  module procedure taylor_couette_eq
     use mod_global_variables, only: coaxial
     use mod_equilibrium_params, only: cte_rho0, alpha, beta
     use mod_global_variables, only: viscosity_value
@@ -83,6 +83,6 @@ contains
           * 2.0d0 * h / (x_start + x_end)
     call log_message('Taylor number is ' // str(int(Ta)), level='info')
 
-  end subroutine taylor_couette_eq
+  end procedure taylor_couette_eq
 
 end submodule smod_equil_taylor_couette
