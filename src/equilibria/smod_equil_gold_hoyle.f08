@@ -46,12 +46,9 @@ contains
     real(dp)  :: r
     integer   :: i
 
-    call allow_geometry_override( &
-      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
-
     if (use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("cylindrical")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       radiative_cooling = .true.
       cooling_curve = "rosner"
       thermal_conduction = .true.
@@ -87,8 +84,9 @@ contains
       !   new_mean_molecular_weight=1.0d0 & ! pure proton plasma
       ! )
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
 
       rho_field % rho0(i) = cte_rho0

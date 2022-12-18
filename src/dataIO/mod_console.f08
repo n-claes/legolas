@@ -73,11 +73,11 @@ contains
     override_prefix_to_false = .true.
 
     call log_message("              << Grid settings >>")
-    call log_message("geometry           : " // trim(adjustl(geometry)))
-    call log_message("grid start         : " // str(x_start))
-    call log_message("grid end           : " // str(x_end))
-    call log_message("gridpoints (base)  : " // str(gridpts))
-    call log_message("gridpoints (Gauss) : " // str(gauss_gridpts))
+    call log_message("geometry           : " // settings%grid%get_geometry())
+    call log_message("grid start         : " // str(settings%grid%get_grid_start()))
+    call log_message("grid end           : " // str(settings%grid%get_grid_end()))
+    call log_message("gridpoints (base)  : " // str(settings%grid%get_gridpts()))
+    call log_message("gridpoints (Gauss) : " // str(settings%grid%get_gauss_gridpts()))
     call log_message("gridpoints (matrix): " // str(settings%dims%get_dim_matrix()))
 
     call log_message("          << Equilibrium settings >>")

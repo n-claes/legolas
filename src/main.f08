@@ -73,7 +73,7 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, NaN, hall_mhd, x_start, x_end
+    use mod_global_variables, only: initialise_globals, NaN, hall_mhd
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
@@ -110,11 +110,13 @@ contains
     matrix_A = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="A")
     matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
 
-    call initialise_equilibrium()
+    call initialise_equilibrium(settings)
     call set_equilibrium(settings)
 
     if (hall_mhd) then
-      ratio = maxval(hall_field % hallfactor) / (x_end - x_start)
+      ratio = maxval(hall_field % hallfactor) / ( &
+        settings%grid%get_grid_end() - settings%grid%get_grid_start() &
+      )
       if (ratio > 0.1d0) then
         call log_message("large ratio Hall scale / system scale: " // str(ratio), level="warning")
       end if

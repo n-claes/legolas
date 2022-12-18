@@ -11,11 +11,9 @@ contains
     real(dp)    :: x
     integer     :: i
 
-    ! either allow for an override through the parfile or hardcode it
-    call allow_geometry_override( &
-      default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
+    call settings%grid%set_geometry("Cartesian")
+    call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+    call initialise_grid(settings)
 
     k2 = 0.0d0
     k3 = 1.0d0
@@ -24,7 +22,7 @@ contains
     flow = .true.
 
     ! set up the grid
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
       ! Note: values that are not set/referenced are automatically set to zero.

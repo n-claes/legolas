@@ -28,12 +28,9 @@ contains
     real(dp)    :: x
     integer     :: i
 
-    call allow_geometry_override( &
-      default_geometry="Cartesian", default_x_start=-0.5d0, default_x_end=0.5d0 &
-    )
-    call initialise_grid()
-
     if (use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("Cartesian")
+      call settings%grid%set_grid_boundaries(-0.5_dp, 0.5_dp)
       flow = .true.
       resistivity = .true.
       use_fixed_resistivity = .true.
@@ -46,8 +43,9 @@ contains
       beta  = 0.15d0
       cte_rho0 = 1.0d0
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
       rho_field % rho0(i) = cte_rho0

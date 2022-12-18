@@ -26,20 +26,21 @@ submodule(mod_equilibrium) smod_equil_coronal_flux_tube
 contains
 
   module procedure coronal_flux_tube_eq
-    use mod_global_variables, only: dp_LIMIT, gridpts, force_r0
+    use mod_global_variables, only: dp_LIMIT
     use mod_equilibrium_params, only: cte_rho0, cte_p0, r0
 
     real(dp)  :: r, rho_e, p_e, B_0, B_e
-    real(dp)  :: custom_grid(gridpts)
+    real(dp), allocatable :: custom_grid(:)
     real(dp)  :: width, a_l, a_r, pct1, pct2, pct3, dx, dx1, dx2, dx3
     real(dp) :: gamma
-    integer   :: i, N1, N2, N3
-
-    call allow_geometry_override( &
-      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=10.0d0 &
-    )
+    real(dp) :: x_start, x_end
+    integer :: gridpts
+    integer :: i, N1, N2, N3
 
     if (use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("cylindrical")
+      call settings%grid%set_grid_boundaries(0.0_dp, 10.0_dp)
+
       cte_rho0 = 1.0d0
       cte_p0 = 1.0d0
       r0 = 1.0d0
@@ -48,6 +49,9 @@ contains
       k3 = 2.0d0
     end if ! LCOV_EXCL_STOP
     gamma = settings%physics%get_gamma()
+    gridpts = settings%grid%get_gridpts()
+    x_start = settings%grid%get_grid_start()
+    x_end = settings%grid%get_grid_end()
 
     ! width of transition region
     width = 0.1d0
@@ -59,7 +63,10 @@ contains
     pct2 = 0.3d0  ! percentage of points in transition region
     pct3 = 0.1d0  ! percentage of points in outer tube
     ! for a custom grid we have to manually avoid setting r0 = 0
-    if (geometry == "cylindrical" .and. .not. force_r0) then
+    if ( &
+      settings%grid%get_geometry() == "cylindrical" &
+      .and. .not. settings%grid%force_r0 &
+    ) then
       x_start = 2.5d-2
     end if
     N1 = int(pct1 * gridpts)
@@ -69,6 +76,7 @@ contains
     N3 = int(pct3 * gridpts)
     dx3 = (x_end - a_r) / N3
     ! fill the grid
+    allocate(custom_grid(gridpts))
     custom_grid(1) = x_start
     do i = 2, gridpts
       if (i <= N1) then
@@ -80,7 +88,8 @@ contains
       end if
       custom_grid(i) = custom_grid(i - 1) + dx
     end do
-    call initialise_grid(custom_grid=custom_grid)
+    call initialise_grid(settings, custom_grid=custom_grid)
+    deallocate(custom_grid)
 
     rho_e = 4.0d0 * (2.0d0 * gamma + 1.0d0) * cte_rho0 / (50.0d0 * gamma + 1.0d0)
     p_e = (2.0d0 * gamma + 1.0d0) * cte_p0 / (50.0d0 * gamma + 1.0d0)
@@ -102,7 +111,7 @@ contains
       )
     end if
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
 
       if (r > r0) then

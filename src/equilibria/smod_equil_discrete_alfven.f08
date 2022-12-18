@@ -33,15 +33,13 @@ contains
     use mod_equilibrium_params, only: j0, delta
     use mod_global_variables, only: cooling_curve, use_fixed_tc_perp, fixed_tc_perp_value
 
-    real(dp)  :: r, p_r(gauss_gridpts), dp_r(gauss_gridpts)
-    integer   :: i
-
-    call allow_geometry_override( &
-      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
+    real(dp) :: r, x_end
+    real(dp), allocatable :: p_r(:), dp_r(:)
+    integer :: i, gauss_gridpts
 
     if (use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("cylindrical")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       radiative_cooling = .true.
       cooling_curve = "rosner"
       thermal_conduction = .true.
@@ -60,6 +58,12 @@ contains
       k2 = 1.0d0
       k3 = 0.05d0
     end if ! LCOV_EXCL_STOP
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
+    allocate(p_r(gauss_gridpts))
+    allocate(dp_r(gauss_gridpts))
+
+    call initialise_grid(settings)
+    x_end = settings%grid%get_grid_end()
 
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
@@ -86,6 +90,8 @@ contains
         dp_r(i) * (rho_field % rho0(i)) - (rho_field % d_rho0_dr(i)) * p_r(i) &
       ) / (rho_field % rho0(i))**2
     end do
+    deallocate(p_r)
+    deallocate(dp_r)
   end procedure discrete_alfven_eq
 
 end submodule smod_equil_discrete_alfven

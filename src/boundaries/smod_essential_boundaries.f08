@@ -1,5 +1,5 @@
 submodule (mod_boundary_manager) smod_essential_boundaries
-  use mod_global_variables, only: dp_LIMIT, boundary_type, geometry, coaxial
+  use mod_global_variables, only: dp_LIMIT, boundary_type
   use mod_equilibrium_params, only: k2, k3
   use mod_check_values, only: is_zero
 

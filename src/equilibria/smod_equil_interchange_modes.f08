@@ -28,12 +28,9 @@ contains
     real(dp)  :: x, B0
     integer   :: i
 
-    call allow_geometry_override( &
-      default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
-
     if (use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("Cartesian")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       external_gravity = .true.
 
       k2 = dpi
@@ -44,6 +41,7 @@ contains
       lambda = 0.0d0
       alpha = 20.0d0
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
 
     B0 = 1.0d0
     beta = 2.0d0*cte_p0 / B0**2
@@ -52,7 +50,7 @@ contains
     T_field % T0      = cte_p0 / cte_rho0
     grav_field % grav = g
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
       rho_field % rho0(i) = cte_rho0 * exp(-alpha*x)

@@ -3,7 +3,7 @@
 !! temperature profiles (see <tt>mod_atmosphere_curves</tt>), in Cartesian
 !! geometries only.
 module mod_solar_atmosphere
-  use mod_global_variables, only: dp, gauss_gridpts
+  use mod_global_variables, only: dp
   use mod_logging, only: log_message, str
   implicit none
 
@@ -62,14 +62,16 @@ contains
   !! can all use the same result.
   !! @warning   Throws an error if the geometry is not Cartesian. @endwarning
   subroutine set_solar_atmosphere( &
-    f_b02, f_db02, f_b03, f_db03, f_g, n_interp, load_from, save_to &
+    settings, f_b02, f_db02, f_b03, f_db03, f_g, n_interp, load_from, save_to &
   )
-    use mod_global_variables, only: ncool, geometry
+    use mod_global_variables, only: ncool
     use mod_grid, only: grid_gauss
     use mod_interpolation, only: lookup_table_value, get_numerical_derivative
     use mod_integration, only: integrate_ode_rk
     use mod_equilibrium, only: rho_field, T_field, B_field, grav_field
+    use mod_settings, only: settings_t
 
+    type(settings_t), intent(in) :: settings
     !> function reference for calculation of B02
     procedure(oned_profile), optional :: f_b02
     !> function reference for calculation of B02'
@@ -126,7 +128,7 @@ contains
       nbpoints = n_interp
     end if
 
-    if (geometry /= "Cartesian") then
+    if (settings%grid%get_geometry() /= "Cartesian") then
       call log_message( &
         "solar atmosphere can only be set in Cartesian geometries!", level="error" &
       )
@@ -188,7 +190,7 @@ contains
     end if
 
     ! set the various equilibrium attributes
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
       ! density
       rho_field % rho0(i) = lookup_table_value(x, h_interp, rho_values)

@@ -81,38 +81,17 @@ module mod_global_variables
   logical, save             :: inertia_dropoff
   !> fraction of number of electrons to number of all particles (between 0 and 1), defaults to <tt>0.5</tt>
   real(dp)                  :: electron_fraction
-  !> defines the geometry of the problem, defaults depend on chosen equilibrium
-  character(len=str_len)    :: geometry
-  !> defines the presence of a coaxial inner boundary for a cylindrical geometry,
-  !! defaults to <tt>False</tt>
-  logical, save             :: coaxial
-  !> start value of the base grid, defaults depend on chosen equilibrium
-  real(dp)                  :: x_start
-  !> end value of the base grid, defaults depend on chosen equilibrium
-  real(dp)                  :: x_end
-  !> number of gridpoints in the base grid, defaults to 31
-  integer, protected        :: gridpts
-  !> boolean to force r=0 in cylindrical geometry, defaults to <tt>False</tt>
-  logical, save             :: force_r0
-  !> number of gridpoints in the gaussian grid, automatically set by \p gridpts
-  integer, protected        :: gauss_gridpts
-  !> size of a single eigenfunction array, automatically set by \p gridpts
-  integer, protected        :: ef_gridpts
 
   !> number of Gaussian nodes
   integer, parameter           :: n_gauss = 4
   !> values for the Gaussian nodes in [-1, 1]
-  real(dp), dimension(n_gauss) :: gaussian_nodes = &
-                                      (/ -0.861136311594053, &
-                                         -0.339981043584856, &
-                                          0.339981043584856, &
-                                          0.861136311594053  /)
+  real(dp), parameter :: gaussian_nodes(n_gauss) = [ &
+    -0.861136311594053, -0.339981043584856, 0.339981043584856, 0.861136311594053 &
+  ]
   !> weights for the Gaussian nodes in [-1, 1]
-  real(dp), dimension(n_gauss) :: gaussian_weights = &
-                                      (/ 0.347854845137454, &
-                                         0.652145154862546, &
-                                         0.652145154862546, &
-                                         0.347854845137454  /)
+  real(dp), parameter :: gaussian_weights(n_gauss) = [ &
+    0.347854845137454, 0.652145154862546, 0.652145154862546, 0.347854845137454 &
+  ]
 
   !> name of the equilibrium to set up, determines the submodule, defaults to \p "adiabatic_homo"
   character(len=str_len)       :: equilibrium_type
@@ -169,16 +148,6 @@ contains
     inertia_dropoff = .false.
     electron_fraction = 0.5d0
 
-    !! grid variables
-    ! do not initialise these three so they MUST be set in submodules/parfile
-    geometry = ""
-    coaxial = .false.
-    x_start = NaN
-    x_end = NaN
-    gridpts = 31
-    force_r0 = .false.
-    call set_gridpts(gridpts)
-
     !! equilibrium variables
     equilibrium_type = 'adiabatic_homo'
     boundary_type = 'wall'
@@ -189,18 +158,5 @@ contains
     !! post-processing parameters
     logging_level = 2
   end subroutine initialise_globals
-
-
-  !> Sets all gridpoint-related variables: sets the base number of gridpoints,
-  !! the gridpoints of the Gaussian grid, matrix sizes and size of the
-  !! eigenfunction arrays.
-  subroutine set_gridpts(points)
-    !> amount of gridpoints for the base grid
-    integer, intent(in) :: points
-
-    gridpts = points
-    gauss_gridpts = n_gauss * (gridpts - 1)
-    ef_gridpts  = 2 * gridpts - 1
-  end subroutine set_gridpts
 
 end module mod_global_variables

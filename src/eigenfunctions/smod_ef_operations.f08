@@ -33,8 +33,6 @@ contains
   !! eigenvector. Which eigenfunction to assemble is determined from the
   !! name attribute of the eigenfunction and the derivative order.
   module procedure assemble_eigenfunction
-    use mod_global_variables, only: gridpts
-
     real(dp)  :: spline(4)
     integer   :: diff_order
     integer :: subblock_idx, grid_idx, ef_grid_idx
@@ -51,19 +49,19 @@ contains
     ! contribution from first gridpoint
     spline = get_spline(base_ef%name, grid_idx=1, ef_grid_idx=1, diff_order=diff_order)
     assembled_ef(1) = get_values_from_eigenvector( &
-      eigenvector, subblock_idx, dims, spline &
+      eigenvector, subblock_idx, settings%dims, spline &
     )
 
-    do grid_idx = 1, gridpts-1
+    do grid_idx = 1, settings%grid%get_gridpts() - 1
       ! idx center interval = 2 * i, idx end interval = 2 * i + 1
       do ef_grid_idx = 2 * grid_idx, 2 * grid_idx + 1
         spline = get_spline(base_ef%name, grid_idx, ef_grid_idx, diff_order=diff_order)
         assembled_ef(ef_grid_idx) = get_values_from_eigenvector( &
-          eigenvector, subblock_idx, dims, spline &
+          eigenvector, subblock_idx, settings%dims, spline &
         )
       end do
       ! Increment indices of eigenvector elements
-      subblock_idx = subblock_idx + dims%get_dim_subblock()
+      subblock_idx = subblock_idx + settings%dims%get_dim_subblock()
     end do
   end procedure assemble_eigenfunction
 
@@ -73,6 +71,8 @@ contains
   function get_values_from_eigenvector( &
     eigenvector, subblock_idx, dims, spline &
   ) result(val)
+    use mod_dims, only: dims_t
+
     !> the eigenvector associated with the requested eigenvalue
     complex(dp), intent(in) :: eigenvector(:)
     !> current subblock index mapping

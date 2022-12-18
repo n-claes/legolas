@@ -32,15 +32,13 @@ contains
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_params, only: p1, p2, r0, cte_T0, cte_B02, cte_B03
 
-    real(dp)  :: x, s, r0, rho_left, rho_right, zeta
-    integer   :: i
-
-    call allow_geometry_override( &
-      default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
+    real(dp) :: x, s, r0, rho_left, rho_right, zeta
+    real(dp) :: x_start, x_end
+    integer :: i
 
     if (use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("Cartesian")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       resistivity = .true.
       use_fixed_resistivity = .true.
       fixed_eta_value = 10.0d0**(-3.2d0)
@@ -58,6 +56,9 @@ contains
       rho_left = p1
       rho_right = p2
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
+    x_start = settings%grid%get_grid_start()
+    x_end = settings%grid%get_grid_end()
 
     s = 0.5d0 * (x_start + x_end)
     zeta = rho_left / rho_right
@@ -67,7 +68,7 @@ contains
     B_field % B0 = sqrt((B_field % B02)**2 + (B_field % B03)**2)
     T_field % T0 = cte_T0
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
       if (x >= x_start .and. x < s - 0.5d0*r0) then

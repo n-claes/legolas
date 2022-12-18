@@ -28,12 +28,11 @@ contains
     real(dp)      :: J0, J1, J2, DJ0, DJ1
     integer       :: i
 
-    call allow_geometry_override( &
-      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
+    call settings%grid%set_geometry("cylindrical")
+    call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+    call initialise_grid(settings)
 
-    a0 = x_end
+    a0 = settings%grid%get_grid_end()
     if (use_defaults) then ! LCOV_EXCL_START
       flow = .true.
       cte_rho0 = 1.0d0
@@ -45,7 +44,7 @@ contains
       k3 = 0.16d0 * alpha
     end if ! LCOV_EXCL_STOP
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
       x = r / a0
 

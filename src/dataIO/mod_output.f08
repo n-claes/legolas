@@ -101,6 +101,7 @@ contains
 
     real(dp)  :: b01_array(size(B_field % B02))
     character(len=str_len_arr)    :: param_names(34), equil_names(32)
+    character(len=str_len) :: geometry
     character(len=2*str_len_arr)  :: unit_names(12)
     real(dp), allocatable         :: residuals(:)
     integer                       :: i
@@ -138,11 +139,14 @@ contains
     call make_filename(settings=settings, extension=".dat", filename=datfile_name)
     call open_file(dat_fh, datfile_name)
 
+    ! need str_len for now to ensure datfile reading compatibility
+    geometry = settings%grid%get_geometry()
     ! First we write all header information
     write(dat_fh) "legolas_version", LEGOLAS_VERSION
-    write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
-      gauss_gridpts, settings%dims%get_dim_matrix(), ef_gridpts, &
-      settings%physics%get_gamma(), &
+    write(dat_fh) str_len, str_len_arr, geometry, settings%grid%get_grid_start(), &
+      settings%grid%get_grid_end(), settings%grid%get_gridpts(), &
+      settings%grid%get_gauss_gridpts(), settings%dims%get_dim_matrix(), &
+      settings%grid%get_ef_gridpts(), settings%physics%get_gamma(), &
       equilibrium_type, settings%io%write_eigenfunctions, &
       settings%io%write_derived_eigenfunctions, settings%io%write_matrices, &
       settings%io%write_eigenvectors, settings%io%write_residuals, &

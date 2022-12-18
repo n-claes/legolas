@@ -24,22 +24,19 @@ submodule (mod_equilibrium) smod_equil_taylor_couette
 contains
 
   module procedure taylor_couette_eq
-    use mod_global_variables, only: coaxial
     use mod_equilibrium_params, only: cte_rho0, alpha, beta
     use mod_global_variables, only: viscosity_value
 
-    real(dp)    :: r, h, Rrat, A, B, Ta, Tstart
-    integer     :: i
-
-    call allow_geometry_override( &
-      default_geometry="cylindrical", default_x_start=1.0d0, default_x_end=2.0d0 &
-    )
-    call initialise_grid()
+    real(dp) :: r, h, Rrat, A, B, Ta, Tstart
+    real(dp) :: x_start, x_end
+    integer :: i, gauss_gridpts
 
     flow = .true.
-    coaxial = .true.
+    settings%grid%coaxial = .true.
 
     if (use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("cylindrical")
+      call settings%grid%set_grid_boundaries(0.0_dp, 2.0_dp)
       cte_rho0 = 1.0d0
       alpha = 1.0d0
       beta = 2.0d0
@@ -50,6 +47,10 @@ contains
       viscosity = .true.
       viscosity_value = 1.0d-3
     end if ! LCOV_EXCL_STOP
+    x_start = settings%grid%get_grid_start()
+    x_end = settings%grid%get_grid_end()
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
+    call initialise_grid(settings)
 
     rho_field % rho0 = cte_rho0
 

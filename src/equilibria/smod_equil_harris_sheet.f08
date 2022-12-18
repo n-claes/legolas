@@ -29,10 +29,9 @@ contains
     real(dp)      :: x
     integer       :: i
 
-    call allow_geometry_override(default_geometry='Cartesian', default_x_start=-15.0d0, default_x_end=15.0d0)
-    call initialise_grid()
-
     if (use_defaults) then
+      call settings%grid%set_geometry("Cartesian")
+      call settings%grid%set_grid_boundaries(-15.0_dp, 15.0_dp)
       resistivity = .true.
       use_fixed_resistivity = .true.
       fixed_eta_value = 0.0001d0
@@ -50,8 +49,9 @@ contains
       !> eq_bool >> if True, the alternative force-free Harris sheet is used
       eq_bool = .false.
     end if
+    call initialise_grid(settings)
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
       rho_field % rho0(i) = cte_rho0
@@ -66,7 +66,7 @@ contains
 
     if (eq_bool) then
       !> force-free option: B0 = constant, so T0 can be any arbitrary constant
-      do i = 1, gauss_gridpts
+      do i = 1, settings%grid%get_gauss_gridpts()
         x = grid_gauss(i)
 
         B_field % B03(i)    = sqrt(cte_B03**2 + cte_B02**2 / cosh(x / alpha)**2)
@@ -82,7 +82,7 @@ contains
                                     ) / (alpha**2 * cosh(x / alpha)**4 * (B_field % B03(i)))
       end do
     else
-      do i = 1, gauss_gridpts
+      do i = 1, settings%grid%get_gauss_gridpts()
         x = grid_gauss(i)
 
         B_field % B03(i)    = cte_B03

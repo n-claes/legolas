@@ -71,7 +71,7 @@ contains
     dim_quadblock = settings%dims%get_dim_quadblock()
     allocate(quadblock(dim_quadblock, dim_quadblock))
     quadblock = (0.0d0, 0.0d0)
-    call set_basis_functions(edge="left")
+    call set_basis_functions(settings=settings, edge="left")
 
     if (matrix%get_label() == "A") then
       call add_natural_regular_terms(quadblock, settings)
@@ -100,7 +100,7 @@ contains
     dim_quadblock = settings%dims%get_dim_quadblock()
     allocate(quadblock(dim_quadblock, dim_quadblock))
     quadblock = (0.0d0, 0.0d0)
-    call set_basis_functions(edge="right")
+    call set_basis_functions(settings=settings, edge="right")
 
     ! index shift, this is an even number and represents the final index of the
     ! second-to-last quadblock. We add this to the iteration such that it starts
@@ -130,14 +130,16 @@ contains
   end procedure apply_natural_boundaries_right
 
 
-  subroutine set_basis_functions(edge)
-    use mod_global_variables, only: gridpts, gauss_gridpts
-    use mod_spline_functions, only: &
-      quadratic_factors, quadratic_factors_deriv, cubic_factors, cubic_factors_deriv
+  subroutine set_basis_functions(settings, edge)
+    use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
+      cubic_factors, cubic_factors_deriv
 
+    type(settings_t), intent(in) :: settings
     character(len=*), intent(in)  :: edge
-    real(dp)  :: x_pos, x_left, x_right
+    real(dp) :: x_pos, x_left, x_right
+    integer :: gridpts
 
+    gridpts = settings%grid%get_gridpts()
     if (edge == "left") then
       x_left = grid(1)
       x_right = grid(2)
@@ -149,7 +151,7 @@ contains
       x_left = grid(gridpts - 1)
       x_right = grid(gridpts)
       x_pos = x_right
-      grid_idx = gauss_gridpts
+      grid_idx = settings%grid%get_gauss_gridpts()
       ! plus one here
       weight = 1.0d0
     else

@@ -111,9 +111,8 @@ module mod_matrix_manager
 contains
 
   subroutine build_matrices(matrix_B, matrix_A, settings)
-    use mod_global_variables, only: gridpts, &
-        n_gauss, gaussian_weights, flow, resistivity, radiative_cooling, &
-        thermal_conduction, viscosity, hall_mhd
+    use mod_global_variables, only: n_gauss, gaussian_weights, flow, resistivity, &
+       radiative_cooling, thermal_conduction, viscosity, hall_mhd
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
     use mod_matrix_structure, only: matrix_t
@@ -148,7 +147,7 @@ contains
     ! used to shift the quadblock along the main diagonal
     quadblock_idx = 0
 
-    do i = 1, gridpts - 1
+    do i = 1, settings%grid%get_gridpts() - 1
       ! reset quadblocks
       quadblock_A = (0.0d0, 0.0d0)
       quadblock_B = (0.0d0, 0.0d0)

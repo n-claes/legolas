@@ -48,7 +48,7 @@ contains
     !> the settings object
     type(settings_t), intent(in) :: settings
 
-    call set_boundary_flags()
+    call set_boundary_flags(settings)
 
     ! handle left side boundary conditions B-matrix
     call apply_natural_boundaries_left(matrix_B, settings)
@@ -65,10 +65,12 @@ contains
   end subroutine apply_boundary_conditions
 
 
-  subroutine set_boundary_flags()
+  subroutine set_boundary_flags(settings)
     use mod_equilibrium, only: kappa_field
-    use mod_global_variables, only: &
-      thermal_conduction, viscosity, coaxial, dp_LIMIT, geometry
+    use mod_global_variables, only: thermal_conduction, viscosity, dp_LIMIT
+
+    type(settings_t), intent(in) :: settings
+
 
     apply_T_bounds = .false.
     apply_noslip_bounds_left = .false.
@@ -84,7 +86,7 @@ contains
     if (viscosity) then
       apply_noslip_bounds_right = .true.
       ! does not apply on-axis for cylindrical, unless two coaxial walls are present
-      if (coaxial .or. geometry == "Cartesian") then
+      if (settings%grid%coaxial .or. settings%grid%get_geometry() == "Cartesian") then
         apply_noslip_bounds_left = .true.
       end if
     end if

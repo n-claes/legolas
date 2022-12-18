@@ -2,8 +2,9 @@
 !> Module containing resistivity-related routines, calculates
 !! and sets the resistivity values based on the equilibrium configuration.
 module mod_resistivity
-  use mod_global_variables, only: dp, gauss_gridpts
+  use mod_global_variables, only: dp
   use mod_physical_constants, only: dpi, Z_ion, coulomb_log
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -15,10 +16,11 @@ contains
 
   !> This routines sets all resistivity values in \p eta_field,
   !! and calls all other relevant subroutines defined in this module.
-  subroutine set_resistivity_values(T_field, eta_field)
+  subroutine set_resistivity_values(settings, T_field, eta_field)
     use mod_types, only: temperature_type, resistivity_type
     use mod_global_variables, only: use_eta_dropoff
 
+    type(settings_t), intent(in) :: settings
     !> the type containing the temperature attributes
     type(temperature_type), intent(in)    :: T_field
     !> the type containing the resistivity attributes
@@ -27,7 +29,7 @@ contains
     call get_eta(T_field % T0, eta_field % eta)
     call get_deta_dT(T_field % T0, eta_field % d_eta_dT)
     if (use_eta_dropoff) then
-      call set_eta_dropoff(eta_field)
+      call set_eta_dropoff(settings, eta_field)
     end if
   end subroutine set_resistivity_values
 
@@ -44,12 +46,12 @@ contains
     use mod_units, only: unit_temperature, set_unit_resistivity, unit_resistivity
 
     !> equilibrium temperature
-    real(dp), intent(in)    :: T0_eq(gauss_gridpts)
+    real(dp), intent(in) :: T0_eq(:)
     !> resistivity values, normalised on exit
-    real(dp), intent(inout) :: eta(gauss_gridpts)
+    real(dp), intent(inout) :: eta(:)
 
-    real(dp)                :: ec, me, e0, kB, eta_1MK
-    real(dp)                :: T0_dimfull(gauss_gridpts)
+    real(dp) :: ec, me, e0, kB, eta_1MK
+    real(dp) :: T0_dimfull(size(T0_eq))
 
     if (use_fixed_resistivity) then
       eta = fixed_eta_value
@@ -82,12 +84,12 @@ contains
     use mod_units, only: unit_temperature, unit_deta_dT
 
     !> equilibrium temperature
-    real(dp), intent(in)    :: T0_eq(gauss_gridpts)
+    real(dp), intent(in) :: T0_eq(:)
     !> derivative of resistivity with respect to temperature, normalised on exit
-    real(dp), intent(out)   :: deta_dT(gauss_gridpts)
+    real(dp), intent(out) :: deta_dT(:)
 
-    real(dp)                :: ec, me, e0, kB
-    real(dp)                :: T0_dimfull(gauss_gridpts)
+    real(dp) :: ec, me, e0, kB
+    real(dp) :: T0_dimfull(size(T0_eq))
 
     if (use_fixed_resistivity) then
       deta_dT = 0.0d0
@@ -108,7 +110,7 @@ contains
   !! @warning Throws an error if:
   !!
   !! - a dropoff profile is requested but the resistivity is not constant. @endwarning
-  subroutine set_eta_dropoff(eta_field)
+  subroutine set_eta_dropoff(settings, eta_field)
     use mod_types, only: resistivity_type
     use mod_logging, only: log_message, str
     use mod_grid, only: grid_gauss
@@ -116,12 +118,13 @@ contains
     use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value, &
                                     dropoff_edge_dist, dropoff_width
 
+    type(settings_t), intent(in) :: settings
     !> the type containing the resistivity attributes
     type(resistivity_type), intent(inout) :: eta_field
 
-    real(dp)  :: sleft, sright, width, etaval
-    real(dp)  :: x, shift, stretch
-    integer   :: i
+    real(dp) :: sleft, sright, width, etaval
+    real(dp) :: x, shift, stretch
+    integer :: i, gauss_gridpts
 
     if (.not. use_fixed_resistivity) then
       call log_message( &
@@ -130,6 +133,7 @@ contains
       return
     end if
 
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
     width = dropoff_width
     etaval = fixed_eta_value
     sleft = grid_gauss(1) + 0.5d0 * width + dropoff_edge_dist

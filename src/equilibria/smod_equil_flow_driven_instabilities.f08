@@ -21,20 +21,16 @@ contains
     real(dp)    :: v_prof, phi_prof, p_prof
     integer     :: i
 
-    call allow_geometry_override(default_geometry='Cartesian', default_x_start=0.0d0, default_x_end=1.0d0)
-    call initialise_grid()
-
-    if (x_start < 0.0d0 .or. x_end > 1.0d0) then
-      call log_message("flow driven instabilities are only defined on x in [0, 1]", level='error')
-    end if
-
+    call settings%grid%set_geometry("cartesian")
+    call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+    call initialise_grid(settings)
     flow = .true.
     v0 = p1
     v1 = p2
     v2 = p3
     phi0 = p4
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
       v_prof = v0 + v1*(x - 0.5d0) + v2 * sin(tau * (x - 0.5d0))

@@ -2,7 +2,7 @@
 !> This module is responsible for calculating and setting the
 !! thermal conduction values based on the equilibrium configuration.
 module mod_thermal_conduction
-  use mod_global_variables, only: dp, gauss_gridpts, cgs_units
+  use mod_global_variables, only: dp, cgs_units
   use mod_physical_constants, only: dpi, coulomb_log, mp_cgs, mp_si
   use mod_units, only: unit_temperature, unit_conduction, unit_magneticfield, &
     unit_numberdensity, unit_density

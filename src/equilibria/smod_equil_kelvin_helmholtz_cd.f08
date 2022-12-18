@@ -49,12 +49,11 @@ contains
     a = 0.1d0 * rj
     k3  = dpi / rj
 
-    geometry = "cylindrical"
-    x_start = 0.0d0
-    x_end   = 2.0d0 * rj
-    call initialise_grid()
+    call settings%grid%set_geometry("cylindrical")
+    call settings%grid%set_grid_boundaries(0.0_dp, 2.0_dp * rj)
+    call initialise_grid(settings)
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
 
       rho_field % rho0(i) = cte_rho0

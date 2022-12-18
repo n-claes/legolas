@@ -103,11 +103,13 @@ contains
     !> the type containing the thermal conduction attributes
     type(conduction_type), intent(in)   :: kappa_field
 
-    call check_wavenumbers()
-    call check_on_axis_values(B_field, v_field)
-    call standard_equil_conditions(rho_field, T_field, B_field, v_field, grav_field)
-    call continuity_equil_conditions(rho_field, v_field)
-    call induction_equil_conditions(B_field, v_field)
+    call check_wavenumbers(geometry=settings%grid%get_geometry())
+    call check_on_axis_values(settings, B_field, v_field)
+    call standard_equil_conditions( &
+      settings, rho_field, T_field, B_field, v_field, grav_field &
+    )
+    call continuity_equil_conditions(settings, rho_field, v_field)
+    call induction_equil_conditions(settings, B_field, v_field)
     ! set the energy balance based on the equilibrium conditions
     call set_energy_balance( &
       settings, rho_field, T_field, B_field, v_field, rc_field, kappa_field &
@@ -163,9 +165,11 @@ contains
   !! Checks if k2 is an integer in cylindrical geometry.
   !! @warning An error if thrown if the geometry is cylindrical and k2 is not
   !!          an integer.
-  subroutine check_wavenumbers()
-    use mod_global_variables, only: geometry, dp_LIMIT
+  subroutine check_wavenumbers(geometry)
+    use mod_global_variables, only: dp_LIMIT
     use mod_equilibrium_params, only: k2
+
+    character(len=*), intent(in) :: geometry
 
     if (geometry == "cylindrical") then
       ! in cylindrical geometry k2 should be an integer
@@ -188,9 +192,8 @@ contains
   !! - \(B_z'\) is not zero on-axis.
   !! - \(v_\theta\) is not zero on-axis.
   !! - \(v_z'\) is not zero on-axis. @endwarning
-  subroutine check_on_axis_values(B_field, v_field)
-    use mod_global_variables, only: geometry, x_start
-
+  subroutine check_on_axis_values(settings, B_field, v_field)
+    type(settings_t), intent(in) :: settings
     !> the type containing the magnetic field attributes
     type(bfield_type), intent(in)   :: B_field
     !> the type containing the velocity attributes
@@ -198,12 +201,12 @@ contains
 
     real(dp)  :: on_axis_limit
 
-    if (geometry == "Cartesian") then
+    if (settings%grid%get_geometry() == "Cartesian") then
       return
     end if
 
     on_axis_limit = 1.0d-3
-    if (x_start > on_axis_limit) then
+    if (settings%grid%get_grid_start() > on_axis_limit) then
       return
     end if
 
@@ -245,10 +248,13 @@ contains
   !! $$ \rho_0 v_{01} v_{03}' - B_{01} B_{03}' = 0, $$
   !! and they should all be fulfilled.
   !! @warning   Throws a warning if force-balance is not satisfied.
-  subroutine standard_equil_conditions(rho_field, T_field, B_field, v_field, grav_field)
-    use mod_global_variables, only: gauss_gridpts, dp_LIMIT, geometry
+  subroutine standard_equil_conditions( &
+    settings, rho_field, T_field, B_field, v_field, grav_field &
+  )
+    use mod_global_variables, only: dp_LIMIT
     use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
 
+    type(settings_t), intent(in) :: settings
     !> the type containing the density attributes
     type(density_type), intent(in)      :: rho_field
     !> the type containing the temperature attributes
@@ -263,12 +269,15 @@ contains
     real(dp)  :: rho, drho, B01, B02, dB02, B03, dB03, T0, dT0, grav
     real(dp)  :: v01, v02, v03, dv01, dv02, dv03
     real(dp)  :: eps, d_eps, r(3), discrepancy(3)
-    real(dp)  :: eq_cond(gauss_gridpts, 3)
+    real(dp)  :: eq_cond(settings%grid%get_gauss_gridpts(), 3)
     integer   :: i, j, counter(3)
     logical   :: satisfied(3)
 
     B01 = B_field % B01
-    if ((geometry == "cylindrical") .and. (abs(B01) > dp_LIMIT)) then
+    if ( &
+      (settings%grid%get_geometry() == "cylindrical") &
+      .and. (abs(B01) > dp_LIMIT) &
+    ) then
       call log_message( &
         "B01 component currently not supported for cylindrical geometries!", &
         level="error" &
@@ -278,7 +287,7 @@ contains
     satisfied = .true.
     discrepancy = 0.0d0
     counter = 0
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       rho = rho_field % rho0(i)
       drho = rho_field % d_rho0_dr(i)
       B02 = B_field % B02(i)
@@ -363,7 +372,7 @@ contains
   subroutine set_energy_balance( &
     settings, rho_field, T_field, B_field, v_field, rc_field, kappa_field &
   )
-    use mod_global_variables, only: gauss_gridpts, dp_LIMIT
+    use mod_global_variables, only: dp_LIMIT
     use mod_grid, only: eps_grid, d_eps_grid_dr
 
     !> the settings object
@@ -389,7 +398,7 @@ contains
     integer   :: i
 
     B01 = B_field % B01
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       rho = rho_field % rho0(i)
       drho = rho_field % d_rho0_dr(i)
       T0 = T_field % T0(i)
@@ -453,10 +462,11 @@ contains
   !! $$
   !! and should both be fulfilled.
   !! @warning   Throws a warning if the equilibrium induction equation is not satisfied.
-  subroutine induction_equil_conditions(B_field, v_field)
-    use mod_global_variables, only: gauss_gridpts, dp_LIMIT
+  subroutine induction_equil_conditions(settings, B_field, v_field)
+    use mod_global_variables, only: dp_LIMIT
     use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
 
+    type(settings_t), intent(in) :: settings
     !> the type containing the magnetic field attributes
     type(bfield_type), intent(in)       :: B_field
     !> the type containing the velocity attributes
@@ -464,7 +474,7 @@ contains
 
     real(dp)  :: B01, B02, dB02, B03, dB03, v01, v02, v03, dv01, dv02, dv03
     real(dp)  :: eps, d_eps, r(2), discrepancy(2)
-    real(dp)  :: eq_cond(gauss_gridpts, 2)
+    real(dp)  :: eq_cond(settings%grid%get_gauss_gridpts(), 2)
     integer   :: i, j, counter(2)
     logical   :: satisfied(2)
 
@@ -472,7 +482,7 @@ contains
     discrepancy = 0.0d0
     counter = 0
     B01 = B_field % B01
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       B02 = B_field % B02(i)
       B03 = B_field % B03(i)
       dB02 = B_field % d_B02_dr(i)
@@ -535,10 +545,11 @@ contains
   !> Checks the continuity equation for the equilibrium state. This is given by
   !! $$ \frac{1}{\varepsilon} \bigl( \varepsilon \rho_0 v_{01} \bigr)' = 0. $$
   !! @warning   Throws a warning if equilibrium continuity is not satisfied.
-  subroutine continuity_equil_conditions(rho_field, v_field)
-    use mod_global_variables, only: gauss_gridpts, dp_LIMIT
+  subroutine continuity_equil_conditions(settings, rho_field, v_field)
+    use mod_global_variables, only: dp_LIMIT
     use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
 
+    type(settings_t), intent(in) :: settings
     !> the type containing the density attributes
     type(density_type), intent(in)      :: rho_field
     !> the type containing the velocity attributes
@@ -546,14 +557,14 @@ contains
 
     real(dp)  :: rho, drho, v01, dv01
     real(dp)  :: eps, d_eps, r, discrepancy
-    real(dp)  :: eq_cond(gauss_gridpts)
+    real(dp)  :: eq_cond(settings%grid%get_gauss_gridpts())
     integer   :: i, counter
     logical   :: satisfied
 
     satisfied = .true.
     discrepancy = 0.0d0
     counter = 0
-    do i = 1, gauss_gridpts-1
+    do i = 1, settings%grid%get_gauss_gridpts()-1
       rho = rho_field % rho0(i)
       drho = rho_field % d_rho0_dr(i)
       v01 = v_field % v01(i)

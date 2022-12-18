@@ -34,15 +34,13 @@ contains
     use mod_equilibrium_params, only: cte_T0
     use mod_global_variables, only: cooling_curve, use_fixed_tc_perp, fixed_tc_perp_value
 
-    real(dp)  :: r, p_r(gauss_gridpts)
+    real(dp)  :: r
+    real(dp), allocatable :: p_r(:)
     integer   :: i
 
-    call allow_geometry_override( &
-      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
-
     if (use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("cylindrical")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       radiative_cooling = .true.
       cooling_curve = "rosner"
       thermal_conduction = .true.
@@ -61,8 +59,10 @@ contains
       k2 = 0.0d0
       k3 = 1.0d0
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
 
-    do i = 1, gauss_gridpts
+    allocate(p_r(settings%grid%get_gauss_gridpts()))
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
 
       B_field % B02(i) = r / (1.0d0 + r**2)
@@ -76,6 +76,7 @@ contains
       B_field % d_B02_dr(i) = (1.0d0 - r**2) / (r**4 + 2.0d0 * r**2 + 1.0d0)
       ! Temperature derivative is zero due to isothermal
     end do
+    deallocate(p_r)
   end procedure magnetothermal_instability_eq
 
 end submodule smod_equil_magnetothermal_instabilities

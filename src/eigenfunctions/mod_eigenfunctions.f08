@@ -3,10 +3,9 @@
 !! and interfaces to initialise and calculate the eigenfunctions and
 !! derived quantities.
 module mod_eigenfunctions
-  use mod_global_variables, only: dp, str_len_arr, ef_gridpts
+  use mod_global_variables, only: dp, str_len_arr
   use mod_types, only: ef_type
   use mod_settings, only: settings_t
-  use mod_dims, only: dims_t
   implicit none
 
   private
@@ -43,34 +42,31 @@ module mod_eigenfunctions
       integer, intent(in) :: nb_eigenfuncs
     end subroutine initialise_derived_eigenfunctions
 
-    module subroutine calculate_base_eigenfunctions(right_eigenvectors, dims)
+    module subroutine calculate_base_eigenfunctions(settings, right_eigenvectors)
+      type(settings_t), intent(in) :: settings
       complex(dp), intent(in) :: right_eigenvectors(:, :)
-      type(dims_t), intent(in) :: dims
     end subroutine calculate_base_eigenfunctions
 
-    module subroutine calculate_derived_eigenfunctions( &
-      right_eigenvectors, state_vector, dims &
-    )
+    module subroutine calculate_derived_eigenfunctions(settings, right_eigenvectors)
+      type(settings_t), intent(in) :: settings
       complex(dp), intent(in) :: right_eigenvectors(:, :)
-      character(len=*), intent(in) :: state_vector(:)
-      type(dims_t), intent(in) :: dims
     end subroutine calculate_derived_eigenfunctions
   end interface
 
   interface
     module function assemble_eigenfunction( &
-      base_ef, eigenvector, dims, derivative_order &
+      base_ef, eigenvector, settings, derivative_order &
     ) result(assembled_ef)
       !> the base eigenfunction at the current position in the eigenfunction array
       type(ef_type), intent(in) :: base_ef
       !> the eigenvector for the eigenvalue under consideration
       complex(dp), intent(in) :: eigenvector(:)
       !> the dimensions object
-      type(dims_t), intent(in) :: dims
+      type(settings_t), intent(in) :: settings
       !> derivative order of the eigenfunction, defaults to 0
       integer, intent(in), optional :: derivative_order
       !> the assembled eigenfunction (not yet transformed to "actual" values)
-      complex(dp) :: assembled_ef(ef_gridpts)
+      complex(dp) :: assembled_ef(settings%grid%get_ef_gridpts())
     end function assemble_eigenfunction
 
     module subroutine retransform_eigenfunction(name, eigenfunction)
@@ -109,7 +105,7 @@ contains
 
     call select_eigenfunctions_to_save(omega, settings)
 
-    call assemble_eigenfunction_grid()
+    call assemble_eigenfunction_grid(settings)
     call initialise_base_eigenfunctions( &
       size(ef_written_idxs), settings%get_state_vector() &
     )
@@ -125,12 +121,10 @@ contains
     complex(dp), intent(in) :: right_eigenvectors(:, :)
     type(settings_t), intent(in) :: settings
 
-    call calculate_base_eigenfunctions(right_eigenvectors, settings%dims)
-    if (derived_efs_initialised) then
-      call calculate_derived_eigenfunctions( &
-        right_eigenvectors, settings%get_state_vector(), settings%dims &
-      )
-    end if
+    call calculate_base_eigenfunctions(settings, right_eigenvectors)
+    if (derived_efs_initialised) call calculate_derived_eigenfunctions( &
+      settings, right_eigenvectors &
+    )
   end subroutine calculate_eigenfunctions
 
 
@@ -197,19 +191,19 @@ contains
 
   !> Allocates and assembles the eigenfunction grid, checks the corresponding
   !! scale factor as well.
-  subroutine assemble_eigenfunction_grid()
-    use mod_global_variables, only: gridpts, ef_gridpts, geometry
+  subroutine assemble_eigenfunction_grid(settings)
     use mod_grid, only: grid
 
+    type(settings_t), intent(in) :: settings
     integer :: grid_idx
 
-    allocate(ef_grid(ef_gridpts))
+    allocate(ef_grid(settings%grid%get_ef_gridpts()))
     ef_grid = 0.0d0
 
     ! first gridpoint, left edge
     ef_grid(1) = grid(1)
     ! other gridpoints
-    do grid_idx = 1, gridpts - 1
+    do grid_idx = 1, settings%grid%get_gridpts() - 1
       ! position of center point in grid interval
       ef_grid(2 * grid_idx) = 0.5d0 * (grid(grid_idx) + grid(grid_idx + 1))
       ! position of end point in grid interval
@@ -217,7 +211,7 @@ contains
     end do
 
     allocate(ef_eps(size(ef_grid)))
-    if (geometry == "Cartesian") then
+    if (settings%grid%get_geometry() == "Cartesian") then
       ef_eps = 1.0d0
       ef_deps = 0.0d0
     else

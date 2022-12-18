@@ -4,6 +4,7 @@ module mod_settings
   use mod_io_settings, only: io_t, new_io_settings
   use mod_solver_settings, only: solvers_t, new_solver_settings
   use mod_physics_settings, only: physics_t, new_physics_settings
+  use mod_grid_settings, only: grid_settings_t, new_grid_settings
   implicit none
 
   private
@@ -15,6 +16,7 @@ module mod_settings
     type(io_t), public :: io
     type(solvers_t), public :: solvers
     type(physics_t), public :: physics
+    type(grid_settings_t), public :: grid
 
   contains
 
@@ -36,6 +38,7 @@ contains
     settings%io = new_io_settings()
     settings%solvers = new_solver_settings()
     settings%physics = new_physics_settings()
+    settings%grid = new_grid_settings()
   end function new_settings
 
 

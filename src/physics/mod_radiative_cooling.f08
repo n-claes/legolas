@@ -7,6 +7,7 @@
 module mod_radiative_cooling
   use mod_global_variables, only: dp, ncool
   use mod_logging, only: log_message
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -111,13 +112,14 @@ contains
   !!          cooling curve. If T0 is above the upper limit of the cooling curve,
   !!          pure Bremmstrahlung is assumed. @endnote
   !! @warning Throws an error if the cooling curve is unknown.
-  subroutine set_radiative_cooling_values(rho_field, T_field, rc_field)
+  subroutine set_radiative_cooling_values(settings, rho_field, T_field, rc_field)
     use mod_types, only: density_type, temperature_type, cooling_type
-    use mod_global_variables, only: gauss_gridpts, cooling_curve
+    use mod_global_variables, only: cooling_curve
     use mod_cooling_curves, only: get_rosner_cooling
     use mod_logging, only: log_message
     use mod_interpolation, only: lookup_table_value
 
+    type(settings_t), intent(in) :: settings
     !> the type containing the density attributes
     type(density_type), intent(in)      :: rho_field
     !> the type containing the temperature attributes
@@ -125,10 +127,10 @@ contains
     !> the type containing the radiative cooling attributes
     type(cooling_type), intent(inout)   :: rc_field
 
-    real(dp)    :: lambda_T(gauss_gridpts)
-    real(dp)    :: d_lambda_dT(gauss_gridpts)
-    real(dp)    :: T0, min_T, max_T
-    integer     :: i
+    real(dp) :: lambda_T(settings%grid%get_gauss_gridpts())
+    real(dp) :: d_lambda_dT(settings%grid%get_gauss_gridpts())
+    real(dp) :: T0, min_T, max_T
+    integer :: i
 
     lambda_T = 0.0d0
     d_lambda_dT = 0.0d0
@@ -136,7 +138,7 @@ contains
     if (interpolated_curve) then
       min_T = minval(interp_table_T)
       max_T = maxval(interp_table_T)
-      do i = 1, gauss_gridpts
+      do i = 1, settings%grid%get_gauss_gridpts()
         ! current temperature in the grid
         T0 = T_field % T0(i)
         if (T0 <= min_T) then
