@@ -124,13 +124,6 @@ module mod_global_variables
   logical, save                :: remove_spurious_eigenvalues
   !> amount of eigenvalues to remove on each side of the imaginary axis, defaults to 1
   integer                      :: nb_spurious_eigenvalues
-
-  !> boolean to select subset of the eigenfunctions to save, defaults to <tt>False</tt>
-  logical, save             :: write_eigenfunction_subset
-  !> point used as the center for the eigenfunction subset
-  complex(dp)               :: eigenfunction_subset_center
-  !> radius used to determine eigenfunction subset
-  real(dp)                  :: eigenfunction_subset_radius
   !> sets the logging level, defaults to 2 (errors, warnings and info)
   integer                   :: logging_level
 
@@ -195,9 +188,6 @@ contains
 
     !! post-processing parameters
     logging_level = 2
-    write_eigenfunction_subset = .false.
-    eigenfunction_subset_center = cmplx(NaN, NaN, kind=dp)
-    eigenfunction_subset_radius = NaN
   end subroutine initialise_globals
 
 

@@ -10,6 +10,9 @@ module mod_io_settings
     logical, public :: write_residuals
     logical, public :: write_eigenfunctions
     logical, public :: write_derived_eigenfunctions
+    logical, public :: write_ef_subset
+    real(dp), public :: ef_subset_radius
+    complex(dp), public :: ef_subset_center
     logical, public :: show_results
 
     character(:), private, allocatable :: basename_datfile

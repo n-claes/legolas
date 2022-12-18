@@ -107,7 +107,7 @@ contains
     !> the settings object
     type(settings_t), intent(in) :: settings
 
-    call select_eigenfunctions_to_save(omega)
+    call select_eigenfunctions_to_save(omega, settings)
 
     call assemble_eigenfunction_grid()
     call initialise_base_eigenfunctions( &
@@ -228,17 +228,20 @@ contains
 
 
   !> Selects a subset of eigenfunctions to be saved.
-  subroutine select_eigenfunctions_to_save(omega)
-    use mod_global_variables, only: write_eigenfunction_subset
-
+  subroutine select_eigenfunctions_to_save(omega, settings)
     !> the array of calculated eigenvalues
     complex(dp), intent(in) :: omega(:)
+    type(settings_t), intent(in) :: settings
     integer :: i
 
     ! check which eigenvalues are inside the given radius
     allocate(ef_written_flags(size(omega)))
-    if (write_eigenfunction_subset) then
-      ef_written_flags = eigenvalue_is_inside_subset_radius(eigenvalue=omega)
+    if (settings%io%write_ef_subset) then
+      ef_written_flags = eigenvalue_is_inside_subset_radius( &
+        eigenvalue=omega, &
+        radius=settings%io%ef_subset_radius, &
+        center=settings%io%ef_subset_center &
+      )
     else
       ef_written_flags = .true.
     end if
@@ -249,20 +252,23 @@ contains
 
 
   !> Checks if a specific eigenvalue is within the provided subset radius.
-  elemental logical function eigenvalue_is_inside_subset_radius(eigenvalue)
-    use mod_global_variables, only: eigenfunction_subset_center, &
-      eigenfunction_subset_radius
-
+  elemental logical function eigenvalue_is_inside_subset_radius( &
+    eigenvalue, radius, center &
+  )
     !> complex value/array to check
     complex(dp), intent(in) :: eigenvalue
+    !> radius of the subset
+    real(dp), intent(in) :: radius
+    !> center of the subset
+    complex(dp), intent(in) :: center
     real(dp)  :: distance_from_subset_center
 
     distance_from_subset_center = sqrt( &
-      (aimag(eigenvalue) - aimag(eigenfunction_subset_center)) ** 2 &
-      + (real(eigenvalue) - real(eigenfunction_subset_center)) ** 2 &
+      (aimag(eigenvalue) - aimag(center)) ** 2 &
+      + (real(eigenvalue) - real(center)) ** 2 &
     )
     eigenvalue_is_inside_subset_radius = ( &
-      distance_from_subset_center <= eigenfunction_subset_radius &
+      distance_from_subset_center <= radius &
     )
   end function eigenvalue_is_inside_subset_radius
 

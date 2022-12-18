@@ -157,10 +157,12 @@ contains
       "write derived eigenfunctions : " &
       // str(settings%io%write_derived_eigenfunctions) &
     )
-    call log_message("write eigenfunction subset : " // str(write_eigenfunction_subset))
-    if (write_eigenfunction_subset) then
-      call log_message("    subset center : " // str(eigenfunction_subset_center))
-      call log_message("    subset radius : " // str(eigenfunction_subset_radius))
+    call log_message( &
+      "write eigenfunction subset : " // str(settings%io%write_ef_subset) &
+    )
+    if (settings%io%write_ef_subset) then
+      call log_message("    subset center : " // str(settings%io%ef_subset_center))
+      call log_message("    subset radius : " // str(settings%io%ef_subset_radius))
     end if
     call log_message("---------------------------------------------")
     call print_whitespace(1)
