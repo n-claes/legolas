@@ -104,13 +104,21 @@ contains
       )
     end if
 
-    call log_message("thermal conduction : " // str(thermal_conduction))
-    if (thermal_conduction) then
-      if (use_fixed_tc_para) then
-        call log_message("    fixed parallel value : " // str(fixed_tc_para_value))
+    call log_message( &
+      "thermal conduction : " // str(settings%physics%conduction%is_enabled()) &
+    )
+    if (settings%physics%conduction%is_enabled()) then
+      if (settings%physics%conduction%has_fixed_tc_para()) then
+        call log_message( &
+          "    fixed parallel value : " &
+          // str(settings%physics%conduction%get_fixed_tc_para()) &
+        )
       end if
-      if (use_fixed_tc_perp) then
-        call log_message("    fixed perpendicular value : " // str(fixed_tc_perp_value))
+      if (settings%physics%conduction%has_fixed_tc_perp()) then
+        call log_message( &
+          "    fixed perpendicular value : " &
+          // str(settings%physics%conduction%get_fixed_tc_perp()) &
+        )
       end if
     end if
     call log_message( &

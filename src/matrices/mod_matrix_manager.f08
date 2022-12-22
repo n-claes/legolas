@@ -111,8 +111,7 @@ module mod_matrix_manager
 contains
 
   subroutine build_matrices(matrix_B, matrix_A, settings)
-    use mod_global_variables, only: n_gauss, gaussian_weights, &
-      thermal_conduction, hall_mhd
+    use mod_global_variables, only: n_gauss, gaussian_weights, hall_mhd
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
     use mod_matrix_structure, only: matrix_t
@@ -183,9 +182,11 @@ contains
         if (settings%physics%cooling%is_enabled()) call add_cooling_matrix_terms( &
           gauss_idx, current_weight, quadblock_A, settings &
         )
-        if (thermal_conduction) call add_conduction_matrix_terms( &
-          gauss_idx, current_weight, quadblock_A, settings &
-        )
+        if (settings%physics%conduction%is_enabled()) then
+          call add_conduction_matrix_terms( &
+            gauss_idx, current_weight, quadblock_A, settings &
+          )
+        end if
         if (settings%physics%viscosity%is_enabled()) call add_viscosity_matrix_terms( &
           gauss_idx, current_weight, quadblock_A, settings &
         )

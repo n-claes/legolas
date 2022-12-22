@@ -31,16 +31,6 @@ module mod_global_variables
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
   !> boolean for cgs units, defaults to <tt>True</tt>
   logical, save             :: cgs_units
-  !> boolean for thermal conduction, defaults to <tt>False</tt>
-  logical, save             :: thermal_conduction
-  !> boolean to set a fixed value for parallel conduction, defaults to <tt>False</tt>
-  logical, save             :: use_fixed_tc_para
-  !> defines the fixed value for parallel conduction, defaults to 0
-  real(dp)                  :: fixed_tc_para_value
-  !> boolean to set a fixed value for perpendicular conduction, defaults to <tt>False</tt>
-  logical, save             :: use_fixed_tc_perp
-  !> defines the fixed value for perpendicular conduction, defaults to 0
-  real(dp)                  :: fixed_tc_perp_value
   !> distance between the grid edge and start of dropoff, defaults to <tt>0.05</tt>
   real(dp)                  :: dropoff_edge_dist
   !> width of the dropoff region, defaults to <tt>0.1</tt>
@@ -88,11 +78,6 @@ contains
 
     !! physics variables
     cgs_units = .true.
-    thermal_conduction = .false.
-    use_fixed_tc_para = .false.
-    fixed_tc_para_value = 0.0d0
-    use_fixed_tc_perp = .false.
-    fixed_tc_perp_value = 0.0d0
     dropoff_edge_dist = 0.05d0
     dropoff_width = 0.1d0
     hall_mhd = .false.

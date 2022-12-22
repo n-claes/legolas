@@ -5,6 +5,7 @@ module mod_physics_settings
   use mod_gravity_settings, only: gravity_settings_t, new_gravity_settings
   use mod_resistivity_settings, only: resistivity_settings_t, new_resistivity_settings
   use mod_viscosity_settings, only: viscosity_settings_t, new_viscosity_settings
+  use mod_conduction_settings, only: conduction_settings_t, new_conduction_settings
   implicit none
 
   private
@@ -17,6 +18,7 @@ module mod_physics_settings
     type(gravity_settings_t) :: gravity
     type(resistivity_settings_t) :: resistivity
     type(viscosity_settings_t) :: viscosity
+    type(conduction_settings_t) :: conduction
 
   contains
 
@@ -31,6 +33,8 @@ module mod_physics_settings
     procedure, public :: enable_gravity
     procedure, public :: enable_resistivity
     procedure, public :: enable_viscosity
+    procedure, public :: enable_parallel_conduction
+    procedure, public :: enable_perpendicular_conduction
   end type physics_t
 
   public :: new_physics_settings
@@ -126,5 +130,27 @@ contains
       call this%viscosity%enable_viscous_heating()
     end if
   end subroutine enable_viscosity
+
+
+  pure subroutine enable_parallel_conduction(this, fixed_tc_para_value)
+    class(physics_t), intent(inout) :: this
+    real(dp), intent(in), optional :: fixed_tc_para_value
+
+    call this%conduction%enable_para_conduction()
+    if (present(fixed_tc_para_value)) then
+      call this%conduction%set_fixed_tc_para(fixed_tc_para_value)
+    end if
+  end subroutine enable_parallel_conduction
+
+
+  pure subroutine enable_perpendicular_conduction(this, fixed_tc_perp_value)
+    class(physics_t), intent(inout) :: this
+    real(dp), intent(in), optional :: fixed_tc_perp_value
+
+    call this%conduction%enable_perp_conduction()
+    if (present(fixed_tc_perp_value)) then
+      call this%conduction%set_fixed_tc_perp(fixed_tc_perp_value)
+    end if
+  end subroutine enable_perpendicular_conduction
 
 end module mod_physics_settings

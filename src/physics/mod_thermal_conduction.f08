@@ -7,6 +7,7 @@ module mod_thermal_conduction
   use mod_units, only: unit_temperature, unit_conduction, unit_magneticfield, &
     unit_numberdensity, unit_density
   use mod_logging, only: log_message, str
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -23,10 +24,10 @@ contains
   !! and calls all other relevant subroutines defined in this module.
   !! @note    The derivatives of the perpendicular thermal conduction terms
   !!          are all zero if that value is taken to be fixed.
-  subroutine set_conduction_values(rho_field, T_field, B_field, kappa_field)
+  subroutine set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
     use mod_types, only: density_type, temperature_type, bfield_type, conduction_type
-    use mod_global_variables, only: use_fixed_tc_para, use_fixed_tc_perp
 
+    type(settings_t), intent(in) :: settings
     !> the type containing the density attributes
     type(density_type), intent(in)        :: rho_field
     !> the type containing the temperature attributes
@@ -45,16 +46,16 @@ contains
       pf_kappa_perp = 8.2d-33
     end if
 
-    call set_kappa_para(T_field % T0, kappa_field % kappa_para)
+    call set_kappa_para(settings, T_field % T0, kappa_field % kappa_para)
     call set_kappa_perp( &
-      T_field % T0, rho_field % rho0, B_field % B0, kappa_field % kappa_perp &
+      settings, T_field % T0, rho_field % rho0, B_field % B0, kappa_field % kappa_perp &
     )
 
-    if (.not. use_fixed_tc_para) then
+    if (.not. settings%physics%conduction%has_fixed_tc_para()) then
       call set_kappa_para_derivatives(T_field % T0, kappa_field % d_kappa_para_dT)
     end if
 
-    if (.not. use_fixed_tc_perp) then
+    if (.not. settings%physics%conduction%has_fixed_tc_perp()) then
       ! set rho, T, B derivatives
       call set_kappa_perp_derivatives( &
         T_field % T0, &
@@ -79,17 +80,16 @@ contains
   !! in the global variables module.
   !! @note    The temperature should be normalised when calling this routine,
   !!          the parallel conduction is normalised on exit.
-  subroutine set_kappa_para(T0_eq, tc_para)
-    use mod_global_variables, only: use_fixed_tc_para, fixed_tc_para_value
-
+  subroutine set_kappa_para(settings, T0_eq, tc_para)
+    type(settings_t), intent(in) :: settings
     !> equilibrium temperature
     real(dp), intent(in)  :: T0_eq(:)
     !> parallel thermal conduction values, normalised on exit
     real(dp), intent(out) :: tc_para(size(T0_eq))
     real(dp)              :: T0_dimfull(size(T0_eq))
 
-    if (use_fixed_tc_para) then
-      tc_para = fixed_tc_para_value
+    if (settings%physics%conduction%has_fixed_tc_para()) then
+      tc_para = settings%physics%conduction%get_fixed_tc_para()
       return
     end if
 
@@ -105,9 +105,9 @@ contains
   !! in the global variables module.
   !! @note    All variables should be normalised when calling this routine,
   !!          the perpendicular conduction is normalised on exit.
-  subroutine set_kappa_perp(T0_eq, rho0_eq, B0_eq, tc_perp)
-    use mod_global_variables, only: use_fixed_tc_perp, fixed_tc_perp_value
+  subroutine set_kappa_perp(settings, T0_eq, rho0_eq, B0_eq, tc_perp)
 
+    type(settings_t), intent(in) :: settings
     !> equilibrium temperature
     real(dp), intent(in)  :: T0_eq(:)
     !> equilibrium density
@@ -119,8 +119,8 @@ contains
     real(dp) :: T0_dimfull(size(T0_eq)), B0_dimfull(size(T0_eq))
     real(dp) :: nH_dimfull(size(T0_eq))
 
-    if (use_fixed_tc_perp) then
-      tc_perp = fixed_tc_perp_value
+    if (settings%physics%conduction%has_fixed_tc_perp()) then
+      tc_perp = settings%physics%conduction%get_fixed_tc_perp()
       return
     end if
 

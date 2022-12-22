@@ -4,7 +4,6 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_con
 contains
 
   module procedure add_natural_conduction_terms
-    use mod_global_variables, only: thermal_conduction
     use mod_equilibrium, only: kappa_field
     use mod_matrix_shortcuts, only: get_Kp_operator, get_F_operator, get_G_operator
 
@@ -17,7 +16,7 @@ contains
     real(dp)  :: Fop, Gop_min, Kp, Kp_plusplus
     real(dp) :: gamma_1
 
-    if (.not. thermal_conduction) then
+    if (.not. settings%physics%conduction%is_enabled()) then
       return
     end if
 

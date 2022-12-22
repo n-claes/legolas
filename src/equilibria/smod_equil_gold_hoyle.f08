@@ -41,7 +41,6 @@ contains
 
   module procedure gold_hoyle_eq
     use mod_equilibrium_params, only: cte_T0, cte_rho0, alpha
-    use mod_global_variables, only: use_fixed_tc_perp, fixed_tc_perp_value
 
     real(dp)  :: r
     integer   :: i
@@ -50,9 +49,7 @@ contains
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       call settings%physics%enable_cooling(cooling_curve="rosner")
-      thermal_conduction = .true.
-      use_fixed_tc_perp = .true.
-      fixed_tc_perp_value = 0.0d0
+      call settings%physics%enable_parallel_conduction()
 
       k2 = 1.0d0
       k3 = 1.0d0
