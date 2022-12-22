@@ -92,9 +92,14 @@ contains
     call log_message("flow               : " // str(settings%physics%flow%is_enabled()))
     call log_message("external gravity   : " // str(external_gravity))
 
-    call log_message("radiative cooling  : " // str(radiative_cooling))
-    if (radiative_cooling) then
-      call log_message("    cooling curve : " // trim(adjustl(cooling_curve)))
+    call log_message( &
+      "radiative cooling  : " // str(settings%physics%cooling%is_enabled()) &
+    )
+    if (settings%physics%cooling%is_enabled()) then
+      call log_message( &
+        "    cooling curve : " &
+        // trim(adjustl(settings%physics%cooling%get_cooling_curve())) &
+      )
     end if
 
     call log_message("thermal conduction : " // str(thermal_conduction))

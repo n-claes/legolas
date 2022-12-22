@@ -153,7 +153,6 @@ contains
   !> Deallocates all main variables, then calls the cleanup
   !! routines of all relevant subroutines to do the same thing.
   subroutine cleanup()
-    use mod_global_variables, only: radiative_cooling
     use mod_grid, only: grid_clean
     use mod_equilibrium, only: equilibrium_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
@@ -169,7 +168,7 @@ contains
     call grid_clean()
     call equilibrium_clean()
 
-    if (radiative_cooling) then
+    if (settings%physics%cooling%is_enabled()) then
       call radiative_cooling_clean()
     end if
     call eigenfunctions_clean()

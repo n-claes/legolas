@@ -31,12 +31,6 @@ module mod_global_variables
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
   !> boolean for cgs units, defaults to <tt>True</tt>
   logical, save             :: cgs_units
-  !> boolean for radiative cooling, defaults to <tt>False</tt>
-  logical, save             :: radiative_cooling
-  !> number of points to interpolate the radiative cooling curve, defaults to 4000
-  integer                   :: ncool
-  !> name of the cooling curve to use, defaults to \p jc_corona
-  character(len=str_len)    :: cooling_curve
   !> boolean for external gravity, defaults to <tt>False</tt>
   logical, save             :: external_gravity
   !> boolean for thermal conduction, defaults to <tt>False</tt>
@@ -110,9 +104,6 @@ contains
 
     !! physics variables
     cgs_units = .true.
-    radiative_cooling = .false.
-    ncool = 4000
-    cooling_curve = 'jc_corona'
     external_gravity = .false.
     thermal_conduction = .false.
     use_fixed_tc_para = .false.

@@ -31,7 +31,7 @@ contains
 
   module procedure discrete_alfven_eq
     use mod_equilibrium_params, only: j0, delta
-    use mod_global_variables, only: cooling_curve, use_fixed_tc_perp, fixed_tc_perp_value
+    use mod_global_variables, only: use_fixed_tc_perp, fixed_tc_perp_value
 
     real(dp) :: r, x_end
     real(dp), allocatable :: p_r(:), dp_r(:)
@@ -40,8 +40,7 @@ contains
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
-      radiative_cooling = .true.
-      cooling_curve = "rosner"
+      call settings%physics%enable_cooling(cooling_curve="rosner")
       thermal_conduction = .true.
       use_fixed_tc_perp = .true.
       fixed_tc_perp_value = 0.0d0

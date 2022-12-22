@@ -1,6 +1,7 @@
 module mod_physics_settings
   use mod_global_variables, only: dp
   use mod_flow_settings, only: flow_settings_t, new_flow_settings
+  use mod_cooling_settings, only: cooling_settings_t, new_cooling_settings
   implicit none
 
   private
@@ -9,6 +10,7 @@ module mod_physics_settings
     real(dp), private :: gamma
     logical :: is_incompressible
     type(flow_settings_t) :: flow
+    type(cooling_settings_t) :: cooling
 
   contains
 
@@ -19,6 +21,7 @@ module mod_physics_settings
     procedure, public :: set_defaults
 
     procedure, public :: enable_flow
+    procedure, public :: enable_cooling
   end type physics_t
 
   public :: new_physics_settings
@@ -69,5 +72,18 @@ contains
     class(physics_t), intent(inout) :: this
     call this%flow%enable()
   end subroutine enable_flow
+
+
+  pure subroutine enable_cooling(this, cooling_curve, interpolation_points)
+    class(physics_t), intent(inout) :: this
+    character(len=*), intent(in) :: cooling_curve
+    integer, intent(in), optional :: interpolation_points
+
+    if (present(interpolation_points)) then
+      call this%cooling%set_interpolation_points(interpolation_points)
+    end if
+    call this%cooling%set_cooling_curve(cooling_curve)
+    call this%cooling%enable()
+  end subroutine enable_cooling
 
 end module mod_physics_settings

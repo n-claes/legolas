@@ -12,7 +12,7 @@ module mod_equilibrium
   use mod_units
   use mod_types
   use mod_global_variables, only: dp, &
-    resistivity, external_gravity, radiative_cooling, &
+     resistivity, external_gravity, &
     thermal_conduction, viscosity, hall_mhd, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
@@ -213,8 +213,8 @@ contains
     if (resistivity) then
       call set_resistivity_values(settings, T_field, eta_field)
     end if
-    if (radiative_cooling) then
-      call initialise_radiative_cooling()
+    if (settings%physics%cooling%is_enabled()) then
+      call initialise_radiative_cooling(settings)
       call set_radiative_cooling_values(settings, rho_field, T_field, rc_field)
     end if
     if (thermal_conduction) then

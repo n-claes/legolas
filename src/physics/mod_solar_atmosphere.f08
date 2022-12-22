@@ -64,7 +64,6 @@ contains
   subroutine set_solar_atmosphere( &
     settings, f_b02, f_db02, f_b03, f_db03, f_g, n_interp, load_from, save_to &
   )
-    use mod_global_variables, only: ncool
     use mod_grid, only: grid_gauss
     use mod_interpolation, only: lookup_table_value, get_numerical_derivative
     use mod_integration, only: integrate_ode_rk
@@ -82,7 +81,7 @@ contains
     procedure(oned_profile), optional :: f_db03
     !> function reference for calculation of gravitational profile
     procedure(oned_profile), optional :: f_g
-    !> points used for interpolation, defaults to <tt>ncool</tt> if not present
+    !> points used for interpolation, defaults to 4000 if not present
     integer, intent(in), optional :: n_interp
     !> if present loads the (previously) integrated density profile from this
     character(len=*), intent(in), optional  :: load_from
@@ -123,7 +122,7 @@ contains
       gravity_prof => default_gravity_profile
     end if
 
-    nbpoints = ncool
+    nbpoints = 4000
     if (present(n_interp)) then
       nbpoints = n_interp
     end if
