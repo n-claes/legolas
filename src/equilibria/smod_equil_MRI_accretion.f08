@@ -43,7 +43,7 @@ contains
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_grid_boundaries(1.0_dp, 2.0_dp)
 
-      flow = .true.
+      call settings%physics%enable_flow()
       external_gravity = .true.
       k2 = 0.0d0
       k3 = 70.0d0

@@ -35,7 +35,7 @@ contains
     if (settings%equilibrium%use_defaults) then  ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
-      flow = .true.
+      call settings%physics%enable_flow()
 
       cte_rho0 = 1.0d0
       cte_v02 = 0.0d0

@@ -6,6 +6,7 @@ set (sources
         dataIO/mod_exceptions.f08
         dataIO/mod_logging.f08
         dataIO/mod_console.f08
+        settings/physics/mod_flow_settings.f08
         settings/mod_settings.f08
         settings/mod_dims.f08
         settings/mod_io_settings.f08

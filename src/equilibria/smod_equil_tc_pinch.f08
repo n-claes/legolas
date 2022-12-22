@@ -34,7 +34,7 @@ contains
     real(dp) :: x_start, x_end
     integer :: i, gauss_gridpts
 
-    flow = .true.
+    call settings%physics%enable_flow()
     resistivity = .true.
     use_fixed_resistivity = .true.
     viscosity = .true.

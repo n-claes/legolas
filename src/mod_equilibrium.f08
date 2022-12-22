@@ -12,7 +12,7 @@ module mod_equilibrium
   use mod_units
   use mod_types
   use mod_global_variables, only: dp, &
-    flow, resistivity, external_gravity, radiative_cooling, &
+    resistivity, external_gravity, radiative_cooling, &
     thermal_conduction, viscosity, hall_mhd, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss

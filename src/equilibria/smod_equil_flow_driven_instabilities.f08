@@ -24,7 +24,7 @@ contains
     call settings%grid%set_geometry("cartesian")
     call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
     call initialise_grid(settings)
-    flow = .true.
+    call settings%physics%enable_flow()
     v0 = p1
     v1 = p2
     v2 = p3

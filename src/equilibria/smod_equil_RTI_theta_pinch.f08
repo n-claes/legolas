@@ -43,7 +43,7 @@ contains
     real(dp) :: x_start, x_end
     integer :: i
 
-    flow = .true.
+    call settings%physics%enable_flow()
     call settings%grid%set_geometry("cylindrical")
 
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START

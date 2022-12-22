@@ -31,8 +31,6 @@ module mod_global_variables
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
   !> boolean for cgs units, defaults to <tt>True</tt>
   logical, save             :: cgs_units
-  !> boolean for flow, defaults to <tt>False</tt>
-  logical, save             :: flow
   !> boolean for radiative cooling, defaults to <tt>False</tt>
   logical, save             :: radiative_cooling
   !> number of points to interpolate the radiative cooling curve, defaults to 4000
@@ -112,7 +110,6 @@ contains
 
     !! physics variables
     cgs_units = .true.
-    flow = .false.
     radiative_cooling = .false.
     ncool = 4000
     cooling_curve = 'jc_corona'

@@ -19,7 +19,7 @@ contains
     k3 = 1.0d0
 
     ! additional physics
-    flow = .true.
+    call settings%physics%enable_flow()
 
     ! set up the grid
     do i = 1, settings%grid%get_gauss_gridpts()

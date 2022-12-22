@@ -31,7 +31,7 @@ contains
     real(dp) :: x_start, x_end
     integer :: i, gauss_gridpts
 
-    flow = .true.
+    call settings%physics%enable_flow()
     settings%grid%coaxial = .true.
 
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START

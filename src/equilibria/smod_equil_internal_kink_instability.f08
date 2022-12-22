@@ -34,7 +34,7 @@ contains
 
     a0 = settings%grid%get_grid_end()
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
-      flow = .true.
+      call settings%physics%enable_flow()
       cte_rho0 = 1.0d0
       cte_v03  = 1.0d0
       cte_p0 = 9.0d0

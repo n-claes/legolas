@@ -31,7 +31,7 @@ contains
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(-0.5_dp, 0.5_dp)
-      flow = .true.
+      call settings%physics%enable_flow()
       resistivity = .true.
       use_fixed_resistivity = .true.
       fixed_eta_value = 0.0001d0

@@ -89,7 +89,7 @@ contains
     call log_message("default params : " // str(settings%equilibrium%use_defaults))
 
     call log_message("            << Physics settings >>")
-    call log_message("flow               : " // str(flow))
+    call log_message("flow               : " // str(settings%physics%flow%is_enabled()))
     call log_message("external gravity   : " // str(external_gravity))
 
     call log_message("radiative cooling  : " // str(radiative_cooling))

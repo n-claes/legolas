@@ -33,7 +33,7 @@ contains
     integer     :: i
 
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
-      flow = .true.
+      call settings%physics%enable_flow()
 
       V = 1.63d0
       cte_rho0 = 1.0d0

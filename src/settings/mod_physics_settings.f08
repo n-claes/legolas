@@ -1,5 +1,6 @@
 module mod_physics_settings
   use mod_global_variables, only: dp
+  use mod_flow_settings, only: flow_settings_t, new_flow_settings
   implicit none
 
   private
@@ -7,6 +8,7 @@ module mod_physics_settings
   type, public :: physics_t
     real(dp), private :: gamma
     logical :: is_incompressible
+    type(flow_settings_t) :: flow
 
   contains
 
@@ -15,6 +17,8 @@ module mod_physics_settings
     procedure, public :: get_gamma_1
     procedure, public :: set_incompressible
     procedure, public :: set_defaults
+
+    procedure, public :: enable_flow
   end type physics_t
 
   public :: new_physics_settings
@@ -59,5 +63,11 @@ contains
     call this%set_gamma(5.0_dp / 3.0_dp)
     this%is_incompressible = .false.
   end subroutine set_defaults
+
+
+  pure subroutine enable_flow(this)
+    class(physics_t), intent(inout) :: this
+    call this%flow%enable()
+  end subroutine enable_flow
 
 end module mod_physics_settings
