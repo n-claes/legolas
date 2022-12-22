@@ -4,23 +4,24 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_vis
 contains
 
   module procedure add_natural_viscosity_terms
-    use mod_global_variables, only: viscosity, viscous_heating, viscosity_value
     use mod_equilibrium, only: v_field
 
     real(dp)  :: eps, deps
     real(dp)  :: mu
     real(dp)  :: dv01, dv03
     real(dp) :: gamma_1
+    logical :: viscous_heating
 
-    if (.not. viscosity) then
+    if (.not. settings%physics%viscosity%is_enabled()) then
       return
     end if
 
     gamma_1 = settings%physics%get_gamma_1()
+    viscous_heating = settings%physics%viscosity%has_viscous_heating()
 
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
-    mu = viscosity_value
+    mu = settings%physics%viscosity%get_fixed_viscosity()
     dv01 = v_field % d_v01_dr(grid_idx)
     dv03 = v_field % d_v03_dr(grid_idx)
 

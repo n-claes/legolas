@@ -4,6 +4,7 @@ module mod_physics_settings
   use mod_cooling_settings, only: cooling_settings_t, new_cooling_settings
   use mod_gravity_settings, only: gravity_settings_t, new_gravity_settings
   use mod_resistivity_settings, only: resistivity_settings_t, new_resistivity_settings
+  use mod_viscosity_settings, only: viscosity_settings_t, new_viscosity_settings
   implicit none
 
   private
@@ -15,6 +16,7 @@ module mod_physics_settings
     type(cooling_settings_t) :: cooling
     type(gravity_settings_t) :: gravity
     type(resistivity_settings_t) :: resistivity
+    type(viscosity_settings_t) :: viscosity
 
   contains
 
@@ -28,6 +30,7 @@ module mod_physics_settings
     procedure, public :: enable_cooling
     procedure, public :: enable_gravity
     procedure, public :: enable_resistivity
+    procedure, public :: enable_viscosity
   end type physics_t
 
   public :: new_physics_settings
@@ -108,5 +111,20 @@ contains
       call this%resistivity%set_fixed_resistivity(fixed_eta_value)
     end if
   end subroutine enable_resistivity
+
+
+  pure subroutine enable_viscosity(this, fixed_viscosity_value, viscous_heating)
+    class(physics_t), intent(inout) :: this
+    real(dp), intent(in), optional :: fixed_viscosity_value
+    logical, intent(in), optional :: viscous_heating
+
+    call this%viscosity%enable()
+    if (present(fixed_viscosity_value)) then
+      call this%viscosity%set_fixed_viscosity(fixed_viscosity_value)
+    end if
+    if (present(viscous_heating)) then
+      call this%viscosity%enable_viscous_heating()
+    end if
+  end subroutine enable_viscosity
 
 end module mod_physics_settings

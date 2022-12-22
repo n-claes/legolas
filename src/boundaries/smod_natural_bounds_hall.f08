@@ -44,8 +44,7 @@ contains
   end procedure add_natural_hall_Bterms
 
   module procedure add_natural_hall_terms
-    use mod_global_variables, only: hall_mhd, hall_substitution, electron_fraction, &
-                                    viscosity, viscosity_value
+    use mod_global_variables, only: hall_mhd, hall_substitution, electron_fraction
     use mod_equilibrium, only: hall_field
 
     real(dp)  :: eps, deps
@@ -66,12 +65,13 @@ contains
     B03 = B_field % B03(grid_idx)
 
     eta_H = hall_field % hallfactor(grid_idx)
-    mu = viscosity_value
+    mu = 0.0_dp
     efrac = electron_fraction
 
     ! Hall by substitution of the momentum equation
     if (hall_substitution) then
-      if (viscosity) then
+      if (settings%physics%viscosity%is_enabled()) then
+        mu = settings%physics%viscosity%get_fixed_viscosity()
         ! ==================== Quadratic * Cubic ====================
         call reset_factor_positions(new_size=1)
         ! H(6, 2)

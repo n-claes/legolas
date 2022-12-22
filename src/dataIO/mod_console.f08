@@ -123,10 +123,18 @@ contains
       )
     end if
 
-    call log_message("viscosity          : " // str(viscosity))
-    if (viscosity) then
-      call log_message("    viscosity value : " // str(viscosity_value))
-      call log_message("    viscous heating : " // str(viscous_heating))
+    call log_message( &
+      "viscosity          : " // str(settings%physics%viscosity%is_enabled()) &
+    )
+    if (settings%physics%viscosity%is_enabled()) then
+      call log_message( &
+        "    viscosity value : " &
+        // str(settings%physics%viscosity%get_fixed_viscosity()) &
+      )
+      call log_message( &
+        "    viscous heating : " &
+        // str(settings%physics%viscosity%has_viscous_heating()) &
+      )
     end if
 
     call log_message("hall mhd           : " // str(hall_mhd))

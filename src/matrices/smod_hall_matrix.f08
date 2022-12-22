@@ -148,8 +148,7 @@ contains
 
 
   module procedure add_hall_matrix_terms
-    use mod_global_variables, only: viscosity, viscosity_value, &
-                                    hall_substitution, electron_fraction
+    use mod_global_variables, only: hall_substitution, electron_fraction
     use mod_equilibrium, only: v_field, rho_field, T_field, B_field
 
     real(dp)  :: eps, deps
@@ -192,7 +191,7 @@ contains
     WVop = get_wv_operator(gauss_idx)
 
     eta_H = hall_field % hallfactor(gauss_idx)
-    mu = viscosity_value
+    mu = 0.0_dp
     efrac = electron_fraction
 
     ! Hall by substitution of the momentum equation
@@ -245,7 +244,8 @@ contains
         quadblock, factors, positions, current_weight, h_cubic, h_quad, settings%dims &
       )
 
-      if (viscosity) then
+      if (settings%physics%viscosity%is_enabled()) then
+        mu = settings%physics%viscosity%get_fixed_viscosity()
         ! ==================== Quadratic * Cubic ====================
         call reset_factor_positions(new_size=1)
         ! H(6, 2)

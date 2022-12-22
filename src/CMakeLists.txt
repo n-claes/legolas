@@ -10,6 +10,7 @@ set (sources
         settings/physics/mod_cooling_settings.f08
         settings/physics/mod_gravity_settings.f08
         settings/physics/mod_resistivity_settings.f08
+        settings/physics/mod_viscosity_settings.f08
         settings/mod_settings.f08
         settings/mod_dims.f08
         settings/mod_io_settings.f08

@@ -20,7 +20,6 @@ contains
 
   module procedure couette_flow_eq
     use mod_equilibrium_params, only: cte_rho0, cte_v02, cte_v03, cte_T0
-    use mod_global_variables, only: viscosity_value
 
     real(dp)    :: x, h
     integer     :: i
@@ -37,8 +36,7 @@ contains
       k2 = 0.0d0
       k3 = 1.0d0
 
-      viscosity = .true.
-      viscosity_value = 1.0d-3
+      call settings%physics%enable_viscosity(fixed_viscosity_value=0.001_dp)
     end if ! LCOV_EXCL_STOP
 
     call initialise_grid(settings)

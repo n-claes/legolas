@@ -112,7 +112,7 @@ contains
 
   subroutine build_matrices(matrix_B, matrix_A, settings)
     use mod_global_variables, only: n_gauss, gaussian_weights, &
-      thermal_conduction, viscosity, hall_mhd
+      thermal_conduction, hall_mhd
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
     use mod_matrix_structure, only: matrix_t
@@ -186,7 +186,7 @@ contains
         if (thermal_conduction) call add_conduction_matrix_terms( &
           gauss_idx, current_weight, quadblock_A, settings &
         )
-        if (viscosity) call add_viscosity_matrix_terms( &
+        if (settings%physics%viscosity%is_enabled()) call add_viscosity_matrix_terms( &
           gauss_idx, current_weight, quadblock_A, settings &
         )
         if (hall_mhd) then

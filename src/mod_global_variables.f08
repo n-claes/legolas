@@ -45,12 +45,6 @@ module mod_global_variables
   real(dp)                  :: dropoff_edge_dist
   !> width of the dropoff region, defaults to <tt>0.1</tt>
   real(dp)                  :: dropoff_width
-  !> boolean for viscosity, defaults to <tt>False</tt>
-  logical, save             :: viscosity
-  !> boolean to include viscous heating, defaults to <tt>False</tt>
-  logical, save             :: viscous_heating
-  !> defines the fixed value for the dynamic viscosity, defaults to 0
-  real(dp)                  :: viscosity_value
   !> boolean to use Hall MHD, defaults to <tt>False</tt>
   logical, save             :: hall_mhd
   !> boolean to use substitution for Hall elements (as presented in the paper), defaults to <tt>True</tt>
@@ -101,9 +95,6 @@ contains
     fixed_tc_perp_value = 0.0d0
     dropoff_edge_dist = 0.05d0
     dropoff_width = 0.1d0
-    viscosity = .false.
-    viscous_heating = .false.
-    viscosity_value = 0.0d0
     hall_mhd = .false.
     hall_substitution = .true.
     hall_dropoff = .false.

@@ -25,10 +25,10 @@ contains
 
   module procedure taylor_couette_eq
     use mod_equilibrium_params, only: cte_rho0, alpha, beta
-    use mod_global_variables, only: viscosity_value
 
     real(dp) :: r, h, Rrat, A, B, Ta, Tstart
     real(dp) :: x_start, x_end
+    real(dp) :: viscosity_value
     integer :: i, gauss_gridpts
 
     call settings%physics%enable_flow()
@@ -44,13 +44,14 @@ contains
       k2 = 0.0d0
       k3 = 1.0d0
 
-      viscosity = .true.
-      viscosity_value = 1.0d-3
+      call settings%physics%enable_viscosity(fixed_viscosity_value=0.001_dp)
     end if ! LCOV_EXCL_STOP
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
     gauss_gridpts = settings%grid%get_gauss_gridpts()
     call initialise_grid(settings)
+
+    viscosity_value = settings%physics%viscosity%get_fixed_viscosity()
 
     rho_field % rho0 = cte_rho0
 

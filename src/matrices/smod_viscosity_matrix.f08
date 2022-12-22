@@ -1,5 +1,4 @@
 submodule (mod_matrix_manager) smod_viscosity_matrix
-  use mod_global_variables, only: viscosity_value, viscous_heating
   use mod_equilibrium, only: v_field
   implicit none
 
@@ -12,10 +11,11 @@ contains
     real(dp)  :: v03, dv03, ddv03
     real(dp)  :: mu
     real(dp)  :: WVop
-
     real(dp) :: gamma_1
+    logical :: viscous_heating
 
     gamma_1 = settings%physics%get_gamma_1()
+    viscous_heating = settings%physics%viscosity%has_viscous_heating()
 
     ! grid variables
     eps = eps_grid(gauss_idx)
@@ -30,7 +30,7 @@ contains
     dv03 = v_field % d_v03_dr(gauss_idx)
     ddv03 = v_field % dd_v03_dr(gauss_idx)
     ! viscosity value
-    mu = viscosity_value
+    mu = settings%physics%viscosity%get_fixed_viscosity()
     ! operators
     WVop = get_wv_operator(gauss_idx)
 

@@ -67,7 +67,7 @@ contains
 
   subroutine set_boundary_flags(settings)
     use mod_equilibrium, only: kappa_field
-    use mod_global_variables, only: thermal_conduction, viscosity, dp_LIMIT
+    use mod_global_variables, only: thermal_conduction, dp_LIMIT
 
     type(settings_t), intent(in) :: settings
 
@@ -83,7 +83,7 @@ contains
     end if
 
     ! for viscosity, check if we need a no-slip condition.
-    if (viscosity) then
+    if (settings%physics%viscosity%is_enabled()) then
       apply_noslip_bounds_right = .true.
       ! does not apply on-axis for cylindrical, unless two coaxial walls are present
       if (settings%grid%coaxial .or. settings%grid%get_geometry() == "Cartesian") then
