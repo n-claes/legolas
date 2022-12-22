@@ -11,7 +11,7 @@
 module mod_equilibrium
   use mod_units
   use mod_types
-  use mod_global_variables, only: dp, resistivity, &
+  use mod_global_variables, only: dp, &
     thermal_conduction, viscosity, hall_mhd, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
@@ -209,7 +209,7 @@ contains
     )
 
     ! Setup additional physics
-    if (resistivity) then
+    if (settings%physics%resistivity%is_enabled()) then
       call set_resistivity_values(settings, T_field, eta_field)
     end if
     if (settings%physics%cooling%is_enabled()) then

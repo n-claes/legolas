@@ -113,9 +113,14 @@ contains
         call log_message("    fixed perpendicular value : " // str(fixed_tc_perp_value))
       end if
     end if
-    call log_message("resistivity        : " // str(resistivity))
-    if (use_fixed_resistivity) then
-      call log_message("    fixed eta value : " // str(fixed_eta_value))
+    call log_message( &
+      "resistivity        : " // str(settings%physics%resistivity%is_enabled()) &
+    )
+    if (settings%physics%resistivity%use_fixed_resistivity) then
+      call log_message( &
+        "    fixed eta value : " &
+        // str(settings%physics%resistivity%get_fixed_resistivity()) &
+      )
     end if
 
     call log_message("viscosity          : " // str(viscosity))

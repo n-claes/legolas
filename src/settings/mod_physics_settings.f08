@@ -3,6 +3,7 @@ module mod_physics_settings
   use mod_flow_settings, only: flow_settings_t, new_flow_settings
   use mod_cooling_settings, only: cooling_settings_t, new_cooling_settings
   use mod_gravity_settings, only: gravity_settings_t, new_gravity_settings
+  use mod_resistivity_settings, only: resistivity_settings_t, new_resistivity_settings
   implicit none
 
   private
@@ -13,6 +14,7 @@ module mod_physics_settings
     type(flow_settings_t) :: flow
     type(cooling_settings_t) :: cooling
     type(gravity_settings_t) :: gravity
+    type(resistivity_settings_t) :: resistivity
 
   contains
 
@@ -25,6 +27,7 @@ module mod_physics_settings
     procedure, public :: enable_flow
     procedure, public :: enable_cooling
     procedure, public :: enable_gravity
+    procedure, public :: enable_resistivity
   end type physics_t
 
   public :: new_physics_settings
@@ -94,5 +97,16 @@ contains
     class(physics_t), intent(inout) :: this
     call this%gravity%enable()
   end subroutine enable_gravity
+
+
+  pure subroutine enable_resistivity(this, fixed_eta_value)
+    class(physics_t), intent(inout) :: this
+    real(dp), intent(in), optional :: fixed_eta_value
+
+    call this%resistivity%enable()
+    if (present(fixed_eta_value)) then
+      call this%resistivity%set_fixed_resistivity(fixed_eta_value)
+    end if
+  end subroutine enable_resistivity
 
 end module mod_physics_settings

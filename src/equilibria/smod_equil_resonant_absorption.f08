@@ -29,7 +29,6 @@ contains
 
   !> Sets the equilibrium
   module procedure resonant_absorption_eq
-    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_params, only: p1, p2, r0, cte_T0, cte_B02, cte_B03
 
     real(dp) :: x, s, r0, rho_left, rho_right, zeta
@@ -39,9 +38,7 @@ contains
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
-      resistivity = .true.
-      use_fixed_resistivity = .true.
-      fixed_eta_value = 10.0d0**(-3.2d0)
+      call settings%physics%enable_resistivity(fixed_eta_value=10.0_dp**(-3.2_dp))
 
       k2 = 1.0d0
       k3 = 0.05d0

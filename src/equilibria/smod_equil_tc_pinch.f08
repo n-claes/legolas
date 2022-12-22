@@ -27,16 +27,15 @@ contains
 
   module procedure tc_pinch_eq
     use mod_equilibrium_params, only: cte_rho0, cte_B02, alpha, beta, tau
-    use mod_global_variables, only: viscosity_value, use_fixed_resistivity, &
-      fixed_eta_value
+    use mod_global_variables, only: viscosity_value
 
     real(dp) :: r, h, A, B, A2, B2, Bc1, Bc2, Bc3, Tstart, Tend, Ta, Ha, Re, Pm
     real(dp) :: x_start, x_end
+    real(dp) :: fixed_eta_value
     integer :: i, gauss_gridpts
 
     call settings%physics%enable_flow()
-    resistivity = .true.
-    use_fixed_resistivity = .true.
+
     viscosity = .true.
     settings%grid%coaxial = .true.
 
@@ -53,12 +52,14 @@ contains
       k3 = 1.0d0
 
       viscosity_value = 1.0d-6
-      fixed_eta_value = 1.0d-4
+      call settings%physics%enable_resistivity(fixed_eta_value=1.0e-4_dp)
     end if
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
     gauss_gridpts = settings%grid%get_gauss_gridpts()
     call initialise_grid(settings)
+
+    fixed_eta_value = settings%physics%resistivity%get_fixed_resistivity()
 
     rho_field % rho0 = cte_rho0
 

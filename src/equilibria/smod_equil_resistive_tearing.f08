@@ -23,7 +23,6 @@ contains
 
   !> Sets the equilibrium
   module procedure resistive_tearing_modes_eq
-    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
     use mod_equilibrium_params, only: alpha, beta, cte_rho0
 
     real(dp)              :: x
@@ -32,9 +31,7 @@ contains
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(-0.5_dp, 0.5_dp)
-      resistivity = .true.
-      use_fixed_resistivity = .true.
-      fixed_eta_value = 0.0001d0
+      call settings%physics%enable_resistivity(fixed_eta_value=0.0001_dp)
 
       k2 = 0.49d0
       k3 = 0.0d0

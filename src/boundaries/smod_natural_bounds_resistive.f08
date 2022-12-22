@@ -4,7 +4,6 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_res
 contains
 
   module procedure add_natural_resistive_terms
-    use mod_global_variables, only: resistivity
     use mod_equilibrium, only: eta_field
 
     real(dp)  :: eps, deps
@@ -13,7 +12,7 @@ contains
     real(dp)  :: B03, dB03
     real(dp) :: gamma_1
 
-    if (.not. resistivity) then
+    if (.not. settings%physics%resistivity%is_enabled()) then
       return
     end if
 
