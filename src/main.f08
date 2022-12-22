@@ -72,7 +72,7 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, NaN, hall_mhd
+    use mod_global_variables, only: initialise_globals, NaN
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
@@ -112,7 +112,7 @@ contains
     call initialise_equilibrium(settings)
     call set_equilibrium(settings)
 
-    if (hall_mhd) then
+    if (settings%physics%hall%is_enabled()) then
       ratio = maxval(hall_field % hallfactor) / ( &
         settings%grid%get_grid_end() - settings%grid%get_grid_start() &
       )

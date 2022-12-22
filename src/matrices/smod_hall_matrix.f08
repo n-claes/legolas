@@ -5,8 +5,6 @@ submodule (mod_matrix_manager) smod_hall_matrix
 contains
 
   module procedure add_hall_bmatrix_terms
-    use mod_global_variables, only: elec_inertia, hall_substitution
-
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
     real(dp)  :: eta_H, eta_e
@@ -20,7 +18,7 @@ contains
     eta_e = hall_field % inertiafactor(gauss_idx)
     WVop = get_wv_operator(gauss_idx)
 
-    if (hall_substitution) then
+    if (settings%physics%hall%is_using_substitution()) then
       ! ==================== Quadratic * Cubic ====================
       call reset_factor_positions(new_size=1)
       ! B_H(6, 2)
@@ -43,7 +41,7 @@ contains
       )
     end if
 
-    if (elec_inertia) then
+    if (settings%physics%hall%has_electron_inertia()) then
       ! ==================== Quadratic * Quadratic ====================
       call reset_factor_positions(new_size=1)
       ! B_H(6, 6)
@@ -148,7 +146,6 @@ contains
 
 
   module procedure add_hall_matrix_terms
-    use mod_global_variables, only: hall_substitution, electron_fraction
     use mod_equilibrium, only: v_field, rho_field, T_field, B_field
 
     real(dp)  :: eps, deps
@@ -192,10 +189,10 @@ contains
 
     eta_H = hall_field % hallfactor(gauss_idx)
     mu = 0.0_dp
-    efrac = electron_fraction
+    efrac = settings%physics%hall%get_electron_fraction()
 
     ! Hall by substitution of the momentum equation
-    if (hall_substitution) then
+    if (settings%physics%hall%is_using_substitution()) then
       ! ==================== Quadratic * Cubic ====================
       call reset_factor_positions(new_size=1)
       ! H(6, 2)

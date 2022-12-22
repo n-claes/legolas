@@ -111,7 +111,7 @@ module mod_matrix_manager
 contains
 
   subroutine build_matrices(matrix_B, matrix_A, settings)
-    use mod_global_variables, only: n_gauss, gaussian_weights, hall_mhd
+    use mod_global_variables, only: n_gauss, gaussian_weights
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
     use mod_matrix_structure, only: matrix_t
@@ -190,7 +190,7 @@ contains
         if (settings%physics%viscosity%is_enabled()) call add_viscosity_matrix_terms( &
           gauss_idx, current_weight, quadblock_A, settings &
         )
-        if (hall_mhd) then
+        if (settings%physics%hall%is_enabled()) then
           call add_hall_matrix_terms(gauss_idx, current_weight, quadblock_A, settings)
           call add_hall_bmatrix_terms(gauss_idx, current_weight, quadblock_B, settings)
         end if

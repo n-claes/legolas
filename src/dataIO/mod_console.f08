@@ -145,11 +145,20 @@ contains
       )
     end if
 
-    call log_message("hall mhd           : " // str(hall_mhd))
-    if (hall_mhd) then
-      call log_message("    by substitution   : " // str(hall_substitution))
-      call log_message("    electron fraction : " // str(electron_fraction))
-      call log_message("    electron inertia  : " // str(elec_inertia))
+    call log_message("hall mhd           : " // str(settings%physics%hall%is_enabled()))
+    if (settings%physics%hall%is_enabled()) then
+      call log_message( &
+        "    by substitution   : " &
+        // str(settings%physics%hall%is_using_substitution()) &
+      )
+      call log_message( &
+        "    electron fraction : " &
+        // str(settings%physics%hall%get_electron_fraction()) &
+      )
+      call log_message( &
+        "    electron inertia  : " &
+        // str(settings%physics%hall%has_electron_inertia()) &
+      )
     end if
 
     call log_message("            << Solver settings >>")

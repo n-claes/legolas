@@ -35,18 +35,6 @@ module mod_global_variables
   real(dp)                  :: dropoff_edge_dist
   !> width of the dropoff region, defaults to <tt>0.1</tt>
   real(dp)                  :: dropoff_width
-  !> boolean to use Hall MHD, defaults to <tt>False</tt>
-  logical, save             :: hall_mhd
-  !> boolean to use substitution for Hall elements (as presented in the paper), defaults to <tt>True</tt>
-  logical, save             :: hall_substitution
-  !> boolean to use dropoff profile for Hall parameter, defaults to <tt>False</tt>
-  logical, save             :: hall_dropoff
-  !> boolean to use electron inertia in Ohm's law, defaults to <tt>False</tt>
-  logical, save             :: elec_inertia
-  !> boolean to use dropoff profile for inertia parameter, defaults to <tt>False</tt>
-  logical, save             :: inertia_dropoff
-  !> fraction of number of electrons to number of all particles (between 0 and 1), defaults to <tt>0.5</tt>
-  real(dp)                  :: electron_fraction
 
   !> number of Gaussian nodes
   integer, parameter           :: n_gauss = 4
@@ -80,12 +68,6 @@ contains
     cgs_units = .true.
     dropoff_edge_dist = 0.05d0
     dropoff_width = 0.1d0
-    hall_mhd = .false.
-    hall_substitution = .true.
-    hall_dropoff = .false.
-    elec_inertia = .false.
-    inertia_dropoff = .false.
-    electron_fraction = 0.5d0
 
     !! post-processing parameters
     logging_level = 2

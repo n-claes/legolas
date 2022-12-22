@@ -11,7 +11,7 @@
 module mod_equilibrium
   use mod_units
   use mod_types
-  use mod_global_variables, only: dp, hall_mhd, cgs_units
+  use mod_global_variables, only: dp, cgs_units
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
@@ -218,7 +218,7 @@ contains
     if (settings%physics%conduction%is_enabled()) then
       call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
     end if
-    if (hall_mhd) then
+    if (settings%physics%hall%is_enabled()) then
       call set_hall_factors(settings, hall_field)
     end if
 

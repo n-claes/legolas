@@ -4,16 +4,16 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_hal
 contains
 
   module procedure add_natural_hall_Bterms
-    use mod_global_variables, only: hall_mhd, elec_inertia
     use mod_equilibrium, only: hall_field
 
     real(dp)  :: eps
     real(dp)  :: rho
     real(dp)  :: eta_e
 
-    if (.not. (hall_mhd .and. elec_inertia)) then
-      return
-    end if
+    if ( &
+      .not. (settings%physics%hall%is_enabled() &
+      .and. settings%physics%hall%has_electron_inertia()) &
+    ) return
 
     eps = eps_grid(grid_idx)
     rho = rho_field % rho0(grid_idx)
@@ -44,14 +44,13 @@ contains
   end procedure add_natural_hall_Bterms
 
   module procedure add_natural_hall_terms
-    use mod_global_variables, only: hall_mhd, hall_substitution, electron_fraction
     use mod_equilibrium, only: hall_field
 
     real(dp)  :: eps, deps
     real(dp)  :: rho, T0, B01, B02, B03
     real(dp)  :: eta_H, mu, efrac
 
-    if (.not. hall_mhd) then
+    if (.not. settings%physics%hall%is_enabled()) then
       return
     end if
 
@@ -66,10 +65,10 @@ contains
 
     eta_H = hall_field % hallfactor(grid_idx)
     mu = 0.0_dp
-    efrac = electron_fraction
+    efrac = settings%physics%hall%get_electron_fraction()
 
     ! Hall by substitution of the momentum equation
-    if (hall_substitution) then
+    if (settings%physics%hall%is_using_substitution()) then
       if (settings%physics%viscosity%is_enabled()) then
         mu = settings%physics%viscosity%get_fixed_viscosity()
         ! ==================== Quadratic * Cubic ====================

@@ -6,6 +6,7 @@ module mod_physics_settings
   use mod_resistivity_settings, only: resistivity_settings_t, new_resistivity_settings
   use mod_viscosity_settings, only: viscosity_settings_t, new_viscosity_settings
   use mod_conduction_settings, only: conduction_settings_t, new_conduction_settings
+  use mod_hall_settings, only: hall_settings_t, new_hall_settings
   implicit none
 
   private
@@ -19,6 +20,7 @@ module mod_physics_settings
     type(resistivity_settings_t) :: resistivity
     type(viscosity_settings_t) :: viscosity
     type(conduction_settings_t) :: conduction
+    type(hall_settings_t) :: hall
 
   contains
 
@@ -35,6 +37,7 @@ module mod_physics_settings
     procedure, public :: enable_viscosity
     procedure, public :: enable_parallel_conduction
     procedure, public :: enable_perpendicular_conduction
+    procedure, public :: enable_hall
   end type physics_t
 
   public :: new_physics_settings
@@ -152,5 +155,25 @@ contains
       call this%conduction%set_fixed_tc_perp(fixed_tc_perp_value)
     end if
   end subroutine enable_perpendicular_conduction
+
+
+  pure subroutine enable_hall( &
+    this, use_hall_substitution, electron_inertia, electron_fraction &
+  )
+    class(physics_t), intent(inout) :: this
+    logical, intent(in), optional :: use_hall_substitution
+    logical, intent(in), optional :: electron_inertia
+    real(dp), intent(in), optional :: electron_fraction
+    logical :: hall_substitution
+
+    hall_substitution = .true.
+    if (present(use_hall_substitution)) hall_substitution = use_hall_substitution
+    call this%hall%enable(hall_substitution)
+
+    if (present(electron_inertia)) call this%hall%enable_electron_inertia()
+    if (present(electron_fraction)) then
+      call this%hall%set_electron_fraction(electron_fraction)
+    end if
+  end subroutine enable_hall
 
 end module mod_physics_settings

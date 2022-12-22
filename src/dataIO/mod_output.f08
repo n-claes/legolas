@@ -155,7 +155,8 @@ contains
     write(dat_fh) size(param_names), len(param_names(1)), param_names
     write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, &
       cte_v03, cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, &
-      theta, tau, lambda, nu, r0, rc, rj, Bth0, Bz0, V, j0, g, electron_fraction
+      theta, tau, lambda, nu, r0, rc, rj, Bth0, Bz0, V, j0, g, &
+      settings%physics%hall%get_electron_fraction()
     write(dat_fh) size(equil_names), len(equil_names(1)), equil_names
     write(dat_fh) cgs_units
     write(dat_fh) size(unit_names), len(unit_names(1)), unit_names
