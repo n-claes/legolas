@@ -44,7 +44,7 @@ contains
       call settings%grid%set_grid_boundaries(1.0_dp, 2.0_dp)
 
       call settings%physics%enable_flow()
-      external_gravity = .true.
+      call settings%physics%enable_gravity()
       k2 = 0.0d0
       k3 = 70.0d0
       beta = 100.0d0

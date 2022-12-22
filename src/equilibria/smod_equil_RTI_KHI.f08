@@ -33,7 +33,7 @@ contains
       p4, alpha, cte_rho0, cte_p0
 
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
-      external_gravity = .true.
+      call settings%physics%enable_gravity()
 
       k2 = 0.0d0
       k3 = 1.0d0

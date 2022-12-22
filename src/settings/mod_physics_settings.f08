@@ -2,6 +2,7 @@ module mod_physics_settings
   use mod_global_variables, only: dp
   use mod_flow_settings, only: flow_settings_t, new_flow_settings
   use mod_cooling_settings, only: cooling_settings_t, new_cooling_settings
+  use mod_gravity_settings, only: gravity_settings_t, new_gravity_settings
   implicit none
 
   private
@@ -11,6 +12,7 @@ module mod_physics_settings
     logical :: is_incompressible
     type(flow_settings_t) :: flow
     type(cooling_settings_t) :: cooling
+    type(gravity_settings_t) :: gravity
 
   contains
 
@@ -22,6 +24,7 @@ module mod_physics_settings
 
     procedure, public :: enable_flow
     procedure, public :: enable_cooling
+    procedure, public :: enable_gravity
   end type physics_t
 
   public :: new_physics_settings
@@ -85,5 +88,11 @@ contains
     call this%cooling%set_cooling_curve(cooling_curve)
     call this%cooling%enable()
   end subroutine enable_cooling
+
+
+  pure subroutine enable_gravity(this)
+    class(physics_t), intent(inout) :: this
+    call this%gravity%enable()
+  end subroutine enable_gravity
 
 end module mod_physics_settings

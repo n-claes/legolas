@@ -48,7 +48,6 @@ contains
 
 
   module procedure add_regular_matrix_terms
-    use mod_global_variables, only: external_gravity
     use mod_equilibrium, only: grav_field
 
     real(dp)  :: eps, deps
@@ -179,7 +178,7 @@ contains
     call reset_factor_positions(new_size=5)
     ! A(2, 1)
     factors(1) = -deps * T0 / eps
-    if (external_gravity) then
+    if (settings%physics%gravity%is_enabled()) then
       ! adds gravity term to A(2, 1) matrix element
       factors(1) = factors(1) + grav_field % grav(gauss_idx)
     end if

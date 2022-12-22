@@ -90,7 +90,9 @@ contains
 
     call log_message("            << Physics settings >>")
     call log_message("flow               : " // str(settings%physics%flow%is_enabled()))
-    call log_message("external gravity   : " // str(external_gravity))
+    call log_message( &
+      "external gravity   : " // str(settings%physics%gravity%is_enabled()) &
+    )
 
     call log_message( &
       "radiative cooling  : " // str(settings%physics%cooling%is_enabled()) &

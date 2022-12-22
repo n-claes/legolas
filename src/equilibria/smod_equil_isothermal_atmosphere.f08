@@ -36,7 +36,7 @@ contains
     if (settings%equilibrium%use_defaults) then  ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(0.0_dp, 15.0_dp)
-      external_gravity = .true.
+      call settings%physics%enable_gravity()
       cte_rho0 = 1.0d0
       cte_B02 = 0.25d0
       cte_B03 = 0.25d0

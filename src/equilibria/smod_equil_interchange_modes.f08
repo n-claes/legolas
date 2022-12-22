@@ -31,7 +31,7 @@ contains
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
-      external_gravity = .true.
+      call settings%physics%enable_gravity()
 
       k2 = dpi
       k3 = dpi

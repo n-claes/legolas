@@ -31,8 +31,6 @@ module mod_global_variables
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
   !> boolean for cgs units, defaults to <tt>True</tt>
   logical, save             :: cgs_units
-  !> boolean for external gravity, defaults to <tt>False</tt>
-  logical, save             :: external_gravity
   !> boolean for thermal conduction, defaults to <tt>False</tt>
   logical, save             :: thermal_conduction
   !> boolean to set a fixed value for parallel conduction, defaults to <tt>False</tt>
@@ -104,7 +102,6 @@ contains
 
     !! physics variables
     cgs_units = .true.
-    external_gravity = .false.
     thermal_conduction = .false.
     use_fixed_tc_para = .false.
     fixed_tc_para_value = 0.0d0
