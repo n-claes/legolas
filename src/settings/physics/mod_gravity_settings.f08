@@ -11,15 +11,16 @@ module mod_gravity_settings
     procedure, public :: enable
     procedure, public :: disable
     procedure, public :: is_enabled
+    procedure, public :: set_defaults
   end type gravity_settings_t
 
   public :: new_gravity_settings
 
 contains
 
-  pure function new_gravity_settings() result(gravity_settings)
-    type(gravity_settings_t) :: gravity_settings
-    gravity_settings%has_external_gravity = .false.
+  pure function new_gravity_settings() result(gravity)
+    type(gravity_settings_t) :: gravity
+    call gravity%set_defaults()
   end function new_gravity_settings
 
   pure subroutine enable(this)
@@ -37,5 +38,10 @@ contains
     is_enabled = this%has_external_gravity
   end function is_enabled
 
+
+  pure subroutine set_defaults(this)
+    class(gravity_settings_t), intent(inout) :: this
+    this%has_external_gravity = .false.
+  end subroutine set_defaults
 
 end module mod_gravity_settings

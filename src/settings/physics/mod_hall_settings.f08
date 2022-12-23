@@ -23,6 +23,7 @@ module mod_hall_settings
     procedure, public :: has_electron_inertia
     procedure, public :: set_electron_fraction
     procedure, public :: get_electron_fraction
+    procedure, public :: set_defaults
   end type hall_settings_t
 
   public :: new_hall_settings
@@ -31,12 +32,7 @@ contains
 
   pure function new_hall_settings() result(hall)
     type(hall_settings_t) :: hall
-    hall%has_hall = .false.
-    hall%use_hall_substitution = .true.
-    hall%electron_inertia = .false.
-    hall%electron_fraction = 0.5_dp
-    hall%use_dropoff = .false.
-    hall%use_inertia_dropoff = .false.
+    call hall%set_defaults()
   end function new_hall_settings
 
 
@@ -90,5 +86,16 @@ contains
     class(hall_settings_t), intent(in) :: this
     get_electron_fraction = this%electron_fraction
   end function get_electron_fraction
+
+
+  pure subroutine set_defaults(this)
+    class(hall_settings_t), intent(inout) :: this
+    this%has_hall = .false.
+    this%use_hall_substitution = .true.
+    this%electron_inertia = .false.
+    this%electron_fraction = 0.5_dp
+    this%use_dropoff = .false.
+    this%use_inertia_dropoff = .false.
+  end subroutine set_defaults
 
 end module mod_hall_settings

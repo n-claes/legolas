@@ -18,6 +18,7 @@ module mod_resistivity_settings
     procedure, public :: is_enabled
     procedure, public :: set_fixed_resistivity
     procedure, public :: get_fixed_resistivity
+    procedure, public :: set_defaults
   end type resistivity_settings_t
 
   public :: new_resistivity_settings
@@ -26,9 +27,7 @@ contains
 
   pure function new_resistivity_settings() result(resistivity)
     type(resistivity_settings_t) :: resistivity
-    resistivity%has_resistivity = .false.
-    resistivity%use_fixed_resistivity = .false.
-    resistivity%use_dropoff = .false.
+    call resistivity%set_defaults()
   end function new_resistivity_settings
 
 
@@ -62,5 +61,14 @@ contains
     class(resistivity_settings_t), intent(in) :: this
     get_fixed_resistivity = this%fixed_eta_value
   end function get_fixed_resistivity
+
+
+  pure subroutine set_defaults(this)
+    class(resistivity_settings_t), intent(inout) :: this
+    this%has_resistivity = .false.
+    this%fixed_eta_value = 0.0_dp
+    this%use_fixed_resistivity = .false.
+    this%use_dropoff = .false.
+  end subroutine set_defaults
 
 end module mod_resistivity_settings

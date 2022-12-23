@@ -18,17 +18,16 @@ module mod_viscosity_settings
     procedure, public :: has_viscous_heating
     procedure, public :: set_fixed_viscosity
     procedure, public :: get_fixed_viscosity
+    procedure, public :: set_defaults
   end type viscosity_settings_t
 
   public :: new_viscosity_settings
 
 contains
 
-  pure function new_viscosity_settings() result(viscosity_settings)
-    type(viscosity_settings_t) :: viscosity_settings
-    viscosity_settings%has_viscosity = .false.
-    viscosity_settings%viscous_heating = .false.
-    viscosity_settings%fixed_viscosity_value = 0.0_dp
+  pure function new_viscosity_settings() result(viscosity)
+    type(viscosity_settings_t) :: viscosity
+    call viscosity%set_defaults()
   end function new_viscosity_settings
 
 
@@ -74,5 +73,13 @@ contains
     class(viscosity_settings_t), intent(in) :: this
     get_fixed_viscosity = this%fixed_viscosity_value
   end function get_fixed_viscosity
+
+
+  pure subroutine set_defaults(this)
+    class(viscosity_settings_t), intent(inout) :: this
+    this%has_viscosity = .false.
+    this%viscous_heating = .false.
+    this%fixed_viscosity_value = 0.0_dp
+  end subroutine
 
 end module mod_viscosity_settings

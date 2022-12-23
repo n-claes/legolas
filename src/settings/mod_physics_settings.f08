@@ -48,8 +48,7 @@ contains
 
   pure function new_physics_settings() result(physics)
     type(physics_t) :: physics
-
-    physics%is_incompressible = .false.
+    call physics%set_defaults()
   end function new_physics_settings
 
 
@@ -83,6 +82,15 @@ contains
     class(physics_t), intent(inout) :: this
     call this%set_gamma(5.0_dp / 3.0_dp)
     this%is_incompressible = .false.
+    this%dropoff_edge_dist = 0.05_dp
+    this%dropoff_width = 0.1_dp
+    call this%flow%set_defaults()
+    call this%cooling%set_defaults()
+    call this%gravity%set_defaults()
+    call this%resistivity%set_defaults()
+    call this%viscosity%set_defaults()
+    call this%conduction%set_defaults()
+    call this%hall%set_defaults()
   end subroutine set_defaults
 
 

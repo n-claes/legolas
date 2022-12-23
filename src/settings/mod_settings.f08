@@ -122,6 +122,7 @@ contains
     call this%solvers%set_defaults()
     call this%physics%set_defaults()
     call this%grid%set_defaults()
+    call this%equilibrium%set_defaults()
     call this%update_block_dimensions()
   end subroutine set_defaults
 

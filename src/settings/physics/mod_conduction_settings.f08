@@ -24,6 +24,7 @@ module mod_conduction_settings
     procedure, public :: set_fixed_tc_perp
     procedure, public :: get_fixed_tc_perp
     procedure, public :: has_fixed_tc_perp
+    procedure, public :: set_defaults
   end type conduction_settings_t
 
   public :: new_conduction_settings
@@ -32,13 +33,7 @@ contains
 
   pure function new_conduction_settings() result(conduction)
     type(conduction_settings_t) :: conduction
-    conduction%has_para_conduction = .false.
-    conduction%fixed_tc_para = .false.
-    conduction%fixed_tc_para_value = 0.0_dp
-
-    conduction%has_perp_conduction = .false.
-    conduction%fixed_tc_perp = .false.
-    conduction%fixed_tc_perp_value = 0.0_dp
+    call conduction%set_defaults()
   end function new_conduction_settings
 
 
@@ -107,4 +102,15 @@ contains
     class(conduction_settings_t), intent(in) :: this
     has_fixed_tc_perp = this%is_enabled() .and. this%fixed_tc_perp
   end function has_fixed_tc_perp
+
+
+  pure subroutine set_defaults(this)
+    class(conduction_settings_t), intent(inout) :: this
+    this%has_para_conduction = .false.
+    this%fixed_tc_para = .false.
+    this%fixed_tc_para_value = 0.0_dp
+    this%has_perp_conduction = .false.
+    this%fixed_tc_perp = .false.
+    this%fixed_tc_perp_value = 0.0_dp
+  end subroutine set_defaults
 end module mod_conduction_settings
