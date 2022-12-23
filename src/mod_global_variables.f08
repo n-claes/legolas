@@ -29,8 +29,6 @@ module mod_global_variables
   complex(dp), parameter    :: ic = (0.0d0, 1.0d0)
   !> complex real
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
-  !> boolean for cgs units, defaults to <tt>True</tt>
-  logical, save             :: cgs_units
 
   !> number of Gaussian nodes
   integer, parameter           :: n_gauss = 4
@@ -60,7 +58,6 @@ contains
 
     NaN = ieee_value(NaN, ieee_quiet_nan)
 
-    cgs_units = .true.
     logging_level = 2
   end subroutine initialise_globals
 

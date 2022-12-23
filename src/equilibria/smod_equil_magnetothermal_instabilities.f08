@@ -42,13 +42,11 @@ contains
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       call settings%physics%enable_cooling(cooling_curve="rosner")
       call settings%physics%enable_parallel_conduction()
-
-      cgs_units = .true.
-      call set_normalisations( &
-        new_unit_temperature=2.6d6, &
-        new_unit_magneticfield=10.0d0, &
-        new_unit_length=1.00d8, &
-        new_mean_molecular_weight=1.0d0 & ! this work assumes pure proton plasma
+      call settings%units%set_units_from_temperature( &
+        unit_temperature=2.6d6, &
+        unit_magneticfield=10.0d0, &
+        unit_length=1.00d8, &
+        mean_molecular_weight=1.0d0 & ! this work assumes pure proton plasma
       )
 
       cte_T0 = 1.0d0

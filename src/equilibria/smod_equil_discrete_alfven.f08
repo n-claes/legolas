@@ -41,12 +41,11 @@ contains
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       call settings%physics%enable_cooling(cooling_curve="rosner")
       call settings%physics%enable_parallel_conduction()
-      cgs_units = .true.
-      call set_normalisations( &
-        new_unit_density=1.5d-15, &
-        new_unit_magneticfield=50.0d0, &
-        new_unit_length=1.0d10, &
-        new_mean_molecular_weight=1.0d0 & ! pure proton plasma
+      call settings%units%set_units_from_density( &
+        unit_density=1.5d-15, &
+        unit_magneticfield=50.0d0, &
+        unit_length=1.0d10, &
+        mean_molecular_weight=1.0d0 & ! pure proton plasma
       )
 
       j0 = 0.125d0

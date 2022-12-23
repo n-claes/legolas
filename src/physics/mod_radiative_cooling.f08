@@ -163,7 +163,7 @@ contains
       ! In this case an analytical cooling curve is used
       select case(settings%physics%cooling%get_cooling_curve())
       case("rosner")
-        call get_rosner_cooling(T_field % T0, lambda_T, d_lambda_dT)
+        call get_rosner_cooling(settings, T_field % T0, lambda_T, d_lambda_dT)
       end select
     end if
 
@@ -180,7 +180,6 @@ contains
   !! care of normalisations.
   !! @note    The interpolated cooling curves are normalised on exit.
   subroutine create_cooling_curve(settings, table_T, table_L)
-    use mod_units, only: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
     use mod_interpolation, only: interpolate_table, get_numerical_derivative
     use mod_global_variables, only: logging_level
 
@@ -189,6 +188,11 @@ contains
     real(dp), intent(in)  :: table_T(:)
     !> luminosity values in the cooling table
     real(dp), intent(in)  :: table_L(:)
+    real(dp) :: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
+
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_lambdaT = settings%units%get_unit_lambdaT()
+    unit_dlambdaT_dT = unit_lambdaT / unit_temperature
 
     ! cooling tables contain dimensionful values on a logarithmic scale.
     ! To avoid resampling the table on an unequally spaced temperature array

@@ -9,9 +9,8 @@
 !! @note    All use statements specified here at the main module scope
 !!          are automatically accessible in every submodule that extends this one.
 module mod_equilibrium
-  use mod_units
   use mod_types
-  use mod_global_variables, only: dp, cgs_units
+  use mod_global_variables, only: dp
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
@@ -191,8 +190,6 @@ contains
     call set_equilibrium_pointer(settings)
     ! Call submodule
     call set_equilibrium_values(settings)
-    ! Set normalisations if needed
-    call check_if_normalisations_set()
 
     ! Check x_start if coaxial is true
     if (settings%grid%coaxial .and. settings%grid%get_grid_start() <= dp_LIMIT) then

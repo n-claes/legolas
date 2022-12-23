@@ -309,7 +309,7 @@ contains
 
 
   subroutine read_unitlist(unit, settings, iostat)
-    use mod_global_variables, only: cgs_units
+    use mod_check_values, only: is_NaN
 
     integer, intent(in) :: unit
     type(settings_t), intent(inout) :: settings
@@ -319,110 +319,34 @@ contains
     real(dp) :: mean_molecular_weight
 
     namelist /unitslist/ &
-      cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length, &
+      unit_density, unit_temperature, unit_magneticfield, unit_length, &
       mean_molecular_weight
 
     ! defaults
     unit_density = NaN
-    unit_temperature = NaN
-    unit_magneticfield = NaN
-    unit_length = NaN
-    mean_molecular_weight = NaN
+    unit_temperature = 1.0e6_dp
+    unit_magneticfield = 10.0_dp
+    unit_length = 1.0e9_dp
+    mean_molecular_weight = settings%units%get_mean_molecular_weight()
 
     read(unit, nml=unitslist, iostat=iostat)
 
-    call check_and_set_supplied_unit_normalisations( &
-      unit_density, &
-      unit_temperature, &
-      unit_magneticfield, &
-      unit_length, &
-      mean_molecular_weight &
-    )
-  end subroutine read_unitlist
-
-
-  !> Checks the unit normalisations that are supplied (if any), sets the
-  !! unit normalisations if valid.
-  subroutine check_and_set_supplied_unit_normalisations( &
-    unit_density, &
-    unit_temperature, &
-    unit_magneticfield, &
-    unit_length, &
-    mean_molecular_weight &
-  )
-    use mod_units, only: set_normalisations
-    use mod_check_values, only: is_NaN
-
-    !> supplied unit density
-    real(dp), intent(in)  :: unit_density
-    !> supplied unit temperature
-    real(dp), intent(in)  :: unit_temperature
-    !> supplied unit magneticfield
-    real(dp), intent(in)  :: unit_magneticfield
-    !> supplied unit length
-    real(dp), intent(in)  :: unit_length
-    !> supplied mean molecular weight
-    real(dp), intent(in)  :: mean_molecular_weight
-
-    ! Provide normalisations, if supplied
-    if (.not. is_NaN(unit_density) .and. .not. is_NaN(unit_temperature)) then
-      call log_message( &
-        "unit density and unit temperature cannot both be provided in the parfile!", &
-        level="error" &
-      )
-      return
-    end if
-
-    ! set normalisations if density is supplied
     if (.not. is_NaN(unit_density)) then
-      if (is_NaN(unit_magneticfield) .or. is_NaN(unit_length)) then
-        call log_message( &
-          "unit_density found, unit_magneticfield and unit_length also required.", &
-          level="error" &
-        )
-        return
-      end if
-      if (is_NaN(mean_molecular_weight)) then
-        call set_normalisations( &
-          new_unit_density=unit_density, &
-          new_unit_magneticfield=unit_magneticfield, &
-          new_unit_length=unit_length &
-        )
-      else
-        call set_normalisations( &
-          new_unit_density=unit_density, &
-          new_unit_magneticfield=unit_magneticfield, &
-          new_unit_length=unit_length, &
-          new_mean_molecular_weight=mean_molecular_weight &
-        )
-      end if
+      call settings%units%set_units_from_density( &
+        unit_length=unit_length, &
+        unit_magneticfield=unit_magneticfield, &
+        unit_density=unit_density, &
+        mean_molecular_weight=mean_molecular_weight &
+      )
+    else
+      call settings%units%set_units_from_temperature( &
+        unit_length=unit_length, &
+        unit_magneticfield=unit_magneticfield, &
+        unit_temperature=unit_temperature, &
+        mean_molecular_weight=mean_molecular_weight &
+      )
     end if
-
-    ! set normalisations if temperature is supplied
-    if (.not. is_NaN(unit_temperature)) then
-      if (is_NaN(unit_magneticfield) .or. is_NaN(unit_length)) then
-        call log_message( &
-          "unit_temperature found, unit_magneticfield and unit_length also required.", &
-          level="error" &
-        )
-        return
-      end if
-      if (is_NaN(mean_molecular_weight)) then
-        call set_normalisations( &
-          new_unit_temperature=unit_temperature, &
-          new_unit_magneticfield=unit_magneticfield, &
-          new_unit_length=unit_length &
-        )
-      else
-        call set_normalisations( &
-          new_unit_temperature=unit_temperature, &
-          new_unit_magneticfield=unit_magneticfield, &
-          new_unit_length=unit_length, &
-          new_mean_molecular_weight=mean_molecular_weight &
-        )
-      end if
-    end if
-  end subroutine check_and_set_supplied_unit_normalisations
+  end subroutine read_unitlist
 
 
   !> Called when the eigenfunction subset selection is enabled, this checks if the

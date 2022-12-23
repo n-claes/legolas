@@ -6,6 +6,7 @@ module mod_settings
   use mod_physics_settings, only: physics_t, new_physics_settings
   use mod_grid_settings, only: grid_settings_t, new_grid_settings
   use mod_equilibrium_settings, only: equilibrium_settings_t, new_equilibrium_settings
+  use mod_units, only: units_t, new_unit_system
   implicit none
 
   private
@@ -20,6 +21,7 @@ module mod_settings
     type(physics_t), public :: physics
     type(grid_settings_t), public :: grid
     type(equilibrium_settings_t), public :: equilibrium
+    type(units_t), public :: units
 
   contains
 
@@ -48,6 +50,7 @@ contains
     settings%physics = new_physics_settings()
     settings%grid = new_grid_settings()
     settings%equilibrium = new_equilibrium_settings()
+    settings%units = new_unit_system()
   end function new_settings
 
 

@@ -84,7 +84,6 @@ contains
       kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions
     use mod_equilibrium_params
-    use mod_units
     use mod_banded_matrix, only: banded_matrix_t
     use mod_transform_matrix, only: matrix_to_banded
 
@@ -158,11 +157,14 @@ contains
       theta, tau, lambda, nu, r0, rc, rj, Bth0, Bz0, V, j0, g, &
       settings%physics%hall%get_electron_fraction()
     write(dat_fh) size(equil_names), len(equil_names(1)), equil_names
-    write(dat_fh) cgs_units
+    write(dat_fh) settings%units%in_cgs()
     write(dat_fh) size(unit_names), len(unit_names(1)), unit_names
-    write(dat_fh) unit_length, unit_time, unit_density, unit_velocity, &
-      unit_temperature, unit_pressure, unit_magneticfield, unit_numberdensity, &
-      unit_lambdaT, unit_conduction, unit_resistivity, mean_molecular_weight
+    write(dat_fh) settings%units%get_unit_length(), settings%units%get_unit_time(), &
+      settings%units%get_unit_density(), settings%units%get_unit_velocity(), &
+      settings%units%get_unit_temperature(), settings%units%get_unit_pressure(), settings%units%get_unit_magneticfield(), &
+      settings%units%get_unit_numberdensity(), &
+      settings%units%get_unit_lambdaT(), settings%units%get_unit_conduction(), &
+      settings%units%get_unit_resistivity(), settings%units%get_mean_molecular_weight()
 
     ! Next write the data itself
     ! General data: eigenvalues, grids, equilibrium configuration

@@ -18,15 +18,13 @@ contains
   !! electron inertia factor if included, with a dropoff profile, if desired.
   subroutine set_hall_factors(settings, hall_field)
     use mod_grid, only: grid_gauss
-    use mod_physical_constants, only: dpi
-    use mod_global_variables, only: cgs_units
-    use mod_physical_constants, only: mp_cgs, mp_si, ec_cgs, ec_si, me_cgs, me_si
-    use mod_units, only: unit_velocity, unit_length, unit_magneticfield
+    use mod_physical_constants, only: dpi, mp_cgs, ec_cgs, me_cgs
     use mod_types, only: hall_type
 
     type(settings_t), intent(in) :: settings
     type(hall_type), intent(inout)  :: hall_field
 
+    real(dp) :: unit_velocity, unit_length, unit_magneticfield
     real(dp)  :: sleft, sright, width, hallval, inertiaval, edge_dist
     real(dp)  :: x, shift, stretch, shift2, stretch2
     integer   :: i, gauss_gridpts
@@ -34,13 +32,15 @@ contains
     gauss_gridpts = settings%grid%get_gauss_gridpts()
     width = settings%physics%dropoff_width
     edge_dist = settings%physics%dropoff_edge_dist
-    if (cgs_units) then
-      hallval = (mp_cgs * unit_velocity) / (ec_cgs * unit_length * unit_magneticfield)
-      inertiaval = (mp_cgs * me_cgs * unit_velocity**2) / (ec_cgs * unit_length * unit_magneticfield)**2
-    else
-      hallval = (mp_si * unit_velocity) / (ec_si * unit_length * unit_magneticfield)
-      inertiaval = (mp_si * me_si * unit_velocity**2) / (ec_si * unit_length * unit_magneticfield)**2
-    end if
+
+    unit_velocity = settings%units%get_unit_velocity()
+    unit_length = settings%units%get_unit_length()
+    unit_magneticfield = settings%units%get_unit_magneticfield()
+    hallval = (mp_cgs * unit_velocity) / (ec_cgs * unit_length * unit_magneticfield)
+    inertiaval = ( &
+      mp_cgs * me_cgs * unit_velocity**2 &
+      / (ec_cgs * unit_length * unit_magneticfield)**2 &
+    )
 
     sleft = grid_gauss(1) + 0.5d0 * width + edge_dist
     sright = grid_gauss(gauss_gridpts) - edge_dist - 0.5d0 * width
