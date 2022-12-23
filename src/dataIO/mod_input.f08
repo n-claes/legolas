@@ -42,7 +42,7 @@ contains
         rewind(unit_par)
         call read_equilibriumlist(unit_par, settings, iostat)
         rewind(unit_par)
-        call read_paramlist(unit_par, settings, iostat)
+        call read_paramlist(unit_par, iostat)
         rewind(unit_par)
         call read_unitlist(unit_par, settings, iostat)
         rewind(unit_par)
@@ -129,7 +129,7 @@ contains
     settings%io%write_eigenfunctions = write_eigenfunctions
     settings%io%write_derived_eigenfunctions = write_derived_eigenfunctions
     settings%io%write_ef_subset = write_eigenfunction_subset
-    call check_eigenfunction_subset_params( &
+    if (write_eigenfunction_subset) call check_eigenfunction_subset_params( &
       center=eigenfunction_subset_center, radius=eigenfunction_subset_radius &
     )
     settings%io%ef_subset_radius = eigenfunction_subset_radius
@@ -192,14 +192,14 @@ contains
       elec_inertia, inertia_dropoff
     integer :: ncool
     character(len=str_len) :: cooling_curve
-    real(dp) :: gamma
+    real(dp) :: mhd_gamma
     real(dp) :: fixed_tc_para_value, fixed_tc_perp_value, fixed_resistivity_value
     real(dp) :: viscosity_value
     real(dp) :: electron_fraction
     real(dp) :: dropoff_edge_dist, dropoff_width
 
     namelist /physicslist/ &
-      gamma, flow, incompressible, radiative_cooling, external_gravity, parallel_conduction, perpendicular_conduction, use_fixed_tc_para, &
+      mhd_gamma, flow, incompressible, radiative_cooling, external_gravity, parallel_conduction, perpendicular_conduction, use_fixed_tc_para, &
       use_fixed_tc_perp, resistivity, use_fixed_resistivity, use_eta_dropoff, &
       viscosity, viscous_heating, hall_mhd, hall_substitution, hall_dropoff, &
       elec_inertia, inertia_dropoff, ncool, cooling_curve, fixed_tc_para_value, &
@@ -207,7 +207,7 @@ contains
       viscosity_value, electron_fraction, dropoff_edge_dist, dropoff_width
 
     ! defaults
-    gamma = 5.0_dp / 3.0_dp
+    mhd_gamma = 5.0_dp / 3.0_dp
     flow = .false.
     incompressible = .false.
     radiative_cooling = .false.
@@ -241,7 +241,7 @@ contains
 
     read(unit, nml=physicslist, iostat=iostat)
 
-    call settings%physics%set_gamma(gamma)
+    call settings%physics%set_gamma(mhd_gamma)
     if (incompressible) call settings%physics%set_incompressible()
     if (flow) call settings%physics%flow%enable()
     if (radiative_cooling) call settings%physics%enable_cooling(cooling_curve, ncool)
@@ -291,11 +291,10 @@ contains
   end subroutine read_equilibriumlist
 
 
-  subroutine read_paramlist(unit, settings, iostat)
+  subroutine read_paramlist(unit, iostat)
     use mod_equilibrium_params
 
     integer, intent(in) :: unit
-    type(settings_t), intent(inout) :: settings
     integer, intent(out) :: iostat
 
     namelist /paramlist/  &
