@@ -114,13 +114,12 @@ contains
     use mod_logging, only: log_message, str
     use mod_grid, only: grid_gauss
     use mod_physical_constants, only: dpi
-    use mod_global_variables, only: dropoff_edge_dist, dropoff_width
 
     type(settings_t), intent(in) :: settings
     !> the type containing the resistivity attributes
     type(resistivity_type), intent(inout) :: eta_field
 
-    real(dp) :: sleft, sright, width, etaval
+    real(dp) :: sleft, sright, width, etaval, edge_dist
     real(dp) :: x, shift, stretch
     integer :: i, gauss_gridpts
 
@@ -132,17 +131,18 @@ contains
     end if
 
     gauss_gridpts = settings%grid%get_gauss_gridpts()
-    width = dropoff_width
+    width = settings%physics%dropoff_width
+    edge_dist = settings%physics%dropoff_edge_dist
     etaval = settings%physics%resistivity%get_fixed_resistivity()
-    sleft = grid_gauss(1) + 0.5d0 * width + dropoff_edge_dist
-    sright = grid_gauss(gauss_gridpts) - dropoff_edge_dist - 0.5d0 * width
+    sleft = grid_gauss(1) + 0.5d0 * width + edge_dist
+    sright = grid_gauss(gauss_gridpts) - edge_dist - 0.5d0 * width
 
     shift = etaval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
     stretch = etaval / (tanh(dpi) - tanh(-dpi))
 
     call log_message('setting eta-dropoff profile', level='info')
-    call log_message('dropoff width = ' // str(dropoff_width), level='info')
-    call log_message('distance from edge = ' // str(dropoff_edge_dist), level='info')
+    call log_message('dropoff width = ' // str(width), level='info')
+    call log_message('distance from edge = ' // str(edge_dist), level='info')
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)

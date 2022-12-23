@@ -31,10 +31,6 @@ module mod_global_variables
   complex(dp), parameter    :: ir = (1.0d0, 0.0d0)
   !> boolean for cgs units, defaults to <tt>True</tt>
   logical, save             :: cgs_units
-  !> distance between the grid edge and start of dropoff, defaults to <tt>0.05</tt>
-  real(dp)                  :: dropoff_edge_dist
-  !> width of the dropoff region, defaults to <tt>0.1</tt>
-  real(dp)                  :: dropoff_width
 
   !> number of Gaussian nodes
   integer, parameter           :: n_gauss = 4
@@ -64,12 +60,7 @@ contains
 
     NaN = ieee_value(NaN, ieee_quiet_nan)
 
-    !! physics variables
     cgs_units = .true.
-    dropoff_edge_dist = 0.05d0
-    dropoff_width = 0.1d0
-
-    !! post-processing parameters
     logging_level = 2
   end subroutine initialise_globals
 

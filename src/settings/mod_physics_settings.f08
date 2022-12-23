@@ -14,6 +14,8 @@ module mod_physics_settings
   type, public :: physics_t
     real(dp), private :: gamma
     logical :: is_incompressible
+    real(dp) :: dropoff_edge_dist
+    real(dp) :: dropoff_width
     type(flow_settings_t) :: flow
     type(cooling_settings_t) :: cooling
     type(gravity_settings_t) :: gravity
@@ -109,12 +111,13 @@ contains
   end subroutine enable_gravity
 
 
-  pure subroutine enable_resistivity(this, fixed_eta_value)
+  pure subroutine enable_resistivity(this, use_fixed_resistivity, fixed_eta_value)
     class(physics_t), intent(inout) :: this
+    logical, intent(in), optional :: use_fixed_resistivity
     real(dp), intent(in), optional :: fixed_eta_value
 
     call this%resistivity%enable()
-    if (present(fixed_eta_value)) then
+    if (present(use_fixed_resistivity) .and. present(fixed_eta_value)) then
       call this%resistivity%set_fixed_resistivity(fixed_eta_value)
     end if
   end subroutine enable_resistivity
@@ -135,23 +138,29 @@ contains
   end subroutine enable_viscosity
 
 
-  pure subroutine enable_parallel_conduction(this, fixed_tc_para_value)
+  pure subroutine enable_parallel_conduction( &
+    this, use_fixed_tc_para, fixed_tc_para_value &
+  )
     class(physics_t), intent(inout) :: this
+    logical, intent(in), optional :: use_fixed_tc_para
     real(dp), intent(in), optional :: fixed_tc_para_value
 
     call this%conduction%enable_para_conduction()
-    if (present(fixed_tc_para_value)) then
+    if (present(use_fixed_tc_para) .and. present(fixed_tc_para_value)) then
       call this%conduction%set_fixed_tc_para(fixed_tc_para_value)
     end if
   end subroutine enable_parallel_conduction
 
 
-  pure subroutine enable_perpendicular_conduction(this, fixed_tc_perp_value)
+  pure subroutine enable_perpendicular_conduction( &
+    this, use_fixed_tc_perp, fixed_tc_perp_value &
+  )
     class(physics_t), intent(inout) :: this
+    logical, intent(in), optional :: use_fixed_tc_perp
     real(dp), intent(in), optional :: fixed_tc_perp_value
 
     call this%conduction%enable_perp_conduction()
-    if (present(fixed_tc_perp_value)) then
+    if (present(use_fixed_tc_perp) .and. present(fixed_tc_perp_value)) then
       call this%conduction%set_fixed_tc_perp(fixed_tc_perp_value)
     end if
   end subroutine enable_perpendicular_conduction

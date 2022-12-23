@@ -244,9 +244,9 @@ contains
   !> Cleanup routine, deallocates all variables allocated at module-scope.
   subroutine radiative_cooling_clean()
     if (interpolated_curve) then
-      deallocate(interp_table_T)
-      deallocate(interp_table_L)
-      deallocate(interp_table_dLdT)
+      if (allocated(interp_table_T)) deallocate(interp_table_T)
+      if (allocated(interp_table_L)) deallocate(interp_table_L)
+      if (allocated(interp_table_dLdT)) deallocate(interp_table_dLdT)
     end if
   end subroutine radiative_cooling_clean
 

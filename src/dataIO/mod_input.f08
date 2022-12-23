@@ -3,16 +3,14 @@
 !! Contains subroutines to retrieve the parfile based on the commandline arguments
 !! and to read the parfile, setting the global variables.
 module mod_input
-  use mod_global_variables
-  use mod_equilibrium_params
+  use mod_global_variables, only: dp, str_len, NaN
   use mod_logging, only: log_message
   use mod_settings, only: settings_t
   implicit none
 
   private
 
-  !> IO unit for the parfile
-  integer :: unit_par = 101
+  integer, parameter :: unit_par = 101
 
   public :: read_parfile
   public :: get_parfile
@@ -20,161 +18,157 @@ module mod_input
 contains
 
 
-  !> Reads in the supplied parfile and sets the equilibrium parameters and
-  !! global variables to their specified values.
-  !! @note    The order of the different namelists in the parfile does not matter, this
-  !!          is automatically handled. @endnote
-  !! @warning Throws an error if:
-  !!
-  !! - both a density and temperature unit are present in the parfile.
-  !! - a <tt>unit_density</tt> is supplied, but no length or magnetic field unit.
-  !! - a <tt>unit_temprature</tt> is supplied, but no length or magnetic field unit. @endwarning
-  !! @warning If <tt>dry_run</tt> is <tt>True</tt>, this automatically sets eigenfunction
-  !!          and matrix saving to <tt>False</tt>, independent of the settings in the parfile! @endwarning
   subroutine read_parfile(parfile, settings)
-    use mod_check_values, only: is_equal, is_NaN
-
-    !> the name of the parfile
-    character(len=*), intent(in)  :: parfile
-    !> the settings object
+    character(len=*), intent(in) :: parfile
     type(settings_t), intent(inout) :: settings
+    integer :: iostat
 
-    ! physicslist params
-    character(str_len) :: physics_type
-    real(dp)    :: mhd_gamma
-    logical :: incompressible
-    ! unitlist params
-    real(dp)    :: unit_density, unit_temperature, unit_magneticfield, unit_length
-    real(dp)    :: mean_molecular_weight
-    ! gridlist params
-    integer     :: gridpoints
-    ! savelist params
+
+    if (parfile == "") then
+      call log_message("no parfile supplied!", level="error")
+      return
+    end if
+
+    open(unit_par, file=trim(parfile), status="old")
+      do while (iostat == 0)
+        ! rewind after reading so namelists can appear out of order
+        call read_gridlist(unit_par, settings, iostat)
+        rewind(unit_par)
+        call read_savelist(unit_par, settings, iostat)
+        rewind(unit_par)
+        call read_solvelist(unit_par, settings, iostat)
+        rewind(unit_par)
+        call read_physicslist(unit_par, settings, iostat)
+        rewind(unit_par)
+        call read_equilibriumlist(unit_par, settings, iostat)
+        rewind(unit_par)
+        call read_paramlist(unit_par, settings, iostat)
+        rewind(unit_par)
+        call read_unitlist(unit_par, settings, iostat)
+        rewind(unit_par)
+        exit
+      end do
+    close(unit_par)
+
+    if (settings%solvers%get_solver() == "none") call settings%io%set_all_io_to_false()
+  end subroutine read_parfile
+
+
+  subroutine read_gridlist(unit, settings, iostat)
+    integer, intent(in) :: unit
+    type(settings_t), intent(inout) :: settings
+    integer, intent(out) :: iostat
+
+    character(len=str_len) :: geometry
+    integer :: gridpoints
+    real(dp) :: x_start, x_end
+    logical :: coaxial
+    logical :: force_r0
+
+    namelist /gridlist/ &
+      geometry, gridpoints, x_start, x_end, coaxial, force_r0
+
+    ! defaults
+    geometry = ""
+    gridpoints = 0
+    x_start = 0.0_dp
+    x_end = 1.0_dp
+    coaxial = .false.
+    force_r0 = .false.
+
+    read(unit, nml=gridlist, iostat=iostat)
+
+    call settings%grid%set_geometry(geometry)
+    call settings%grid%set_gridpts(gridpoints)
+    call settings%grid%set_grid_boundaries(grid_start=x_start, grid_end=x_end)
+    settings%grid%coaxial = coaxial
+    settings%grid%force_r0 = force_r0
+  end subroutine read_gridlist
+
+
+  subroutine read_savelist(unit, settings, iostat)
+    use mod_global_variables, only: logging_level
+
+    integer, intent(in) :: unit
+    type(settings_t), intent(inout) :: settings
+    integer, intent(out) :: iostat
+
     logical :: write_matrices, write_eigenvectors, write_residuals
     logical :: write_eigenfunctions, write_derived_eigenfunctions
+    logical :: write_eigenfunction_subset
     logical :: show_results
+    real(dp) :: eigenfunction_subset_radius
+    complex(dp) :: eigenfunction_subset_center
     character(len=str_len) :: basename_datfile, output_folder
-    ! solvelist params
+
+    namelist /savelist/ &
+      write_matrices, write_eigenvectors, write_residuals, write_eigenfunctions, &
+      write_derived_eigenfunctions, write_eigenfunction_subset, &
+      show_results, basename_datfile, output_folder, logging_level, &
+      eigenfunction_subset_radius, eigenfunction_subset_center
+
+    ! defaults
+    write_matrices = .false.
+    write_eigenvectors = .false.
+    write_residuals = .false.
+    write_eigenfunctions = .true.
+    write_derived_eigenfunctions = .false.
+    write_eigenfunction_subset = .false.
+    show_results = .true.
+    basename_datfile = "datfile"
+    output_folder = "output"
+    logging_level = 2
+    eigenfunction_subset_radius = NaN
+    eigenfunction_subset_center = cmplx(NaN, NaN, kind=dp)
+
+    read(unit, nml=savelist, iostat=iostat)
+
+    settings%io%write_matrices = write_matrices
+    settings%io%write_eigenvectors = write_eigenvectors
+    settings%io%write_residuals = write_residuals
+    settings%io%write_eigenfunctions = write_eigenfunctions
+    settings%io%write_derived_eigenfunctions = write_derived_eigenfunctions
+    settings%io%write_ef_subset = write_eigenfunction_subset
+    call check_eigenfunction_subset_params( &
+      center=eigenfunction_subset_center, radius=eigenfunction_subset_radius &
+    )
+    settings%io%ef_subset_radius = eigenfunction_subset_radius
+    settings%io%ef_subset_center = eigenfunction_subset_center
+    settings%io%show_results = show_results
+    call settings%io%set_basename_datfile(basename_datfile)
+    call settings%io%set_output_folder(output_folder)
+  end subroutine read_savelist
+
+
+  subroutine read_solvelist(unit, settings, iostat)
+    use mod_global_variables, only: dp_LIMIT
+
+    integer, intent(in) :: unit
+    type(settings_t), intent(inout) :: settings
+    integer, intent(out) :: iostat
+
     character(len=str_len) :: solver, arpack_mode
     character(len=2) :: which_eigenvalues
     integer :: number_of_eigenvalues, maxiter, ncv
     real(dp) :: tolerance
     complex(dp) :: sigma
 
-    namelist /physicslist/  &
-        physics_type, mhd_gamma, flow, radiative_cooling, ncool, cooling_curve, &
-        external_gravity, thermal_conduction, use_fixed_tc_para, &
-        fixed_tc_para_value, use_fixed_tc_perp, fixed_tc_perp_value, &
-        resistivity, use_fixed_resistivity, fixed_eta_value, &
-        use_eta_dropoff, dropoff_edge_dist, dropoff_width, &
-        viscosity, viscous_heating, viscosity_value, incompressible, &
-        hall_mhd, hall_substitution, hall_dropoff, &
-        elec_inertia, inertia_dropoff, electron_fraction
-    namelist /unitslist/    &
-        cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length, &
-        mean_molecular_weight
-    namelist /gridlist/ &
-        geometry, x_start, x_end, gridpoints, force_r0, coaxial
-    namelist /equilibriumlist/ &
-        equilibrium_type, boundary_type, use_defaults, remove_spurious_eigenvalues, &
-        nb_spurious_eigenvalues
-    namelist /savelist/ &
-        write_matrices, write_eigenvectors, write_residuals, write_eigenfunctions, show_results, &
-        basename_datfile, output_folder, logging_level, &
-        write_derived_eigenfunctions, write_eigenfunction_subset, &
-        eigenfunction_subset_center, eigenfunction_subset_radius
-    namelist /paramlist/  &
-        k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, cte_v03, &
-        cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
-        alpha, beta, delta, theta, tau, lambda, nu, &
-        r0, rc, rj, Bth0, Bz0, V, j0, g, eq_bool
-    namelist /solvelist/  &
-        solver, arpack_mode, number_of_eigenvalues, which_eigenvalues, maxiter, sigma, &
-        ncv, tolerance
+    namelist /solvelist/ &
+      solver, arpack_mode, which_eigenvalues, number_of_eigenvalues, &
+      maxiter, ncv, tolerance, sigma
 
-    call init_equilibrium_params()
-    ! if no parfile supplied flag error
-    if (parfile == "") then
-      call log_message("no parfile supplied!", level="error")
-      return
-    end if
-
-    ! physicslist defaults
-    physics_type = ""
-    mhd_gamma = 0.0d0
-    incompressible = .false.
-    ! gridlist defaults
-    gridpoints = 0
-    ! unitlist defaults
-    unit_density = NaN
-    unit_temperature = NaN
-    unit_magneticfield = NaN
-    unit_length = NaN
-    mean_molecular_weight = NaN
-    ! savelist defaults
-    basename_datfile = "datfile"
-    output_folder = "output"
-    write_matrices = .false.
-    write_eigenvectors = .false.
-    write_residuals = .false.
-    write_eigenfunctions = .true.
-    write_derived_eigenfunctions = .false.
-    show_results = .true.
-    ! solvelist defaults
-    solver = "QR-invert"
+    ! defaults
+    solver = "QR-cholesky"
     arpack_mode = "standard"
-    number_of_eigenvalues = 100
     which_eigenvalues = "LM"
+    number_of_eigenvalues = 10
     maxiter = 0
     ncv = 0
-    tolerance = DP_limit
+    tolerance = dp_LIMIT
+    sigma = (0.0_dp, 0.0_dp)
 
-    open(unit_par, file=trim(parfile), status='old')
-    !! Start reading namelists, rewind so they can appear out of order
-          rewind(unit_par)
-          read(unit_par, gridlist, end=1001)
+    read(unit, nml=solvelist, iostat=iostat)
 
-    1001  rewind(unit_par)
-          read(unit_par, physicslist, end=1002)
-
-    1002  rewind(unit_par)
-          read(unit_par, equilibriumlist, end=1003)
-
-    1003  rewind(unit_par)
-          read(unit_par, savelist, end=1004)
-
-    1004  rewind(unit_par)
-          read(unit_par, paramlist, end=1005)
-
-    1005  rewind(unit_par)
-          read(unit_par, unitslist, end=1006)
-
-    1006  rewind(unit_par)
-          read(unit_par, solvelist, end=1007)
-
-    1007  close(unit_par)
-
-    ! Set gridpoints and gamma, if supplied
-    if (.not. gridpoints == 0) then
-      call set_gridpts(gridpoints)
-    end if
-
-    if (physics_type == "") physics_type = "mhd"
-    call settings%set_state_vector(physics_type=physics_type)
-    call settings%dims%set_block_dims( &
-      nb_eqs=size(settings%get_state_vector()), gridpts=gridpoints &
-    )
-
-    ! set io settings
-    settings%io%write_matrices = write_matrices
-    settings%io%write_eigenvectors = write_eigenvectors
-    settings%io%write_residuals = write_residuals
-    settings%io%write_eigenfunctions = write_eigenfunctions
-    settings%io%write_derived_eigenfunctions = write_derived_eigenfunctions
-    settings%io%show_results = show_results
-    call settings%io%set_basename_datfile(basename_datfile)
-    call settings%io%set_output_folder(output_folder)
-
-    ! set solver settings
     call settings%solvers%set_solver(solver)
     call settings%solvers%set_arpack_mode(arpack_mode)
     settings%solvers%number_of_eigenvalues = number_of_eigenvalues
@@ -182,13 +176,162 @@ contains
     settings%solvers%maxiter = maxiter
     settings%solvers%ncv = ncv
     settings%solvers%tolerance = tolerance
-    if (settings%solvers%get_solver() == "none") call settings%io%set_all_io_to_false()
+    settings%solvers%sigma = sigma
+  end subroutine read_solvelist
 
-    ! set physics settings
-    if (.not. is_equal(mhd_gamma, 0.0d0)) then
-      call settings%physics%set_gamma(mhd_gamma)
-    end if
+
+  subroutine read_physicslist(unit, settings, iostat)
+    integer, intent(in) :: unit
+    type(settings_t), intent(inout) :: settings
+    integer, intent(out) :: iostat
+
+    logical :: flow, incompressible, radiative_cooling, external_gravity, &
+      parallel_conduction, perpendicular_conduction, use_fixed_tc_para, &
+      use_fixed_tc_perp, resistivity, use_fixed_resistivity, use_eta_dropoff, &
+      viscosity, viscous_heating, hall_mhd, hall_substitution, hall_dropoff, &
+      elec_inertia, inertia_dropoff
+    integer :: ncool
+    character(len=str_len) :: cooling_curve
+    real(dp) :: gamma
+    real(dp) :: fixed_tc_para_value, fixed_tc_perp_value, fixed_resistivity_value
+    real(dp) :: viscosity_value
+    real(dp) :: electron_fraction
+    real(dp) :: dropoff_edge_dist, dropoff_width
+
+    namelist /physicslist/ &
+      gamma, flow, incompressible, radiative_cooling, external_gravity, parallel_conduction, perpendicular_conduction, use_fixed_tc_para, &
+      use_fixed_tc_perp, resistivity, use_fixed_resistivity, use_eta_dropoff, &
+      viscosity, viscous_heating, hall_mhd, hall_substitution, hall_dropoff, &
+      elec_inertia, inertia_dropoff, ncool, cooling_curve, fixed_tc_para_value, &
+      fixed_tc_perp_value, fixed_resistivity_value, dropoff_edge_dist, dropoff_width, &
+      viscosity_value, electron_fraction, dropoff_edge_dist, dropoff_width
+
+    ! defaults
+    gamma = 5.0_dp / 3.0_dp
+    flow = .false.
+    incompressible = .false.
+    radiative_cooling = .false.
+    external_gravity = .false.
+    parallel_conduction = .false.
+    perpendicular_conduction = .false.
+    use_fixed_tc_para = .false.
+    use_fixed_tc_perp = .false.
+    resistivity = .false.
+    use_fixed_resistivity = .false.
+    use_eta_dropoff = .false.
+    viscosity = .false.
+    viscous_heating = .false.
+    hall_mhd = .false.
+    hall_substitution = .true.
+    hall_dropoff = .false.
+    elec_inertia = .false.
+    inertia_dropoff = .false.
+
+    ncool = 4000
+    cooling_curve = "jc_corona"
+    fixed_tc_para_value = 0.0_dp
+    fixed_tc_perp_value = 0.0_dp
+    fixed_resistivity_value = 0.0_dp
+    dropoff_edge_dist = 0.0_dp
+    dropoff_width = 0.0_dp
+    viscosity_value = 0.0_dp
+    electron_fraction = 0.5_dp
+    dropoff_edge_dist = 0.05_dp
+    dropoff_width = 0.1_dp
+
+    read(unit, nml=physicslist, iostat=iostat)
+
+    call settings%physics%set_gamma(gamma)
     if (incompressible) call settings%physics%set_incompressible()
+    if (flow) call settings%physics%flow%enable()
+    if (radiative_cooling) call settings%physics%enable_cooling(cooling_curve, ncool)
+    if (external_gravity) call settings%physics%enable_gravity()
+    if (parallel_conduction) call settings%physics%enable_parallel_conduction( &
+      use_fixed_tc_para, fixed_tc_para_value &
+    )
+    if (perpendicular_conduction) then
+      call settings%physics%enable_perpendicular_conduction( &
+        use_fixed_tc_perp, fixed_tc_perp_value &
+      )
+    end if
+    if (resistivity) call settings%physics%enable_resistivity( &
+      use_fixed_resistivity, fixed_resistivity_value &
+    )
+    if (viscosity) call settings%physics%enable_viscosity( &
+      viscosity_value, viscous_heating &
+    )
+    if (hall_mhd) call settings%physics%enable_hall( &
+      hall_substitution, elec_inertia, electron_fraction &
+    )
+    settings%physics%dropoff_edge_dist = dropoff_edge_dist
+    settings%physics%dropoff_width = dropoff_width
+  end subroutine read_physicslist
+
+
+  subroutine read_equilibriumlist(unit, settings, iostat)
+    integer, intent(in) :: unit
+    type(settings_t), intent(inout) :: settings
+    integer, intent(out) :: iostat
+
+    character(len=str_len) :: equilibrium_type, boundary_type
+    logical :: use_defaults
+
+    namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
+
+    ! defaults
+    equilibrium_type = "adiabatic_homo"
+    boundary_type = "wall"
+    use_defaults = .true.
+
+    read(unit, nml=equilibriumlist, iostat=iostat)
+
+    call settings%equilibrium%set_equilibrium_type(equilibrium_type)
+    call settings%equilibrium%set_boundary_type(boundary_type)
+    settings%equilibrium%use_defaults = use_defaults
+  end subroutine read_equilibriumlist
+
+
+  subroutine read_paramlist(unit, settings, iostat)
+    use mod_equilibrium_params
+
+    integer, intent(in) :: unit
+    type(settings_t), intent(inout) :: settings
+    integer, intent(out) :: iostat
+
+    namelist /paramlist/  &
+      k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, cte_v03, &
+      cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, &
+      alpha, beta, delta, theta, tau, lambda, nu, &
+      r0, rc, rj, Bth0, Bz0, V, j0, g, eq_bool
+
+    call init_equilibrium_params()
+    read(unit, nml=paramlist, iostat=iostat)
+  end subroutine read_paramlist
+
+
+  subroutine read_unitlist(unit, settings, iostat)
+    use mod_global_variables, only: cgs_units
+
+    integer, intent(in) :: unit
+    type(settings_t), intent(inout) :: settings
+    integer, intent(out) :: iostat
+
+    real(dp) :: unit_density, unit_temperature, unit_magneticfield, unit_length
+    real(dp) :: mean_molecular_weight
+
+    namelist /unitslist/ &
+      cgs_units, unit_density, unit_temperature, unit_magneticfield, unit_length, &
+      mean_molecular_weight
+
+    ! defaults
+    unit_density = NaN
+    unit_temperature = NaN
+    unit_magneticfield = NaN
+    unit_length = NaN
+    mean_molecular_weight = NaN
+
+    read(unit, nml=unitslist, iostat=iostat)
+
     call check_and_set_supplied_unit_normalisations( &
       unit_density, &
       unit_temperature, &
@@ -196,12 +339,7 @@ contains
       unit_length, &
       mean_molecular_weight &
     )
-
-    ! for an ef subset, check if global subset parameters are properly set
-    if (write_eigenfunction_subset) then
-      call check_global_eigenfunction_subset_parameters()
-    end if
-  end subroutine read_parfile
+  end subroutine read_unitlist
 
 
   !> Checks the unit normalisations that are supplied (if any), sets the
@@ -290,20 +428,21 @@ contains
 
   !> Called when the eigenfunction subset selection is enabled, this checks if the
   !! global variables are properly set.
-  subroutine check_global_eigenfunction_subset_parameters()
-    use mod_global_variables, only: eigenfunction_subset_center, &
-      eigenfunction_subset_radius
+  subroutine check_eigenfunction_subset_params(center, radius)
     use mod_check_values, only: is_NaN
 
-    if (is_NaN(eigenfunction_subset_center)) then
+    complex(dp), intent(in) :: center
+    real(dp), intent(in) :: radius
+
+    if (is_NaN(center)) then
       call log_message("eigenfunction_subset_center must be set!", level="error")
       return
     end if
-    if (is_NaN(eigenfunction_subset_radius)) then
+    if (is_NaN(radius)) then
       call log_message("eigenfunction_subset_radius must be set!", level="error")
       return
     end if
-  end subroutine check_global_eigenfunction_subset_parameters
+  end subroutine check_eigenfunction_subset_params
 
 
   ! LCOV_EXCL_START <this routine is excluded from coverage>
