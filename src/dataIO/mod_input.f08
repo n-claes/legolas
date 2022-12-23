@@ -21,8 +21,6 @@ contains
   subroutine read_parfile(parfile, settings)
     character(len=*), intent(in) :: parfile
     type(settings_t), intent(inout) :: settings
-    integer :: iostat
-
 
     if (parfile == "") then
       call log_message("no parfile supplied!", level="error")
@@ -30,34 +28,31 @@ contains
     end if
 
     open(unit_par, file=trim(parfile), status="old")
-      do while (iostat == 0)
-        ! rewind after reading so namelists can appear out of order
-        call read_gridlist(unit_par, settings, iostat)
-        rewind(unit_par)
-        call read_savelist(unit_par, settings, iostat)
-        rewind(unit_par)
-        call read_solvelist(unit_par, settings, iostat)
-        rewind(unit_par)
-        call read_physicslist(unit_par, settings, iostat)
-        rewind(unit_par)
-        call read_equilibriumlist(unit_par, settings, iostat)
-        rewind(unit_par)
-        call read_paramlist(unit_par, iostat)
-        rewind(unit_par)
-        call read_unitlist(unit_par, settings, iostat)
-        rewind(unit_par)
-        exit
-      end do
+      ! rewind after reading so namelists can appear out of order
+      call read_gridlist(unit_par, settings)
+      rewind(unit_par)
+      call read_savelist(unit_par, settings)
+      rewind(unit_par)
+      call read_solvelist(unit_par, settings)
+      rewind(unit_par)
+      call read_physicslist(unit_par, settings)
+      rewind(unit_par)
+      call read_equilibriumlist(unit_par, settings)
+      rewind(unit_par)
+      call read_paramlist(unit_par)
+      rewind(unit_par)
+      call read_unitlist(unit_par, settings)
     close(unit_par)
 
     if (settings%solvers%get_solver() == "none") call settings%io%set_all_io_to_false()
   end subroutine read_parfile
 
 
-  subroutine read_gridlist(unit, settings, iostat)
+  subroutine read_gridlist(unit, settings)
     integer, intent(in) :: unit
     type(settings_t), intent(inout) :: settings
-    integer, intent(out) :: iostat
+    integer :: iostat
+    character(str_len) :: iomsg
 
     character(len=str_len) :: geometry
     integer :: gridpoints
@@ -76,7 +71,8 @@ contains
     coaxial = .false.
     force_r0 = .false.
 
-    read(unit, nml=gridlist, iostat=iostat)
+    read(unit, nml=gridlist, iostat=iostat, iomsg=iomsg)
+    call parse_io_info(iostat, iomsg)
 
     call settings%grid%set_geometry(geometry)
     call settings%grid%set_gridpts(gridpoints)
@@ -86,12 +82,13 @@ contains
   end subroutine read_gridlist
 
 
-  subroutine read_savelist(unit, settings, iostat)
+  subroutine read_savelist(unit, settings)
     use mod_global_variables, only: logging_level
 
     integer, intent(in) :: unit
     type(settings_t), intent(inout) :: settings
-    integer, intent(out) :: iostat
+    integer :: iostat
+    character(str_len) :: iomsg
 
     logical :: write_matrices, write_eigenvectors, write_residuals
     logical :: write_eigenfunctions, write_derived_eigenfunctions
@@ -121,7 +118,8 @@ contains
     eigenfunction_subset_radius = NaN
     eigenfunction_subset_center = cmplx(NaN, NaN, kind=dp)
 
-    read(unit, nml=savelist, iostat=iostat)
+    read(unit, nml=savelist, iostat=iostat, iomsg=iomsg)
+    call parse_io_info(iostat, iomsg)
 
     settings%io%write_matrices = write_matrices
     settings%io%write_eigenvectors = write_eigenvectors
@@ -140,12 +138,13 @@ contains
   end subroutine read_savelist
 
 
-  subroutine read_solvelist(unit, settings, iostat)
+  subroutine read_solvelist(unit, settings)
     use mod_global_variables, only: dp_LIMIT
 
     integer, intent(in) :: unit
     type(settings_t), intent(inout) :: settings
-    integer, intent(out) :: iostat
+    integer :: iostat
+    character(str_len) :: iomsg
 
     character(len=str_len) :: solver, arpack_mode
     character(len=2) :: which_eigenvalues
@@ -167,7 +166,8 @@ contains
     tolerance = dp_LIMIT
     sigma = (0.0_dp, 0.0_dp)
 
-    read(unit, nml=solvelist, iostat=iostat)
+    read(unit, nml=solvelist, iostat=iostat, iomsg=iomsg)
+    call parse_io_info(iostat, iomsg)
 
     call settings%solvers%set_solver(solver)
     call settings%solvers%set_arpack_mode(arpack_mode)
@@ -180,10 +180,11 @@ contains
   end subroutine read_solvelist
 
 
-  subroutine read_physicslist(unit, settings, iostat)
+  subroutine read_physicslist(unit, settings)
     integer, intent(in) :: unit
     type(settings_t), intent(inout) :: settings
-    integer, intent(out) :: iostat
+    integer :: iostat
+    character(str_len) :: iomsg
 
     logical :: flow, incompressible, radiative_cooling, external_gravity, &
       parallel_conduction, perpendicular_conduction, use_fixed_tc_para, &
@@ -239,7 +240,8 @@ contains
     dropoff_edge_dist = 0.05_dp
     dropoff_width = 0.1_dp
 
-    read(unit, nml=physicslist, iostat=iostat)
+    read(unit, nml=physicslist, iostat=iostat, iomsg=iomsg)
+    call parse_io_info(iostat, iomsg)
 
     call settings%physics%set_gamma(mhd_gamma)
     if (incompressible) call settings%physics%set_incompressible()
@@ -268,10 +270,11 @@ contains
   end subroutine read_physicslist
 
 
-  subroutine read_equilibriumlist(unit, settings, iostat)
+  subroutine read_equilibriumlist(unit, settings)
     integer, intent(in) :: unit
     type(settings_t), intent(inout) :: settings
-    integer, intent(out) :: iostat
+    integer :: iostat
+    character(str_len) :: iomsg
 
     character(len=str_len) :: equilibrium_type, boundary_type
     logical :: use_defaults
@@ -283,7 +286,8 @@ contains
     boundary_type = "wall"
     use_defaults = .true.
 
-    read(unit, nml=equilibriumlist, iostat=iostat)
+    read(unit, nml=equilibriumlist, iostat=iostat, iomsg=iomsg)
+    call parse_io_info(iostat, iomsg)
 
     call settings%equilibrium%set_equilibrium_type(equilibrium_type)
     call settings%equilibrium%set_boundary_type(boundary_type)
@@ -291,11 +295,12 @@ contains
   end subroutine read_equilibriumlist
 
 
-  subroutine read_paramlist(unit, iostat)
+  subroutine read_paramlist(unit)
     use mod_equilibrium_params
 
     integer, intent(in) :: unit
-    integer, intent(out) :: iostat
+    integer :: iostat
+    character(str_len) :: iomsg
 
     namelist /paramlist/  &
       k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, cte_v03, &
@@ -304,16 +309,18 @@ contains
       r0, rc, rj, Bth0, Bz0, V, j0, g, eq_bool
 
     call init_equilibrium_params()
-    read(unit, nml=paramlist, iostat=iostat)
+    read(unit, nml=paramlist, iostat=iostat, iomsg=iomsg)
+    call parse_io_info(iostat, iomsg)
   end subroutine read_paramlist
 
 
-  subroutine read_unitlist(unit, settings, iostat)
+  subroutine read_unitlist(unit, settings)
     use mod_check_values, only: is_NaN
 
     integer, intent(in) :: unit
     type(settings_t), intent(inout) :: settings
-    integer, intent(out) :: iostat
+    integer :: iostat
+    character(str_len) :: iomsg
 
     real(dp) :: unit_density, unit_temperature, unit_magneticfield, unit_length
     real(dp) :: mean_molecular_weight
@@ -329,7 +336,8 @@ contains
     unit_length = 1.0e9_dp
     mean_molecular_weight = settings%units%get_mean_molecular_weight()
 
-    read(unit, nml=unitslist, iostat=iostat)
+    read(unit, nml=unitslist, iostat=iostat, iomsg=iomsg)
+    call parse_io_info(iostat, iomsg)
 
     if (.not. is_NaN(unit_density)) then
       call settings%units%set_units_from_density( &
@@ -366,6 +374,14 @@ contains
       return
     end if
   end subroutine check_eigenfunction_subset_params
+
+
+  subroutine parse_io_info(iostat, iomsg)
+    integer, intent(in) :: iostat
+    character(len=*), intent(in) :: iomsg
+
+    if (iostat > 0) call log_message(trim(adjustl(iomsg)), level="error")
+  end subroutine parse_io_info
 
 
   ! LCOV_EXCL_START <this routine is excluded from coverage>

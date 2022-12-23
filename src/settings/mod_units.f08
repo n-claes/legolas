@@ -46,6 +46,7 @@ module mod_units
     procedure, public :: get_unit_resistivity
     procedure, public :: get_unit_lambdaT
     procedure, public :: get_unit_conduction
+    procedure, public :: get_unit_gravity
 
     procedure, private :: update_dependent_units
 
@@ -241,4 +242,9 @@ contains
     get_unit_conduction = this%unit_conduction
   end function get_unit_conduction
 
+
+  pure real(dp) function get_unit_gravity(this)
+    class(units_t), intent(in) :: this
+    get_unit_gravity = this%unit_length / this%unit_time**2
+  end function get_unit_gravity
 end module mod_units
