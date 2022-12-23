@@ -46,18 +46,17 @@ contains
       pf_kappa_perp = 8.2d-33
     end if
 
-    call set_kappa_para(settings, T_field % T0, kappa_field % kappa_para)
-    call set_kappa_perp( &
-      settings, T_field % T0, rho_field % rho0, B_field % B0, kappa_field % kappa_perp &
-    )
-
-    if (.not. settings%physics%conduction%has_fixed_tc_para()) then
-      call set_kappa_para_derivatives(T_field % T0, kappa_field % d_kappa_para_dT)
+    if (settings%physics%conduction%has_parallel_conduction()) then
+      call set_kappa_para(settings, T_field%T0, kappa_field%kappa_para)
+      call set_kappa_para_derivatives(settings, T_field%T0, kappa_field%d_kappa_para_dT)
     end if
-
-    if (.not. settings%physics%conduction%has_fixed_tc_perp()) then
+    if (settings%physics%conduction%has_perpendicular_conduction()) then
+      call set_kappa_perp( &
+        settings, T_field%T0, rho_field%rho0, B_field%B0, kappa_field%kappa_perp &
+      )
       ! set rho, T, B derivatives
       call set_kappa_perp_derivatives( &
+        settings, &
         T_field % T0, &
         rho_field % rho0, &
         B_field % B0, &
@@ -66,7 +65,9 @@ contains
         kappa_field % d_kappa_perp_dT &
       )
       ! set derivatives with respect to r
-      call set_kappa_perp_radial_derivative(rho_field, T_field, B_field, kappa_field)
+      call set_kappa_perp_radial_derivative( &
+        settings, rho_field, T_field, B_field, kappa_field &
+      )
     end if
 
     ! set conduction prefactor and its radial derivative
@@ -106,7 +107,6 @@ contains
   !! @note    All variables should be normalised when calling this routine,
   !!          the perpendicular conduction is normalised on exit.
   subroutine set_kappa_perp(settings, T0_eq, rho0_eq, B0_eq, tc_perp)
-
     type(settings_t), intent(in) :: settings
     !> equilibrium temperature
     real(dp), intent(in)  :: T0_eq(:)
@@ -137,13 +137,15 @@ contains
   !> Calculates the temperature derivative of the parallel thermal conduction component.
   !! @note    All variables should be normalised when calling this routine,
   !!          values are normalised on exit.
-  subroutine set_kappa_para_derivatives(T0_eq, d_tcpara_dT)
+  subroutine set_kappa_para_derivatives(settings, T0_eq, d_tcpara_dT)
+    type(settings_t), intent(in) :: settings
     !> equilibrium temperature
     real(dp), intent(in)  :: T0_eq(:)
     !> temperature derivative of parallel thermal conduction, normalised on exit
     real(dp), intent(out) :: d_tcpara_dT(size(T0_eq))
-
     real(dp)  :: T0_dimfull(size(T0_eq))
+
+    if (settings%physics%conduction%has_fixed_tc_para()) return
 
     call log_message("setting kappa_para derivatives", level="debug")
     T0_dimfull = T0_eq * unit_temperature
@@ -158,10 +160,11 @@ contains
   !! @note    All variables should be normalised when calling this routine.
   !!          The thermal conduction derivatives are normalised on exit.
   subroutine set_kappa_perp_derivatives( &
-    T0_eq, rho0_eq, B0_eq, d_tc_drho, d_tc_dB2, d_tc_dT &
+    settings, T0_eq, rho0_eq, B0_eq, d_tc_drho, d_tc_dB2, d_tc_dT &
   )
     use mod_units, only: unit_dtc_drho, unit_dtc_dB2, unit_dtc_dT
 
+    type(settings_t), intent(in) :: settings
     !> equilibrium temperature
     real(dp), intent(in)  :: T0_eq(:)
     !> equilibrium density
@@ -178,6 +181,8 @@ contains
     real(dp)  :: rho0_dimfull(size(T0_eq))
     real(dp)  :: B0_dimfull(size(T0_eq))
     real(dp)  :: nH_dimfull(size(T0_eq))
+
+    if (settings%physics%conduction%has_fixed_tc_perp()) return
 
     call log_message("setting kappa_perp rho, T, B derivatives", level="debug")
     ! re-dimensionalise variables, in normalised units nH = rho
@@ -208,9 +213,12 @@ contains
   !!  + \frac{d\kappa_{\perp, 0}}{dT} T_0'
   !!  + \frac{d\kappa_{\perp, 0}}{d(B^2)}2B_0 B_0'
   !! $$
-  subroutine set_kappa_perp_radial_derivative(rho_field, T_field, B_field, kappa_field)
+  subroutine set_kappa_perp_radial_derivative( &
+    settings, rho_field, T_field, B_field, kappa_field &
+  )
     use mod_types, only: density_type, temperature_type, bfield_type, conduction_type
 
+    type(settings_t), intent(in) :: settings
     !> the type containing the density attributes
     type(density_type), intent(in) :: rho_field
     !> the type containing the temperature attributes
@@ -221,6 +229,8 @@ contains
     type(conduction_type), intent(inout)  :: kappa_field
 
     real(dp)  :: dB0(size(B_field % B0))
+
+    if (settings%physics%conduction%has_fixed_tc_perp()) return
 
     call log_message("setting kappa_perp radial derivative", level="debug")
     ! magnetic field derivative

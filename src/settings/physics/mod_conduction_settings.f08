@@ -5,10 +5,10 @@ module mod_conduction_settings
   private
 
   type, public :: conduction_settings_t
-    logical, private :: has_para_conduction
+    logical, private :: para_conduction
     logical, private :: fixed_tc_para
     real(dp), private :: fixed_tc_para_value
-    logical, private :: has_perp_conduction
+    logical, private :: perp_conduction
     logical, private :: fixed_tc_perp
     real(dp), private :: fixed_tc_perp_value
 
@@ -17,10 +17,12 @@ module mod_conduction_settings
     procedure, public :: disable
     procedure, public :: is_enabled
     procedure, public :: enable_para_conduction
+    procedure, public :: has_parallel_conduction
     procedure, public :: set_fixed_tc_para
     procedure, public :: get_fixed_tc_para
     procedure, public :: has_fixed_tc_para
     procedure, public :: enable_perp_conduction
+    procedure, public :: has_perpendicular_conduction
     procedure, public :: set_fixed_tc_perp
     procedure, public :: get_fixed_tc_perp
     procedure, public :: has_fixed_tc_perp
@@ -39,23 +41,29 @@ contains
 
   pure logical function is_enabled(this)
     class(conduction_settings_t), intent(in) :: this
-    is_enabled = this%has_para_conduction .or. this%has_perp_conduction
+    is_enabled = this%has_parallel_conduction() .or. this%has_perpendicular_conduction()
   end function is_enabled
 
 
   pure subroutine disable(this)
     class(conduction_settings_t), intent(inout) :: this
-    this%has_para_conduction = .false.
+    this%para_conduction = .false.
     this%fixed_tc_para = .false.
-    this%has_perp_conduction = .false.
+    this%perp_conduction = .false.
     this%fixed_tc_perp = .false.
   end subroutine disable
 
 
   pure subroutine enable_para_conduction(this)
     class(conduction_settings_t), intent(inout) :: this
-    this%has_para_conduction = .true.
+    this%para_conduction = .true.
   end subroutine enable_para_conduction
+
+
+  pure logical function has_parallel_conduction(this)
+    class(conduction_settings_t), intent(in) :: this
+    has_parallel_conduction = this%para_conduction
+  end function has_parallel_conduction
 
 
   pure subroutine set_fixed_tc_para(this, tc_para)
@@ -80,8 +88,14 @@ contains
 
   pure subroutine enable_perp_conduction(this)
     class(conduction_settings_t), intent(inout) :: this
-    this%has_perp_conduction = .true.
+    this%perp_conduction = .true.
   end subroutine enable_perp_conduction
+
+
+  pure logical function has_perpendicular_conduction(this)
+    class(conduction_settings_t), intent(in) :: this
+    has_perpendicular_conduction = this%perp_conduction
+  end function has_perpendicular_conduction
 
 
   pure subroutine set_fixed_tc_perp(this, tc_perp)
@@ -106,10 +120,10 @@ contains
 
   pure subroutine set_defaults(this)
     class(conduction_settings_t), intent(inout) :: this
-    this%has_para_conduction = .false.
+    this%para_conduction = .false.
     this%fixed_tc_para = .false.
     this%fixed_tc_para_value = 0.0_dp
-    this%has_perp_conduction = .false.
+    this%perp_conduction = .false.
     this%fixed_tc_perp = .false.
     this%fixed_tc_perp_value = 0.0_dp
   end subroutine set_defaults

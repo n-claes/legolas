@@ -66,9 +66,6 @@ contains
 
 
   subroutine set_boundary_flags(settings)
-    use mod_equilibrium, only: kappa_field
-    use mod_global_variables, only: dp_LIMIT
-
     type(settings_t), intent(in) :: settings
 
 
@@ -78,10 +75,7 @@ contains
 
     ! check if we need regularity conditions on T, this is the case if we have
     ! perpendicular thermal conduction
-    apply_T_bounds = ( &
-      settings%physics%conduction%is_enabled() &
-      .and. any(abs(kappa_field % kappa_perp) > dp_LIMIT) &
-    )
+    apply_T_bounds = settings%physics%conduction%has_perpendicular_conduction()
 
     ! for viscosity, check if we need a no-slip condition.
     if (settings%physics%viscosity%is_enabled()) then
