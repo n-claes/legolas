@@ -13,7 +13,7 @@ contains
     call reset_globals()
     settings = get_settings()
     call reset_fields(settings, init_fields=.true.)
-    call set_default_units()
+    call set_default_units(settings)
   end subroutine init_test
 
 
@@ -24,28 +24,28 @@ contains
   end subroutine teardown_test
 
 
-  ! @test
-  ! subroutine test_set_eta_cte()
-  !   use mod_equilibrium, only: T_field, eta_field
+  @test
+  subroutine test_set_eta_cte()
+    use mod_equilibrium, only: T_field, eta_field
 
-  !   call set_name("setting constant resistivity")
-  !   call settings%physics%enable_resistivity( &
-  !     use_fixed_resistivity=.true., fixed_eta_value=2.0_dp &
-  !   )
-  !   call set_resistivity_values(settings, T_field, eta_field)
-  !   @assertTrue(settings%physics%resistivity%is_enabled())
-  !   @assertEqual(2.0_dp, eta_field % eta, tolerance=TOL)
-  !   @assertEqual(0.0d0, eta_field % d_eta_dT, tolerance=TOL)
-  !   @assertEqual(0.0d0, eta_field % d_eta_dr, tolerance=TOL)
-  ! end subroutine test_set_eta_cte
+    call set_name("setting constant resistivity")
+    call settings%physics%enable_resistivity( &
+      use_fixed_resistivity=.true., fixed_eta_value=2.0_dp &
+    )
+    call set_resistivity_values(settings, T_field, eta_field)
+    @assertTrue(settings%physics%resistivity%is_enabled())
+    @assertEqual(2.0_dp, eta_field % eta, tolerance=TOL)
+    @assertEqual(0.0d0, eta_field % d_eta_dT, tolerance=TOL)
+    @assertEqual(0.0d0, eta_field % d_eta_dr, tolerance=TOL)
+  end subroutine test_set_eta_cte
 
 
   @test
   subroutine test_set_eta()
     use mod_equilibrium, only: T_field, eta_field
-    use mod_units, only: unit_resistivity, unit_deta_dT
 
     real(dp) :: expected_eta(4), expected_deta(4)
+    real(dp) :: unit_resistivity, unit_deta_dT
 
     call set_name("setting varying resistivity")
     call settings%grid%set_gridpts(2)
@@ -53,6 +53,9 @@ contains
     T_field % T0 = [0.5d0, 1.0d0, 1.5d0, 3.0d0]
     call settings%physics%enable_resistivity()
     call set_resistivity_values(settings, T_field, eta_field)
+
+    unit_resistivity = settings%units%get_unit_resistivity()
+    unit_deta_dT = unit_resistivity / settings%units%get_unit_temperature()
 
     expected_eta = [ &
       5.65272704d-18, 1.99854081d-18, 1.08786783d-18, 3.84619359d-19 &

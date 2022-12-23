@@ -5,6 +5,9 @@ module mod_test_units
   implicit none
 
   type(settings_t) :: settings
+  real(dp) :: unit_magneticfield, unit_length, unit_pressure, unit_temperature, &
+    unit_density, unit_numberdensity, unit_velocity, unit_time, unit_lambdaT, &
+    unit_dlambdaT_dT, unit_conduction, unit_resistivity, mean_molecular_weight
 
 contains
 
@@ -13,7 +16,6 @@ contains
     call reset_globals()
     settings = get_settings()
     call reset_fields(settings, init_fields=.true.)
-    call set_default_units()
   end subroutine init_test
 
 
@@ -24,35 +26,34 @@ contains
   end subroutine teardown_test
 
 
-  @test
-  subroutine set_units_rho_temp()
-    call set_name("setting density & temperature units")
-    call set_normalisations( &
-      new_unit_temperature=1.0d6, &
-      new_unit_magneticfield=5.0d0, &
-      new_unit_length=1.0d10, &
-      new_unit_density=1.0d-12 &
-    )
-    @assertExceptionRaised("unit density and unit temperature can not both be set.")
-  end subroutine set_units_rho_temp
-
-
-  @test
-  subroutine set_units_no_rho_no_temp()
-    call set_name("setting units without rho or temperature")
-    call set_normalisations(new_unit_magneticfield=5.0d0, new_unit_length=1.0d10)
-    @assertExceptionRaised("no unit density or unit temperature specified.")
-  end subroutine set_units_no_rho_no_temp
+  subroutine retrieve_units()
+    unit_magneticfield = settings%units%get_unit_magneticfield()
+    unit_length = settings%units%get_unit_length()
+    unit_pressure = settings%units%get_unit_pressure()
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_density = settings%units%get_unit_density()
+    unit_numberdensity = settings%units%get_unit_numberdensity()
+    unit_velocity = settings%units%get_unit_velocity()
+    unit_time = settings%units%get_unit_time()
+    unit_lambdaT = settings%units%get_unit_lambdaT()
+    unit_dlambdaT_dT = unit_lambdaT / unit_temperature
+    unit_conduction = settings%units%get_unit_conduction()
+    unit_resistivity = settings%units%get_unit_resistivity()
+    mean_molecular_weight = settings%units%get_mean_molecular_weight()
+  end subroutine retrieve_units
 
 
   @test
   subroutine test_units()
-    call set_name("setting units")
-    call set_normalisations( &
-      new_unit_temperature=1.0d6, &
-      new_unit_magneticfield=5.0d0, &
-      new_unit_length=1.0d10 &
+    call set_name("setting units (mean molecular weight = 1)")
+    call settings%units%set_units_from_temperature( &
+      unit_temperature=1.0d6, &
+      unit_magneticfield=5.0d0, &
+      unit_length=1.0d10, &
+      mean_molecular_weight=1.0d0 &
     )
+    call retrieve_units()
+    @assertTrue(settings%units%are_set())
     @assertEqual(5.0d0, unit_magneticfield, tolerance=TOL)
     @assertEqual(1.0d10, unit_length, tolerance=TOL)
     @assertEqual(1.9894367886486917d0, unit_pressure, tolerance=TOL)
@@ -64,18 +65,21 @@ contains
     @assertEqual(8.7052055713759540d0, unit_lambdaT * 1.0d24, tolerance=TOL)
     @assertEqual(8.7052055713759540d0, unit_dlambdaT_dT * 1.0d30, tolerance=TOL)
     @assertEqual(180747742227.85196d0, unit_conduction, tolerance=TOL)
+    @assertEqual(90853724661753808.0d0, unit_resistivity, tolerance=TOL)
   end subroutine test_units
 
 
   @test
   subroutine test_units_molecular_weight_half()
-    call set_name("setting units")
-    call set_normalisations( &
-      new_unit_temperature=1.0d6, &
-      new_unit_magneticfield=5.0d0, &
-      new_unit_length=1.0d10, &
-      new_mean_molecular_weight=0.5d0 &
+    call set_name("setting units (mean molecular weight = 0.5)")
+    call settings%units%set_units_from_temperature( &
+      unit_temperature=1.0d6, &
+      unit_magneticfield=5.0d0, &
+      unit_length=1.0d10, &
+      mean_molecular_weight=0.5d0 &
     )
+    call retrieve_units()
+    @assertTrue(settings%units%are_set())
     @assertEqual(0.5d0, mean_molecular_weight, tolerance=TOL)
     @assertEqual(5.0d0, unit_magneticfield, tolerance=TOL)
     @assertEqual(1.0d10, unit_length, tolerance=TOL)
@@ -88,25 +92,7 @@ contains
     @assertEqual(49.244079129142825d0, unit_lambdaT * 1.0d24, tolerance=TOL)
     @assertEqual(49.244079129142825d0, unit_dlambdaT_dT * 1.0d30, tolerance=TOL)
     @assertEqual(255615908426.94446d0, unit_conduction, tolerance=TOL)
+    @assertEqual(1.2848656960876318d17, unit_resistivity, tolerance=TOL)
   end subroutine test_units_molecular_weight_half
 
-  @test
-  subroutine test_unit_resistivity()
-    use mod_equilibrium, only: T_field, eta_field
-    use mod_resistivity, only: set_resistivity_values
-
-    call set_name("setting unit resistivity")
-    T_field % T0 = 1.0d0
-    ! at 1 MK normalised resistivity should be 0.1
-    call set_resistivity_values(settings, T_field, eta_field)
-    @assertEqual(0.1d0, eta_field % eta(:), tolerance=TOL)
-  end subroutine test_unit_resistivity
-
-
-  @test
-  subroutine test_if_normalisations_set()
-    call set_name("check if normalisations set")
-    call check_if_normalisations_set()
-    @assertTrue(normalisations_are_set)
-  end subroutine test_if_normalisations_set
 end module mod_test_units

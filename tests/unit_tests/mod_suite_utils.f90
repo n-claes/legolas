@@ -92,16 +92,13 @@ contains
   end subroutine create_test_grid
 
 
-  subroutine set_default_units()
-    use mod_global_variables, only: cgs_units
-    use mod_units, only: set_normalisations
-
-    cgs_units = .true.
-    call set_normalisations( &
-      new_unit_temperature=1.0d6, &
-      new_unit_magneticfield=5.0d0, &
-      new_unit_length=1.0d10, &
-      new_mean_molecular_weight=1.0d0 &
+  subroutine set_default_units(settings)
+    type(settings_t), intent(inout) :: settings
+    call settings%units%set_units_from_temperature( &
+      unit_temperature=1.0d6, &
+      unit_magneticfield=5.0d0, &
+      unit_length=1.0d10, &
+      mean_molecular_weight=1.0d0 &
     )
   end subroutine set_default_units
 

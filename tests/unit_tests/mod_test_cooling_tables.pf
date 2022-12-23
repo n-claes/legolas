@@ -2,7 +2,6 @@ module mod_test_cooling_tables
   use mod_suite_utils
   use funit
   use mod_cooling_curves
-  use mod_units, only: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
   use mod_radiative_cooling, only: initialise_radiative_cooling, &
     set_radiative_cooling_values
   use mod_equilibrium, only: rho_field, T_field, rc_field
@@ -11,6 +10,7 @@ module mod_test_cooling_tables
   real(dp), allocatable :: expected(:)
   integer :: gauss_gridpts
   type(settings_t) :: settings
+  real(dp) :: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
 
 contains
 
@@ -21,7 +21,10 @@ contains
     gauss_gridpts = settings%grid%get_gauss_gridpts()
     allocate(expected(settings%grid%get_gauss_gridpts()))
     call reset_fields(settings, init_fields=.true.)
-    call set_default_units()
+    call set_default_units(settings)
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_lambdaT = settings%units%get_unit_lambdaT()
+    unit_dlambdaT_dT = unit_lambdaT / unit_temperature
     rho_field % rho0 = 1.0d0
     expected = 0.0d0
   end subroutine init_test
