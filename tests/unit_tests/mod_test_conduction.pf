@@ -3,8 +3,6 @@ module mod_test_conduction
   use funit
   use mod_thermal_conduction, only: set_conduction_values
   use mod_equilibrium, only: rho_field, T_field, B_field, kappa_field
-  use mod_global_variables, only: use_fixed_tc_para, fixed_tc_para_value, &
-    use_fixed_tc_perp, fixed_tc_perp_value
   use mod_physical_constants, only: coulomb_log
   use mod_units
   use mod_grid, only: grid_gauss
@@ -30,7 +28,7 @@ contains
 
   @after
   subroutine teardown_test()
-    call clean_up()
+    call clean_up(settings)
     call settings%delete()
   end subroutine teardown_test
 
@@ -38,13 +36,14 @@ contains
   @test
   subroutine test_kappa_para_cte()
     call set_name("thermal conduction (kappa_para cte)")
-    use_fixed_tc_para = .true.
-    fixed_tc_para_value = 1.0d0
-    use_fixed_tc_perp = .true.
-    fixed_tc_perp_value = 0.0d0
-    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+    call settings%physics%enable_parallel_conduction( &
+      use_fixed_tc_para=.true., fixed_tc_para_value=1.0_dp &
+    )
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
 
-    @assertEqual(fixed_tc_para_value, kappa_field % kappa_para, tolerance=TOL)
+    @assertTrue(settings%physics%conduction%is_enabled())
+    @assertTrue(settings%physics%conduction%has_fixed_tc_para())
+    @assertEqual(1.0_dp, kappa_field % kappa_para, tolerance=TOL)
     @assertEqual(0.0d0, kappa_field % d_kappa_para_dT, tolerance=TOL)
     @assertEqual(0.0d0, kappa_field % kappa_perp, tolerance=TOL)
     @assertEqual(0.0d0, kappa_field % d_kappa_perp_drho, tolerance=TOL)
@@ -57,13 +56,13 @@ contains
   @test
   subroutine test_kappa_perp_cte()
     call set_name("thermal conduction (kappa_perp cte)")
-    use_fixed_tc_para = .true.
-    fixed_tc_para_value = 0.0d0
-    use_fixed_tc_perp = .true.
-    fixed_tc_perp_value = 1.0d0
-    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+    call settings%physics%enable_perpendicular_conduction( &
+      use_fixed_tc_perp=.true., fixed_tc_perp_value=1.0_dp &
+    )
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
 
-    @assertEqual(fixed_tc_perp_value, kappa_field % kappa_perp, tolerance=TOL)
+    @assertTrue(settings%physics%conduction%is_enabled())
+    @assertEqual(1.0_dp, kappa_field % kappa_perp, tolerance=TOL)
     @assertEqual(0.0d0, kappa_field % kappa_para, tolerance=TOL)
     @assertEqual(0.0d0, kappa_field % d_kappa_para_dT, tolerance=TOL)
     @assertEqual(0.0d0, kappa_field % d_kappa_perp_drho, tolerance=TOL)
@@ -78,12 +77,16 @@ contains
     real(dp)  :: actual(array_size), expected(array_size)
 
     call set_name("thermal conduction (kappa_para)")
-    T_field % T0 = grid_gauss
-    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+    T_field%T0 = grid_gauss
+    call settings%physics%enable_parallel_conduction()
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
     expected = ( &
       pf_para * (grid_gauss * unit_temperature) ** 2.5d0 / coulomb_log &
     )
-    actual = kappa_field % kappa_para * unit_conduction
+    actual = kappa_field%kappa_para * unit_conduction
+    @assertTrue(settings%physics%conduction%is_enabled())
+    @assertTrue(settings%physics%conduction%has_parallel_conduction())
+    @assertFalse(settings%physics%conduction%has_perpendicular_conduction())
     @assertEqual(0.0d0, abs(expected - actual), tolerance=1.0d-6)
   end subroutine test_kappa_para
 
@@ -94,11 +97,15 @@ contains
 
     call set_name("thermal conduction (kappa_para dT)")
     T_field % T0 = 2.0d0 * grid_gauss
-    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+    call settings%physics%enable_parallel_conduction()
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
     expected = ( &
       pf_para * 2.5d0 * (2.0d0 * grid_gauss * unit_temperature) ** 1.5d0 / coulomb_log &
     )
     actual = kappa_field % d_kappa_para_dT * unit_conduction * unit_temperature
+    @assertTrue(settings%physics%conduction%is_enabled())
+    @assertTrue(settings%physics%conduction%has_parallel_conduction())
+    @assertFalse(settings%physics%conduction%has_perpendicular_conduction())
     @assertEqual(0.0d0, abs(expected - actual), tolerance=1.0d-12)
   end subroutine test_kappa_para_dT
 
@@ -112,17 +119,19 @@ contains
     rho = 3.0d0 * grid_gauss
     temp = sqrt(grid_gauss)
     B0 = 0.5d0 * grid_gauss**2
-
     rho_field % rho0 = rho
     T_field % T0 = temp
     B_field % B0 = B0
-    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
-
+    call settings%physics%enable_perpendicular_conduction()
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
     expected = ( &
       pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
       / ((B0 * unit_magneticfield) ** 2 * sqrt(temp * unit_temperature)) &
     )
     actual = kappa_field % kappa_perp * unit_conduction
+    @assertTrue(settings%physics%conduction%is_enabled())
+    @assertFalse(settings%physics%conduction%has_parallel_conduction())
+    @assertTrue(settings%physics%conduction%has_perpendicular_conduction())
     @assertEqual(0.0d0, abs(expected - actual), tolerance=1.0d-6)
   end subroutine test_kappa_perp
 
@@ -136,16 +145,18 @@ contains
     rho = 5.0d0 * grid_gauss
     temp = 0.2d0 * sqrt(grid_gauss)
     B0 = grid_gauss**2
-
     rho_field % rho0 = rho
     T_field % T0 = temp
     B_field % B0 = B0
-    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
-
+    call settings%physics%enable_perpendicular_conduction()
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
     expected = ( &
       2.0d0 * pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) &
       / ((B0 * unit_magneticfield) ** 2 * sqrt(temp * unit_temperature)) &
     )
+    @assertTrue(settings%physics%conduction%is_enabled())
+    @assertFalse(settings%physics%conduction%has_parallel_conduction())
+    @assertTrue(settings%physics%conduction%has_perpendicular_conduction())
     actual = kappa_field % d_kappa_perp_drho * unit_dtc_drho
     @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
   end subroutine test_kappa_perp_drho
@@ -160,17 +171,19 @@ contains
     rho = grid_gauss**2
     temp = 5.0d0 * grid_gauss**2
     B0 = 0.25d0 * grid_gauss
-
     rho_field % rho0 = rho
     T_field % T0 = temp
     B_field % B0 = B0
-    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
-
+    call settings%physics%enable_perpendicular_conduction()
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
     expected = ( &
       -0.5d0 * pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
       / ((B0 * unit_magneticfield) ** 2 * (temp * unit_temperature) ** 1.5d0) &
     )
     actual = kappa_field % d_kappa_perp_dT * unit_dtc_dT
+    @assertTrue(settings%physics%conduction%is_enabled())
+    @assertFalse(settings%physics%conduction%has_parallel_conduction())
+    @assertTrue(settings%physics%conduction%has_perpendicular_conduction())
     @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
   end subroutine test_kappa_perp_dT
 
@@ -184,17 +197,19 @@ contains
     rho = grid_gauss**3
     temp = 5.0d0 * grid_gauss
     B0 = 3.0d0 * sqrt(grid_gauss)
-
     rho_field % rho0 = rho
     T_field % T0 = temp
     B_field % B0 = B0
-    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
-
+    call settings%physics%enable_perpendicular_conduction()
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
     expected = ( &
       -pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
       / ((B0 * unit_magneticfield) ** 4 * sqrt(temp * unit_temperature)) &
     )
     actual = kappa_field % d_kappa_perp_dB2 * unit_dtc_dB2
+    @assertTrue(settings%physics%conduction%is_enabled())
+    @assertFalse(settings%physics%conduction%has_parallel_conduction())
+    @assertTrue(settings%physics%conduction%has_perpendicular_conduction())
     @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
   end subroutine test_kappa_perp_db2
 
@@ -231,7 +246,8 @@ contains
     B_field % B03 = B03
     B_field % d_B03_dr = dB03
     B_field % B0 = B0
-    call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+    call settings%physics%enable_perpendicular_conduction()
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
 
     ! kappa derivatives
     dkrho = ( &
@@ -249,6 +265,9 @@ contains
     ! expected and actual values are approximately 1e-2 after multiplying with 1e8
     expected = (dkrho * drho + dkT * dtemp + dkB2 * 2.0d0 * B0 * dB0) * 1.0d8
     actual = kappa_field % d_kappa_perp_dr * 1.0d8
+    @assertTrue(settings%physics%conduction%is_enabled())
+    @assertFalse(settings%physics%conduction%has_parallel_conduction())
+    @assertTrue(settings%physics%conduction%has_perpendicular_conduction())
     @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
   end subroutine test_kappa_perp_dr
 

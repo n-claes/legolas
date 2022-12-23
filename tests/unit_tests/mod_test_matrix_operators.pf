@@ -31,7 +31,7 @@ contains
 
   @after
   subroutine tear_down()
-    call clean_up()
+    call clean_up(settings)
     call settings%delete()
   end subroutine tear_down
 

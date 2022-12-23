@@ -49,16 +49,17 @@ contains
   end subroutine reset_fields
 
 
-  subroutine clean_up()
-    use mod_global_variables, only: radiative_cooling
+  subroutine clean_up(settings)
     use mod_grid, only: grid, grid_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
+
+    type(settings_t), intent(in) :: settings
 
     if (allocated(grid)) then
       call grid_clean()
     end if
     call reset_fields(init_fields=.false.)
-    if (radiative_cooling) then
+    if (settings%physics%cooling%is_enabled()) then
       call radiative_cooling_clean()
     end if
   end subroutine clean_up
@@ -86,6 +87,7 @@ contains
     call settings%grid%set_geometry(geometry)
     call settings%grid%set_grid_boundaries(x_start, x_end)
     call settings%grid%set_gridpts(pts)
+    call settings%update_block_dimensions()
     call initialise_grid(settings)
   end subroutine create_test_grid
 

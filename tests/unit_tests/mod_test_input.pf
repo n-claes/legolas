@@ -4,7 +4,7 @@ module mod_test_input
   use mod_input, only: read_parfile
   implicit none
 
-  character(len=125) :: error_msg
+  character(:), allocatable :: error_msg
   type(settings_t) :: settings
 
 contains
@@ -13,14 +13,13 @@ contains
   subroutine init_test()
     call reset_globals()
     settings = get_settings()
-    call reset_fields(settings, init_fields=.true.)
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
-    call clean_up()
     call settings%delete()
+    if (allocated(error_msg)) deallocate(error_msg)
   end subroutine teardown_test
 
 
@@ -59,35 +58,35 @@ contains
   end subroutine test_parfile_dryrun
 
 
-  @test
-  subroutine test_parfile_doubleunits()
-    call set_name("setting rho + T unit in parfile")
-    call read_parfile("test_parfiles/parfile_doubleunits.par", settings)
-    error_msg = ( &
-      "unit density and unit temperature cannot both be provided in the parfile!" &
-    )
-    @assertExceptionRaised(trim(error_msg))
-  end subroutine test_parfile_doubleunits
+  ! @test
+  ! subroutine test_parfile_doubleunits()
+  !   call set_name("setting rho + T unit in parfile")
+  !   call read_parfile("test_parfiles/parfile_doubleunits.par", settings)
+  !   error_msg = ( &
+  !     "unit density and unit temperature cannot both be provided in the parfile!" &
+  !   )
+  !   @assertExceptionRaised(trim(error_msg))
+  ! end subroutine test_parfile_doubleunits
 
 
-  @test
-  subroutine test_parfile_onlyrhounit()
-    call set_name("setting only rho unit in parfile")
-    call read_parfile("test_parfiles/parfile_onlyrhounit.par", settings)
-    error_msg = "unit_density found, unit_magneticfield and unit_length also required."
-    @assertExceptionRaised(error_msg)
-  end subroutine test_parfile_onlyrhounit
+  ! @test
+  ! subroutine test_parfile_onlyrhounit()
+  !   call set_name("setting only rho unit in parfile")
+  !   call read_parfile("test_parfiles/parfile_onlyrhounit.par", settings)
+  !   error_msg = "unit_density found, unit_magneticfield and unit_length also required."
+  !   @assertExceptionRaised(trim(adjustl(error_msg)))
+  ! end subroutine test_parfile_onlyrhounit
 
 
-  @test
-  subroutine test_parfile_onlyTunit()
-    call set_name("setting only T unit in parfile")
-    call read_parfile("test_parfiles/parfile_onlytempunit.par", settings)
-    error_msg = ( &
-      "unit_temperature found, unit_magneticfield and unit_length also required." &
-    )
-    @assertExceptionRaised(error_msg)
-  end subroutine test_parfile_onlyTunit
+  ! @test
+  ! subroutine test_parfile_onlyTunit()
+  !   call set_name("setting only T unit in parfile")
+  !   call read_parfile("test_parfiles/parfile_onlytempunit.par", settings)
+  !   error_msg = ( &
+  !     "unit_temperature found, unit_magneticfield and unit_length also required." &
+  !   )
+  !   @assertExceptionRaised(trim(adjustl(error_msg)))
+  ! end subroutine test_parfile_onlyTunit
 
 
   @test
@@ -97,10 +96,11 @@ contains
 
     call set_name("setting units through parfile (rho)")
     call read_parfile("test_parfiles/parfile_units_rho.par", settings)
+
     @assertTrue(cgs_units)
-    @assertEqual(unit_density, 1.0d-15, tolerance=TOL)
-    @assertEqual(unit_magneticfield, 10.0d0, tolerance=TOL)
-    @assertEqual(unit_length, 1.0d9, tolerance=TOL)
+    @assertEqual(1.0d-15, unit_density, tolerance=TOL)
+    @assertEqual(10.0d0, unit_magneticfield, tolerance=TOL)
+    @assertEqual(1.0d9, unit_length, tolerance=TOL)
   end subroutine test_parfile_units_rho
 
 

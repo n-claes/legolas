@@ -21,7 +21,7 @@ contains
 
   @after
   subroutine teardown_test()
-    call clean_up()
+    call clean_up(settings)
     call settings%delete()
   end subroutine teardown_test
 

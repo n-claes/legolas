@@ -77,7 +77,7 @@ contains
 
   @after
   subroutine teardown_test()
-    call clean_up()
+    call clean_up(settings)
     if (allocated(eigenvectors)) then
       deallocate(eigenvectors)
     end if
