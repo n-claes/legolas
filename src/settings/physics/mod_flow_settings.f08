@@ -9,7 +9,6 @@ module mod_flow_settings
     procedure, public :: enable
     procedure, public :: disable
     procedure, public :: is_enabled
-    procedure, public :: set_defaults
   end type flow_settings_t
 
   public :: new_flow_settings
@@ -18,7 +17,7 @@ contains
 
   pure function new_flow_settings() result(flow)
     type(flow_settings_t) :: flow
-    call flow%set_defaults()
+    flow%has_flow = .false.
   end function new_flow_settings
 
 
@@ -38,11 +37,5 @@ contains
     class(flow_settings_t), intent(inout) :: this
     this%has_flow = .false.
   end subroutine disable
-
-
-  pure subroutine set_defaults(this)
-    class(flow_settings_t), intent(inout) :: this
-    this%has_flow = .false.
-  end subroutine set_defaults
 
 end module mod_flow_settings

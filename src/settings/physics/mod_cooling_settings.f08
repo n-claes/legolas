@@ -17,7 +17,6 @@ module mod_cooling_settings
     procedure, public :: get_interpolation_points
     procedure, public :: set_cooling_curve
     procedure, public :: get_cooling_curve
-    procedure, public :: set_defaults
   end type cooling_settings_t
 
   public :: new_cooling_settings
@@ -26,7 +25,10 @@ contains
 
   pure function new_cooling_settings() result(cooling)
     type(cooling_settings_t) :: cooling
-    call cooling%set_defaults()
+
+    cooling%has_cooling = .false.
+    call cooling%set_cooling_curve("jc_corona")
+    call cooling%set_interpolation_points(4000)
   end function new_cooling_settings
 
 
@@ -74,11 +76,4 @@ contains
     cooling_curve = this%cooling_curve
   end function get_cooling_curve
 
-
-  pure subroutine set_defaults(this)
-    class(cooling_settings_t), intent(inout) :: this
-    this%has_cooling = .false.
-    call this%set_cooling_curve("jc_corona")
-    call this%set_interpolation_points(4000)
-  end subroutine set_defaults
 end module mod_cooling_settings

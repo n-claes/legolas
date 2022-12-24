@@ -149,9 +149,7 @@ contains
   @test
   subroutine test_conduction_boundaries_kperp_wall_bmat()
     call set_name("conduction boundary conditions (B-matrix, wall, k_perp)")
-    call settings%physics%enable_perpendicular_conduction( &
-      use_fixed_tc_perp=.true., fixed_tc_perp_value=1.0_dp &
-    )
+    call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value=1.0_dp)
     ! boundary conditions on odd v1, a2, a3, even T1
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=bmat, array=bmat_array)
@@ -165,9 +163,7 @@ contains
   @test
   subroutine test_conduction_boundaries_kperp_wall_amat()
     call set_name("conduction boundary conditions (A-matrix, wall, k_perp)")
-    call settings%physics%enable_perpendicular_conduction( &
-      use_fixed_tc_perp=.true.,fixed_tc_perp_value=1.0d0 &
-    )
+    call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value=1.0_dp)
     ! boundary conditions on odd v1, a2, a3, even T1
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=amat, array=amat_array)
@@ -181,7 +177,8 @@ contains
   @test
   subroutine test_viscous_boundaries_wall_bmat()
     call set_name("viscous boundary conditions (B-matrix, wall)")
-    call settings%physics%enable_viscosity()
+    ! zero viscosity value to prevent natural boundaries from being applied
+    call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
     ! boundary conditions on odd v1, a2, a3, even v2, v3
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=bmat, array=bmat_array)
@@ -195,7 +192,7 @@ contains
   @test
   subroutine test_viscous_boundaries_wall_amat()
     call set_name("viscous boundary conditions (A-matrix, wall)")
-    call settings%physics%enable_viscosity()
+    call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
     ! boundary conditions on odd v1, a2, a3, even v2, v3
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=amat, array=amat_array)
@@ -214,7 +211,7 @@ contains
     ! reset the grid to cylindrical
     call grid_clean()
     call create_test_grid(settings, pts=10, geometry="cylindrical")
-    call settings%physics%enable_viscosity()
+    call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=bmat, array=bmat_array)
     ! no additional left side boundary conditions
@@ -234,7 +231,7 @@ contains
     ! reset the grid to cylindrical
     call grid_clean()
     call create_test_grid(settings, pts=10, geometry="cylindrical")
-    call settings%physics%enable_viscosity()
+    call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=amat, array=amat_array)
     ! no additional left side boundary conditions
@@ -254,7 +251,7 @@ contains
     ! reset the grid to cylindrical
     call grid_clean()
     call create_test_grid(settings, pts=10, geometry="cylindrical")
-    call settings%physics%enable_viscosity()
+    call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
     settings%grid%coaxial = .true.
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=bmat, array=bmat_array)
@@ -274,7 +271,7 @@ contains
     ! reset the grid to cylindrical
     call grid_clean()
     call create_test_grid(settings, pts=10, geometry="cylindrical")
-    call settings%physics%enable_viscosity()
+    call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
     settings%grid%coaxial = .true.
     call apply_boundary_conditions(amat, bmat, settings)
     call matrix_to_array(matrix=amat, array=amat_array)

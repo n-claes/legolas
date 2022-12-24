@@ -50,7 +50,7 @@ contains
     real(dp) :: ec, me, kB
     real(dp) :: T0_dimfull(size(T0_eq))
 
-    if (settings%physics%resistivity%use_fixed_resistivity) then
+    if (settings%physics%resistivity%has_fixed_resistivity()) then
       eta = settings%physics%resistivity%get_fixed_resistivity()
       return
     end if
@@ -81,7 +81,7 @@ contains
     real(dp) :: unit_temperature, unit_deta_dT
     real(dp) :: T0_dimfull(size(T0_eq))
 
-    if (settings%physics%resistivity%use_fixed_resistivity) then
+    if (settings%physics%resistivity%has_fixed_resistivity()) then
       deta_dT = 0.0d0
       return
     end if
@@ -117,7 +117,7 @@ contains
     real(dp) :: x, shift, stretch
     integer :: i, gauss_gridpts
 
-    if (.not. settings%physics%resistivity%use_fixed_resistivity) then
+    if (.not. settings%physics%resistivity%has_fixed_resistivity()) then
       call log_message( &
         'eta dropoff only possible with a fixed resistivity value', level='error' &
       )

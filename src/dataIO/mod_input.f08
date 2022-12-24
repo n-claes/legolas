@@ -44,6 +44,8 @@ contains
       call read_unitlist(unit_par, settings)
     close(unit_par)
 
+    ! make sure to update dimensions after reading in the parfile
+    call settings%update_block_dimensions()
     if (settings%solvers%get_solver() == "none") call settings%io%set_all_io_to_false()
   end subroutine read_parfile
 
@@ -64,12 +66,12 @@ contains
       geometry, gridpoints, x_start, x_end, coaxial, force_r0
 
     ! defaults
-    geometry = ""
-    gridpoints = 0
-    x_start = 0.0_dp
-    x_end = 1.0_dp
-    coaxial = .false.
-    force_r0 = .false.
+    geometry = settings%grid%get_geometry()
+    gridpoints = settings%grid%get_gridpts()
+    x_start = settings%grid%get_grid_start()
+    x_end = settings%grid%get_grid_end()
+    coaxial = settings%grid%coaxial
+    force_r0 = settings%grid%force_r0
 
     read(unit, nml=gridlist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
@@ -104,19 +106,19 @@ contains
       show_results, basename_datfile, output_folder, logging_level, &
       eigenfunction_subset_radius, eigenfunction_subset_center
 
-    ! defaults
-    write_matrices = .false.
-    write_eigenvectors = .false.
-    write_residuals = .false.
-    write_eigenfunctions = .true.
-    write_derived_eigenfunctions = .false.
-    write_eigenfunction_subset = .false.
-    show_results = .true.
-    basename_datfile = "datfile"
-    output_folder = "output"
+    ! get defaults
+    write_matrices = settings%io%write_matrices
+    write_eigenvectors = settings%io%write_eigenvectors
+    write_residuals = settings%io%write_residuals
+    write_eigenfunctions = settings%io%write_eigenfunctions
+    write_derived_eigenfunctions = settings%io%write_derived_eigenfunctions
+    write_eigenfunction_subset = settings%io%write_ef_subset
+    show_results = settings%io%show_results
+    basename_datfile = settings%io%get_basename_datfile()
+    output_folder = settings%io%get_output_folder()
     logging_level = 2
-    eigenfunction_subset_radius = NaN
-    eigenfunction_subset_center = cmplx(NaN, NaN, kind=dp)
+    eigenfunction_subset_radius = settings%io%ef_subset_radius
+    eigenfunction_subset_center = settings%io%ef_subset_center
 
     read(unit, nml=savelist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
@@ -139,8 +141,6 @@ contains
 
 
   subroutine read_solvelist(unit, settings)
-    use mod_global_variables, only: dp_LIMIT
-
     integer, intent(in) :: unit
     type(settings_t), intent(inout) :: settings
     integer :: iostat
@@ -156,15 +156,15 @@ contains
       solver, arpack_mode, which_eigenvalues, number_of_eigenvalues, &
       maxiter, ncv, tolerance, sigma
 
-    ! defaults
-    solver = "QR-cholesky"
-    arpack_mode = "standard"
-    which_eigenvalues = "LM"
-    number_of_eigenvalues = 10
-    maxiter = 0
-    ncv = 0
-    tolerance = dp_LIMIT
-    sigma = (0.0_dp, 0.0_dp)
+    ! get defaults
+    solver = settings%solvers%get_solver()
+    arpack_mode = settings%solvers%get_arpack_mode()
+    which_eigenvalues = settings%solvers%which_eigenvalues
+    number_of_eigenvalues = settings%solvers%number_of_eigenvalues
+    maxiter = settings%solvers%maxiter
+    ncv = settings%solvers%ncv
+    tolerance = settings%solvers%tolerance
+    sigma = settings%solvers%sigma
 
     read(unit, nml=solvelist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
@@ -186,9 +186,9 @@ contains
     integer :: iostat
     character(str_len) :: iomsg
 
+    character(len=str_len) :: physics_type
     logical :: flow, incompressible, radiative_cooling, external_gravity, &
-      parallel_conduction, perpendicular_conduction, use_fixed_tc_para, &
-      use_fixed_tc_perp, resistivity, use_fixed_resistivity, use_eta_dropoff, &
+      parallel_conduction, perpendicular_conduction, resistivity, use_eta_dropoff, &
       viscosity, viscous_heating, hall_mhd, hall_substitution, hall_dropoff, &
       elec_inertia, inertia_dropoff
     integer :: ncool
@@ -200,45 +200,49 @@ contains
     real(dp) :: dropoff_edge_dist, dropoff_width
 
     namelist /physicslist/ &
-      mhd_gamma, flow, incompressible, radiative_cooling, external_gravity, parallel_conduction, perpendicular_conduction, use_fixed_tc_para, &
-      use_fixed_tc_perp, resistivity, use_fixed_resistivity, use_eta_dropoff, &
-      viscosity, viscous_heating, hall_mhd, hall_substitution, hall_dropoff, &
-      elec_inertia, inertia_dropoff, ncool, cooling_curve, fixed_tc_para_value, &
-      fixed_tc_perp_value, fixed_resistivity_value, dropoff_edge_dist, dropoff_width, &
-      viscosity_value, electron_fraction, dropoff_edge_dist, dropoff_width
+      physics_type, mhd_gamma, flow, incompressible, radiative_cooling, &
+      external_gravity, parallel_conduction, perpendicular_conduction, &
+      resistivity, use_eta_dropoff, viscosity, viscous_heating, hall_mhd, &
+      hall_substitution, hall_dropoff, elec_inertia, inertia_dropoff, ncool, &
+      cooling_curve, fixed_tc_para_value, fixed_tc_perp_value, &
+      dropoff_edge_dist, dropoff_width, viscosity_value, electron_fraction
 
-    ! defaults
-    mhd_gamma = 5.0_dp / 3.0_dp
-    flow = .false.
-    incompressible = .false.
-    radiative_cooling = .false.
-    external_gravity = .false.
-    parallel_conduction = .false.
-    perpendicular_conduction = .false.
-    use_fixed_tc_para = .false.
-    use_fixed_tc_perp = .false.
-    resistivity = .false.
-    use_fixed_resistivity = .false.
-    use_eta_dropoff = .false.
-    viscosity = .false.
-    viscous_heating = .false.
-    hall_mhd = .false.
-    hall_substitution = .true.
-    hall_dropoff = .false.
-    elec_inertia = .false.
-    inertia_dropoff = .false.
+    ! get defaults
+    physics_type = settings%get_physics_type()
+    mhd_gamma = settings%physics%get_gamma()
+    incompressible = settings%physics%is_incompressible
+    dropoff_edge_dist = settings%physics%dropoff_edge_dist
+    dropoff_width = settings%physics%dropoff_width
 
-    ncool = 4000
-    cooling_curve = "jc_corona"
-    fixed_tc_para_value = 0.0_dp
-    fixed_tc_perp_value = 0.0_dp
-    fixed_resistivity_value = 0.0_dp
-    dropoff_edge_dist = 0.0_dp
-    dropoff_width = 0.0_dp
-    viscosity_value = 0.0_dp
-    electron_fraction = 0.5_dp
-    dropoff_edge_dist = 0.05_dp
-    dropoff_width = 0.1_dp
+    flow = settings%physics%flow%is_enabled()
+
+    radiative_cooling = settings%physics%cooling%is_enabled()
+    ncool = settings%physics%cooling%get_interpolation_points()
+    cooling_curve = settings%physics%cooling%get_cooling_curve()
+
+    external_gravity = settings%physics%gravity%is_enabled()
+
+    parallel_conduction = settings%physics%conduction%has_parallel_conduction()
+    perpendicular_conduction = ( &
+      settings%physics%conduction%has_perpendicular_conduction() &
+    )
+    fixed_tc_para_value = settings%physics%conduction%get_fixed_tc_para()
+    fixed_tc_perp_value = settings%physics%conduction%get_fixed_tc_perp()
+
+    resistivity = settings%physics%resistivity%is_enabled()
+    fixed_resistivity_value = settings%physics%resistivity%get_fixed_resistivity()
+    use_eta_dropoff = settings%physics%resistivity%use_dropoff
+
+    viscosity = settings%physics%viscosity%is_enabled()
+    viscosity_value = settings%physics%viscosity%get_viscosity_value()
+    viscous_heating = settings%physics%viscosity%has_viscous_heating()
+
+    hall_mhd = settings%physics%hall%is_enabled()
+    hall_substitution = settings%physics%hall%is_using_substitution()
+    hall_dropoff = settings%physics%hall%use_dropoff
+    elec_inertia = settings%physics%hall%has_electron_inertia()
+    inertia_dropoff = settings%physics%hall%use_inertia_dropoff
+    electron_fraction = settings%physics%hall%get_electron_fraction()
 
     read(unit, nml=physicslist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
@@ -248,16 +252,14 @@ contains
     if (flow) call settings%physics%flow%enable()
     if (radiative_cooling) call settings%physics%enable_cooling(cooling_curve, ncool)
     if (external_gravity) call settings%physics%enable_gravity()
-    if (parallel_conduction) call settings%physics%enable_parallel_conduction( &
-      use_fixed_tc_para, fixed_tc_para_value &
-    )
+    if (parallel_conduction) then
+      call settings%physics%enable_parallel_conduction(fixed_tc_para_value)
+    end if
     if (perpendicular_conduction) then
-      call settings%physics%enable_perpendicular_conduction( &
-        use_fixed_tc_perp, fixed_tc_perp_value &
-      )
+      call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value)
     end if
     if (resistivity) call settings%physics%enable_resistivity( &
-      use_fixed_resistivity, fixed_resistivity_value &
+      fixed_resistivity_value &
     )
     if (viscosity) call settings%physics%enable_viscosity( &
       viscosity_value, viscous_heating &
@@ -281,10 +283,10 @@ contains
 
     namelist /equilibriumlist/ equilibrium_type, boundary_type, use_defaults
 
-    ! defaults
-    equilibrium_type = "adiabatic_homo"
-    boundary_type = "wall"
-    use_defaults = .true.
+    ! get defaults
+    equilibrium_type = settings%equilibrium%get_equilibrium_type()
+    boundary_type = settings%equilibrium%get_boundary_type()
+    use_defaults = settings%equilibrium%use_defaults
 
     read(unit, nml=equilibriumlist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
@@ -331,9 +333,9 @@ contains
 
     ! defaults
     unit_density = NaN
-    unit_temperature = 1.0e6_dp
-    unit_magneticfield = 10.0_dp
-    unit_length = 1.0e9_dp
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_magneticfield = settings%units%get_unit_magneticfield()
+    unit_length = settings%units%get_unit_length()
     mean_molecular_weight = settings%units%get_mean_molecular_weight()
 
     read(unit, nml=unitslist, iostat=iostat, iomsg=iomsg)

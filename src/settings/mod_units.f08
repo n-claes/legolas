@@ -4,8 +4,6 @@ module mod_units
 
   private
 
-  real(dp), parameter :: default_mean_molecular_weight = 0.5_dp
-
   type, public :: units_t
     logical, private :: units_set
     logical, private :: cgs
@@ -61,10 +59,15 @@ contains
 
     units%units_set = .false.
     units%cgs = .true.
-
     units%based_on_density = .false.
     units%based_on_temperature = .false.
-    units%mean_molecular_weight = default_mean_molecular_weight
+    units%mean_molecular_weight = 0.5_dp
+
+    call units%set_units_from_temperature( &
+      unit_length=1.0e9_dp, &
+      unit_magneticfield=10.0_dp, &
+      unit_temperature=1.0e6_dp &
+    )
   end function new_unit_system
 
 

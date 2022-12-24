@@ -44,14 +44,14 @@ contains
       k2 = 0.0d0
       k3 = 1.0d0
 
-      call settings%physics%enable_viscosity(fixed_viscosity_value=0.001_dp)
+      call settings%physics%enable_viscosity(viscosity_value=0.001_dp)
     end if ! LCOV_EXCL_STOP
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
     gauss_gridpts = settings%grid%get_gauss_gridpts()
     call initialise_grid(settings)
 
-    viscosity_value = settings%physics%viscosity%get_fixed_viscosity()
+    viscosity_value = settings%physics%viscosity%get_viscosity_value()
 
     rho_field % rho0 = cte_rho0
 

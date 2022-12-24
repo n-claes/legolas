@@ -70,7 +70,7 @@ contains
     ! Hall by substitution of the momentum equation
     if (settings%physics%hall%is_using_substitution()) then
       if (settings%physics%viscosity%is_enabled()) then
-        mu = settings%physics%viscosity%get_fixed_viscosity()
+        mu = settings%physics%viscosity%get_viscosity_value()
         ! ==================== Quadratic * Cubic ====================
         call reset_factor_positions(new_size=1)
         ! H(6, 2)

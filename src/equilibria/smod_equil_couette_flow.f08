@@ -36,7 +36,7 @@ contains
       k2 = 0.0d0
       k3 = 1.0d0
 
-      call settings%physics%enable_viscosity(fixed_viscosity_value=0.001_dp)
+      call settings%physics%enable_viscosity(viscosity_value=0.001_dp)
     end if ! LCOV_EXCL_STOP
 
     call initialise_grid(settings)

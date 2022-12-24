@@ -31,7 +31,6 @@ module mod_settings
     procedure, public :: get_physics_type
     procedure, public :: get_nb_eqs
     procedure, public :: update_block_dimensions
-    procedure, public :: set_defaults
     procedure, public :: delete
 
     procedure, private :: set_nb_eqs
@@ -44,6 +43,7 @@ contains
   pure function new_settings() result(settings)
     type(settings_t) :: settings
 
+    call settings%set_state_vector(physics_type="mhd")
     settings%dims = new_block_dims()
     settings%io = new_io_settings()
     settings%solvers = new_solver_settings()
@@ -51,6 +51,7 @@ contains
     settings%grid = new_grid_settings()
     settings%equilibrium = new_equilibrium_settings()
     settings%units = new_unit_system()
+    call settings%update_block_dimensions()
   end function new_settings
 
 
@@ -100,7 +101,6 @@ contains
     class(settings_t), intent(inout) :: this
     integer, intent(in) :: nb_eqs
     this%nb_eqs = nb_eqs
-    call this%update_block_dimensions()
   end subroutine set_nb_eqs
 
 
@@ -115,19 +115,6 @@ contains
 
     call this%dims%set_block_dims(nb_eqs=this%nb_eqs, gridpts=this%grid%get_gridpts())
   end subroutine update_block_dimensions
-
-
-  pure subroutine set_defaults(this)
-    class(settings_t), intent(inout) :: this
-
-    call this%set_state_vector(physics_type="mhd")
-    call this%io%set_defaults()
-    call this%solvers%set_defaults()
-    call this%physics%set_defaults()
-    call this%grid%set_defaults()
-    call this%equilibrium%set_defaults()
-    call this%update_block_dimensions()
-  end subroutine set_defaults
 
 
   pure subroutine delete(this)

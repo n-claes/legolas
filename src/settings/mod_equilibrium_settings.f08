@@ -12,7 +12,6 @@ module mod_equilibrium_settings
     procedure, public :: get_equilibrium_type
     procedure, public :: set_boundary_type
     procedure, public :: get_boundary_type
-    procedure, public :: set_defaults
     procedure, public :: delete
   end type equilibrium_settings_t
 
@@ -22,6 +21,10 @@ contains
 
   pure function new_equilibrium_settings() result(equilibrium)
     type(equilibrium_settings_t) :: equilibrium
+
+    call equilibrium%set_equilibrium_type("adiabatic_homo")
+    call equilibrium%set_boundary_type("wall")
+    equilibrium%use_defaults = .true.
   end function new_equilibrium_settings
 
 
@@ -51,14 +54,6 @@ contains
     character(len=:), allocatable :: boundary_type
     boundary_type = this%boundary_type
   end function get_boundary_type
-
-
-  pure subroutine set_defaults(this)
-    class(equilibrium_settings_t), intent(inout) :: this
-    this%equilibrium_type = "adiabatic_homo"
-    this%boundary_type = "wall"
-    this%use_defaults = .true.
-  end subroutine set_defaults
 
   pure subroutine delete(this)
     class(equilibrium_settings_t), intent(inout) :: this

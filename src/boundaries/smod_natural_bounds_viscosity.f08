@@ -21,7 +21,7 @@ contains
 
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
-    mu = settings%physics%viscosity%get_fixed_viscosity()
+    mu = settings%physics%viscosity%get_viscosity_value()
     dv01 = v_field % d_v01_dr(grid_idx)
     dv03 = v_field % d_v03_dr(grid_idx)
 

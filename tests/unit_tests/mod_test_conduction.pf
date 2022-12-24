@@ -45,9 +45,7 @@ contains
   @test
   subroutine test_kappa_para_cte()
     call set_name("thermal conduction (kappa_para cte)")
-    call settings%physics%enable_parallel_conduction( &
-      use_fixed_tc_para=.true., fixed_tc_para_value=1.0_dp &
-    )
+    call settings%physics%enable_parallel_conduction(fixed_tc_para_value=1.0_dp)
     call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
 
     @assertTrue(settings%physics%conduction%is_enabled())
@@ -63,11 +61,20 @@ contains
 
 
   @test
+  subroutine test_kappa_para_cte_zero()
+    call set_name("thermal conduction (kappa_para cte but zero)")
+    call settings%physics%enable_parallel_conduction(fixed_tc_para_value=0.0_dp)
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+
+    @assertFalse(settings%physics%conduction%is_enabled())
+    @assertFalse(settings%physics%conduction%has_fixed_tc_para())
+  end subroutine test_kappa_para_cte_zero
+
+
+  @test
   subroutine test_kappa_perp_cte()
     call set_name("thermal conduction (kappa_perp cte)")
-    call settings%physics%enable_perpendicular_conduction( &
-      use_fixed_tc_perp=.true., fixed_tc_perp_value=1.0_dp &
-    )
+    call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value=1.0_dp)
     call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
 
     @assertTrue(settings%physics%conduction%is_enabled())
@@ -79,6 +86,17 @@ contains
     @assertEqual(0.0d0, kappa_field%d_kappa_perp_dT, tolerance=TOL)
     @assertEqual(0.0d0, kappa_field%d_kappa_perp_dr, tolerance=TOL)
   end subroutine test_kappa_perp_cte
+
+
+  @test
+  subroutine test_kappa_perp_cte_zero()
+    call set_name("thermal conduction (kappa_perp cte but zero)")
+    call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value=0.0_dp)
+    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+
+    @assertFalse(settings%physics%conduction%is_enabled())
+    @assertFalse(settings%physics%conduction%has_fixed_tc_perp())
+  end subroutine test_kappa_perp_cte_zero
 
 
   @test

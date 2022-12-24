@@ -20,7 +20,6 @@ module mod_solver_settings
     procedure, public :: get_solver
     procedure, public :: set_arpack_mode
     procedure, public :: get_arpack_mode
-    procedure, public :: set_defaults
     procedure, public :: delete
   end type solvers_t
 
@@ -29,11 +28,19 @@ module mod_solver_settings
 contains
 
   pure function new_solver_settings() result(solvers)
+    use mod_global_variables, only: dp_LIMIT
+
     type(solvers_t) :: solvers
 
-    solvers%number_of_eigenvalues = 0
+    call solvers%set_solver("QR-invert")
+    call solvers%set_arpack_mode("standard")
+    solvers%number_of_eigenvalues = 10
+    solvers%which_eigenvalues = "LM"
+    ! these two get determined at runtime
     solvers%maxiter = 0
     solvers%ncv = 0
+    solvers%sigma = (0.0_dp, 0.0_dp)
+    solvers%tolerance = dp_LIMIT
   end function new_solver_settings
 
 
@@ -69,28 +76,11 @@ contains
   end function get_arpack_mode
 
 
-  pure subroutine set_defaults(this)
-    use mod_global_variables, only: dp_LIMIT
-
-    class(solvers_t), intent(inout) :: this
-
-    call this%set_solver("QR-cholesky")
-    call this%set_arpack_mode("standard")
-    this%which_eigenvalues = "LM"
-    this%number_of_eigenvalues = 10
-    this%maxiter = 0
-    this%ncv = 0
-    this%tolerance = dp_LIMIT
-    this%sigma = (0.0_dp, 0.0_dp)
-  end subroutine set_defaults
-
-
   pure subroutine delete(this)
     class(solvers_t), intent(inout) :: this
 
     if (allocated(this%solver)) deallocate(this%solver)
     if (allocated(this%arpack_mode)) deallocate(this%arpack_mode)
   end subroutine delete
-
 
 end module mod_solver_settings

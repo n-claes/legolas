@@ -25,7 +25,6 @@ module mod_grid_settings
     procedure, public :: set_grid_boundaries
     procedure, public :: get_grid_start
     procedure, public :: get_grid_end
-    procedure, public :: set_defaults
     procedure, public :: delete
   end type grid_settings_t
 
@@ -35,6 +34,12 @@ contains
 
   pure function new_grid_settings() result(grid_settings)
     type(grid_settings_t) :: grid_settings
+
+    call grid_settings%set_geometry("Cartesian")
+    call grid_settings%set_gridpts(50)
+    call grid_settings%set_grid_boundaries(0.0_dp, 1.0_dp)
+    grid_settings%coaxial = .false.
+    grid_settings%force_r0 = .false.
   end function new_grid_settings
 
 
@@ -99,16 +104,6 @@ contains
     class(grid_settings_t), intent(in) :: this
     get_grid_end = this%grid_end
   end function get_grid_end
-
-
-  pure subroutine set_defaults(this)
-    class(grid_settings_t), intent(inout) :: this
-    call this%set_geometry("")
-    call this%set_gridpts(50)
-    call this%set_grid_boundaries(0.0_dp, 1.0_dp)
-    this%coaxial = .false.
-    this%force_r0 = .false.
-  end subroutine set_defaults
 
 
   pure subroutine delete(this)

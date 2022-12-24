@@ -28,7 +28,7 @@ contains
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
-      call settings%physics%enable_resistivity(fixed_eta_value=0.001_dp)
+      call settings%physics%enable_resistivity(fixed_resistivity_value=0.001_dp)
 
       k2 = 0.0d0
       k3 = 1.0d0

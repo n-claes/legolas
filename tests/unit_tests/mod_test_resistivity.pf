@@ -29,15 +29,24 @@ contains
     use mod_equilibrium, only: T_field, eta_field
 
     call set_name("setting constant resistivity")
-    call settings%physics%enable_resistivity( &
-      use_fixed_resistivity=.true., fixed_eta_value=2.0_dp &
-    )
+    call settings%physics%enable_resistivity(fixed_resistivity_value=2.0_dp)
     call set_resistivity_values(settings, T_field, eta_field)
     @assertTrue(settings%physics%resistivity%is_enabled())
+    @assertTrue(settings%physics%resistivity%has_fixed_resistivity())
     @assertEqual(2.0_dp, eta_field % eta, tolerance=TOL)
     @assertEqual(0.0d0, eta_field % d_eta_dT, tolerance=TOL)
     @assertEqual(0.0d0, eta_field % d_eta_dr, tolerance=TOL)
   end subroutine test_set_eta_cte
+
+
+
+  @test
+  subroutine test_set_eta_cte_zero()
+    call set_name("setting constant resistivity but zero")
+    call settings%physics%enable_resistivity(fixed_resistivity_value=0.0_dp)
+    @assertFalse(settings%physics%resistivity%is_enabled())
+    @assertFalse(settings%physics%resistivity%has_fixed_resistivity())
+  end subroutine test_set_eta_cte_zero
 
 
   @test
@@ -95,10 +104,10 @@ contains
     call set_name("setting eta dropoff (constant)")
     call create_test_grid(settings, 100, "Cartesian")
     call reset_fields(settings, init_fields=.true.)
-    call settings%physics%enable_resistivity( &
-      use_fixed_resistivity=.true., fixed_eta_value=1.0_dp &
-    )
+    call settings%physics%enable_resistivity(fixed_resistivity_value=1.0_dp)
     settings%physics%resistivity%use_dropoff = .true.
+    settings%physics%dropoff_edge_dist = 0.05
+    settings%physics%dropoff_width = 0.1
     call set_resistivity_values(settings, T_field, eta_field)
     gauss_gridpts = settings%grid%get_gauss_gridpts()
     middle = int(gauss_gridpts / 2)

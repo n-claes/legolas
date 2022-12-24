@@ -6,9 +6,8 @@ module mod_resistivity_settings
 
   type, public :: resistivity_settings_t
     logical, private :: has_resistivity
-    real(dp), private :: fixed_eta_value
-
-    logical :: use_fixed_resistivity
+    real(dp), private :: fixed_resistivity_value
+    logical, private :: fixed_resistivity
     logical :: use_dropoff
 
   contains
@@ -18,7 +17,7 @@ module mod_resistivity_settings
     procedure, public :: is_enabled
     procedure, public :: set_fixed_resistivity
     procedure, public :: get_fixed_resistivity
-    procedure, public :: set_defaults
+    procedure, public :: has_fixed_resistivity
   end type resistivity_settings_t
 
   public :: new_resistivity_settings
@@ -27,7 +26,11 @@ contains
 
   pure function new_resistivity_settings() result(resistivity)
     type(resistivity_settings_t) :: resistivity
-    call resistivity%set_defaults()
+
+    resistivity%has_resistivity = .false.
+    resistivity%fixed_resistivity_value = 0.0_dp
+    resistivity%fixed_resistivity = .false.
+    resistivity%use_dropoff = .false.
   end function new_resistivity_settings
 
 
@@ -52,23 +55,21 @@ contains
   pure subroutine set_fixed_resistivity(this, eta)
     class(resistivity_settings_t), intent(inout) :: this
     real(dp), intent(in) :: eta
-    this%fixed_eta_value = eta
-    this%use_fixed_resistivity = .true.
+    this%fixed_resistivity_value = eta
+    this%fixed_resistivity = .true.
+    this%has_resistivity = .true.
   end subroutine set_fixed_resistivity
 
 
   pure real(dp) function get_fixed_resistivity(this)
     class(resistivity_settings_t), intent(in) :: this
-    get_fixed_resistivity = this%fixed_eta_value
+    get_fixed_resistivity = this%fixed_resistivity_value
   end function get_fixed_resistivity
 
 
-  pure subroutine set_defaults(this)
-    class(resistivity_settings_t), intent(inout) :: this
-    this%has_resistivity = .false.
-    this%fixed_eta_value = 0.0_dp
-    this%use_fixed_resistivity = .false.
-    this%use_dropoff = .false.
-  end subroutine set_defaults
+  pure logical function has_fixed_resistivity(this)
+    class(resistivity_settings_t), intent(in) :: this
+    has_fixed_resistivity = this%fixed_resistivity
+  end function has_fixed_resistivity
 
 end module mod_resistivity_settings

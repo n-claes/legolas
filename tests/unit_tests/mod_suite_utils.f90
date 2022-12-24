@@ -30,7 +30,6 @@ contains
     type(settings_t) :: settings
 
     settings = new_settings()
-    call settings%set_defaults()
   end function get_settings
 
 

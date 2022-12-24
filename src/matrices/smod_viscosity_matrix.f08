@@ -30,7 +30,7 @@ contains
     dv03 = v_field % d_v03_dr(gauss_idx)
     ddv03 = v_field % dd_v03_dr(gauss_idx)
     ! viscosity value
-    mu = settings%physics%viscosity%get_fixed_viscosity()
+    mu = settings%physics%viscosity%get_viscosity_value()
     ! operators
     WVop = get_wv_operator(gauss_idx)
 

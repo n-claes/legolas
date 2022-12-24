@@ -1,5 +1,6 @@
 module mod_physics_settings
   use mod_global_variables, only: dp
+  use mod_check_values, only: is_zero
   use mod_flow_settings, only: flow_settings_t, new_flow_settings
   use mod_cooling_settings, only: cooling_settings_t, new_cooling_settings
   use mod_gravity_settings, only: gravity_settings_t, new_gravity_settings
@@ -30,7 +31,6 @@ module mod_physics_settings
     procedure, public :: get_gamma
     procedure, public :: get_gamma_1
     procedure, public :: set_incompressible
-    procedure, public :: set_defaults
 
     procedure, public :: enable_flow
     procedure, public :: enable_cooling
@@ -48,7 +48,19 @@ contains
 
   pure function new_physics_settings() result(physics)
     type(physics_t) :: physics
-    call physics%set_defaults()
+
+    call physics%set_gamma(5.0_dp / 3.0_dp)
+    physics%is_incompressible = .false.
+    physics%dropoff_edge_dist = 0.0_dp
+    physics%dropoff_width = 0.0_dp
+
+    physics%flow = new_flow_settings()
+    physics%cooling = new_cooling_settings()
+    physics%gravity = new_gravity_settings()
+    physics%resistivity = new_resistivity_settings()
+    physics%viscosity = new_viscosity_settings()
+    physics%conduction = new_conduction_settings()
+    physics%hall = new_hall_settings()
   end function new_physics_settings
 
 
@@ -78,22 +90,6 @@ contains
   end subroutine set_incompressible
 
 
-  pure subroutine set_defaults(this)
-    class(physics_t), intent(inout) :: this
-    call this%set_gamma(5.0_dp / 3.0_dp)
-    this%is_incompressible = .false.
-    this%dropoff_edge_dist = 0.05_dp
-    this%dropoff_width = 0.1_dp
-    call this%flow%set_defaults()
-    call this%cooling%set_defaults()
-    call this%gravity%set_defaults()
-    call this%resistivity%set_defaults()
-    call this%viscosity%set_defaults()
-    call this%conduction%set_defaults()
-    call this%hall%set_defaults()
-  end subroutine set_defaults
-
-
   pure subroutine enable_flow(this)
     class(physics_t), intent(inout) :: this
     call this%flow%enable()
@@ -119,57 +115,63 @@ contains
   end subroutine enable_gravity
 
 
-  pure subroutine enable_resistivity(this, use_fixed_resistivity, fixed_eta_value)
+  pure subroutine enable_resistivity(this, fixed_resistivity_value)
     class(physics_t), intent(inout) :: this
-    logical, intent(in), optional :: use_fixed_resistivity
-    real(dp), intent(in), optional :: fixed_eta_value
+    real(dp), intent(in), optional :: fixed_resistivity_value
+    real(dp) :: fixed_eta
 
-    call this%resistivity%enable()
-    if (present(use_fixed_resistivity) .and. present(fixed_eta_value)) then
-      call this%resistivity%set_fixed_resistivity(fixed_eta_value)
+    fixed_eta = 0.0_dp
+    if (.not. present(fixed_resistivity_value)) then
+      call this%resistivity%enable()
+    else
+      fixed_eta = fixed_resistivity_value
     end if
+    if (.not. is_zero(fixed_eta)) call this%resistivity%set_fixed_resistivity(fixed_eta)
   end subroutine enable_resistivity
 
 
-  pure subroutine enable_viscosity(this, fixed_viscosity_value, viscous_heating)
+  pure subroutine enable_viscosity(this, viscosity_value, viscous_heating)
     class(physics_t), intent(inout) :: this
-    real(dp), intent(in), optional :: fixed_viscosity_value
+    real(dp), intent(in) :: viscosity_value
     logical, intent(in), optional :: viscous_heating
 
-    call this%viscosity%enable()
-    if (present(fixed_viscosity_value)) then
-      call this%viscosity%set_fixed_viscosity(fixed_viscosity_value)
-    end if
-    if (present(viscous_heating)) then
+    call this%viscosity%set_viscosity_value(viscosity_value)
+    if (present(viscous_heating) .and. viscous_heating) then
       call this%viscosity%enable_viscous_heating()
     end if
   end subroutine enable_viscosity
 
 
-  pure subroutine enable_parallel_conduction( &
-    this, use_fixed_tc_para, fixed_tc_para_value &
-  )
+  pure subroutine enable_parallel_conduction(this, fixed_tc_para_value)
     class(physics_t), intent(inout) :: this
-    logical, intent(in), optional :: use_fixed_tc_para
     real(dp), intent(in), optional :: fixed_tc_para_value
+    real(dp) :: fixed_tc_para
 
-    call this%conduction%enable_para_conduction()
-    if (present(use_fixed_tc_para) .and. present(fixed_tc_para_value)) then
-      call this%conduction%set_fixed_tc_para(fixed_tc_para_value)
+    fixed_tc_para = 0.0_dp
+    if (.not. present(fixed_tc_para_value)) then
+      call this%conduction%enable_para_conduction()
+    else
+      fixed_tc_para = fixed_tc_para_value
+    end if
+    if (.not. is_zero(fixed_tc_para)) then
+      call this%conduction%set_fixed_tc_para(fixed_tc_para)
     end if
   end subroutine enable_parallel_conduction
 
 
-  pure subroutine enable_perpendicular_conduction( &
-    this, use_fixed_tc_perp, fixed_tc_perp_value &
-  )
+  pure subroutine enable_perpendicular_conduction(this, fixed_tc_perp_value)
     class(physics_t), intent(inout) :: this
-    logical, intent(in), optional :: use_fixed_tc_perp
     real(dp), intent(in), optional :: fixed_tc_perp_value
+    real(dp) :: fixed_tc_perp
 
-    call this%conduction%enable_perp_conduction()
-    if (present(use_fixed_tc_perp) .and. present(fixed_tc_perp_value)) then
-      call this%conduction%set_fixed_tc_perp(fixed_tc_perp_value)
+    fixed_tc_perp = 0.0_dp
+    if (.not. present(fixed_tc_perp_value)) then
+      call this%conduction%enable_perp_conduction()
+    else
+      fixed_tc_perp = fixed_tc_perp_value
+    end if
+    if (.not. is_zero(fixed_tc_perp)) then
+      call this%conduction%set_fixed_tc_perp(fixed_tc_perp)
     end if
   end subroutine enable_perpendicular_conduction
 

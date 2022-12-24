@@ -26,7 +26,6 @@ module mod_io_settings
     procedure, public :: get_output_folder
     procedure, public :: should_compute_eigenvectors
     procedure, public :: set_all_io_to_false
-    procedure, public :: set_defaults
     procedure, public :: delete
   end type io_t
 
@@ -36,7 +35,21 @@ module mod_io_settings
 contains
 
   pure function new_io_settings() result(io)
+    use mod_global_variables, only: NaN
+
     type(io_t) :: io
+
+    io%write_matrices = .false.
+    io%write_eigenvectors = .false.
+    io%write_residuals = .false.
+    io%write_eigenfunctions = .true.
+    io%write_derived_eigenfunctions = .false.
+    io%write_ef_subset = .false.
+    io%ef_subset_radius = NaN
+    io%ef_subset_center = cmplx(NaN, NaN, kind=dp)
+    io%show_results = .true.
+    call io%set_basename_datfile("datfile")
+    call io%set_output_folder("output")
   end function new_io_settings
 
 
@@ -86,23 +99,6 @@ contains
     this%write_eigenfunctions = .false.
     this%write_derived_eigenfunctions = .false.
   end subroutine set_all_io_to_false
-
-
-  pure subroutine set_defaults(this)
-    class(io_t), intent(inout) :: this
-
-    this%write_matrices = .false.
-    this%write_eigenvectors = .false.
-    this%write_residuals = .false.
-    this%write_eigenfunctions = .true.
-    this%write_derived_eigenfunctions = .false.
-    this%write_ef_subset = .false.
-    this%ef_subset_radius = 0.0_dp
-    this%ef_subset_center = (0.0_dp, 0.0_dp)
-    this%show_results = .true.
-    call this%set_basename_datfile("datfile")
-    call this%set_output_folder("output")
-  end subroutine set_defaults
 
 
   pure subroutine delete(this)

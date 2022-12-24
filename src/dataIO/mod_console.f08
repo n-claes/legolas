@@ -47,7 +47,7 @@ contains
     call print_whitespace(1)
     do i = 1, size(logo)
       call paint_string(spaces_logo // trim(logo(i)), "cyan", logo(i))
-      write(*, *) logo(i)
+      write(*, *) trim(adjustl(logo(i)))
     end do
     call print_whitespace(2)
   end subroutine print_logo
@@ -124,7 +124,7 @@ contains
     call log_message( &
       "resistivity        : " // str(settings%physics%resistivity%is_enabled()) &
     )
-    if (settings%physics%resistivity%use_fixed_resistivity) then
+    if (settings%physics%resistivity%has_fixed_resistivity()) then
       call log_message( &
         "    fixed eta value : " &
         // str(settings%physics%resistivity%get_fixed_resistivity()) &
@@ -137,7 +137,7 @@ contains
     if (settings%physics%viscosity%is_enabled()) then
       call log_message( &
         "    viscosity value : " &
-        // str(settings%physics%viscosity%get_fixed_viscosity()) &
+        // str(settings%physics%viscosity%get_viscosity_value()) &
       )
       call log_message( &
         "    viscous heating : " &

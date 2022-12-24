@@ -80,6 +80,7 @@ contains
   @test
   subroutine test_grid_no_geometry_set()
     call set_name("setting grid without geometry")
+    call settings%grid%set_geometry("")
     call initialise_grid(settings)
     @assertExceptionRaised("geometry must be set in submodule/parfile")
   end subroutine test_grid_no_geometry_set

@@ -49,8 +49,8 @@ contains
       k2 = 0.0d0
       k3 = 1.0d0
 
-      call settings%physics%enable_resistivity(fixed_eta_value=1.0e-4_dp)
-      call settings%physics%enable_viscosity(fixed_viscosity_value=1.0e-6_dp)
+      call settings%physics%enable_resistivity(fixed_resistivity_value=1.0e-4_dp)
+      call settings%physics%enable_viscosity(viscosity_value=1.0e-6_dp)
     end if
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
@@ -59,7 +59,7 @@ contains
 
 
     fixed_eta_value = settings%physics%resistivity%get_fixed_resistivity()
-    viscosity_value = settings%physics%viscosity%get_fixed_viscosity()
+    viscosity_value = settings%physics%viscosity%get_viscosity_value()
 
     rho_field % rho0 = cte_rho0
 
