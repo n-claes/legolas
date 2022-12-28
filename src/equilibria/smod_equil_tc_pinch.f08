@@ -110,14 +110,14 @@ contains
 
     Ta = (cte_rho0 * (v_field % v02(int(gauss_gridpts/2))) * h / viscosity_value)**2 &
           * 2.0d0 * h / (x_start + x_end)
-    call log_message('Taylor number:    ' // str(Ta, fmt='(e8.2)'), level='info')
+    call logger%info("Taylor number:  " // str(Ta, fmt=exp_fmt))
     Pm = viscosity_value / (cte_rho0 * fixed_eta_value)
-    call log_message('Prandtl number:   ' // str(Pm, fmt='(e8.2)'), level='info')
+    call logger%info("Prandtl number: " // str(Pm, fmt=exp_fmt))
     Ha = cte_B02 * sqrt(x_start * (x_end - x_start)) &
           / sqrt(viscosity_value * fixed_eta_value)
-    call log_message('Hartmann number:  ' // str(Ha, fmt='(e8.2)'), level='info')
+    call logger%info("Hartmann number " // str(Ha, fmt=exp_fmt))
     Re = alpha * cte_rho0 * x_start * (x_end - x_start) / viscosity_value
-    call log_message('Reynolds number:  ' // str(Re, fmt='(e8.2)'), level='info')
+    call logger%info("Reynolds number " // str(Re, fmt=exp_fmt))
 
   end procedure tc_pinch_eq
 

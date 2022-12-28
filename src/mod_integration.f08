@@ -7,6 +7,7 @@
 !! These are solved using a fifth-order Runge-Kutta method.
 module mod_integration
   use mod_global_variables, only: dp, dp_LIMIT
+  use mod_logging, only: logger, str
   implicit none
 
   private
@@ -42,7 +43,6 @@ contains
     new_xvalues &
   )
     use mod_interpolation, only: interpolate_table
-    use mod_logging, only: log_message, str
 
     !> array of x-values
     real(dp), intent(in)  :: xvalues(:)
@@ -124,15 +124,11 @@ contains
     if (present(adaptive)) then
       use_adaptive_stepping = adaptive
       if (use_adaptive_stepping) then
-        call log_message( &
-          "integrating using adaptive stepping, max dh change = " &
-            // str(max_dh_fact, fmt="f5.1"), &
-          level="info" &
+        call logger%info( &
+          "integrating using adaptive stepping, max dh change = "// str(max_dh_fact) &
         )
       else
-        call log_message( &
-          "integrating using regular stepping, dh = " // str(dh), level="info" &
-        )
+        call logger%info("integrating using regular stepping, dh = " // str(dh))
       end if
     end if
 
@@ -207,11 +203,9 @@ contains
       ytemp(i) = ysolrk5
       ! LCOV_EXCL_START
       if (mod(i, 10000) == 0) then
-        call log_message( &
+        call logger%info( &
           "steps: " // str(i) // " | xi: " // str(xi) // " | dh: " &
-          // str(dh, fmt="e20.5"), &
-          level="info", &
-          use_prefix=.false. &
+          // str(dh, fmt="e20.5") &
         )
       end if
       ! LCOV_EXCL_STOP
@@ -319,8 +313,6 @@ contains
 
   !> Checks if an array needs resampling.
   function needs_resampling(base, target, array_name) result(resample)
-    use mod_logging, only: log_message, str
-
     !> size of base array
     integer, intent(in) :: base
     !> size of target array
@@ -332,9 +324,8 @@ contains
 
     ! LCOV_EXCL_START
     if (target < base) then
-      call log_message( &
-        "resampling: target #points is less than size of input arrays!", &
-        level="warning" &
+      call logger%warning( &
+        "resampling: target #points is less than size of input arrays!" &
       )
     end if
     ! LCOV_EXCL_STOP
@@ -342,10 +333,9 @@ contains
     if (base == target) then
       resample = .false.
     else
-      call log_message( &
+      call logger%info( &
         "ode integrator: resampling " // trim(adjustl(array_name)) // " (" &
-        // str(base) // " -> " // str(target) // " points)", &
-        level="info" &
+        // str(base) // " -> " // str(target) // " points)" &
       )
       resample = .true.
     end if

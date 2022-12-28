@@ -198,9 +198,8 @@ contains
       diagonal_factor = (0.0d0, 0.0d0)
     else
       diagonal_factor = NaN
-      call log_message( &
-        "get_diagonal_factor: invalid or empty matrix label: " // matrix%get_label(), &
-        level="error" &
+      call logger%error( &
+        "get_diagonal_factor: invalid or empty matrix label: " // matrix%get_label() &
       )
     end if
   end function get_diagonal_factor

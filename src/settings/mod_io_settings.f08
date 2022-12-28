@@ -63,7 +63,7 @@ contains
   pure function get_basename_datfile(this) result(basename_datfile)
     class(io_t), intent(in) :: this
     character(len=:), allocatable :: basename_datfile
-    basename_datfile = this%basename_datfile
+    basename_datfile = trim(adjustl(this%basename_datfile))
   end function get_basename_datfile
 
 
@@ -77,7 +77,7 @@ contains
   pure function get_output_folder(this) result(output_folder)
     class(io_t), intent(in) :: this
     character(len=:), allocatable :: output_folder
-    output_folder = this%output_folder
+    output_folder = trim(adjustl(this%output_folder))
   end function get_output_folder
 
 

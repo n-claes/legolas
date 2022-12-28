@@ -56,7 +56,7 @@ contains
     class(solvers_t), intent(in) :: this
     character(:), allocatable :: solver
 
-    solver = this%solver
+    solver = trim(adjustl(this%solver))
   end function get_solver
 
 
@@ -72,7 +72,7 @@ contains
     class(solvers_t), intent(in) :: this
     character(:), allocatable :: arpack_mode
 
-    arpack_mode = this%arpack_mode
+    arpack_mode = trim(adjustl(this%arpack_mode))
   end function get_arpack_mode
 
 

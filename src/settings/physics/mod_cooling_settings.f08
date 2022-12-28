@@ -73,7 +73,7 @@ contains
   pure function get_cooling_curve(this) result(cooling_curve)
     class(cooling_settings_t), intent(in) :: this
     character(:), allocatable :: cooling_curve
-    cooling_curve = this%cooling_curve
+    cooling_curve = trim(adjustl(this%cooling_curve))
   end function get_cooling_curve
 
 end module mod_cooling_settings

@@ -38,7 +38,7 @@ contains
   pure function get_equilibrium_type(this) result(equilibrium_type)
     class(equilibrium_settings_t), intent(in) :: this
     character(len=:), allocatable :: equilibrium_type
-    equilibrium_type = this%equilibrium_type
+    equilibrium_type = trim(adjustl(this%equilibrium_type))
   end function get_equilibrium_type
 
 
@@ -52,7 +52,7 @@ contains
   pure function get_boundary_type(this) result(boundary_type)
     class(equilibrium_settings_t), intent(in) :: this
     character(len=:), allocatable :: boundary_type
-    boundary_type = this%boundary_type
+    boundary_type = trim(adjustl(this%boundary_type))
   end function get_boundary_type
 
   pure subroutine delete(this)

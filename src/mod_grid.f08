@@ -10,7 +10,7 @@
 !! $$ x_i(j) = 0.5 * dx * w_i(j) + 0.5(a + b) $$
 module mod_grid
   use mod_global_variables, only: dp
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   use mod_settings, only: settings_t
   implicit none
 
@@ -61,7 +61,7 @@ contains
 
     geometry = settings%grid%get_geometry()
     if (geometry == "") then
-      call log_message("geometry must be set in submodule/parfile", level="error")
+      call logger%error("geometry must be set in submodule/parfile")
       return
     end if
 
@@ -79,24 +79,22 @@ contains
     grid_gauss = 0.0d0
 
     if (present(custom_grid)) then
-      call log_message("using a custom base grid", level="info")
+      call logger%info("using a custom base grid")
       ! check if size matches gridpoints
       if (size(custom_grid) /= gridpts) then
-        call log_message( &
+        call logger%error( &
           "custom grid: sizes do not match! Expected "// str(gridpts) // &
-          " points but got " // str(size(custom_grid)), &
-          level="error" &
+          " points but got " // str(size(custom_grid)) &
         )
         return
       end if
       ! check if grid is monotonous
       do i = 1, size(custom_grid) - 1
         if (.not. (custom_grid(i + 1) > custom_grid(i))) then
-          call log_message( &
+          call logger%error( &
             "custom grid: supplied array is not monotone! Got x=" // &
             str(custom_grid(i)) // " at index " // str(i) // " and x=" // &
-            str(custom_grid(i + 1)) // " at index " // str(i + 1), &
-            level="error" &
+            str(custom_grid(i + 1)) // " at index " // str(i + 1) &
           )
           return
         end if
@@ -107,10 +105,9 @@ contains
         if (.not. settings%grid%force_r0) then
           x_start = 2.5d-2
         else
-          call log_message( &
+          call logger%warning( &
             "forcing on-axis r in cylindrical geometry. This may lead to spurious &
-            &real/imaginary eigenvalues.", &
-            level="warning" &
+            &real/imaginary eigenvalues." &
           )
           x_start = 0.0d0
         end if
@@ -169,9 +166,7 @@ contains
       eps_grid = grid_gauss
       d_eps_grid_dr = 1.0d0
     else
-      call log_message( &
-        "geometry not defined correctly: " // trim(geometry), level="error" &
-      )
+      call logger%error("geometry not defined correctly: " // trim(geometry))
     end if
   end subroutine set_scale_factor
 

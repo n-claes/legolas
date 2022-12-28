@@ -4,7 +4,7 @@
 module mod_thermal_conduction
   use mod_global_variables, only: dp
   use mod_physical_constants, only: dpi, coulomb_log
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   use mod_settings, only: settings_t
   implicit none
 
@@ -141,7 +141,7 @@ contains
 
     if (settings%physics%conduction%has_fixed_tc_para()) return
 
-    call log_message("setting kappa_para derivatives", level="debug")
+    call logger%debug("setting kappa_para derivatives")
     unit_temperature = settings%units%get_unit_temperature()
     unit_dtc_dT = settings%units%get_unit_conduction() / unit_temperature
     T0_dimfull = T0_eq * unit_temperature
@@ -179,7 +179,7 @@ contains
 
     if (settings%physics%conduction%has_fixed_tc_perp()) return
 
-    call log_message("setting kappa_perp rho, T, B derivatives", level="debug")
+    call logger%debug("setting kappa_perp rho, T, B derivatives")
     unit_conduction = settings%units%get_unit_conduction()
     ! re-dimensionalise variables, in normalised units nH = rho
     nH_dimfull = rho0_eq * settings%units%get_unit_numberdensity()
@@ -228,7 +228,7 @@ contains
 
     if (settings%physics%conduction%has_fixed_tc_perp()) return
 
-    call log_message("setting kappa_perp radial derivative", level="debug")
+    call logger%debug("setting kappa_perp radial derivative")
     ! magnetic field derivative
     dB0 = ( &
       B_field % B02 * B_field % d_B02_dr + B_field % B03 * B_field % d_B03_dr &
@@ -263,7 +263,7 @@ contains
     real(dp)  :: d_kappa_para_dr(size(T_field % T0))
     real(dp)  :: dB0(size(B_field % B0))
 
-    call log_message("setting conduction prefactor", level="debug")
+    call logger%debug("setting conduction prefactor")
     ! calculate and set conduction prefactor
     kappa_field % prefactor = ( &
       (kappa_field % kappa_para - kappa_field % kappa_perp) / (B_field % B0**2) &
@@ -276,7 +276,7 @@ contains
       B_field % B02 * B_field % d_B02_dr + B_field % B03 * B_field % d_B03_dr &
     ) / B_field % B0
 
-    call log_message("setting conduction prefactor radial derivative", level="debug")
+    call logger%debug("setting conduction prefactor radial derivative")
     kappa_field % d_prefactor_dr = ( &
       (d_kappa_para_dr - kappa_field % d_kappa_perp_dr) * B_field % B0 &
       - 2.0d0 * (kappa_field % kappa_para - kappa_field % kappa_perp) * dB0 &

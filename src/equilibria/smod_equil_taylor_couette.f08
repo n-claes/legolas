@@ -83,7 +83,7 @@ contains
 
     Ta = (cte_rho0 * (v_field % v02(int(gauss_gridpts/2))) * h / viscosity_value)**2 &
           * 2.0d0 * h / (x_start + x_end)
-    call log_message('Taylor number is ' // str(int(Ta)), level='info')
+    call logger%info('Taylor number is ' // str(int(Ta)))
 
   end procedure taylor_couette_eq
 

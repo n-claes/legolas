@@ -12,7 +12,7 @@ program legolas
   use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_name, create_datfile
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   use mod_console, only: print_console_info, print_whitespace
   use mod_timing, only: timer_t, new_timer
   use mod_settings, only: settings_t, new_settings
@@ -31,6 +31,8 @@ program legolas
   !> matrix with right eigenvectors, column indices correspond to omega indices
   complex(dp), allocatable  :: eigenvecs_right(:, :)
 
+  call logger%initialise()
+
   timer = new_timer()
   settings = new_settings()
 
@@ -44,7 +46,7 @@ program legolas
   call build_matrices(matrix_B, matrix_A, settings)
   timer%matrix_time = timer%end_timer()
 
-  call log_message("solving eigenvalue problem...", level="info")
+  call logger%info("solving eigenvalue problem...")
   call timer%start_timer()
   call solve_evp(matrix_A, matrix_B, settings, omega, eigenvecs_right)
   timer%evp_time = timer%end_timer()
@@ -89,12 +91,8 @@ contains
     call read_parfile(parfile, settings)
 
     call print_logo()
-    call log_message( &
-      "the physics type is " // settings%get_physics_type(), level="info" &
-    )
-    call log_message( &
-      "the state vector is " // str(settings%get_state_vector()), level="info" &
-    )
+    call logger%info("the physics type is " // settings%get_physics_type())
+    call logger%info("the state vector is " // str(settings%get_state_vector()))
 
     select case(settings%solvers%get_solver())
     case ("arnoldi")
@@ -104,7 +102,7 @@ contains
     case default
       nb_evs = settings%dims%get_dim_matrix()
     end select
-    call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
+    call logger%debug("setting #eigenvalues to " // str(nb_evs))
     allocate(omega(nb_evs))
     matrix_A = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="A")
     matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
@@ -117,7 +115,7 @@ contains
         settings%grid%get_grid_end() - settings%grid%get_grid_start() &
       )
       if (ratio > 0.1d0) then
-        call log_message("large ratio Hall scale / system scale: " // str(ratio), level="warning")
+        call logger%warning("large ratio Hall scale / system scale: " // str(ratio))
       end if
     end if
 
@@ -126,14 +124,14 @@ contains
       settings%io%should_compute_eigenvectors() &
       .or. settings%solvers%get_solver() == "arnoldi" &
     ) then
-      call log_message("allocating eigenvector arrays", level="debug")
+      call logger%debug("allocating eigenvector arrays")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
       allocate(eigenvecs_right(settings%dims%get_dim_matrix(), nb_evs))
     else
       ! @note: this is needed to prevent segfaults, since it seems that in some
       ! cases for macOS the routine zgeev references the right eigenvectors even
       ! if they are not requested.
-      call log_message("allocating eigenvector arrays as dummy", level="debug")
+      call logger%debug("allocating eigenvector arrays as dummy")
       allocate(eigenvecs_right(2, 2))
     end if
   end subroutine initialisation
@@ -177,36 +175,21 @@ contains
 
 
   subroutine print_timelog()
-    use mod_logging, only: override_prefix_to_false
     real(dp) :: total_time
 
     call print_whitespace(1)
-    call log_message("---------------------------------------------")
-    override_prefix_to_false = .true.
+    call logger%info("---------------------------------------------")
+    call logger%disable_prefix()
     total_time = timer%get_total_time()
 
-    call log_message("                << Time log >>")
-    call log_message( &
-      "Legolas finished in " // str(total_time) // " seconds", level="info" &
-    )
-    call log_message( &
-      "   initialisation: " // str(timer%init_time) // " sec", level="info" &
-    )
-    call log_message( &
-      "   matrix construction: " // str(timer%matrix_time) // " sec", &
-      level="info" &
-    )
-    call log_message( &
-      "   eigenvalue problem: " // str(timer%evp_time) // " sec", &
-      level="info" &
-    )
-    call log_message( &
-      "   eigenfunction assembly: " // str(timer%eigenfunction_time) // " sec", &
-      level="info" &
-    )
-    call log_message( &
-      "   datfile creation: " // str(timer%datfile_time) // " sec", level="info" &
-    )
+    call logger%info("                << Time log >>")
+    call logger%info("Legolas finished in " // str(total_time) // " seconds")
+    call logger%info("   initialisation: " // str(timer%init_time) // " sec")
+    call logger%info("   matrix construction: " // str(timer%matrix_time) // " sec")
+    call logger%info("   eigenvalue problem: " // str(timer%evp_time) // " sec")
+    call logger%info("   eigenfunctions: " // str(timer%eigenfunction_time) // " sec")
+    call logger%info("   datfile creation: " // str(timer%datfile_time) // " sec")
+    call logger%enable_prefix()
   end subroutine print_timelog
 
 end program legolas

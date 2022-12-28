@@ -4,7 +4,7 @@
 !! correct solver based on parfile settings.
 module mod_solvers
   use mod_global_variables, only: dp, NaN
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   use mod_check_values, only: set_small_values_to_zero
   use mod_matrix_structure, only: matrix_t
   use mod_transform_matrix, only: matrix_to_array
@@ -117,9 +117,7 @@ contains
       omega = NaN * (1, 1)
       if (settings%io%should_compute_eigenvectors()) vr = NaN * (1, 1)
     case default
-      call log_message( &
-        "unknown solver passed: " // settings%solvers%get_solver(), level="error" &
-      )
+      call logger%error("unknown solver passed: " // settings%solvers%get_solver())
       return
     end select
   end subroutine solve_evp

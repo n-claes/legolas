@@ -8,7 +8,7 @@ module mod_inspections
   use mod_global_variables, only: dp
   use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
     gravity_type, cooling_type, conduction_type
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str, exp_fmt
   use mod_settings, only: settings_t
   implicit none
 
@@ -45,11 +45,11 @@ contains
 
     ! TODO: is there an easier way to do this?
     if (any(is_negative(rho_field % rho0))) then
-      call log_message("negative density encountered!", level="error")
+      call logger%error("negative density encountered!")
       return
     end if
     if (any(is_negative(T_field % T0))) then
-      call log_message("negative temperature encountered!", level="error")
+      call logger%error("negative temperature encountered!")
       return
     end if
     if (any(is_NaN(rho_field % rho0))) then
@@ -73,7 +73,7 @@ contains
     end if
 
     if (name /= "") then
-      call log_message("NaN encountered in " // adjustl(trim(name)), level="error")
+      call logger%error("NaN encountered in " // adjustl(trim(name)))
       return
     end if
   end subroutine perform_NaN_and_negative_checks
@@ -126,14 +126,11 @@ contains
 
     character(len=*), intent(in) :: geometry
 
-    if (geometry == "cylindrical") then
-      ! in cylindrical geometry k2 should be an integer
-      if (abs(int(k2) - k2) > dp_LIMIT) then
-        call log_message( &
-          "cylindrical geometry but k2 is not an integer! Value: " // str(k2), &
-          level="error" &
-        )
-      end if
+    ! in cylindrical geometry k2 should be an integer
+    if (geometry == "cylindrical" .and. abs(int(k2) - k2) > dp_LIMIT) then
+      call logger%error( &
+        "cylindrical geometry but k2 is not an integer! Value: " // str(k2) &
+      )
     end if
   end subroutine check_wavenumbers
 
@@ -167,27 +164,23 @@ contains
 
     ! LCOV_EXCL_START
     if (abs(B_field % B02(1)) > on_axis_limit) then
-      call log_message( &
-        "B_theta non-zero on axis! Value: " // str(B_field % B02(1)), &
-        level="warning" &
+      call logger%warning( &
+        "B_theta non-zero on axis! Value: " // str(B_field % B02(1)) &
       )
     end if
     if (abs(B_field % d_B03_dr(1)) > on_axis_limit) then
-      call log_message( &
-        "dBz/dr non-zero on axis! Value: " // str(B_field % d_B03_dr(1)), &
-        level="warning" &
+      call logger%warning( &
+        "dBz/dr non-zero on axis! Value: " // str(B_field % d_B03_dr(1)) &
       )
     end if
     if (abs(v_field % v02(1)) > on_axis_limit) then
-      call log_message( &
-        "v_theta non-zero on axis! Value: " // str(v_field % v02(1)), &
-        level="warning" &
+      call logger%warning( &
+        "v_theta non-zero on axis! Value: " // str(v_field % v02(1)) &
       )
     end if
     if (abs(v_field % d_v03_dr(1)) > on_axis_limit) then
-      call log_message( &
-        "dvz_dr non-zero on axis! Value: " // str(v_field % d_v03_dr(1)), &
-        level="warning" &
+      call logger%warning( &
+        "dvz_dr non-zero on axis! Value: " // str(v_field % d_v03_dr(1)) &
       )
     end if
     ! LCOV_EXCL_STOP
@@ -230,14 +223,10 @@ contains
 
     B01 = B_field % B01
     if ( &
-      (settings%grid%get_geometry() == "cylindrical") &
-      .and. (abs(B01) > dp_LIMIT) &
-    ) then
-      call log_message( &
-        "B01 component currently not supported for cylindrical geometries!", &
-        level="error" &
-      )
-    end if
+      (settings%grid%get_geometry() == "cylindrical") .and. (abs(B01) > dp_LIMIT) &
+    ) call logger%error( &
+      "B01 component currently not supported for cylindrical geometries!" &
+    )
 
     satisfied = .true.
     discrepancy = 0.0d0
@@ -283,27 +272,18 @@ contains
         cycle
       end if
       ! LCOV_EXCL_START
-      call log_message( &
-        "standard equilibrium conditions not satisfied!", level="warning" &
+      call logger%warning("standard equilibrium conditions not satisfied!")
+      call logger%warning( &
+        "location of largest discrepancy (" // str(j) // "): x = " // str(r(j)) &
       )
-      call log_message( &
-        "location of largest discrepancy (" // str(j) // "): x = " // str(r(j)), &
-        level="warning", &
-        use_prefix=.false. &
-      )
-      call log_message( &
+      call logger%warning( &
         "value of largest discrepancy (" // str(j) // "): " &
-        // str(discrepancy(j), fmt="e20.8"), &
-        level="warning", &
-        use_prefix=.false. &
+        // str(discrepancy(j), fmt=exp_fmt) &
       )
-      call log_message( &
+      call logger%warning( &
         "amount of nodes not satisfying criterion (" // str(j) // "): " &
-        // str(counter(j)), &
-        level="warning", &
-        use_prefix=.false. &
+        // str(counter(j)) &
       )
-      write(*,*) ""
       ! LCOV_EXCL_STOP
     end do
   end subroutine standard_equil_conditions
@@ -390,9 +370,8 @@ contains
 
     ! log this if it's set
     if (any(abs(rc_field % heat_loss) > dp_limit)) then
-      call log_message( &
-        "encountered non-zero B01, v01 or kappa_perp, energy balance has been set", &
-        level="info" &
+      call logger%info( &
+        "encountered non-zero B01, v01 or kappa_perp, energy balance has been set" &
       )
     end if
     ! double check if L0=0 holds
@@ -403,7 +382,7 @@ contains
     ) then
       ! if B01 = v01 = kappa_perp = 0, then L0 must be zero
       if (any(abs(rc_field % heat_loss) > dp_LIMIT)) then
-        call log_message("expected L0 = 0 but got non-zero values!", level="error")
+        call logger%error("expected L0 = 0 but got non-zero values!")
       end if
     end if
   end subroutine set_energy_balance
@@ -471,25 +450,17 @@ contains
         cycle
       end if
       ! LCOV_EXCL_START
-      call log_message( &
-        "induction equilibrium conditions not satisfied!", level="warning" &
+      call logger%warning("induction equilibrium conditions not satisfied!")
+      call logger%warning( &
+        "location of largest discrepancy (" // str(j) // "): x = " // str(r(j)) &
       )
-      call log_message( &
-        "location of largest discrepancy (" // str(j) // "): x = " // str(r(j)), &
-        level="warning", &
-        use_prefix=.false. &
-      )
-      call log_message( &
+      call logger%warning( &
         "value of largest discrepancy (" // str(j) // "): " &
-        // str(discrepancy(j), fmt="e20.8"), &
-        level="warning", &
-        use_prefix=.false. &
+        // str(discrepancy(j), fmt=exp_fmt) &
       )
-      call log_message( &
+      call logger%warning( &
         "amount of nodes not satisfying criterion (" // str(j) // "): " &
-        // str(counter(j)), &
-        level="warning", &
-        use_prefix=.false. &
+        // str(counter(j)) &
       )
     end do
     ! LCOV_EXCL_STOP
@@ -541,26 +512,12 @@ contains
 
     ! LCOV_EXCL_START
     if (.not. satisfied) then
-      call log_message( &
-        "continuity equilibrium conditions not satisfied!", &
-        level="warning" &
+      call logger%warning("continuity equilibrium conditions not satisfied!")
+      call logger%warning("location of largest discrepancy: x = " // str(r))
+      call logger%warning( &
+        "value of largest discrepancy: " // str(discrepancy, fmt=exp_fmt) &
       )
-      call log_message( &
-        "location of largest discrepancy: x = " // str(r), &
-        level="warning", &
-        use_prefix=.false. &
-      )
-      call log_message( &
-        "value of largest discrepancy: " // str(discrepancy, fmt="e20.8"), &
-        level="warning", &
-        use_prefix=.false. &
-      )
-      call log_message( &
-        "amount of nodes not satisfying criterion: " // str(counter), &
-        level="warning", &
-        use_prefix=.false. &
-      )
-      write(*,*) ""
+      call logger%warning("amount of nodes not satisfying criterion: " // str(counter))
     end if
     ! LCOV_EXCL_STOP
   end subroutine continuity_equil_conditions

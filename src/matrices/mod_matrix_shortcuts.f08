@@ -3,7 +3,7 @@ module mod_matrix_shortcuts
   use mod_equilibrium, only: B_field
   use mod_equilibrium_params, only: k2, k3
   use mod_grid, only: eps_grid, d_eps_grid_dr
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   implicit none
 
   private
@@ -41,9 +41,7 @@ contains
       )
     else
       Foperator = NaN
-      call log_message( &
-        "requesting invalid F-operator sign: " // trim(which), level="error" &
-      )
+      call logger%error("requesting invalid F-operator sign: " // trim(which))
     end if
   end function get_F_operator
 
@@ -81,9 +79,7 @@ contains
       )
     else
       dFoperator = NaN
-      call log_message( &
-        "requesting invalid dF-operator sign: " // trim(which), level="error" &
-      )
+      call logger%error("requesting invalid dF-operator sign: " // trim(which))
     end if
   end function get_diffF_operator
 
@@ -113,9 +109,7 @@ contains
       )
     else
       Goperator = NaN
-      call log_message( &
-        "requesting invalid G-operator sign: " // trim(which), level="error" &
-      )
+      call logger%error("requesting invalid G-operator sign: " // trim(which))
     end if
   end function get_G_operator
 
@@ -169,7 +163,7 @@ contains
       Kp_operator = Kp_plusplus
     else
       Kp_operator = NaN
-      call log_message("requesting invalid Kp-operator: " // trim(which), level="error")
+      call logger%error("requesting invalid Kp-operator: " // trim(which))
     end if
   end function get_Kp_operator
 end module mod_matrix_shortcuts

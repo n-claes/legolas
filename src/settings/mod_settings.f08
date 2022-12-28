@@ -94,7 +94,7 @@ contains
     class(settings_t), intent(in) :: this
     character(len=:), allocatable :: physics_type
 
-    physics_type = this%physics_type
+    physics_type = trim(adjustl(this%physics_type))
   end function get_physics_type
 
 

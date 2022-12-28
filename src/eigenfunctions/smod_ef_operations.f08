@@ -12,7 +12,6 @@ contains
     !! in this case the eigenfunction is divided by the scale factor.
   module procedure retransform_eigenfunction
     use mod_global_variables, only: ic
-    use mod_logging, only: log_message
 
     select case(name)
     case("rho", "v3", "T", "a2") ! var -> eps * var
@@ -24,7 +23,7 @@ contains
     case("a1") ! a1 -> i*a1
       eigenfunction = eigenfunction / ic
     case default
-      call log_message("wrong eigenfunction name during retransform", level="error")
+      call logger%error("wrong eigenfunction name during retransform")
     end select
   end procedure retransform_eigenfunction
 
@@ -98,7 +97,6 @@ contains
   !> Returns the finite element basis functions for the given eigenfunction and
   !! position in the grid.
   function get_spline(name, grid_idx, ef_grid_idx, diff_order) result(spline)
-    use mod_logging, only: log_message, str
     use mod_spline_functions
     use mod_grid, only: grid
 
@@ -124,9 +122,8 @@ contains
       case(2)
         spline_function => cubic_factors_deriv2
       case default
-        call log_message( &
-          "get_spline - invalid derivative order given (cubic): " // str(diff_order), &
-          level="error" &
+        call logger%error( &
+          "get_spline - invalid derivative order given (cubic): " // str(diff_order) &
         )
         return
       end select
@@ -138,17 +135,15 @@ contains
       case(1)
         spline_function => quadratic_factors_deriv
       case default
-        call log_message( &
-          "get_spline - invalid order given (quadratic): " // str(diff_order), &
-          level="error" &
+        call logger%error( &
+          "get_spline - invalid order given (quadratic): " // str(diff_order) &
         )
         return
       end select
 
     case default
-      call log_message( &
-        "get_spline - invalid eigenfunction name given: " // name, &
-        level="error" &
+      call logger%error( &
+        "get_spline - invalid eigenfunction name given: " // name &
       )
     end select
 

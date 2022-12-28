@@ -98,16 +98,14 @@ contains
     B_e = sqrt(2.0d0 * gamma * cte_p0 * (2.0d0 * gamma + 1.0d0) / (gamma + 18.0d0))
 
     if (r0 > x_end) then
-      call log_message("equilibrium: inner cylinder radius r0 > x_end", level="error")
+      call logger%error("equilibrium: inner cylinder radius r0 > x_end")
     else if (r0 < x_start) then
-      call log_message("equilibrium: inner cylinder radius r0 < x_start", level="error")
+      call logger%error("equilibrium: inner cylinder radius r0 < x_start")
     end if
 
     ! check pressure balance
     if (abs(cte_p0 + 0.5d0 * B_0**2 - p_e - 0.5d0 * B_e**2) > dp_LIMIT) then
-      call log_message( &
-        "equilibrium: total pressure balance not satisfied", level="error" &
-      )
+      call logger%error("equilibrium: total pressure balance not satisfied")
     end if
 
     do i = 1, settings%grid%get_gauss_gridpts()

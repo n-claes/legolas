@@ -4,7 +4,7 @@
 !! geometries only.
 module mod_solar_atmosphere
   use mod_global_variables, only: dp
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   use mod_settings, only: settings_t
   implicit none
 
@@ -98,7 +98,7 @@ contains
     ! check for presence of custom profiles, if not, use default ones
     if (present(f_b02)) then
       if (.not. present(f_db02)) then
-        call log_message("solar atmosphere: B02 defined but no dB02", level="error")
+        call logger%error("solar atmosphere: B02 defined but no dB02")
         return
       end if
       b02_prof => f_b02
@@ -109,7 +109,7 @@ contains
     end if
     if (present(f_b03)) then
       if (.not. present(f_db03)) then
-        call log_message("solar atmosphere: B03 defined but no dB03", level="error")
+        call logger%error("solar atmosphere: B03 defined but no dB03")
         return
       end if
       b03_prof => f_b03
@@ -130,19 +130,17 @@ contains
     end if
 
     if (settings%grid%get_geometry() /= "Cartesian") then
-      call log_message( &
-        "solar atmosphere can only be set in Cartesian geometries!", level="error" &
-      )
+      call logger%error("solar atmosphere can only be set in Cartesian geometries!")
       return
     end if
 
-    call log_message("setting solar atmosphere...", level="info")
+    call logger%info("setting solar atmosphere...")
     ! load pre-existing profiles from file
     if (present(load_from)) then
       ! this allocates and sets rho_values and drho_values
       call load_profile_from_file(settings, load_from, loading_ok=loaded)
       if (.not. loaded) then
-        call log_message("solar atmosphere: profile loading failed!", level="error")
+        call logger%error("solar atmosphere: profile loading failed!")
         return
       end if
     else
@@ -171,10 +169,8 @@ contains
       ! set initial density value (numberdensity = density in normalised units)
       rhoinit = nh_interp(1)
       ! solve differential equation
-      call log_message( &
-        "solving equilibrium ODE for density (" // str(nbpoints) // " points)", &
-        level="info", &
-        use_prefix=.false. &
+      call logger%info( &
+        "solving equilibrium ODE for density (" // str(nbpoints) // " points)" &
       )
       ! do integration
       call integrate_ode_rk( &
@@ -217,12 +213,7 @@ contains
       + (B_field % B02 * B_field % d_B02_dr + B_field % B03 * B_field % d_B03_dr) &
     ) / T_field % T0
 
-    call log_message( &
-      "rho, T, B and gravity attributes have been set", &
-      level="info", &
-      use_prefix=.false. &
-    )
-
+    call logger%info("rho, T, B and gravity attributes have been set")
     deallocate(h_interp, T_interp, nh_interp, dT_interp)
     deallocate(rho_values, drho_values)
   end subroutine set_solar_atmosphere
@@ -233,7 +224,6 @@ contains
   subroutine create_atmosphere_curves(settings)
     use mod_atmosphere_curves, only: h_alc7, T_alc7, nh_alc7
     use mod_interpolation, only: interpolate_table, get_numerical_derivative
-    use mod_global_variables, only: logging_level
 
     type(settings_t), intent(in) :: settings
     real(dp) :: unit_length, unit_temperature, unit_numberdensity
@@ -255,7 +245,7 @@ contains
     ! find temperature derivative
     call get_numerical_derivative(h_interp, T_interp, dT_interp)
     ! save these curves to a file if we're in debug mode
-    if (logging_level >= 3) then ! LCOV_EXCL_START
+    if (logger%get_logging_level() >= 3) then ! LCOV_EXCL_START
       open( &
         unit=1002, &
         file="debug_atmocurves", &
@@ -273,9 +263,7 @@ contains
       write(1002) nh_interp * unit_numberdensity
       write(1002) dT_interp * (unit_temperature / unit_length)
       close(1002)
-      call log_message( &
-        "atmo curves saved to file 'debug_atmocurves'", level="debug" &
-      )
+      call logger%debug("atmo curves saved to file 'debug_atmocurves'")
     end if ! LCOV_EXCL_STOP
   end subroutine create_atmosphere_curves
 
@@ -303,10 +291,8 @@ contains
     write(unit) gravity_prof(h_interp, settings)
     write(unit) rho_values, drho_values
     close(unit)
-    call log_message( &
-      "integrated density profiles saved to " // trim(adjustl(filename)), &
-      level="info", &
-      use_prefix=.false. &
+    call logger%info( &
+      "integrated density profiles saved to " // trim(adjustl(filename)) &
     )
   end subroutine save_profile_to_file
 
@@ -339,53 +325,46 @@ contains
 
     read(unit) resolution
     if (.not. resolution == nbpoints) then
-      call log_message( &
+      call logger%warning( &
         "set resolution (" // str(nbpoints) // &
-        ") has been overriden by resolution from file (" // str(resolution) // ")", &
-        level="warning" &
+        ") has been overriden by resolution from file (" // str(resolution) // ")" &
       )
     end if
     nbpoints = resolution
-    call log_message( &
-      "restoring density profiles from " // filename // " [" // str(nbpoints) // "]", &
-      level="info", &
-      use_prefix=.false. &
+    call logger%info( &
+      "restoring density profiles from " // filename // " [" // str(nbpoints) // "]" &
     )
 
     ! check normalisations
     read(unit) length_file, temperature_file, magneticfield_file, density_file
     if (.not. is_equal(length_file, unit_length)) then
-      call log_message( &
+      call logger%warning( &
         "profile inconsistency: length units do not match! Got " // &
-        str(length_file) // " but expected " // str(unit_length), &
-        level="warning" &
+        str(length_file) // " but expected " // str(unit_length) &
       )
       close(unit)
       return
     end if
     if (.not. is_equal(temperature_file, unit_temperature)) then
-      call log_message( &
+      call logger%warning( &
         "profile inconsistency: temperature units do not match! Got " // &
-        str(temperature_file) // " but expected " // str(unit_temperature), &
-        level="warning" &
+        str(temperature_file) // " but expected " // str(unit_temperature) &
       )
       close(unit)
       return
     end if
     if (.not. is_equal(magneticfield_file, unit_magneticfield)) then
-      call log_message( &
+      call logger%warning( &
         "profile inconsistency: magnetic units do not match! Got " // &
-        str(magneticfield_file) // " but expected " // str(unit_magneticfield), &
-        level="warning" &
+        str(magneticfield_file) // " but expected " // str(unit_magneticfield) &
       )
       close(unit)
       return
     end if
     if (.not. is_equal(density_file, unit_density)) then
-      call log_message( &
+      call logger%warning( &
         "profile inconsistency: density units do not match! Got " // &
-        str(length_file) // " but expected " // str(unit_length), &
-        level="warning" &
+        str(length_file) // " but expected " // str(unit_length) &
       )
       close(unit)
       return
@@ -433,9 +412,7 @@ contains
     if (b02_cte .and. dB02_zero .and. b03_cte .and. dB03_zero) then
       deallocate(prof_names)
       allocate(prof_names, mold="")
-      call log_message( &
-        "load profile: B02 and B03 are constant, skipping B0 checks", level="debug" &
-      )
+      call logger%debug("load profile: B02 and B03 are constant, skipping B0 checks")
     end if
 
     ! check gravity
@@ -444,9 +421,8 @@ contains
       prof_names = trim(prof_names // " gravity")
     end if
     if (.not. prof_names == "") then
-      call log_message( &
-        "profile inconsistency in [" // prof_names // " ] when loading from file", &
-        level="warning" &
+      call logger%warning( &
+        "profile inconsistency in [" // prof_names // " ] when loading from file" &
       )
       close(unit)
       return

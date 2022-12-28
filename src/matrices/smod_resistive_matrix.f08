@@ -227,9 +227,7 @@ contains
       Roperator = (deps * eta / eps - deta)
     else
       Roperator = NaN
-      call log_message( &
-        "requesting invalid R-operator sign: " // trim(which), level="error" &
-      )
+      call logger%error("requesting invalid R-operator sign: " // trim(which))
     end if
   end function get_R_operator
 

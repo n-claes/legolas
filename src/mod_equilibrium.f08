@@ -14,7 +14,7 @@ module mod_equilibrium
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str, exp_fmt
   use mod_settings, only: settings_t
   implicit none
 
@@ -193,9 +193,7 @@ contains
 
     ! Check x_start if coaxial is true
     if (settings%grid%coaxial .and. settings%grid%get_grid_start() <= dp_LIMIT) then
-      call log_message( &
-        "x_start must be > 0 to introduce an inner wall boundary", level="error" &
-      )
+      call logger%error("x_start must be > 0 to introduce an inner wall boundary")
       return
     end if
 
@@ -299,10 +297,9 @@ contains
     case("user_defined")
       set_equilibrium_values => user_defined_eq
     case default
-      call log_message( &
+      call logger%error( &
         "equilibrium not recognised: " &
-        // trim(settings%equilibrium%get_equilibrium_type()), &
-        level="error" &
+        // trim(settings%equilibrium%get_equilibrium_type()) &
       )
     end select
   end subroutine set_equilibrium_pointer

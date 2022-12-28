@@ -2,7 +2,6 @@
 !> This module handles formatting of terminal-printed strings.
 !! Contains subroutines to colourise strings.
 module mod_painting
-  use mod_global_variables, only: str_len
   implicit none
 
   !> escape character for logging
@@ -23,9 +22,6 @@ module mod_painting
   !> grey ANSI colour sequence
   character(len=*), parameter :: grey = esc // "[90m"
 
-  !> formatting used in logging
-  character(:), allocatable   :: fmt
-
   private
 
   public :: paint_string
@@ -38,13 +34,14 @@ contains
   !! returns a new string with ANSI escape sequences prepended
   !! and appended. If the 'colour' argument is not known, simply
   !! returns the string itself.
-  subroutine paint_string(msg, colour, msg_painted)
+  pure function paint_string(msg, colour) result(msg_painted)
     !> message to print to the console
-    character(len=*), intent(in)    :: msg
+    character(len=*), intent(in) :: msg
     !> colour of the message
-    character(len=*), intent(in)    :: colour
+    character(len=*), intent(in) :: colour
+    character(:), allocatable :: fmt
     !> new string with ANSI sequences added
-    character(len=*), intent(out)   :: msg_painted
+    character(:), allocatable :: msg_painted
 
     select case(colour)
       case("red")
@@ -63,7 +60,7 @@ contains
         msg_painted = msg
         return
     end select
-    msg_painted = fmt // msg // term
-  end subroutine paint_string
+    msg_painted = trim(adjustl(fmt // msg // term))
+  end function paint_string
   ! LCOV_EXCL_STOP
 end module mod_painting

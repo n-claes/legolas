@@ -4,6 +4,7 @@ module mod_output
   use mod_global_variables, only: dp, str_len, dp_LIMIT
   use mod_matrix_structure, only: matrix_t
   use mod_settings, only: settings_t
+  use mod_logging, only: logger, exp_fmt
   implicit none
 
   private
@@ -78,7 +79,6 @@ contains
   subroutine create_datfile(eigenvalues, matrix_A, matrix_B, eigenvectors, settings)
     use mod_global_variables
     use mod_version, only: LEGOLAS_VERSION
-    use mod_logging, only: log_message
     use mod_grid, only: grid, grid_gauss
     use mod_equilibrium, only: rho_field, T_field, B_field, v_field, rc_field, &
       kappa_field, eta_field, grav_field, hall_field
@@ -186,7 +186,7 @@ contains
 
     ! Eigenfunction data [optional]
     if (settings%io%write_eigenfunctions) then
-      call log_message("writing eigenfunctions...", level="info")
+      call logger%info("writing eigenfunctions...")
       write(dat_fh) settings%get_nb_eqs(), settings%get_state_vector()
       write(dat_fh) ef_grid
       write(dat_fh) size(ef_written_flags), ef_written_flags
@@ -198,7 +198,7 @@ contains
 
     ! Data for quantities derived from eigenfunctions [optional]
     if (settings%io%write_derived_eigenfunctions) then
-      call log_message("writing derived eigenfunction quantities...", level="info")
+      call logger%info("writing derived eigenfunction quantities...")
       write(dat_fh) size(derived_ef_names), derived_ef_names
       do i = 1, size(derived_eigenfunctions)
         write(dat_fh) derived_eigenfunctions(i)%quantities
@@ -207,7 +207,7 @@ contains
 
     ! Eigenvector data [optional]
     if (settings%io%write_eigenvectors) then
-      call log_message("writing eigenvectors...", level="info")
+      call logger%info("writing eigenvectors...")
       write(dat_fh) size(eigenvectors, 1), size(eigenvectors, 2), eigenvectors
     end if
 
@@ -221,14 +221,14 @@ contains
       call matrix_to_banded( &
         matrix=matrix_B, subdiags=diags, superdiags=diags, banded=matrix_B_banded &
       )
-      call log_message("computing residuals...", level="info")
+      call logger%info("computing residuals...")
       do i = 1, size(eigenvalues)
         residuals(i) = get_residual( &
           matrix_A_banded, matrix_B_banded, eigenvalues(i), eigenvectors(:, i) &
         )
       end do
 
-      call log_message("writing residuals...", level="info")
+      call logger%info("writing residuals...")
       write(dat_fh) size(residuals), residuals
       deallocate(residuals)
     end if
@@ -239,10 +239,10 @@ contains
     ! Matrix data [optional]
     if (settings%io%write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
 
-    call log_message("results saved to " // trim(datfile_name), level="info")
+    call logger%info("results saved to " // trim(datfile_name))
     close(dat_fh)
 
-    call create_logfile(settings, eigenvalues)
+    if (logger%get_logging_level() >= 3) call create_logfile(settings, eigenvalues)
   end subroutine create_datfile
 
 
@@ -290,15 +290,13 @@ contains
   !!          no logfile is written. @endnote
   !! @note    The extension <tt>".log"</tt> is appended to the filename. @endnote
   subroutine create_logfile(settings, eigenvalues)
-    use mod_logging, only: log_message, exp_fmt
-
     type(settings_t), intent(in) :: settings
     !> the eigenvalues
     complex(dp), intent(in)   :: eigenvalues(:)
     character(20)             :: real_part, imag_part
     integer   :: i
 
-    logfile_name = trim(settings%io%get_output_folder() // "/logfile.log")
+    call make_filename(settings=settings, extension=".log", filename=logfile_name)
     ! open manually since this is not a binary file
     open(unit=log_fh, file=logfile_name, status="unknown", action="write")
     do i = 1, size(eigenvalues)
@@ -307,7 +305,7 @@ contains
       write(log_fh, *) real_part, ",", imag_part
     end do
 
-    call log_message("eigenvalues logged to " // trim(logfile_name), level="info")
+    call logger%info("eigenvalues logged to " // trim(logfile_name))
     close(log_fh)
   end subroutine create_logfile
 

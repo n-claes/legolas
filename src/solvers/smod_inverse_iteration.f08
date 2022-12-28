@@ -53,24 +53,22 @@ contains
 
     ! check input sanity
     if (.not. (matrix_A%matrix_dim == matrix_B%matrix_dim)) then
-      call log_message("A or B not square, or not compatible", level="error")
+      call logger%error("A or B not square, or not compatible")
+      return
     end if
 
     ! if maxiter is not set in the parfile it's still 0, default to 100
     if (maxiter == 0) then
       maxiter = 100
     else if (maxiter < 0) then
-      call log_message( &
-        "maxiter has to be positive, but is equal to " // str(maxiter), level="error" &
+      call logger%error( &
+        "maxiter has to be positive, but is equal to " // str(maxiter) &
       )
       return
     end if
 
     if (is_equal(sigma, (0.0d0, 0.0d0))) then
-      call log_message( &
-        "inverse-iteration: sigma can not be equal to zero", &
-        level="error" &
-      )
+      call logger%error("inverse-iteration: sigma can not be equal to zero")
       return
     end if ! LCOV_EXCL_STOP
 
@@ -103,9 +101,8 @@ contains
     allocate(LU_ipiv(N))
     call zgbtrf(N, N, kd, kd, LU%AB, LU%kl+LU%ku+1, LU_ipiv, info)
     if (info /= 0) then ! LCOV_EXCL_START
-      call log_message( &
-        "[A - sigma * B](" // str(info) // "," // str(info) // ") is zero", &
-        level="warning" &
+      call logger%warning( &
+        "[A - sigma * B](" // str(info) // "," // str(info) // ") is zero" &
       )
     end if ! LCOV_EXCL_STOP
 
@@ -176,23 +173,11 @@ contains
     ! if we did not converge, raise a warning
     if (.not.converged) then
       if (i == maxiter+1) then
-        call log_message( &
-          "Inverse iteration failed to converge! (maxiter reached)", level="warning" &
-        )
-        call log_message( &
-          "number of iterations: " // str(maxiter), &
-          level="warning", &
-          use_prefix=.false. &
-        )
+        call logger%warning("Inverse iteration failed to converge! (maxiter reached)")
+        call logger%warning("number of iterations: " // str(maxiter))
       else
-        call log_message( &
-          "Inverse iteration failed to converge! (divergence)", level="warning" &
-        )
-        call log_message( &
-          "number of iterations: " // str(i), &
-          level="warning", &
-          use_prefix=.false. &
-        )
+        call logger%warning("Inverse iteration failed to converge! (divergence)")
+        call logger%warning("number of iterations: " // str(i))
       end if
     end if
 

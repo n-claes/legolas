@@ -2,7 +2,7 @@
 !> Module that contains the datastructure for a linked-list matrix representation.
 module mod_matrix_structure
   use mod_global_variables, only: dp
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   use mod_matrix_node, only: node_t
   use mod_matrix_row, only: row_t, new_row
   implicit none
@@ -108,7 +108,7 @@ contains
       type is (integer)
         is_valid = (element /= 0)
       class default
-        call log_message("adding unexpected element type", level="error")
+        call logger%error("adding unexpected element type")
     end select
   end function is_valid_element
 
@@ -124,9 +124,8 @@ contains
 
     is_valid = .true.
     if (index <= 0 .or. index > matrix%matrix_dim) then
-      call log_message( &
-        "row/column index " // str(index) // " is outside of matrix dimension", &
-        level="error" &
+      call logger%error( &
+        "row/column index " // str(index) // " is outside of matrix dimension" &
       )
       is_valid = .false.
     end if
