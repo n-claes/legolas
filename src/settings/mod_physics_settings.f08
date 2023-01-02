@@ -118,12 +118,14 @@ contains
   pure subroutine enable_resistivity(this, fixed_resistivity_value)
     class(physics_t), intent(inout) :: this
     real(dp), intent(in), optional :: fixed_resistivity_value
+    real(dp) :: fixed_eta
 
     call this%resistivity%enable()
-    if ( &
-      present(fixed_resistivity_value) .and. .not. is_zero(fixed_resistivity_value) &
-    ) then
-      call this%resistivity%set_fixed_resistivity(fixed_resistivity_value)
+
+    fixed_eta = 0.0_dp
+    if (present(fixed_resistivity_value)) fixed_eta = fixed_resistivity_value
+    if (.not. is_zero(fixed_eta)) then
+      call this%resistivity%set_fixed_resistivity(fixed_eta)
     end if
   end subroutine enable_resistivity
 
@@ -132,21 +134,27 @@ contains
     class(physics_t), intent(inout) :: this
     real(dp), intent(in) :: viscosity_value
     logical, intent(in), optional :: viscous_heating
+    logical :: heating
 
     call this%viscosity%set_viscosity_value(viscosity_value)
-    if (present(viscous_heating) .and. viscous_heating) then
-      call this%viscosity%enable_viscous_heating()
-    end if
+
+    heating = this%viscosity%has_viscous_heating()
+    if (present(viscous_heating)) heating = viscous_heating
+    if (heating) call this%viscosity%enable_viscous_heating()
   end subroutine enable_viscosity
 
 
   pure subroutine enable_parallel_conduction(this, fixed_tc_para_value)
     class(physics_t), intent(inout) :: this
     real(dp), intent(in), optional :: fixed_tc_para_value
+    real(dp) :: fixed_tc_para
 
     call this%conduction%enable_para_conduction()
-    if (present(fixed_tc_para_value) .and. .not. is_zero(fixed_tc_para_value)) then
-      call this%conduction%set_fixed_tc_para(fixed_tc_para_value)
+
+    fixed_tc_para = this%conduction%get_fixed_tc_para()
+    if (present(fixed_tc_para_value)) fixed_tc_para = fixed_tc_para_value
+    if (.not. is_zero(fixed_tc_para)) then
+      call this%conduction%set_fixed_tc_para(fixed_tc_para)
     end if
   end subroutine enable_parallel_conduction
 
@@ -154,10 +162,14 @@ contains
   pure subroutine enable_perpendicular_conduction(this, fixed_tc_perp_value)
     class(physics_t), intent(inout) :: this
     real(dp), intent(in), optional :: fixed_tc_perp_value
+    real(dp) :: fixed_tc_perp
 
     call this%conduction%enable_perp_conduction()
-    if (present(fixed_tc_perp_value) .and. .not. is_zero(fixed_tc_perp_value)) then
-      call this%conduction%set_fixed_tc_perp(fixed_tc_perp_value)
+
+    fixed_tc_perp = this%conduction%get_fixed_tc_perp()
+    if (present(fixed_tc_perp_value)) fixed_tc_perp = fixed_tc_perp_value
+    if (.not. is_zero(fixed_tc_perp)) then
+      call this%conduction%set_fixed_tc_perp(fixed_tc_perp)
     end if
   end subroutine enable_perpendicular_conduction
 
@@ -169,15 +181,16 @@ contains
     logical, intent(in), optional :: use_hall_substitution
     logical, intent(in), optional :: electron_inertia
     real(dp), intent(in), optional :: electron_fraction
-    logical :: hall_substitution
+    logical :: hall_substitution, inertia
 
-    hall_substitution = .true.
+    hall_substitution = this%hall%is_using_substitution()
     if (present(use_hall_substitution)) hall_substitution = use_hall_substitution
     call this%hall%enable(hall_substitution)
 
-    if (present(electron_inertia) .and. electron_inertia) then
-      call this%hall%enable_electron_inertia()
-    end if
+    inertia = this%hall%has_electron_inertia()
+    if (present(electron_inertia)) inertia = electron_inertia
+    if (inertia) call this%hall%enable_electron_inertia()
+
     if (present(electron_fraction)) then
       call this%hall%set_electron_fraction(electron_fraction)
     end if
