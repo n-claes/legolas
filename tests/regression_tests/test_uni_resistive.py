@@ -18,8 +18,7 @@ class UniResistive(RegressionTest):
     }
     physics_settings = {
         "resistivity": True,
-        "use_fixed_resistivity": True,
-        "fixed_eta_value": 0.001,
+        "fixed_resistivity_value": 0.001,
     }
     eigenfunction_settings = {
         "write_eigenfunctions": True,
@@ -60,7 +59,7 @@ class TestUniResistiveQR(UniResistive):
     def test_eta_value(self, ds_test):
         assert np.all(
             ds_test.equilibria.get("eta")
-            == pytest.approx(self.physics_settings["fixed_eta_value"])
+            == pytest.approx(self.physics_settings["fixed_resistivity_value"])
         )
 
 

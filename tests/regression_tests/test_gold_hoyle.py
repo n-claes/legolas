@@ -1,6 +1,7 @@
-from .regression import RegressionTest
 import numpy as np
 import pytest
+
+from .regression import RegressionTest
 
 
 class TestGoldHoyleQR(RegressionTest):
@@ -13,9 +14,8 @@ class TestGoldHoyleQR(RegressionTest):
     physics_settings = {
         "radiative_cooling": True,
         "cooling_curve": "rosner",
-        "thermal_conduction": True,
-        "use_fixed_tc_perp": True,
-        "fixed_tc_perp_value": 0,
+        "parallel_conduction": True,
+        "perpendicular_conduction": False,
         "unit_density": 1.6727e-15,
         "unit_magneticfield": 22.5,
         "unit_length": 1.0e10,
@@ -34,17 +34,20 @@ class TestGoldHoyleQR(RegressionTest):
     def test_spectrum(self, limits, ds_test, ds_base):
         super().run_spectrum_test(limits, ds_test, ds_base)
 
-    def test_conduction(self, ds_test):
+    def test_perp_conduction(self, ds_test):
+        assert np.all(ds_test.equilibria.get("kappa_perp") == pytest.approx(0))
+
+    def test_para_conduction(self, ds_test):
         assert np.all(
-            ds_test.equilibria.get("kappa_perp")
-            == pytest.approx(self.physics_settings["fixed_tc_perp_value"])
+            ds_test.equilibria.get("kappa_para")
+            == pytest.approx(0.00017559285606016614, abs=1e-10)
         )
 
     def test_units(self, ds_test):
         assert ds_test.cgs
         for val in ("density", "magneticfield", "length"):
-            assert (
-                ds_test.units.get(f"unit_{val}") == self.physics_settings[f"unit_{val}"]
+            assert ds_test.units.get(f"unit_{val}") == pytest.approx(
+                self.physics_settings[f"unit_{val}"]
             )
 
     def test_temperature(self, ds_test):
