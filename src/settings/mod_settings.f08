@@ -12,7 +12,10 @@ module mod_settings
   private
 
   type, public :: settings_t
-    character(len=:), private, allocatable :: state_vector(:)
+    ! note: weird gfortran 8 bug here when using (len=:) for state_vector.
+    ! This sometimes leads to wrong array allocation where every entry equals the
+    ! one at the last index? Unable to reproduce with compiler versions >8.
+    character(len=str_len_arr), private, allocatable :: state_vector(:)
     character(len=:), private, allocatable :: physics_type
     integer, private :: nb_eqs
     type(dims_t), public :: dims
@@ -62,12 +65,10 @@ contains
     this%physics_type = physics_type
     select case(physics_type)
       case("hd")
-        this%state_vector = [ &
-          character(len=str_len_arr) :: "rho", "v1", "v2", "v3", "T" &
-        ]
+        this%state_vector = [character(3) :: "rho", "v1", "v2", "v3", "T"]
       case default
         this%state_vector = [ &
-          character(len=str_len_arr) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
+          character(3) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
         ]
       end select
     call this%set_nb_eqs(size(this%state_vector))
