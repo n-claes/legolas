@@ -298,7 +298,7 @@ contains
     character(20)             :: real_part, imag_part
     integer   :: i
 
-    logfile_name = trim(settings%io%get_output_folder() // "logfile.log")
+    logfile_name = trim(settings%io%get_output_folder() // "/logfile.log")
     ! open manually since this is not a binary file
     open(unit=log_fh, file=logfile_name, status="unknown", action="write")
     do i = 1, size(eigenvalues)

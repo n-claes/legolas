@@ -52,7 +52,7 @@ contains
   subroutine initialise_grid(settings, custom_grid)
     use mod_global_variables, only: dp_LIMIT
 
-    type(settings_t), intent(in) :: settings
+    type(settings_t), intent(inout) :: settings
     !> custom grid to use instead of the default one, optional
     real(dp), intent(in), optional  :: custom_grid(:)
     character(:), allocatable :: geometry
@@ -114,6 +114,7 @@ contains
           )
           x_start = 0.0d0
         end if
+        call settings%grid%set_grid_boundaries(x_start, x_end)
       end if
 
       ! minus one here to include x_end

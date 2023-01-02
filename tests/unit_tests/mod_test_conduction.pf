@@ -66,7 +66,7 @@ contains
     call settings%physics%enable_parallel_conduction(fixed_tc_para_value=0.0_dp)
     call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
 
-    @assertFalse(settings%physics%conduction%is_enabled())
+    @assertTrue(settings%physics%conduction%is_enabled())
     @assertFalse(settings%physics%conduction%has_fixed_tc_para())
   end subroutine test_kappa_para_cte_zero
 
@@ -94,7 +94,7 @@ contains
     call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value=0.0_dp)
     call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
 
-    @assertFalse(settings%physics%conduction%is_enabled())
+    @assertTrue(settings%physics%conduction%is_enabled())
     @assertFalse(settings%physics%conduction%has_fixed_tc_perp())
   end subroutine test_kappa_perp_cte_zero
 

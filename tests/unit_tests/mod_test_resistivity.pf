@@ -44,7 +44,7 @@ contains
   subroutine test_set_eta_cte_zero()
     call set_name("setting constant resistivity but zero")
     call settings%physics%enable_resistivity(fixed_resistivity_value=0.0_dp)
-    @assertFalse(settings%physics%resistivity%is_enabled())
+    @assertTrue(settings%physics%resistivity%is_enabled())
     @assertFalse(settings%physics%resistivity%has_fixed_resistivity())
   end subroutine test_set_eta_cte_zero
 

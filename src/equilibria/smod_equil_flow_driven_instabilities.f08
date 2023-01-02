@@ -21,7 +21,7 @@ contains
     real(dp)    :: v_prof, phi_prof, p_prof
     integer     :: i
 
-    call settings%grid%set_geometry("cartesian")
+    call settings%grid%set_geometry("Cartesian")
     call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
     call initialise_grid(settings)
     call settings%physics%enable_flow()

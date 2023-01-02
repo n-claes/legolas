@@ -204,8 +204,9 @@ contains
       external_gravity, parallel_conduction, perpendicular_conduction, &
       resistivity, use_eta_dropoff, viscosity, viscous_heating, hall_mhd, &
       hall_substitution, hall_dropoff, elec_inertia, inertia_dropoff, ncool, &
-      cooling_curve, fixed_tc_para_value, fixed_tc_perp_value, &
-      dropoff_edge_dist, dropoff_width, viscosity_value, electron_fraction
+      cooling_curve, fixed_resistivity_value, fixed_tc_para_value, &
+      fixed_tc_perp_value, dropoff_edge_dist, dropoff_width, viscosity_value, &
+      electron_fraction
 
     ! get defaults
     physics_type = settings%get_physics_type()

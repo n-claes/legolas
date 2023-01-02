@@ -56,10 +56,10 @@ contains
       k2 = 1.0d0
       k3 = 0.0d0
     end if ! LCOV_EXCL_STOP
+
+    call initialise_grid(settings)
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
-    call initialise_grid(settings)
-
     a = x_end - x_start
     cte_p0 = 0.5d0 * (1.0d0 - delta)**2
     B_inf = a * sqrt(cte_rho0)
