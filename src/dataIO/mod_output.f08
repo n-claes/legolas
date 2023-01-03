@@ -100,7 +100,7 @@ contains
 
     real(dp)  :: b01_array(size(B_field % B02))
     character(len=str_len_arr)    :: param_names(34), equil_names(32)
-    character(len=str_len) :: geometry
+    character(len=str_len) :: geometry, equilibrium_type
     character(len=2*str_len_arr)  :: unit_names(12)
     real(dp), allocatable         :: residuals(:)
     integer                       :: i
@@ -140,13 +140,14 @@ contains
 
     ! need str_len for now to ensure datfile reading compatibility
     geometry = settings%grid%get_geometry()
+    equilibrium_type = settings%equilibrium%get_equilibrium_type()
     ! First we write all header information
     write(dat_fh) "legolas_version", LEGOLAS_VERSION
     write(dat_fh) str_len, str_len_arr, geometry, settings%grid%get_grid_start(), &
       settings%grid%get_grid_end(), settings%grid%get_gridpts(), &
       settings%grid%get_gauss_gridpts(), settings%dims%get_dim_matrix(), &
       settings%grid%get_ef_gridpts(), settings%physics%get_gamma(), &
-      settings%equilibrium%get_equilibrium_type(), settings%io%write_eigenfunctions, &
+      equilibrium_type, settings%io%write_eigenfunctions, &
       settings%io%write_derived_eigenfunctions, settings%io%write_matrices, &
       settings%io%write_eigenvectors, settings%io%write_residuals, &
       settings%io%write_ef_subset, settings%io%ef_subset_center, &
