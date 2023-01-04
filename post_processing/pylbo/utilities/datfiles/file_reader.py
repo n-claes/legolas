@@ -112,7 +112,7 @@ class LegolasFileReader:
         with open(self.datfile, "rb") as istream:
             residuals = read_float_from_istream(
                 istream,
-                amount=header["nb_residuals"],
+                amount=header["offsets"]["nb_residuals"],
                 offset=header["offsets"]["residuals"],
             )
         return np.asarray(residuals, dtype=float)
