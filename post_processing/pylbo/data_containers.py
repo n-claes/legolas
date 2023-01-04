@@ -227,18 +227,6 @@ class LegolasDataSet(LegolasDataContainer):
         return self.header["residuals_written"]
 
     @property
-    def efs_written(self):
-        """
-        Checks if eigenfunctions are present.
-
-        Returns
-        -------
-        efs_written : bool
-            If `True`, eigenfunctions are present in the datfile.
-        """
-        return self.header["eigenfuncs_written"]
-
-    @property
     def continua(self) -> dict:
         """Returns the continua in a dict with the continua names as keys."""
         return self._continua

@@ -282,7 +282,7 @@ class RegressionTest(TestCase):
     def run_eigenfunction_test(self, eigenfunction, ds_test, ds_base):
         eigenvalue = eigenfunction["eigenvalue"]
         for ds in (ds_test, ds_base):
-            validate_eigenfunctions_present(ds, ds.efs_written, "eigenfunctions")
+            validate_eigenfunctions_present(ds, ds.has_efs, "eigenfunctions")
         image_test, image_baseline = self.generate_eigenfunction_images(
             eigenvalue,
             ds_test,
@@ -300,7 +300,7 @@ class RegressionTest(TestCase):
         eigenvalue = derived_eigenfunction["eigenvalue"]
         for ds in (ds_test, ds_base):
             validate_eigenfunctions_present(
-                ds, ds.derived_efs_written, "derived eigenfunctions"
+                ds, ds.has_derived_efs, "derived eigenfunctions"
             )
         image_test, image_baseline = self.generate_eigenfunction_images(
             eigenvalue,
