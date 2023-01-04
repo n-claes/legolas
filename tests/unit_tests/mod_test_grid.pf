@@ -51,11 +51,9 @@ contains
 
   @test
   subroutine test_cylindrical_grid_force_r0()
-    use mod_global_variables, only: logging_level
-
     call set_name("cylindrical grid, force r=0")
     settings%grid%force_r0 = .true.
-    logging_level = 0
+    call logger%set_logging_level(0)
     call create_test_grid(settings, 31, "cylindrical", 0.0d0, 2.0d0)
     @assertEqual(0.0d0, grid(1), tolerance=TOL)
     @assertEqual(2.0d0, grid(31), tolerance=TOL)

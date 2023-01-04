@@ -26,7 +26,7 @@ module mod_logging
 
   contains
 
-    procedure, public :: error
+    procedure, nopass, public :: error
     procedure, public :: warning
     procedure, public :: info
     procedure, public :: debug
@@ -78,19 +78,10 @@ contains
   end subroutine disable_prefix
 
 
-  subroutine error(this, msg)
+  subroutine error(msg)
     use mod_exceptions, only: raise_exception
-
-    class(logger_t), intent(in) :: this
     character(len=*), intent(in) :: msg
-    character(:), allocatable :: msg_raised
-
-    if (this%use_prefix) then
-      msg_raised = " ERROR   | " // msg
-    else
-      msg_raised = "         | " // msg
-    end if
-    call raise_exception(msg_raised)
+    call raise_exception(msg)
   end subroutine error
 
 

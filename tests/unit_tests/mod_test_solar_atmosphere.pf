@@ -2,7 +2,6 @@ module mod_test_solar_atmosphere
   use mod_suite_utils
   use funit
   use mod_solar_atmosphere, only: set_solar_atmosphere
-  use mod_global_variables, only: logging_level
   implicit none
 
   type(settings_t) :: settings
@@ -15,7 +14,6 @@ contains
     call create_test_grid(settings, 100, "Cartesian", 0.05d0, 0.35d0)
     call reset_fields(settings, init_fields=.true.)
     call set_default_units(settings)
-    logging_level = 1
   end subroutine init_test
 
 
@@ -184,7 +182,7 @@ contains
       unit_magneticfield=settings%units%get_unit_magneticfield(), &
       unit_length=5.0d6 &
     )
-    logging_level = 0
+    call logger%set_logging_level(0)
     call set_solar_atmosphere( &
       settings, n_interp=5000, load_from="test_sa_profiles/default" &
     )
@@ -200,7 +198,7 @@ contains
       unit_magneticfield=settings%units%get_unit_magneticfield(), &
       unit_length=settings%units%get_unit_length() &
     )
-    logging_level = 0
+    call logger%set_logging_level(0)
     call set_solar_atmosphere( &
       settings, n_interp=5000, load_from="test_sa_profiles/default" &
     )
@@ -216,7 +214,7 @@ contains
       unit_magneticfield=2.5d0, &
       unit_length=settings%units%get_unit_length() &
     )
-    logging_level = 0
+    call logger%set_logging_level(0)
     call set_solar_atmosphere( &
       settings, n_interp=5000, load_from="test_sa_profiles/default" &
     )
@@ -232,7 +230,7 @@ contains
       unit_magneticfield=settings%units%get_unit_magneticfield(), &
       unit_length=settings%units%get_unit_length() &
     )
-    logging_level = 0
+    call logger%set_logging_level(0)
     call set_solar_atmosphere( &
       settings, n_interp=5000, load_from="test_sa_profiles/default" &
     )
@@ -243,7 +241,7 @@ contains
   @test
   subroutine test_sa_loading_b02_inconsistent()
     call set_name("solar atmosphere (loading - B02 inconsistent)")
-    logging_level = 0
+    call logger%set_logging_level(0)
     call set_solar_atmosphere( &
       settings,  &
       f_b02=b02, &
@@ -273,7 +271,7 @@ contains
   @test
   subroutine test_sa_loading_db02_inconsistent()
     call set_name("solar atmosphere (loading - dB02 inconsistent)")
-    logging_level = 0
+    call logger%set_logging_level(0)
     call set_solar_atmosphere( &
       settings,  &
       f_b02=b02, &
@@ -303,7 +301,7 @@ contains
   @test
   subroutine test_sa_loading_b03_inconsistent()
     call set_name("solar atmosphere (loading - B03 inconsistent)")
-    logging_level = 0
+    call logger%set_logging_level(0)
     call set_solar_atmosphere( &
       settings,  &
       f_b03=b03, &
@@ -333,7 +331,7 @@ contains
   @test
   subroutine test_sa_loading_db03_inconsistent()
     call set_name("solar atmosphere (loading - dB03 inconsistent)")
-    logging_level = 0
+    call logger%set_logging_level(0)
     call set_solar_atmosphere( &
       settings,  &
       f_b03=b03, &
@@ -363,7 +361,7 @@ contains
   @test
   subroutine test_sa_loading_gravity_inconsistent()
     call set_name("solar atmosphere (loading - gravity inconsistent)")
-    logging_level = 0
+    call logger%set_logging_level(0)
     call set_solar_atmosphere( &
       settings,  &
       f_g=gprof, &
