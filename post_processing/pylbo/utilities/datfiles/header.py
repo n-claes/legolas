@@ -226,9 +226,20 @@ class LegolasHeader:
         self.data["ef_names"] = self.data["state_vector"]
         # eigenfunction grid
         ef_gridsize = read_int_from_istream(istream)
+        offsets = self._get_ef_grid_offset(ef_gridsize, istream)
+        # flags
+        self._get_ef_written_flags(istream)
+        # eigenfunction block offsets
+        offsets.update(self._get_ef_block_offsets(istream))
+        return offsets
+
+    def _get_ef_grid_offset(self, ef_gridsize: int, istream: BinaryIO) -> dict:
         offsets = {"ef_grid": istream.tell()}
         bytesize = ef_gridsize * SIZE_DOUBLE
         istream.seek(istream.tell() + bytesize)
+        return offsets
+
+    def _get_ef_written_flags(self, istream: BinaryIO) -> None:
         # eigenfunction flags
         ef_flags_size = read_int_from_istream(istream)
         self.data["ef_written_flags"] = np.asarray(
@@ -243,8 +254,10 @@ class LegolasHeader:
         assert np.all(
             self.data["ef_written_idxs"] == np.where(self.data["ef_written_flags"])[0]
         )
+
+    def _get_ef_block_offsets(self, istream: BinaryIO) -> dict:
         # eigenfunction offsets
-        offsets["ef_arrays"] = istream.tell()
+        offsets = {"ef_arrays": istream.tell()}
         # bytesize of a single eigenfunction block (all efs for 1 state vector variable)
         bytesize_block = (
             self.data["ef_gridpoints"]
@@ -260,6 +273,11 @@ class LegolasHeader:
         if not self.data["has_derived_efs"]:
             return {}
         nb_names, size_names = read_int_from_istream(istream, amount=2)
+        return self._get_derived_ef_names_and_offsets(nb_names, size_names, istream)
+
+    def _get_derived_ef_names_and_offsets(
+        self, nb_names, size_names, istream: BinaryIO
+    ) -> dict:
         self.data["derived_ef_names"] = read_string_from_istream(
             istream, length=size_names, amount=nb_names
         )

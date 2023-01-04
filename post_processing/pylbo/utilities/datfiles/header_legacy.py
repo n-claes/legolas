@@ -22,7 +22,6 @@ from pylbo.utilities.toolbox import transform_to_numpy
 class LegolasLegacyHeader(LegolasHeader):
     def __init__(self, istream: BinaryIO, version: VersionHandler) -> None:
         super().__init__(istream, version)
-        self._handle_entries_not_in_datfile_for_compatibility()
 
     def read_header_data(self, istream: BinaryIO) -> None:
         data = {}
@@ -58,6 +57,8 @@ class LegolasLegacyHeader(LegolasHeader):
         data["offsets"] = {}
         self.data.update(data)
 
+        self._handle_entries_not_in_datfile_for_compatibility()
+
     def read_data_offsets(self, istream: BinaryIO) -> None:
         offsets = {}
         # eigenvalue offset
@@ -83,9 +84,9 @@ class LegolasLegacyHeader(LegolasHeader):
 
         offsets.update(self._get_eigenfunction_offsets(istream))
         offsets.update(self._get_derived_eigenfunction_offsets(istream))
-        offsets.update(self._get_eigenvector_offsets(istream))
-        offsets.update(self._get_residuals_offsets(istream))
-        offsets.update(self._get_matrices_offsets(istream))
+        offsets.update(super()._get_eigenvector_offsets(istream))
+        offsets.update(super()._get_residual_offsets(istream))
+        offsets.update(super()._get_matrices_offsets(istream))
 
         self.data["offsets"].update(offsets)
 
@@ -173,100 +174,27 @@ class LegolasLegacyHeader(LegolasHeader):
         self.data["ef_names"] = read_string_from_istream(
             istream, length=self._str_len_array, amount=nb_efs
         )
-        # eigenfunction grid offset
-        offsets = {"ef_grid": istream.tell()}
-        bytesize = self.data["ef_gridpoints"] * SIZE_DOUBLE
-        istream.seek(istream.tell() + bytesize)
-        # ef written flags
-        self._set_ef_written_flags(istream)
-        # eigenfunction offsets
-        offsets["ef_arrays"] = istream.tell()
-        # bytesize of a single eigenfunction block (all efs for 1 state vector variable)
-        bytesize_block = (
-            self.data["ef_gridpoints"]
-            * len(self.data["ef_written_idxs"])
-            * SIZE_COMPLEX
-        )
-        offsets["ef_block_bytesize"] = bytesize_block
-        offsets["ef_bytesize"] = self.data["ef_gridpoints"] * SIZE_COMPLEX
-        istream.seek(istream.tell() + bytesize_block * nb_efs)
+        offsets = super()._get_ef_grid_offset(self.data["ef_gridpoints"], istream)
+        self._get_ef_written_flags(istream)
+        offsets.update(super()._get_ef_block_offsets(istream))
         return offsets
 
-    def _set_ef_written_flags(self, istream: BinaryIO) -> None:
+    def _get_ef_written_flags(self, istream: BinaryIO) -> None:
         if self.legolas_version < "1.1.4":
             self.data["ef_written_flags"] = np.asarray(
                 [True] * self.data["nb_eigenvalues"], dtype=bool
             )
             self.data["ef_written_idxs"] = np.arange(0, self.data["nb_eigenvalues"])
             return
-
-        ef_flags_size = read_int_from_istream(istream)
-        self.data["ef_written_flags"] = np.asarray(
-            read_int_from_istream(istream, amount=ef_flags_size), dtype=bool
-        )
-        ef_idxs_size = read_int_from_istream(istream)
-        self.data["ef_written_idxs"] = transform_to_numpy(
-            np.asarray(read_int_from_istream(istream, amount=ef_idxs_size), dtype=int)
-            - 1
-        )  # -1 to correct for Fortran 1-based indexing
-        # sanity check
-        assert all(
-            self.data["ef_written_idxs"] == np.where(self.data["ef_written_flags"])[0]
-        )
+        super()._get_ef_written_flags(istream)
 
     def _get_derived_eigenfunction_offsets(self, istream: BinaryIO) -> dict:
         if not self.data["has_derived_efs"]:
             return {}
         nb_defs = read_int_from_istream(istream)
-        self.data["derived_ef_names"] = read_string_from_istream(
-            istream, length=self._str_len_array, amount=nb_defs
+        return super()._get_derived_ef_names_and_offsets(
+            nb_defs, self._str_len_array, istream
         )
-        offsets = {"derived_ef_arrays": istream.tell()}
-        bytesize = (
-            self.data["ef_gridpoints"]
-            * len(self.data["ef_written_idxs"])
-            * nb_defs
-            * SIZE_COMPLEX
-        )
-        istream.seek(istream.tell() + bytesize)
-        return offsets
-
-    def _get_eigenvector_offsets(self, istream: BinaryIO) -> dict:
-        if not self.data["has_eigenvectors"]:
-            return {}
-        len_eigvecs, nb_eigvecs = read_int_from_istream(istream, amount=2)
-        offsets = {
-            "eigenvectors": istream.tell(),
-            "eigenvector_length": len_eigvecs,
-            "nb_eigenvectors": nb_eigvecs,
-        }
-        bytesize = len_eigvecs * nb_eigvecs * SIZE_COMPLEX
-        istream.seek(istream.tell() + bytesize)
-        return offsets
-
-    def _get_residuals_offsets(self, istream: BinaryIO) -> dict:
-        if not self.data["has_residuals"]:
-            return {}
-        nb_residuals = read_int_from_istream(istream)
-        offsets = {"residuals": istream.tell(), "nb_residuals": nb_residuals}
-        bytesize = nb_residuals * SIZE_DOUBLE
-        istream.seek(istream.tell() + bytesize)
-        return offsets
-
-    def _get_matrices_offsets(self, istream: BinaryIO) -> dict:
-        if not self.data["has_matrices"]:
-            return {}
-        nonzero_B_elements = read_int_from_istream(istream)
-        nonzero_A_elements = read_int_from_istream(istream)
-        # B offsets, written as (row, column, value)
-        byte_size = (2 * SIZE_INT + SIZE_DOUBLE) * nonzero_B_elements
-        offsets = {"matrix_B": istream.tell()}
-        self.data["nonzero_B_elements"] = nonzero_B_elements
-        istream.seek(istream.tell() + byte_size)
-        # A offsets
-        offsets["matrix_A"] = istream.tell()
-        self.data["nonzero_A_elements"] = nonzero_A_elements
-        return offsets
 
     def _handle_entries_not_in_datfile_for_compatibility(self) -> None:
         # default block dimensions
