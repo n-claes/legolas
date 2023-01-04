@@ -3,6 +3,7 @@ from typing import BinaryIO
 
 import numpy as np
 from pylbo._version import VersionHandler
+from pylbo.utilities.datfiles.header import LegolasHeader
 from pylbo.utilities.datfiles.header_legacy import LegolasLegacyHeader
 from pylbo.utilities.datfiles.istream_reader import (
     read_complex_from_istream,
@@ -37,21 +38,23 @@ class LegolasFileReader:
             version = "0.0.0"
         return VersionHandler(version)
 
-    def get_header(self) -> LegolasLegacyHeader:
+    def get_header(self) -> LegolasHeader:
         with open(self.datfile, "rb") as istream:
             istream.seek(self._offset)
             if self.legolas_version < "2.0":
                 return LegolasLegacyHeader(istream, self.legolas_version)
+            elif self.legolas_version >= "2.0":
+                return LegolasHeader(istream, self.legolas_version)
         return None
 
-    def read_grid(self, header: LegolasLegacyHeader) -> np.ndarray:
+    def read_grid(self, header: LegolasHeader) -> np.ndarray:
         with open(self.datfile, "rb") as istream:
             grid = read_float_from_istream(
                 istream, amount=header["gridpoints"], offset=header["offsets"]["grid"]
             )
         return np.asarray(grid, dtype=float)
 
-    def read_gaussian_grid(self, header: LegolasLegacyHeader) -> np.ndarray:
+    def read_gaussian_grid(self, header: LegolasHeader) -> np.ndarray:
         with open(self.datfile, "rb") as istream:
             grid = read_float_from_istream(
                 istream,
@@ -60,7 +63,7 @@ class LegolasFileReader:
             )
         return np.asarray(grid, dtype=float)
 
-    def read_ef_grid(self, header: LegolasLegacyHeader) -> np.ndarray:
+    def read_ef_grid(self, header: LegolasHeader) -> np.ndarray:
         with open(self.datfile, "rb") as istream:
             grid = read_float_from_istream(
                 istream,
@@ -69,7 +72,7 @@ class LegolasFileReader:
             )
         return np.asarray(grid, dtype=float)
 
-    def read_equilibrium_arrays(self, header: LegolasLegacyHeader) -> dict:
+    def read_equilibrium_arrays(self, header: LegolasHeader) -> dict:
         arrays = {}
         with open(self.datfile, "rb") as istream:
             istream.seek(header["offsets"]["equilibrium_arrays"])
@@ -80,7 +83,7 @@ class LegolasFileReader:
                 )
         return arrays
 
-    def read_eigenvalues(self, header: LegolasLegacyHeader) -> np.ndarray:
+    def read_eigenvalues(self, header: LegolasHeader) -> np.ndarray:
         with open(self.datfile, "rb") as istream:
             eigenvalues = read_complex_from_istream(
                 istream,
@@ -89,7 +92,7 @@ class LegolasFileReader:
             )
         return np.asarray(eigenvalues, dtype=complex)
 
-    def read_eigenvectors(self, header: LegolasLegacyHeader) -> np.ndarray:
+    def read_eigenvectors(self, header: LegolasHeader) -> np.ndarray:
         with open(self.datfile, "rb") as istream:
             offsets = header["offsets"]
             eigvec_length = offsets["eigenvector_length"]
@@ -105,7 +108,7 @@ class LegolasFileReader:
             order="F",
         )
 
-    def read_residuals(self, header: LegolasLegacyHeader) -> np.ndarray:
+    def read_residuals(self, header: LegolasHeader) -> np.ndarray:
         with open(self.datfile, "rb") as istream:
             residuals = read_float_from_istream(
                 istream,
@@ -115,7 +118,7 @@ class LegolasFileReader:
         return np.asarray(residuals, dtype=float)
 
     def read_matrix_A(
-        self, header: LegolasLegacyHeader
+        self, header: LegolasHeader
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         with open(self.datfile, "rb") as istream:
             hdr = read_mixed_from_istream(
@@ -133,7 +136,7 @@ class LegolasFileReader:
         )
 
     def read_matrix_B(
-        self, header: LegolasLegacyHeader
+        self, header: LegolasHeader
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         with open(self.datfile, "rb") as istream:
             hdr = read_mixed_from_istream(
@@ -149,7 +152,7 @@ class LegolasFileReader:
             np.asarray(vals, dtype=float),
         )
 
-    def read_eigenfunction(self, header: LegolasLegacyHeader, ev_index: int) -> dict:
+    def read_eigenfunction(self, header: LegolasHeader, ev_index: int) -> dict:
         # extract corresponding index in the array with written indices
         ef_index = self._get_ef_index(header, ev_index)
         if ef_index is None:
@@ -161,9 +164,7 @@ class LegolasFileReader:
             state_vector=header["ef_names"],
         )
 
-    def read_derived_eigenfunction(
-        self, header: LegolasLegacyHeader, ev_index: int
-    ) -> dict:
+    def read_derived_eigenfunction(self, header: LegolasHeader, ev_index: int) -> dict:
         ef_index = self._get_ef_index(header, ev_index)
         if ef_index is None:
             return None
@@ -176,7 +177,7 @@ class LegolasFileReader:
 
     def _read_eigenfunction_like(
         self,
-        header: LegolasLegacyHeader,
+        header: LegolasHeader,
         offset: int,
         ef_index: int,
         state_vector: np.ndarray,
@@ -198,7 +199,7 @@ class LegolasFileReader:
                 )
         return eigenfunctions
 
-    def _get_ef_index(self, header: LegolasLegacyHeader, ev_index: int) -> int:
+    def _get_ef_index(self, header: LegolasHeader, ev_index: int) -> int:
         # extract eigenfunction index from the array with written indices
         try:
             ((ef_index,),) = np.where(header["ef_written_idxs"] == ev_index)

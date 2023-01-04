@@ -28,7 +28,7 @@ module mod_solver_settings
 contains
 
   pure function new_solver_settings() result(solvers)
-    use mod_global_variables, only: dp_LIMIT
+    use mod_global_variables, only: dp_LIMIT, NaN
 
     type(solvers_t) :: solvers
 
@@ -39,7 +39,7 @@ contains
     ! these two get determined at runtime
     solvers%maxiter = 0
     solvers%ncv = 0
-    solvers%sigma = (0.0_dp, 0.0_dp)
+    solvers%sigma = cmplx(NaN, NaN, kind=dp)
     solvers%tolerance = dp_LIMIT
   end function new_solver_settings
 

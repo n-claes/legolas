@@ -179,7 +179,6 @@ class LegolasDataSet(LegolasDataContainer):
         self.x_end = self.header["x_end"]
         self.gridpoints = self.header["gridpoints"]
         self.gauss_gridpoints = self.header["gauss_gridpoints"]
-        self.matrix_gridpoints = self.header["matrix_gridpoints"]
         self.ef_gridpoints = self.header["ef_gridpoints"]
         self.gamma = self.header["gamma"]
         self.eq_type = self.header["eq_type"]

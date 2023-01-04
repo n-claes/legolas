@@ -22,9 +22,7 @@ from pylbo.utilities.toolbox import transform_to_numpy
 class LegolasLegacyHeader(LegolasHeader):
     def __init__(self, istream: BinaryIO, version: VersionHandler) -> None:
         super().__init__(istream, version)
-
-    def _set_str_lengths(self, istream: BinaryIO) -> None:
-        self._str_len, self._str_len_array = read_int_from_istream(istream, amount=2)
+        self._handle_entries_not_in_datfile_for_compatibility()
 
     def read_header_data(self, istream: BinaryIO) -> None:
         data = {}
@@ -269,3 +267,15 @@ class LegolasLegacyHeader(LegolasHeader):
         offsets["matrix_A"] = istream.tell()
         self.data["nonzero_A_elements"] = nonzero_A_elements
         return offsets
+
+    def _handle_entries_not_in_datfile_for_compatibility(self) -> None:
+        # default block dimensions
+        self.data["nb_eqs"] = 8
+        self.data["physics_type"] = "mhd"
+        self.data["state_vector"] = ["rho", "v1", "v2", "v3", "T", "a1", "a2", "a3"]
+        self.data["dims"] = {
+            "dim_integralblock": 2,
+            "dim_subblock": 8 * 2,
+            "dim_quadblock": 2 * 8 * 2,
+            "dim_matrix": self.data["gridpoints"] * 8 * 2,
+        }
