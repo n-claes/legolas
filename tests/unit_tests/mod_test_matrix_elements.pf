@@ -1,0 +1,96 @@
+module mod_test_matrix_elements
+  use mod_suite_utils
+  use funit
+  use mod_matrix_elements, only: matrix_elements_t, new_matrix_elements
+  implicit none
+
+  type(matrix_elements_t) :: elements
+
+contains
+
+  @before
+  subroutine init_test()
+    elements = new_matrix_elements(state_vector=["t1", "t2", "t3", "t4"])
+  end subroutine init_test
+
+
+  @after
+  subroutine tear_down()
+    call elements%delete()
+  end subroutine tear_down
+
+
+  @test
+  subroutine test_add_invalid_element()
+    use mod_check_values, only: is_NaN
+    call set_name("elements: add invalid element")
+    call elements%add("5", location=["t1", "t1"])
+    @assertEqual(1, elements%get_nb_elements())
+    @assertTrue(is_NaN(elements%get_elements()))
+  end subroutine test_add_invalid_element
+
+
+  @test
+  subroutine test_add_integer_element()
+    integer :: expected(1, 2)
+    call set_name("elements: add single integer element")
+    call elements%add(2, location=["t1", "t1"])
+    @assertEqual(1, elements%get_nb_elements())
+    @assertEqual((2.0d0, 0.0d0), elements%get_elements(), tolerance=TOL)
+    expected(1, :) = [1, 1]
+    @assertEqual(expected, elements%get_positions())
+  end subroutine test_add_integer_element
+
+
+  @test
+  subroutine test_add_real_element()
+    integer :: expected(1, 2)
+    call set_name("elements: add single real element")
+    call elements%add(3.0d0, location=["t2", "t1"])
+    @assertEqual(1, elements%get_nb_elements())
+    @assertEqual((3.0d0, 0.0d0), elements%get_elements(), tolerance=TOL)
+    expected(1, :) = [2, 1]
+    @assertEqual(expected, elements%get_positions())
+  end subroutine test_add_real_element
+
+
+  @test
+  subroutine test_add_complex_element()
+    integer :: expected(1, 2)
+    call set_name("elements: add single complex element")
+    call elements%add((1.0d0, 2.5d0), location=["t3", "t2"])
+    @assertEqual(1, elements%get_nb_elements())
+    @assertEqual((1.0d0, 2.5d0), elements%get_elements(), tolerance=TOL)
+    expected(1, :) = [3, 2]
+    @assertEqual(expected, elements%get_positions())
+  end subroutine test_add_complex_element
+
+
+  @test
+  subroutine test_add_multiple_elements()
+    integer :: expected_positions(3, 2)
+    complex(dp) :: expected_elements(3)
+    call set_name("elements: add multiple elements")
+    call elements%add(1.0d0, location=["t2", "t1"])
+    call elements%add(2.5d0, location=["t3", "t2"])
+    call elements%add((2.0d0, 3.5d0), location=["t4", "t4"])
+    @assertEqual(3, elements%get_nb_elements())
+    expected_positions = reshape([2, 3, 4, 1, 2, 4], shape(expected_positions))
+    @assertEqual(expected_positions, elements%get_positions())
+    expected_elements = [(1.0d0, 0.0d0), (2.5d0, 0.0d0), (2.0d0, 3.5d0)]
+    @assertEqual(expected_elements, elements%get_elements(), tolerance=TOL)
+  end subroutine test_add_multiple_elements
+
+
+  @test
+  subroutine test_add_element_invalid_position()
+    call set_name("elements: add element with invalid position")
+    call elements%add(1.0d0, location=["t1", "t5"])
+    @assertEqual(0, elements%get_nb_elements())
+    call elements%add(1.0d0, location=["t5", "t1"])
+    @assertEqual(0, elements%get_nb_elements())
+    call elements%add(1.0d0, location=["t5", "t5"])
+    @assertEqual(0, elements%get_nb_elements())
+  end subroutine test_add_element_invalid_position
+
+end module mod_test_matrix_elements

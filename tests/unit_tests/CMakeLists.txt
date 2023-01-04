@@ -59,6 +59,7 @@ set( test_sources
         mod_test_banded_matrix.pf
         mod_test_banded_matrix_hermitian.pf
         mod_test_matrix_structure.pf
+        mod_test_matrix_elements.pf
         mod_test_transform_matrix.pf
         mod_test_settings.pf
         mod_test_matrices_big.pf
