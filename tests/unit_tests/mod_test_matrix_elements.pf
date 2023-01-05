@@ -2,9 +2,12 @@ module mod_test_matrix_elements
   use mod_suite_utils
   use funit
   use mod_matrix_elements, only: matrix_elements_t, new_matrix_elements
+  use mod_matrix_element_node, only: matrix_element_node_t
   implicit none
 
   type(matrix_elements_t) :: elements
+  type(matrix_element_node_t), pointer :: node
+  character(len=2), parameter :: state_vector(4) = ["t1", "t2", "t3", "t4"]
   real(dp), parameter :: spline1(4) = [1.0d0, 2.0d0, 3.0d0, 4.0d0]
   real(dp), parameter :: spline2(4) = [5.0d0, 6.0d0, 7.0d0, 8.0d0]
 
@@ -13,14 +16,23 @@ contains
   @before
   subroutine init_test()
     call reset_globals()
-    elements = new_matrix_elements(state_vector=["t1", "t2", "t3", "t4"])
+    elements = new_matrix_elements(state_vector=state_vector)
   end subroutine init_test
 
 
   @after
   subroutine tear_down()
     call elements%delete()
+    nullify(node)
   end subroutine tear_down
+
+
+  subroutine add_to_elements()
+    call elements%add(3.0d0, location=["t1", "t1"], spline1=spline1, spline2=spline2)
+    call elements%add(4.0d0, location=["t3", "t2"], spline1=spline1, spline2=spline2)
+    call elements%add(5.0d0, location=["t4", "t4"], spline1=spline1, spline2=spline2)
+    call elements%add(6.0d0, location=["t2", "t2"], spline1=spline1, spline2=spline2)
+  end subroutine add_to_elements
 
 
   @test
@@ -102,14 +114,56 @@ contains
 
 
   @test
+  subroutine test_get_node()
+    call set_name("elements: getting node")
+    call add_to_elements()
+    node => elements%get_node(2)
+    @assertEqual((4.0d0, 0.0d0), node%get_element(), tolerance=TOL)
+    node => elements%get_node(4)
+    @assertEqual((6.0d0, 0.0d0), node%get_element(), tolerance=TOL)
+    node => elements%get_node(1)
+    @assertEqual((3.0d0, 0.0d0), node%get_element(), tolerance=TOL)
+    node => elements%get_node(3)
+    @assertEqual((5.0d0, 0.0d0), node%get_element(), tolerance=TOL)
+  end subroutine test_get_node
+
+
+  @test
+  subroutine test_get_node_empty_list()
+    call set_name("elements: getting node from empty list")
+    node => elements%get_node(1)
+    @assertExceptionRaised("get_node: inode out of range: 1")
+    @assertFalse(associated(node))
+  end subroutine test_get_node_empty_list
+
+
+  @test
+  subroutine test_get_node_underbounds()
+    call set_name("elements: getting under bounds node")
+    call add_to_elements()
+    node => elements%get_node(0)
+    @assertExceptionRaised("get_node: inode out of range: 0")
+    @assertFalse(associated(node))
+  end subroutine test_get_node_underbounds
+
+
+  @test
+  subroutine test_get_node_overbounds()
+    call set_name("elements: getting over bounds node")
+    call add_to_elements()
+    node => elements%get_node(5)
+    @assertExceptionRaised("get_node: inode out of range: 5")
+    @assertFalse(associated(node))
+  end subroutine test_get_node_overbounds
+
+
+  @test
   subroutine test_add_element_get_splines()
-    real(dp) :: expected(1, 4)
     call set_name("elements: add element and retrieve splines")
     call elements%add(1.0d0, location=["t1", "t1"], spline1=spline1, spline2=spline2)
-    expected(1, :) = spline1
-    @assertEqual(expected, elements%get_splines_1())
-    expected(1, :) = spline2
-    @assertEqual(expected, elements%get_splines_2())
+    node => elements%get_node(1)
+    @assertEqual(spline1, node%get_spline1())
+    @assertEqual(spline2, node%get_spline2())
   end subroutine test_add_element_get_splines
 
 

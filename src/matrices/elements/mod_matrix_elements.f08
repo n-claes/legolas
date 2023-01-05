@@ -18,10 +18,9 @@ module mod_matrix_elements
   contains
 
     procedure, public :: add => add_node
+    procedure, public :: get_node
     procedure, public :: get_elements
     procedure, public :: get_positions
-    procedure, public :: get_splines_1
-    procedure, public :: get_splines_2
     procedure, public :: get_nb_elements
     procedure, public :: delete
     procedure, private :: spline_sizes_are_valid
@@ -80,6 +79,27 @@ contains
   end subroutine add_node
 
 
+  function get_node(this, inode) result(node)
+    class(matrix_elements_t), intent(in) :: this
+    integer, intent(in) :: inode
+    type(matrix_element_node_t), pointer :: node
+    type(matrix_element_node_t), pointer :: current_node
+    integer :: i
+
+    node => null()
+    if (inode < 1 .or. inode > this%nb_elements) then
+      call logger%error("get_node: inode out of range: " // str(inode))
+      return
+    end if
+    current_node => this%head
+    do i = 1, inode - 1
+      current_node => current_node%next
+    end do
+    node => current_node
+    nullify(current_node)
+  end function get_node
+
+
   function get_elements(this) result(elements)
     class(matrix_elements_t), intent(in) :: this
     complex(dp) :: elements(this%nb_elements)
@@ -108,36 +128,6 @@ contains
     end do
     nullify(current_node)
   end function get_positions
-
-
-  function get_splines_1(this) result(splines)
-    class(matrix_elements_t), intent(in) :: this
-    real(dp) :: splines(this%nb_elements, this%spline1_size)
-    type(matrix_element_node_t), pointer :: current_node
-    integer :: i
-
-    current_node => this%head
-    do i = 1, this%nb_elements
-      splines(i, :) = current_node%get_spline1()
-      current_node => current_node%next
-    end do
-    nullify(current_node)
-  end function get_splines_1
-
-
-  function get_splines_2(this) result(splines)
-    class(matrix_elements_t), intent(in) :: this
-    real(dp) :: splines(this%nb_elements, this%spline2_size)
-    type(matrix_element_node_t), pointer :: current_node
-    integer :: i
-
-    current_node => this%head
-    do i = 1, this%nb_elements
-      splines(i, :) = current_node%get_spline2()
-      current_node => current_node%next
-    end do
-    nullify(current_node)
-  end function get_splines_2
 
 
   pure integer function get_nb_elements(this)
