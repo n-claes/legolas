@@ -2,9 +2,11 @@ module mod_matrix_manager
   use mod_global_variables, only: dp, ir, ic
   use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
   use mod_make_subblock, only: subblock
+  use mod_build_quadblock, only: add_to_quadblock
   use mod_equilibrium, only: rho_field, T_field, B_field
   use mod_equilibrium_params, only: k2, k3
   use mod_logging, only: logger, str
+  use mod_matrix_elements, only: matrix_elements_t, new_matrix_elements
   use mod_matrix_shortcuts, only: get_G_operator, get_F_operator, get_wv_operator
   use mod_settings, only: settings_t
   implicit none
