@@ -1,6 +1,7 @@
-from .regression import MultiRegressionTest
 import numpy as np
 import pytest
+
+from .regression import MultiRegressionTest
 
 
 class TestGravito_MHD_Multi(MultiRegressionTest):
@@ -22,11 +23,8 @@ class TestGravito_MHD_Multi(MultiRegressionTest):
         "ylim": (0, 550),
     }
 
-    def test_gravity_value(self, series_test, series_base):
-        for ds_test, ds_base in zip(series_test, series_base):
+    def test_gravity_value(self, series_test):
+        for ds_test in series_test:
             assert np.all(
-                ds_test.equilibria.get("grav") == pytest.approx(self.parameters["g"])
-            )
-            assert np.all(
-                ds_base.equilibria.get("grav") == pytest.approx(self.parameters["g"])
+                ds_test.equilibria.get("gravity") == pytest.approx(self.parameters["g"])
             )

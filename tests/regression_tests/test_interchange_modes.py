@@ -1,6 +1,7 @@
-from .regression import RegressionTest
 import numpy as np
 import pytest
+
+from .regression import RegressionTest
 
 
 class TestInterchangeModesQR(RegressionTest):
@@ -31,5 +32,5 @@ class TestInterchangeModesQR(RegressionTest):
 
     def test_external_gravity(self, ds_test):
         assert np.all(
-            ds_test.equilibria.get("grav") == pytest.approx(self.parameters["g"])
+            ds_test.equilibria.get("gravity") == pytest.approx(self.parameters["g"])
         )
