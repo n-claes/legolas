@@ -30,7 +30,6 @@ contains
     integer :: inode, dim_subblock
 
     allocate(new_quadblock, mold=quadblock)
-    new_quadblock = (0.0_dp, 0.0_dp)
     dim_subblock = dims%get_dim_subblock()
 
     do inode = 1, elements%get_nb_elements()
@@ -38,6 +37,8 @@ contains
       allocate(spline1, source=node%get_spline1())
       allocate(spline2, source=node%get_spline2())
 
+      new_quadblock = (0.0_dp, 0.0_dp)
+      idxs = 0
       factor = weight * node%get_element()
       position = node%get_position()
 
