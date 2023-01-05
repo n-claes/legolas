@@ -43,17 +43,19 @@ contains
   end function new_matrix_elements
 
 
-  subroutine add_node(this, element, location, spline1, spline2)
+  subroutine add_node(this, element, loc1, loc2, spline1, spline2)
     class(matrix_elements_t), intent(inout) :: this
     class(*), intent(in) :: element
-    character(len=*), intent(in) :: location(2)
+    character(len=*), intent(in) :: loc1
+    character(len=*), intent(in) :: loc2
     real(dp), intent(in) :: spline1(:)
     real(dp), intent(in) :: spline2(:)
     complex(dp) :: node_element
     integer :: position(2)
 
     ! position checks
-    position = get_index(names=location, array=this%state_vector)
+    position(1) = get_index(name=loc1, array=this%state_vector)
+    position(2) = get_index(name=loc2, array=this%state_vector)
     if (.not. is_valid_position(position)) return
     ! spline checks
     if (this%spline1_size == 0) this%spline1_size = size(spline1)

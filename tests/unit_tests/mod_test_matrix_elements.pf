@@ -28,10 +28,10 @@ contains
 
 
   subroutine add_to_elements()
-    call elements%add(3.0d0, location=["t1", "t1"], spline1=spline1, spline2=spline2)
-    call elements%add(4.0d0, location=["t3", "t2"], spline1=spline1, spline2=spline2)
-    call elements%add(5.0d0, location=["t4", "t4"], spline1=spline1, spline2=spline2)
-    call elements%add(6.0d0, location=["t2", "t2"], spline1=spline1, spline2=spline2)
+    call elements%add(3.0d0, loc1="t1", loc2="t1", spline1=spline1, spline2=spline2)
+    call elements%add(4.0d0, loc1="t3", loc2="t2", spline1=spline1, spline2=spline2)
+    call elements%add(5.0d0, loc1="t4", loc2="t4", spline1=spline1, spline2=spline2)
+    call elements%add(6.0d0, loc1="t2", loc2="t2", spline1=spline1, spline2=spline2)
   end subroutine add_to_elements
 
 
@@ -39,7 +39,7 @@ contains
   subroutine test_add_invalid_element()
     use mod_check_values, only: is_NaN
     call set_name("elements: add invalid element")
-    call elements%add("5", location=["t1", "t1"], spline1=spline1, spline2=spline2)
+    call elements%add("5", loc1="t1", loc2="t1", spline1=spline1, spline2=spline2)
     @assertEqual(1, elements%get_nb_elements())
     @assertTrue(is_NaN(elements%get_elements()))
   end subroutine test_add_invalid_element
@@ -49,7 +49,7 @@ contains
   subroutine test_add_integer_element()
     integer :: expected(1, 2)
     call set_name("elements: add single integer element")
-    call elements%add(2, location=["t1", "t1"], spline1=spline1, spline2=spline2)
+    call elements%add(2, loc1="t1", loc2="t1", spline1=spline1, spline2=spline2)
     @assertEqual(1, elements%get_nb_elements())
     @assertEqual((2.0d0, 0.0d0), elements%get_elements(), tolerance=TOL)
     expected(1, :) = [1, 1]
@@ -61,7 +61,7 @@ contains
   subroutine test_add_real_element()
     integer :: expected(1, 2)
     call set_name("elements: add single real element")
-    call elements%add(3.0d0, location=["t2", "t1"], spline1=spline1, spline2=spline2)
+    call elements%add(3.0d0, loc1="t2", loc2="t1", spline1=spline1, spline2=spline2)
     @assertEqual(1, elements%get_nb_elements())
     @assertEqual((3.0d0, 0.0d0), elements%get_elements(), tolerance=TOL)
     expected(1, :) = [2, 1]
@@ -74,7 +74,7 @@ contains
     integer :: expected(1, 2)
     call set_name("elements: add single complex element")
     call elements%add( &
-      (1.0d0, 2.5d0), location=["t3", "t2"], spline1=spline1, spline2=spline2 &
+      (1.0d0, 2.5d0), loc1="t3", loc2="t2", spline1=spline1, spline2=spline2 &
     )
     @assertEqual(1, elements%get_nb_elements())
     @assertEqual((1.0d0, 2.5d0), elements%get_elements(), tolerance=TOL)
@@ -88,10 +88,10 @@ contains
     integer :: expected_positions(3, 2)
     complex(dp) :: expected_elements(3)
     call set_name("elements: add multiple elements")
-    call elements%add(1.0d0, location=["t2", "t1"], spline1=spline1, spline2=spline2)
-    call elements%add(2.5d0, location=["t3", "t2"], spline1=spline1, spline2=spline2)
+    call elements%add(1.0d0, loc1="t2", loc2="t1", spline1=spline1, spline2=spline2)
+    call elements%add(2.5d0, loc1="t3", loc2="t2", spline1=spline1, spline2=spline2)
     call elements%add( &
-      (2.0d0, 3.5d0), location=["t4", "t4"], spline1=spline1, spline2=spline2 &
+      (2.0d0, 3.5d0), loc1="t4", loc2="t4", spline1=spline1, spline2=spline2 &
     )
     @assertEqual(3, elements%get_nb_elements())
     expected_positions = reshape([2, 3, 4, 1, 2, 4], shape(expected_positions))
@@ -104,11 +104,11 @@ contains
   @test
   subroutine test_add_element_invalid_position()
     call set_name("elements: add element with invalid position")
-    call elements%add(1.0d0, location=["t1", "t5"], spline1=spline1, spline2=spline2)
+    call elements%add(1.0d0, loc1="t1", loc2="t5", spline1=spline1, spline2=spline2)
     @assertEqual(0, elements%get_nb_elements())
-    call elements%add(1.0d0, location=["t5", "t1"], spline1=spline1, spline2=spline2)
+    call elements%add(1.0d0, loc1="t5", loc2="t1", spline1=spline1, spline2=spline2)
     @assertEqual(0, elements%get_nb_elements())
-    call elements%add(1.0d0, location=["t5", "t5"], spline1=spline1, spline2=spline2)
+    call elements%add(1.0d0, loc1="t5", loc2="t5", spline1=spline1, spline2=spline2)
     @assertEqual(0, elements%get_nb_elements())
   end subroutine test_add_element_invalid_position
 
@@ -160,7 +160,7 @@ contains
   @test
   subroutine test_add_element_get_splines()
     call set_name("elements: add element and retrieve splines")
-    call elements%add(1.0d0, location=["t1", "t1"], spline1=spline1, spline2=spline2)
+    call elements%add(1.0d0, loc1="t1", loc2="t1", spline1=spline1, spline2=spline2)
     node => elements%get_node(1)
     @assertEqual(spline1, node%get_spline1())
     @assertEqual(spline2, node%get_spline2())
@@ -171,9 +171,9 @@ contains
   subroutine test_add_element_invalid_spline1()
     character(len=:), allocatable :: msg
     call set_name("elements: add element with invalid spline1")
-    call elements%add(1.0d0, location=["t1", "t1"], spline1=spline1, spline2=spline2)
+    call elements%add(1.0d0, loc1="t1", loc2="t1", spline1=spline1, spline2=spline2)
     call elements%add( &
-      1.0d0, location=["t1", "t1"], spline1=[1.0d0, 2.0d0], spline2=spline2 &
+      1.0d0, loc1="t1", loc2="t2", spline1=[1.0d0, 2.0d0], spline2=spline2 &
     )
     msg = "matrix elements: spline1 size not valid, expected 4 but got 2"
     @assertExceptionRaised(msg)
@@ -185,10 +185,10 @@ contains
     character(len=:), allocatable :: msg
     call set_name("elements: add element with invalid spline2")
     call elements%add( &
-      1.0d0, location=["t1", "t1"], spline1=spline1, spline2=[1.0d0, 2.0d0] &
+      1.0d0, loc1="t1", loc2="t1", spline1=spline1, spline2=[1.0d0, 2.0d0] &
     )
     call elements%add( &
-      1.0d0, location=["t1", "t1"], spline1=spline1, spline2=[1.0d0, 2.0d0, 1.0d0] &
+      1.0d0, loc1="t3", loc2="t1", spline1=spline1, spline2=[1.0d0, 2.0d0, 1.0d0] &
     )
     msg = "matrix elements: spline2 size not valid, expected 2 but got 3"
     @assertExceptionRaised(msg)
