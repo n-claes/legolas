@@ -151,8 +151,6 @@ class LegolasDataSet(LegolasDataContainer):
         Dictionary containing the unit normalisations.
     eq_names : numpy.ndarray
         Array containing the names of the equilibrium arrays.
-    legolas_version : ~pylbo._version.VersionHandler
-        The current Legolas version.
     """
 
     def __init__(self, datfile):
@@ -220,11 +218,6 @@ class LegolasDataSet(LegolasDataContainer):
     def u3_str(self) -> str:
         """Returns the :math:`u_3` string."""
         return "z"
-
-    @property
-    def has_residuals(self) -> bool:
-        """Returns `True` if the dataset has residuals."""
-        return self.header["residuals_written"]
 
     @property
     def continua(self) -> dict:

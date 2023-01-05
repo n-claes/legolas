@@ -8,7 +8,6 @@ from pylbo.utilities.datfiles.header import LegolasHeader
 from pylbo.utilities.datfiles.istream_reader import (
     SIZE_COMPLEX,
     SIZE_DOUBLE,
-    SIZE_INT,
     read_boolean_from_istream,
     read_complex_from_istream,
     read_float_from_istream,
@@ -16,7 +15,6 @@ from pylbo.utilities.datfiles.istream_reader import (
     read_string_from_istream,
     requires_version,
 )
-from pylbo.utilities.toolbox import transform_to_numpy
 
 
 class LegolasLegacyHeader(LegolasHeader):
