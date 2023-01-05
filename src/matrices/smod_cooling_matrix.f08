@@ -9,30 +9,23 @@ contains
     real(dp)  :: rho
     real(dp)  :: Lrho, LT, L0
     real(dp) :: gamma_1
+    type(matrix_elements_t) :: elements
 
-    if (settings%physics%is_incompressible) then
-      return
-    end if
+    if (settings%physics%is_incompressible) return
 
     gamma_1 = settings%physics%get_gamma_1()
-
     rho = rho_field % rho0(gauss_idx)
     Lrho = rc_field % d_L_drho(gauss_idx)
     LT = rc_field % d_L_dT(gauss_idx)
     L0 = rc_field % heat_loss(gauss_idx)
 
-    ! ==================== Quadratic * Quadratic ====================
-    call reset_factor_positions(new_size=2)
-    ! Lambda(5, 1)
-    factors(1) = -ic * gamma_1 * (L0 + rho * Lrho)
-    positions(1, :) = [5, 1]
-    ! Lambda(5, 5)
-    factors(2) = -ic * gamma_1 * rho * LT
-    positions(2, :) = [5, 5]
-    call subblock( &
-      quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
-    )
+    elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
+    call elements%add(-ic * gamma_1 * (L0 + rho * Lrho), "T", "rho", h_quad, h_quad)
+    call elements%add(-ic * gamma_1 * rho * LT, "T", "T", h_quad, h_quad)
+
+    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call elements%delete()
   end procedure add_cooling_matrix_terms
 
 end submodule smod_cooling_matrix
