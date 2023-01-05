@@ -87,6 +87,7 @@ set (sources
         boundaries/smod_natural_bounds_hall.f08
         matrices/elements/mod_matrix_element_node.f08
         matrices/elements/mod_matrix_elements.f08
+        matrices/mod_build_quadblock.f08
         matrices/mod_matrix_shortcuts.f08
         matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
