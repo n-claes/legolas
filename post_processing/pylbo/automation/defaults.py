@@ -57,6 +57,7 @@ namelist_items = {
         ("dropoff_width", (int, np.integer, float)),
         ("viscosity", bool),
         ("viscosity_value", (int, np.integer, float)),
+        ("viscous_heating", bool),
         ("hall_mhd", bool),
         ("hall_substitution", bool),
         ("hall_dropoff", bool),
