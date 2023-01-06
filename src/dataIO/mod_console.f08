@@ -29,7 +29,7 @@ contains
     character(len=57)      :: spaces_v = ""
     integer :: i
 
-    if (logger%get_logging_level() == 0) return
+    if (logger%get_logging_level() <= 1) return
 
     logo(1) = " __       ________  ________   _______   __          ___     __________ "
     logo(2) = "|  |     |   ____ \|   ____ \ /   _   \ |  |        /   \   |   ______ \"
@@ -57,7 +57,7 @@ contains
   subroutine print_console_info(settings)
     type(settings_t), intent(in) :: settings
 
-    if (logger%get_logging_level() == 0) return
+    if (logger%get_logging_level() <= 1) return
 
     call logger%info("---------------------------------------------")
     call logger%disable_prefix()
