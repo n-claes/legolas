@@ -100,7 +100,7 @@ contains
   end subroutine warning
 
 
-  subroutine info(this, msg)
+  subroutine info(this, msg)  ! LCOV_EXCL_START
     class(logger_t), intent(in) :: this
     character(len=*), intent(in) :: msg
     character(:), allocatable :: msg_raised
@@ -112,10 +112,10 @@ contains
       msg_raised = "         | " // msg
     end if
     write(*, *) msg_raised
-  end subroutine info
+  end subroutine info  ! LCOV_EXCL_STOP
 
 
-  subroutine debug(this, msg)
+  subroutine debug(this, msg)  ! LCOV_EXCL_START
     class(logger_t), intent(in) :: this
     character(len=*), intent(in) :: msg
     character(:), allocatable :: msg_raised
@@ -127,7 +127,7 @@ contains
       msg_raised = "         | " // msg
     end if
     write(*, *) paint_string(msg_raised, "green")
-  end subroutine debug
+  end subroutine debug  ! LCOV_EXCL_STOP
 
 
   pure function logical_tostring(boolean) result(string)

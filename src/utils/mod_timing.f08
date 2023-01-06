@@ -98,6 +98,7 @@ contains
     total_time = real(end_time - this%program_start_time, kind=dp) / rate
   end function get_total_time
 
+  ! LCOV_EXCL_START
 
   !> Subroutine to start a wall clock timer.
   !!
@@ -238,5 +239,7 @@ contains
       message // " (" // str(elapsed_time, fmt="f20.3") // " s, CPU time)" &
     )
   end subroutine cputoc
+
+  ! LCOV_EXCL_END
 
 end module mod_timing
