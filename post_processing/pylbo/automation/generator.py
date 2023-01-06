@@ -1,10 +1,11 @@
 import copy
-import f90nml
 from pathlib import Path
+
+import f90nml
 from pylbo.automation.defaults import namelist_items
-from pylbo.utilities.toolbox import transform_to_list
-from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import ParfileGenerationError
+from pylbo.utilities.logger import pylboLogger
+from pylbo.utilities.toolbox import transform_to_list
 
 
 def _validate_basename(basename):
@@ -211,12 +212,6 @@ class ParfileGenerator:
                 f"{prefix}{run_dict['savelist'].get('basename_datfile', self.basename)}"
             )
             run_dict["savelist"].update({"basename_datfile": datfile_name})
-            # logfile name (no extension .log needed)
-            logfile_name = run_dict["savelist"].get("basename_logfile", None)
-            if logfile_name is not None:
-                logfile_name = f"{prefix}{logfile_name}"
-                run_dict["savelist"].update({"basename_logfile": logfile_name})
-
             # set paths and write parfile
             parfile_path = (self.output_dir / parfile_name).resolve()
             self.parfiles.append(str(parfile_path))
