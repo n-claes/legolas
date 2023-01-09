@@ -818,3 +818,19 @@ class LegolasDataSeries(LegolasDataContainer):
             squared wavenumber for each.
         """
         return np.array([ds.get_k0_squared() for ds in self.datasets], dtype=float)
+
+    def get_omega_max(self, real=True):
+        """
+        Calculates the maximum of the real or imaginary part of the spectrum for the various datasets.
+        
+        Returns
+        -------
+        omega_max : numpy.ndarray
+            A Numpy array of same length as the number of datasets, containing the
+            maximum value of the real or imaginary part of the eigenvalues.
+        """
+
+        if real:
+            return np.array([np.max(np.real(ds.eigenvalues)) for ds in self.datasets])
+        else:
+            return np.array([np.max(np.imag(ds.eigenvalues)) for ds in self.datasets])
