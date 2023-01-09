@@ -10,6 +10,7 @@ contains
     real(dp)  :: rho, T0
     real(dp)  :: B01, B02, B03
     real(dp)  :: Gop_min
+    type(matrix_elements_t) :: elements
 
     eps = eps_grid(grid_idx)
     rho = rho_field % rho0(grid_idx)
@@ -18,53 +19,24 @@ contains
     B02 = B_field % B02(grid_idx)
     B03 = B_field % B03(grid_idx)
     Gop_min = get_G_operator(grid_idx, which="minus")
+    elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! ==================== Cubic * Quadratic ====================
-    call reset_factor_positions(new_size=3)
-    ! A(2, 1)
-    factors(1) = T0
-    positions(1, :) = [2, 1]
-    ! A(2, 5)
-    factors(2) = rho
-    positions(2, :) = [2, 5]
-    ! A(2, 6)
-    factors(3) = eps * Gop_min
-    positions(3, :) = [2, 6]
-    call subblock(quadblock, factors, positions, weight, h_cubic, h_quad, settings%dims)
-
+    call elements%add(T0, "v1", "rho", spline1=h_cubic, spline2=h_quad)
+    call elements%add(rho, "v1", "T", spline1=h_cubic, spline2=h_quad)
+    call elements%add(eps * Gop_min, "v1", "a1", spline1=h_cubic, spline2=h_quad)
     ! ==================== Cubic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! A(2, 7)
-    factors(1) = B03
-    positions(1, :) = [2, 7]
-    ! A(2, 8)
-    factors(2) = -eps * B02
-    positions(2, :) = [2, 8]
-    call subblock( &
-      quadblock, factors, positions, weight, h_cubic, dh_cubic, settings%dims &
-    )
-
+    call elements%add(B03, "v1", "a2", spline1=h_cubic, spline2=dh_cubic)
+    call elements%add(-eps * B02, "v1", "a3", spline1=h_cubic, spline2=dh_cubic)
     ! ==================== Quadratic * Quadratic ====================
-    call reset_factor_positions(new_size=2)
-    ! A(3, 6)
-    factors(1) = ic * eps * k3 * B01
-    positions(1, :) = [3, 6]
-    ! A(4, 6)
-    factors(2) = -ic * k2 * B01
-    positions(2, :) = [4, 6]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_quad, settings%dims)
-
+    call elements%add(ic * eps * k3 * B01, "v2", "a1", spline1=h_quad, spline2=h_quad)
+    call elements%add(-ic * k2 * B01, "v3", "a1", spline1=h_quad, spline2=h_quad)
     ! ==================== Quadratic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! A(3, 8)
-    factors(1) = -ic * eps * B01
-    positions(1, :) = [3, 8]
-    ! A(4, 7)
-    factors(2) = ic * B01
-    positions(2, :) = [4, 7]
-    call subblock( &
-      quadblock, factors, positions, weight, h_quad, dh_cubic, settings%dims &
-    )
+    call elements%add(-ic * eps * B01, "v2", "a3", spline1=h_quad, spline2=dh_cubic)
+    call elements%add(ic * B01, "v3", "a2", spline1=h_quad, spline2=dh_cubic)
+
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
+    call elements%delete()
   end procedure add_natural_regular_terms
 
 end submodule smod_natural_bounds_regular
