@@ -53,11 +53,11 @@ contains
   end function is_using_substitution
 
 
-  pure subroutine enable(this, use_hall_substitution)
+  pure subroutine enable(this)
     class(hall_settings_t), intent(inout) :: this
-    logical, intent(in) :: use_hall_substitution
     this%has_hall = .true.
-    this%use_hall_substitution = use_hall_substitution
+    ! we always use substitution but keep this for future use
+    this%use_hall_substitution = .true.
   end subroutine enable
 
 

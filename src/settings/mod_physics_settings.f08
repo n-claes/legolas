@@ -174,18 +174,13 @@ contains
   end subroutine enable_perpendicular_conduction
 
 
-  pure subroutine enable_hall( &
-    this, use_hall_substitution, electron_inertia, electron_fraction &
-  )
+  pure subroutine enable_hall(this, electron_inertia, electron_fraction)
     class(physics_t), intent(inout) :: this
-    logical, intent(in), optional :: use_hall_substitution
     logical, intent(in), optional :: electron_inertia
     real(dp), intent(in), optional :: electron_fraction
-    logical :: hall_substitution, inertia
+    logical :: inertia
 
-    hall_substitution = this%hall%is_using_substitution()
-    if (present(use_hall_substitution)) hall_substitution = use_hall_substitution
-    call this%hall%enable(hall_substitution)
+    call this%hall%enable()
 
     inertia = this%hall%has_electron_inertia()
     if (present(electron_inertia)) inertia = electron_inertia

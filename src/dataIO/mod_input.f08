@@ -190,7 +190,7 @@ contains
     character(len=str_len) :: physics_type
     logical :: flow, incompressible, radiative_cooling, external_gravity, &
       parallel_conduction, perpendicular_conduction, resistivity, use_eta_dropoff, &
-      viscosity, viscous_heating, hall_mhd, hall_substitution, hall_dropoff, &
+      viscosity, viscous_heating, hall_mhd, hall_dropoff, &
       elec_inertia, inertia_dropoff
     integer :: ncool
     character(len=str_len) :: cooling_curve
@@ -204,7 +204,7 @@ contains
       physics_type, mhd_gamma, flow, incompressible, radiative_cooling, &
       external_gravity, parallel_conduction, perpendicular_conduction, &
       resistivity, use_eta_dropoff, viscosity, viscous_heating, hall_mhd, &
-      hall_substitution, hall_dropoff, elec_inertia, inertia_dropoff, ncool, &
+      hall_dropoff, elec_inertia, inertia_dropoff, ncool, &
       cooling_curve, fixed_resistivity_value, fixed_tc_para_value, &
       fixed_tc_perp_value, dropoff_edge_dist, dropoff_width, viscosity_value, &
       electron_fraction
@@ -240,7 +240,6 @@ contains
     viscous_heating = settings%physics%viscosity%has_viscous_heating()
 
     hall_mhd = settings%physics%hall%is_enabled()
-    hall_substitution = settings%physics%hall%is_using_substitution()
     hall_dropoff = settings%physics%hall%use_dropoff
     elec_inertia = settings%physics%hall%has_electron_inertia()
     inertia_dropoff = settings%physics%hall%use_inertia_dropoff
@@ -266,9 +265,7 @@ contains
     if (viscosity) call settings%physics%enable_viscosity( &
       viscosity_value, viscous_heating &
     )
-    if (hall_mhd) call settings%physics%enable_hall( &
-      hall_substitution, elec_inertia, electron_fraction &
-    )
+    if (hall_mhd) call settings%physics%enable_hall(elec_inertia, electron_fraction)
     settings%physics%dropoff_edge_dist = dropoff_edge_dist
     settings%physics%dropoff_width = dropoff_width
   end subroutine read_physicslist
