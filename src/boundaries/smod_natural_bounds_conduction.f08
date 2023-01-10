@@ -41,7 +41,6 @@ contains
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! ==================== Quadratic * Quadratic ====================
-    call reset_factor_positions(new_size=3)
     call elements%add( &
       ic * gamma_1 * dT0 * dkappa_perp_drho * (1.0d0 - B01**2 / B0**2), &
       "T", &

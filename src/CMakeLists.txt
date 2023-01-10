@@ -89,7 +89,6 @@ set (sources
         matrices/elements/mod_matrix_elements.f08
         matrices/mod_build_quadblock.f08
         matrices/mod_matrix_shortcuts.f08
-        matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
         matrices/smod_regular_matrix.f08
         matrices/smod_flow_matrix.f08
