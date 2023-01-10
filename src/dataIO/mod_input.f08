@@ -248,6 +248,7 @@ contains
     read(unit, nml=physicslist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
 
+    call settings%set_state_vector(physics_type)
     call settings%physics%set_gamma(mhd_gamma)
     if (incompressible) call settings%physics%set_incompressible()
     if (flow) call settings%physics%flow%enable()
