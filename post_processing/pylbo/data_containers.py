@@ -586,7 +586,7 @@ class LegolasDataSet(LegolasDataContainer):
             getter_func=self.filereader.read_derived_eigenfunction,
         )
 
-    def get_nearest_eigenvalues(self, ev_guesses) -> tuple(np.ndarray, np.ndarray):
+    def get_nearest_eigenvalues(self, ev_guesses, min_distance=0.0) -> tuple(np.ndarray, np.ndarray):
         """
         Calculates the eigenvalues nearest to a given guess. This calculates
         the nearest eigenvalue based on the distance between two points.
@@ -596,6 +596,8 @@ class LegolasDataSet(LegolasDataContainer):
         ev_guesses : float, complex, list of float, list of complex
             The guesses for the eigenvalues. These can be a single float/complex value,
             or a list/Numpy array of floats/complex values.
+        min_distance : float
+            Minimum distance from the guess the eigenvalue should have.
 
         Returns
         -------
@@ -612,11 +614,42 @@ class LegolasDataSet(LegolasDataContainer):
             distances = (self.eigenvalues.real - ev_guess.real) ** 2 + (
                 self.eigenvalues.imag - ev_guess.imag
             ) ** 2
+            # we don't want eigenvalues closer than min_distance
+            with np.errstate(invalid='ignore'):
+                mask = (distances < min_distance**2)
+            distances[mask] = np.nan
             # closest distance (squared)
             idx = np.nanargmin(distances)
             idxs[i] = idx
             eigenvals[i] = self.eigenvalues[idx]
+        # import matplotlib.pyplot as plt
+        # from matplotlib.colors import LogNorm
+        # plt.figure()
+        # plt.scatter(self.eigenvalues.real, self.eigenvalues.imag, c=distances, norm=LogNorm())
+        # plt.show()
         return idxs, eigenvals
+
+    def get_omega_max(self, real=True):
+        """
+        Calculates the maximum of the real or imaginary part of a spectrum.
+
+        Parameters
+        ----------
+        real : bool
+            Returns the largest real part if True (default option), if False, returns the largest imaginary part.
+        
+        Returns
+        -------
+        omega_max : complex
+            The eigenvalue that has the largest real or imaginary part.
+        """
+
+        if real:
+            idx = np.argmax(np.real(self.eigenvalues))
+        else:
+            idx = np.argmax(np.imag(self.eigenvalues))
+
+        return self.eigenvalues[idx]
 
 
 class LegolasDataSeries(LegolasDataContainer):
@@ -822,15 +855,20 @@ class LegolasDataSeries(LegolasDataContainer):
     def get_omega_max(self, real=True):
         """
         Calculates the maximum of the real or imaginary part of the spectrum for the various datasets.
+
+        Parameters
+        ----------
+        real : bool
+            Returns the largest real part if True (default option), if False, returns the largest imaginary part.
         
         Returns
         -------
         omega_max : numpy.ndarray
-            A Numpy array of same length as the number of datasets, containing the
-            maximum value of the real or imaginary part of the eigenvalues.
+            A Numpy array of same length as the number of datasets, containing tuples of the eigenvalue that has the largest
+            real or imaginary part.
         """
 
         if real:
-            return np.array([np.max(np.real(ds.eigenvalues)) for ds in self.datasets])
+            return np.array([ds.get_omega_max(real=True) for ds in self.datasets])
         else:
-            return np.array([np.max(np.imag(ds.eigenvalues)) for ds in self.datasets])
+            return np.array([ds.get_omega_max(real=False) for ds in self.datasets])
