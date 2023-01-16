@@ -2,6 +2,8 @@ module mod_eigenfunctions
   use mod_global_variables, only: dp
   use mod_settings, only: settings_t
   use mod_base_efs, only: base_ef_t
+  use mod_derived_efs, only: derived_ef_t
+  use mod_derived_ef_names, only: create_and_set_derived_state_vector
   implicit none
 
   private
@@ -9,6 +11,7 @@ module mod_eigenfunctions
   type, public :: eigenfunctions_t
     type(settings_t), pointer, private :: settings
     type(base_ef_t), allocatable :: base_efs(:)
+    type(derived_ef_t), allocatable :: derived_efs(:)
     logical, allocatable :: ef_written_flags(:)
     integer, allocatable :: ef_written_idxs(:)
     real(dp), allocatable :: ef_grid(:)
@@ -37,6 +40,7 @@ contains
     class(eigenfunctions_t), intent(inout) :: this
     complex(dp), intent(in) :: omega(:)
     character(len=:), allocatable :: state_vector(:)
+    character(len=:), allocatable :: derived_state_vector(:)
     integer :: i, nb_efs
 
     call this%select_eigenfunctions_to_save(omega)
@@ -51,6 +55,19 @@ contains
       )
     end do
     deallocate(state_vector)
+
+    if (.not. this%settings%io%write_derived_eigenfunctions) return
+
+    derived_state_vector = create_and_set_derived_state_vector(this%settings)
+    allocate(this%derived_efs(size(derived_state_vector)))
+    do i = 1, size(this%derived_efs)
+      call this%derived_efs(i)%initialise( &
+        name=derived_state_vector(i), &
+        ef_grid_size=size(this%ef_grid), &
+        nb_efs=nb_efs &
+      )
+    end do
+    deallocate(derived_state_vector)
   end subroutine initialise
 
 
@@ -99,7 +116,7 @@ contains
     end if
     ! extract indices of those eigenvalues that have their eigenfunctions written
     allocate(this%ef_written_idxs(count(this%ef_written_flags)))
-    this%ef_written_idxs =  pack([(i, i=1, size(omega))], this%ef_written_flags)
+    this%ef_written_idxs = pack([(i, i=1, size(omega))], this%ef_written_flags)
   end subroutine select_eigenfunctions_to_save
 
 

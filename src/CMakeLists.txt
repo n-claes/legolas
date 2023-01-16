@@ -110,6 +110,8 @@ set (sources
         eigenfunctions/mod_eigenfunctions.f08
         eigenfunctions/mod_ef_assembly.f08
         eigenfunctions/mod_base_efs.f08
+        eigenfunctions/mod_derived_ef_names.f08
+        eigenfunctions/mod_derived_efs.f08
         dataIO/mod_output.f08
         utils/mod_assert.f08
         utils/mod_timing.f08
