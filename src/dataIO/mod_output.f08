@@ -3,6 +3,7 @@ module mod_output
   use mod_settings, only: settings_t
   use mod_matrix_structure, only: matrix_t
   use mod_logging, only: logger
+  use mod_eigenfunctions, only: eigenfunctions_t
   implicit none
 
   private
@@ -49,7 +50,9 @@ contains
   end function get_datfile_path
 
 
-  subroutine create_datfile(settings, eigenvalues, matrix_A, matrix_B, eigenvectors)
+  subroutine create_datfile( &
+    settings, eigenvalues, matrix_A, matrix_B, eigenvectors, eigenfunctions &
+  )
     use mod_version, only: LEGOLAS_VERSION
     use mod_grid, only: grid, grid_gauss
 
@@ -58,6 +61,7 @@ contains
     type(matrix_t), intent(in) :: matrix_A
     type(matrix_t), intent(in) :: matrix_B
     complex(dp), intent(in) :: eigenvectors(:, :)
+    type(eigenfunctions_t), intent(in) :: eigenfunctions
 
     datfile_path = get_datfile_path(settings=settings, extension=".dat")
     call open_file(file_unit=dat_fh, filename=datfile_path)
@@ -70,7 +74,7 @@ contains
     write(dat_fh) size(eigenvalues), eigenvalues
     write(dat_fh) grid, grid_gauss
     call write_equilibrium_data(settings)
-    call write_base_eigenfunction_data(settings)
+    call write_base_eigenfunction_data(settings, eigenfunctions)
     call write_derived_eigenfunction_data(settings)
     call write_eigenvector_data(settings, eigenvectors)
     call write_residual_data(settings, eigenvalues, matrix_A, matrix_B, eigenvectors)
@@ -331,37 +335,34 @@ contains
   end subroutine write_equilibrium_data
 
 
-  subroutine write_base_eigenfunction_data(settings)
-    use mod_eigenfunctions, only: ef_grid, base_eigenfunctions, ef_written_flags, &
-      ef_written_idxs
+  subroutine write_base_eigenfunction_data(settings, eigenfunctions)
     type(settings_t), intent(in) :: settings
+    type(eigenfunctions_t), intent(in) :: eigenfunctions
     integer :: i
 
     if (.not. settings%io%write_eigenfunctions) return
 
     call logger%info("writing eigenfunctions...")
-    write(dat_fh) size(ef_grid), ef_grid
-    write(dat_fh) size(ef_written_flags), ef_written_flags
-    write(dat_fh) size(ef_written_idxs), ef_written_idxs
-    do i = 1, size(base_eigenfunctions)
-      write(dat_fh) base_eigenfunctions(i)%quantities
+    write(dat_fh) size(eigenfunctions%ef_grid), eigenfunctions%ef_grid
+    write(dat_fh) size(eigenfunctions%ef_written_flags), eigenfunctions%ef_written_flags
+    write(dat_fh) size(eigenfunctions%ef_written_idxs), eigenfunctions%ef_written_idxs
+    do i = 1, size(eigenfunctions%base_efs)
+      write(dat_fh) eigenfunctions%base_efs(i)%quantities
     end do
   end subroutine write_base_eigenfunction_data
 
 
   subroutine write_derived_eigenfunction_data(settings)
-    use mod_eigenfunctions, only: derived_eigenfunctions, derived_ef_names
     type(settings_t), intent(in) :: settings
-    integer :: i
 
     if (.not. settings%io%write_derived_eigenfunctions) return
 
     call logger%info("writing derived eigenfunctions...")
-    write(dat_fh) size(derived_ef_names), len(derived_ef_names(1))
-    write(dat_fh) derived_ef_names
-    do i = 1, size(derived_eigenfunctions)
-      write(dat_fh) derived_eigenfunctions(i)%quantities
-    end do
+    ! write(dat_fh) size(derived_ef_names), len(derived_ef_names(1))
+    ! write(dat_fh) derived_ef_names
+    ! do i = 1, size(derived_eigenfunctions)
+    !   write(dat_fh) derived_eigenfunctions(i)%quantities
+    ! end do
   end subroutine write_derived_eigenfunction_data
 
 

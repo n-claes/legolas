@@ -108,10 +108,8 @@ set (sources
         solvers/arnoldi/smod_arpack_shift_invert.f08
         solvers/smod_inverse_iteration.f08
         eigenfunctions/mod_eigenfunctions.f08
-        eigenfunctions/smod_ef_operations.f08
-        eigenfunctions/smod_base_efs.f08
-        eigenfunctions/smod_derived_efs.f08
-        eigenfunctions/smod_derived_pp_efs.f08
+        eigenfunctions/mod_ef_assembly.f08
+        eigenfunctions/mod_base_efs.f08
         dataIO/mod_output.f08
         utils/mod_assert.f08
         utils/mod_timing.f08
