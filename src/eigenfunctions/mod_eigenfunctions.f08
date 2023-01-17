@@ -2,7 +2,7 @@ module mod_eigenfunctions
   use mod_global_variables, only: dp
   use mod_settings, only: settings_t
   use mod_base_efs, only: base_ef_t
-  use mod_derived_efs, only: derived_ef_t
+  use mod_derived_efs, only: derived_ef_t, deallocate_derived_ef_module_variables
   use mod_derived_ef_names, only: create_and_set_derived_state_vector
   implicit none
 
@@ -83,16 +83,35 @@ contains
         ef_grid=this%ef_grid &
       )
     end do
+
+    if (.not. this%settings%io%write_derived_eigenfunctions) return
+    do i = 1, size(this%derived_efs)
+      call this%derived_efs(i)%assemble( &
+        settings=this%settings, &
+        idxs_to_assemble=this%ef_written_idxs, &
+        right_eigenvectors=right_eigenvectors, &
+        ef_grid=this%ef_grid &
+      )
+    end do
+    call deallocate_derived_ef_module_variables()
   end subroutine assemble
 
 
   pure subroutine delete(this)
     class(eigenfunctions_t), intent(inout) :: this
     integer :: i
-    do i = 1, size(this%base_efs)
-      call this%base_efs(i)%delete()
-    end do
-    if (allocated(this%base_efs)) deallocate(this%base_efs)
+    if (allocated(this%base_efs)) then
+      do i = 1, size(this%base_efs)
+        call this%base_efs(i)%delete()
+      end do
+      deallocate(this%base_efs)
+    end if
+    if (allocated(this%derived_efs)) then
+      do i = 1, size(this%derived_efs)
+        call this%derived_efs(i)%delete()
+      end do
+      deallocate(this%derived_efs)
+    end if
     if (allocated(this%ef_written_flags)) deallocate(this%ef_written_flags)
     if (allocated(this%ef_written_idxs)) deallocate(this%ef_written_idxs)
     if (allocated(this%ef_grid)) deallocate(this%ef_grid)

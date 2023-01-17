@@ -9,6 +9,7 @@ module mod_ef_assembly
   private
 
   public :: get_ef_eps
+  public :: get_ef_deps
   public :: retransform_eigenfunction
   public :: assemble_eigenfunction
 
@@ -26,6 +27,19 @@ contains
       ef_eps = NaN
     end if
   end function get_ef_eps
+
+
+  pure function get_ef_deps(settings) result(ef_deps)
+    type(settings_t), intent(in) :: settings
+    real(dp) :: ef_deps
+    if (settings%grid%get_geometry() == "Cartesian") then
+      ef_deps = 0.0_dp
+    else if (settings%grid%get_geometry() == "cylindrical") then
+      ef_deps = 1.0_dp
+    else
+      ef_deps = NaN
+    end if
+  end function get_ef_deps
 
 
   function retransform_eigenfunction( &

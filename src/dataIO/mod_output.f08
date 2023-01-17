@@ -74,11 +74,17 @@ contains
     write(dat_fh) size(eigenvalues), eigenvalues
     write(dat_fh) grid, grid_gauss
     call write_equilibrium_data(settings)
-    call write_base_eigenfunction_data(settings, eigenfunctions)
-    call write_derived_eigenfunction_data(settings)
-    call write_eigenvector_data(settings, eigenvectors)
-    call write_residual_data(settings, eigenvalues, matrix_A, matrix_B, eigenvectors)
-    call write_matrix_data(settings, matrix_A, matrix_B)
+    if (settings%io%write_eigenfunctions) then
+      call write_base_eigenfunction_data(eigenfunctions)
+    end if
+    if (settings%io%write_derived_eigenfunctions) then
+      call write_derived_eigenfunction_data(settings, eigenfunctions)
+    end if
+    if (settings%io%write_eigenvectors) call write_eigenvector_data(eigenvectors)
+    if (settings%io%write_residuals) then
+      call write_residual_data(eigenvalues, matrix_A, matrix_B, eigenvectors)
+    end if
+    if (settings%io%write_matrices) call write_matrix_data(matrix_A, matrix_B)
 
     close(dat_fh)
   end subroutine create_datfile
@@ -335,12 +341,9 @@ contains
   end subroutine write_equilibrium_data
 
 
-  subroutine write_base_eigenfunction_data(settings, eigenfunctions)
-    type(settings_t), intent(in) :: settings
+  subroutine write_base_eigenfunction_data(eigenfunctions)
     type(eigenfunctions_t), intent(in) :: eigenfunctions
     integer :: i
-
-    if (.not. settings%io%write_eigenfunctions) return
 
     call logger%info("writing eigenfunctions...")
     write(dat_fh) size(eigenfunctions%ef_grid), eigenfunctions%ef_grid
@@ -352,38 +355,36 @@ contains
   end subroutine write_base_eigenfunction_data
 
 
-  subroutine write_derived_eigenfunction_data(settings)
+  subroutine write_derived_eigenfunction_data(settings, eigenfunctions)
     type(settings_t), intent(in) :: settings
+    type(eigenfunctions_t), intent(in) :: eigenfunctions
+    character(len=:), allocatable :: derived_state_vector(:)
+    integer :: i
 
-    if (.not. settings%io%write_derived_eigenfunctions) return
+    allocate(derived_state_vector, source=settings%get_derived_state_vector())
 
     call logger%info("writing derived eigenfunctions...")
-    ! write(dat_fh) size(derived_ef_names), len(derived_ef_names(1))
-    ! write(dat_fh) derived_ef_names
-    ! do i = 1, size(derived_eigenfunctions)
-    !   write(dat_fh) derived_eigenfunctions(i)%quantities
-    ! end do
+    write(dat_fh) size(derived_state_vector), len(derived_state_vector(1))
+    write(dat_fh) derived_state_vector
+    do i = 1, size(eigenfunctions%derived_efs)
+      write(dat_fh) eigenfunctions%derived_efs(i)%quantities
+    end do
+    if (allocated(derived_state_vector)) deallocate(derived_state_vector)
   end subroutine write_derived_eigenfunction_data
 
 
-  subroutine write_eigenvector_data(settings, eigenvectors)
-    type(settings_t), intent(in) :: settings
+  subroutine write_eigenvector_data(eigenvectors)
     complex(dp), intent(in) :: eigenvectors(:, :)
-
-    if (.not. settings%io%write_eigenvectors) return
 
     call logger%info("writing eigenvectors...")
     write(dat_fh) size(eigenvectors, 1), size(eigenvectors, 2), eigenvectors
   end subroutine write_eigenvector_data
 
 
-  subroutine write_residual_data( &
-    settings, eigenvalues, matrix_A, matrix_B, eigenvectors &
-  )
+  subroutine write_residual_data(eigenvalues, matrix_A, matrix_B, eigenvectors)
     use mod_transform_matrix, only: matrix_to_banded
     use mod_banded_matrix, only: banded_matrix_t
 
-    type(settings_t), intent(in) :: settings
     complex(dp), intent(in) :: eigenvalues(:)
     type(matrix_t), intent(in) :: matrix_A
     type(matrix_t), intent(in) :: matrix_B
@@ -391,8 +392,6 @@ contains
     real(dp), allocatable :: residuals(:)
     integer :: i, subdiags, superdiags
     type(banded_matrix_t) :: matrix_A_banded, matrix_B_banded
-
-    if (.not. settings%io%write_residuals) return
 
     call logger%info("computing residuals...")
     call matrix_A%get_nb_diagonals(ku=superdiags, kl=subdiags)
@@ -413,16 +412,13 @@ contains
   end subroutine write_residual_data
 
 
-  subroutine write_matrix_data(settings, matrix_A, matrix_B)
+  subroutine write_matrix_data(matrix_A, matrix_B)
     use mod_matrix_node, only: node_t
 
-    type(settings_t), intent(in) :: settings
     type(matrix_t), intent(in) :: matrix_A
     type(matrix_t), intent(in) :: matrix_B
     type(node_t), pointer :: current_node
     integer :: irow, inode
-
-    if (.not. settings%io%write_matrices) return
 
     ! write total number of nonzero elements
     write(dat_fh) matrix_B%get_total_nb_elements()
