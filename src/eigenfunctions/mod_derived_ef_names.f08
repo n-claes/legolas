@@ -207,7 +207,7 @@ contains
       return
     end if
     can_calculate_pp_quantities = ( &
-      .not. all(is_zero(B_field%B02)) .and. .not. all(is_zero(B_field%B03)) &
+      .not. all(is_zero(B_field%B02)) .or. .not. all(is_zero(B_field%B03)) &
     )
   end function can_calculate_pp_quantities
 
