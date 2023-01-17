@@ -50,34 +50,48 @@ contains
 
     call set_equilibrium_arrays_on_ef_grid(ef_grid)
 
+    select case(this%name)
+    case(S_name)
+      get_derived_ef => get_entropy
+    case(div_v_name)
+      get_derived_ef => get_div_v
+    case(curl_v_1_name)
+      get_derived_ef => get_curl_v_1
+    case(curl_v_2_name)
+      get_derived_ef => get_curl_v_2
+    case(curl_v_3_name)
+      get_derived_ef => get_curl_v_3
+    case(B1_name)
+      get_derived_ef => get_B1
+    case(B2_name)
+      get_derived_ef => get_B2
+    case(B3_name)
+      get_derived_ef => get_B3
+    case(div_B_name)
+      get_derived_ef => get_div_B
+    case(curl_B_1_name)
+      get_derived_ef => get_curl_B_1
+    case(curl_B_2_name)
+      get_derived_ef => get_curl_B_2
+    case(curl_B_3_name)
+      get_derived_ef => get_curl_B_3
+    case default
+      call logger%error( &
+        "derived ef assembly -- unknown eigenfunction name: "// trim(this%name) &
+      )
+      nullify(get_derived_ef)
+      return
+    end select
+
     do i = 1, size(idxs_to_assemble)
       idx = idxs_to_assemble(i)
-      select case(this%name)
-      case(S_name)
-        get_derived_ef => get_entropy
-      case(div_v_name)
-        get_derived_ef => get_div_v
-      case(curl_v_1_name)
-        get_derived_ef => get_curl_v_1
-      case(curl_v_2_name)
-        get_derived_ef => get_curl_v_2
-      case(curl_v_3_name)
-        get_derived_ef => get_curl_v_3
-      case default
-        call logger%error( &
-          "derived ef assembly -- unknown eigenfunction name: "// trim(this%name) &
-        )
-        nullify(get_derived_ef)
-        return
-      end select
-
       this%quantities(:, i) = get_derived_ef( &
         settings=settings, &
         eigenvector=right_eigenvectors(:, idx), &
         ef_grid=ef_grid &
       )
-      nullify(get_derived_ef)
     end do
+    nullify(get_derived_ef)
   end subroutine assemble
 
 
@@ -162,6 +176,140 @@ contains
     ef_deps = get_ef_deps(settings)
     curl_v_3 = dv2 + (ef_deps * v2 - ic * k2 * v1) / ef_eps
   end function get_curl_v_3
+
+
+  function get_B1(settings, eigenvector, ef_grid) result(B1)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: B1(size(ef_grid))
+    complex(dp) :: a2(size(ef_grid)), a3(size(ef_grid))
+    real(dp) :: ef_eps(size(ef_grid))
+
+    a2 = get_base_eigenfunction("a2", settings, ef_grid, eigenvector)
+    a3 = get_base_eigenfunction("a3", settings, ef_grid, eigenvector)
+    ef_eps = get_ef_eps(settings, ef_grid)
+    B1 = ic * (k2 * a3 / ef_eps - k3 * a2)
+  end function get_B1
+
+
+  function get_B2(settings, eigenvector, ef_grid) result(B2)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: B2(size(ef_grid))
+    complex(dp) :: a1(size(ef_grid)), da3(size(ef_grid))
+
+    a1 = get_base_eigenfunction("a1", settings, ef_grid, eigenvector)
+    da3 = get_base_eigenfunction("a3", settings, ef_grid, eigenvector, diff_order=1)
+    B2 = ic * k3 * a1 - da3
+  end function get_B2
+
+
+  function get_B3(settings, eigenvector, ef_grid) result(B3)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: B3(size(ef_grid))
+    complex(dp) :: a1(size(ef_grid)), da2(size(ef_grid))
+    real(dp) :: ef_eps(size(ef_grid))
+
+    a1 = get_base_eigenfunction("a1", settings, ef_grid, eigenvector)
+    da2 = get_base_eigenfunction("a2", settings, ef_grid, eigenvector, diff_order=1)
+    ef_eps = get_ef_eps(settings, ef_grid)
+    B3 = (da2 - ic * k2 * a1) / ef_eps
+  end function get_B3
+
+
+  function get_div_B(settings, eigenvector, ef_grid) result(div_B)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: div_B(size(ef_grid))
+    complex(dp) :: a1(size(ef_grid)), da2(size(ef_grid)), da3(size(ef_grid))
+    real(dp) :: ef_eps(size(ef_grid))
+
+    a1 = get_base_eigenfunction("a1", settings, ef_grid, eigenvector)
+    da2 = get_base_eigenfunction("a2", settings, ef_grid, eigenvector, diff_order=1)
+    da3 = get_base_eigenfunction("a3", settings, ef_grid, eigenvector, diff_order=1)
+    ef_eps = get_ef_eps(settings, ef_grid)
+    div_B = ( &
+      ic * (k2 * da3 - k3 * da2) &
+      + ic * k2 * (ic * k3 * a1 - da3) &
+      + ic * k3 * (da2 - ic * k2 * a1) &
+    ) / ef_eps
+  end function get_div_B
+
+
+  function get_curl_B_1(settings, eigenvector, ef_grid) result(curl_B_1)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: curl_B_1(size(ef_grid))
+    complex(dp) :: a1(size(ef_grid)), da2(size(ef_grid)), da3(size(ef_grid))
+    real(dp) :: ef_eps(size(ef_grid))
+
+    a1 = get_base_eigenfunction("a1", settings, ef_grid, eigenvector)
+    da2 = get_base_eigenfunction("a2", settings, ef_grid, eigenvector, diff_order=1)
+    da3 = get_base_eigenfunction("a3", settings, ef_grid, eigenvector, diff_order=1)
+    ef_eps = get_ef_eps(settings, ef_grid)
+    curl_B_1 = ( &
+      ic * k2 * (da2 - ic * k2 * a1) / ef_eps**2 - ic * k3 * (ic * k3 * a1 - da3) &
+    )
+  end function get_curl_B_1
+
+
+  function get_curl_B_2(settings, eigenvector, ef_grid) result(curl_B_2)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: curl_B_2(size(ef_grid))
+    complex(dp) :: a1(size(ef_grid)), da1(size(ef_grid))
+    complex(dp) :: a2(size(ef_grid)), da2(size(ef_grid)), dda2(size(ef_grid))
+    complex(dp) :: a3(size(ef_grid))
+    real(dp) :: ef_eps(size(ef_grid)), ef_deps
+
+    a1 = get_base_eigenfunction("a1", settings, ef_grid, eigenvector)
+    da1 = get_base_eigenfunction("a1", settings, ef_grid, eigenvector, diff_order=1)
+    a2 = get_base_eigenfunction("a2", settings, ef_grid, eigenvector)
+    da2 = get_base_eigenfunction("a2", settings, ef_grid, eigenvector, diff_order=1)
+    dda2 = get_base_eigenfunction("a2", settings, ef_grid, eigenvector, diff_order=2)
+    a3 = get_base_eigenfunction("a3", settings, ef_grid, eigenvector)
+    ef_eps = get_ef_eps(settings, ef_grid)
+    ef_deps = get_ef_deps(settings)
+    curl_B_2 = ( &
+      -k3 * (k2 * a3 / ef_eps - k3 * a2) &
+      - (dda2 - k2 * da1) / ef_eps &
+      + ef_deps * (da2 - ic * k2 * a1) / ef_eps ** 2 &
+    )
+  end function get_curl_B_2
+
+
+  function get_curl_B_3(settings, eigenvector, ef_grid) result(curl_B_3)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: curl_B_3(size(ef_grid))
+    complex(dp) :: a1(size(ef_grid)), da1(size(ef_grid))
+    complex(dp) :: a2(size(ef_grid))
+    complex(dp) :: a3(size(ef_grid)), da3(size(ef_grid)), dda3(size(ef_grid))
+    real(dp) :: ef_eps(size(ef_grid)), ef_deps
+
+    a1 = get_base_eigenfunction("a1", settings, ef_grid, eigenvector)
+    da1 = get_base_eigenfunction("a1", settings, ef_grid, eigenvector, diff_order=1)
+    a2 = get_base_eigenfunction("a2", settings, ef_grid, eigenvector)
+    a3 = get_base_eigenfunction("a3", settings, ef_grid, eigenvector)
+    da3 = get_base_eigenfunction("a3", settings, ef_grid, eigenvector, diff_order=1)
+    dda3 = get_base_eigenfunction("a3", settings, ef_grid, eigenvector, diff_order=2)
+    ef_eps = get_ef_eps(settings, ef_grid)
+    ef_deps = get_ef_deps(settings)
+    curl_B_3 = ( &
+      k3 * da1 &
+      - dda3 &
+      + ef_deps * (ic * k3 * a1 - da3) / ef_eps &
+      + k2 * (k2 * a3 / ef_eps - k3 * a2) / ef_eps &
+    )
+  end function get_curl_B_3
 
 
   function get_base_eigenfunction( &
