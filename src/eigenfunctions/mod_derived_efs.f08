@@ -75,6 +75,22 @@ contains
       get_derived_ef => get_curl_B_2
     case(curl_B_3_name)
       get_derived_ef => get_curl_B_3
+    case(B_para_name)
+      get_derived_ef => get_B_para
+    case(B_perp_name)
+      get_derived_ef => get_B_perp
+    case(curl_B_para_name)
+      get_derived_ef => get_curl_B_para
+    case(curl_B_perp_name)
+      get_derived_ef => get_curl_B_perp
+    case(v_para_name)
+      get_derived_ef => get_v_para
+    case(v_perp_name)
+      get_derived_ef => get_v_perp
+    case(curl_v_para_name)
+      get_derived_ef => get_curl_v_para
+    case(curl_v_perp_name)
+      get_derived_ef => get_curl_v_perp
     case default
       call logger%error( &
         "derived ef assembly -- unknown eigenfunction name: "// trim(this%name) &
@@ -310,6 +326,134 @@ contains
       + k2 * (k2 * a3 / ef_eps - k3 * a2) / ef_eps &
     )
   end function get_curl_B_3
+
+
+  function get_B_para(settings, eigenvector, ef_grid) result(B_para)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: B_para(size(ef_grid))
+    complex(dp) :: B2(size(ef_grid)), B3(size(ef_grid))
+
+    B2 = get_B2(settings, eigenvector, ef_grid)
+    B3 = get_B3(settings, eigenvector, ef_grid)
+    B_para = ( &
+      (B02_on_ef_grid * B2 + B03_on_ef_grid * B3) &
+      / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2) &
+    )
+  end function get_B_para
+
+
+  function get_B_perp(settings, eigenvector, ef_grid) result(B_perp)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: B_perp(size(ef_grid))
+    complex(dp) :: B2(size(ef_grid)), B3(size(ef_grid))
+
+    B2 = get_B2(settings, eigenvector, ef_grid)
+    B3 = get_B3(settings, eigenvector, ef_grid)
+    B_perp = ( &
+      (B02_on_ef_grid * B3 - B03_on_ef_grid * B2) &
+      / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2) &
+    )
+  end function get_B_perp
+
+
+  function get_curl_B_para(settings, eigenvector, ef_grid) result(curl_B_para)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: curl_B_para(size(ef_grid))
+    complex(dp) :: curl_B_2(size(ef_grid)), curl_B_3(size(ef_grid))
+
+    curl_B_2 = get_curl_B_2(settings, eigenvector, ef_grid)
+    curl_B_3 = get_curl_B_3(settings, eigenvector, ef_grid)
+    curl_B_para = ( &
+      (B02_on_ef_grid * curl_B_2 + B03_on_ef_grid * curl_B_3) &
+      / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2) &
+    )
+  end function get_curl_B_para
+
+
+  function get_curl_B_perp(settings, eigenvector, ef_grid) result(curl_B_perp)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: curl_B_perp(size(ef_grid))
+    complex(dp) :: curl_B_2(size(ef_grid)), curl_B_3(size(ef_grid))
+
+    curl_B_2 = get_curl_B_2(settings, eigenvector, ef_grid)
+    curl_B_3 = get_curl_B_3(settings, eigenvector, ef_grid)
+    curl_B_perp = ( &
+      (B02_on_ef_grid * curl_B_3 - B03_on_ef_grid * curl_B_2) &
+      / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2) &
+    )
+  end function get_curl_B_perp
+
+
+  function get_v_para(settings, eigenvector, ef_grid) result(v_para)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: v_para(size(ef_grid))
+    complex(dp) :: v2(size(ef_grid)), v3(size(ef_grid))
+
+    v2 = get_base_eigenfunction("v2", settings, ef_grid, eigenvector)
+    v3 = get_base_eigenfunction("v3", settings, ef_grid, eigenvector)
+    v_para = ( &
+      (B02_on_ef_grid * v2 + B03_on_ef_grid * v3) &
+      / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2) &
+    )
+  end function get_v_para
+
+
+  function get_v_perp(settings, eigenvector, ef_grid) result(v_perp)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: v_perp(size(ef_grid))
+    complex(dp) :: v2(size(ef_grid)), v3(size(ef_grid))
+
+    v2 = get_base_eigenfunction("v2", settings, ef_grid, eigenvector)
+    v3 = get_base_eigenfunction("v3", settings, ef_grid, eigenvector)
+    v_perp = ( &
+      (B02_on_ef_grid * v3 - B03_on_ef_grid * v2) &
+      / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2) &
+    )
+  end function get_v_perp
+
+
+  function get_curl_v_para(settings, eigenvector, ef_grid) result(curl_v_para)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: curl_v_para(size(ef_grid))
+    complex(dp) :: curl_v_2(size(ef_grid)), curl_v_3(size(ef_grid))
+
+    curl_v_2 = get_curl_v_2(settings, eigenvector, ef_grid)
+    curl_v_3 = get_curl_v_3(settings, eigenvector, ef_grid)
+    curl_v_para = ( &
+      (B02_on_ef_grid * curl_v_2 + B03_on_ef_grid * curl_v_3) &
+      / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2) &
+    )
+  end function get_curl_v_para
+
+
+  function get_curl_v_perp(settings, eigenvector, ef_grid) result(curl_v_perp)
+    type(settings_t), intent(in) :: settings
+    complex(dp), intent(in) :: eigenvector(:)
+    real(dp), intent(in) :: ef_grid(:)
+    complex(dp) :: curl_v_perp(size(ef_grid))
+    complex(dp) :: curl_v_2(size(ef_grid)), curl_v_3(size(ef_grid))
+
+    curl_v_2 = get_curl_v_2(settings, eigenvector, ef_grid)
+    curl_v_3 = get_curl_v_3(settings, eigenvector, ef_grid)
+    curl_v_perp = ( &
+      (B02_on_ef_grid * curl_v_3 - B03_on_ef_grid * curl_v_2) &
+      / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2) &
+    )
+  end function get_curl_v_perp
 
 
   function get_base_eigenfunction( &
