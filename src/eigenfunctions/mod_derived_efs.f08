@@ -12,13 +12,6 @@ module mod_derived_efs
 
   private
 
-  type, extends(base_ef_t), public :: derived_ef_t
-  contains
-
-    procedure,  public :: assemble
-
-  end type derived_ef_t
-
   interface
     function derived_ef_func(settings, eigenvector, ef_grid) result(ef)
       use mod_global_variables, only: dp
@@ -30,6 +23,19 @@ module mod_derived_efs
     end function derived_ef_func
   end interface
 
+  type, extends(base_ef_t), public :: derived_ef_t
+    procedure(derived_ef_func), pointer, private, nopass :: get_derived_ef
+
+  contains
+
+    procedure, public :: initialise
+    procedure, public :: assemble
+    procedure, public :: delete
+
+    procedure, private :: set_function_pointer
+
+  end type derived_ef_t
+
   real(dp), allocatable :: rho0_on_ef_grid(:)
   real(dp), allocatable :: T0_on_ef_grid(:)
   real(dp), allocatable :: B02_on_ef_grid(:)
@@ -39,6 +45,17 @@ module mod_derived_efs
 
 contains
 
+  subroutine initialise(this, name, ef_grid_size, nb_efs)
+    class(derived_ef_t), intent(inout) :: this
+    character(str_len_arr), intent(in) :: name
+    integer, intent(in) :: ef_grid_size
+    integer, intent(in) :: nb_efs
+
+    call this%base_ef_t%initialise(name, ef_grid_size, nb_efs)
+    call this%set_function_pointer()
+  end subroutine initialise
+
+
   subroutine assemble(this, settings, idxs_to_assemble, right_eigenvectors, ef_grid)
     class(derived_ef_t), intent(inout) :: this
     type(settings_t), intent(in) :: settings
@@ -46,69 +63,25 @@ contains
     complex(dp), intent(in) :: right_eigenvectors(:, :)
     real(dp), intent(in) :: ef_grid(:)
     integer :: i, idx
-    procedure(derived_ef_func), pointer :: get_derived_ef
 
     call set_equilibrium_arrays_on_ef_grid(ef_grid)
 
-    select case(this%name)
-    case(S_name)
-      get_derived_ef => get_entropy
-    case(div_v_name)
-      get_derived_ef => get_div_v
-    case(curl_v_1_name)
-      get_derived_ef => get_curl_v_1
-    case(curl_v_2_name)
-      get_derived_ef => get_curl_v_2
-    case(curl_v_3_name)
-      get_derived_ef => get_curl_v_3
-    case(B1_name)
-      get_derived_ef => get_B1
-    case(B2_name)
-      get_derived_ef => get_B2
-    case(B3_name)
-      get_derived_ef => get_B3
-    case(div_B_name)
-      get_derived_ef => get_div_B
-    case(curl_B_1_name)
-      get_derived_ef => get_curl_B_1
-    case(curl_B_2_name)
-      get_derived_ef => get_curl_B_2
-    case(curl_B_3_name)
-      get_derived_ef => get_curl_B_3
-    case(B_para_name)
-      get_derived_ef => get_B_para
-    case(B_perp_name)
-      get_derived_ef => get_B_perp
-    case(curl_B_para_name)
-      get_derived_ef => get_curl_B_para
-    case(curl_B_perp_name)
-      get_derived_ef => get_curl_B_perp
-    case(v_para_name)
-      get_derived_ef => get_v_para
-    case(v_perp_name)
-      get_derived_ef => get_v_perp
-    case(curl_v_para_name)
-      get_derived_ef => get_curl_v_para
-    case(curl_v_perp_name)
-      get_derived_ef => get_curl_v_perp
-    case default
-      call logger%error( &
-        "derived ef assembly -- unknown eigenfunction name: "// trim(this%name) &
-      )
-      nullify(get_derived_ef)
-      return
-    end select
-
     do i = 1, size(idxs_to_assemble)
       idx = idxs_to_assemble(i)
-      this%quantities(:, i) = get_derived_ef( &
+      this%quantities(:, i) = this%get_derived_ef( &
         settings=settings, &
         eigenvector=right_eigenvectors(:, idx), &
         ef_grid=ef_grid &
       )
     end do
-    nullify(get_derived_ef)
   end subroutine assemble
+
+
+  pure subroutine delete(this)
+    class(derived_ef_t), intent(inout) :: this
+    nullify(this%get_derived_ef)
+    call this%base_ef_t%delete()
+  end subroutine delete
 
 
   function get_entropy(settings, eigenvector, ef_grid) result(entropy)
@@ -127,6 +100,60 @@ contains
       ) &
     )
   end function get_entropy
+
+
+  subroutine set_function_pointer(this)
+    class(derived_ef_t), intent(inout) :: this
+
+    select case(this%name)
+    case(S_name)
+      this%get_derived_ef => get_entropy
+    case(div_v_name)
+      this%get_derived_ef => get_div_v
+    case(curl_v_1_name)
+      this%get_derived_ef => get_curl_v_1
+    case(curl_v_2_name)
+      this%get_derived_ef => get_curl_v_2
+    case(curl_v_3_name)
+      this%get_derived_ef => get_curl_v_3
+    case(B1_name)
+      this%get_derived_ef => get_B1
+    case(B2_name)
+      this%get_derived_ef => get_B2
+    case(B3_name)
+      this%get_derived_ef => get_B3
+    case(div_B_name)
+      this%get_derived_ef => get_div_B
+    case(curl_B_1_name)
+      this%get_derived_ef => get_curl_B_1
+    case(curl_B_2_name)
+      this%get_derived_ef => get_curl_B_2
+    case(curl_B_3_name)
+      this%get_derived_ef => get_curl_B_3
+    case(B_para_name)
+      this%get_derived_ef => get_B_para
+    case(B_perp_name)
+      this%get_derived_ef => get_B_perp
+    case(curl_B_para_name)
+      this%get_derived_ef => get_curl_B_para
+    case(curl_B_perp_name)
+      this%get_derived_ef => get_curl_B_perp
+    case(v_para_name)
+      this%get_derived_ef => get_v_para
+    case(v_perp_name)
+      this%get_derived_ef => get_v_perp
+    case(curl_v_para_name)
+      this%get_derived_ef => get_curl_v_para
+    case(curl_v_perp_name)
+      this%get_derived_ef => get_curl_v_perp
+    case default
+      call logger%error( &
+        "derived ef assembly -- unknown eigenfunction name: "// trim(this%name) &
+      )
+      nullify(this%get_derived_ef)
+      return
+    end select
+  end subroutine set_function_pointer
 
 
   function get_div_v(settings, eigenvector, ef_grid) result(div_v)

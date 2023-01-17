@@ -21,7 +21,7 @@ module mod_base_efs
 
 contains
 
-  pure subroutine initialise(this, name, ef_grid_size, nb_efs)
+  subroutine initialise(this, name, ef_grid_size, nb_efs)
     class(base_ef_t), intent(inout) :: this
     character(str_len_arr), intent(in) :: name
     integer, intent(in) :: ef_grid_size
