@@ -38,7 +38,10 @@ class MergedSpectrumPlot(SpectrumFigure):
         )
         self.data = data
         self.leg_handle = LegendHandler(interactive)
-        super()._set_plot_properties(kwargs)
+        kwargs_plt = dict(kwargs)
+        kwargs_plt.pop("colours", None)
+        kwargs_plt.pop("colour_parameter", None)
+        super()._set_plot_properties(kwargs_plt)
         self._use_legend = legend
         self._single_color = False
         if isinstance(kwargs.get("color", None), str):
