@@ -629,7 +629,7 @@ class LegolasDataSet(LegolasDataContainer):
         # plt.show()
         return idxs, eigenvals
 
-    def get_omega_max(self, real=True):
+    def get_omega_max(self, real=True, strip=False, range_omega=(0.0,1e24)):
         """
         Calculates the maximum of the real or imaginary part of a spectrum.
 
@@ -637,17 +637,29 @@ class LegolasDataSet(LegolasDataContainer):
         ----------
         real : bool
             Returns the largest real part if True (default option), if False, returns the largest imaginary part.
+        strip : bool
+            Look for maximum in a horizontal half-plane if True. Default False. 
+        range_omega : tuple of floats
+            The horizontal range of the strip if strip=True.
         
         Returns
         -------
         omega_max : complex
-            The eigenvalue that has the largest real or imaginary part.
+            The eigenvalue that has the largest real or imaginary part in the chosen strip. Default: in the whole complex plane.
         """
 
+        eigvals = np.copy(self.eigenvalues)
+
+        if strip:
+            omega_min, omega_max = range_omega
+            # all eigvals outside of strip locally get replaced by NaN
+            mask = ((np.real(self.eigenvalues) - omega_min)*(np.real(self.eigenvalues) - omega_max) > 0)
+            eigvals[mask] = np.nan
+
         if real:
-            idx = np.argmax(np.real(self.eigenvalues))
+            idx = np.nanargmax(np.real(eigvals))
         else:
-            idx = np.argmax(np.imag(self.eigenvalues))
+            idx = np.nanargmax(np.imag(eigvals))
 
         return self.eigenvalues[idx]
 
