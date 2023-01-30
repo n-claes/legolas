@@ -1,11 +1,39 @@
+from __future__ import annotations
+
 import abc
-import numpy as np
-import matplotlib.pyplot as plt
+
 import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.collections import PathCollection
-from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
-from pylbo.utilities.toolbox import add_pickradius_to_item
+from pylbo.data_containers import LegolasDataSeries, LegolasDataSet
 from pylbo.utilities.logger import pylboLogger
+from pylbo.utilities.toolbox import add_pickradius_to_item
+
+
+def get_artist_data(artist: plt.Artist) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Returns the (x, y) coordinates of a given artist.
+
+    Parameters
+    ----------
+    artist : ~matplotlib.artist.Artist
+        The artist to get the data from.
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray]
+        The (x, y) coordinates of the artist.
+    """
+    if isinstance(artist, PathCollection):
+        # this block is entered for points drawn using scatter instead of plot
+        xdata, ydata = np.split(artist.get_offsets(), [-1], axis=1)
+        xdata = xdata.squeeze(axis=1)
+        ydata = ydata.squeeze(axis=1)
+    else:
+        xdata = artist.get_xdata()
+        ydata = artist.get_ydata()
+    return xdata, ydata
 
 
 class EigenfunctionInterface:
@@ -136,7 +164,7 @@ class EigenfunctionInterface:
         """
         label = rf"$\omega_{{{ev_idx}}}$ = {w:2.3e}"
         if isinstance(self.data, LegolasDataSeries):
-            label = f"{ds.datfile.stem} | {label}"
+            label = f"{ds.datfile.stem} | {label}"
         return label
 
     @abc.abstractmethod
@@ -279,14 +307,8 @@ class EigenfunctionInterface:
         """
         artist = event.artist
         idxs = event.ind
-        if isinstance(artist, PathCollection):
-            # this block is entered for points drawn using scatter instead of plot
-            xdata, ydata = np.split(artist.get_offsets(), [-1], axis=1)
-            xdata = xdata.squeeze()
-            ydata = ydata.squeeze()
-        else:
-            xdata = artist.get_xdata()
-            ydata = artist.get_ydata()
+        xdata, ydata = get_artist_data(artist)
+
         # In case of overlap between clicked points then multiple
         # indices were selected, so we check smallest distance to mouse click
         if len(idxs) == 1:
