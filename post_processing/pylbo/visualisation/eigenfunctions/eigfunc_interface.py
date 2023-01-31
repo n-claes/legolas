@@ -145,8 +145,8 @@ class EigenfunctionInterface:
 
     def _save_eigenvalue_selection(self):
         """
-        Saves all selected eigenvalues and their eigenfunctions as a list of dictionaries
-        in a .npy file. Files can be loaded with the numpy load function.
+        Saves all selected eigenvalues and their eigenfunctions as a list of
+        dictionaries in a .npy file. Files can be loaded with the numpy load function.
         """
         if not self._selected_idxs:
             return
@@ -158,7 +158,7 @@ class EigenfunctionInterface:
                 point_to_store = ds.get_eigenfunctions(ev_idxs=int(point))[0]
                 to_store.append(point_to_store)
             filename = ds.datfile.name
-            filename = filename.replace('.dat', '')
+            filename = filename.replace(".dat", "")
             np.save(filename, to_store)
             print(f"{len(to_store)-1} mode(s) saved to " + filename + ".npy")
             count += 1
@@ -177,9 +177,11 @@ class EigenfunctionInterface:
             for point in self._selected_idxs[ds]:
                 to_store.append(int(point))
             filename = ds.datfile.name
-            filename = filename.replace('.dat', '')
+            filename = filename.replace(".dat", "")
             np.save(filename, to_store)
-            print(f"{len(self._selected_idxs[ds])} indices saved to " + filename + ".npy")
+            print(
+                f"{len(self._selected_idxs[ds])} indices saved to " + filename + ".npy"
+            )
             count += 1
 
     def _get_label(self, ds, ev_idx, w):
