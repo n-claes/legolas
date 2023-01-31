@@ -41,6 +41,8 @@ def load(datfile, display_info=True):
     ----------
     datfile : str, ~os.PathLike
         Path to the datfile.
+    display_info : bool
+        If `True`, datfile information is written to terminal.
 
     Raises
     ------
@@ -78,7 +80,7 @@ def load(datfile, display_info=True):
     return ds
 
 
-def load_series(datfiles):
+def load_series(datfiles, display_info=True):
     """
     Loads multiple Legolas datfiles.
 
@@ -87,6 +89,8 @@ def load_series(datfiles):
     datfiles : list, numpy.ndarray
         Paths to the datfiles that should be loaded, in list/array form. Every element
         should be a string or a ~os.PathLike object.
+    display_info : bool
+        If `True`, datfile information is written to terminal.
 
     Raises
     ------
@@ -105,70 +109,78 @@ def load_series(datfiles):
         _validate_file(datfile)
     series = LegolasDataSeries(datfiles)
 
-    # handle version printing
-    versions = [ds.legolas_version.parse() for ds in series.datasets]
-    minversion, maxversion = min(versions), max(versions)
-    if minversion == maxversion:
-        info_msg = str(minversion)
-    else:
-        info_msg = f"{minversion} --> {maxversion}"
-    pylboLogger.info(f"Legolas_version  : {info_msg}")
+    if display_info:
+        # handle version printing
+        versions = [ds.legolas_version.parse() for ds in series.datasets]
+        minversion, maxversion = min(versions), max(versions)
+        if minversion == maxversion:
+            info_msg = str(minversion)
+        else:
+            info_msg = f"{minversion} --> {maxversion}"
+        pylboLogger.info(f"Legolas_version  : {info_msg}")
 
-    # handle file information printing
-    names = sorted([ds.datfile.name for ds in series.datasets])
-    pylboLogger.info(f"files loaded     : {names[0]} --> {names[-1]}")
+        # handle file information printing
+        names = sorted([ds.datfile.name for ds in series.datasets])
+        pylboLogger.info(f"files loaded     : {names[0]} --> {names[-1]}")
 
-    # handle gridpoints printing
-    pts = [ds.gridpoints for ds in series.datasets]
-    minpts, maxpts = min(pts), max(pts)
-    if minpts == maxpts:
-        info_msg = str(minpts)
-    else:
-        info_msg = f"{minpts} --> {maxpts}"
-    pylboLogger.info(f"gridpoints       : {info_msg}")
+        # handle gridpoints printing
+        pts = [ds.gridpoints for ds in series.datasets]
+        minpts, maxpts = min(pts), max(pts)
+        if minpts == maxpts:
+            info_msg = str(minpts)
+        else:
+            info_msg = f"{minpts} --> {maxpts}"
+        pylboLogger.info(f"gridpoints       : {info_msg}")
 
-    # handle geometry printing
-    if not isinstance(series.geometry, str) and len(series.geometry) > 1:
-        pylboLogger.warning("multiple geometries detected!")
-    else:
-        pylboLogger.info(f"geometries       : {series.geometry}")
+        # handle geometry printing
+        if not isinstance(series.geometry, str) and len(series.geometry) > 1:
+            pylboLogger.warning("multiple geometries detected!")
+        else:
+            pylboLogger.info(f"geometries       : {series.geometry}")
 
-    # handle equilibrium printing
-    equils = set([ds.eq_type for ds in series.datasets])
-    if len(equils) > 1:
-        pylboLogger.error(f"multiple equilibria detected! -- {equils}")
-        raise ValueError
-    else:
-        pylboLogger.info(f"equilibria       : {equils.pop()}")
+        # handle equilibrium printing
+        equils = set([ds.eq_type for ds in series.datasets])
+        if len(equils) > 1:
+            pylboLogger.error(f"multiple equilibria detected! -- {equils}")
+            raise ValueError
+        else:
+            pylboLogger.info(f"equilibria       : {equils.pop()}")
 
-    # check presence of matrices
-    matrices_present = set([ds.header["matrices_written"] for ds in series.datasets])
-    if len(matrices_present) > 1:
-        pylboLogger.info("matrices present in some datfiles, but not all")
-    else:
-        if matrices_present.pop():
-            pylboLogger.info("matrices present in all datfiles")
+        # check presence of matrices
+        matrices_present = set(
+            [ds.header["matrices_written"] for ds in series.datasets]
+        )
+        if len(matrices_present) > 1:
+            pylboLogger.info("matrices present in some datfiles, but not all")
+        else:
+            if matrices_present.pop():
+                pylboLogger.info("matrices present in all datfiles")
 
-    # check presence of eigenfunctions
-    efs_present = set([ds.header["eigenfuncs_written"] for ds in series.datasets])
-    if len(efs_present) > 1:
-        pylboLogger.info("eigenfunctions present in some datfiles, but not all")
-    else:
-        if efs_present.pop():
-            pylboLogger.info("eigenfunctions present in all datfiles")
+        # check presence of eigenfunctions
+        efs_present = set([ds.header["eigenfuncs_written"] for ds in series.datasets])
+        if len(efs_present) > 1:
+            pylboLogger.info("eigenfunctions present in some datfiles, but not all")
+        else:
+            if efs_present.pop():
+                pylboLogger.info("eigenfunctions present in all datfiles")
 
-    # check presence of derived eigenfunctions
-    defs_present = set(
-        [ds.header.get("derived_eigenfuncs_written", False) for ds in series.datasets]
-    )
-    if len(defs_present) == 0:
-        pylboLogger.info("no derived eigenfunctions present")
-    elif len(defs_present) > 1:
-        pylboLogger.info("derived eigenfunctions present in some datfiles, but not all")
-    else:
-        if defs_present.pop():
-            pylboLogger.info("derived eigenfunctions present in all datfiles")
-    pylboLogger.info("-" * 75)
+        # check presence of derived eigenfunctions
+        defs_present = set(
+            [
+                ds.header.get("derived_eigenfuncs_written", False)
+                for ds in series.datasets
+            ]
+        )
+        if len(defs_present) == 0:
+            pylboLogger.info("no derived eigenfunctions present")
+        elif len(defs_present) > 1:
+            pylboLogger.info(
+                "derived eigenfunctions present in some datfiles, but not all"
+            )
+        else:
+            if defs_present.pop():
+                pylboLogger.info("derived eigenfunctions present in all datfiles")
+        pylboLogger.info("-" * 75)
     return series
 
 
