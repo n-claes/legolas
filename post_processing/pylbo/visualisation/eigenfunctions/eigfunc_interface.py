@@ -143,6 +143,47 @@ class EigenfunctionInterface:
             idxs = np.array([int(idx) for idx in points.keys()])
             print(f"{ds.datfile.stem} | {ds.eigenvalues[idxs]}")
 
+    def _save_eigenvalue_selection(self):
+        """
+        Saves all selected eigenvalues and their eigenfunctions as a list of
+        dictionaries in a .npy file. Files can be loaded with the numpy load function.
+        """
+        if not self._selected_idxs:
+            return
+        count = 1
+        for ds in self._selected_idxs:
+            print(f"Saving selected eigenvalues for dataset {count}...")
+            to_store = [ds.ef_grid]
+            for point in self._selected_idxs[ds]:
+                point_to_store = ds.get_eigenfunctions(ev_idxs=int(point))[0]
+                to_store.append(point_to_store)
+            filename = ds.datfile.name
+            filename = filename.replace(".dat", "")
+            np.save(filename, to_store)
+            print(f"{len(to_store)-1} mode(s) saved to " + filename + ".npy")
+            count += 1
+
+    def _save_selection_indices(self):
+        """
+        Saves the indices of all selected eigenvalues as an array in a .npy file.
+        Files can be loaded with the numpy load function.
+        """
+        if not self._selected_idxs:
+            return
+        count = 1
+        for ds in self._selected_idxs:
+            print(f"Saving indices of selected eigenvalues for dataset {count}...")
+            to_store = []
+            for point in self._selected_idxs[ds]:
+                to_store.append(int(point))
+            filename = ds.datfile.name
+            filename = filename.replace(".dat", "")
+            np.save(filename, to_store)
+            print(
+                f"{len(self._selected_idxs[ds])} indices saved to " + filename + ".npy"
+            )
+            count += 1
+
     def _get_label(self, ds, ev_idx, w):
         """
         Returns the label used in the legend. In case of a data series, the datfile
@@ -231,6 +272,10 @@ class EigenfunctionInterface:
             self._retransform_functions()
         elif event.key == "w":
             self._print_selected_eigenvalues()
+        elif event.key == "a":
+            self._save_eigenvalue_selection()
+        elif event.key == "j":
+            self._save_selection_indices()
         if event.key in ("enter", "up", "down", "i", "t"):
             self.update_plot()
         event.canvas.draw()
@@ -409,6 +454,8 @@ class EigenfunctionInterface:
             [r"$\mathbf{t}$", r"cylindrical: toggle $v_r \leftrightarrow r v_r$"],
             [r"$\mathbf{w}$", r"print selected $\omega$ to console"],
             [r"$\mathbf{e}$", r"subset: toggle center and radius"],
+            [r"$\mathbf{a}$", r"save eigenvalue selection"],
+            [r"$\mathbf{j}$", r"save selection indices"],
         ]
         bbox = np.array([0.1, 0.3, 0.8, 0.4])
         rectangle = patches.Rectangle(
