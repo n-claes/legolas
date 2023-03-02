@@ -149,9 +149,3 @@ class CylindricalSlicePlot2D(CartesianSlicePlot2D):
         if polar:
             self._cbar_hspace = 0.05
         return fig, {"eigfunc": ax1, "view": ax2}
-
-    def _update_view(self, updated_solution: np.ndarray):
-        if self.slicing_axis == self._u3axis and not self._use_contour_plot:
-            # pcolormesh uses a different view update method
-            return self._view.set_array(updated_solution.ravel())
-        return super()._update_view(updated_solution)

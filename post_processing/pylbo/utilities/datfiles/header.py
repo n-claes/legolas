@@ -278,8 +278,9 @@ class LegolasHeader:
     def _get_derived_ef_names_and_offsets(
         self, nb_names, size_names, istream: BinaryIO
     ) -> dict:
-        self.data["derived_ef_names"] = read_string_from_istream(
-            istream, length=size_names, amount=nb_names
+        self.data["derived_ef_names"] = np.asarray(
+            read_string_from_istream(istream, length=size_names, amount=nb_names),
+            dtype=str,
         )
         offsets = {"derived_ef_arrays": istream.tell()}
         bytesize_block = (

@@ -176,22 +176,16 @@ class CartesianSlicePlot2D(ModeFigure):
             self._draw_image()
 
     def _draw_image(self) -> None:
-        if self.slicing_axis == self._u3axis:
-            extent_vertical = (np.min(self._u2), np.max(self._u2))
-        else:
-            extent_vertical = (np.min(self._u3), np.max(self._u3))
-        self._view = self.ax.imshow(
-            self.solutions.transpose(),
-            extent=[
-                np.min(self.data.ds.ef_grid),
-                np.max(self.data.ds.ef_grid),
-                *extent_vertical,
-            ],
-            aspect="auto",
-            origin="lower",
+        vertical = self.u2_data if self.slicing_axis == self._u3axis else self.u3_data
+        self._view = self.ax.pcolormesh(
+            self.u1_data,
+            vertical,
+            self.solutions,
             **self._kwargs,
         )
-        self.cbar = self.fig.colorbar(self._view, cax=self.cbar_ax)
+        self.cbar = self.fig.colorbar(
+            ScalarMappable(norm=self._view.norm, cmap=self._view.cmap), cax=self.cbar_ax
+        )
 
     def _draw_contours(self) -> None:
         vertical = self.u2_data if self.slicing_axis == self._u3axis else self.u3_data
@@ -270,7 +264,7 @@ class CartesianSlicePlot2D(ModeFigure):
         if self._use_contour_plot:
             self._update_contour_plot(updated_solution)
         else:
-            self._view.set_data(updated_solution.transpose())
+            self._view.set_array(updated_solution.ravel())
 
     def _update_view_clims(self, solution: np.ndarray) -> None:
         self.vmin, self.vmax = np.min(solution), np.max(solution)

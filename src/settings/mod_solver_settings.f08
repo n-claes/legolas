@@ -33,7 +33,7 @@ contains
     type(solvers_t) :: solvers
 
     call solvers%set_solver("QR-invert")
-    call solvers%set_arpack_mode("standard")
+    call solvers%set_arpack_mode("general")
     solvers%number_of_eigenvalues = 10
     solvers%which_eigenvalues = "LM"
     ! these two get determined at runtime

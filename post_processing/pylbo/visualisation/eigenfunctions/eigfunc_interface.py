@@ -393,17 +393,17 @@ class EigenfunctionInterface:
     def _toggle_eigenfunction_subset_radius(self):
         if not isinstance(self.data, LegolasDataSet):
             return
-        if all(self.data.header["ef_written_flags"]):
+        if not self.data.has_ef_subset:
             return
         xlim = self.spec_axis.get_xlim()
         ylim = self.spec_axis.get_ylim()
         if self._ef_subset_artists is None:
-            center = self.data.header["eigenfunction_subset_center"]
+            center = self.data.header["ef_subset_center"]
             (subset_center,) = self.spec_axis.plot(
                 np.real(center), np.imag(center), ".r", markersize=8, alpha=0.8
             )
             subset_center.set_visible(False)
-            radius = self.data.header["eigenfunction_subset_radius"]
+            radius = self.data.header["ef_subset_radius"]
             circle = plt.Circle(
                 (np.real(center), np.imag(center)),
                 radius,

@@ -255,6 +255,9 @@ class VTKDataExporter:
                 f"field {fieldname} is zero everywhere and thus not written to VTK."
             )
             return
+        # note: spaces are NOT supported in fieldnames (parentheses should be fine)
+        # see https://gitlab.kitware.com/paraview/paraview/-/issues/19769
+        fieldname = fieldname.replace(" ", "_")
         with open(vtkfile, "a") as ostream:
             ostream.write(f"SCALARS {fieldname} {self._vtk_dtype} \n")
             ostream.write("LOOKUP_TABLE default \n")

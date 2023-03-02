@@ -3,6 +3,7 @@ from functools import wraps
 from typing import Any
 
 import matplotlib.axes
+import numpy as np
 
 
 def refresh_plot(f: callable) -> callable:
@@ -107,7 +108,7 @@ def validate_ef_name(ds, ef_name: str) -> str:
     # copy this or we're editing the property itself
     names = copy(ds.ef_names)
     if ds.has_derived_efs:
-        names += ds.derived_ef_names
+        names = np.concatenate((names, ds.derived_ef_names))
     if ef_name not in names:
         raise ValueError(
             f"The eigenfunction '{ef_name}' is not part of the "

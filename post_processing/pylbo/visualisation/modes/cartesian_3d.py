@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
 from matplotlib.cm import ScalarMappable
 from matplotlib.figure import Figure
 from pylbo.visualisation.modes.cartesian_2d import CartesianSlicePlot2D
@@ -67,10 +68,10 @@ class CartesianSlicePlot3D(CartesianSlicePlot2D):
             getattr(ax, f"{attr}axis").set_pane_color((1.0, 1.0, 1.0, 1.0))
         return fig, {"view": ax}
 
-    def _create_cbar_axes(self):
+    def _create_cbar_axes(self, width: float) -> Axes:
         box = self.ax.get_position()
         position = (box.x0, box.height + 0.02 + 0.1)
-        dims = (box.width, 0.02)
+        dims = (box.width, width)
         return self.fig.add_axes([*position, *dims])
 
     def _validate_u2(self, u2: np.ndarray, *args, **kwargs) -> np.ndarray:
