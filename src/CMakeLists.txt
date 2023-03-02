@@ -85,8 +85,10 @@ set (sources
         boundaries/smod_natural_bounds_conduction.f08
         boundaries/smod_natural_bounds_viscosity.f08
         boundaries/smod_natural_bounds_hall.f08
+        matrices/elements/mod_matrix_element_node.f08
+        matrices/elements/mod_matrix_elements.f08
+        matrices/mod_build_quadblock.f08
         matrices/mod_matrix_shortcuts.f08
-        matrices/mod_make_subblock.f08
         matrices/mod_matrix_manager.f08
         matrices/smod_regular_matrix.f08
         matrices/smod_flow_matrix.f08
@@ -106,10 +108,10 @@ set (sources
         solvers/arnoldi/smod_arpack_shift_invert.f08
         solvers/smod_inverse_iteration.f08
         eigenfunctions/mod_eigenfunctions.f08
-        eigenfunctions/smod_ef_operations.f08
-        eigenfunctions/smod_base_efs.f08
-        eigenfunctions/smod_derived_efs.f08
-        eigenfunctions/smod_derived_pp_efs.f08
+        eigenfunctions/mod_ef_assembly.f08
+        eigenfunctions/mod_base_efs.f08
+        eigenfunctions/mod_derived_ef_names.f08
+        eigenfunctions/mod_derived_efs.f08
         dataIO/mod_output.f08
         utils/mod_assert.f08
         utils/mod_timing.f08

@@ -20,7 +20,6 @@ class UniHallElectronInertia(RegressionTest):
     }
     physics_settings = {
         "hall_mhd": True,
-        "hall_substitution": True,
         "electron_fraction": 0.5,
         "elec_inertia": True,
         "unit_density": 1.7e-14,

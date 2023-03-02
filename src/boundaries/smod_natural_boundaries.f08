@@ -1,6 +1,6 @@
 submodule (mod_boundary_manager) smod_natural_boundaries
   use mod_global_variables, only: ic, NaN
-  use mod_make_subblock, only: subblock
+  use mod_build_quadblock, only: add_to_quadblock
   use mod_grid, only: grid, eps_grid, d_eps_grid_dr
   use mod_equilibrium, only: rho_field, T_field, B_field
   use mod_equilibrium_params, only: k2, k3
@@ -20,10 +20,6 @@ submodule (mod_boundary_manager) smod_natural_boundaries
   real(dp)  :: h_cubic(4)
   !> derivative of cubic basis functions
   real(dp)  :: dh_cubic(4)
-  !> array of factors for the boundary conditions
-  complex(dp), allocatable  :: factors(:)
-  !> array of positions, governs place in the left and right quadblocks
-  integer, allocatable  :: positions(:, :)
 
   interface
     module subroutine add_natural_regular_terms(quadblock, settings)
@@ -164,22 +160,5 @@ contains
     call cubic_factors(x_pos, x_left, x_right, h_cubic)
     call cubic_factors_deriv(x_pos, x_left, x_right, dh_cubic)
   end subroutine
-
-    !> Resets the <tt>factors</tt> and <tt>positions</tt> arrays to a given
-  !! new size.
-  subroutine reset_factor_positions(new_size)
-    !> the new size for the <tt>factors</tt> and <tt>positions</tt> arrays
-    integer, intent(in) :: new_size
-
-    if (allocated(factors)) then
-      deallocate(factors)
-    end if
-    allocate(factors(new_size))
-
-    if (allocated(positions)) then
-      deallocate(positions)
-    end if
-    allocate(positions(new_size, 2))
-  end subroutine reset_factor_positions
 
 end submodule smod_natural_boundaries

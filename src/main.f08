@@ -16,6 +16,7 @@ program legolas
   use mod_console, only: print_console_info, print_whitespace
   use mod_timing, only: timer_t, new_timer
   use mod_settings, only: settings_t, new_settings
+  use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -26,10 +27,11 @@ program legolas
   type(timer_t) :: timer
   !> dedicated settings type
   type(settings_t) :: settings
+  type(eigenfunctions_t) :: eigenfunctions
   !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
-  complex(dp), allocatable  :: eigenvecs_right(:, :)
+  complex(dp), allocatable  :: right_eigenvectors(:, :)
 
   call initialise_globals()
   call logger%initialise()
@@ -49,15 +51,18 @@ program legolas
 
   call logger%info("solving eigenvalue problem...")
   call timer%start_timer()
-  call solve_evp(matrix_A, matrix_B, settings, omega, eigenvecs_right)
+  call solve_evp(matrix_A, matrix_B, settings, omega, right_eigenvectors)
   timer%evp_time = timer%end_timer()
 
   call timer%start_timer()
-  call create_eigenfunctions()
+  eigenfunctions = new_eigenfunctions(settings)
+  call get_eigenfunctions()
   timer%eigenfunction_time = timer%end_timer()
 
   call timer%start_timer()
-  call create_datfile(settings, omega, matrix_A, matrix_B, eigenvecs_right)
+  call create_datfile( &
+    settings, omega, matrix_A, matrix_B, right_eigenvectors, eigenfunctions &
+  )
   timer%datfile_time = timer%end_timer()
 
   call cleanup()
@@ -126,26 +131,23 @@ contains
     ) then
       call logger%debug("allocating eigenvector arrays")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
-      allocate(eigenvecs_right(settings%dims%get_dim_matrix(), nb_evs))
+      allocate(right_eigenvectors(settings%dims%get_dim_matrix(), nb_evs))
     else
       ! @note: this is needed to prevent segfaults, since it seems that in some
       ! cases for macOS the routine zgeev references the right eigenvectors even
       ! if they are not requested.
       call logger%debug("allocating eigenvector arrays as dummy")
-      allocate(eigenvecs_right(2, 2))
+      allocate(right_eigenvectors(2, 2))
     end if
   end subroutine initialisation
 
 
   !> Initialises and calculates the eigenfunctions if requested.
-  subroutine create_eigenfunctions()
-    use mod_eigenfunctions, only: initialise_eigenfunctions, calculate_eigenfunctions
-
-    if (settings%io%write_eigenfunctions) then
-      call initialise_eigenfunctions(omega, settings)
-      call calculate_eigenfunctions(eigenvecs_right, settings)
-    end if
-  end subroutine create_eigenfunctions
+  subroutine get_eigenfunctions()
+    if (.not. settings%io%write_eigenfunctions) return
+    call eigenfunctions%initialise(omega)
+    call eigenfunctions%assemble(right_eigenvectors)
+  end subroutine get_eigenfunctions
 
 
   !> Deallocates all main variables, then calls the cleanup
@@ -154,13 +156,12 @@ contains
     use mod_grid, only: grid_clean
     use mod_equilibrium, only: equilibrium_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
-    use mod_eigenfunctions, only: eigenfunctions_clean
 
     call matrix_A%delete_matrix()
     call matrix_B%delete_matrix()
     deallocate(omega)
-    if (allocated(eigenvecs_right)) then
-      deallocate(eigenvecs_right)
+    if (allocated(right_eigenvectors)) then
+      deallocate(right_eigenvectors)
     end if
 
     call grid_clean()
@@ -169,8 +170,8 @@ contains
     if (settings%physics%cooling%is_enabled()) then
       call radiative_cooling_clean()
     end if
-    call eigenfunctions_clean()
     call settings%delete()
+    call eigenfunctions%delete()
   end subroutine cleanup
 
 

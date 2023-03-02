@@ -15,10 +15,9 @@ contains
     real(dp)  :: dkappa_perp_drho, dkappa_perp_dT
     real(dp)  :: Fop, Gop_min, Kp, Kp_plusplus
     real(dp) :: gamma_1
+    type(matrix_elements_t) :: elements
 
-    if (.not. settings%physics%conduction%is_enabled()) then
-      return
-    end if
+    if (.not. settings%physics%conduction%is_enabled()) return
 
     gamma_1 = settings%physics%get_gamma_1()
 
@@ -39,53 +38,77 @@ contains
     Kp = kappa_field % prefactor(grid_idx)
     Kp_plusplus = get_Kp_operator(grid_idx, which="++")
 
+    elements = new_matrix_elements(state_vector=settings%get_state_vector())
+
     ! ==================== Quadratic * Quadratic ====================
-    call reset_factor_positions(new_size=3)
-    ! K(5, 1)
-    factors(1) = ic * gamma_1 * dT0 * dkappa_perp_drho * (1.0d0 - B01**2 / B0**2)
-    positions(1, :) = [5, 1]
-    ! K(5, 5)
-    factors(2) = gamma_1 * ( &
-      -B01 * Kp * (2.0d0 * (deps / eps) * ic * B01 + 3.0d0 * Fop) &
-      - deps * ic * kappa_perp / eps &
-      + ic * dT0 * ( &
-        B01**2 * dkappa_para_dT / B0**2 + dkappa_perp_dT * (1.0d0 - B01**2 / B0**2) &
-      ) &
+    call elements%add( &
+      ic * gamma_1 * dT0 * dkappa_perp_drho * (1.0d0 - B01**2 / B0**2), &
+      "T", &
+      "rho", &
+      spline1=h_quad, &
+      spline2=h_quad &
     )
-    positions(2, :) = [5, 5]
-    ! K(5, 6)
-    factors(3) = 2.0d0 * ic * gamma_1 * eps * dT0 * Gop_min * Kp_plusplus
-    positions(3, :) = [5, 6]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_quad, settings%dims)
-
+    call elements%add( &
+      gamma_1 * ( &
+        -B01 * Kp * (2.0d0 * (deps / eps) * ic * B01 + 3.0d0 * Fop) &
+        - deps * ic * kappa_perp / eps &
+        + ic * dT0 * ( &
+          B01**2 * dkappa_para_dT / B0**2 + dkappa_perp_dT * (1.0d0 - B01**2 / B0**2) &
+        ) &
+      ), &
+      "T", &
+      "T", &
+      spline1=h_quad, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      2.0d0 * ic * gamma_1 * eps * dT0 * Gop_min * Kp_plusplus, &
+      "T", &
+      "a1", &
+      spline1=h_quad, &
+      spline2=h_quad &
+    )
     ! ==================== Quadratic * dQuadratic ====================
-    call reset_factor_positions(new_size=1)
-    ! K(5, 5)
-    factors(1) = ic * gamma_1 * (2.0d0 * B01**2 * Kp + kappa_perp)
-    positions(1, :) = [5, 5]
-    call subblock(quadblock, factors, positions, weight, h_quad, dh_quad, settings%dims)
-
-    ! ==================== Quadratic * Cubic ====================
-    call reset_factor_positions(new_size=2)
-    ! K(5, 7)
-    factors(1) = 2.0d0 * gamma_1 * k3 * dT0 * B01 * Kp_plusplus
-    positions(1, :) = [5, 7]
-    ! K(5, 8)
-    factors(2) = -2.0d0 * gamma_1 * k2 * dT0 * B01 * Kp_plusplus
-    positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_cubic, settings%dims)
-
-    ! ==================== Quadratic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! K(5, 7)
-    factors(1) = 2.0d0 * ic * gamma_1 * dT0 * B03 * Kp_plusplus
-    positions(1, :) = [5, 7]
-    ! K(5, 8)
-    factors(2) = -2.0d0 * ic * gamma_1 * dT0 * eps * B02 * Kp_plusplus
-    positions(2, :) = [5, 8]
-    call subblock( &
-      quadblock, factors, positions, weight, h_quad, dh_cubic, settings%dims &
+    call elements%add( &
+      ic * gamma_1 * (2.0d0 * B01**2 * Kp + kappa_perp), &
+      "T", &
+      "T", &
+      spline1=h_quad, &
+      spline2=dh_quad &
     )
+    ! ==================== Quadratic * Cubic ====================
+    call elements%add( &
+      2.0d0 * gamma_1 * k3 * dT0 * B01 * Kp_plusplus, &
+      "T", &
+      "a2", &
+      spline1=h_quad, &
+      spline2=h_cubic &
+    )
+    call elements%add( &
+      -2.0d0 * gamma_1 * k2 * dT0 * B01 * Kp_plusplus, &
+      "T", &
+      "a3", &
+      spline1=h_quad, &
+      spline2=h_cubic &
+    )
+    ! ==================== Quadratic * dCubic ====================
+    call elements%add( &
+      2.0d0 * ic * gamma_1 * dT0 * B03 * Kp_plusplus, &
+      "T", &
+      "a2", &
+      spline1=h_quad, &
+      spline2=dh_cubic &
+    )
+    call elements%add( &
+      -2.0d0 * ic * gamma_1 * dT0 * eps * B02 * Kp_plusplus, &
+      "T", &
+      "a3", &
+      spline1=h_quad, &
+      spline2=dh_cubic &
+    )
+
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
+    call elements%delete()
   end procedure add_natural_conduction_terms
 
 end submodule smod_natural_bounds_conduction

@@ -16,13 +16,11 @@ contains
     real(dp)  :: kappa_perp, dkappa_perp_drho, dkappa_perp_dT, dkappa_perp_dB2
     real(dp) :: gamma_1
     complex(dp) :: Fop_B01
+    type(matrix_elements_t) :: elements
 
-    if (settings%physics%is_incompressible) then
-      return
-    end if
+    if (settings%physics%is_incompressible) return
 
     gamma_1 = settings%physics%get_gamma_1()
-
     ! grid variables
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
@@ -56,126 +54,154 @@ contains
     ! B01 modified F+ operator
     Fop_B01 = deps * ic * B01 / eps + Fop_plus
 
+    elements = new_matrix_elements(state_vector=settings%get_state_vector())
+
     ! ==================== Quadratic * Quadratic ====================
-    call reset_factor_positions(new_size=3)
-    ! K(5, 1)
-    factors(1) = gamma_1 * dT0 * (B01 / B0**2) * dkappa_perp_drho * Fop_B01
-    positions(1, :) = [5, 1]
-    ! K(5, 5)
-    factors(2) = gamma_1 * ( &
-      B01 * Fop_plus * diffKp &
-      - ic * WVop * kappa_perp / eps &
-      - B01 * dT0 * (dkappa_para_dT - dkappa_perp_dT) * Fop_B01 / B0**2 &
-      + Kp * ( &
-        B01 * deps * (2.0d0 * deps * ic * B01 / eps + 3.0d0 * Fop_plus) / eps &
-        + B01 * dFop_plus &
-        - ic * Fop_plus**2 &
-      ) &
+    call elements%add( &
+      gamma_1 * dT0 * (B01 / B0**2) * dkappa_perp_drho * Fop_B01, &
+      "T", &
+      "rho", &
+      spline1=h_quad, &
+      spline2=h_quad &
     )
-    positions(2, :) = [5, 5]
-    ! K(5, 6)
-    factors(3) = 2.0d0 * gamma_1 * eps * dT0 * Gop_min * Kp_plus * B01 * Fop_B01 / B0**2
-    positions(3, :) = [5, 6]
-    call subblock( &
-      quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
+    call elements%add( &
+      gamma_1 * ( &
+        B01 * Fop_plus * diffKp &
+        - ic * WVop * kappa_perp / eps &
+        - B01 * dT0 * (dkappa_para_dT - dkappa_perp_dT) * Fop_B01 / B0**2 &
+        + Kp * ( &
+          B01 * deps * (2.0d0 * deps * ic * B01 / eps + 3.0d0 * Fop_plus) / eps &
+          + B01 * dFop_plus &
+          - ic * Fop_plus**2 &
+        ) &
+      ), &
+      "T", &
+      "T", &
+      spline1=h_quad, &
+      spline2=h_quad &
     )
-
+    call elements%add( &
+      2.0d0 * gamma_1 * eps * dT0 * Gop_min * Kp_plus * B01 * Fop_B01 / B0**2, &
+      "T", &
+      "a1", &
+      spline1=h_quad, &
+      spline2=h_quad &
+    )
     ! ==================== dQuadratic * Quadratic ====================
-    call reset_factor_positions(new_size=3)
-    ! K(5, 1)
-    factors(1) = -ic * gamma_1 * dT0 * dkappa_perp_drho * (1.0d0 - B01**2 / B0**2)
-    positions(1, :) = [5, 1]
-    ! K(5, 5)
-    factors(2) = gamma_1 * ( &
-      B01 * Kp * (2.0d0 * deps * ic * B01 / eps + 3.0d0 * Fop_plus) &
-      + ic * deps * kappa_perp / eps &
-      - ic * dT0 * ( &
-        B01**2 * dkappa_para_dT / B0**2 + dkappa_perp_dT * (1.0d0 - B01**2 / B0**2) &
-      ) &
+    call elements%add( &
+      -ic * gamma_1 * dT0 * dkappa_perp_drho * (1.0d0 - B01**2 / B0**2), &
+      "T", &
+      "rho", &
+      spline1=dh_quad, &
+      spline2=h_quad &
     )
-    positions(2, :) = [5, 5]
-    ! K(5, 6)
-    factors(3) = -2.0d0 * ic * gamma_1 * eps * dT0 * Gop_min * Kp_plusplus
-    positions(3, :) = [5, 6]
-    call subblock( &
-      quadblock, factors, positions, current_weight, dh_quad, h_quad, settings%dims &
+    call elements%add( &
+      gamma_1 * ( &
+        B01 * Kp * (2.0d0 * deps * ic * B01 / eps + 3.0d0 * Fop_plus) &
+        + ic * deps * kappa_perp / eps &
+        - ic * dT0 * ( &
+          B01**2 * dkappa_para_dT / B0**2 + dkappa_perp_dT * (1.0d0 - B01**2 / B0**2) &
+        ) &
+      ), &
+      "T", &
+      "T", &
+      spline1=dh_quad, &
+      spline2=h_quad &
     )
-
+    call elements%add( &
+      -2.0d0 * ic * gamma_1 * eps * dT0 * Gop_min * Kp_plusplus, &
+      "T", &
+      "a1", &
+      spline1=dh_quad, &
+      spline2=h_quad &
+    )
     ! ==================== Quadratic * dQuadratic ====================
-    call reset_factor_positions(new_size=1)
-    ! K(5, 5)
-    factors(1) = -2.0d0 * ic * gamma_1 * deps * B01**2 * Kp / eps
-    positions(1, :) = [5, 5]
-    call subblock( &
-      quadblock, factors, positions, current_weight, h_quad, dh_quad, settings%dims &
+    call elements%add( &
+      -2.0d0 * ic * gamma_1 * deps * B01**2 * Kp / eps, &
+      "T", &
+      "T", &
+      spline1=h_quad, &
+      spline2=dh_quad &
     )
-
     ! ==================== dQuadratic * dQuadratic ====================
-    call reset_factor_positions(new_size=1)
-    ! K(5, 5)
-    factors(1) = -ic * gamma_1 * (2.0d0 * B01**2 * Kp + kappa_perp)
-    positions(1, :) = [5, 5]
-    call subblock( &
-      quadblock, factors, positions, current_weight, dh_quad, dh_quad, settings%dims &
+    call elements%add( &
+      -ic * gamma_1 * (2.0d0 * B01**2 * Kp + kappa_perp), &
+      "T", &
+      "T", &
+      spline1=dh_quad, &
+      spline2=dh_quad &
     )
-
     ! ==================== Quadratic * Cubic ====================
-    call reset_factor_positions(new_size=2)
-    ! K(5, 7)
-    factors(1) = gamma_1 * k3 * ( &
-      Kp * (B01 * ddT0 + ic * dT0 * Fop_plus) &
-      + B01 * dT0 * (diffKp - 2.0d0 * ic * B01 * Kp_plus * Fop_B01 / B0**2) &
+    call elements%add( &
+      gamma_1 * k3 * ( &
+        Kp * (B01 * ddT0 + ic * dT0 * Fop_plus) &
+        + B01 * dT0 * (diffKp - 2.0d0 * ic * B01 * Kp_plus * Fop_B01 / B0**2) &
+      ), &
+      "T", &
+      "a2", &
+      spline1=h_quad, &
+      spline2=h_cubic &
     )
-    positions(1, :) = [5, 7]
-    ! K(5, 8)
-    factors(2) = -gamma_1 * k2 * ( &
-      Kp * (B01 * ddT0 + ic * dT0 * Fop_plus) &
-      + B01 * dT0 * (diffKp - 2.0d0 * ic * B01 * Kp_plus * Fop_B01 / B0**2) &
+    call elements%add( &
+      -gamma_1 * k2 * ( &
+        Kp * (B01 * ddT0 + ic * dT0 * Fop_plus) &
+        + B01 * dT0 * (diffKp - 2.0d0 * ic * B01 * Kp_plus * Fop_B01 / B0**2) &
+      ), &
+      "T", &
+      "a3", &
+      spline1=h_quad, &
+      spline2=h_cubic &
     )
-    positions(2, :) = [5, 8]
-    call subblock( &
-      quadblock, factors, positions, current_weight, h_quad, h_cubic, settings%dims &
-    )
-
     ! ==================== Quadratic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! K(5, 7)
-    factors(1) = gamma_1 * dT0 * B01 * ( &
-      2.0d0 * B03 * Kp_plus * Fop_B01 / B0**2 - k3 * Kp &
+    call elements%add( &
+      gamma_1 * dT0 * B01 * (2.0d0 * B03 * Kp_plus * Fop_B01 / B0**2 - k3 * Kp), &
+      "T", &
+      "a2", &
+      spline1=h_quad, &
+      spline2=dh_cubic &
     )
-    positions(1, :) = [5, 7]
-    ! K(5, 8)
-    factors(2) = gamma_1 * dT0 * B01 * ( &
-      -2.0d0 * eps * B02 * Kp_plus * Fop_B01 / B0**2 + k2 * Kp &
+    call elements%add( &
+      gamma_1 * dT0 * B01 * ( &
+        -2.0d0 * eps * B02 * Kp_plus * Fop_B01 / B0**2 + k2 * Kp &
+      ), &
+      "T", &
+      "a3", &
+      spline1=h_quad, &
+      spline2=dh_cubic &
     )
-    positions(2, :) = [5, 8]
-    call subblock( &
-      quadblock, factors, positions, current_weight, h_quad, dh_cubic, settings%dims &
-    )
-
     ! ==================== dQuadratic * Cubic ====================
-    call reset_factor_positions(new_size=2)
-    ! K(5, 7)
-    factors(1) = -2.0d0 * gamma_1 * dT0 * B01 * k3 * Kp_plusplus
-    positions(1, :) = [5, 7]
-    ! K(5, 8)
-    factors(2) = 2.0d0 * gamma_1 * dT0 * B01 * k2 * Kp_plusplus
-    positions(2, :) = [5, 8]
-    call subblock( &
-      quadblock, factors, positions, current_weight, dh_quad, h_cubic, settings%dims &
+    call elements%add( &
+      -2.0d0 * gamma_1 * dT0 * B01 * k3 * Kp_plusplus, &
+      "T", &
+      "a2", &
+      spline1=dh_quad, &
+      spline2=h_cubic &
+    )
+    call elements%add( &
+      2.0d0 * gamma_1 * dT0 * B01 * k2 * Kp_plusplus, &
+      "T", &
+      "a3", &
+      spline1=dh_quad, &
+      spline2=h_cubic &
+    )
+    ! ==================== dQuadratic * dCubic ====================
+    call elements%add( &
+      -2.0d0 * ic * gamma_1 * dT0 * B03 * Kp_plusplus, &
+      "T", &
+      "a2", &
+      spline1=dh_quad, &
+      spline2=dh_cubic &
+    )
+    call elements%add( &
+      2.0d0 * ic * gamma_1 * dT0 * eps * B02 * Kp_plusplus, &
+      "T", &
+      "a3", &
+      spline1=dh_quad, &
+      spline2=dh_cubic &
     )
 
-    ! ==================== dQuadratic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! K(5, 7)
-    factors(1) = -2.0d0 * ic * gamma_1 * dT0 * B03 * Kp_plusplus
-    positions(1, :) = [5, 7]
-    ! K(5, 8)
-    factors(2) = 2.0d0 * ic * gamma_1 * dT0 * eps * B02 * Kp_plusplus
-    positions(2, :) = [5, 8]
-    call subblock( &
-      quadblock, factors, positions, current_weight, dh_quad, dh_cubic, settings%dims &
-    )
+    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call elements%delete()
   end procedure add_conduction_matrix_terms
 
 end submodule smod_conduction_matrix

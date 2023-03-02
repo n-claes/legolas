@@ -25,7 +25,6 @@ class TestHarrisSheetQR(RegressionTest):
         "resistivity": True,
         "fixed_resistivity_value": 1e-4,
         "hall_mhd": True,
-        "hall_substitution": True,
         "electron_fraction": 0.5,
         "unit_density": 1.7e-14,
         "unit_magneticfield": 10,

@@ -16,6 +16,7 @@ module mod_settings
     ! This sometimes leads to wrong array allocation where every entry equals the
     ! one at the last index? Unable to reproduce with compiler versions >8.
     character(len=str_len_arr), private, allocatable :: state_vector(:)
+    character(len=str_len_arr), private, allocatable :: derived_state_vector(:)
     character(len=:), private, allocatable :: physics_type
     integer, private :: nb_eqs
     type(dims_t), public :: dims
@@ -31,6 +32,9 @@ module mod_settings
     procedure, public :: set_state_vector
     procedure, public :: get_state_vector
     procedure, public :: state_vector_is_set
+    procedure, public :: set_derived_state_vector
+    procedure, public :: get_derived_state_vector
+    procedure, public :: derived_state_vector_is_set
     procedure, public :: get_physics_type
     procedure, public :: get_nb_eqs
     procedure, public :: update_block_dimensions
@@ -75,19 +79,37 @@ contains
   end subroutine set_state_vector
 
 
+  pure function get_state_vector(this) result(state_vector)
+    class(settings_t), intent(in) :: this
+    character(len=:), allocatable :: state_vector(:)
+    state_vector = this%state_vector
+  end function get_state_vector
+
+
   pure logical function state_vector_is_set(this)
     class(settings_t), intent(in) :: this
-
     state_vector_is_set = allocated(this%state_vector)
   end function state_vector_is_set
 
 
-  pure function get_state_vector(this) result(state_vector)
-    class(settings_t), intent(in) :: this
-    character(len=:), allocatable :: state_vector(:)
+  pure subroutine set_derived_state_vector(this, derived_state_vector)
+    class(settings_t), intent(inout) :: this
+    character(len=*), intent(in) :: derived_state_vector(:)
+    this%derived_state_vector = derived_state_vector
+  end subroutine set_derived_state_vector
 
-    state_vector = this%state_vector
-  end function get_state_vector
+
+  pure function get_derived_state_vector(this) result(derived_state_vector)
+    class(settings_t), intent(in) :: this
+    character(len=:), allocatable :: derived_state_vector(:)
+    derived_state_vector = this%derived_state_vector
+  end function get_derived_state_vector
+
+
+  pure logical function derived_state_vector_is_set(this)
+    class(settings_t), intent(in) :: this
+    derived_state_vector_is_set = allocated(this%derived_state_vector)
+  end function derived_state_vector_is_set
 
 
   pure function get_physics_type(this) result(physics_type)
@@ -122,6 +144,7 @@ contains
     class(settings_t), intent(inout) :: this
 
     if (allocated(this%state_vector)) deallocate(this%state_vector)
+    if (allocated(this%derived_state_vector)) deallocate(this%derived_state_vector)
     if (allocated(this%physics_type)) deallocate(this%physics_type)
     call this%io%delete()
     call this%solvers%delete()

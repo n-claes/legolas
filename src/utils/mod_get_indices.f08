@@ -25,7 +25,7 @@ contains
   !> Function to locate the index of a given character in a character array.
   !! Iterates over the elements and returns on the first hit, if no match
   !! was found zero is returned.
-  function find_index_in_character_array(name, array) result(match_idx)
+  pure function find_index_in_character_array(name, array) result(match_idx)
     !> the name to search for
     character(len=*), intent(in)  :: name
     !> array with the names to search in
@@ -47,7 +47,7 @@ contains
   !> Function to locate the indices of an array of characters in another
   !! character array. Returns the indices of the first hit, it no match was
   !! found zero is returned.
-  function find_indices_in_character_array(names, array) result(match_idxs)
+  pure function find_indices_in_character_array(names, array) result(match_idxs)
     !> the names to search for
     character(len=*), intent(in)  :: names(:)
     !> array in which to sarch in

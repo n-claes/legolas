@@ -118,16 +118,6 @@ module mod_types
     real(dp), allocatable   :: d_prefactor_dr(:)
   end type conduction_type
 
-  !> type containing all eigenfuction related variables
-  type ef_type
-    !> index of the eigenfunction variable in the state vector
-    integer :: state_vector_index
-    !> name of the eigenfunction
-    character(str_len_arr) :: name
-    !> array with eigenfunctions
-    complex(dp), allocatable :: quantities(:, :)
-  end type ef_type
-
   !> type containing Hall related variables
   type hall_type
     !> Hall parameter
@@ -171,7 +161,6 @@ module mod_types
   public :: resistivity_type
   public :: cooling_type
   public :: conduction_type
-  public :: ef_type
   public :: hall_type
 
   public :: initialise_type

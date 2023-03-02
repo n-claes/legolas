@@ -50,7 +50,6 @@ namelist_items = {
         ("viscosity_value", (int, np.integer, float)),
         ("viscous_heating", bool),
         ("hall_mhd", bool),
-        ("hall_substitution", bool),
         ("hall_dropoff", bool),
         ("elec_inertia", bool),
         ("inertia_dropoff", bool),

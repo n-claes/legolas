@@ -1,14 +1,13 @@
 module mod_test_eigenfunctions
   use mod_suite_utils
   use funit
-  use mod_eigenfunctions
-  use mod_types, only: ef_type
+  use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
   implicit none
 
   complex(dp) :: eigenvals(25)
   complex(dp), allocatable :: eigenvectors(:, :)
-  type(ef_type) :: ef_test
   type(settings_t) :: settings
+  type(eigenfunctions_t) :: eigenfunctions
 
 contains
 
@@ -34,24 +33,13 @@ contains
 
   subroutine use_bfield(use_b01)
     use mod_equilibrium, only: B_field
-
     logical, intent(in)  :: use_b01
 
-    call eigenfunctions_clean()
-    if (use_b01) then
-      B_field % B01 = 1.0d0
-    end if
+    if (use_b01) B_field % B01 = 1.0d0
     B_field % B02 = 1.0d0
     B_field % B03 = 2.0d0
-    call initialise_eigenfunctions(omega=eigenvals, settings=settings)
   end subroutine use_bfield
 
-
-  subroutine enable_derived_efs()
-    settings%io%write_derived_eigenfunctions = .true.
-    call eigenfunctions_clean()
-    call initialise_eigenfunctions(omega=eigenvals, settings=settings)
-  end subroutine enable_derived_efs
 
 
   @before
@@ -59,8 +47,9 @@ contains
     integer :: i, j, pos
 
     call reset_globals()
-    settings = get_settings()
     call reset_fields(settings, init_fields=.true.)
+    settings = get_settings()
+    eigenfunctions = new_eigenfunctions(settings)
     call create_test_grid(settings, pts=20, geometry="Cartesian")
     ! creates a square grid between (-2, 2) and (2, -2)
     pos = 1
@@ -70,18 +59,15 @@ contains
         pos = pos + 1
       end do
     end do
-    call initialise_eigenfunctions(omega=eigenvals, settings=settings)
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
     call clean_up(settings)
-    if (allocated(eigenvectors)) then
-      deallocate(eigenvectors)
-    end if
-    call eigenfunctions_clean()
+    call eigenfunctions%delete()
     call settings%delete()
+    if (allocated(eigenvectors)) deallocate(eigenvectors)
   end subroutine teardown_test
 
 
@@ -90,7 +76,8 @@ contains
     integer :: actual_shape(2)
 
     call set_name("eigenfunctions - no subset")
-    actual_shape = shape(base_eigenfunctions(1)%quantities)
+    call eigenfunctions%initialise(eigenvals)
+    actual_shape = shape(eigenfunctions%base_efs(1)%quantities)
     @assertEqual([settings%grid%get_ef_gridpts(), size(eigenvals)], actual_shape)
   end subroutine test_select_all_eigenfunctions
 
@@ -101,9 +88,8 @@ contains
 
     call set_name("eigenfunctions - subset selection")
     call use_subset()
-    call eigenfunctions_clean()
-    call initialise_eigenfunctions(omega=eigenvals, settings=settings)
-    actual_shape = shape(base_eigenfunctions(1)%quantities)
+    call eigenfunctions%initialise(eigenvals)
+    actual_shape = shape(eigenfunctions%base_efs(1)%quantities)
     @assertEqual([settings%grid%get_ef_gridpts(), 4], actual_shape)
   end subroutine test_select_eigenfunction_subset
 
@@ -112,130 +98,75 @@ contains
   subroutine test_eigenfunction_subset_idxs()
     call set_name("eigenfunctions - subset indices")
     call use_subset()
-    call eigenfunctions_clean()
-    call initialise_eigenfunctions(omega=eigenvals, settings=settings)
-    @assertEqual(4, size(ef_written_idxs))
-    @assertEqual([5, 9, 10, 15], ef_written_idxs)
+    call eigenfunctions%initialise(eigenvals)
+    @assertEqual(4, size(eigenfunctions%ef_written_idxs))
+    @assertEqual([5, 9, 10, 15], eigenfunctions%ef_written_idxs)
   end subroutine test_eigenfunction_subset_idxs
 
 
   @test
-  subroutine test_ef_names_derived_no_bfield()
-    call set_name("eigenfunctions - derived names (hydro)")
-    call enable_derived_efs()
-    @assertEqual(12, size(derived_ef_names))
-    @assertTrue(.not. any(derived_ef_names == "B_para"))
-  end subroutine test_ef_names_derived_no_bfield
+  subroutine test_ef_names_derived_mhd()
+    call set_name("eigenfunctions - derived state vector (mhd)")
+    settings%io%write_derived_eigenfunctions = .true.
+    call eigenfunctions%initialise(eigenvals)
+    @assertEqual(12, size(settings%get_derived_state_vector()))
+  end subroutine test_ef_names_derived_mhd
 
 
   @test
+  subroutine test_ef_names_derived_hd()
+    call set_name("eigenfunctions - derived state vector (hd)")
+    settings%io%write_derived_eigenfunctions = .true.
+    call settings%set_state_vector(physics_type="hd")
+    call eigenfunctions%initialise(eigenvals)
+    @assertEqual(5, size(settings%get_derived_state_vector()))
+  end subroutine test_ef_names_derived_hd
+
+  @test
+  subroutine test_ef_names_derived_with_bfield()
+    call set_name("eigenfunctions - derived state vector (without B01)")
+    settings%io%write_derived_eigenfunctions = .true.
+    call use_bfield(use_b01=.false.)
+    call eigenfunctions%initialise(eigenvals)
+    @assertEqual(20, size(settings%get_derived_state_vector()))
+  end subroutine test_ef_names_derived_with_bfield
+
+  @test
   subroutine test_ef_names_derived_with_b01_field()
-    call set_name("eigenfunctions - derived names (with B01)")
+    call set_name("eigenfunctions - derived state vector (with B01)")
     call logger%set_logging_level(0)
-    call enable_derived_efs()
+    settings%io%write_derived_eigenfunctions = .true.
     call use_bfield(use_b01=.true.)
-    @assertEqual(12, size(derived_ef_names))
+    call eigenfunctions%initialise(eigenvals)
+    @assertEqual(12, size(settings%get_derived_state_vector()))
   end subroutine test_ef_names_derived_with_b01_field
 
 
   @test
-  subroutine test_ef_names_derived_with_bfield()
-    call set_name("eigenfunctions - derived names (without B01)")
-    call enable_derived_efs()
-    call use_bfield(use_b01=.false.)
-    @assertEqual(20, size(derived_ef_names))
-  end subroutine test_ef_names_derived_with_bfield
-
-
-  @test
-  subroutine test_ef_retrieval_invalid_name()
-    call set_name("eigenfunctions - get from name (invalid)")
-    ef_test = retrieve_eigenfunctions("unknown", settings%get_state_vector())
-    @assertExceptionRaised("could not retrieve eigenfunction with name unknown")
-  end subroutine test_ef_retrieval_invalid_name
-
-
-  @test
-  subroutine test_ef_retrieval_base_ef()
-    call set_name("eigenfunctions - get from name (base ef)")
-    ef_test = retrieve_eigenfunctions("rho", settings%get_state_vector())
-  end subroutine test_ef_retrieval_base_ef
-
-
-  @test
-  subroutine test_ef_retrieval_no_derived_efs()
-    call set_name("eigenfunctions - get from name (no derived present)")
-    ef_test = retrieve_eigenfunctions("S", settings%get_state_vector())
-    @assertExceptionRaised("could not retrieve eigenfunction with name S")
-  end subroutine test_ef_retrieval_no_derived_efs
-
-
-  @test
-  subroutine test_ef_retrieval_derived_efs()
-    call set_name("eigenfunctions - get from name (derived)")
-    call enable_derived_efs()
-    ef_test = retrieve_eigenfunctions("S", settings%get_state_vector())
-  end subroutine test_ef_retrieval_derived_efs
-
-
-  @test
-  subroutine test_ef_retrieval_index()
-    complex(dp) :: eigenfunc(settings%grid%get_ef_gridpts())
-
-    call set_name("eigenfunctions - get from index")
+  subroutine test_eigenfunction_assembly_hd()
+    call set_name("eigenfunctions - assembly hd")
+    call settings%set_state_vector(physics_type="hd")
+    settings%io%write_derived_eigenfunctions = .true.
+    call eigenfunctions%initialise(eigenvals)
     call create_eigenvectors(settings%dims%get_dim_matrix())
-    call calculate_eigenfunctions(right_eigenvectors=eigenvectors, settings=settings)
-    eigenfunc = retrieve_eigenfunction_from_index( &
-      name="rho", state_vector=settings%get_state_vector(), ef_index=5 &
-    )
-  end subroutine test_ef_retrieval_index
+    call eigenfunctions%assemble(eigenvectors)
+    @assertTrue(allocated(eigenfunctions%base_efs))
+    @assertTrue(allocated(eigenfunctions%derived_efs))
+    @assertEqual(5, size(eigenfunctions%base_efs))
+    @assertEqual(5, size(eigenfunctions%derived_efs))
+  end subroutine test_eigenfunction_assembly_hd
 
 
   @test
-  subroutine test_ef_retrieval_index_derived_ef()
-    complex(dp) :: eigenfunc(settings%grid%get_ef_gridpts())
-
-    call set_name("eigenfunctions - get from index (invalid name)")
-    call enable_derived_efs()
+  subroutine test_eigenfunction_assembly_mhd()
+    call set_name("eigenfunctions - assembly mhd")
+    settings%io%write_derived_eigenfunctions = .true.
+    call eigenfunctions%initialise(eigenvals)
     call create_eigenvectors(settings%dims%get_dim_matrix())
-    call calculate_eigenfunctions(right_eigenvectors=eigenvectors, settings=settings)
-    eigenfunc = retrieve_eigenfunction_from_index( &
-      name="S", state_vector=settings%get_state_vector(), ef_index=5 &
-    )
-  end subroutine test_ef_retrieval_index_derived_ef
-
-
-  @test
-  subroutine test_eigenfunctions_pp_nonzero_B01()
-    integer :: size_names_default
-    call logger%set_logging_level(0)
-    call set_name("eigenfunctions - pp nonzero B01")
-    call enable_derived_efs()
-    size_names_default = size(derived_ef_names)
-    call use_bfield(use_b01=.true.)
-    @assertEqual(size_names_default, size(derived_ef_names))
-  end subroutine test_eigenfunctions_pp_nonzero_B01
-
-
-  @test
-  subroutine test_eigenfunctions_pp_with_bfield()
-    integer :: size_names_default
-    call set_name("eigenfunctions - pp names with bfield")
-    call enable_derived_efs()
-    size_names_default = size(derived_ef_names)
-    call use_bfield(use_b01=.false.)
-    @assertEqual(size_names_default + 8, size(derived_ef_names))
-  end subroutine test_eigenfunctions_pp_with_bfield
-
-
-  @test
-  subroutine test_eigenfunction_calculations_with_bfield()
-    call set_name("eigenfunctions - pp sizes with bfield")
-    call enable_derived_efs()
-    call use_bfield(use_b01=.false.)
-    call create_eigenvectors(settings%dims%get_dim_matrix())
-    call calculate_eigenfunctions(right_eigenvectors=eigenvectors, settings=settings)
-    @assertEqual(size(derived_ef_names), size(derived_eigenfunctions))
-    @assertTrue((any(derived_ef_names == "B_para")))
-  end subroutine test_eigenfunction_calculations_with_bfield
+    call eigenfunctions%assemble(eigenvectors)
+    @assertTrue(allocated(eigenfunctions%base_efs))
+    @assertTrue(allocated(eigenfunctions%derived_efs))
+    @assertEqual(8, size(eigenfunctions%base_efs))
+    @assertEqual(12, size(eigenfunctions%derived_efs))
+  end subroutine test_eigenfunction_assembly_mhd
 end module mod_test_eigenfunctions
