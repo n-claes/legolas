@@ -61,13 +61,20 @@ class ModeFigure(FigureWindow):
         self.cbar = None
         self._cbar_hspace = 0.01
         self._show_ef_panel = show_ef_panel
+        self._annotate = True
 
         if figsize is None:
             figsize = (14, 8)
-        fig, axes = self._create_figure_layout(figsize)
+        if self._kwargs.get("custom_figure", None) is not None:
+            pylboLogger.info("using user-defined figure and axes")
+            fig, ax = self._kwargs.pop("custom_figure")
+            axes = {"view": ax}
+            self._show_ef_panel = False
+        else:
+            fig, axes = self._create_figure_layout(figsize)
         super().__init__(fig)
         self.axes = axes
-        self.cbar_ax = self._create_cbar_axes()
+        self.cbar_ax = self._create_cbar_axes(width=0.02)
 
         # Main data object
         self.data = data
@@ -206,7 +213,8 @@ class ModeFigure(FigureWindow):
     def draw(self) -> None:
         self.draw_eigenfunction()
         self.draw_solution()
-        self.draw_textboxes()
+        if self._annotate:
+            self.draw_textboxes()
         self.add_axes_labels()
         super().draw()
 
@@ -238,16 +246,26 @@ class ModeFigure(FigureWindow):
         self.ax.set_ylabel(self.get_view_ylabel())
         self.cbar.set_label(self.get_view_cbar_label())
 
-    def _create_cbar_axes(self) -> Axes:
+    def _create_cbar_axes(self, width: float) -> Axes:
         """
+        Creates the axes for the colorbar.
+
+        Parameters
+        ----------
+        width : float
+            The width of the colorbar axes.
         Returns
         -------
         matplotlib.axes.Axes
             The axes for the colorbar.
         """
         box = self.ax.get_position()
-        position = (box.x0 + box.width + self._cbar_hspace, box.y0)
-        dims = (0.02, box.height)
+        # shift main axes to the left to make space
+        self.ax.set_position([box.x0, box.y0, box.width - 2.5 * width, box.height])
+        # update box to reflect the new position
+        box = self.ax.get_position()
+        position = (box.x0 + box.width, box.y0)
+        dims = (width, box.height)
         return self.fig.add_axes([*position, *dims])
 
     def get_view_xlabel(self) -> str:
@@ -270,9 +288,9 @@ class ModeFigure(FigureWindow):
         **kwargs
             Additional keyword arguments to pass to :meth:`add_axis_label`.
         """
-        self.omega_txt = add_axis_label(
-            ax, rf"$\omega$ = {self.data.omega:.5f}", **kwargs
-        )
+        if self.omega_txt is None:
+            self.omega_txt = rf"$\omega$ = {self.data.omega:.5f}"
+        add_axis_label(ax, self.omega_txt, **kwargs)
 
     def add_k2k3_txt(self, ax, **kwargs) -> None:
         """
@@ -285,12 +303,14 @@ class ModeFigure(FigureWindow):
         **kwargs
             Additional keyword arguments to pass to :meth:`add_axis_label`.
         """
-        self.k2k3_txt = add_axis_label(
-            ax,
-            f"{self.data.ds.k2_str} = {self.data.k2} | "
-            f"{self.data.ds.k3_str} = {self.data.k3}",
-            **kwargs,
-        )
+        if self.k2k3_txt is None:
+            self.k2k3_txt = "".join(
+                [
+                    f"{self.data.ds.k2_str} = {self.data.k2} | ",
+                    f"{self.data.ds.k3_str} = {self.data.k3}",
+                ]
+            )
+        add_axis_label(ax, self.k2k3_txt, **kwargs)
 
     def add_u2u3_txt(self, ax, **kwargs) -> None:
         """
@@ -304,11 +324,14 @@ class ModeFigure(FigureWindow):
         **kwargs
             Additional keyword arguments to pass to :meth:`add_axis_label`.
         """
-        self.u2u3_txt = add_axis_label(
-            ax,
-            rf"{self.data.ds.u2_str} = {self._u2} | {self.data.ds.u3_str} = {self._u3}",
-            **kwargs,
-        )
+        if self.u2u3_txt is None:
+            self.u2u3_txt = "".join(
+                [
+                    rf"{self.data.ds.u2_str} = {self._u2} | ",
+                    rf"{self.data.ds.u3_str} = {self._u3}",
+                ]
+            )
+        add_axis_label(ax, self.u2u3_txt, **kwargs)
 
     def add_t_txt(self, ax, **kwargs) -> None:
         pass
