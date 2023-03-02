@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+from matplotlib.cm import ScalarMappable
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
 from pylbo.visualisation.modes.mode_figure import ModeFigure
 
@@ -50,25 +51,23 @@ class TemporalEvolutionPlot1D(ModeFigure):
             # transpose here so data[:, i] gives eigenfunction data at time i
             data = np.broadcast_to(ef, shape=reversed(self.solution_shape)).transpose()
             self.ef_data.append({"ef": data, "omega": omega})
-        self.time_data = np.broadcast_to(self._time, shape=self.solution_shape)
-        self.u1_data = self.data.ds.ef_grid
+        x_2d, time_2d = np.meshgrid(self.data.ds.ef_grid, self._time, indexing="ij")
+        self.time_data = time_2d
+        self.u1_data = x_2d
         self.u2_data = self._u2
         self.u3_data = self._u3
 
     def draw_solution(self) -> None:
-        self._view = self.ax.imshow(
-            self.solutions.transpose(),  # transpose due to the nature of imshow
-            extent=[
-                np.min(self.u1_data),
-                np.max(self.u1_data),
-                np.min(self.time_data),
-                np.max(self.time_data),
-            ],
-            aspect="auto",
-            origin="lower",
+        self._view = self.ax.pcolormesh(
+            self.u1_data,
+            self.time_data,
+            self.solutions,
             **self._kwargs,
         )
-        self.cbar = self.fig.colorbar(self._view, cax=self.cbar_ax)
+        self.cbar = self.fig.colorbar(
+            ScalarMappable(norm=self._view.norm, cmap=self._view.cmap),
+            cax=self.cbar_ax,
+        )
 
     def get_view_ylabel(self) -> str:
         return "time"
