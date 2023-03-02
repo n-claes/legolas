@@ -60,7 +60,7 @@ module mod_solvers
       !> matrix B
       type(matrix_t), intent(in) :: matrix_B
       !> settings object
-      type(settings_t), intent(in) :: settings
+      type(settings_t), intent(inout) :: settings
       !> array with eigenvalues
       complex(dp), intent(out)  :: omega(:)
       !> array with right eigenvectors
@@ -95,7 +95,7 @@ contains
     !> B-matrix
     type(matrix_t), intent(in) :: matrix_B
     !> settings object
-    type(settings_t), intent(in) :: settings
+    type(settings_t), intent(inout) :: settings
     !> eigenvalues
     complex(dp), intent(out)  :: omega(:)
     !> right eigenvectors
