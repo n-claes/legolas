@@ -4,6 +4,7 @@
 module mod_arpack_type
   use mod_logging, only: log_message, str
   use mod_global_variables, only: dp
+  use mod_solver_settings, only: solvers_t
   implicit none
 
   !> General type containing the ARPACK configuration.
@@ -69,25 +70,14 @@ contains
   !> Constructor for a new ARPACK configuration based on the dimension of the eigenvalue
   !! problem, mode of the solver and type of the B-matrix. Initialises required
   !! variables and allocates work arrays to be used when calling the solvers.
-  function new_arpack_config( &
-    evpdim, mode, bmat, which, nev, tolerance, maxiter, ncv &
-  ) result(arpack_config)
+  function new_arpack_config(evpdim, mode, bmat, solver_settings) result(arpack_config)
     !> dimension of the eigenvalue problem
     integer, intent(in) :: evpdim
     !> mode for the solver
     integer, intent(in) :: mode
     !> type of the matrix B
     character(len=1), intent(in) :: bmat
-    !> which eigenvalues to calculate
-    character(len=2), intent(in) :: which
-    !> number of eigenvalues to calculate
-    integer, intent(in) :: nev
-    !> relative accuracy (stopping criteria) for eigenvalues
-    real(dp), intent(in) :: tolerance
-    !> maximum number of iterations, defaults to 10*evpdim
-    integer, intent(in) :: maxiter
-    !> number of Arnoldi basis vectors
-    integer, intent(in) :: ncv
+    type(solvers_t), intent(in) :: solver_settings
     !> initialised arpack configuration
     type(arpack_t) :: arpack_config
 
@@ -97,12 +87,12 @@ contains
 
     arpack_config%ido = 0  ! 0 means first call to reverse communication interface
     call arpack_config%set_bmat(bmat)
-    call arpack_config%set_which(which)
-    call arpack_config%set_nev(nev)
-    arpack_config%tolerance = tolerance
+    call arpack_config%set_which(solver_settings%which_eigenvalues)
+    call arpack_config%set_nev(solver_settings%number_of_eigenvalues)
+    arpack_config%tolerance = solver_settings%tolerance
     call arpack_config%set_residual(evpdim)
-    call arpack_config%set_ncv(ncv)
-    call arpack_config%set_maxiter(maxiter)
+    call arpack_config%set_ncv(solver_settings%ncv)
+    call arpack_config%set_maxiter(solver_settings%maxiter)
     ! iparam(1) = ishift = 1 means restart with shifts from Hessenberg matrix
     arpack_config%iparam(1) = 1
   end function new_arpack_config

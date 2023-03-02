@@ -3,6 +3,7 @@
 module mod_output
   use mod_global_variables, only: dp, str_len, dp_LIMIT
   use mod_matrix_structure, only: matrix_t
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -46,15 +47,18 @@ contains
   !! output folder defined in the global variables module.
   !! The output folder is prepended to the base filename.
   !! @note    At this point filenames are not yet given extensions.
-  subroutine make_filename(base_filename, filename)
-    use mod_global_variables, only: output_folder
-
-    !> the base filename to use
-    character(len=*), intent(in)  :: base_filename
+  subroutine make_filename(settings, extension, filename)
+    type(settings_t), intent(in) :: settings
+    character(len=*), intent(in) :: extension
     !> the filename that is created
     character(len=*), intent(out) :: filename
 
-    filename = trim(trim(output_folder) // "/" // base_filename)
+    filename = trim( &
+      trim(settings%io%get_output_folder()) &
+      // "/" &
+      // settings%io%get_basename_datfile() &
+      // extension &
+    )
   end subroutine make_filename
 
 
@@ -71,7 +75,7 @@ contains
   !! @note    Eigenvectors are only written if this is enabled in the
   !!          global variables. @endnote
   !! @note    The extension <tt>".dat"</tt> is appended to the filename. @endnote
-  subroutine create_datfile(eigenvalues, matrix_A, matrix_B, eigenvectors)
+  subroutine create_datfile(eigenvalues, matrix_A, matrix_B, eigenvectors, settings)
     use mod_global_variables
     use mod_version, only: LEGOLAS_VERSION
     use mod_logging, only: log_message
@@ -80,7 +84,6 @@ contains
       kappa_field, eta_field, grav_field, hall_field
     use mod_eigenfunctions
     use mod_equilibrium_params
-    use mod_units
     use mod_banded_matrix, only: banded_matrix_t
     use mod_transform_matrix, only: matrix_to_banded
 
@@ -92,9 +95,12 @@ contains
     type(matrix_t), intent(in) :: matrix_B
     !> the eigenvectors
     complex(dp), intent(in)       :: eigenvectors(:, :)
+    !> the settings object
+    type(settings_t), intent(in)  :: settings
 
     real(dp)  :: b01_array(size(B_field % B02))
     character(len=str_len_arr)    :: param_names(34), equil_names(32)
+    character(len=str_len) :: geometry
     character(len=2*str_len_arr)  :: unit_names(12)
     real(dp), allocatable         :: residuals(:)
     integer                       :: i
@@ -129,26 +135,36 @@ contains
     ! fill B01 array
     b01_array = B_field % B01
 
-    call make_filename(trim(basename_datfile) // ".dat", datfile_name)
+    call make_filename(settings=settings, extension=".dat", filename=datfile_name)
     call open_file(dat_fh, datfile_name)
 
+    ! need str_len for now to ensure datfile reading compatibility
+    geometry = settings%grid%get_geometry()
     ! First we write all header information
     write(dat_fh) "legolas_version", LEGOLAS_VERSION
-    write(dat_fh) str_len, str_len_arr, geometry, x_start, x_end, gridpts, &
-      gauss_gridpts, dim_matrix, ef_gridpts, gamma, equilibrium_type, &
-      write_eigenfunctions, write_derived_eigenfunctions, write_matrices, &
-      write_eigenvectors, write_residuals, write_eigenfunction_subset, &
-      eigenfunction_subset_center, eigenfunction_subset_radius
+    write(dat_fh) str_len, str_len_arr, geometry, settings%grid%get_grid_start(), &
+      settings%grid%get_grid_end(), settings%grid%get_gridpts(), &
+      settings%grid%get_gauss_gridpts(), settings%dims%get_dim_matrix(), &
+      settings%grid%get_ef_gridpts(), settings%physics%get_gamma(), &
+      settings%equilibrium%get_equilibrium_type(), settings%io%write_eigenfunctions, &
+      settings%io%write_derived_eigenfunctions, settings%io%write_matrices, &
+      settings%io%write_eigenvectors, settings%io%write_residuals, &
+      settings%io%write_ef_subset, settings%io%ef_subset_center, &
+      settings%io%ef_subset_radius
     write(dat_fh) size(param_names), len(param_names(1)), param_names
     write(dat_fh) k2, k3, cte_rho0, cte_T0, cte_B01, cte_B02, cte_B03, cte_v02, &
       cte_v03, cte_p0, p1, p2, p3, p4, p5, p6, p7, p8, alpha, beta, delta, &
-      theta, tau, lambda, nu, r0, rc, rj, Bth0, Bz0, V, j0, g, electron_fraction
+      theta, tau, lambda, nu, r0, rc, rj, Bth0, Bz0, V, j0, g, &
+      settings%physics%hall%get_electron_fraction()
     write(dat_fh) size(equil_names), len(equil_names(1)), equil_names
-    write(dat_fh) cgs_units
+    write(dat_fh) settings%units%in_cgs()
     write(dat_fh) size(unit_names), len(unit_names(1)), unit_names
-    write(dat_fh) unit_length, unit_time, unit_density, unit_velocity, &
-      unit_temperature, unit_pressure, unit_magneticfield, unit_numberdensity, &
-      unit_lambdaT, unit_conduction, unit_resistivity, mean_molecular_weight
+    write(dat_fh) settings%units%get_unit_length(), settings%units%get_unit_time(), &
+      settings%units%get_unit_density(), settings%units%get_unit_velocity(), &
+      settings%units%get_unit_temperature(), settings%units%get_unit_pressure(), settings%units%get_unit_magneticfield(), &
+      settings%units%get_unit_numberdensity(), &
+      settings%units%get_unit_lambdaT(), settings%units%get_unit_conduction(), &
+      settings%units%get_unit_resistivity(), settings%units%get_mean_molecular_weight()
 
     ! Next write the data itself
     ! General data: eigenvalues, grids, equilibrium configuration
@@ -169,9 +185,9 @@ contains
       hall_field % hallfactor, hall_field % inertiafactor
 
     ! Eigenfunction data [optional]
-    if (write_eigenfunctions) then
+    if (settings%io%write_eigenfunctions) then
       call log_message("writing eigenfunctions...", level="info")
-      write(dat_fh) size(state_vector), state_vector
+      write(dat_fh) settings%get_nb_eqs(), settings%get_state_vector()
       write(dat_fh) ef_grid
       write(dat_fh) size(ef_written_flags), ef_written_flags
       write(dat_fh) size(ef_written_idxs), ef_written_idxs
@@ -181,7 +197,7 @@ contains
     end if
 
     ! Data for quantities derived from eigenfunctions [optional]
-    if (write_derived_eigenfunctions) then
+    if (settings%io%write_derived_eigenfunctions) then
       call log_message("writing derived eigenfunction quantities...", level="info")
       write(dat_fh) size(derived_ef_names), derived_ef_names
       do i = 1, size(derived_eigenfunctions)
@@ -190,15 +206,15 @@ contains
     end if
 
     ! Eigenvector data [optional]
-    if (write_eigenvectors) then
+    if (settings%io%write_eigenvectors) then
       call log_message("writing eigenvectors...", level="info")
       write(dat_fh) size(eigenvectors, 1), size(eigenvectors, 2), eigenvectors
     end if
 
     ! Residuals data [optional]
-    if (write_residuals) then
+    if (settings%io%write_residuals) then
       allocate(residuals(size(eigenvalues)))
-      diags = dim_quadblock - 1
+      diags = settings%dims%get_dim_quadblock() - 1
       call matrix_to_banded( &
         matrix=matrix_A, subdiags=diags, superdiags=diags, banded=matrix_A_banded &
       )
@@ -218,15 +234,15 @@ contains
     end if
 
     ! Matrix data [optional]
-    if (write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
+    if (settings%io%write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
 
     ! Matrix data [optional]
-    if (write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
+    if (settings%io%write_matrices) call write_matrices_to_file(matrix_A, matrix_B)
 
     call log_message("results saved to " // trim(datfile_name), level="info")
     close(dat_fh)
 
-    call create_logfile(eigenvalues)
+    call create_logfile(settings, eigenvalues)
   end subroutine create_datfile
 
 
@@ -273,20 +289,16 @@ contains
   !! @note    If <tt>basename_logfile</tt> is unspecified in the parfile,
   !!          no logfile is written. @endnote
   !! @note    The extension <tt>".log"</tt> is appended to the filename. @endnote
-  subroutine create_logfile(eigenvalues)
-    use mod_global_variables, only: basename_logfile
+  subroutine create_logfile(settings, eigenvalues)
     use mod_logging, only: log_message, exp_fmt
 
+    type(settings_t), intent(in) :: settings
     !> the eigenvalues
     complex(dp), intent(in)   :: eigenvalues(:)
     character(20)             :: real_part, imag_part
     integer   :: i
 
-    if (basename_logfile == "") then
-      return
-    end if
-
-    call make_filename(trim(basename_logfile) // ".log", logfile_name)
+    logfile_name = trim(settings%io%get_output_folder() // "/logfile.log")
     ! open manually since this is not a binary file
     open(unit=log_fh, file=logfile_name, status="unknown", action="write")
     do i = 1, size(eigenvalues)

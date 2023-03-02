@@ -49,11 +49,8 @@ contains
     call matrix_to_array(matrix=matrix_A, array=array_A)
 
     jobvl = "N"
-    if (should_compute_eigenvectors()) then
-      jobvr = "V"
-    else
-      jobvr = "N"
-    end if
+    jobvr = "N"
+    if (settings%io%should_compute_eigenvectors()) jobvr = "V"
     ! set array dimensions
     N = matrix_A%matrix_dim
     lda = N

@@ -24,21 +24,18 @@ submodule (mod_equilibrium) smod_equil_suydam_cluster
 contains
 
   !> Sets the equilibrium
-  module subroutine suydam_cluster_eq()
+  module procedure suydam_cluster_eq
     use mod_equilibrium_params, only: cte_rho0, cte_v02, cte_v03, cte_p0, p1, alpha
 
-    real(dp)      :: r
-    real(dp)      :: J0, J1, DJ0, DJ1
-    real(dp)      :: P0_eq(gauss_gridpts)
-    integer       :: i
+    real(dp) :: r
+    real(dp) :: J0, J1, DJ0, DJ1
+    real(dp), allocatable:: P0_eq(:)
+    integer :: i, gauss_gridpts
 
-    call allow_geometry_override( &
-      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
-
-    if (use_defaults) then  ! LCOV_EXCL_START
-      flow = .true.
+    if (settings%equilibrium%use_defaults) then  ! LCOV_EXCL_START
+      call settings%grid%set_geometry("cylindrical")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+      call settings%physics%enable_flow()
 
       cte_rho0 = 1.0d0
       cte_v02 = 0.0d0
@@ -50,7 +47,10 @@ contains
       k2 = 1.0d0
       k3 = -1.2d0
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
 
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
+    allocate(P0_eq(gauss_gridpts))
     do i = 1, gauss_gridpts
       r = grid_gauss(i)
 
@@ -73,6 +73,7 @@ contains
       B_field % d_B02_dr(i) = DJ1
       B_field % d_B03_dr(i) = -alpha * sqrt(1.0d0 - p1) * J1
     end do
-  end subroutine suydam_cluster_eq
+    deallocate(P0_eq)
+  end procedure suydam_cluster_eq
 
 end submodule smod_equil_suydam_cluster

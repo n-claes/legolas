@@ -35,19 +35,19 @@ submodule (mod_equilibrium) smod_equil_RTI_theta_pinch
 
 contains
 
-  module subroutine RTI_theta_pinch_eq()
+  module procedure RTI_theta_pinch_eq
     use mod_equilibrium_params, only: cte_rho0, cte_p0, alpha, delta, r0
 
-    real(dp)      :: B_inf, bigO, a
-    real(dp)      :: r, x, fx, dfx
-    integer       :: i
+    real(dp) :: B_inf, bigO, a
+    real(dp) :: r, x, fx, dfx
+    real(dp) :: x_start, x_end
+    integer :: i
 
-    flow = .true.
-    geometry = "cylindrical"
-    call allow_geometry_override(default_x_start=0.0d0, default_x_end=1.0d0)
-    call initialise_grid()
+    call settings%physics%enable_flow()
+    call settings%grid%set_geometry("cylindrical")
 
-    if (use_defaults) then ! LCOV_EXCL_START
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       cte_rho0 = 1.0d0
       alpha = 2.0d0
       delta = 1.0d0 / 6.0d0
@@ -57,12 +57,15 @@ contains
       k3 = 0.0d0
     end if ! LCOV_EXCL_STOP
 
+    call initialise_grid(settings)
+    x_start = settings%grid%get_grid_start()
+    x_end = settings%grid%get_grid_end()
     a = x_end - x_start
     cte_p0 = 0.5d0 * (1.0d0 - delta)**2
     B_inf = a * sqrt(cte_rho0)
     bigO = alpha * sqrt(2.0d0 * delta * (1.0d0 - delta))
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
       x = r / a
       fx = alpha**2 * (x**2 - r0**2)
@@ -78,6 +81,6 @@ contains
       v_field % d_v02_dr(i) = bigO
       B_field % d_B03_dr(i) = B_inf * (1.0d0 - delta ) * dfx / cosh(fx)**2
     end do
-  end subroutine RTI_theta_pinch_eq
+  end procedure RTI_theta_pinch_eq
 
 end submodule smod_equil_RTI_theta_pinch

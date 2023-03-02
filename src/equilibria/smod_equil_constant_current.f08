@@ -21,19 +21,16 @@ submodule (mod_equilibrium) smod_equil_constant_current
 contains
 
   !> Sets the equilibrium.
-  module subroutine constant_current_eq()
+  module procedure constant_current_eq
     use mod_equilibrium_params, only: j0, cte_rho0, cte_B03
 
-    real(dp)  :: r
-    real(dp)  :: p_x(gauss_gridpts), dp_x(gauss_gridpts)
-    integer   :: i
+    real(dp) :: r
+    real(dp), allocatable :: p_x(:), dp_x(:)
+    integer :: i, gauss_gridpts
 
-    call allow_geometry_override( &
-      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
-
-    if (use_defaults) then ! LCOV_EXCL_START
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("cylindrical")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       k2 = -2.0d0
       k3 = 0.2d0
 
@@ -41,6 +38,11 @@ contains
       cte_rho0 = 1.0d0
       cte_B03 = 1.0d0
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
+    allocate(p_x(gauss_gridpts))
+    allocate(dp_x(gauss_gridpts))
 
     rho_field % rho0  = cte_rho0
     B_field % B03     = cte_B03
@@ -59,6 +61,8 @@ contains
         dp_x(i) * (rho_field % rho0(i)) - (rho_field % d_rho0_dr(i)) * p_x(i) &
       ) / (rho_field % rho0(i))**2
     end do
-  end subroutine constant_current_eq
+    deallocate(p_x)
+    deallocate(dp_x)
+  end procedure constant_current_eq
 
 end submodule smod_equil_constant_current

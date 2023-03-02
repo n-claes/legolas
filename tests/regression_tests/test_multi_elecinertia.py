@@ -1,5 +1,6 @@
-from .regression import MultiRegressionTest
 import numpy as np
+
+from .regression import MultiRegressionTest
 
 
 class TestElectronInertiaMulti(MultiRegressionTest):
@@ -26,7 +27,6 @@ class TestElectronInertiaMulti(MultiRegressionTest):
         "hall_substitution": True,
         "electron_fraction": 0.5,
         "elec_inertia": True,
-        "cgs_units": True,
         "unit_density": 1.7e-14,
         "unit_magneticfield": 10,
         "unit_length": 7.534209349981049e-9,

@@ -27,18 +27,16 @@ submodule (mod_equilibrium) smod_equil_isothermal_atmosphere
 
 contains
 
-  module subroutine isothermal_atmosphere_eq()
+  module procedure isothermal_atmosphere_eq
     use mod_equilibrium_params, only: cte_rho0, cte_B02, cte_B03, cte_T0, g
 
     real(dp)  :: x, scale_height
     integer   :: i
 
-    geometry = "Cartesian"
-    call allow_geometry_override(default_x_start=0.0d0, default_x_end=15.0d0)
-    call initialise_grid()
-
-    if (use_defaults) then  ! LCOV_EXCL_START
-      external_gravity = .true.
+    if (settings%equilibrium%use_defaults) then  ! LCOV_EXCL_START
+      call settings%grid%set_geometry("Cartesian")
+      call settings%grid%set_grid_boundaries(0.0_dp, 15.0_dp)
+      call settings%physics%enable_gravity()
       cte_rho0 = 1.0d0
       cte_B02 = 0.25d0
       cte_B03 = 0.25d0
@@ -48,6 +46,7 @@ contains
       k2 = 0.0d0
       k3 = 2.0d0
     end if  ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
 
     scale_height = cte_T0 / g
 
@@ -57,11 +56,11 @@ contains
     B_field % B0 = sqrt(cte_B02**2 + cte_B03**2)
     grav_field % grav = g
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
       rho_field % rho0(i) = cte_rho0 * exp(-x / scale_height)
       rho_field % d_rho0_dr(i) = -cte_rho0 * exp(-x / scale_height) / scale_height
     end do
 
-  end subroutine isothermal_atmosphere_eq
+  end procedure isothermal_atmosphere_eq
 end submodule smod_equil_isothermal_atmosphere

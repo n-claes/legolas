@@ -5,8 +5,9 @@
 !! If an interpolated cooling curve is selected this module calls the
 !! interpolation module to create one.
 module mod_radiative_cooling
-  use mod_global_variables, only: dp, ncool
+  use mod_global_variables, only: dp
   use mod_logging, only: log_message
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -32,15 +33,16 @@ contains
   !! tables, depending on the desired curve. These tables are used
   !! to interpolate the final cooling curve using \p ncool points.
   !! @warning Throws an error if the cooling curve is unknown.
-  subroutine initialise_radiative_cooling()
-    use mod_global_variables, only: cooling_curve
+  subroutine initialise_radiative_cooling(settings)
     use mod_logging, only: log_message
     use mod_cooling_curves
 
+    type(settings_t), intent(in) :: settings
     real(dp), allocatable :: table_T(:), table_L(:)
-    integer               :: ntable
+    integer :: ntable, ncool
 
-    select case(cooling_curve)
+    ncool = settings%physics%cooling%get_interpolation_points()
+    select case(settings%physics%cooling%get_cooling_curve())
     case("jc_corona")
        ntable = n_jc_corona
        allocate(table_T(ntable))
@@ -82,7 +84,10 @@ contains
       interpolated_curve = .false.
 
     case default
-      call log_message("unknown cooling curve: " // cooling_curve, level="error")
+      call log_message( &
+        "unknown cooling curve: " // settings%physics%cooling%get_cooling_curve(), &
+        level="error" &
+      )
       return
     end select
 
@@ -96,7 +101,7 @@ contains
       interp_table_L    = 0.0d0
       interp_table_dLdT = 0.0d0
 
-      call create_cooling_curve(table_T, table_L)
+      call create_cooling_curve(settings, table_T, table_L)
 
       deallocate(table_T)
       deallocate(table_L)
@@ -111,13 +116,13 @@ contains
   !!          cooling curve. If T0 is above the upper limit of the cooling curve,
   !!          pure Bremmstrahlung is assumed. @endnote
   !! @warning Throws an error if the cooling curve is unknown.
-  subroutine set_radiative_cooling_values(rho_field, T_field, rc_field)
+  subroutine set_radiative_cooling_values(settings, rho_field, T_field, rc_field)
     use mod_types, only: density_type, temperature_type, cooling_type
-    use mod_global_variables, only: gauss_gridpts, cooling_curve
     use mod_cooling_curves, only: get_rosner_cooling
     use mod_logging, only: log_message
     use mod_interpolation, only: lookup_table_value
 
+    type(settings_t), intent(in) :: settings
     !> the type containing the density attributes
     type(density_type), intent(in)      :: rho_field
     !> the type containing the temperature attributes
@@ -125,18 +130,19 @@ contains
     !> the type containing the radiative cooling attributes
     type(cooling_type), intent(inout)   :: rc_field
 
-    real(dp)    :: lambda_T(gauss_gridpts)
-    real(dp)    :: d_lambda_dT(gauss_gridpts)
-    real(dp)    :: T0, min_T, max_T
-    integer     :: i
+    real(dp) :: lambda_T(settings%grid%get_gauss_gridpts())
+    real(dp) :: d_lambda_dT(settings%grid%get_gauss_gridpts())
+    real(dp) :: T0, min_T, max_T
+    integer :: i, ncool
 
     lambda_T = 0.0d0
     d_lambda_dT = 0.0d0
+    ncool = settings%physics%cooling%get_interpolation_points()
 
     if (interpolated_curve) then
       min_T = minval(interp_table_T)
       max_T = maxval(interp_table_T)
-      do i = 1, gauss_gridpts
+      do i = 1, settings%grid%get_gauss_gridpts()
         ! current temperature in the grid
         T0 = T_field % T0(i)
         if (T0 <= min_T) then
@@ -155,12 +161,9 @@ contains
       end do
     else
       ! In this case an analytical cooling curve is used
-      select case(cooling_curve)
+      select case(settings%physics%cooling%get_cooling_curve())
       case("rosner")
-        call get_rosner_cooling(T_field % T0, lambda_T, d_lambda_dT)
-
-      case default
-        call log_message("unknown cooling curve: " // cooling_curve, level="error")
+        call get_rosner_cooling(settings, T_field % T0, lambda_T, d_lambda_dT)
       end select
     end if
 
@@ -176,15 +179,20 @@ contains
   !! Calls a second-order polynomial interpolation routine and takes
   !! care of normalisations.
   !! @note    The interpolated cooling curves are normalised on exit.
-  subroutine create_cooling_curve(table_T, table_L)
-    use mod_units, only: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
+  subroutine create_cooling_curve(settings, table_T, table_L)
     use mod_interpolation, only: interpolate_table, get_numerical_derivative
     use mod_global_variables, only: logging_level
 
+    type(settings_t), intent(in) :: settings
     !> temperature values in the cooling table
     real(dp), intent(in)  :: table_T(:)
     !> luminosity values in the cooling table
     real(dp), intent(in)  :: table_L(:)
+    real(dp) :: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
+
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_lambdaT = settings%units%get_unit_lambdaT()
+    unit_dlambdaT_dT = unit_lambdaT / unit_temperature
 
     ! cooling tables contain dimensionful values on a logarithmic scale.
     ! To avoid resampling the table on an unequally spaced temperature array
@@ -192,7 +200,7 @@ contains
     ! equally spaced T-array on log-scale.
     ! This will yield log10(L(t)) and log10(T) interpolated (dimensionful) values
     call interpolate_table( &
-      ncool, &
+      settings%physics%cooling%get_interpolation_points(), &
       table_T, &
       table_L, &
       interp_table_T, &
@@ -240,9 +248,9 @@ contains
   !> Cleanup routine, deallocates all variables allocated at module-scope.
   subroutine radiative_cooling_clean()
     if (interpolated_curve) then
-      deallocate(interp_table_T)
-      deallocate(interp_table_L)
-      deallocate(interp_table_dLdT)
+      if (allocated(interp_table_T)) deallocate(interp_table_T)
+      if (allocated(interp_table_L)) deallocate(interp_table_L)
+      if (allocated(interp_table_dLdT)) deallocate(interp_table_dLdT)
     end if
   end subroutine radiative_cooling_clean
 

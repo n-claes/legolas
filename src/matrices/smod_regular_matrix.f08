@@ -26,7 +26,9 @@ contains
     ! B(6, 6)
     factors(5) = eps
     positions(5, :) = [6, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
+    )
 
     ! Cubic * Cubic
     call reset_factor_positions(new_size=3)
@@ -39,12 +41,13 @@ contains
     ! B(8, 8)
     factors(3) = eps
     positions(3, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, h_cubic, settings%dims &
+    )
   end procedure add_bmatrix_terms
 
 
   module procedure add_regular_matrix_terms
-    use mod_global_variables, only: external_gravity, incompressible
     use mod_equilibrium, only: grav_field
 
     real(dp)  :: eps, deps
@@ -52,6 +55,9 @@ contains
     real(dp)  :: T0, dT0
     real(dp)  :: B01, B02, dB02, drB02, B03, db03
     real(dp)  :: Fop_plus, Gop_plus, Gop_min, WVop
+    real(dp) :: gamma_1
+
+    gamma_1 = settings%physics%get_gamma_1()
 
     ! grid variables
     eps = eps_grid(gauss_idx)
@@ -94,11 +100,13 @@ contains
     positions(5, :) = [4, 8]
     ! A(5, 2)
     factors(6) = 0.0d0
-    if (.not. incompressible) then
+    if (.not. settings%physics%is_incompressible) then
       factors(6) = -dT0 * rho
     end if
     positions(6, :) = [5, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_cubic, settings%dims &
+    )
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=6)
@@ -120,7 +128,9 @@ contains
     ! A(5, 2)
     factors(6) = -gamma_1 * T0 * rho
     positions(6, :) = [5, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, dh_cubic, settings%dims &
+    )
 
     ! ==================== Quadratic * Quadratic ====================
     call reset_factor_positions(new_size=12)
@@ -160,13 +170,15 @@ contains
     ! A(6, 4)
     factors(12) = B02
     positions(12, :) = [6, 4]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
+    )
 
     ! ==================== Cubic * Quadratic ====================
     call reset_factor_positions(new_size=5)
     ! A(2, 1)
     factors(1) = -deps * T0 / eps
-    if (external_gravity) then
+    if (settings%physics%gravity%is_enabled()) then
       ! adds gravity term to A(2, 1) matrix element
       factors(1) = factors(1) + grav_field % grav(gauss_idx)
     end if
@@ -183,7 +195,9 @@ contains
     ! A(8, 3)
     factors(5) = -ic * eps * B01
     positions(5, :) = [8, 3]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, h_quad, settings%dims &
+    )
 
     ! ==================== dCubic * Quadratic ====================
     call reset_factor_positions(new_size=3)
@@ -196,7 +210,9 @@ contains
     ! A(2, 6)
     factors(3) = -eps * Gop_min
     positions(3, :) = [2, 6]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_cubic, h_quad, settings%dims &
+    )
 
     ! ==================== Cubic * Cubic ====================
     call reset_factor_positions(new_size=4)
@@ -212,7 +228,9 @@ contains
     ! A(8, 2)
     factors(4) = B02
     positions(4, :) = [8, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, h_cubic, settings%dims &
+    )
 
     ! ==================== Cubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -222,7 +240,9 @@ contains
     ! A(2, 8)
     factors(2) = -deps * B02
     positions(2, :) = [2, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, dh_cubic, settings%dims &
+    )
 
     ! ==================== dCubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -232,7 +252,9 @@ contains
     ! A(2, 8)
     factors(2) = eps * B02
     positions(2, :) = [2, 8]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_cubic, dh_cubic, settings%dims &
+    )
 
     ! ==================== dQuadratic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -242,7 +264,9 @@ contains
     ! A(4, 6)
     factors(2) = ic * k2 * B01
     positions(2, :) = [4, 6]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, h_quad, settings%dims &
+    )
 
     ! ==================== dQuadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -252,7 +276,9 @@ contains
     ! A(4, 7)
     factors(2) = -ic * B01
     positions(2, :) = [4, 7]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, dh_cubic, settings%dims &
+    )
 
   end procedure add_regular_matrix_terms
 

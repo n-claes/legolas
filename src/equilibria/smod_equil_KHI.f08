@@ -29,11 +29,11 @@ submodule (mod_equilibrium) smod_equil_KHI
 
 contains
 
-  module subroutine KHI_eq()
+  module procedure KHI_eq
     use mod_equilibrium_params, only: g, delta, theta, p1, p2, p3, tau, &
       p4, alpha, cte_rho0, cte_p0
 
-    if (use_defaults) then ! LCOV_EXCL_START
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       k2 = 0.0d0
       k3 = 1.0d0
       cte_rho0 = 1.0d0
@@ -49,7 +49,7 @@ contains
       tau = 11.0d0
     end if ! LCOV_EXCL_STOP
 
-    call flow_driven_instabilities_eq()
+    call flow_driven_instabilities_eq(settings)
     ! manually force the magnetic field to zero, it's HD here (the above set
     ! of parameters still yield a B03 component)
     B_field % B02 = 0.0d0
@@ -57,6 +57,6 @@ contains
     B_field % B0 = 0.0d0
     B_field % d_B02_dr = 0.0d0
     B_field % d_B03_dr = 0.0d0
-  end subroutine KHI_eq
+  end procedure KHI_eq
 
 end submodule smod_equil_KHI

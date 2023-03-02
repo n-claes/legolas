@@ -30,7 +30,7 @@ contains
     ! A(2, 6)
     factors(3) = eps * Gop_min
     positions(3, :) = [2, 6]
-    call subblock(quadblock, factors, positions, weight, h_cubic, h_quad)
+    call subblock(quadblock, factors, positions, weight, h_cubic, h_quad, settings%dims)
 
     ! ==================== Cubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -40,7 +40,9 @@ contains
     ! A(2, 8)
     factors(2) = -eps * B02
     positions(2, :) = [2, 8]
-    call subblock(quadblock, factors, positions, weight, h_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, weight, h_cubic, dh_cubic, settings%dims &
+    )
 
     ! ==================== Quadratic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -50,7 +52,7 @@ contains
     ! A(4, 6)
     factors(2) = -ic * k2 * B01
     positions(2, :) = [4, 6]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_quad)
+    call subblock(quadblock, factors, positions, weight, h_quad, h_quad, settings%dims)
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -60,7 +62,9 @@ contains
     ! A(4, 7)
     factors(2) = ic * B01
     positions(2, :) = [4, 7]
-    call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, weight, h_quad, dh_cubic, settings%dims &
+    )
   end procedure add_natural_regular_terms
 
 end submodule smod_natural_bounds_regular

@@ -4,7 +4,6 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_con
 contains
 
   module procedure add_natural_conduction_terms
-    use mod_global_variables, only: gamma_1, thermal_conduction
     use mod_equilibrium, only: kappa_field
     use mod_matrix_shortcuts, only: get_Kp_operator, get_F_operator, get_G_operator
 
@@ -15,10 +14,13 @@ contains
     real(dp)  :: kappa_perp
     real(dp)  :: dkappa_perp_drho, dkappa_perp_dT
     real(dp)  :: Fop, Gop_min, Kp, Kp_plusplus
+    real(dp) :: gamma_1
 
-    if (.not. thermal_conduction) then
+    if (.not. settings%physics%conduction%is_enabled()) then
       return
     end if
+
+    gamma_1 = settings%physics%get_gamma_1()
 
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
@@ -54,14 +56,14 @@ contains
     ! K(5, 6)
     factors(3) = 2.0d0 * ic * gamma_1 * eps * dT0 * Gop_min * Kp_plusplus
     positions(3, :) = [5, 6]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_quad)
+    call subblock(quadblock, factors, positions, weight, h_quad, h_quad, settings%dims)
 
     ! ==================== Quadratic * dQuadratic ====================
     call reset_factor_positions(new_size=1)
     ! K(5, 5)
     factors(1) = ic * gamma_1 * (2.0d0 * B01**2 * Kp + kappa_perp)
     positions(1, :) = [5, 5]
-    call subblock(quadblock, factors, positions, weight, h_quad, dh_quad)
+    call subblock(quadblock, factors, positions, weight, h_quad, dh_quad, settings%dims)
 
     ! ==================== Quadratic * Cubic ====================
     call reset_factor_positions(new_size=2)
@@ -71,7 +73,7 @@ contains
     ! K(5, 8)
     factors(2) = -2.0d0 * gamma_1 * k2 * dT0 * B01 * Kp_plusplus
     positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_cubic)
+    call subblock(quadblock, factors, positions, weight, h_quad, h_cubic, settings%dims)
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -81,7 +83,9 @@ contains
     ! K(5, 8)
     factors(2) = -2.0d0 * ic * gamma_1 * dT0 * eps * B02 * Kp_plusplus
     positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, weight, h_quad, dh_cubic, settings%dims &
+    )
   end procedure add_natural_conduction_terms
 
 end submodule smod_natural_bounds_conduction

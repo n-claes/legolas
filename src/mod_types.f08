@@ -4,7 +4,8 @@
 !! equilibrium arrays are set as attributes, as well as a type
 !! to handle eigenfunctions.
 module mod_types
-  use mod_global_variables, only: dp, str_len, str_len_arr, gauss_gridpts
+  use mod_global_variables, only: dp, str_len, str_len_arr
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -180,9 +181,13 @@ contains
 
 
   !> Allocates the density type and initialises all values to zero.
-  subroutine initialise_density_type(type_rho)
+  subroutine initialise_density_type(settings, type_rho)
+    type(settings_t), intent(in) :: settings
     !> the type containing the density attributes
     type (density_type), intent(inout)  :: type_rho
+    integer :: gauss_gridpts
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
 
     allocate(type_rho % rho0(gauss_gridpts))
     allocate(type_rho % d_rho0_dr(gauss_gridpts))
@@ -193,9 +198,13 @@ contains
 
 
   !> Allocates the temperature type and initialises all values to zero.
-  subroutine initialise_temperature_type(type_T)
+  subroutine initialise_temperature_type(settings, type_T)
+    type(settings_t), intent(in) :: settings
     !> the type containing the temperature attributes
     type (temperature_type), intent(inout) :: type_T
+    integer :: gauss_gridpts
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
 
     allocate(type_T % T0(gauss_gridpts))
     allocate(type_T % d_T0_dr(gauss_gridpts))
@@ -208,9 +217,13 @@ contains
 
 
   !> Allocates the magnetic field type and initialises all values to zero.
-  subroutine initialise_bfield_type(type_B)
+  subroutine initialise_bfield_type(settings, type_B)
+    type(settings_t), intent(in) :: settings
     !> the type containing the magnetic field attributes
     type (bfield_type), intent(inout) :: type_B
+    integer :: gauss_gridpts
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
 
     allocate(type_B % B02(gauss_gridpts))
     allocate(type_B % B03(gauss_gridpts))
@@ -228,9 +241,13 @@ contains
 
 
   !> Allocates the velocity type and initialises all values to zero.
-  subroutine initialise_velocity_type(type_v)
+  subroutine initialise_velocity_type(settings, type_v)
+    type(settings_t), intent(in) :: settings
     !> the type containing the velocity attributes
     type (velocity_type), intent(inout) :: type_v
+    integer :: gauss_gridpts
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
 
     allocate(type_v % v01(gauss_gridpts))
     allocate(type_v % d_v01_dr(gauss_gridpts))
@@ -255,9 +272,13 @@ contains
 
 
   !> Allocates the gravity type and initialises all values to zero.
-  subroutine initialise_gravity_type(type_grav)
+  subroutine initialise_gravity_type(settings, type_grav)
+    type(settings_t), intent(in) :: settings
     !> the type containing the gravity attributes
     type (gravity_type), intent(inout)  :: type_grav
+    integer :: gauss_gridpts
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
 
     allocate(type_grav % grav(gauss_gridpts))
 
@@ -269,9 +290,13 @@ contains
   !! @note The second derivatives of the magnetic field components
   !!       are also included in this type, since they are only used
   !!       when resistivity is included.
-  subroutine initialise_resistivity_type(type_eta)
+  subroutine initialise_resistivity_type(settings, type_eta)
+    type(settings_t), intent(in) :: settings
     !> the type containing the resistivity attributes
     type (resistivity_type), intent(inout)  :: type_eta
+    integer :: gauss_gridpts
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
 
     allocate(type_eta % eta(gauss_gridpts))
     allocate(type_eta % d_eta_dT(gauss_gridpts))
@@ -288,9 +313,13 @@ contains
 
 
   !> Allocates the radiative cooling type and initialises all values to zero.
-  subroutine initialise_cooling_type(type_rc)
+  subroutine initialise_cooling_type(settings, type_rc)
+    type(settings_t), intent(in) :: settings
     !> the type containing the radiative cooling attributes
     type (cooling_type), intent(inout)  :: type_rc
+    integer :: gauss_gridpts
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
 
     allocate(type_rc % heat_loss(gauss_gridpts))
     allocate(type_rc % d_L_dT(gauss_gridpts))
@@ -303,9 +332,13 @@ contains
 
 
   !> Allocates the Hall type and initialises all values to zero.
-  subroutine initialise_hall_type(type_hall)
+  subroutine initialise_hall_type(settings, type_hall)
+    type(settings_t), intent(in) :: settings
     !> the type containing the density attributes
     type (hall_type), intent(inout)  :: type_hall
+    integer :: gauss_gridpts
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
 
     allocate(type_hall % hallfactor(gauss_gridpts))
     allocate(type_hall % inertiafactor(gauss_gridpts))
@@ -316,9 +349,13 @@ contains
 
 
   !> Allocates the thermal conduction type and initialises all values to zero.
-  subroutine initialise_conduction_type(type_kappa)
+  subroutine initialise_conduction_type(settings, type_kappa)
+    type(settings_t), intent(in) :: settings
     !> the type containing the thermal conduction attributes
     type (conduction_type), intent(inout) :: type_kappa
+    integer :: gauss_gridpts
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
 
     allocate(type_kappa % kappa_para(gauss_gridpts))
     allocate(type_kappa % d_kappa_para_dT(gauss_gridpts))

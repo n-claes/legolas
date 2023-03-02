@@ -1,6 +1,7 @@
-from .regression import RegressionTest
-import pytest
 import numpy as np
+import pytest
+
+from .regression import RegressionTest
 
 
 class TestQuasimodesQR(RegressionTest):
@@ -21,8 +22,7 @@ class TestQuasimodesQR(RegressionTest):
     }
     physics_settings = {
         "resistivity": True,
-        "use_fixed_resistivity": True,
-        "fixed_eta_value": 1e-4,
+        "fixed_resistivity_value": 1e-4,
     }
 
     spectrum_limits = [
@@ -38,5 +38,5 @@ class TestQuasimodesQR(RegressionTest):
     def test_eta_value(self, ds_test):
         assert np.all(
             ds_test.equilibria.get("eta")
-            == pytest.approx(self.physics_settings["fixed_eta_value"])
+            == pytest.approx(self.physics_settings["fixed_resistivity_value"])
         )

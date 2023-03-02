@@ -4,56 +4,62 @@ module mod_test_variables
   use funit
   implicit none
 
+  type(settings_t) :: settings
+
 contains
 
 
   @before
   subroutine init_test()
     call reset_globals()
+    settings = get_settings()
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
-    ! nothing to do
+    call settings%delete()
   end subroutine teardown_test
 
 
   @test
   subroutine test_gamma()
     call set_name("setting gamma")
-    call set_gamma(5.0d0 / 3.0d0)
-    @assertEqual(5.0d0 / 3.0d0, gamma, tolerance=TOL)
-    @assertEqual(2.0d0 / 3.0d0, gamma_1, tolerance=TOL)
+    call settings%physics%set_gamma(5.0d0 / 3.0d0)
+    @assertEqual(5.0d0 / 3.0d0, settings%physics%get_gamma(), tolerance=TOL)
+    @assertEqual(2.0d0 / 3.0d0, settings%physics%get_gamma_1(), tolerance=TOL)
   end subroutine test_gamma
 
 
   @test
   subroutine test_gamma_incompressible()
     call set_name("setting incompressible")
-    incompressible = .true.
-    call set_gamma(1.0d0)
-    @assertGreaterThan(gamma, 1.0d5)
+    call settings%physics%set_gamma(1.0_dp)
+    call settings%physics%set_incompressible()
+    @assertGreaterThan(settings%physics%get_gamma(), 1.0d5)
   end subroutine test_gamma_incompressible
 
 
   @test
   subroutine test_gridpts()
     call set_name("setting gridpoints")
-    call set_gridpts(11)
-    @assertEqual(11, gridpts)
-    @assertEqual(40, gauss_gridpts)
-    @assertEqual(21, ef_gridpts)
+    call settings%grid%set_gridpts(11)
+    @assertEqual(11, settings%grid%get_gridpts())
+    @assertEqual(40, settings%grid%get_gauss_gridpts())
+    @assertEqual(21, settings%grid%get_ef_gridpts())
   end subroutine test_gridpts
 
   @test
   subroutine test_matrix_properties_mhd()
     call set_name("matrix properties MHD")
-    call set_matrix_properties(points=10)
-    @assertEqual(size(state_vector), 8)
-    @assertEqual(16, dim_subblock)
-    @assertEqual(32, dim_quadblock)
-    @assertEqual(160, dim_matrix)
+    call settings%set_state_vector("mhd")
+    call settings%grid%set_gridpts(10)
+    call settings%update_block_dimensions()
+    @assertEqual(settings%get_nb_eqs(), 8)
+    @assertEqual(size(settings%get_state_vector()), 8)
+    @assertEqual(16, settings%dims%get_dim_subblock())
+    @assertEqual(32, settings%dims%get_dim_quadblock())
+    @assertEqual(160, settings%dims%get_dim_matrix())
   end subroutine test_matrix_properties_mhd
 
 end module mod_test_variables

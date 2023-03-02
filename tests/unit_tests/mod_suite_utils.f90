@@ -1,5 +1,6 @@
 module mod_suite_utils
   use mod_global_variables, only: dp
+  use mod_settings, only: settings_t, new_settings
   implicit none
 
   real(dp), parameter :: TOL = 1.0d-12
@@ -25,69 +26,78 @@ contains
   end subroutine reset_globals
 
 
-  subroutine reset_fields(init_fields)
+  function get_settings() result(settings)
+    type(settings_t) :: settings
+
+    settings = new_settings()
+  end function get_settings
+
+
+  subroutine reset_fields(settings, init_fields)
     use mod_equilibrium, only: rho_field, equilibrium_clean, initialise_equilibrium
 
+    type(settings_t), intent(inout), optional :: settings
     logical, intent(in) :: init_fields
 
     if (allocated(rho_field % rho0)) then
       call equilibrium_clean()
     end if
     if (init_fields) then
-      call initialise_equilibrium()
+      call initialise_equilibrium(settings)
     end if
   end subroutine reset_fields
 
 
-  subroutine clean_up()
-    use mod_global_variables, only: radiative_cooling
+  subroutine clean_up(settings)
     use mod_grid, only: grid, grid_clean
     use mod_radiative_cooling, only: radiative_cooling_clean
+
+    type(settings_t), intent(in) :: settings
 
     if (allocated(grid)) then
       call grid_clean()
     end if
     call reset_fields(init_fields=.false.)
-    if (radiative_cooling) then
+    if (settings%physics%cooling%is_enabled()) then
       call radiative_cooling_clean()
     end if
   end subroutine clean_up
 
 
-  subroutine create_test_grid(pts, geom, start, end)
-    use mod_global_variables, only: x_start, x_end, geometry, set_gridpts
+  subroutine create_test_grid(settings, pts, geometry, grid_start, grid_end)
     use mod_grid, only: initialise_grid
 
+    type(settings_t), intent(inout) :: settings
     integer, intent(in)             :: pts
-    character(len=*), intent(in)    :: geom
-    real(dp), intent(in), optional  :: start, end
+    character(len=*), intent(in)    :: geometry
+    real(dp), intent(in), optional  :: grid_start, grid_end
+    real(dp) :: x_start, x_end
 
-    geometry = geom
-    if (present(start)) then
-      x_start = start
+    if (present(grid_start)) then
+      x_start = grid_start
     else
       x_start = 0.0d0
     end if
-    if (present(end)) then
-      x_end = end
+    if (present(grid_end)) then
+      x_end = grid_end
     else
       x_end = 1.0d0
     end if
-    call set_gridpts(pts)
-    call initialise_grid()
+    call settings%grid%set_geometry(geometry)
+    call settings%grid%set_grid_boundaries(x_start, x_end)
+    call settings%grid%set_gridpts(pts)
+    call settings%update_block_dimensions()
+    call initialise_grid(settings)
   end subroutine create_test_grid
 
 
-  subroutine set_default_units()
-    use mod_global_variables, only: cgs_units
-    use mod_units, only: set_normalisations
-
-    cgs_units = .true.
-    call set_normalisations( &
-      new_unit_temperature=1.0d6, &
-      new_unit_magneticfield=5.0d0, &
-      new_unit_length=1.0d10, &
-      new_mean_molecular_weight=1.0d0 &
+  subroutine set_default_units(settings)
+    type(settings_t), intent(inout) :: settings
+    call settings%units%set_units_from_temperature( &
+      unit_temperature=1.0d6, &
+      unit_magneticfield=5.0d0, &
+      unit_length=1.0d10, &
+      mean_molecular_weight=1.0d0 &
     )
   end subroutine set_default_units
 

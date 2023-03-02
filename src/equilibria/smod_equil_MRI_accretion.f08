@@ -30,27 +30,35 @@ submodule (mod_equilibrium) smod_equil_MRI
 
 contains
 
-  module subroutine MRI_accretion_eq()
+  module procedure MRI_accretion_eq
     use mod_equilibrium_params, only: beta, tau, nu
 
-    real(dp)      :: r, Bth1, Bz1, p1, delta, epsilon, mu1, vth1
-    real(dp)      :: p0(gauss_gridpts), dp_dr(gauss_gridpts)
-    integer       :: i
+    real(dp) :: r, Bth1, Bz1, p1, delta, epsilon, mu1, vth1
+    real(dp) :: x_start, x_end
+    real(dp), allocatable :: p0(:), dp_dr(:)
+    integer :: i, gauss_gridpts
 
-    geometry = "cylindrical"
-    x_start = 1.0d0
-    call allow_geometry_override(default_x_end=2.0d0)
-    call initialise_grid()
+    call settings%grid%set_geometry("cylindrical")
 
-    if (use_defaults) then ! LCOV_EXCL_START
-      flow = .true.
-      external_gravity = .true.
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_grid_boundaries(1.0_dp, 2.0_dp)
+
+      call settings%physics%enable_flow()
+      call settings%physics%enable_gravity()
       k2 = 0.0d0
       k3 = 70.0d0
       beta = 100.0d0
       tau = 1.0d0
       nu = 0.1d0
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
+
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
+    allocate(p0(gauss_gridpts))
+    allocate(dp_dr(gauss_gridpts))
+    x_start = settings%grid%get_grid_start()
+    x_end = settings%grid%get_grid_end()
+
     mu1 = tau
     epsilon = nu
 
@@ -60,7 +68,7 @@ contains
     Bth1 = mu1 * Bz1
     vth1 = sqrt(1.0d0 - 2.5d0 * p1 - 0.25d0 * Bth1**2 - 1.25d0 * Bz1**2)
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
 
       p0(i) = p1 * r**(-2.5d0)
@@ -82,6 +90,8 @@ contains
       B_field % d_B02_dr(i) = -1.25d0 * Bth1 * r**(-2.25d0)
       B_field % d_B03_dr(i) = -1.25d0 * Bz1 * r**(-2.25d0)
     end do
-  end subroutine MRI_accretion_eq
+    deallocate(p0)
+    deallocate(dp_dr)
+  end procedure MRI_accretion_eq
 
 end submodule smod_equil_MRI

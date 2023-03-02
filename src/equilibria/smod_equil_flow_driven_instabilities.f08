@@ -13,7 +13,7 @@ submodule (mod_equilibrium) smod_equil_flow_driven_instabilities
 
 contains
 
-  module subroutine flow_driven_instabilities_eq()
+  module procedure flow_driven_instabilities_eq
     use mod_equilibrium_params, only: g, delta, theta, p1, p2, p3, tau, &
                                       p4, alpha, cte_rho0, cte_p0
 
@@ -21,20 +21,16 @@ contains
     real(dp)    :: v_prof, phi_prof, p_prof
     integer     :: i
 
-    call allow_geometry_override(default_geometry='Cartesian', default_x_start=0.0d0, default_x_end=1.0d0)
-    call initialise_grid()
-
-    if (x_start < 0.0d0 .or. x_end > 1.0d0) then
-      call log_message("flow driven instabilities are only defined on x in [0, 1]", level='error')
-    end if
-
-    flow = .true.
+    call settings%grid%set_geometry("Cartesian")
+    call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+    call initialise_grid(settings)
+    call settings%physics%enable_flow()
     v0 = p1
     v1 = p2
     v2 = p3
     phi0 = p4
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
       v_prof = v0 + v1*(x - 0.5d0) + v2 * sin(tau * (x - 0.5d0))
@@ -58,6 +54,6 @@ contains
       T_field % d_T0_dr(i)     = (-g * cte_rho0 * (1.0d0 - delta * x)**2 + cte_rho0 * delta * p_prof) &
                                   / (rho_field % rho0(i))**2
     end do
-  end subroutine flow_driven_instabilities_eq
+  end procedure flow_driven_instabilities_eq
 
 end submodule smod_equil_flow_driven_instabilities

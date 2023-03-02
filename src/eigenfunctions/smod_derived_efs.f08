@@ -44,7 +44,9 @@ submodule(mod_eigenfunctions) smod_derived_efs
   complex(dp), allocatable :: da3_ef(:)
 
   interface
-    module subroutine set_pp_quantities(locB, locCurlB, locV, locCurlV, ef_index)
+    module subroutine set_pp_quantities( &
+      locB, locCurlB, locV, locCurlV, ef_index, state_vector &
+    )
       !> position indices for parallel/perpendicular B components
       integer, intent(in) :: locB(2)
       !> position indices for parallel/perpendicular curl(B) components
@@ -55,6 +57,8 @@ submodule(mod_eigenfunctions) smod_derived_efs
       integer, intent(in) :: locCurlV(2)
       !> index of the eigenfunction in the "quantities" array attribute
       integer, intent(in) :: ef_index
+      !> state vector for which to calculate the eigenfunctions
+      character(len=*), intent(in) :: state_vector(:)
     end subroutine set_pp_quantities
   end interface
 
@@ -160,38 +164,55 @@ contains
   !! eigenvalues and sets them as attributes for the corresponding types.
   module procedure calculate_derived_eigenfunctions
     integer :: i, eigenvalue_idx
+    character(len=str_len_arr) :: state_vector(settings%get_nb_eqs())
+
+    state_vector = settings%get_state_vector()
 
     do i = 1, size(ef_written_idxs)
       eigenvalue_idx = ef_written_idxs(i)
 
-      v1_ef = retrieve_eigenfunction_from_index(name="v1", ef_index=i)
-      v2_ef = retrieve_eigenfunction_from_index(name="v2", ef_index=i)
-      v3_ef = retrieve_eigenfunction_from_index(name="v3", ef_index=i)
-      a1_ef = retrieve_eigenfunction_from_index(name="a1", ef_index=i)
-      a2_ef = retrieve_eigenfunction_from_index(name="a2", ef_index=i)
-      a3_ef = retrieve_eigenfunction_from_index(name="a3", ef_index=i)
+      v1_ef = retrieve_eigenfunction_from_index("v1", state_vector, ef_index=i)
+      v2_ef = retrieve_eigenfunction_from_index("v2", state_vector, ef_index=i)
+      v3_ef = retrieve_eigenfunction_from_index("v3", state_vector, ef_index=i)
+      a1_ef = retrieve_eigenfunction_from_index("a1", state_vector, ef_index=i)
+      a2_ef = retrieve_eigenfunction_from_index("a2", state_vector, ef_index=i)
+      a3_ef = retrieve_eigenfunction_from_index("a3", state_vector, ef_index=i)
       da2_ef = assemble_eigenfunction( &
-        base_ef=retrieve_eigenfunctions(name="a2"), &
+        base_ef=retrieve_eigenfunctions(name="a2", state_vector=state_vector), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
+        settings=settings, &
         derivative_order=1 &
       )
       da3_ef = assemble_eigenfunction( &
-        base_ef=retrieve_eigenfunctions(name="a3"), &
+        base_ef=retrieve_eigenfunctions(name="a3", state_vector=state_vector), &
         eigenvector=right_eigenvectors(:, eigenvalue_idx), &
+        settings=settings, &
         derivative_order=1 &
       )
 
-      call set_entropy(loc=1, ef_index=i)
+      call set_entropy(loc=1, ef_index=i, state_vector=state_vector)
       call set_velocity_divergence( &
-        loc=2, ef_index=i, rvec=right_eigenvectors(:, eigenvalue_idx) &
+        loc=2, &
+        ef_index=i, &
+        rvec=right_eigenvectors(:, eigenvalue_idx), &
+        state_vector=state_vector, &
+        settings=settings &
       )
       call set_velocity_curl( &
-        loc=[3, 4, 5], ef_index=i, rvec=right_eigenvectors(:, eigenvalue_idx) &
+        loc=[3, 4, 5], &
+        ef_index=i, &
+        rvec=right_eigenvectors(:, eigenvalue_idx), &
+        state_vector=state_vector, &
+        settings=settings &
       )
       call set_magnetic_field(loc=[6, 7, 8], ef_index=i)
       call set_magnetic_field_divergence(loc=9, ef_index=i)
       call set_magnetic_field_curl( &
-        loc=[10, 11, 12], ef_index=i, rvec=right_eigenvectors(:, eigenvalue_idx) &
+        loc=[10, 11, 12], &
+        ef_index=i, &
+        rvec=right_eigenvectors(:, eigenvalue_idx), &
+        state_vector=state_vector, &
+        settings=settings &
       )
 
       if (can_calculate_pp_quantities) then
@@ -200,7 +221,8 @@ contains
           locCurlB=[15, 16], &
           locV=[17, 18], &
           locCurlV=[19, 20], &
-          ef_index=i &
+          ef_index=i, &
+          state_vector=state_vector &
         )
       end if
     end do
@@ -208,18 +230,20 @@ contains
 
 
   !> Calculates the entropy S1 and places it at location "loc" in the main array.
-  subroutine set_entropy(loc, ef_index)
+  subroutine set_entropy(loc, ef_index, state_vector)
     !> position index in the main array
     integer, intent(in) :: loc
     !> index of the eigenfunction in the "quantities" array attribute
     integer, intent(in) :: ef_index
+    !> state vector
+    character(len=*), intent(in) :: state_vector(:)
     !> density eigenfunction
     complex(dp) :: rho_ef(size(ef_grid))
     !> temperature eigenfunction
     complex(dp) :: T_ef(size(ef_grid))
 
-    rho_ef = retrieve_eigenfunction_from_index(name="rho", ef_index=ef_index)
-    T_ef = retrieve_eigenfunction_from_index(name="T", ef_index=ef_index)
+    rho_ef = retrieve_eigenfunction_from_index("rho", state_vector, ef_index=ef_index)
+    T_ef = retrieve_eigenfunction_from_index("T", state_vector, ef_index=ef_index)
     derived_eigenfunctions(loc)%quantities(:, ef_index) = ( &
       T_ef / rho0_on_ef_grid ** (2.0d0 / 3.0d0) &
       - (2.0d0/3.0d0) * (rho_ef * T0_on_ef_grid / rho0_on_ef_grid ** (5.0d0/3.0d0)) &
@@ -228,18 +252,25 @@ contains
 
 
   !> Calculates the divergence of the perturbed velocity v1
-  subroutine set_velocity_divergence(loc, ef_index, rvec)
+  subroutine set_velocity_divergence(loc, ef_index, rvec, state_vector, settings)
     !> position index in the main array
     integer, intent(in) :: loc
     !> index of the eigenfunction in the "quantities" array attribute
     integer, intent(in) :: ef_index
     !> right eigenvector
     complex(dp), intent(in) :: rvec(:)
+    !> state vector
+    character(len=*), intent(in) :: state_vector(:)
+    !> dimensions object
+    type(settings_t), intent(in) :: settings
     !> derivative of v1 eigenfunction
     complex(dp) :: dv1_ef(size(ef_grid))
 
     dv1_ef = assemble_eigenfunction( &
-      base_ef=retrieve_eigenfunctions(name="v1"), eigenvector=rvec, derivative_order=1 &
+      base_ef=retrieve_eigenfunctions(name="v1", state_vector=state_vector), &
+      eigenvector=rvec, &
+      settings=settings, &
+      derivative_order=1 &
     )
     derived_eigenfunctions(loc)%quantities(:, ef_index) = ( &
       ic * (-dv1_ef / ef_eps + k2 * v2_ef / ef_eps + k3 * v3_ef) &
@@ -248,23 +279,33 @@ contains
 
 
   !> Sets the three components of velocity curl.
-  subroutine set_velocity_curl(loc, ef_index, rvec)
+  subroutine set_velocity_curl(loc, ef_index, rvec, state_vector, settings)
     !> position indices in the main array
     integer, intent(in) :: loc(3)
     !> index of the eigenfunction in the "quantities" array attribute
     integer, intent(in) :: ef_index
     !> right eigenvector
     complex(dp), intent(in) :: rvec(:)
+    !> state vector
+    character(len=*), intent(in) :: state_vector(:)
+    !> dimensions object
+    type(settings_t), intent(in) :: settings
     !> derivative of v2 eigenfunction
     complex(dp) :: dv2_ef(size(ef_grid))
     !> derivative of v3 eigenfunction
     complex(dp) :: dv3_ef(size(ef_grid))
 
     dv2_ef = assemble_eigenfunction( &
-      base_ef=retrieve_eigenfunctions(name="v2"), eigenvector=rvec, derivative_order=1 &
+      base_ef=retrieve_eigenfunctions(name="v2", state_vector=state_vector), &
+      eigenvector=rvec, &
+      settings=settings, &
+      derivative_order=1 &
     )
     dv3_ef = assemble_eigenfunction( &
-      base_ef=retrieve_eigenfunctions(name="v3"), eigenvector=rvec, derivative_order=1 &
+      base_ef=retrieve_eigenfunctions(name="v3", state_vector=state_vector), &
+      eigenvector=rvec, &
+      settings=settings, &
+      derivative_order=1 &
     )
     derived_eigenfunctions(loc(1))%quantities(:, ef_index) = ( &
       ic * (k2 * v3_ef / ef_eps - k3 * v2_ef) &
@@ -311,13 +352,17 @@ contains
 
 
   !> Calculates the curl of the perturbed magnetic field.
-  subroutine set_magnetic_field_curl(loc, ef_index, rvec)
+  subroutine set_magnetic_field_curl(loc, ef_index, rvec, state_vector, settings)
     !> position indices in the main array
     integer, intent(in) :: loc(3)
     !> index of the eigenfunction in the "quantities" array attribute
     integer, intent(in) :: ef_index
     !> right eigenvector
     complex(dp), intent(in) :: rvec(:)
+    !> state vector
+    character(len=*), intent(in) :: state_vector(:)
+    !> dimensions object
+    type(settings_t), intent(in) :: settings
     !> derivative of a1 eigenfunction
     complex(dp) :: da1_ef(size(ef_grid))
     !> second derivative of a2 eigenfunction
@@ -326,13 +371,22 @@ contains
     complex(dp) :: dda3_ef(size(ef_grid))
 
     da1_ef = assemble_eigenfunction( &
-      base_ef=retrieve_eigenfunctions(name="a1"), eigenvector=rvec, derivative_order=1 &
+      base_ef=retrieve_eigenfunctions(name="a1", state_vector=state_vector), &
+      eigenvector=rvec, &
+      settings=settings, &
+      derivative_order=1 &
     )
     dda2_ef = assemble_eigenfunction( &
-      base_ef=retrieve_eigenfunctions(name="a2"), eigenvector=rvec, derivative_order=2 &
+      base_ef=retrieve_eigenfunctions(name="a2", state_vector=state_vector), &
+      eigenvector=rvec, &
+      settings=settings, &
+      derivative_order=2 &
     )
     dda3_ef = assemble_eigenfunction( &
-      base_ef=retrieve_eigenfunctions(name="a3"), eigenvector=rvec, derivative_order=2 &
+      base_ef=retrieve_eigenfunctions(name="a3", state_vector=state_vector), &
+      eigenvector=rvec, &
+      settings=settings, &
+      derivative_order=2 &
     )
 
     derived_eigenfunctions(loc(1))%quantities(:, ef_index) = ( &

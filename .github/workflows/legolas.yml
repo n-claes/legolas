@@ -6,27 +6,25 @@ on:
   pull_request:
     branches: [master, develop]
 
-env:
-  CC: /usr/bin/gcc-10
-  FC: /usr/bin/gfortran-10
-  PFUNIT_DIR: /home/runner/work/legolas/legolas/tests/pFUnit/build/installed
-  LEGOLASDIR: /home/runner/work/legolas/legolas
-  ARPACK_ROOT: /home/runner/work/legolas/legolas/tests/arpack-ng
-
 jobs:
   test:
-    name: "${{ matrix.name }}"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: unit-tests
-            coverage: true
-          - name: regression
-            coverage: true
+        name: [unit-tests, regression]
+        os: [ubuntu-latest]
+        compiler: [gfortran-11]
+        coverage: [true]
 
+    env:
+      FC: ${{ matrix.compiler }}
+      PFUNIT_DIR: /home/runner/work/legolas/legolas/tests/pFUnit/build/installed
+      LEGOLASDIR: /home/runner/work/legolas/legolas
+      ARPACK_ROOT: /home/runner/work/legolas/legolas/tests/arpack-ng
+
+    name: ${{ matrix.name }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.9
@@ -39,16 +37,17 @@ jobs:
       with:
         cmake-version: "3.24.x"
 
-    - name: Install dependencies
+    - name: Install Legolas dependencies
       run: |
         sudo apt-get update
+        sudo apt-get install ${{ matrix.compiler }}
         sudo apt-get install libblas-dev
         sudo apt-get install liblapack-dev
         sudo apt-get install lcov
-        gfortran-10 --version
+        ${FC} --version
         cmake --version
-        which gcov
-        which gcov-10
+        gcov --version
+
     - name: Install Python dependencies & Pylbo
       run: |
         python -m pip install --upgrade pip
@@ -61,7 +60,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: tests/pFUnit/
-        key: ${{ runner.os }}-pfunitv1
+        key: ${{ runner.os }}-pfunitv2
 
     - name: Build pFUnit
       if: steps.pfunit-cache.outputs.cache-hit != 'true'
@@ -80,7 +79,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: tests/arpack-ng/
-        key: ${{ runner.os }}-arpackv2
+        key: ${{ runner.os }}-arpackv3
 
     - name: Build ARPACK
       if: steps.arpack-cache.outputs.cache-hit != 'true'
@@ -128,7 +127,7 @@ jobs:
         cd coverage
         lcov --capture --directory $LEGOLASDIR/build \
             --output-file ${{ matrix.name }}.info \
-            --gcov-tool /usr/bin/gcov-10
+            --gcov-tool /usr/bin/gcov-11
         # filter out coverage files
         find $LEGOLASDIR/build -name '*.gc*' -delete
 

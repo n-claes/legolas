@@ -261,17 +261,23 @@ contains
   !! @note    Both <tt>lambda_T</tt> and <tt>d_lambda_dT</tt> are normalised on exit. @endnote
   !! @warning To ensure a correct calculation the temperature normalisation must be set
   !!          to the desired value. @endwarning
-  subroutine get_rosner_cooling(T0, lambda_T, dlambda_dT)
-    use mod_units, only: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
+  subroutine get_rosner_cooling(settings, T0, lambda_T, dlambda_dT)
+    use mod_settings, only: settings_t
 
+    type(settings_t), intent(in) :: settings
     !> the equilibrium temperature, normalised
     real(dp), intent(in)  :: T0(:)
     !> the cooling values corresponding to T0
     real(dp), intent(out) :: lambda_T(:)
     !> the derivative of the cooling values corresponding to T0
     real(dp), intent(out) :: dlambda_dT(:)
+    real(dp) :: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
     real(dp)    :: log10_T0
     integer     :: i, j, idx
+
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_lambdaT = settings%units%get_unit_lambdaT()
+    unit_dlambdaT_dT = unit_lambdaT / unit_temperature
 
     do i = 1, size(T0)
       idx = 1

@@ -66,12 +66,17 @@ contains
   !! If `odd` is `.true.` returns the odd indices, otherwise the even indices.
   !! If `edge` equals `"left"`, returns the indices corresponding to the left boundary
   !! block, if `edge` equals `"right"` returns indices for the right boundary block.
-  function transform_state_variable_to_subblock_index(variables, odd, edge) result(idxs)
-    use mod_global_variables, only: state_vector, dim_subblock
+  function transform_state_variable_to_subblock_index( &
+    variables, state_vector, dim_subblock, odd, edge &
+  ) result(idxs)
     use mod_logging, only: log_message, str
 
     !> array of state vector variable names
     character(len=*), intent(in)  :: variables(:)
+    !> state vector to consider
+    character(len=*), intent(in)  :: state_vector(:)
+    !> dimension of the subblock
+    integer, intent(in)  :: dim_subblock
     !> uses odd indices if .true. and even if .false.
     logical, intent(in) :: odd
     !> which edge to consider, `"left"` for left boundary and `"right"` for right one

@@ -20,9 +20,8 @@ class MagnetoThermalModes(RegressionTest):
     physics_settings = {
         "radiative_cooling": True,
         "cooling_curve": "rosner",
-        "thermal_conduction": True,
-        "use_fixed_tc_perp": True,
-        "fixed_tc_perp_value": 0,
+        "parallel_conduction": True,
+        "perpendicular_conduction": False,
         "unit_temperature": 2.6e6,
         "unit_magneticfield": 10.0,
         "unit_length": 1.0e8,
@@ -38,11 +37,13 @@ class TestMagnetoThermalModesQR(MagnetoThermalModes):
     def test_spectrum(self, limits, ds_test, ds_base):
         super().run_spectrum_test(limits, ds_test, ds_base)
 
-    def test_conduction(self, ds_test):
-        assert np.all(
-            ds_test.equilibria.get("kappa_perp")
-            == pytest.approx(self.physics_settings["fixed_tc_perp_value"])
-        )
+    def test_perp_conduction(self, ds_test):
+        assert np.all(ds_test.equilibria.get("kappa_perp") == pytest.approx(0))
+
+    def test_para_conduction(self, ds_test, ds_base):
+        tc_para = 1.98901013
+        assert np.all(ds_test.equilibria.get("kappa_para") == pytest.approx(tc_para))
+        assert np.all(ds_base.equilibria.get("kappa_para") == pytest.approx(tc_para))
 
     def test_units(self, ds_test):
         assert ds_test.cgs

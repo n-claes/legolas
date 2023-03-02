@@ -5,6 +5,22 @@ set (sources
         mod_equilibrium_params.f08
         dataIO/mod_exceptions.f08
         dataIO/mod_logging.f08
+        dataIO/mod_console.f08
+        settings/physics/mod_flow_settings.f08
+        settings/physics/mod_cooling_settings.f08
+        settings/physics/mod_gravity_settings.f08
+        settings/physics/mod_resistivity_settings.f08
+        settings/physics/mod_viscosity_settings.f08
+        settings/physics/mod_conduction_settings.f08
+        settings/physics/mod_hall_settings.f08
+        settings/mod_settings.f08
+        settings/mod_dims.f08
+        settings/mod_io_settings.f08
+        settings/mod_solver_settings.f08
+        settings/mod_physics_settings.f08
+        settings/mod_grid_settings.f08
+        settings/mod_equilibrium_settings.f08
+        settings/mod_units.f08
         mod_physical_constants.f08
         utils/mod_get_indices.f08
         matrices/datastructure/mod_matrix_node.f08
@@ -14,7 +30,6 @@ set (sources
         matrices/datastructure/mod_banded_matrix_hermitian.f08
         matrices/datastructure/mod_banded_operations.f08
         matrices/datastructure/mod_transform_matrix.f08
-        mod_units.f08
         mod_grid.f08
         mod_types.f08
         mod_check_values.f08

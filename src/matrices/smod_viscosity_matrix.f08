@@ -1,5 +1,4 @@
 submodule (mod_matrix_manager) smod_viscosity_matrix
-  use mod_global_variables, only: viscosity_value, viscous_heating, incompressible
   use mod_equilibrium, only: v_field
   implicit none
 
@@ -12,6 +11,11 @@ contains
     real(dp)  :: v03, dv03, ddv03
     real(dp)  :: mu
     real(dp)  :: WVop
+    real(dp) :: gamma_1
+    logical :: viscous_heating
+
+    gamma_1 = settings%physics%get_gamma_1()
+    viscous_heating = settings%physics%viscosity%has_viscous_heating()
 
     ! grid variables
     eps = eps_grid(gauss_idx)
@@ -26,7 +30,7 @@ contains
     dv03 = v_field % d_v03_dr(gauss_idx)
     ddv03 = v_field % dd_v03_dr(gauss_idx)
     ! viscosity value
-    mu = viscosity_value
+    mu = settings%physics%viscosity%get_viscosity_value()
     ! operators
     WVop = get_wv_operator(gauss_idx)
 
@@ -35,28 +39,36 @@ contains
     ! Sigma(2, 2)
     factors(1) = -ic * mu * (deps / eps + WVop) / eps
     positions(1, :) = [2, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, h_cubic, settings%dims &
+    )
 
     ! ==================== Cubic * dCubic ====================
     call reset_factor_positions(new_size=1)
     ! Sigma(2, 2)
     factors(1) = -ic * mu * deps / (3.0d0 * eps)
     positions(1, :) = [2, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, dh_cubic, settings%dims &
+    )
 
     ! ==================== dCubic * Cubic ====================
     call reset_factor_positions(new_size=1)
     ! Sigma(2, 2)
     factors(1) = ic * mu * deps / eps
     positions(1, :) = [2, 2]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_cubic, h_cubic, settings%dims &
+    )
 
     ! ==================== dCubic * dCubic ====================
     call reset_factor_positions(new_size=1)
     ! Sigma(2, 2)
     factors(1) = -4.0d0 * ic * mu / 3.0d0
     positions(1, :) = [2, 2]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_cubic, dh_cubic, settings%dims &
+    )
 
     ! ==================== Cubic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -66,7 +78,9 @@ contains
     ! Sigma(2, 4)
     factors(2) = ic * mu * deps * k3 / (3.0d0 * eps)
     positions(2, :) = [2, 4]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, h_quad, settings%dims &
+    )
 
     ! ==================== dCubic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -76,7 +90,9 @@ contains
     ! Sigma(2, 4)
     factors(2) = ic * mu * k3 / 3.0d0
     positions(2, :) = [2, 4]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_cubic, h_quad, settings%dims &
+    )
 
     ! ==================== Quadratic * Cubic ====================
     call reset_factor_positions(new_size=2)
@@ -85,13 +101,15 @@ contains
     positions(1, :) = [3, 2]
     ! Sigma(5, 2)
     factors(2) = (0.0d0, 0.0d0)
-    if (viscous_heating .and. (.not. incompressible)) then
+    if (viscous_heating .and. (.not. settings%physics%is_incompressible)) then
       factors(2) = factors(2) + 2.0d0 * gamma_1 * mu * ( &
         (deps**2 * v01 - ic * deps * k2 * v02) / eps**2 - deps * dv01 / eps - ddv01 &
       )
     end if
     positions(2, :) = [5, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_cubic, settings%dims &
+    )
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -101,7 +119,9 @@ contains
     ! Sigma(4, 2)
     factors(2) = ic * mu * k3 / 3.0d0
     positions(2, :) = [4, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, dh_cubic, settings%dims &
+    )
 
     ! ==================== Quadratic * Quadratic ====================
     call reset_factor_positions(new_size=6)
@@ -119,7 +139,7 @@ contains
     positions(4, :) = [4, 4]
     ! Sigma(5, 3)
     factors(5) = (0.0d0, 0.0d0)
-    if (viscous_heating .and. (.not. incompressible)) then
+    if (viscous_heating .and. (.not. settings%physics%is_incompressible)) then
       factors(5) = factors(5) + 2.0d0 * gamma_1 * mu * ( &
         deps**2 * ic * v02 - deps * k2 * v01 &
       ) / eps
@@ -127,11 +147,13 @@ contains
     positions(5, :) = [5, 3]
     ! Sigma(5, 4)
     factors(6) = (0.0d0, 0.0d0)
-    if (viscous_heating .and. (.not. incompressible)) then
+    if (viscous_heating .and. (.not. settings%physics%is_incompressible)) then
       factors(6) = factors(6) - 2.0d0 * ic * gamma_1 * mu * (deps * dv03 / eps + ddv03)
     end if
     positions(6, :) = [5, 4]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
+    )
 
     ! ==================== dQuadratic * dQuadratic ====================
     call reset_factor_positions(new_size=2)
@@ -141,7 +163,9 @@ contains
     ! Sigma(4, 4)
     factors(2) = -ic * mu
     positions(2, :) = [4, 4]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, dh_quad, settings%dims &
+    )
 
     ! ==================== dQuadratic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -150,31 +174,37 @@ contains
     positions(1, :) = [4, 4]
     ! Sigma(5, 4)
     factors(2) = (0.0d0, 0.0d0)
-    if (viscous_heating .and. (.not. incompressible)) then
+    if (viscous_heating .and. (.not. settings%physics%is_incompressible)) then
       factors(2) = factors(2) - 2.0d0 * ic * gamma_1 * mu * dv03
     end if
     positions(2, :) = [5, 4]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, h_quad, settings%dims &
+    )
 
     ! ==================== dQuadratic * Cubic ====================
     call reset_factor_positions(new_size=1)
     ! Sigma(5, 2)
     factors(1) = (0.0d0, 0.0d0)
-    if (viscous_heating .and. (.not. incompressible)) then
+    if (viscous_heating .and. (.not. settings%physics%is_incompressible)) then
       factors(1) = factors(1) - 2.0d0 * gamma_1 * mu * dv01
     end if
     positions(1, :) = [5, 2]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, h_cubic, settings%dims &
+    )
 
     ! ==================== Quadratic * dQuadratic ====================
     call reset_factor_positions(new_size=1)
     ! Sigma(5, 3)
     factors(1) = (0.0d0, 0.0d0)
-    if (viscous_heating .and. (.not. incompressible)) then
+    if (viscous_heating .and. (.not. settings%physics%is_incompressible)) then
       factors(1) = factors(1) + 2.0d0 * ic * gamma_1 * mu * eps * dv02
     end if
     positions(1, :) = [5, 3]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, dh_quad, settings%dims &
+    )
 
   end procedure add_viscosity_matrix_terms
 

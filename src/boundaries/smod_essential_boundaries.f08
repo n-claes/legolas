@@ -1,5 +1,5 @@
 submodule (mod_boundary_manager) smod_essential_boundaries
-  use mod_global_variables, only: dp_LIMIT, boundary_type, geometry, coaxial
+  use mod_global_variables, only: dp_LIMIT
   use mod_equilibrium_params, only: k2, k3
   use mod_check_values, only: is_zero
 
@@ -15,7 +15,7 @@ contains
     integer :: limits(2)
 
     ! left side quadblock limits are (1, 1) -> (dim_quadblock, dim_quadblock)
-    limits = [1, dim_quadblock]
+    limits = [1, settings%dims%get_dim_quadblock()]
 
     ! on the left side we have a zero in a quadratic basis function (number 2), which
     ! zeroes out the odd rows/columns. We explicitly handle this by introducing an
@@ -23,7 +23,11 @@ contains
     call zero_out_row_and_col( &
       matrix=matrix, &
       idxs=get_subblock_index( &
-        [character(len=3) :: "rho", "v2", "v3", "T", "a1"], odd=.true., edge="left" &
+        variables=[character(len=3) :: "rho", "v2", "v3", "T", "a1"], &
+        state_vector=settings%get_state_vector(), &
+        dim_subblock=settings%dims%get_dim_subblock(), &
+        odd=.true., &
+        edge="left" &
       ), &
       limits=limits &
     )
@@ -31,18 +35,25 @@ contains
     ! wall/regularity conditions: v1 has to be zero. Cubic, odd row/col to zero
     cubic_vars_to_zero_out = ["v1"]
     ! wall/regularity conditions: (k3 * a2 - k2 * a3) has to be zero.
-    if (boundary_type == "wall") then
+    select case(settings%equilibrium%get_boundary_type())
+    case("wall")
       ! for "wall" we force a2 = a3 = 0 regardless of k2 and k3
       cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a2", "a3"]
-    else if (boundary_type == "wall_weak") then
+    case("wall_weak")
       ! for "wall_weak" we only force a2 resp. a3 to zero if k3 resp. k2 is nonzero
       if (.not. is_zero(k2)) cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a3"]
       if (.not. is_zero(k3)) cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a2"]
-    end if
+    end select
     ! apply wall/regularity conditions
     call zero_out_row_and_col( &
       matrix=matrix, &
-      idxs=get_subblock_index(cubic_vars_to_zero_out, odd=.true., edge="left"), &
+      idxs=get_subblock_index( &
+        cubic_vars_to_zero_out, &
+        settings%get_state_vector(), &
+        settings%dims%get_dim_subblock(), &
+        odd=.true., &
+        edge="left" &
+      ), &
       limits=limits &
     )
 
@@ -50,7 +61,13 @@ contains
     if (apply_T_bounds) then
       call zero_out_row_and_col( &
         matrix=matrix, &
-        idxs=get_subblock_index(["T"], odd=.false., edge="left"), &
+        idxs=get_subblock_index( &
+          ["T"], &
+          settings%get_state_vector(), &
+          settings%dims%get_dim_subblock(), &
+          odd=.false., &
+          edge="left" &
+        ), &
         limits=limits &
       )
     end if
@@ -59,7 +76,13 @@ contains
     if (apply_noslip_bounds_left) then
       call zero_out_row_and_col( &
         matrix=matrix, &
-        idxs=get_subblock_index(["v2", "v3"], odd=.false., edge="left"), &
+        idxs=get_subblock_index( &
+          ["v2", "v3"], &
+          settings%get_state_vector(), &
+          settings%dims%get_dim_subblock(), &
+          odd=.false., &
+          edge="left" &
+        ), &
         limits=limits &
       )
     end if
@@ -75,24 +98,29 @@ contains
     integer :: limits(2)
 
     ! index shift, even number so end of previous quadblock
-    ishift = matrix%matrix_dim - dim_quadblock
+    ishift = matrix%matrix_dim - settings%dims%get_dim_quadblock()
     ! last quadblock indices hence run from ishift + 1 to matrix dimension
     limits = [ishift + 1, matrix%matrix_dim]
 
     ! fixed wall: v1 should be zero
     cubic_vars_to_zero_out = ["v1"]
-    if (boundary_type == "wall") then
+    select case(settings%equilibrium%get_boundary_type())
+    case("wall")
       cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a2", "a3"]
-    else if (boundary_type == "wall_weak") then
+    case("wall_weak")
       ! (k3 * a2 - k2 * a3) should be zero
       if (.not. is_zero(k2)) cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a3"]
       if (.not. is_zero(k3)) cubic_vars_to_zero_out = [cubic_vars_to_zero_out, "a2"]
-    end if
+    end select
     ! apply wall/regularity conditions
     call zero_out_row_and_col( &
       matrix=matrix, &
       idxs=ishift + get_subblock_index( &
-        cubic_vars_to_zero_out, odd=.true., edge="right" &
+        cubic_vars_to_zero_out, &
+        settings%get_state_vector(), &
+        settings%dims%get_dim_subblock(), &
+        odd=.true., &
+        edge="right" &
       ), &
       limits=limits &
     )
@@ -101,7 +129,13 @@ contains
     if (apply_T_bounds) then
       call zero_out_row_and_col( &
         matrix=matrix, &
-        idxs=ishift + get_subblock_index(["T"], odd=.false., edge="right"), &
+        idxs=ishift + get_subblock_index( &
+          ["T"], &
+          settings%get_state_vector(), &
+          settings%dims%get_dim_subblock(), &
+          odd=.false., &
+          edge="right" &
+        ), &
         limits=limits &
       )
     end if
@@ -109,7 +143,13 @@ contains
     if (apply_noslip_bounds_right) then
       call zero_out_row_and_col( &
         matrix=matrix, &
-        idxs=ishift + get_subblock_index(["v2", "v3"], odd=.false., edge="right"), &
+        idxs=ishift + get_subblock_index( &
+          ["v2", "v3"], &
+          settings%get_state_vector(), &
+          settings%dims%get_dim_subblock(), &
+          odd=.false., &
+          edge="right" &
+        ), &
         limits=limits &
       )
     end if

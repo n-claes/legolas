@@ -28,22 +28,19 @@ submodule (mod_equilibrium) smod_equil_resonant_absorption
 contains
 
   !> Sets the equilibrium
-  module subroutine resonant_absorption_eq()
-    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
+  module procedure resonant_absorption_eq
     use mod_equilibrium_params, only: p1, p2, r0, cte_T0, cte_B02, cte_B03
 
-    real(dp)  :: x, s, r0, rho_left, rho_right, zeta
-    integer   :: i
+    real(dp) :: x, s, r0, rho_left, rho_right, zeta
+    real(dp) :: x_start, x_end
+    integer :: i
 
-    call allow_geometry_override( &
-      default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
-
-    if (use_defaults) then ! LCOV_EXCL_START
-      resistivity = .true.
-      use_fixed_resistivity = .true.
-      fixed_eta_value = 10.0d0**(-3.2d0)
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("Cartesian")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+      call settings%physics%enable_resistivity( &
+        fixed_resistivity_value=10.0_dp**(-3.2_dp) &
+      )
 
       k2 = 1.0d0
       k3 = 0.05d0
@@ -58,6 +55,9 @@ contains
       rho_left = p1
       rho_right = p2
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
+    x_start = settings%grid%get_grid_start()
+    x_end = settings%grid%get_grid_end()
 
     s = 0.5d0 * (x_start + x_end)
     zeta = rho_left / rho_right
@@ -67,7 +67,7 @@ contains
     B_field % B0 = sqrt((B_field % B02)**2 + (B_field % B03)**2)
     T_field % T0 = cte_T0
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
       if (x >= x_start .and. x < s - 0.5d0*r0) then
@@ -82,6 +82,6 @@ contains
         rho_field % rho0(i) = rho_right
       end if
     end do
-  end subroutine resonant_absorption_eq
+  end procedure resonant_absorption_eq
 
 end submodule smod_equil_resonant_absorption

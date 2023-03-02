@@ -22,20 +22,13 @@ submodule (mod_equilibrium) smod_equil_resistive_homo
 contains
 
   !> Sets the equilibrium.
-  module subroutine resistive_homo_eq()
-    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
+  module procedure resistive_homo_eq
     use mod_equilibrium_params, only: beta, cte_rho0, cte_B02, cte_B03
 
-    call allow_geometry_override( &
-      default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
-
-
-    if (use_defaults) then ! LCOV_EXCL_START
-      resistivity = .true.
-      use_fixed_resistivity = .true.
-      fixed_eta_value = 0.001d0
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("Cartesian")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+      call settings%physics%enable_resistivity(fixed_resistivity_value=0.001_dp)
 
       k2 = 0.0d0
       k3 = 1.0d0
@@ -44,12 +37,13 @@ contains
       cte_B02 = 0.0d0
       cte_B03 = 1.0d0
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
 
     rho_field % rho0 = cte_rho0
     B_field % B02    = cte_B02
     B_field % B03    = cte_B03
     B_field % B0     = sqrt((B_field % B02)**2 + (B_field % B03)**2)
     T_field % T0     = beta * (B_field % B0)**2 / (2.0d0)
-  end subroutine resistive_homo_eq
+  end procedure resistive_homo_eq
 
 end submodule smod_equil_resistive_homo

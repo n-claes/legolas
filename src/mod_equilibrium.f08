@@ -9,15 +9,13 @@
 !! @note    All use statements specified here at the main module scope
 !!          are automatically accessible in every submodule that extends this one.
 module mod_equilibrium
-  use mod_units
   use mod_types
-  use mod_global_variables, only: dp, gauss_gridpts, x_start, x_end, &
-    flow, resistivity, external_gravity, radiative_cooling, &
-    thermal_conduction, viscosity, hall_mhd, geometry, use_defaults, cgs_units
+  use mod_global_variables, only: dp
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
   use mod_logging, only: log_message, str
+  use mod_settings, only: settings_t
   implicit none
 
   private
@@ -27,36 +25,96 @@ module mod_equilibrium
 
   !> interface to the different equilibrium submodules
   interface
-    module subroutine adiabatic_homo_eq; end subroutine
-    module subroutine constant_current_eq; end subroutine
-    module subroutine coronal_flux_tube_eq; end subroutine
-    module subroutine discrete_alfven_eq; end subroutine
-    module subroutine flow_driven_instabilities_eq; end subroutine
-    module subroutine gold_hoyle_eq; end subroutine
-    module subroutine gravito_acoustic_eq; end subroutine
-    module subroutine gravito_mhd_eq; end subroutine
-    module subroutine interchange_modes_eq; end subroutine
-    module subroutine internal_kink_eq; end subroutine
-    module subroutine isothermal_atmosphere_eq; end subroutine
-    module subroutine KHI_eq; end subroutine
-    module subroutine kh_cd_instability_eq; end subroutine
-    module subroutine magnetothermal_instability_eq; end subroutine
-    module subroutine MRI_accretion_eq; end subroutine
-    module subroutine photospheric_flux_tube_eq; end subroutine
-    module subroutine resistive_homo_eq; end subroutine
-    module subroutine resistive_tearing_modes_eq; end subroutine
-    module subroutine resistive_tearing_modes_flow_eq; end subroutine
-    module subroutine resonant_absorption_eq; end subroutine
-    module subroutine rotating_plasma_cyl_eq; end subroutine
-    module subroutine RTI_eq; end subroutine
-    module subroutine RTI_KHI_eq; end subroutine
-    module subroutine RTI_theta_pinch_eq; end subroutine
-    module subroutine suydam_cluster_eq; end subroutine
-    module subroutine couette_flow_eq; end subroutine
-    module subroutine taylor_couette_eq; end subroutine
-    module subroutine harris_sheet_eq; end subroutine
-    module subroutine tc_pinch_eq; end subroutine
-    module subroutine user_defined_eq; end subroutine
+    module subroutine adiabatic_homo_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine adiabatic_homo_eq
+    module subroutine constant_current_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine constant_current_eq
+    module subroutine coronal_flux_tube_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine coronal_flux_tube_eq
+    module subroutine discrete_alfven_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine discrete_alfven_eq
+    module subroutine flow_driven_instabilities_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine flow_driven_instabilities_eq
+    module subroutine gold_hoyle_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine gold_hoyle_eq
+    module subroutine gravito_acoustic_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine gravito_acoustic_eq
+    module subroutine gravito_mhd_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine gravito_mhd_eq
+    module subroutine interchange_modes_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine interchange_modes_eq
+    module subroutine internal_kink_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine internal_kink_eq
+    module subroutine isothermal_atmosphere_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine isothermal_atmosphere_eq
+    module subroutine KHI_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine
+    module subroutine kh_cd_instability_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine kh_cd_instability_eq
+    module subroutine magnetothermal_instability_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine magnetothermal_instability_eq
+    module subroutine MRI_accretion_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine MRI_accretion_eq
+    module subroutine photospheric_flux_tube_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine photospheric_flux_tube_eq
+    module subroutine resistive_homo_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine resistive_homo_eq
+    module subroutine resistive_tearing_modes_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine resistive_tearing_modes_eq
+    module subroutine resistive_tearing_modes_flow_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine resistive_tearing_modes_flow_eq
+    module subroutine resonant_absorption_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine resonant_absorption_eq
+    module subroutine rotating_plasma_cyl_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine rotating_plasma_cyl_eq
+    module subroutine RTI_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine RTI_eq
+    module subroutine RTI_KHI_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine RTI_KHI_eq
+    module subroutine RTI_theta_pinch_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine RTI_theta_pinch_eq
+    module subroutine suydam_cluster_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine suydam_cluster_eq
+    module subroutine couette_flow_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine couette_flow_eq
+    module subroutine taylor_couette_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine taylor_couette_eq
+    module subroutine harris_sheet_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine harris_sheet_eq
+    module subroutine tc_pinch_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine tc_pinch_eq
+    module subroutine user_defined_eq(settings)
+      type(settings_t), intent(inout) :: settings
+    end subroutine user_defined_eq
   end interface
 
   !> type containing all density-related equilibrium variables
@@ -90,7 +148,6 @@ module mod_equilibrium
 
   public :: initialise_equilibrium
   public :: set_equilibrium
-  public :: allow_geometry_override
   public :: equilibrium_clean
 
 contains
@@ -98,16 +155,18 @@ contains
 
   !> Initialises the equilibrium types by calling the corresponding
   !! subroutine, which allocates all necessary attributes.
-  subroutine initialise_equilibrium()
-    call initialise_type(rho_field)
-    call initialise_type(T_field)
-    call initialise_type(B_field)
-    call initialise_type(v_field)
-    call initialise_type(grav_field)
-    call initialise_type(eta_field)
-    call initialise_type(rc_field)
-    call initialise_type(kappa_field)
-    call initialise_type(hall_field)
+  subroutine initialise_equilibrium(settings)
+    type(settings_t), intent(inout) :: settings
+
+    call initialise_type(settings, rho_field)
+    call initialise_type(settings, T_field)
+    call initialise_type(settings, B_field)
+    call initialise_type(settings, v_field)
+    call initialise_type(settings, grav_field)
+    call initialise_type(settings, eta_field)
+    call initialise_type(settings, rc_field)
+    call initialise_type(settings, kappa_field)
+    call initialise_type(settings, hall_field)
   end subroutine initialise_equilibrium
 
 
@@ -117,24 +176,23 @@ contains
   !! @warning Throws appropriate errors if the equilibrium configuration is
   !!          not balanced, contains NaN or if density/temperature contains
   !!          negative values.
-  subroutine set_equilibrium()
-    use mod_global_variables, only: coaxial, dp_LIMIT
+  subroutine set_equilibrium(settings)
+    use mod_global_variables, only: dp_LIMIT
     use mod_inspections, only: perform_NaN_and_negative_checks, perform_sanity_checks
     use mod_resistivity, only: set_resistivity_values
     use mod_radiative_cooling, only: initialise_radiative_cooling, &
       set_radiative_cooling_values
     use mod_thermal_conduction, only: set_conduction_values
     use mod_hall, only: set_hall_factors
+    type(settings_t), intent(inout) :: settings
 
     ! Set equilibrium submodule to use
-    call set_equilibrium_pointer()
+    call set_equilibrium_pointer(settings)
     ! Call submodule
-    call set_equilibrium_values()
-    ! Set normalisations if needed
-    call check_if_normalisations_set()
+    call set_equilibrium_values(settings)
 
     ! Check x_start if coaxial is true
-    if (coaxial .and. x_start <= dp_LIMIT) then
+    if (settings%grid%coaxial .and. settings%grid%get_grid_start() <= dp_LIMIT) then
       call log_message( &
         "x_start must be > 0 to introduce an inner wall boundary", level="error" &
       )
@@ -147,23 +205,30 @@ contains
     )
 
     ! Setup additional physics
-    if (resistivity) then
-      call set_resistivity_values(T_field, eta_field)
+    if (settings%physics%resistivity%is_enabled()) then
+      call set_resistivity_values(settings, T_field, eta_field)
     end if
-    if (radiative_cooling) then
-      call initialise_radiative_cooling()
-      call set_radiative_cooling_values(rho_field, T_field, rc_field)
+    if (settings%physics%cooling%is_enabled()) then
+      call initialise_radiative_cooling(settings)
+      call set_radiative_cooling_values(settings, rho_field, T_field, rc_field)
     end if
-    if (thermal_conduction) then
-      call set_conduction_values(rho_field, T_field, B_field, kappa_field)
+    if (settings%physics%conduction%is_enabled()) then
+      call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
     end if
-    if (hall_mhd) then
-      call set_hall_factors(hall_field)
+    if (settings%physics%hall%is_enabled()) then
+      call set_hall_factors(settings, hall_field)
     end if
 
     ! Do final sanity checks on values
     call perform_sanity_checks( &
-      rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field &
+      settings, &
+      rho_field, &
+      T_field, &
+      B_field, &
+      v_field, &
+      grav_field, &
+      rc_field, &
+      kappa_field &
     )
   end subroutine set_equilibrium
 
@@ -171,10 +236,10 @@ contains
   !> Selects the submodule based on the specified equilibrium
   !! in the parfile. Works on a case-select basis.
   !! @warning   Throws an error if the equilibrium type is not recognised.
-  subroutine set_equilibrium_pointer()
-    use mod_global_variables, only: equilibrium_type
+  subroutine set_equilibrium_pointer(settings)
+    type(settings_t), intent(in) :: settings
 
-    select case(equilibrium_type)
+    select case(settings%equilibrium%get_equilibrium_type())
     case("adiabatic_homo")
       set_equilibrium_values => adiabatic_homo_eq
     case("constant_current_tokamak")
@@ -235,64 +300,12 @@ contains
       set_equilibrium_values => user_defined_eq
     case default
       call log_message( &
-        "equilibrium not recognised: " // trim(equilibrium_type), level="error" &
+        "equilibrium not recognised: " &
+        // trim(settings%equilibrium%get_equilibrium_type()), &
+        level="error" &
       )
     end select
   end subroutine set_equilibrium_pointer
-
-
-  !> Allows overriding geometry and grid-related parameters.
-  !! Sets default values for the geometry and grid start/end. If this subroutine is
-  !! used to set geometry/grid values in the submodule it becomes possible to override
-  !! them through the parfile. Warnings will always be printed if this happens.
-  !! @note  If values specified in the parfile are equal to the default values,
-  !!        nothing happens. @endnote
-  !! @warning A warning is thrown if:
-  !!
-  !! - the geometry specified in the submodule is overridden.
-  !! - the starting value of the grid specified in the submodule is overridden.
-  !! - the end value of the grid specified in the submodule is overridden. @endwarning
-  subroutine allow_geometry_override(default_geometry, default_x_start, default_x_end)
-    use mod_check_values, only: is_NaN
-    use mod_global_variables, only: dp_LIMIT
-
-    !> default geometry to set
-    character(*), intent(in), optional  :: default_geometry
-    !> default start of the grid
-    real(dp), intent(in), optional  :: default_x_start
-    !> default end of the grid
-    real(dp), intent(in), optional  :: default_x_end
-
-    if (present(default_geometry)) then
-      if (geometry /= "" .and. geometry /= default_geometry) then
-        call log_message( &
-          "overriding default geometry with " // trim(geometry), level="warning" &
-        )
-      else
-        geometry = default_geometry
-      end if
-    end if
-
-    if (present(default_x_start)) then
-      if ( &
-        (.not. is_NaN(x_start)) .and. abs(x_start - default_x_start) >= dp_LIMIT &
-      ) then
-        call log_message("overriding x_start with " // str(x_start), level="warning")
-      else
-        x_start = default_x_start
-      end if
-    end if
-
-    if (present(default_x_end)) then
-      if ( &
-        (.not. is_NaN(x_end)) .and. abs(x_end - default_x_end) >= dp_LIMIT &
-      ) then
-        call log_message("overriding x_end with " // str(x_end), level="warning")
-      else
-        x_end = default_x_end
-      end if
-    end if
-  end subroutine allow_geometry_override
 
 
   !> Cleaning routine, deallocates the equilibrium types.

@@ -4,17 +4,19 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_res
 contains
 
   module procedure add_natural_resistive_terms
-    use mod_global_variables, only: gamma_1, resistivity
     use mod_equilibrium, only: eta_field
 
     real(dp)  :: eps, deps
     real(dp)  :: eta
     real(dp)  :: B02, dB02, drB02
     real(dp)  :: B03, dB03
+    real(dp) :: gamma_1
 
-    if (.not. resistivity) then
+    if (.not. settings%physics%resistivity%is_enabled()) then
       return
     end if
+
+    gamma_1 = settings%physics%get_gamma_1()
 
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
@@ -31,7 +33,7 @@ contains
     ! R(5, 6)
     factors(1) = 2.0d0 * ic * gamma_1 * eta * (k3 * drB02 - k2 * dB03)
     positions(1, :) = [5, 6]
-    call subblock(quadblock, factors, positions, weight, h_quad, h_quad)
+    call subblock(quadblock, factors, positions, weight, h_quad, h_quad, settings%dims)
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -41,7 +43,9 @@ contains
     ! R(5, 8)
     factors(2) = -2.0d0 * ic * gamma_1 * eta * drB02
     positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, weight, h_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, weight, h_quad, dh_cubic, settings%dims &
+    )
 
     ! ==================== Cubic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -51,7 +55,7 @@ contains
     ! R(8, 6)
     factors(2) = -ic * eta * eps * k3
     positions(2, :) = [8, 6]
-    call subblock(quadblock, factors, positions, weight, h_cubic, h_quad)
+    call subblock(quadblock, factors, positions, weight, h_cubic, h_quad, settings%dims)
 
     ! ==================== Cubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -61,7 +65,9 @@ contains
     ! R(8, 8)
     factors(2) = ic * eta * eps
     positions(2, :) = [8, 8]
-    call subblock(quadblock, factors, positions, weight, h_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, weight, h_cubic, dh_cubic, settings%dims &
+    )
   end procedure add_natural_resistive_terms
 
 end submodule smod_natural_bounds_resistive

@@ -3,7 +3,6 @@ module mod_test_matrix_operators
   use funit
   use mod_matrix_shortcuts
   use mod_equilibrium
-  use mod_global_variables, only: set_gridpts, geometry
   use mod_grid, only: grid_gauss, grid_clean
   implicit none
 
@@ -12,6 +11,7 @@ module mod_test_matrix_operators
 
   integer   :: idx
   real(dp)  :: x, expected
+  type(settings_t) :: settings
 
 contains
 
@@ -20,8 +20,9 @@ contains
   subroutine init_test()
     use mod_equilibrium_params, only: k2, k3
 
-    call create_test_grid(pts=50, geom="Cartesian", start=0.0d0, end=2.0d0)
-    call reset_fields(init_fields=.true.)
+    settings = get_settings()
+    call create_test_grid(settings, 50, "Cartesian", 0.0d0, 2.0d0)
+    call reset_fields(settings, init_fields=.true.)
     idx = 1
     k2 = k2_val
     k3 = k3_val
@@ -30,7 +31,8 @@ contains
 
   @after
   subroutine tear_down()
-    call clean_up()
+    call clean_up(settings)
+    call settings%delete()
   end subroutine tear_down
 
 
@@ -76,7 +78,7 @@ contains
     idx = 15
     x = grid_gauss(idx)
     expected = k2_val * 0.5d0 * x + k3_val * 2.0d0
-    @assertEqual("Cartesian", geometry)
+    @assertEqual("Cartesian", settings%grid%get_geometry())
     @assertEqual(expected, get_diffF_operator(idx, "plus"), tolerance=TOL)
   end subroutine test_dF_operator_plus_cartesian
 
@@ -91,7 +93,7 @@ contains
     idx = 15
     x = grid_gauss(idx)
     expected = k2_val * 0.5d0 * x - k3_val * 2.0d0
-    @assertEqual("Cartesian", geometry)
+    @assertEqual("Cartesian", settings%grid%get_geometry())
     @assertEqual(expected, get_diffF_operator(idx, "minus"), tolerance=TOL)
   end subroutine test_dF_operator_minus_cartesian
 
@@ -100,7 +102,7 @@ contains
   subroutine test_dF_operator_plus_cylindrical()
     call set_name("getting dF operator (+, cylindrical)")
     call grid_clean()
-    call create_test_grid(pts=50, geom="cylindrical", start=0.0d0, end=1.0d0)
+    call create_test_grid(settings, 50, "cylindrical", 0.0d0, 1.0d0)
     B_field % B02 = grid_gauss
     B_field % d_B02_dr = grid_gauss**2
     B_field % B03 = -grid_gauss
@@ -108,7 +110,7 @@ contains
     idx = 20
     x = grid_gauss(idx)
     expected = (k2_val / x) * (x**2 - 1.0d0) + k3_val * 2.0d0
-    @assertEqual("cylindrical", geometry)
+    @assertEqual("cylindrical", settings%grid%get_geometry())
     @assertEqual(expected, get_diffF_operator(idx, "plus"), tolerance=TOL)
   end subroutine test_dF_operator_plus_cylindrical
 
@@ -117,7 +119,7 @@ contains
   subroutine test_dF_operator_minus_cylindrical()
     call set_name("getting dF operator (-, cylindrical)")
     call grid_clean()
-    call create_test_grid(pts=50, geom="cylindrical", start=0.0d0, end=1.0d0)
+    call create_test_grid(settings, 50, "cylindrical", 0.0d0, 1.0d0)
     B_field % B02 = grid_gauss
     B_field % d_B02_dr = grid_gauss**2
     B_field % B03 = -grid_gauss
@@ -125,7 +127,7 @@ contains
     idx = 20
     x = grid_gauss(idx)
     expected = (k2_val / x) * (x**2 - 1.0d0) - k3_val * 2.0d0
-    @assertEqual("cylindrical", geometry)
+    @assertEqual("cylindrical", settings%grid%get_geometry())
     @assertEqual(expected, get_diffF_operator(idx, "minus"), tolerance=TOL)
   end subroutine test_dF_operator_minus_cylindrical
 
@@ -182,11 +184,11 @@ contains
   subroutine test_k_operator_cylindrical()
     call set_name("getting K operator (cylindrical)")
     call grid_clean()
-    call create_test_grid(pts=50, geom="cylindrical", start=0.0d0, end=2.0d0)
+    call create_test_grid(settings, 50, "cylindrical", 0.0d0, 2.0d0)
     idx = 25
     x = grid_gauss(idx)
     expected = k2_val**2 / x + x * k3_val**2
-    @assertEqual("cylindrical", geometry)
+    @assertEqual("cylindrical", settings%grid%get_geometry())
     @assertEqual(expected, get_wv_operator(idx), tolerance=TOL)
   end subroutine test_k_operator_cylindrical
 

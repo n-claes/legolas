@@ -82,7 +82,6 @@ set( test_sources
         mod_test_matrix_operators.pf
         mod_test_interpolation.pf
         mod_test_integration.pf
-        mod_test_geometry_override.pf
         mod_test_inspections.pf
         mod_test_solar_atmosphere.pf
 )

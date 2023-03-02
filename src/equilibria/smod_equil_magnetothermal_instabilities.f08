@@ -30,39 +30,33 @@ submodule(mod_equilibrium) smod_equil_magnetothermal_instabilities
 contains
 
   !> Sets the equilibrium
-  module subroutine magnetothermal_instability_eq()
+  module procedure magnetothermal_instability_eq
     use mod_equilibrium_params, only: cte_T0
-    use mod_global_variables, only: cooling_curve, use_fixed_tc_perp, fixed_tc_perp_value
 
-    real(dp)  :: r, p_r(gauss_gridpts)
+    real(dp)  :: r
+    real(dp), allocatable :: p_r(:)
     integer   :: i
 
-    call allow_geometry_override( &
-      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
-
-    if (use_defaults) then ! LCOV_EXCL_START
-      radiative_cooling = .true.
-      cooling_curve = "rosner"
-      thermal_conduction = .true.
-      use_fixed_tc_perp = .true.
-      fixed_tc_perp_value = 0.0d0
-
-      cgs_units = .true.
-      call set_normalisations( &
-        new_unit_temperature=2.6d6, &
-        new_unit_magneticfield=10.0d0, &
-        new_unit_length=1.00d8, &
-        new_mean_molecular_weight=1.0d0 & ! this work assumes pure proton plasma
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("cylindrical")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+      call settings%physics%enable_cooling(cooling_curve="rosner")
+      call settings%physics%enable_parallel_conduction()
+      call settings%units%set_units_from_temperature( &
+        unit_temperature=2.6d6, &
+        unit_magneticfield=10.0d0, &
+        unit_length=1.00d8, &
+        mean_molecular_weight=1.0d0 & ! this work assumes pure proton plasma
       )
 
       cte_T0 = 1.0d0
       k2 = 0.0d0
       k3 = 1.0d0
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
 
-    do i = 1, gauss_gridpts
+    allocate(p_r(settings%grid%get_gauss_gridpts()))
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
 
       B_field % B02(i) = r / (1.0d0 + r**2)
@@ -76,6 +70,7 @@ contains
       B_field % d_B02_dr(i) = (1.0d0 - r**2) / (r**4 + 2.0d0 * r**2 + 1.0d0)
       ! Temperature derivative is zero due to isothermal
     end do
-  end subroutine magnetothermal_instability_eq
+    deallocate(p_r)
+  end procedure magnetothermal_instability_eq
 
 end submodule smod_equil_magnetothermal_instabilities

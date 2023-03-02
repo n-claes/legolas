@@ -23,12 +23,31 @@ class UniHallElectronInertia(RegressionTest):
         "hall_substitution": True,
         "electron_fraction": 0.5,
         "elec_inertia": True,
-        "cgs_units": True,
         "unit_density": 1.7e-14,
         "unit_magneticfield": 10,
         "unit_length": 7.534209349981049e-9,
     }
     eigenvalues_are_real = True
+
+    def test_units(self, ds_test):
+        assert ds_test.cgs
+        for val in ("density", "magneticfield", "length"):
+            assert (
+                ds_test.units.get(f"unit_{val}") == self.physics_settings[f"unit_{val}"]
+            )
+
+    def test_electron_fraction(self, ds_test, ds_base):
+        key = "electronfraction"
+        assert (
+            ds_test.parameters[key]
+            == pytest.approx(ds_base.parameters[key])
+            == pytest.approx(0.5)
+        )
+
+    def test_electron_inertia(self, ds_test, ds_base):
+        inertia = 0.00054462
+        assert np.allclose(ds_test.equilibria["inertia"], inertia)
+        assert np.allclose(ds_base.equilibria["inertia"], inertia)
 
 
 class TestUniHallElectronEnertiaQR(UniHallElectronInertia):

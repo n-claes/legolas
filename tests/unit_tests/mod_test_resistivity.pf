@@ -4,59 +4,77 @@ module mod_test_resistivity
   use mod_resistivity, only: set_resistivity_values
   implicit none
 
+  type(settings_t) :: settings
+
 contains
 
   @before
   subroutine init_test()
     call reset_globals()
-    call reset_fields(init_fields=.true.)
-    call set_default_units()
+    settings = get_settings()
+    call reset_fields(settings, init_fields=.true.)
+    call set_default_units(settings)
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
-    call clean_up()
+    call clean_up(settings)
+    call settings%delete()
   end subroutine teardown_test
 
 
   @test
   subroutine test_set_eta_cte()
     use mod_equilibrium, only: T_field, eta_field
-    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
 
     call set_name("setting constant resistivity")
-    use_fixed_resistivity = .true.
-    fixed_eta_value = 2.0d0
-    call set_resistivity_values(T_field, eta_field)
-    @assertEqual(fixed_eta_value, eta_field % eta, tolerance=TOL)
+    call settings%physics%enable_resistivity(fixed_resistivity_value=2.0_dp)
+    call set_resistivity_values(settings, T_field, eta_field)
+    @assertTrue(settings%physics%resistivity%is_enabled())
+    @assertTrue(settings%physics%resistivity%has_fixed_resistivity())
+    @assertEqual(2.0_dp, eta_field % eta, tolerance=TOL)
     @assertEqual(0.0d0, eta_field % d_eta_dT, tolerance=TOL)
     @assertEqual(0.0d0, eta_field % d_eta_dr, tolerance=TOL)
   end subroutine test_set_eta_cte
 
 
+
+  @test
+  subroutine test_set_eta_cte_zero()
+    call set_name("setting constant resistivity but zero")
+    call settings%physics%enable_resistivity(fixed_resistivity_value=0.0_dp)
+    @assertTrue(settings%physics%resistivity%is_enabled())
+    @assertFalse(settings%physics%resistivity%has_fixed_resistivity())
+  end subroutine test_set_eta_cte_zero
+
+
   @test
   subroutine test_set_eta()
     use mod_equilibrium, only: T_field, eta_field
-    use mod_global_variables, only: set_gridpts
-    use mod_units, only: unit_resistivity, unit_deta_dT
 
-    real(dp) :: etavals(4), detavals(4)
+    real(dp) :: expected_eta(4), expected_deta(4)
+    real(dp) :: unit_resistivity, unit_deta_dT
 
     call set_name("setting varying resistivity")
-    call set_gridpts(2)
-    call reset_fields(init_fields=.true.)
+    call settings%grid%set_gridpts(2)
+    call reset_fields(settings, init_fields=.true.)
     T_field % T0 = [0.5d0, 1.0d0, 1.5d0, 3.0d0]
-    etavals = [ &
+    call settings%physics%enable_resistivity()
+    call set_resistivity_values(settings, T_field, eta_field)
+
+    unit_resistivity = settings%units%get_unit_resistivity()
+    unit_deta_dT = unit_resistivity / settings%units%get_unit_temperature()
+
+    expected_eta = [ &
       5.65272704d-18, 1.99854081d-18, 1.08786783d-18, 3.84619359d-19 &
     ] / unit_resistivity
-    detavals = [ &
+    expected_deta = [ &
       -1.69581811d-23, -2.99781122d-24, -1.08786783d-24, -1.92309679d-25 &
     ] / unit_deta_dT
-    call set_resistivity_values(T_field, eta_field)
 
-    @assertEqual(etavals, eta_field % eta, tolerance=1.0d-8)
-    @assertEqual(detavals, eta_field % d_eta_dT, tolerance=1.0d-8)
+    @assertEqual(expected_eta, eta_field % eta, tolerance=1.0d-8)
+    @assertEqual(expected_deta, eta_field % d_eta_dT, tolerance=1.0d-8)
     @assertEqual(0.0d0, eta_field % d_eta_dr, tolerance=TOL)
   end subroutine test_set_eta
 
@@ -64,15 +82,14 @@ contains
   @test
   subroutine test_set_dropoff_eta_fail()
     use mod_equilibrium, only: T_field, eta_field
-    use mod_global_variables, only: use_fixed_resistivity, use_eta_dropoff
 
     call set_name("setting eta dropoff (not constant)")
-    call create_test_grid(pts=100, geom="Cartesian")
-    call reset_fields(init_fields=.true.)
-    use_fixed_resistivity = .false.
-    use_eta_dropoff = .true.
+    call create_test_grid(settings, 100, "Cartesian")
+    call reset_fields(settings, init_fields=.true.)
+    call settings%physics%enable_resistivity()
+    settings%physics%resistivity%use_dropoff = .true.
     T_field % T0 = 1.0d0
-    call set_resistivity_values(T_field, eta_field)
+    call set_resistivity_values(settings, T_field, eta_field)
 
     @assertExceptionRaised("eta dropoff only possible with a fixed resistivity value")
   end subroutine test_set_dropoff_eta_fail
@@ -81,24 +98,24 @@ contains
   @test
   subroutine test_set_dropoff_eta()
     use mod_equilibrium, only: T_field, eta_field
-    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value, &
-      use_eta_dropoff, gauss_gridpts
 
-    integer :: middle
+    integer :: middle, gauss_gridpts
 
     call set_name("setting eta dropoff (constant)")
-    call create_test_grid(pts=100, geom="Cartesian")
-    call reset_fields(init_fields=.true.)
-    use_fixed_resistivity = .true.
-    fixed_eta_value = 1.0d0
-    use_eta_dropoff = .true.
-    call set_resistivity_values(T_field, eta_field)
+    call create_test_grid(settings, 100, "Cartesian")
+    call reset_fields(settings, init_fields=.true.)
+    call settings%physics%enable_resistivity(fixed_resistivity_value=1.0_dp)
+    settings%physics%resistivity%use_dropoff = .true.
+    settings%physics%dropoff_edge_dist = 0.05
+    settings%physics%dropoff_width = 0.1
+    call set_resistivity_values(settings, T_field, eta_field)
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
     middle = int(gauss_gridpts / 2)
 
     @assertEqual(0.0d0, eta_field % eta(1), tolerance=TOL)
+    @assertEqual(1.0_dp, eta_field % eta(middle), tolerance=TOL)
     @assertEqual(0.0d0, eta_field % eta(gauss_gridpts), tolerance=TOL)
-    @assertEqual(fixed_eta_value, eta_field % eta(middle), tolerance=TOL)
-    @assertEqual(0.0d0, eta_field % d_eta_dT(:), tolerance=TOL)
+    @assertEqual(0.0d0, eta_field % d_eta_dT, tolerance=TOL)
 
     @assertEqual(0.0d0, eta_field % d_eta_dr(1), tolerance=TOL)
     @assertEqual(0.0d0, eta_field % d_eta_dr(gauss_gridpts), tolerance=TOL)

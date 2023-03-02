@@ -21,21 +21,20 @@ submodule (mod_equilibrium) smod_equil_internal_kink_instability
 
 contains
 
-  module subroutine internal_kink_eq()
+  module procedure internal_kink_eq
     use mod_equilibrium_params, only: cte_rho0, cte_v03, cte_p0, alpha
 
     real(dp)      :: r, x, a0
     real(dp)      :: J0, J1, J2, DJ0, DJ1
     integer       :: i
 
-    call allow_geometry_override( &
-      default_geometry="cylindrical", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
-    call initialise_grid()
+    call settings%grid%set_geometry("cylindrical")
+    call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+    call initialise_grid(settings)
 
-    a0 = x_end
-    if (use_defaults) then ! LCOV_EXCL_START
-      flow = .true.
+    a0 = settings%grid%get_grid_end()
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%physics%enable_flow()
       cte_rho0 = 1.0d0
       cte_v03  = 1.0d0
       cte_p0 = 9.0d0
@@ -45,7 +44,7 @@ contains
       k3 = 0.16d0 * alpha
     end if ! LCOV_EXCL_STOP
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
       x = r / a0
 
@@ -70,6 +69,6 @@ contains
       B_field % d_B02_dr(i)    = DJ1
       B_field % d_B03_dr(i)    = DJ0
     end do
-  end subroutine internal_kink_eq
+  end procedure internal_kink_eq
 
 end submodule smod_equil_internal_kink_instability

@@ -3,35 +3,42 @@ module mod_test_cooling
   use funit
   implicit none
 
+  type(settings_t) :: settings
+
 contains
 
   @before
   subroutine init_test()
     call reset_globals()
-    call reset_fields(init_fields=.true.)
+    settings = get_settings()
+    call set_default_units(settings)
+    call reset_fields(settings, init_fields=.true.)
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
-    call clean_up()
+    call clean_up(settings)
+    call settings%delete()
   end subroutine teardown_test
 
 
   @test
   subroutine test_rosner_curve()
     use mod_cooling_curves, only: get_rosner_cooling
-    use mod_units, only: unit_lambdaT, unit_dlambdaT_dT, &
-      unit_temperature, check_if_normalisations_set
 
     integer, parameter  :: nbvals = 9
+    real(dp) :: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
     real(dp)  :: logT0(nbvals), T0(nbvals), lambda(nbvals), dlambda(nbvals)
     real(dp)  :: results_l(nbvals), results_dl(nbvals)
     real(dp)  :: alphavals(nbvals), logxivals(nbvals)
     integer   :: i
 
     call set_name("checking Rosner cooling curve")
-    call check_if_normalisations_set()
+
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_lambdaT = settings%units%get_unit_lambdaT()
+    unit_dlambdaT_dT = unit_lambdaT / unit_temperature
 
     logT0 = [4.0d0, 5.0d0, 6.2d0, 4.4d0, 7.5d0, 4.7d0, 3.8d0, 5.6d0, 8.0d0]
     T0 = 10.0d0 ** logT0 / unit_temperature
@@ -55,7 +62,7 @@ contains
         logxivals(i) + (alphavals(i) - 1.0d0) * logT0(i) &
       )
     end do
-    call get_rosner_cooling(T0, lambda, dlambda)
+    call get_rosner_cooling(settings, T0, lambda, dlambda)
 
     results_l = results_l / unit_lambdaT
     results_dl = results_dl / unit_dlambdaT_dT

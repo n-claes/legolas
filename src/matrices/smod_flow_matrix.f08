@@ -5,8 +5,6 @@ submodule (mod_matrix_manager) smod_flow_matrix
 contains
 
   module procedure add_flow_matrix_terms
-    use mod_global_variables, only: incompressible
-
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
     real(dp)  :: T0
@@ -14,6 +12,9 @@ contains
     real(dp)  :: v02, dv02, drv02
     real(dp)  :: v03, dv03
     real(dp)  :: Vop
+    real(dp) :: gamma_1
+
+    gamma_1 = settings%physics%get_gamma_1()
 
     ! grid variables
     eps = eps_grid(gauss_idx)
@@ -57,7 +58,7 @@ contains
     ! Phi(5, 5)
     factors(7) = 0.0d0
     positions(7, :) = [5, 5]
-    if (.not. incompressible) then
+    if (.not. settings%physics%is_incompressible) then
       factors(6) = -ic * gamma_1 * drv01 * T0 / eps
       factors(7) = ( &
         rho * (Vop + ic * dv01 - ic * gamma_1 * drv01 / eps) &
@@ -67,7 +68,9 @@ contains
     ! Phi(6, 6)
     factors(8) = eps * Vop
     positions(8, :) = [6, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
+    )
 
     ! ==================== Quadratic * dQuadratic ====================
     call reset_factor_positions(new_size=2)
@@ -77,7 +80,9 @@ contains
     ! Phi(3, 3)
     factors(2) = -ic * eps * rho * v01
     positions(2, :) = [3, 3]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, dh_quad, settings%dims &
+    )
 
     ! ==================== Cubic * Quadratic ====================
     call reset_factor_positions(new_size=4)
@@ -93,7 +98,9 @@ contains
     ! Phi(8, 6)
     factors(4) = eps * k3 * ic * v01
     positions(4, :) = [8, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, h_quad, settings%dims &
+    )
 
     ! ==================== Cubic * Cubic ====================
     call reset_factor_positions(new_size=5)
@@ -112,14 +119,18 @@ contains
     ! Phi(8, 8)
     factors(5) = k2 * v02
     positions(5, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, h_cubic, settings%dims &
+    )
 
     ! ==================== dCubic * Cubic ====================
     call reset_factor_positions(new_size=1)
     ! Phi(2, 2)
     factors(1) = ic * rho * v01
     positions(1, :) = [2, 2]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_cubic, h_cubic, settings%dims &
+    )
 
     ! ==================== Quadratic * Cubic ====================
     call reset_factor_positions(new_size=2)
@@ -129,7 +140,9 @@ contains
     ! Phi(4, 2)
     factors(2) = -rho * dv03
     positions(2, :) = [4, 2]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_cubic, settings%dims &
+    )
 
     ! ==================== dQuadratic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -138,11 +151,13 @@ contains
     positions(1, :) = [4, 4]
     ! Phi(5, 5)
     factors(2) = 0.0d0
-    if (.not. incompressible) then
+    if (.not. settings%physics%is_incompressible) then
       factors(2) = ic * rho * v01
     end if
     positions(2, :) = [5, 5]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, h_quad, settings%dims &
+    )
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -152,7 +167,9 @@ contains
     ! Phi(6, 8)
     factors(2) = -eps * v03
     positions(2, :) = [6, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, dh_cubic, settings%dims &
+    )
 
     ! ==================== Cubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -162,7 +179,9 @@ contains
     ! Phi(8, 8)
     factors(2) = - ic * v01
     positions(2, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, dh_cubic, settings%dims &
+    )
 
   end procedure add_flow_matrix_terms
 

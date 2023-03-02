@@ -2,36 +2,43 @@ module mod_test_solar_atmosphere
   use mod_suite_utils
   use funit
   use mod_solar_atmosphere, only: set_solar_atmosphere
-  use mod_units, only: set_normalisations
   use mod_global_variables, only: logging_level
   implicit none
+
+  type(settings_t) :: settings
 
 contains
 
   @before
   subroutine init_test()
-    call create_test_grid(pts=100, geom="Cartesian", start=0.05d0, end=0.35d0)
-    call reset_fields(init_fields=.true.)
-    call set_default_units()
+    settings = get_settings()
+    call create_test_grid(settings, 100, "Cartesian", 0.05d0, 0.35d0)
+    call reset_fields(settings, init_fields=.true.)
+    call set_default_units(settings)
     logging_level = 1
   end subroutine init_test
 
 
   @after
   subroutine tear_down()
-    call clean_up()
+    call clean_up(settings)
+    call settings%delete()
   end subroutine tear_down
 
 
   @test
   subroutine test_sa_no_db02()
     call set_name("solar atmosphere (no dB02)")
-    call set_solar_atmosphere(f_b02=b02)
+    call set_solar_atmosphere(settings, f_b02=b02)
     @assertExceptionRaised("solar atmosphere: B02 defined but no dB02")
     contains
-      function b02(x)
+      function b02(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: b02(size(x))
+        ! don't like this but only way to suppress compiler warning
+        ! without turning it off entirely...
+        if (tsettings%units%are_set()) continue
         b02 = 0.0d0
       end function b02
   end subroutine test_sa_no_db02
@@ -40,12 +47,14 @@ contains
   @test
   subroutine test_sa_no_db03()
     call set_name("solar atmosphere (no dB03)")
-    call set_solar_atmosphere(f_b03=b03)
+    call set_solar_atmosphere(settings, f_b03=b03)
     @assertExceptionRaised("solar atmosphere: B03 defined but no dB03")
     contains
-      function b03(x)
+      function b03(x, tsettings)
         real(dp), intent(in)  :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: b03(size(x))
+        if (tsettings%units%are_set()) continue
         b03 = 0.0d0
       end function b03
   end subroutine test_sa_no_db03
@@ -53,11 +62,9 @@ contains
 
   @test
   subroutine test_sa_invalid_geometry()
-    use mod_global_variables, only: geometry
-
     call set_name("solar atmosphere (invalid geometry)")
-    geometry = "cylindrical"
-    call set_solar_atmosphere()
+    call settings%grid%set_geometry("cylindrical")
+    call set_solar_atmosphere(settings)
     @assertExceptionRaised("solar atmosphere can only be set in Cartesian geometries!")
   end subroutine test_sa_invalid_geometry
 
@@ -65,7 +72,9 @@ contains
   @test
   subroutine test_sa_default_profile_saving()
     call set_name("solar atmosphere (default profile saving)")
-    call set_solar_atmosphere(n_interp=5000, save_to="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, save_to="test_sa_profiles/default" &
+    )
   end subroutine test_sa_default_profile_saving
 
 
@@ -76,6 +85,7 @@ contains
 
     call set_name("solar atmosphere (custom profile saving)")
     call set_solar_atmosphere( &
+      settings,  &
       f_b02=b02, &
       f_db02=db02, &
       f_b03=b03, &
@@ -90,33 +100,43 @@ contains
     @assertEqual(50.0d0 * grid_gauss, B_field % d_B03_dr, tolerance=TOL)
     @assertEqual(1.0d0 / grid_gauss ** 2, grav_field % grav, tolerance=TOL)
     contains
-      function b02(x)
+      function b02(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: b02(size(x))
+        if (tsettings%units%are_set()) continue
         b02 = 5.0d0 * x
       end function b02
 
-      function db02(x)
+      function db02(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: db02(size(x))
+        if (tsettings%units%are_set()) continue
         db02 = 5.0d0
       end function db02
 
-      function b03(x)
+      function b03(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: b03(size(x))
+        if (tsettings%units%are_set()) continue
         b03 = 25.0d0 * x ** 2
       end function b03
 
-      function db03(x)
+      function db03(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: db03(size(x))
+        if (tsettings%units%are_set()) continue
         db03 = 50.0d0 * x
       end function db03
 
-      function gprof(x)
+      function gprof(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: gprof(size(x))
+        if (tsettings%units%are_set()) continue
         gprof = 1.0d0 / x ** 2
       end function gprof
   end subroutine test_sa_custom_profile_saving
@@ -129,10 +149,12 @@ contains
     real(dp) :: rho_expected(size(rho_field % rho0))
 
     call set_name("solar atmosphere (default profile loading - density)")
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     rho_expected = rho_field % rho0
-    call reset_fields(init_fields=.true.)
-    call set_solar_atmosphere(n_interp=5000)
+    call reset_fields(settings, init_fields=.true.)
+    call set_solar_atmosphere(settings, n_interp=5000)
     @assertEqual(rho_expected, rho_field % rho0, tolerance=TOL)
   end subroutine test_sa_default_profile_loading_density
 
@@ -144,74 +166,76 @@ contains
     real(dp) :: temp_expected(size(T_field % T0))
 
     call set_name("solar atmosphere (default profile loading - temperature)")
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     temp_expected = T_field % T0
-    call reset_fields(init_fields=.true.)
-    call set_solar_atmosphere(n_interp=5000)
+    call reset_fields(settings, init_fields=.true.)
+    call set_solar_atmosphere(settings, n_interp=5000)
     @assertEqual(temp_expected, T_field % T0, tolerance=TOL)
   end subroutine test_sa_default_profile_loading_temperature
 
 
   @test
   subroutine test_sa_profile_loading_invalid_unit_length()
-    use mod_units, only: unit_temperature, unit_magneticfield
-
     call set_name("solar atmosphere (loading - different unit length)")
-    call set_normalisations( &
-      new_unit_temperature=unit_temperature, &
-      new_unit_magneticfield=unit_magneticfield, &
-      new_unit_length=5.0d6 &
+    call settings%units%set_units_from_temperature( &
+      unit_temperature=settings%units%get_unit_temperature(), &
+      unit_magneticfield=settings%units%get_unit_magneticfield(), &
+      unit_length=5.0d6 &
     )
     logging_level = 0
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
   end subroutine test_sa_profile_loading_invalid_unit_length
 
 
   @test
   subroutine test_sa_profile_loading_invalid_unit_temperature()
-    use mod_units, only: unit_magneticfield, unit_length
-
     call set_name("solar atmosphere (loading - different unit temperature)")
-    call set_normalisations( &
-      new_unit_temperature=1.0d4, &
-      new_unit_magneticfield=unit_magneticfield, &
-      new_unit_length=unit_length &
+    call settings%units%set_units_from_temperature( &
+      unit_temperature=1.0d4, &
+      unit_magneticfield=settings%units%get_unit_magneticfield(), &
+      unit_length=settings%units%get_unit_length() &
     )
     logging_level = 0
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
   end subroutine test_sa_profile_loading_invalid_unit_temperature
 
 
   @test
   subroutine test_sa_profile_loading_invalid_unit_magneticfield()
-    use mod_units, only: unit_temperature, unit_length
-
     call set_name("solar atmosphere (loading - different unit magnetic field)")
-    call set_normalisations( &
-      new_unit_temperature=unit_temperature, &
-      new_unit_magneticfield=2.5d0, &
-      new_unit_length=unit_length &
+    call settings%units%set_units_from_temperature( &
+      unit_temperature=settings%units%get_unit_temperature(), &
+      unit_magneticfield=2.5d0, &
+      unit_length=settings%units%get_unit_length() &
     )
     logging_level = 0
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
   end subroutine test_sa_profile_loading_invalid_unit_magneticfield
 
 
   @test
   subroutine test_sa_profile_loading_invalid_unit_density()
-    use mod_units, only: unit_magneticfield, unit_length
-
     call set_name("solar atmosphere (loading - different unit density)")
-    call set_normalisations( &
-      new_unit_density=1.0d-12, &
-      new_unit_magneticfield=unit_magneticfield, &
-      new_unit_length=unit_length &
+    call settings%units%set_units_from_density( &
+      unit_density=1.0d-12, &
+      unit_magneticfield=settings%units%get_unit_magneticfield(), &
+      unit_length=settings%units%get_unit_length() &
     )
     logging_level = 0
-    call set_solar_atmosphere(n_interp=5000, load_from="test_sa_profiles/default")
+    call set_solar_atmosphere( &
+      settings, n_interp=5000, load_from="test_sa_profiles/default" &
+    )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
   end subroutine test_sa_profile_loading_invalid_unit_density
 
@@ -221,6 +245,7 @@ contains
     call set_name("solar atmosphere (loading - B02 inconsistent)")
     logging_level = 0
     call set_solar_atmosphere( &
+      settings,  &
       f_b02=b02, &
       f_db02=db02, &
       n_interp=5000, &
@@ -228,14 +253,18 @@ contains
     )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
     contains
-      function b02(x)
+      function b02(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: b02(size(x))
+        if (tsettings%units%are_set()) continue
         b02 = x
       end function b02
-      function db02(x)
+      function db02(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: db02(size(x))
+        if (tsettings%units%are_set()) continue
         db02 = 0.0d0
       end function db02
   end subroutine test_sa_loading_b02_inconsistent
@@ -246,6 +275,7 @@ contains
     call set_name("solar atmosphere (loading - dB02 inconsistent)")
     logging_level = 0
     call set_solar_atmosphere( &
+      settings,  &
       f_b02=b02, &
       f_db02=db02, &
       n_interp=5000, &
@@ -253,14 +283,18 @@ contains
     )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
     contains
-      function b02(x)
+      function b02(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: b02(size(x))
+        if (tsettings%units%are_set()) continue
         b02 = 1.0d0
       end function b02
-      function db02(x)
+      function db02(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: db02(size(x))
+        if (tsettings%units%are_set()) continue
         db02 = 1.0d0
       end function db02
   end subroutine test_sa_loading_db02_inconsistent
@@ -271,6 +305,7 @@ contains
     call set_name("solar atmosphere (loading - B03 inconsistent)")
     logging_level = 0
     call set_solar_atmosphere( &
+      settings,  &
       f_b03=b03, &
       f_db03=db03, &
       n_interp=5000, &
@@ -278,14 +313,18 @@ contains
     )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
     contains
-      function b03(x)
+      function b03(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: b03(size(x))
+        if (tsettings%units%are_set()) continue
         b03 = x**2
       end function b03
-      function db03(x)
+      function db03(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: db03(size(x))
+        if (tsettings%units%are_set()) continue
         db03 = 0.0d0
       end function db03
   end subroutine test_sa_loading_b03_inconsistent
@@ -296,6 +335,7 @@ contains
     call set_name("solar atmosphere (loading - dB03 inconsistent)")
     logging_level = 0
     call set_solar_atmosphere( &
+      settings,  &
       f_b03=b03, &
       f_db03=db03, &
       n_interp=5000, &
@@ -303,14 +343,18 @@ contains
     )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
     contains
-      function b03(x)
+      function b03(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: b03(size(x))
+        if (tsettings%units%are_set()) continue
         b03 = 1.0d0
       end function b03
-      function db03(x)
+      function db03(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: db03(size(x))
+        if (tsettings%units%are_set()) continue
         db03 = 2.0d0
       end function db03
   end subroutine test_sa_loading_db03_inconsistent
@@ -321,24 +365,20 @@ contains
     call set_name("solar atmosphere (loading - gravity inconsistent)")
     logging_level = 0
     call set_solar_atmosphere( &
+      settings,  &
       f_g=gprof, &
       n_interp=5000, &
       load_from="test_sa_profiles/default" &
     )
     @assertExceptionRaised("solar atmosphere: profile loading failed!")
     contains
-      function gprof(x)
+      function gprof(x, tsettings)
         real(dp), intent(in) :: x(:)
+        type(settings_t), intent(in) :: tsettings
         real(dp) :: gprof(size(x))
+        if (tsettings%units%are_set()) continue
         gprof = 1.0d0
       end function gprof
   end subroutine test_sa_loading_gravity_inconsistent
-
-
-
-
-
-
-
 
 end module mod_test_solar_atmosphere

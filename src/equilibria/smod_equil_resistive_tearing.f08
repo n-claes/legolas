@@ -22,22 +22,16 @@ submodule (mod_equilibrium) smod_equil_resistive_tearing
 contains
 
   !> Sets the equilibrium
-  module subroutine resistive_tearing_modes_eq()
-    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
+  module procedure resistive_tearing_modes_eq
     use mod_equilibrium_params, only: alpha, beta, cte_rho0
 
     real(dp)              :: x
     integer               :: i
 
-    call allow_geometry_override( &
-      default_geometry="Cartesian", default_x_start=-0.5d0, default_x_end=0.5d0 &
-    )
-    call initialise_grid()
-
-    if (use_defaults) then ! LCOV_EXCL_START
-      resistivity = .true.
-      use_fixed_resistivity = .true.
-      fixed_eta_value = 0.0001d0
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("Cartesian")
+      call settings%grid%set_grid_boundaries(-0.5_dp, 0.5_dp)
+      call settings%physics%enable_resistivity(fixed_resistivity_value=0.0001_dp)
 
       k2 = 0.49d0
       k3 = 0.0d0
@@ -46,8 +40,9 @@ contains
       beta  = 0.15d0
       cte_rho0 = 1.0d0
     end if ! LCOV_EXCL_STOP
+    call initialise_grid(settings)
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
       rho_field % rho0(i) = cte_rho0
@@ -63,6 +58,6 @@ contains
       eta_field % dd_B02_dr(i) = -alpha**2 * sin(alpha * x)
       eta_field % dd_B03_dr(i) = -alpha**2 * cos(alpha * x)
     end do
-  end subroutine resistive_tearing_modes_eq
+  end procedure resistive_tearing_modes_eq
 
 end submodule smod_equil_resistive_tearing

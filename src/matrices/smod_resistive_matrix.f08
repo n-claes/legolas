@@ -5,13 +5,14 @@ submodule (mod_matrix_manager) smod_resistive_matrix
 contains
 
   module procedure add_resistive_matrix_terms
-    use mod_global_variables, only: incompressible
-
     real(dp)  :: eps, deps
     real(dp)  :: B02, dB02, drB02, ddB02
     real(dp)  :: B03, dB03, ddB03
     real(dp)  :: eta, detadT, deta
     real(dp)  :: WVop, Rop_pos, Rop_neg
+    real(dp) :: gamma_1
+
+    gamma_1 = settings%physics%get_gamma_1()
 
     ! grid variables
     eps = eps_grid(gauss_idx)
@@ -41,7 +42,7 @@ contains
     ! R(5, 6)
     factors(2) = 0.0d0
     positions(2, :) = [5, 6]
-    if (.not. incompressible) then
+    if (.not. settings%physics%is_incompressible) then
       factors(1) = ic * gamma_1 * detadT * ((drB02 / eps)**2 + dB03**2)
       factors(2) = 2.0d0 * ic * gamma_1 * ( &
         k2 * (dB03 * Rop_pos + eta * ddB03) &
@@ -51,15 +52,19 @@ contains
     ! R(6, 6)
     factors(3) = -ic * eta * WVop
     positions(3, :) = [6, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
+    )
 
-    if (.not. incompressible) then
+    if (.not. settings%physics%is_incompressible) then
       ! ==================== dQuadratic * Quadratic ====================
       call reset_factor_positions(new_size=1)
       ! R(5, 6)
       factors(1) = -2.0d0 * ic * gamma_1 * eta * (k3 * drB02 - k2 * dB03)
       positions(1, :) = [5, 6]
-      call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
+      call subblock( &
+        quadblock, factors, positions, current_weight, dh_quad, h_quad, settings%dims &
+      )
 
       ! ==================== Quadratic * Cubic ====================
       call reset_factor_positions(new_size=2)
@@ -69,7 +74,9 @@ contains
       ! R(5, 8)
       factors(2) = 2.0d0 * ic * gamma_1 * eta * (drB02 * k2**2 / eps**2 + k2 * k3 * dB03)
       positions(2, :) = [5, 8]
-      call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
+      call subblock( &
+        quadblock, factors, positions, current_weight, h_quad, h_cubic, settings%dims &
+      )
     end if
 
     ! ==================== Quadratic * dCubic ====================
@@ -80,7 +87,7 @@ contains
     ! R(5, 8)
     factors(2) = 0.0d0
     positions(2, :) = [5, 8]
-    if (.not. incompressible) then
+    if (.not. settings%physics%is_incompressible) then
       factors(1) = -2.0d0 * ic * gamma_1 * (dB03 * Rop_pos + ddB03 * eta)
       factors(2) = -2.0d0 * ic * gamma_1 * ( &
         drB02 * Rop_neg - eta * (2.0d0 * deps * dB02 + eps * ddB02) &
@@ -92,9 +99,11 @@ contains
     ! R(6, 8)
     factors(4) = ic * eta * eps * k3
     positions(4, :) = [6, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, dh_cubic, settings%dims &
+    )
 
-    if (.not. incompressible) then
+    if (.not. settings%physics%is_incompressible) then
       ! ==================== dQuadratic * dCubic ====================
       call reset_factor_positions(new_size=2)
       ! R(5, 7)
@@ -103,7 +112,15 @@ contains
       ! R(5, 8)
       factors(2) = 2.0d0 * ic * gamma_1 * drB02 * eta
       positions(2, :) = [5, 8]
-      call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
+      call subblock( &
+        quadblock, &
+        factors, &
+        positions, &
+        current_weight, &
+        dh_quad, &
+        dh_cubic, &
+        settings%dims &
+      )
     end if
 
     ! ==================== Cubic * Quadratic ====================
@@ -120,7 +137,9 @@ contains
     ! R(8, 6)
     factors(4) = ic * deta * eps * k3
     positions(4, :) = [8, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, h_quad, settings%dims &
+    )
 
     ! ==================== dCubic * Quadratic ====================
     call reset_factor_positions(new_size=2)
@@ -130,7 +149,9 @@ contains
     ! R(8, 6)
     factors(2) = ic * eta * eps * k3
     positions(2, :) = [8, 6]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_cubic, h_quad, settings%dims &
+    )
 
     ! ==================== Cubic * Cubic ====================
     call reset_factor_positions(new_size=4)
@@ -146,7 +167,9 @@ contains
     ! R(8, 8)
     factors(4) = -ic * eta * k2**2 / eps
     positions(4, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, h_cubic, settings%dims &
+    )
 
     ! ==================== Cubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -156,7 +179,9 @@ contains
     ! R(8, 8)
     factors(2) = -ic * deta * eps
     positions(2, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_cubic, dh_cubic, settings%dims &
+    )
 
     ! ==================== dCubic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -166,7 +191,9 @@ contains
     ! R(8, 8)
     factors(2) = -ic * eta * eps
     positions(2, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_cubic, dh_cubic, settings%dims &
+    )
 
   end procedure add_resistive_matrix_terms
 

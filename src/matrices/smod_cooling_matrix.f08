@@ -5,14 +5,16 @@ contains
 
   module procedure add_cooling_matrix_terms
     use mod_equilibrium, only: rc_field
-    use mod_global_variables, only: incompressible
 
     real(dp)  :: rho
     real(dp)  :: Lrho, LT, L0
+    real(dp) :: gamma_1
 
-    if (incompressible) then
+    if (settings%physics%is_incompressible) then
       return
     end if
+
+    gamma_1 = settings%physics%get_gamma_1()
 
     rho = rho_field % rho0(gauss_idx)
     Lrho = rc_field % d_L_drho(gauss_idx)
@@ -27,7 +29,9 @@ contains
     ! Lambda(5, 5)
     factors(2) = -ic * gamma_1 * rho * LT
     positions(2, :) = [5, 5]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
+    )
 
   end procedure add_cooling_matrix_terms
 

@@ -26,14 +26,14 @@ submodule (mod_equilibrium) smod_equil_kelvin_helmholtz_cd
 contains
 
   !> Sets the equilibrium.
-  module subroutine kh_cd_instability_eq()
+  module procedure kh_cd_instability_eq
     use mod_equilibrium_params, only: V, cte_rho0, cte_p0, Bz0, rc, Bth0, rj
 
     real(dp)    :: r, a
     integer     :: i
 
-    if (use_defaults) then ! LCOV_EXCL_START
-      flow = .true.
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%physics%enable_flow()
 
       V = 1.63d0
       cte_rho0 = 1.0d0
@@ -49,12 +49,11 @@ contains
     a = 0.1d0 * rj
     k3  = dpi / rj
 
-    geometry = "cylindrical"
-    x_start = 0.0d0
-    x_end   = 2.0d0 * rj
-    call initialise_grid()
+    call settings%grid%set_geometry("cylindrical")
+    call settings%grid%set_grid_boundaries(0.0_dp, 2.0_dp * rj)
+    call initialise_grid(settings)
 
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
 
       rho_field % rho0(i) = cte_rho0
@@ -70,6 +69,6 @@ contains
       T_field % d_T0_dr(i)  = - (2.0d0*Bth0**2/(rho_field % rho0(i))) &
         * rc**4*r / (r**2+rc**2)**3
     end do
-  end subroutine kh_cd_instability_eq
+  end procedure kh_cd_instability_eq
 
 end submodule smod_equil_kelvin_helmholtz_cd

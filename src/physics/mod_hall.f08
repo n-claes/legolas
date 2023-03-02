@@ -2,7 +2,8 @@
 !> Module containing Hall-related routines.
 !! Sets the Hall and electron inertia factors based on normalisations and specified profiles.
 module mod_hall
-  use mod_global_variables, only: dp, dim_quadblock
+  use mod_global_variables, only: dp
+  use mod_settings, only: settings_t
 
 implicit none
 
@@ -15,35 +16,36 @@ contains
   !> Retrieves the normalised Hall factor as described by Porth et al. (2014),
   !! with a dropoff at the boundary, if desired. Additionally, defines the
   !! electron inertia factor if included, with a dropoff profile, if desired.
-  subroutine set_hall_factors(hall_field)
+  subroutine set_hall_factors(settings, hall_field)
     use mod_grid, only: grid_gauss
-    use mod_physical_constants, only: dpi
-    use mod_global_variables, only: cgs_units, gauss_gridpts, dropoff_edge_dist, &
-                                    dropoff_width, hall_dropoff, inertia_dropoff, &
-                                    elec_inertia
-    use mod_physical_constants, only: mp_cgs, mp_si, ec_cgs, ec_si, me_cgs, me_si
-    use mod_units, only: unit_velocity, unit_length, unit_magneticfield
+    use mod_physical_constants, only: dpi, mp_cgs, ec_cgs, me_cgs
     use mod_types, only: hall_type
 
-    type (hall_type), intent(inout)  :: hall_field
+    type(settings_t), intent(in) :: settings
+    type(hall_type), intent(inout)  :: hall_field
 
-    real(dp)  :: sleft, sright, width, hallval, inertiaval
+    real(dp) :: unit_velocity, unit_length, unit_magneticfield
+    real(dp)  :: sleft, sright, width, hallval, inertiaval, edge_dist
     real(dp)  :: x, shift, stretch, shift2, stretch2
-    integer   :: i
+    integer   :: i, gauss_gridpts
 
-    width = dropoff_width
-    if (cgs_units) then
-      hallval = (mp_cgs * unit_velocity) / (ec_cgs * unit_length * unit_magneticfield)
-      inertiaval = (mp_cgs * me_cgs * unit_velocity**2) / (ec_cgs * unit_length * unit_magneticfield)**2
-    else
-      hallval = (mp_si * unit_velocity) / (ec_si * unit_length * unit_magneticfield)
-      inertiaval = (mp_si * me_si * unit_velocity**2) / (ec_si * unit_length * unit_magneticfield)**2
-    end if
+    gauss_gridpts = settings%grid%get_gauss_gridpts()
+    width = settings%physics%dropoff_width
+    edge_dist = settings%physics%dropoff_edge_dist
 
-    sleft = grid_gauss(1) + 0.5d0 * width + dropoff_edge_dist
-    sright = grid_gauss(gauss_gridpts) - dropoff_edge_dist - 0.5d0 * width
+    unit_velocity = settings%units%get_unit_velocity()
+    unit_length = settings%units%get_unit_length()
+    unit_magneticfield = settings%units%get_unit_magneticfield()
+    hallval = (mp_cgs * unit_velocity) / (ec_cgs * unit_length * unit_magneticfield)
+    inertiaval = ( &
+      mp_cgs * me_cgs * unit_velocity**2 &
+      / (ec_cgs * unit_length * unit_magneticfield)**2 &
+    )
 
-    if (hall_dropoff) then
+    sleft = grid_gauss(1) + 0.5d0 * width + edge_dist
+    sright = grid_gauss(gauss_gridpts) - edge_dist - 0.5d0 * width
+
+    if (settings%physics%hall%use_dropoff) then
       shift = hallval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
       stretch = hallval / (tanh(dpi) - tanh(-dpi))
 
@@ -63,8 +65,8 @@ contains
       hall_field % hallfactor = hallval
     end if
 
-    if (elec_inertia) then
-      if (inertia_dropoff) then
+    if (settings%physics%hall%has_electron_inertia()) then
+      if (settings%physics%hall%use_inertia_dropoff) then
         shift2 = inertiaval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
         stretch2 = inertiaval / (tanh(dpi) - tanh(-dpi))
 

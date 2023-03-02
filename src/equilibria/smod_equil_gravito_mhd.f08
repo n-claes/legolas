@@ -20,18 +20,17 @@ submodule (mod_equilibrium) smod_equil_gravito_mhd
 
 contains
 
-  module subroutine gravito_mhd_eq()
+  module procedure gravito_mhd_eq
     use mod_equilibrium_params, only: g, cte_rho0, cte_p0, alpha, beta
 
     real(dp)  :: x, B0
     integer   :: i
 
-    call allow_geometry_override( &
-      default_geometry="Cartesian", default_x_start=0.0d0, default_x_end=1.0d0 &
-    )
 
-    if (use_defaults) then ! LCOV_EXCL_START
-      external_gravity = .true.
+    if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_geometry("Cartesian")
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+      call settings%physics%enable_gravity()
 
       k2 = dpi
       k3 = dpi
@@ -44,14 +43,14 @@ contains
     beta  = 2.0d0*cte_p0 / B0**2
     cte_rho0 = (alpha / g) * (cte_p0 + 0.5d0 * B0**2)
 
-    call initialise_grid()
+    call initialise_grid(settings)
 
     !! Equilibrium
     T_field % T0 = cte_p0 / cte_rho0
     grav_field % grav = g
 
     ! Full exponential prescription for the equilibrium configuration
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
       rho_field % rho0(i) = cte_rho0 * exp(-alpha*x)
@@ -62,6 +61,6 @@ contains
       B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
     end do
 
-  end subroutine gravito_mhd_eq
+  end procedure gravito_mhd_eq
 
 end submodule smod_equil_gravito_mhd

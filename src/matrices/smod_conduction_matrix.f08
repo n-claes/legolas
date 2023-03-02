@@ -6,7 +6,6 @@ contains
 
   module procedure add_conduction_matrix_terms
     use mod_matrix_shortcuts, only: get_Kp_operator, get_diffF_operator
-    use mod_global_variables, only: incompressible
 
     real(dp)  :: eps, deps
     real(dp)  :: dT0, ddT0
@@ -15,11 +14,14 @@ contains
     real(dp)  :: WVop, Fop_plus, dFop_plus, Gop_min
     real(dp)  :: kappa_para, dkappa_para_dT
     real(dp)  :: kappa_perp, dkappa_perp_drho, dkappa_perp_dT, dkappa_perp_dB2
+    real(dp) :: gamma_1
     complex(dp) :: Fop_B01
 
-    if (incompressible) then
+    if (settings%physics%is_incompressible) then
       return
     end if
+
+    gamma_1 = settings%physics%get_gamma_1()
 
     ! grid variables
     eps = eps_grid(gauss_idx)
@@ -74,7 +76,9 @@ contains
     ! K(5, 6)
     factors(3) = 2.0d0 * gamma_1 * eps * dT0 * Gop_min * Kp_plus * B01 * Fop_B01 / B0**2
     positions(3, :) = [5, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_quad, settings%dims &
+    )
 
     ! ==================== dQuadratic * Quadratic ====================
     call reset_factor_positions(new_size=3)
@@ -93,21 +97,27 @@ contains
     ! K(5, 6)
     factors(3) = -2.0d0 * ic * gamma_1 * eps * dT0 * Gop_min * Kp_plusplus
     positions(3, :) = [5, 6]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, h_quad, settings%dims &
+    )
 
     ! ==================== Quadratic * dQuadratic ====================
     call reset_factor_positions(new_size=1)
     ! K(5, 5)
     factors(1) = -2.0d0 * ic * gamma_1 * deps * B01**2 * Kp / eps
     positions(1, :) = [5, 5]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, dh_quad, settings%dims &
+    )
 
     ! ==================== dQuadratic * dQuadratic ====================
     call reset_factor_positions(new_size=1)
     ! K(5, 5)
     factors(1) = -ic * gamma_1 * (2.0d0 * B01**2 * Kp + kappa_perp)
     positions(1, :) = [5, 5]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_quad)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, dh_quad, settings%dims &
+    )
 
     ! ==================== Quadratic * Cubic ====================
     call reset_factor_positions(new_size=2)
@@ -123,7 +133,9 @@ contains
       + B01 * dT0 * (diffKp - 2.0d0 * ic * B01 * Kp_plus * Fop_B01 / B0**2) &
     )
     positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, h_cubic, settings%dims &
+    )
 
     ! ==================== Quadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -137,7 +149,9 @@ contains
       -2.0d0 * eps * B02 * Kp_plus * Fop_B01 / B0**2 + k2 * Kp &
     )
     positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, h_quad, dh_cubic, settings%dims &
+    )
 
     ! ==================== dQuadratic * Cubic ====================
     call reset_factor_positions(new_size=2)
@@ -147,7 +161,9 @@ contains
     ! K(5, 8)
     factors(2) = 2.0d0 * gamma_1 * dT0 * B01 * k2 * Kp_plusplus
     positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, h_cubic, settings%dims &
+    )
 
     ! ==================== dQuadratic * dCubic ====================
     call reset_factor_positions(new_size=2)
@@ -157,7 +173,9 @@ contains
     ! K(5, 8)
     factors(2) = 2.0d0 * ic * gamma_1 * dT0 * eps * B02 * Kp_plusplus
     positions(2, :) = [5, 8]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
+    call subblock( &
+      quadblock, factors, positions, current_weight, dh_quad, dh_cubic, settings%dims &
+    )
   end procedure add_conduction_matrix_terms
 
 end submodule smod_conduction_matrix
