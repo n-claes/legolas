@@ -170,6 +170,7 @@ contains
       call zdscal(N, 1.0_dp / dznrm2(N, x, 1), x, 1)
     end do
 
+    call logger%info("Iteration completed after " // str(i) // " iterations.")
     ! if we did not converge, raise a warning
     if (.not.converged) then
       if (i == maxiter+1) then
