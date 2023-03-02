@@ -54,7 +54,8 @@ contains
 
     ! check input sanity
     if (.not. (matrix_A%matrix_dim == matrix_B%matrix_dim)) then
-      call log_message("A or B not square, or not compatible", level="error")
+      call logger%error("A or B not square, or not compatible")
+      return
     end if
     ! set array dimensions
     N = size(UAU, dim=1)
@@ -62,13 +63,12 @@ contains
     ldvl = N
     ldvr = N
     ! compute B = U^HU
-    call log_message("computing B = U^HU", level="debug")
+    call logger%debug("computing B = U^HU")
     ! first convert B to banded
     call matrix_B%get_nb_diagonals(ku=ku, kl=kl)
     if (ku /= kl) then
-      call log_message( &
-        "B has unequal sub/super diagonals: " // str(kl) // "/" // str(ku), &
-        level="error" &
+      call logger%error( &
+        "B has unequal sub/super diagonals: " // str(kl) // "/" // str(ku) &
       )
       return
     end if
@@ -76,10 +76,11 @@ contains
     call matrix_to_hermitian_banded(matrix=matrix_B, diags=ku, uplo="U", banded=UU)
     call zpbtrf("U", UU%n, UU%kd, UU%AB, UU%kd+1, info)
     if (info /= 0) then ! LCOV_EXCL_START
-      call log_message("zpbtrf failed: B is not positive definite", level="error")
+      call logger%error("zpbtrf failed: B is not positive definite")
+      return
     end if ! LCOV_EXCL_STOP
     ! compute U^{-H}AU^{-1}
-    call log_message("computing B = U^{-H}AU^{-1}", level="debug")
+    call logger%debug("computing B = U^{-H}AU^{-1}")
     call matrix_to_array(matrix=matrix_A, array=UAU)
     ! first U^{-H}A by solving U^HX = A
     do i = 1, N
@@ -107,17 +108,13 @@ contains
 
 
     ! solve eigenvalue problem
-    call log_message("solving evp using QR algorithm zgeev (LAPACK)", level="debug")
+    call logger%debug("solving evp using QR algorithm zgeev (LAPACK)")
     call zgeev( &
       jobvl, jobvr, N, UAU, ldUAU, omega, vl, ldvl, vr, ldvr, work, lwork, rwork, info &
     )
     if (info /= 0) then ! LCOV_EXCL_START
-      call log_message("LAPACK routine zgeev failed!", level="warning")
-      call log_message( &
-        "value for the info parameter: " // str(info), &
-        level="warning", &
-        use_prefix=.false. &
-      )
+      call logger%warning("LAPACK routine zgeev failed!")
+      call logger%warning("value for the info parameter: " // str(info))
     end if ! LCOV_EXCL_STOP
 
     ! tear down work arrays
@@ -126,7 +123,7 @@ contains
 
     ! convert from Y to X by solving UX = Y
     if (settings%io%should_compute_eigenvectors()) then
-      call log_message("computing evs as X = U^{-1}Y", level="debug")
+      call logger%debug("computing evs as X = U^{-1}Y")
       do i = 1, N
         call ztbsv("U", "N", "N", N, UU%kd, UU%AB, UU%kd+1, vr(1, i), 1)
       end do

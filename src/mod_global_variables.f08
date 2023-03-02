@@ -41,9 +41,6 @@ module mod_global_variables
     0.347854845137454, 0.652145154862546, 0.652145154862546, 0.347854845137454 &
   ]
 
-  !> sets the logging level, defaults to 2 (errors, warnings and info)
-  integer                   :: logging_level
-
 contains
 
 
@@ -57,8 +54,6 @@ contains
     use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
 
     NaN = ieee_value(NaN, ieee_quiet_nan)
-
-    logging_level = 2
   end subroutine initialise_globals
 
 end module mod_global_variables

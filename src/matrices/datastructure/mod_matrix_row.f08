@@ -2,7 +2,6 @@
 !> Module that contains the implementation of a single row of nodes in the
 !! linked-list matrix representation.
 module mod_matrix_row
-  use mod_logging, only: log_message, str
   use mod_matrix_node, only: node_t, new_node
   implicit none
 

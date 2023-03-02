@@ -34,7 +34,7 @@
 !!```
 module mod_timing
   use mod_global_variables, only: dp
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   implicit none
 
   private
@@ -98,6 +98,7 @@ contains
     total_time = real(end_time - this%program_start_time, kind=dp) / rate
   end function get_total_time
 
+  ! LCOV_EXCL_START
 
   !> Subroutine to start a wall clock timer.
   !!
@@ -164,10 +165,9 @@ contains
     call system_clock(end_time, rate)
 
     elapsed_time = real(end_time - selected_start_time, kind=dp) / rate
-    call log_message( &
-      message // " (" // str(elapsed_time, fmt="f20.3") // " s)", &
-      level=loglevel &
-      )
+    call logger%debug( &
+      message // " (" // str(elapsed_time, fmt="f20.3") // " s)" &
+    )
   end subroutine toc
 
   !> Subroutine to start a CPU timer.
@@ -235,10 +235,11 @@ contains
     call cpu_time(end_time)
 
     elapsed_time = end_time - selected_start_time
-    call log_message( &
-      message // " (" // str(elapsed_time, fmt="f20.3") // " s, CPU time)", &
-      level=loglevel &
+    call logger%debug( &
+      message // " (" // str(elapsed_time, fmt="f20.3") // " s, CPU time)" &
     )
   end subroutine cputoc
+
+  ! LCOV_EXCL_END
 
 end module mod_timing

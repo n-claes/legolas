@@ -69,15 +69,11 @@ contains
   !! is printed to the console and program execution
   !! is terminated.
   subroutine on_exception_raised(msg)
-    use mod_global_variables, only: str_len
     use mod_painting, only: paint_string
-
     !> message to print to the console when exception is raised
     character(len=*), intent(in) :: msg
-    character(len=3*str_len) :: msg_painted
 
-    call paint_string(" ERROR   | " // msg, "red", msg_painted)
-    write(*, *) trim(msg_painted)
+    write(*, *) paint_string(" ERROR   | " // msg, "red")
     error stop
   end subroutine on_exception_raised
   ! LCOV_EXCL_STOP

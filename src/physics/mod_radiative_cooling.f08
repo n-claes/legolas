@@ -6,7 +6,7 @@
 !! interpolation module to create one.
 module mod_radiative_cooling
   use mod_global_variables, only: dp
-  use mod_logging, only: log_message
+  use mod_logging, only: logger
   use mod_settings, only: settings_t
   implicit none
 
@@ -34,7 +34,6 @@ contains
   !! to interpolate the final cooling curve using \p ncool points.
   !! @warning Throws an error if the cooling curve is unknown.
   subroutine initialise_radiative_cooling(settings)
-    use mod_logging, only: log_message
     use mod_cooling_curves
 
     type(settings_t), intent(in) :: settings
@@ -84,9 +83,8 @@ contains
       interpolated_curve = .false.
 
     case default
-      call log_message( &
-        "unknown cooling curve: " // settings%physics%cooling%get_cooling_curve(), &
-        level="error" &
+      call logger%error( &
+        "unknown cooling curve: " // settings%physics%cooling%get_cooling_curve() &
       )
       return
     end select
@@ -119,7 +117,6 @@ contains
   subroutine set_radiative_cooling_values(settings, rho_field, T_field, rc_field)
     use mod_types, only: density_type, temperature_type, cooling_type
     use mod_cooling_curves, only: get_rosner_cooling
-    use mod_logging, only: log_message
     use mod_interpolation, only: lookup_table_value
 
     type(settings_t), intent(in) :: settings
@@ -181,7 +178,6 @@ contains
   !! @note    The interpolated cooling curves are normalised on exit.
   subroutine create_cooling_curve(settings, table_T, table_L)
     use mod_interpolation, only: interpolate_table, get_numerical_derivative
-    use mod_global_variables, only: logging_level
 
     type(settings_t), intent(in) :: settings
     !> temperature values in the cooling table
@@ -221,7 +217,7 @@ contains
 
     ! LCOV_EXCL_START
     ! save these curves to a file if we're in debug mode
-    if (logging_level >= 3) then
+    if (logger%get_logging_level() >= 3) then
       open( &
         unit=1002, &
         file="debug_coolingcurves", &
@@ -237,9 +233,7 @@ contains
       write(1002) interp_table_L * unit_lambdaT
       write(1002) interp_table_dLdT * unit_dlambdaT_dT
       close(1002)
-      call log_message( &
-        "cooling curves saved to file 'debug_coolingcurves'", level="debug" &
-      )
+      call logger%debug("cooling curves saved to file 'debug_coolingcurves'")
     end if
     ! LCOV_EXCL_STOP
   end subroutine create_cooling_curve

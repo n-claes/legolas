@@ -1,6 +1,7 @@
 module mod_console
-  use mod_global_variables
-  use mod_logging, only: log_message, override_prefix_to_false, str, exp_fmt
+  use mod_global_variables, only: str_len
+  use mod_settings, only: settings_t
+  use mod_logging, only: logger, str, exp_fmt
   implicit none
 
   private
@@ -28,9 +29,7 @@ contains
     character(len=57)      :: spaces_v = ""
     integer :: i
 
-    if (logging_level <= 1) then
-      return
-    end if
+    if (logger%get_logging_level() <= 1) return
 
     logo(1) = " __       ________  ________   _______   __          ___     __________ "
     logo(2) = "|  |     |   ____ \|   ____ \ /   _   \ |  |        /   \   |   ______ \"
@@ -46,8 +45,7 @@ contains
 
     call print_whitespace(1)
     do i = 1, size(logo)
-      call paint_string(spaces_logo // trim(logo(i)), "cyan", logo(i))
-      write(*, *) trim(adjustl(logo(i)))
+      write(*, *) paint_string(spaces_logo // trim(logo(i)), "cyan")
     end do
     call print_whitespace(2)
   end subroutine print_logo
@@ -57,156 +55,22 @@ contains
   !> Prints various console messages showing geometry, grid parameters,
   !! equilibrium parameters etc. Only for logging level "info" or above.
   subroutine print_console_info(settings)
-    use mod_global_variables
-    use mod_equilibrium_params, only: k2, k3
-    use mod_settings, only: settings_t
-
     type(settings_t), intent(in) :: settings
 
-    if (logging_level <= 1) then
-      return
-    end if
+    if (logger%get_logging_level() <= 1) return
 
-    call log_message("---------------------------------------------")
+    call logger%info("---------------------------------------------")
+    call logger%disable_prefix()
 
-    ! we temporarily force the use of logging prefix to false
-    override_prefix_to_false = .true.
+    call log_grid_info(settings)
+    call log_equilibrium_info(settings)
+    call log_physics_info(settings)
+    call log_solver_info(settings)
+    call log_io_info(settings)
 
-    call log_message("              << Grid settings >>")
-    call log_message("geometry           : " // settings%grid%get_geometry())
-    call log_message("grid start         : " // str(settings%grid%get_grid_start()))
-    call log_message("grid end           : " // str(settings%grid%get_grid_end()))
-    call log_message("gridpoints (base)  : " // str(settings%grid%get_gridpts()))
-    call log_message("gridpoints (Gauss) : " // str(settings%grid%get_gauss_gridpts()))
-    call log_message("gridpoints (matrix): " // str(settings%dims%get_dim_matrix()))
-
-    call log_message("          << Equilibrium settings >>")
-    call log_message( &
-      "equilibrium    : " // settings%equilibrium%get_equilibrium_type() &
-    )
-    call log_message("wave number k2 : " // str(k2))
-    call log_message("wave number k3 : " // str(k3))
-    call log_message("default params : " // str(settings%equilibrium%use_defaults))
-
-    call log_message("            << Physics settings >>")
-    call log_message("flow               : " // str(settings%physics%flow%is_enabled()))
-    call log_message( &
-      "external gravity   : " // str(settings%physics%gravity%is_enabled()) &
-    )
-
-    call log_message( &
-      "radiative cooling  : " // str(settings%physics%cooling%is_enabled()) &
-    )
-    if (settings%physics%cooling%is_enabled()) then
-      call log_message( &
-        "    cooling curve : " &
-        // trim(adjustl(settings%physics%cooling%get_cooling_curve())) &
-      )
-    end if
-
-    call log_message( &
-      "thermal conduction : " // str(settings%physics%conduction%is_enabled()) &
-    )
-    if (settings%physics%conduction%is_enabled()) then
-      if (settings%physics%conduction%has_fixed_tc_para()) then
-        call log_message( &
-          "    fixed parallel value : " &
-          // str(settings%physics%conduction%get_fixed_tc_para()) &
-        )
-      end if
-      if (settings%physics%conduction%has_fixed_tc_perp()) then
-        call log_message( &
-          "    fixed perpendicular value : " &
-          // str(settings%physics%conduction%get_fixed_tc_perp()) &
-        )
-      end if
-    end if
-    call log_message( &
-      "resistivity        : " // str(settings%physics%resistivity%is_enabled()) &
-    )
-    if (settings%physics%resistivity%has_fixed_resistivity()) then
-      call log_message( &
-        "    fixed eta value : " &
-        // str(settings%physics%resistivity%get_fixed_resistivity()) &
-      )
-    end if
-
-    call log_message( &
-      "viscosity          : " // str(settings%physics%viscosity%is_enabled()) &
-    )
-    if (settings%physics%viscosity%is_enabled()) then
-      call log_message( &
-        "    viscosity value : " &
-        // str(settings%physics%viscosity%get_viscosity_value()) &
-      )
-      call log_message( &
-        "    viscous heating : " &
-        // str(settings%physics%viscosity%has_viscous_heating()) &
-      )
-    end if
-
-    call log_message("hall mhd           : " // str(settings%physics%hall%is_enabled()))
-    if (settings%physics%hall%is_enabled()) then
-      call log_message( &
-        "    by substitution   : " &
-        // str(settings%physics%hall%is_using_substitution()) &
-      )
-      call log_message( &
-        "    electron fraction : " &
-        // str(settings%physics%hall%get_electron_fraction()) &
-      )
-      call log_message( &
-        "    electron inertia  : " &
-        // str(settings%physics%hall%has_electron_inertia()) &
-      )
-    end if
-
-    call log_message("            << Solver settings >>")
-    call log_message("solver      : " // settings%solvers%get_solver())
-    if (settings%solvers%get_solver() == "arnoldi") then
-      call log_message("ARPACK mode : " // settings%solvers%get_arpack_mode())
-      if (settings%solvers%get_arpack_mode() == "shift-invert") then
-        call log_message("sigma : " // str(settings%solvers%sigma))
-      end if
-      call log_message( &
-        "number of eigenvalues : " // str(settings%solvers%number_of_eigenvalues) &
-      )
-      call log_message( &
-        "which eigenvalues     : " // settings%solvers%which_eigenvalues &
-      )
-      call log_message("maxiter               : " // str(settings%solvers%maxiter))
-      call log_message( &
-        "tolerance             : " // str(settings%solvers%tolerance, exp_fmt) &
-      )
-    end if
-    if (settings%solvers%get_solver() == "inverse-iteration") then
-      call log_message("sigma     : " // str(settings%solvers%sigma))
-      call log_message("maxiter   : " // str(settings%solvers%maxiter))
-      call log_message("tolerance : " // str(settings%solvers%tolerance, exp_fmt))
-    end if
-
-    call log_message("            << DataIO settings >>")
-    call log_message("datfile name         : " // settings%io%get_basename_datfile())
-    call log_message("output folder        : " // settings%io%get_output_folder())
-    call log_message("write matrices       : " // str(settings%io%write_matrices))
-    call log_message("write eigenvectors   : " // str(settings%io%write_eigenvectors))
-    call log_message("write residuals      : " // str(settings%io%write_residuals))
-    call log_message("write eigenfunctions : " // str(settings%io%write_eigenfunctions))
-    call log_message( &
-      "write derived eigenfunctions : " &
-      // str(settings%io%write_derived_eigenfunctions) &
-    )
-    call log_message( &
-      "write eigenfunction subset : " // str(settings%io%write_ef_subset) &
-    )
-    if (settings%io%write_ef_subset) then
-      call log_message("    subset center : " // str(settings%io%ef_subset_center))
-      call log_message("    subset radius : " // str(settings%io%ef_subset_radius))
-    end if
-    call log_message("---------------------------------------------")
+    call logger%info("---------------------------------------------")
+    call logger%enable_prefix()
     call print_whitespace(1)
-    ! reset override
-    override_prefix_to_false = .false.
   end subroutine print_console_info
 
 
@@ -217,13 +81,197 @@ contains
     integer, intent(in) :: lines
     integer :: i
 
-    if (logging_level >= 1) then
+    if (logger%get_logging_level() >= 1) then
       do i = 1, lines
         write(*, *) ""
       end do
     end if
   end subroutine print_whitespace
 
-  ! LCOV_EXCL_STOP
+
+  subroutine log_grid_info(settings)
+    type(settings_t), intent(in) :: settings
+
+    call logger%info("              << Grid settings >>")
+    call logger%info("geometry           : " // settings%grid%get_geometry())
+    call logger%info("grid start         : " // str(settings%grid%get_grid_start()))
+    call logger%info("grid end           : " // str(settings%grid%get_grid_end()))
+    call logger%info("gridpoints (base)  : " // str(settings%grid%get_gridpts()))
+    call logger%info("gridpoints (Gauss) : " // str(settings%grid%get_gauss_gridpts()))
+    call logger%info("gridpoints (matrix): " // str(settings%dims%get_dim_matrix()))
+  end subroutine log_grid_info
+
+
+  subroutine log_equilibrium_info(settings)
+    use mod_equilibrium_params, only: k2, k3
+    type(settings_t), intent(in) :: settings
+
+    call logger%info("          << Equilibrium settings >>")
+    call logger%info("equilibrium : " // settings%equilibrium%get_equilibrium_type())
+    call logger%info("k2          : " // str(k2))
+    call logger%info("k3          : " // str(k3))
+    call logger%info("use defaults: " // str(settings%equilibrium%use_defaults))
+  end subroutine log_equilibrium_info
+
+
+  subroutine log_physics_info(settings)
+    type(settings_t), intent(in) :: settings
+
+    call logger%info("            << Physics settings >>")
+    call logger%info("physics type : " // settings%get_physics_type())
+    call logger%info("gamma        : " // str(settings%physics%get_gamma()))
+    call log_flow_info()
+    call log_gravity_info()
+    call log_cooling_info()
+    call log_parallel_conduction_info()
+    call log_perpendicular_conduction_info()
+    call log_resistivity_info()
+    call log_viscosity_info()
+    call log_hall_info()
+
+    contains
+
+    subroutine log_flow_info()
+      logical :: flow
+      flow = settings%physics%flow%is_enabled()
+      call logger%info("flow                     : " // str(flow))
+    end subroutine log_flow_info
+
+    subroutine log_gravity_info()
+      logical :: gravity
+      gravity = settings%physics%gravity%is_enabled()
+      call logger%info("external gravity         : " // str(gravity))
+    end subroutine log_gravity_info
+
+    subroutine log_cooling_info()
+      logical :: cooling
+      cooling = settings%physics%cooling%is_enabled()
+      call logger%info("radiative cooling        : " // str(cooling))
+      if (.not. cooling) return
+      call logger%info("  cooling curve          : " // &
+        trim(adjustl(settings%physics%cooling%get_cooling_curve())) &
+      )
+    end subroutine log_cooling_info
+
+    subroutine log_parallel_conduction_info()
+      logical :: tc_para
+      tc_para = settings%physics%conduction%has_parallel_conduction()
+      call logger%info("parallel conduction      : " // str(tc_para))
+      if (.not. tc_para) return
+      if (settings%physics%conduction%has_fixed_tc_para()) then
+        call logger%info("  fixed value            : " // &
+          str(settings%physics%conduction%get_fixed_tc_para(), fmt=exp_fmt) &
+        )
+      end if
+    end subroutine log_parallel_conduction_info
+
+    subroutine log_perpendicular_conduction_info()
+      logical :: tc_perp
+      tc_perp = settings%physics%conduction%has_perpendicular_conduction()
+      call logger%info("perpendicular conduction : " // str(tc_perp))
+      if (.not. tc_perp) return
+      if (settings%physics%conduction%has_fixed_tc_perp()) then
+        call logger%info("  fixed value            : " // &
+          str(settings%physics%conduction%get_fixed_tc_perp(), fmt=exp_fmt) &
+        )
+      end if
+    end subroutine log_perpendicular_conduction_info
+
+    subroutine log_resistivity_info()
+      logical :: resistivity
+      resistivity = settings%physics%resistivity%is_enabled()
+      call logger%info("resistivity              : " // str(resistivity))
+      if (.not. resistivity) return
+      if (settings%physics%resistivity%has_fixed_resistivity()) then
+        call logger%info("  fixed eta value        : " // &
+          str(settings%physics%resistivity%get_fixed_resistivity(), fmt=exp_fmt) &
+        )
+      end if
+    end subroutine log_resistivity_info
+
+    subroutine log_viscosity_info()
+      logical :: viscosity
+      viscosity = settings%physics%viscosity%is_enabled()
+      call logger%info("viscosity                : " // str(viscosity))
+      if (.not. viscosity) return
+      call logger%info( &
+        "  viscosity value        : " // &
+        str(settings%physics%viscosity%get_viscosity_value()) &
+      )
+      call logger%info( &
+        "  viscous heating        : " // &
+        str(settings%physics%viscosity%has_viscous_heating()) &
+      )
+    end subroutine log_viscosity_info
+
+    subroutine log_hall_info()
+      logical :: hall
+      hall = settings%physics%hall%is_enabled()
+      call logger%info("hall mhd                 : " // str(hall))
+      if (.not. hall) return
+      call logger%info( &
+        "  by substitution        : " // &
+        str(settings%physics%hall%is_using_substitution()) &
+      )
+      call logger%info( &
+        "  electron fraction      : " // &
+        str(settings%physics%hall%get_electron_fraction()) &
+      )
+      call logger%info( &
+        "  electron inertia       : " // &
+        str(settings%physics%hall%has_electron_inertia()) &
+      )
+    end subroutine log_hall_info
+  end subroutine log_physics_info
+
+
+  subroutine log_solver_info(settings)
+    type(settings_t), intent(in) :: settings
+
+    call logger%info("            << Solver settings >>")
+    call logger%info("solver      : " // settings%solvers%get_solver())
+    select case(settings%solvers%get_solver())
+    case("arnoldi")
+      call logger%info("ARPACK mode : " // settings%solvers%get_arpack_mode())
+      call logger%info( &
+        "# eigenvalues : " // str(settings%solvers%number_of_eigenvalues) &
+      )
+      call logger%info("which eigenvalues : " // settings%solvers%which_eigenvalues)
+      call logger%info("maxiter : " // str(settings%solvers%maxiter))
+      call logger%info("ncv     : " // str(settings%solvers%ncv))
+      if (settings%solvers%get_arpack_mode() == "shift-invert") then
+        call logger%info("sigma : " // str(settings%solvers%sigma))
+      end if
+      call logger%info("tolerance : " // str(settings%solvers%tolerance, exp_fmt))
+    case("inverse-iteration")
+      call logger%info("sigma     : " // str(settings%solvers%sigma))
+      call logger%info("maxiter   : " // str(settings%solvers%maxiter))
+      call logger%info("tolerance : " // str(settings%solvers%tolerance, exp_fmt))
+    end select
+  end subroutine log_solver_info
+
+
+  subroutine log_io_info(settings)
+    type(settings_t), intent(in) :: settings
+
+    call logger%info("            << DataIO settings >>")
+    call logger%info("datfile name         : " // settings%io%get_basename_datfile())
+    call logger%info("output folder        : " // settings%io%get_output_folder())
+    call logger%info("write matrices       : " // str(settings%io%write_matrices))
+    call logger%info("write eigenvectors   : " // str(settings%io%write_eigenvectors))
+    call logger%info("write residuals      : " // str(settings%io%write_residuals))
+    call logger%info("write eigenfunctions : " // str(settings%io%write_eigenfunctions))
+    call logger%info( &
+      "write derived eigenfunctions : " &
+      // str(settings%io%write_derived_eigenfunctions) &
+    )
+    call logger%info( &
+      "write eigenfunction subset : " // str(settings%io%write_ef_subset) &
+    )
+    if (settings%io%write_ef_subset) then
+      call logger%info("    subset center : " // str(settings%io%ef_subset_center))
+      call logger%info("    subset radius : " // str(settings%io%ef_subset_radius))
+    end if
+  end subroutine log_io_info
 
 end module mod_console

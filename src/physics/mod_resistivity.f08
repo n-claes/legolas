@@ -105,7 +105,7 @@ contains
   !! - a dropoff profile is requested but the resistivity is not constant. @endwarning
   subroutine set_eta_dropoff(settings, eta_field)
     use mod_types, only: resistivity_type
-    use mod_logging, only: log_message, str
+    use mod_logging, only: logger, str
     use mod_grid, only: grid_gauss
     use mod_physical_constants, only: dpi
 
@@ -118,9 +118,7 @@ contains
     integer :: i, gauss_gridpts
 
     if (.not. settings%physics%resistivity%has_fixed_resistivity()) then
-      call log_message( &
-        'eta dropoff only possible with a fixed resistivity value', level='error' &
-      )
+      call logger%error("eta dropoff only possible with a fixed resistivity value")
       return
     end if
 
@@ -134,9 +132,9 @@ contains
     shift = etaval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
     stretch = etaval / (tanh(dpi) - tanh(-dpi))
 
-    call log_message('setting eta-dropoff profile', level='info')
-    call log_message('dropoff width = ' // str(width), level='info')
-    call log_message('distance from edge = ' // str(edge_dist), level='info')
+    call logger%info("setting eta-dropoff profile")
+    call logger%info("dropoff width = " // str(width))
+    call logger%info("distance from edge = " // str(edge_dist))
 
     do i = 1, gauss_gridpts
       x = grid_gauss(i)

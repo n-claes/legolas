@@ -2,7 +2,7 @@
 !! as explained in the LAPACK guide http://www.netlib.org/lapack/lug/node124.html.
 module mod_banded_matrix
   use mod_global_variables, only: dp
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   implicit none
 
   private
@@ -49,10 +49,9 @@ contains
     type(banded_matrix_t) :: matrix
 
     if (.not. dimensions_are_valid(rows, cols)) then
-      call log_message( &
+      call logger%error( &
         "banded matrix creation failed, expected a square matrix but got " &
-        // str(rows) // " x " // str(cols), &
-        level="error" &
+        // str(rows) // " x " // str(cols) &
       )
       return
     end if

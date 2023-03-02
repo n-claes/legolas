@@ -4,7 +4,7 @@
 !! and to read the parfile, setting the global variables.
 module mod_input
   use mod_global_variables, only: dp, str_len, NaN
-  use mod_logging, only: log_message
+  use mod_logging, only: logger
   use mod_settings, only: settings_t
   implicit none
 
@@ -23,7 +23,7 @@ contains
     type(settings_t), intent(inout) :: settings
 
     if (parfile == "") then
-      call log_message("no parfile supplied!", level="error")
+      call logger%error("no parfile supplied!")
       return
     end if
 
@@ -85,8 +85,6 @@ contains
 
 
   subroutine read_savelist(unit, settings)
-    use mod_global_variables, only: logging_level
-
     integer, intent(in) :: unit
     type(settings_t), intent(inout) :: settings
     integer :: iostat
@@ -96,6 +94,7 @@ contains
     logical :: write_eigenfunctions, write_derived_eigenfunctions
     logical :: write_eigenfunction_subset
     logical :: show_results
+    integer :: logging_level
     real(dp) :: eigenfunction_subset_radius
     complex(dp) :: eigenfunction_subset_center
     character(len=str_len) :: basename_datfile, output_folder
@@ -116,12 +115,14 @@ contains
     show_results = settings%io%show_results
     basename_datfile = settings%io%get_basename_datfile()
     output_folder = settings%io%get_output_folder()
-    logging_level = 2
+    logging_level = logger%get_logging_level()
     eigenfunction_subset_radius = settings%io%ef_subset_radius
     eigenfunction_subset_center = settings%io%ef_subset_center
 
     read(unit, nml=savelist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
+
+    call logger%set_logging_level(logging_level)
 
     settings%io%write_matrices = write_matrices
     settings%io%write_eigenvectors = write_eigenvectors
@@ -369,11 +370,11 @@ contains
     real(dp), intent(in) :: radius
 
     if (is_NaN(center)) then
-      call log_message("eigenfunction_subset_center must be set!", level="error")
+      call logger%error("eigenfunction_subset_center must be set!")
       return
     end if
     if (is_NaN(radius)) then
-      call log_message("eigenfunction_subset_radius must be set!", level="error")
+      call logger%error("eigenfunction_subset_radius must be set!")
       return
     end if
   end subroutine check_eigenfunction_subset_params
@@ -383,7 +384,7 @@ contains
     integer, intent(in) :: iostat
     character(len=*), intent(in) :: iomsg
 
-    if (iostat > 0) call log_message(trim(adjustl(iomsg)), level="error")
+    if (iostat > 0) call logger%error(trim(adjustl(iomsg)))
   end subroutine parse_io_info
 
 
@@ -415,19 +416,21 @@ contains
       case('-i')
         filename_par = args(i+1)
       case default
-        call log_message("unable to read in command line arguments", level='error')
+        call logger%error("unable to read in command line arguments")
       end select
     end do
 
     ! If no parfile supplied, flag an error
     if (filename_par == "") then
-      call log_message("no parfile supplied, please provide the file path with the -i flag", level="error")
+      call logger%error( &
+        "no parfile supplied, please provide the file path with the -i flag" &
+      )
     end if
 
     !! Check if supplied file exists
     inquire(file=trim(filename_par), exist=file_exists)
     if (.not. file_exists) then
-      call log_message(("parfile not found: " // trim(filename_par)), level='error')
+      call logger%error(("parfile not found: " // trim(filename_par)))
     end if
   end subroutine get_parfile
   ! LCOV_EXCL_STOP

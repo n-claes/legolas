@@ -70,13 +70,12 @@ contains
   subroutine check_if_pp_quantities_can_be_calculated()
     use mod_check_values, only: is_zero
     use mod_equilibrium, only: B_field
-    use mod_logging, only: log_message
 
     can_calculate_pp_quantities = .true.
     if (.not. is_zero(B_field % B01)) then
-      call log_message( &
+      call logger%warning( &
         "parallel/perpendicular derived quantities currently not supported &
-        &for non-zero B01 components", level="warning" &
+        &for non-zero B01 components" &
       )
       can_calculate_pp_quantities = .false.
     end if

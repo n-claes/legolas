@@ -69,7 +69,7 @@ contains
   function transform_state_variable_to_subblock_index( &
     variables, state_vector, dim_subblock, odd, edge &
   ) result(idxs)
-    use mod_logging, only: log_message, str
+    use mod_logging, only: logger, str
 
     !> array of state vector variable names
     character(len=*), intent(in)  :: variables(:)
@@ -90,10 +90,9 @@ contains
     if (odd) idxs = idxs - 1
     if (edge == "right") idxs = idxs + dim_subblock
     if (size(idxs) == 0) then
-      call log_message( &
+      call logger%error( &
         "could not retrieve subblock indices for any variable in " // str(variables) &
-        // " for state vector " // str(state_vector), &
-        level="error" &
+        // " for state vector " // str(state_vector) &
       )
       return
     end if

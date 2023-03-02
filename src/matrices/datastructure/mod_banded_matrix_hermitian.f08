@@ -3,7 +3,7 @@
 !! http://www.netlib.org/lapack/lug/node124.html.
 module mod_banded_matrix_hermitian
   use mod_global_variables, only: dp
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   implicit none
 
   private
@@ -45,9 +45,8 @@ contains
     type(hermitian_banded_matrix_t) :: matrix
 
     if (.not. uplo_is_valid(uplo)) then
-      call log_message( &
-        "invalid uplo argument, expected 'U' or 'L', got '" // uplo // "'", &
-        level="error" &
+      call logger%error( &
+        "invalid uplo argument, expected 'U' or 'L', got '" // uplo // "'" &
       )
       return
     end if

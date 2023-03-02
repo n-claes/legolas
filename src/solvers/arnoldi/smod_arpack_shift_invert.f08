@@ -39,16 +39,14 @@ contains
     complex(dp) :: sigma
 
     sigma = settings%solvers%sigma
-    call log_message("creating banded A - sigma*B", level="debug")
+    call logger%debug("creating banded A - sigma*B")
     diags = settings%dims%get_dim_quadblock() - 1
     call matrix_to_banded(matrix_A, diags, diags, amat_min_sigmab_banded)
     call matrix_to_banded(matrix_B, diags, diags, bmat_banded)
 
     ! check compatibility
     if (.not. amat_min_sigmab_banded%is_compatible_with(bmat_banded)) then
-      call log_message( &
-        "Arnoldi shift-invert: banded matrices are not compatible!", level="error" &
-      )
+      call logger%error("Arnoldi shift-invert: banded matrices are not compatible!")
       call amat_min_sigmab_banded%destroy()
       call bmat_banded%destroy()
       return
@@ -60,7 +58,7 @@ contains
       bandmatrix=amat_min_sigmab_banded, LU=amat_min_sigmab_LU, ipiv=ipiv_LU &
     )
 
-    call log_message("doing Arnoldi shift-invert", level="debug")
+    call logger%debug("doing Arnoldi shift-invert")
     converged = .false.
     do while(.not. converged)
       call znaupd( &
@@ -145,9 +143,8 @@ contains
       arpack_cfg%info &
     )
 
-    call log_message( &
-      "performing eigenvalue backtransformation to original problem (nu -> omega)", &
-      level="debug" &
+    call logger%debug( &
+      "performing eigenvalue backtransformation to original problem (nu -> omega)" &
     )
     !> @note In applying shift-invert we made the transformation \(C = inv[B]*A\) and
     !! solved the standard eigenvalue problem \(CX = \nu X\) instead since B isn't

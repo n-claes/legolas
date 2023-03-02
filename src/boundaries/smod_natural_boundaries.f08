@@ -155,7 +155,7 @@ contains
       ! plus one here
       weight = 1.0d0
     else
-      call log_message("natural bounds: invalid edge argument " // edge, level="error")
+      call logger%error("natural bounds: invalid edge argument " // edge)
     end if
 
     ! set the basis functions

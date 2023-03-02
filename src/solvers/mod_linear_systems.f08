@@ -3,7 +3,7 @@
 module mod_linear_systems
   use mod_global_variables, only: dp
   use mod_banded_matrix, only: banded_matrix_t
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
   implicit none
 
   private
@@ -132,9 +132,8 @@ contains
     integer, intent(in) :: info
     character(len=*), intent(in) :: routine_name
 
-    call log_message( &
-      "LAPACK routine " // routine_name // " failed! info = " // str(info), &
-      level="warning" &
+    call logger%warning( &
+      "LAPACK routine " // routine_name // " failed! info = " // str(info) &
     )
   end subroutine throw_info_nonzero_warning
   ! LCOV_EXCL_STOP

@@ -56,7 +56,7 @@ contains
 
     select case(settings%solvers%get_arpack_mode())
     case("general")
-      call log_message("Arnoldi iteration, general mode", level="debug")
+      call logger%debug("Arnoldi iteration, general mode")
       arpack_cfg = new_arpack_config( &
         evpdim=matrix_A%matrix_dim, &
         mode=1, &
@@ -65,7 +65,7 @@ contains
       )
       call solve_arpack_general(arpack_cfg, matrix_A, matrix_B, settings, omega, vr)
     case("shift-invert")
-      call log_message("Arnoldi iteration, shift-invert mode", level="debug")
+      call logger%debug("Arnoldi iteration, shift-invert mode")
       arpack_cfg = new_arpack_config( &
         evpdim=matrix_A%matrix_dim, &
         mode=2, &
@@ -76,9 +76,8 @@ contains
         arpack_cfg, matrix_A, matrix_B, settings, omega, vr &
       )
     case default
-      call log_message( &
-        "unknown mode for ARPACK: " // settings%solvers%get_arpack_mode(), &
-        level="error" &
+      call logger%error( &
+        "unknown mode for ARPACK: " // settings%solvers%get_arpack_mode() &
       )
       return
     end select
@@ -86,12 +85,8 @@ contains
     call arpack_cfg%destroy()
 
 #else
-  call log_message( &
-    "ARPACK was not found and/or CMake failed to link", level="warning" &
-  )
-  call log_message( &
-    "unable to use 'arnoldi', try another solver!", level="error" &
-  )
+  call logger%warning("ARPACK was not found and/or CMake failed to link")
+  call logger%error("unable to use 'arnoldi', try another solver!")
 #endif
   end procedure arnoldi
 

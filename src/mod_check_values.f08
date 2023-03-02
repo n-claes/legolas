@@ -5,7 +5,6 @@
 module mod_check_values
   use, intrinsic :: ieee_arithmetic, only: ieee_is_nan, ieee_is_finite
   use mod_global_variables, only: dp, dp_LIMIT
-  use mod_logging, only: log_message, str
   implicit none
 
   private

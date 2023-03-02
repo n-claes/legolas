@@ -1,6 +1,7 @@
 module mod_suite_utils
   use mod_global_variables, only: dp
   use mod_settings, only: settings_t, new_settings
+  use mod_logging, only: logger
   implicit none
 
   real(dp), parameter :: TOL = 1.0d-12
@@ -15,12 +16,12 @@ contains
   end subroutine set_name
 
   subroutine reset_globals()
-    use mod_global_variables, only: initialise_globals, logging_level
+    use mod_global_variables, only: initialise_globals
     use mod_equilibrium_params, only: init_equilibrium_params, k2, k3
 
     call initialise_globals()
     call init_equilibrium_params()
-    logging_level = 1 ! also print warnings
+    call logger%set_logging_level(1)  ! also print warnings
     k2 = 1.0d0
     k3 = 2.5d0
   end subroutine reset_globals

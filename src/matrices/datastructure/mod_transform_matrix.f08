@@ -3,7 +3,7 @@
 !! matrix representations, banded matrix representations, and full array matrices.
 module mod_transform_matrix
   use mod_global_variables, only: dp, NaN
-  use mod_logging, only: log_message
+  use mod_logging, only: logger
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
   use mod_banded_matrix_hermitian, only: hermitian_banded_matrix_t, &
@@ -210,9 +210,7 @@ contains
     nrows = size(array, dim=1)
     ncols = size(array, dim=2)
     if (nrows /= ncols) then
-      call log_message( &
-        "array_to_complex_hermitian_banded: array is not square", level="error" &
-      )
+      call logger%error("array_to_complex_hermitian_banded: array is not square")
       return
     end if
     banded = new_hermitian_banded_matrix(rows=nrows, diags=diags, uplo=uplo)

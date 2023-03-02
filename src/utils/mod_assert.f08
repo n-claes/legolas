@@ -3,7 +3,7 @@
 !! @note See [[assert.fpp]] for usage of the `assert` macro. The
 !! subroutine in this module should not be used directly. @endnote
 module mod_assert
-  use mod_logging, only: log_message, str
+  use mod_logging, only: logger, str
 
   implicit none
 
@@ -25,10 +25,9 @@ contains
     !> The line of the assertion.
     integer,       intent(in) :: line
 
-    if (.not. cond) then
-        call log_message("assertion '" // cond_str // "' failed at " // &
-                       & file // ":" // str(line), level="error")
-    end if
+    if (.not. cond) call logger%error( &
+      "assertion '" // cond_str // "' failed at " //  file // ":" // str(line) &
+    )
   end subroutine assert
 
 end module mod_assert

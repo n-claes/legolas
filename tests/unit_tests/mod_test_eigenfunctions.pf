@@ -2,7 +2,6 @@ module mod_test_eigenfunctions
   use mod_suite_utils
   use funit
   use mod_eigenfunctions
-  use mod_global_variables
   use mod_types, only: ef_type
   implicit none
 
@@ -132,7 +131,7 @@ contains
   @test
   subroutine test_ef_names_derived_with_b01_field()
     call set_name("eigenfunctions - derived names (with B01)")
-    logging_level = 0
+    call logger%set_logging_level(0)
     call enable_derived_efs()
     call use_bfield(use_b01=.true.)
     @assertEqual(12, size(derived_ef_names))
@@ -209,8 +208,7 @@ contains
   @test
   subroutine test_eigenfunctions_pp_nonzero_B01()
     integer :: size_names_default
-
-    logging_level = 0
+    call logger%set_logging_level(0)
     call set_name("eigenfunctions - pp nonzero B01")
     call enable_derived_efs()
     size_names_default = size(derived_ef_names)
@@ -222,7 +220,6 @@ contains
   @test
   subroutine test_eigenfunctions_pp_with_bfield()
     integer :: size_names_default
-
     call set_name("eigenfunctions - pp names with bfield")
     call enable_derived_efs()
     size_names_default = size(derived_ef_names)

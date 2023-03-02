@@ -6,6 +6,7 @@ module mod_eigenfunctions
   use mod_global_variables, only: dp, str_len_arr
   use mod_types, only: ef_type
   use mod_settings, only: settings_t
+  use mod_logging, only: logger, str
   implicit none
 
   private
@@ -131,7 +132,6 @@ contains
   !> Returns the full set of eigenfunctions corresponding to the given eigenfunction
   !! name.
   function retrieve_eigenfunctions(name, state_vector) result(eigenfunctions)
-    use mod_logging, only: log_message
     use mod_get_indices, only: get_index
 
     !> name of the eigenfunction to retrieve
@@ -158,9 +158,7 @@ contains
       end if
     end if
     ! if still not found then something went wrong
-    call log_message( &
-      "could not retrieve eigenfunction with name " // name, level="error" &
-    )
+    call logger%error("could not retrieve eigenfunction with name " // name)
   end function retrieve_eigenfunctions
 
 
