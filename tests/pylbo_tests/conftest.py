@@ -189,6 +189,18 @@ def ds_v121_magth():
 
 
 @pytest.mark.timeout(5)
+@pytest.fixture(scope="session")
+def ds_v200_mri_matrix():
+    return pylbo.load(utils / "v2.0.0_mri_matrix.dat")
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture(scope="session")
+def ds_v200_mri_efs():
+    return pylbo.load(utils / "v2.0.0_mri_subset_efs.dat")
+
+
+@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v100():
     return pylbo.load_series([utils / "v1_datfile_matrices.dat"] * 3)

@@ -1,4 +1,6 @@
+from copy import copy
 from functools import wraps
+from typing import Any
 
 import matplotlib.axes
 
@@ -18,6 +20,26 @@ def refresh_plot(f: callable) -> callable:
         return f
 
     return refresh
+
+
+def ensure_attr_set(obj: Any, attr: str) -> None:
+    """
+    Ensures that a given attribute is set.
+
+    Parameters
+    ----------
+    obj : Any
+        The object to check.
+    attr : str
+        The attribute to check.
+
+    Raises
+    ------
+    ValueError
+        If the attribute is not set.
+    """
+    if getattr(obj, attr, None) is None:
+        raise AttributeError(f"attribute '{attr}' not set for {type(obj)}")
 
 
 def ef_name_to_latex(
@@ -82,8 +104,9 @@ def validate_ef_name(ds, ef_name: str) -> str:
     str
         The validated eigenfunction name.
     """
-    names = ds.ef_names
-    if ds.derived_efs_written:
+    # copy this or we're editing the property itself
+    names = copy(ds.ef_names)
+    if ds.has_derived_efs:
         names += ds.derived_ef_names
     if ef_name not in names:
         raise ValueError(

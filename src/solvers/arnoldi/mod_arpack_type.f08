@@ -45,6 +45,7 @@ module mod_arpack_type
     procedure, public :: get_nev
     procedure, public :: get_tolerance
     procedure, public :: get_ncv
+    procedure, public :: get_maxiter
     procedure, public :: get_lworkl
     procedure, public :: parse_znaupd_info
     procedure, public :: parse_zneupd_info
@@ -77,7 +78,7 @@ contains
     integer, intent(in) :: mode
     !> type of the matrix B
     character(len=1), intent(in) :: bmat
-    type(solvers_t), intent(in) :: solver_settings
+    type(solvers_t), intent(inout) :: solver_settings
     !> initialised arpack configuration
     type(arpack_t) :: arpack_config
 
@@ -91,8 +92,11 @@ contains
     call arpack_config%set_nev(solver_settings%number_of_eigenvalues)
     arpack_config%tolerance = solver_settings%tolerance
     call arpack_config%set_residual(evpdim)
+    ! if not user-set they are calculated and settings should be updated
     call arpack_config%set_ncv(solver_settings%ncv)
     call arpack_config%set_maxiter(solver_settings%maxiter)
+    solver_settings%maxiter = arpack_config%get_maxiter()
+    solver_settings%ncv = arpack_config%get_ncv()
     ! iparam(1) = ishift = 1 means restart with shifts from Hessenberg matrix
     arpack_config%iparam(1) = 1
   end function new_arpack_config
@@ -323,6 +327,14 @@ contains
   end function get_ncv
 
 
+  !> Getter for maximum number of iterations.
+  pure integer function get_maxiter(this)
+    !> type instance
+    class(arpack_t), intent(in) :: this
+    get_maxiter = this%maxiter
+  end function get_maxiter
+
+
   !> Getter for length of workl array, returns 3 * ncv**2 + 5 * ncv
   pure integer function get_lworkl(this)
     !> type instance
@@ -339,7 +351,7 @@ contains
     !> type instance
     class(arpack_t), intent(inout) :: this
 
-    deallocate(this%residual)
+    if (allocated(this%residual)) deallocate(this%residual)
   end subroutine destroy
 
 

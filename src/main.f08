@@ -7,11 +7,11 @@
 !! and Rony Keppens, at the Centre for mathematical Plasma-Astrophysics (CmPA),
 !! KU Leuven, Belgium.
 program legolas
-  use mod_global_variables, only: dp, str_len
+  use mod_global_variables, only: dp, str_len, initialise_globals
   use mod_matrix_structure, only: matrix_t
   use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
-  use mod_output, only: datfile_name, create_datfile
+  use mod_output, only: datfile_path, create_datfile
   use mod_logging, only: logger, str
   use mod_console, only: print_console_info, print_whitespace
   use mod_timing, only: timer_t, new_timer
@@ -31,6 +31,7 @@ program legolas
   !> matrix with right eigenvectors, column indices correspond to omega indices
   complex(dp), allocatable  :: eigenvecs_right(:, :)
 
+  call initialise_globals()
   call logger%initialise()
 
   timer = new_timer()
@@ -56,7 +57,7 @@ program legolas
   timer%eigenfunction_time = timer%end_timer()
 
   call timer%start_timer()
-  call create_datfile(omega, matrix_A, matrix_B, eigenvecs_right, settings)
+  call create_datfile(settings, omega, matrix_A, matrix_B, eigenvecs_right)
   timer%datfile_time = timer%end_timer()
 
   call cleanup()
@@ -65,7 +66,7 @@ program legolas
 
   if (settings%io%show_results) then
     call print_whitespace(1)
-    call execute_command_line("python3 pylbo_wrapper.py -i " // trim(datfile_name))
+    call execute_command_line("python3 pylbo_wrapper.py -i " // trim(datfile_path))
   end if
 
 contains
@@ -74,7 +75,7 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, NaN
+    use mod_global_variables, only: NaN
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
     use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
@@ -86,7 +87,6 @@ contains
     real(dp) :: ratio
     ratio = NaN
 
-    call initialise_globals()
     call get_parfile(parfile)
     call read_parfile(parfile, settings)
 

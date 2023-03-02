@@ -9,7 +9,7 @@ from matplotlib.figure import Figure
 from pylbo.utilities.logger import pylboLogger
 from pylbo.visualisation.figure_window import FigureWindow
 from pylbo.visualisation.modes.mode_data import ModeVisualisationData
-from pylbo.visualisation.utils import add_axis_label
+from pylbo.visualisation.utils import add_axis_label, ensure_attr_set
 
 
 class ModeFigure(FigureWindow):
@@ -80,12 +80,12 @@ class ModeFigure(FigureWindow):
         self.ef_data = []
         self.solution_shape = None
 
-        [self._ensure_attr_set(attr) for attr in ("_u1", "_u2", "_u3", "_time")]
+        [ensure_attr_set(self, attr) for attr in ("_u1", "_u2", "_u3", "_time")]
 
         self.set_plot_arrays()
         for attr in ("u1", "u2", "u3", "time"):
-            self._ensure_attr_set(f"{attr}_data")
-        self._ensure_attr_set("solution_shape")
+            ensure_attr_set(self, f"{attr}_data")
+        ensure_attr_set(self, "solution_shape")
 
         # don't explicitly create an empty array as this may return a broadcasted view
         self._solutions = 0
@@ -100,23 +100,6 @@ class ModeFigure(FigureWindow):
             self._solutions += self.data.get_background(self._solutions.shape)
 
         pylboLogger.info(f"eigenmode solution shape {self._solutions.shape}")
-
-    def _ensure_attr_set(self, attr: str) -> None:
-        """
-        Ensures that a given attribute is set.
-
-        Parameters
-        ----------
-        attr : str
-            The attribute to check.
-
-        Raises
-        ------
-        ValueError
-            If the attribute is not set.
-        """
-        if getattr(self, attr, None) is None:
-            raise AttributeError(f"attribute '{attr}' not set for {type(self)}")
 
     def _check_if_number(self, val: float, attr_name: str) -> float:
         """
