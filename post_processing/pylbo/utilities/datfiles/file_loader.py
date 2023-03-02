@@ -57,11 +57,12 @@ def load(datfile):
         raise ValueError("load() takes a single datfile.")
     _validate_file(datfile)
     ds = LegolasDataSet(datfile)
-    pylboLogger.info(f"Legolas version  : {ds.legolas_version}")
-    pylboLogger.info(f"file loaded      : {ds.datfile.parent} -- {ds.datfile.name}")
-    pylboLogger.info(f"gridpoints       : {ds.gridpoints}")
-    pylboLogger.info(f"geometry         : {ds.geometry} in {ds.x_start, ds.x_end}")
-    pylboLogger.info(f"equilibrium      : {ds.eq_type}")
+    pylboLogger.info(f"Legolas v{ds.legolas_version}")
+    pylboLogger.info(f"file loaded : {ds.datfile.parent}/{ds.datfile.name}")
+    pylboLogger.info(f"gridpoints  : {ds.gridpoints}")
+    pylboLogger.info(f"geometry    : {ds.geometry} in {ds.x_start, ds.x_end}")
+    pylboLogger.info(f"equilibrium : {ds.eq_type}")
+    pylboLogger.info(f"state vector: {ds.header.get('state_vector', 'not present')}")
     if ds.has_matrices:
         pylboLogger.info("matrices present in datfile")
     if ds.has_eigenvectors:

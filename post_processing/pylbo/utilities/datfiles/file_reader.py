@@ -13,6 +13,7 @@ from pylbo.utilities.datfiles.istream_reader import (
     read_string_from_istream,
 )
 from pylbo.utilities.logger import pylboLogger
+from pylbo.utilities.toolbox import transform_to_list
 
 
 class LegolasFileReader:
@@ -90,7 +91,8 @@ class LegolasFileReader:
                 amount=header["nb_eigenvalues"],
                 offset=header["offsets"]["eigenvalues"],
             )
-        return np.asarray(eigenvalues, dtype=complex)
+        # ensure we have a list, also for 1 eigenvalue
+        return np.asarray(transform_to_list(eigenvalues), dtype=complex)
 
     def read_eigenvectors(self, header: LegolasHeader) -> np.ndarray:
         with open(self.datfile, "rb") as istream:
