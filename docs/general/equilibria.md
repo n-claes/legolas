@@ -81,7 +81,7 @@ physical effects, and links to the source docs.
   ```fortran
   equilibrium_type = "RTI_KHI"
   ```
-- [Rayleigh-Taylor instabilities in a rotating theta-pinch](../../ford/module/smod_equil_RTI_theta_pinch.html): cylindrical, flow
+- [Rayleigh-Taylor instabilities in a rotating theta-pinch](../../ford/module/smod_equil_rti_theta_pinch.html): cylindrical, flow
   ```fortran
   equilibrium_type = "RTI_theta_pinch"
   ```
