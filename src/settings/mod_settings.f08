@@ -70,6 +70,8 @@ contains
     select case(physics_type)
       case("hd")
         this%state_vector = [character(3) :: "rho", "v1", "v2", "v3", "T"]
+      case("hd-1d")
+        this%state_vector = [character(3) :: "rho", "v1", "T"]
       case default
         this%state_vector = [ &
           character(3) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
