@@ -5,11 +5,9 @@ submodule (mod_matrix_manager) smod_conduction_matrix
 contains
 
   module procedure add_conduction_matrix_terms
-    use mod_matrix_shortcuts, only: get_Kp_operator, get_diffF_operator
-
     real(dp)  :: eps, deps
     real(dp)  :: dT0, ddT0
-    real(dp)  :: B0, B01, B02, B03
+    real(dp)  :: B0, B01, B02, B03, dB02, dB03
     real(dp)  :: diffKp, Kp, Kp_plus, Kp_plusplus
     real(dp)  :: WVop, Fop_plus, dFop_plus, Gop_min
     real(dp)  :: kappa_para, dkappa_para_dT
@@ -31,12 +29,9 @@ contains
     B0 = B_field % B0(gauss_idx)
     B01 = B_field % B01
     B02 = B_field % B02(gauss_idx)
+    dB02 = B_field % d_B02_dr(gauss_idx)
     B03 = B_field % B03(gauss_idx)
-    ! prefactors
-    Kp = kappa_field % prefactor(gauss_idx)
-    diffKp = kappa_field % d_prefactor_dr(gauss_idx)
-    Kp_plus = get_Kp_operator(gauss_idx, which="+")
-    Kp_plusplus = get_Kp_operator(gauss_idx, which="++")
+    dB03 = B_field % d_B03_dr(gauss_idx)
     ! parallel thermal conduction variables
     kappa_para = kappa_field % kappa_para(gauss_idx)
     dkappa_para_dT = kappa_field % d_kappa_para_dT(gauss_idx)
@@ -45,11 +40,16 @@ contains
     dkappa_perp_drho = kappa_field % d_kappa_perp_drho(gauss_idx)
     dkappa_perp_dT = kappa_field % d_kappa_perp_dT(gauss_idx)
     dkappa_perp_dB2 = kappa_field % d_kappa_perp_dB2(gauss_idx)
+    ! prefactors
+    Kp = kappa_field % prefactor(gauss_idx)
+    diffKp = kappa_field % d_prefactor_dr(gauss_idx)
+    Kp_plus = Kp + dkappa_perp_dB2
+    Kp_plusplus = dkappa_perp_dB2 - (B01**2 * Kp_plus / B0**2)
     ! operators
-    WVop = get_wv_operator(gauss_idx)
-    Fop_plus = get_F_operator(gauss_idx, which="plus")
-    dFop_plus = get_diffF_operator(gauss_idx, which="plus")
-    Gop_min = get_G_operator(gauss_idx, which="minus")
+    WVop = k2**2 / eps + eps * k3**2
+    Fop_plus = k2 * B02 / eps + k3 * B03
+    dFop_plus = (k2 / eps) * (dB02 - deps * B02 / eps) + k3 * dB03
+    Gop_min = k3 * B02 - k2 * B03 / eps
 
     ! B01 modified F+ operator
     Fop_B01 = deps * ic * B01 / eps + Fop_plus

@@ -5,15 +5,14 @@ contains
 
   module procedure add_natural_conduction_terms
     use mod_equilibrium, only: kappa_field
-    use mod_matrix_shortcuts, only: get_Kp_operator, get_F_operator, get_G_operator
 
     real(dp)  :: eps, deps
     real(dp)  :: dT0
     real(dp)  :: B0, B01, B02, B03
     real(dp)  :: dkappa_para_dT
     real(dp)  :: kappa_perp
-    real(dp)  :: dkappa_perp_drho, dkappa_perp_dT
-    real(dp)  :: Fop, Gop_min, Kp, Kp_plusplus
+    real(dp)  :: dkappa_perp_drho, dkappa_perp_dT, dkappa_perp_dB2
+    real(dp)  :: Fop, Gop_min, Kp, Kp_plus, Kp_plusplus
     real(dp) :: gamma_1
     type(matrix_elements_t) :: elements
 
@@ -32,11 +31,13 @@ contains
     kappa_perp = kappa_field % kappa_perp(grid_idx)
     dkappa_perp_drho = kappa_field % d_kappa_perp_drho(grid_idx)
     dkappa_perp_dT = kappa_field % d_kappa_perp_dT(grid_idx)
+    dkappa_perp_dB2 = kappa_field % d_kappa_perp_dB2(grid_idx)
 
-    Gop_min = get_G_operator(grid_idx, which="minus")
-    Fop = get_F_operator(grid_idx, which="plus")
+    Gop_min = k3 * B02 - k2 * B03 / eps
+    Fop = k2 * B02 / eps + k3 *B03
     Kp = kappa_field % prefactor(grid_idx)
-    Kp_plusplus = get_Kp_operator(grid_idx, which="++")
+    Kp_plus = Kp + dkappa_perp_dB2
+    Kp_plusplus = dkappa_perp_dB2 - (B01**2 * Kp_plus / B0**2)
 
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 

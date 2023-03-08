@@ -35,7 +35,7 @@ contains
     ! viscosity value
     mu = settings%physics%viscosity%get_viscosity_value()
     ! operators
-    WVop = get_wv_operator(gauss_idx)
+    WVop = k2**2 / eps + eps * k3**2
 
     ! ==================== Cubic * Cubic ====================
     call elements%add( &
