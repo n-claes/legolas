@@ -5,18 +5,78 @@ submodule (mod_matrix_manager) smod_conduction_matrix
 contains
 
   module procedure add_conduction_matrix_terms
+    real(dp) :: eps, deps
+    real(dp) :: dT0
+    real(dp) :: WVop
+    real(dp) :: kappa_perp, dkappa_perp_drho, dkappa_perp_dT
+    real(dp) :: gamma_1
+    type(matrix_elements_t) :: elements
+
+    if (settings%physics%is_incompressible) return
+
+    gamma_1 = settings%physics%get_gamma_1()
+    eps = eps_grid(gauss_idx)
+    deps = d_eps_grid_dr(gauss_idx)
+    dT0 = T_field % d_T0_dr(gauss_idx)
+    kappa_perp = kappa_field % kappa_perp(gauss_idx)
+    dkappa_perp_drho = kappa_field % d_kappa_perp_drho(gauss_idx)
+    dkappa_perp_dT = kappa_field % d_kappa_perp_dT(gauss_idx)
+    ! operators
+    WVop = k2**2 / eps + eps * k3**2
+
+    elements = new_matrix_elements(state_vector=settings%get_state_vector())
+
+    ! ==================== Quadratic * Quadratic ====================
+    call elements%add( &
+      -gamma_1 * ic * WVop * kappa_perp / eps, &
+      "T", &
+      "T", &
+      spline1=h_quad, &
+      spline2=h_quad &
+    )
+    ! ==================== dQuadratic * Quadratic ====================
+    call elements%add( &
+      -ic * gamma_1 * dT0 * dkappa_perp_drho, &
+      "T", &
+      "rho", &
+      spline1=dh_quad, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      gamma_1 * (ic * deps * kappa_perp / eps - ic * dT0 * dkappa_perp_dT), &
+      "T", &
+      "T", &
+      spline1=dh_quad, &
+      spline2=h_quad &
+    )
+    ! ==================== dQuadratic * dQuadratic ====================
+    call elements%add( &
+      -ic * gamma_1 * kappa_perp, "T", "T", spline1=dh_quad, spline2=dh_quad &
+    )
+
+    if (settings%has_bfield()) then
+      call add_conduction_matrix_terms_bfield(gauss_idx, settings, elements)
+    end if
+
+    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call elements%delete()
+  end procedure add_conduction_matrix_terms
+
+
+  subroutine add_conduction_matrix_terms_bfield(gauss_idx, settings, elements)
+    type(settings_t), intent(in) :: settings
+    integer, intent(in) :: gauss_idx
+    type(matrix_elements_t), intent(inout) :: elements
+
     real(dp)  :: eps, deps
     real(dp)  :: dT0, ddT0
     real(dp)  :: B0, B01, B02, B03, dB02, dB03
     real(dp)  :: diffKp, Kp, Kp_plus, Kp_plusplus
-    real(dp)  :: WVop, Fop_plus, dFop_plus, Gop_min
+    real(dp)  :: Fop_plus, dFop_plus, Gop_min
     real(dp)  :: kappa_para, dkappa_para_dT
     real(dp)  :: kappa_perp, dkappa_perp_drho, dkappa_perp_dT, dkappa_perp_dB2
     real(dp) :: gamma_1
     complex(dp) :: Fop_B01
-    type(matrix_elements_t) :: elements
-
-    if (settings%physics%is_incompressible) return
 
     gamma_1 = settings%physics%get_gamma_1()
     ! grid variables
@@ -46,15 +106,12 @@ contains
     Kp_plus = Kp + dkappa_perp_dB2
     Kp_plusplus = dkappa_perp_dB2 - (B01**2 * Kp_plus / B0**2)
     ! operators
-    WVop = k2**2 / eps + eps * k3**2
     Fop_plus = k2 * B02 / eps + k3 * B03
     dFop_plus = (k2 / eps) * (dB02 - deps * B02 / eps) + k3 * dB03
     Gop_min = k3 * B02 - k2 * B03 / eps
 
     ! B01 modified F+ operator
     Fop_B01 = deps * ic * B01 / eps + Fop_plus
-
-    elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! ==================== Quadratic * Quadratic ====================
     call elements%add( &
@@ -67,7 +124,6 @@ contains
     call elements%add( &
       gamma_1 * ( &
         B01 * Fop_plus * diffKp &
-        - ic * WVop * kappa_perp / eps &
         - B01 * dT0 * (dkappa_para_dT - dkappa_perp_dT) * Fop_B01 / B0**2 &
         + Kp * ( &
           B01 * deps * (2.0d0 * deps * ic * B01 / eps + 3.0d0 * Fop_plus) / eps &
@@ -89,7 +145,7 @@ contains
     )
     ! ==================== dQuadratic * Quadratic ====================
     call elements%add( &
-      -ic * gamma_1 * dT0 * dkappa_perp_drho * (1.0d0 - B01**2 / B0**2), &
+      ic * gamma_1 * dT0 * dkappa_perp_drho * B01**2 / B0**2, &
       "T", &
       "rho", &
       spline1=dh_quad, &
@@ -98,9 +154,8 @@ contains
     call elements%add( &
       gamma_1 * ( &
         B01 * Kp * (2.0d0 * deps * ic * B01 / eps + 3.0d0 * Fop_plus) &
-        + ic * deps * kappa_perp / eps &
         - ic * dT0 * ( &
-          B01**2 * dkappa_para_dT / B0**2 + dkappa_perp_dT * (1.0d0 - B01**2 / B0**2) &
+          B01**2 * dkappa_para_dT / B0**2 - dkappa_perp_dT * B01**2 / B0**2 &
         ) &
       ), &
       "T", &
@@ -125,7 +180,7 @@ contains
     )
     ! ==================== dQuadratic * dQuadratic ====================
     call elements%add( &
-      -ic * gamma_1 * (2.0d0 * B01**2 * Kp + kappa_perp), &
+      -ic * gamma_1 * 2.0d0 * B01**2 * Kp, &
       "T", &
       "T", &
       spline1=dh_quad, &
@@ -199,9 +254,6 @@ contains
       spline1=dh_quad, &
       spline2=dh_cubic &
     )
-
-    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
-    call elements%delete()
-  end procedure add_conduction_matrix_terms
+  end subroutine add_conduction_matrix_terms_bfield
 
 end submodule smod_conduction_matrix
