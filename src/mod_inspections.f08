@@ -110,7 +110,7 @@ contains
     call continuity_equil_conditions(settings, rho_field, v_field)
     call induction_equil_conditions(settings, B_field, v_field)
     ! set the energy balance based on the equilibrium conditions
-    call set_energy_balance( &
+    call check_energy_balance( &
       settings, rho_field, T_field, B_field, v_field, rc_field, kappa_field &
     )
   end subroutine perform_sanity_checks
@@ -298,17 +298,11 @@ contains
   !! - \frac{1}{\varepsilon}\left(\varepsilon \kappa_{\perp, 0} T_0'\right)'
   !! + \frac{1}{(\gamma - 1)}T_0'\rho_0 v_{01} = 0
   !! $$
-  !! This subroutine essentially sets $\mathscr{L}_0$ in such a way that this equation
-  !! is satisfied. If the heating is assumed to only depend on the equilibrium,
-  !! and if there is no $B_{01}$, $v_{01}$ or perpendicular thermal conduction,
-  !! then $\mathscr{L}_0 = 0$. If one (or more) of these effects are present, then
-  !! $\mathscr{L}_0 = 0$ is no longer true.
-  !!  The <tt>rc_field % heat_loss</tt> attribute is modified on exit.
-  subroutine set_energy_balance( &
+  subroutine check_energy_balance( &
     settings, rho_field, T_field, B_field, v_field, rc_field, kappa_field &
   )
-    use mod_global_variables, only: dp_LIMIT
-    use mod_grid, only: eps_grid, d_eps_grid_dr
+    use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
+    use mod_check_values, only: is_zero
 
     !> the settings object
     type(settings_t), intent(in) :: settings
@@ -325,17 +319,23 @@ contains
     !> the type containing the thermal conduction attributes
     type(conduction_type), intent(in) :: kappa_field
 
-    real(dp)  :: rho, drho, T0, dT0, ddT0
-    real(dp)  :: B01, B02, dB02, B03, dB03, B0, dB0
-    real(dp)  :: v01, dv01
-    real(dp)  :: kappa_perp, dkappa_perp_dr, Kp, dKp
-    real(dp)  :: eps, deps
-    integer   :: i
+    real(dp) :: rho0, drho0, T0, dT0, ddT0
+    real(dp) :: B01, B02, dB02, B03, dB03, B0, dB0
+    real(dp) :: v01, dv01
+    real(dp) :: kappa_perp, dkappa_perp_dr, Kp, dKp
+    real(dp) :: eps, deps
+    real(dp) :: balance_terms
+    real(dp) :: discrepancy, r, eq_cond
+    logical :: satisfied
+    integer :: i, counter
 
+    satisfied = .true.
+    discrepancy = 0.0_dp
+    counter = 0
     B01 = B_field % B01
     do i = 1, settings%grid%get_gauss_gridpts()
-      rho = rho_field % rho0(i)
-      drho = rho_field % d_rho0_dr(i)
+      rho0 = rho_field % rho0(i)
+      drho0 = rho_field % d_rho0_dr(i)
       T0 = T_field % T0(i)
       dT0 = T_field % d_T0_dr(i)
       ddT0 = T_field % dd_T0_dr(i)
@@ -354,38 +354,55 @@ contains
       Kp = kappa_field % prefactor(i)
       dKp = kappa_field % d_prefactor_dr(i)
 
-      ! set L0, this is equal to 0 if there is no B01, v01 or kappa_perp. The extra
-      ! rho * lambda(T0) factor cancels out with the radiative cooling contribution
-      rc_field % heat_loss(i) = ( &
-        (T0 / eps) * (deps * v01 + eps * dv01) &
+      balance_terms = ( &
+        -(T0 / eps) * (deps * v01 + eps * dv01) &
         + dT0 * v01 / settings%physics%get_gamma_1() &
-        - (B01**2 / rho) * (dKp * dT0 + Kp * ddT0) &
-        - ( &
+        + (B01**2 / rho0) * (dKp * dT0 + Kp * ddT0) &
+        + ( &
           deps * kappa_perp * dT0 &
           + eps * dkappa_perp_dr * dT0 &
           + eps * kappa_perp * ddT0 &
-        ) / (eps * rho) &
+        ) / (eps * rho0) &
       )
+
+      if (settings%physics%cooling%ensure_equilibrium) then
+        rc_field%L0(i) = balance_terms
+      else
+        rc_field%L0(i) = rho0 * rc_field%lambdaT(i) - rc_field%H0(i)
+      end if
+
+      eq_cond = ( &
+        T0 * rho0 * (deps * v01 + eps * dv01) / eps &
+        + rho0 * rc_field%L0(i) &
+        - B01**2 * (Kp * dT0 + dKp * T0) &
+        - (1.0_dp / eps) * ( &
+          deps * kappa_perp * dT0 &
+          + eps * dkappa_perp_dr * dT0 &
+          + eps * kappa_perp * ddT0 &
+        ) &
+        + (1.0_dp / settings%physics%get_gamma_1()) * dT0 * rho0 * v01 &
+      )
+      if (.not. is_zero(eq_cond)) then
+        counter = counter + 1
+        satisfied = .false.
+        if (abs(eq_cond) > discrepancy) then
+          discrepancy = abs(eq_cond)
+          r = grid_gauss(i)
+        end if
+      end if
     end do
 
-    ! log this if it's set
-    if (any(abs(rc_field % heat_loss) > dp_limit)) then
-      call logger%info( &
-        "encountered non-zero B01, v01 or kappa_perp, energy balance has been set" &
+    ! LCOV_EXCL_START
+    if (.not. satisfied) then
+      call logger%warning("energy balance not satisfied!")
+      call logger%warning("location of largest discrepancy: x = " // str(r))
+      call logger%warning( &
+        "value of largest discrepancy: " // str(discrepancy, fmt=exp_fmt) &
       )
+      call logger%warning("amount of nodes not satisfying criterion: " // str(counter))
     end if
-    ! double check if L0=0 holds
-    if ( &
-      abs(B01) < dp_LIMIT .and. &
-      all(abs(v_field % v01) < dp_LIMIT) .and. &
-      all(abs(kappa_field % kappa_perp) < dp_LIMIT) &
-    ) then
-      ! if B01 = v01 = kappa_perp = 0, then L0 must be zero
-      if (any(abs(rc_field % heat_loss) > dp_LIMIT)) then
-        call logger%error("expected L0 = 0 but got non-zero values!")
-      end if
-    end if
-  end subroutine set_energy_balance
+    ! LCOV_EXCL_STOP
+  end subroutine check_energy_balance
 
 
   !> Checks the induction equation for the equilibrium state. The two (nonzero)

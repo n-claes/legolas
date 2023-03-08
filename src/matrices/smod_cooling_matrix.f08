@@ -15,9 +15,9 @@ contains
 
     gamma_1 = settings%physics%get_gamma_1()
     rho = rho_field % rho0(gauss_idx)
-    Lrho = rc_field % d_L_drho(gauss_idx)
-    LT = rc_field % d_L_dT(gauss_idx)
-    L0 = rc_field % heat_loss(gauss_idx)
+    Lrho = rc_field % dL_drho(gauss_idx)
+    LT = rc_field % dL_dT(gauss_idx)
+    L0 = rc_field % L0(gauss_idx)
 
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 

@@ -299,7 +299,7 @@ contains
 
 
   subroutine write_equilibrium_names()
-    integer, parameter :: nb_names = 32
+    integer, parameter :: nb_names = 36
     character(len=str_len_arr) :: equilibrium_names(nb_names)
 
     equilibrium_names = [ &
@@ -308,7 +308,7 @@ contains
       "T0", "dT0", "ddT0", &
       "B01", "B02", "B03", "dB02", "db03", "ddB02", "ddb03", "B0", &
       "v01", "v02", "v03", "dv01", "dv02", "dv03", "ddv01", "ddv02", "ddv03", &
-      "dLdT", "dLdrho", &
+      "L0", "dLdT", "dLdrho", "H0", "dHdT", "dHdrho", &
       "kappa_para", "kappa_perp", &
       "eta", "detadT", "detadr", &
       "gravity", &
@@ -333,7 +333,8 @@ contains
     write(dat_fh) v_field%v01, v_field%v02, v_field%v03, v_field%d_v01_dr, &
       v_field%d_v02_dr, v_field%d_v03_dr, v_field%dd_v01_dr, &
       v_field%dd_v02_dr, v_field%dd_v03_dr
-    write(dat_fh) rc_field%d_L_dT, rc_field%d_L_drho
+    write(dat_fh) rc_field%L0, rc_field%dL_dT, rc_field%dL_drho
+    write(dat_fh) rc_field%H0, rc_field%dH_dT, rc_field%dH_drho
     write(dat_fh) kappa_field%kappa_para, kappa_field%kappa_perp
     write(dat_fh) eta_field%eta, eta_field%d_eta_dT, eta_field%d_eta_dr
     write(dat_fh) grav_field%grav

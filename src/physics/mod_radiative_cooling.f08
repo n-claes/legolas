@@ -164,11 +164,16 @@ contains
       end select
     end if
 
+    rc_field%lambdaT = lambda_T
     ! dL/dT = rho0 * d_lambda_dT where lambda_T equals the cooling curve
-    rc_field % d_L_dT = (rho_field % rho0) * d_lambda_dT
+    rc_field%dL_dT = rho_field%rho0 * d_lambda_dT
     ! dL/drho = lambda(T)
-    rc_field % d_L_drho = lambda_T
+    rc_field%dL_drho = lambda_T
 
+    if (settings%physics%heating%is_enabled()) then
+      rc_field%dL_dT = rc_field%dL_dT - rc_field%dH_dT
+      rc_field%dL_drho = rc_field%dL_drho - rc_field%dH_drho
+    end if
   end subroutine set_radiative_cooling_values
 
 

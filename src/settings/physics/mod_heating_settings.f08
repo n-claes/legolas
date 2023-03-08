@@ -5,7 +5,6 @@ module mod_heating_settings
 
   type, public :: heating_settings_t
     logical, private :: has_heating
-    logical :: ensure_equilibrium
 
   contains
 
@@ -21,7 +20,6 @@ contains
   pure function new_heating_settings() result(heating)
     type(heating_settings_t) :: heating
     heating%has_heating = .false.
-    heating%ensure_equilibrium = .true.
   end function new_heating_settings
 
 
