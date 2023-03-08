@@ -3,7 +3,6 @@ import time
 
 import matplotlib.lines as mpl_lines
 import numpy as np
-from scipy.interpolate import interp1d
 from pylbo._version import _mpl_version
 from pylbo.utilities.logger import pylboLogger
 
