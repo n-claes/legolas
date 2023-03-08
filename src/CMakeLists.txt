@@ -8,6 +8,7 @@ set (sources
         dataIO/mod_console.f08
         settings/physics/mod_flow_settings.f08
         settings/physics/mod_cooling_settings.f08
+        settings/physics/mod_heating_settings.f08
         settings/physics/mod_gravity_settings.f08
         settings/physics/mod_resistivity_settings.f08
         settings/physics/mod_viscosity_settings.f08

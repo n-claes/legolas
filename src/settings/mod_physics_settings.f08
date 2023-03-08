@@ -3,6 +3,7 @@ module mod_physics_settings
   use mod_check_values, only: is_zero
   use mod_flow_settings, only: flow_settings_t, new_flow_settings
   use mod_cooling_settings, only: cooling_settings_t, new_cooling_settings
+  use mod_heating_settings, only: heating_settings_t, new_heating_settings
   use mod_gravity_settings, only: gravity_settings_t, new_gravity_settings
   use mod_resistivity_settings, only: resistivity_settings_t, new_resistivity_settings
   use mod_viscosity_settings, only: viscosity_settings_t, new_viscosity_settings
@@ -19,6 +20,7 @@ module mod_physics_settings
     real(dp) :: dropoff_width
     type(flow_settings_t) :: flow
     type(cooling_settings_t) :: cooling
+    type(heating_settings_t) :: heating
     type(gravity_settings_t) :: gravity
     type(resistivity_settings_t) :: resistivity
     type(viscosity_settings_t) :: viscosity
@@ -34,6 +36,7 @@ module mod_physics_settings
 
     procedure, public :: enable_flow
     procedure, public :: enable_cooling
+    procedure, public :: enable_heating
     procedure, public :: enable_gravity
     procedure, public :: enable_resistivity
     procedure, public :: enable_viscosity
@@ -107,6 +110,12 @@ contains
     call this%cooling%set_cooling_curve(cooling_curve)
     call this%cooling%enable()
   end subroutine enable_cooling
+
+
+  pure subroutine enable_heating(this)
+    class(physics_t), intent(inout) :: this
+    call this%heating%enable()
+  end subroutine enable_heating
 
 
   pure subroutine enable_gravity(this)

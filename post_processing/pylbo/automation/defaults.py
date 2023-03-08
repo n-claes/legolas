@@ -36,6 +36,7 @@ namelist_items = {
         ("dropoff_width", (int, np.integer, float)),
         ("flow", bool),
         ("radiative_cooling", bool),
+        ("heating", bool),
         ("ncool", (int, np.integer)),
         ("cooling_curve", str),
         ("external_gravity", bool),
