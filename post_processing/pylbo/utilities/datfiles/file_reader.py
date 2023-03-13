@@ -13,7 +13,7 @@ from pylbo.utilities.datfiles.istream_reader import (
     read_string_from_istream,
 )
 from pylbo.utilities.logger import pylboLogger
-from pylbo.utilities.toolbox import transform_to_list
+from pylbo.utilities.toolbox import transform_to_list, transform_to_numpy
 
 
 class LegolasFileReader:
@@ -184,6 +184,9 @@ class LegolasFileReader:
         ef_index: int,
         state_vector: np.ndarray,
     ) -> dict:
+        state_vector = transform_to_numpy(state_vector)
+        if state_vector.shape == ():
+            state_vector = np.array([state_vector])
         eigenfunctions = {}
         with open(self.datfile, "rb") as istream:
             for name_idx, name in enumerate(state_vector):
