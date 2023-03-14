@@ -586,7 +586,9 @@ class LegolasDataSet(LegolasDataContainer):
             getter_func=self.filereader.read_derived_eigenfunction,
         )
 
-    def get_nearest_eigenvalues(self, ev_guesses, min_distance=0.0) -> tuple(np.ndarray, np.ndarray):
+    def get_nearest_eigenvalues(
+        self, ev_guesses, min_distance=0.0
+    ) -> tuple(np.ndarray, np.ndarray):
         """
         Calculates the eigenvalues nearest to a given guess. This calculates
         the nearest eigenvalue based on the distance between two points.
@@ -615,37 +617,34 @@ class LegolasDataSet(LegolasDataContainer):
                 self.eigenvalues.imag - ev_guess.imag
             ) ** 2
             # we don't want eigenvalues closer than min_distance
-            with np.errstate(invalid='ignore'):
-                mask = (distances < min_distance**2)
+            with np.errstate(invalid="ignore"):
+                mask = distances < min_distance**2
             distances[mask] = np.nan
             # closest distance (squared)
             idx = np.nanargmin(distances)
             idxs[i] = idx
             eigenvals[i] = self.eigenvalues[idx]
-        # import matplotlib.pyplot as plt
-        # from matplotlib.colors import LogNorm
-        # plt.figure()
-        # plt.scatter(self.eigenvalues.real, self.eigenvalues.imag, c=distances, norm=LogNorm())
-        # plt.show()
         return idxs, eigenvals
 
-    def get_omega_max(self, real=True, strip=False, range_omega=(0.0,1e24)):
+    def get_omega_max(self, real=True, strip=False, range_omega=(0.0, 1e24)):
         """
         Calculates the maximum of the real or imaginary part of a spectrum.
 
         Parameters
         ----------
         real : bool
-            Returns the largest real part if True (default option), if False, returns the largest imaginary part.
+            Returns the largest real part if True (default option),
+            returns the largest imaginary part if False.
         strip : bool
-            Look for maximum in a horizontal half-plane if True. Default False. 
+            Look for maximum in a horizontal half-plane if True. Default False.
         range_omega : tuple of floats
             The horizontal range of the strip if strip=True.
-        
+
         Returns
         -------
         omega_max : complex
-            The eigenvalue that has the largest real or imaginary part in the chosen strip. Default: in the whole complex plane.
+            The eigenvalue that has the largest real or imaginary part in
+            the chosen strip. Default: in the whole complex plane.
         """
 
         eigvals = np.copy(self.eigenvalues)
@@ -653,7 +652,9 @@ class LegolasDataSet(LegolasDataContainer):
         if strip:
             omega_min, omega_max = range_omega
             # all eigvals outside of strip locally get replaced by NaN
-            mask = ((np.real(self.eigenvalues) - omega_min)*(np.real(self.eigenvalues) - omega_max) > 0)
+            mask = (np.real(self.eigenvalues) - omega_min) * (
+                np.real(self.eigenvalues) - omega_max
+            ) > 0
             eigvals[mask] = np.nan
 
         if real:
@@ -866,18 +867,20 @@ class LegolasDataSeries(LegolasDataContainer):
 
     def get_omega_max(self, real=True):
         """
-        Calculates the maximum of the real or imaginary part of the spectrum for the various datasets.
+        Calculates the maximum of the real or imaginary part of the spectrum for
+        the various datasets.
 
         Parameters
         ----------
         real : bool
-            Returns the largest real part if True (default option), if False, returns the largest imaginary part.
-        
+            Returns the largest real part if True (default option),
+            returns the largest imaginary part if False.
+
         Returns
         -------
         omega_max : numpy.ndarray
-            A Numpy array of same length as the number of datasets, containing tuples of the eigenvalue that has the largest
-            real or imaginary part.
+            A Numpy array of same length as the number of datasets, containing tuples
+            of the eigenvalue that has the largest real or imaginary part.
         """
 
         if real:

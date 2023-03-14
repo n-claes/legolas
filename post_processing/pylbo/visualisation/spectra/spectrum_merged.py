@@ -54,7 +54,7 @@ class MergedSpectrumPlot(SpectrumFigure):
         if isinstance(kwargs.get("colours", None), dict):
             if isinstance(kwargs.get("colour_parameter", None), str):
                 self._colour_from_parameter = True
-                self._colours = kwargs.get("colours", None) # could automise colour picking per parameter by first looping over ds and counting nr of parameters
+                self._colours = kwargs.get("colours", None)
                 self._colour_parameter = kwargs.get("colour_parameter", None)
         self._interactive = interactive
 

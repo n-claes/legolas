@@ -230,10 +230,11 @@ def solve_cubic_exact(a, b, c, d):
 def count_zeroes(eigfuncs):
     """
     Counts the number of zeroes of an array of complex eigenfunctions by looking at
-    sign changes of the real and imaginary part of the eigenfunctions. Doesn't include the grid endpoints 
-    in the count, since the boundary conditions are automatically satisfied. This only becomes accurate for 
-    eigenfunctions with enough oscillations and is resolution dependent. Therefore, we take the
-    minimum of the number of zeroes of the real and imaginary part.
+    sign changes of the real and imaginary part of the eigenfunctions.
+    Doesn't include the grid endpoints in the count, since the boundary conditions are
+    automatically satisfied. This only becomes accurate for eigenfunctions with enough
+    oscillations and is resolution dependent. Therefore, we take the minimum
+    of the number of zeroes of the real and imaginary part.
 
     Parameters
     ----------
@@ -243,7 +244,8 @@ def count_zeroes(eigfuncs):
     Returns
     -------
     nzeroes : np.ndarray(dtype=int)
-        Counter array containing the number of zeroes of the real or imaginary part of each input eigenfunction array.
+        Counter array containing the number of zeroes of the real or imaginary part
+        of each input eigenfunction array.
     """
 
     nzeroes = np.array([], dtype=int)
@@ -254,19 +256,19 @@ def count_zeroes(eigfuncs):
         sign_real_eigfunc = np.sign(np.real(eigfunc))
         sign_imag_eigfunc = np.sign(np.imag(eigfunc))
 
-        for i in range(1,len(sign_real_eigfunc)-1):
-            if sign_real_eigfunc[i-1] * sign_real_eigfunc[i] == -1: 
+        for i in range(1, len(sign_real_eigfunc) - 1):
+            if sign_real_eigfunc[i - 1] * sign_real_eigfunc[i] == -1:
                 counter_real += 1
-            if sign_real_eigfunc[i-1] * sign_real_eigfunc[i] == 0: 
-                if sign_real_eigfunc[i-2] * sign_real_eigfunc[i-1] == 0: 
+            if sign_real_eigfunc[i - 1] * sign_real_eigfunc[i] == 0:
+                if sign_real_eigfunc[i - 2] * sign_real_eigfunc[i - 1] == 0:
                     counter_real += 1
 
-            if sign_imag_eigfunc[i-1] * sign_imag_eigfunc[i] == -1: 
+            if sign_imag_eigfunc[i - 1] * sign_imag_eigfunc[i] == -1:
                 counter_imag += 1
-            if sign_imag_eigfunc[i-1] * sign_imag_eigfunc[i] == 0: 
-                if sign_imag_eigfunc[i-2] * sign_imag_eigfunc[i-1] == 0: 
+            if sign_imag_eigfunc[i - 1] * sign_imag_eigfunc[i] == 0:
+                if sign_imag_eigfunc[i - 2] * sign_imag_eigfunc[i - 1] == 0:
                     counter_imag += 1
-        
+
         counter = min(counter_real, counter_imag)
         nzeroes = np.append(nzeroes, counter)
 
@@ -275,14 +277,16 @@ def count_zeroes(eigfuncs):
 
 def invert_continuum_array(cont, r_gauss, sigma):
     """
-    Finds the location of resonance for eigenmode solutions having a real part that might overlap with a continuum range.
+    Finds the location of resonance for eigenmode solutions having a real part that
+    might overlap with a continuum range.
 
     Parameters
     ----------
     cont : numpy.ndarray
-        Array containing the range of a specific continuum. Automatically has the same length as r_gauss, 
-        since it has the same shape as the equilibrium fields used to calculate the continua. Can be complex,
-        but only the resonance with the real part is calculated.
+        Array containing the range of a specific continuum. Automatically has the same
+        length as r_gauss, since it has the same shape as the equilibrium fields used
+        to calculate the continua. Can be complex, but only the resonance with the real
+        part is calculated.
     r_gauss : numpy.ndarray
         Array containing the grid on which equilibrium fields are defined.
     sigma : complex
@@ -291,8 +295,8 @@ def invert_continuum_array(cont, r_gauss, sigma):
     Returns
     -------
     r_inv : None, float
-        The location where there is resonance between the eigenmode and the continuum. Returns None if there
-        is no resonance with the specified continuum.
+        The location where there is resonance between the eigenmode and the continuum.
+        Returns None if there is no resonance with the specified continuum.
     """
 
     diff = np.sign(np.real(cont) - np.real(sigma))
@@ -301,13 +305,21 @@ def invert_continuum_array(cont, r_gauss, sigma):
         # There is no sign change, value is not contained in array.
         return None
     else:
-        for i in range(1,len(diff)-1):
-            if diff[i]*diff[i-1] < 0:
+        for i in range(1, len(diff) - 1):
+            if diff[i] * diff[i - 1] < 0:
                 # Linear interpolation between the points where the sign change occurs.
-                r_inv = (np.real(sigma) - np.real(cont[i-1]))/(np.real(cont[i])-np.real(cont[i-1])) * (r_gauss[i]-r_gauss[i-1]) + r_gauss[i-1]
-                print(np.real(sigma), np.real(cont)[i], np.real(cont)[i-1], r_inv, r_gauss[i], r_gauss[i-1])
+                r_inv = (np.real(sigma) - np.real(cont[i - 1])) / (
+                    np.real(cont[i]) - np.real(cont[i - 1])
+                ) * (r_gauss[i] - r_gauss[i - 1]) + r_gauss[i - 1]
+                print(
+                    np.real(sigma),
+                    np.real(cont)[i],
+                    np.real(cont)[i - 1],
+                    r_inv,
+                    r_gauss[i],
+                    r_gauss[i - 1],
+                )
                 return r_inv
-            elif diff[i]*diff[i-1] == 0:
+            elif diff[i] * diff[i - 1] == 0:
                 # The exact same value is in the continuum array, return it.
                 return r_gauss[i]
-

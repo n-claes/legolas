@@ -119,7 +119,9 @@ class SingleSpectrumPlot(SpectrumFigure):
         if self._ef_ax is None:
             self._ef_ax = super().add_subplot_axes(self.ax, loc="right")
         if self._ef_handler is None:
-            self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax, self.ax, draw_resonance)
+            self._ef_handler = EigenfunctionHandler(
+                self.dataset, self._ef_ax, self.ax, draw_resonance
+            )
         super().add_eigenfunction_interface(efhandler=self._ef_handler)
 
     def add_derived_eigenfunctions(self, draw_resonance=False):

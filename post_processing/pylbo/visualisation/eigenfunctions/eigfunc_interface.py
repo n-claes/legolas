@@ -188,18 +188,21 @@ class EigenfunctionInterface:
 
     def _print_nzeroes(self):
         """
-        Counts and prints the number of zeroes of the eigenfunctions for all selected 
+        Counts and prints the number of zeroes of the eigenfunctions for all selected
         eigenvalues on the plot, together with eigvals.
         """
         if not self._selected_idxs:
             return
-        print("Currently selected eigenvalues and number of zeroes of their eigenfunctions:")
+        print(
+            "Currently selected eigenvalues and number of zeroes of their \
+                eigenfunctions:"
+        )
         ef_name = self._function_names[self._selected_name_idx]
         for ds, points in self._selected_idxs.items():
             idxs = np.array([int(idx) for idx in points.keys()])
 
             ef_container = ds.get_eigenfunctions(ev_idxs=idxs)
-            eigfuncs = np.zeros((len(idxs),len(ds.ef_grid)), dtype='complex')
+            eigfuncs = np.zeros((len(idxs), len(ds.ef_grid)), dtype="complex")
             current_index = 0
             for ev_idx, efs in zip(idxs, ef_container):
                 eigfuncs[current_index] = efs.get(ef_name)

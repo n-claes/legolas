@@ -26,8 +26,15 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
             )
 
     def update_plot(self):
-        RESONANCE_STYLES = {"slow-":"dotted", "slow+":"dotted", "alfven-":"dashed", "alfven+":"dashed", "thermal":"solid", "doppler":"dashdot"}
-        
+        RESONANCE_STYLES = {
+            "slow-": "dotted",
+            "slow+": "dotted",
+            "alfven-": "dashed",
+            "alfven+": "dashed",
+            "thermal": "solid",
+            "doppler": "dashdot",
+        }
+
         self.axis.clear()
         if not self._selected_idxs:
             self._display_tooltip()
@@ -50,8 +57,13 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
                     r_inv, labels = self._invert_continua(ds, ev_idx)
                     cont_keys = r_inv.keys()
                     for cont_key in cont_keys:
-                        if r_inv[cont_key] != None:
-                            self.axis.axvline(x=r_inv[cont_key], linestyle=RESONANCE_STYLES[cont_key], color=color, alpha=0.4)
+                        if r_inv[cont_key] is not None:
+                            self.axis.axvline(
+                                x=r_inv[cont_key],
+                                linestyle=RESONANCE_STYLES[cont_key],
+                                color=color,
+                                alpha=0.4,
+                            )
         self.axis.axhline(y=0, linestyle="dotted", color="grey")
         if isinstance(self.data, LegolasDataSet):
             self.axis.axvline(x=self.data.x_start, linestyle="dotted", color="grey")
@@ -80,10 +92,10 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
         self._condition_to_make_transparent = "has_derived_efs"
         super()._mark_points_without_data_written()
 
-
     def _invert_continua(self, ds, ev_idx):
         """
-        Calculates the locations of resonance with the continua for a specific eigenmode.
+        Calculates the locations of resonance with the continua for a specific
+        eigenmode.
 
         Parameters
         ----------
@@ -93,12 +105,21 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
         Returns
         -------
         r_inv : dict
-            Dictionary of continua names and inverted resonance locations (float, or None if not in domain).
+            Dictionary of continua names and inverted resonance locations
+            (float, or None if not in domain).
         labels : dict
-            Dictionary containing the corresponding labels to be printed when drawing the locations of resonance.
+            Dictionary containing the corresponding labels to be printed when drawing
+            the locations of resonance.
         """
 
-        CONTINUUM_LABELS = {"slow-":r"$r(\Omega_S^-)", "slow+":r"$r(\Omega_S^+)", "alfven-":r"$r(\Omega_A^-)", "alfven+":r"$r(\Omega_A^+)", "thermal":r"$r(\Omega_T)", "doppler":r"$r(\Omega_0)"}
+        CONTINUUM_LABELS = {
+            "slow-": r"$r(\Omega_S^-)",
+            "slow+": r"$r(\Omega_S^+)",
+            "alfven-": r"$r(\Omega_A^-)",
+            "alfven+": r"$r(\Omega_A^+)",
+            "thermal": r"$r(\Omega_T)",
+            "doppler": r"$r(\Omega_0)",
+        }
 
         r_inv = dict()
         labels = dict()
@@ -113,7 +134,9 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
             if np.allclose(continuum, 0, atol=1e-12):
                 continue
             # removes duplicates
-            continuum = np.sort(np.array(list(set(continuum)), dtype=complex)) # for some reason unsorted
+            continuum = np.sort(
+                np.array(list(set(continuum)), dtype=complex)
+            )  # for some reason unsorted
 
             r_inv_temp = invert_continuum_array(continuum, ds.grid_gauss, sigma)
 
