@@ -95,7 +95,7 @@ contains
   end subroutine set_based_on_to_false
 
 
-  subroutine set_units_from_density( &
+  pure subroutine set_units_from_density( &
     this, unit_length, unit_magneticfield, unit_density, mean_molecular_weight &
   )
     class(units_t), intent(inout) :: this
@@ -166,7 +166,7 @@ contains
     if (this%based_on_numberdensity) then
       this%unit_density = mp_cgs * this%unit_numberdensity
       this%unit_pressure = ( &
-        2.0_dp * this%mean_molecular_weight &
+        this%mean_molecular_weight &
         * this%unit_numberdensity &
         * kB_cgs &
         * this%unit_temperature &
@@ -174,6 +174,7 @@ contains
       this%unit_velocity = sqrt(this%unit_pressure / this%unit_density)
       this%unit_magneticfield = sqrt(mu0_cgs * this%unit_pressure)
     else if (this%based_on_density) then
+      this%unit_pressure = this%unit_magneticfield**2 / mu0_cgs
       this%unit_temperature = ( &
         this%mean_molecular_weight &
         * this%unit_pressure &
@@ -181,9 +182,9 @@ contains
         / (kB_cgs * this%unit_density) &
       )
       this%unit_numberdensity = this%unit_density / mp_cgs
-      this%unit_pressure = this%unit_magneticfield**2 / mu0_cgs
       this%unit_velocity = this%unit_magneticfield / sqrt(mu0_cgs * this%unit_density)
     else if (this%based_on_temperature) then
+      this%unit_pressure = this%unit_magneticfield**2 / mu0_cgs
       this%unit_density = ( &
         this%mean_molecular_weight &
         * this%unit_pressure &
@@ -191,7 +192,6 @@ contains
         / (kB_cgs * this%unit_temperature) &
       )
       this%unit_numberdensity = this%unit_density / mp_cgs
-      this%unit_pressure = this%unit_magneticfield**2 / mu0_cgs
       this%unit_velocity = this%unit_magneticfield / sqrt(mu0_cgs * this%unit_density)
     end if
     this%unit_mass = this%unit_density * this%unit_length**3
