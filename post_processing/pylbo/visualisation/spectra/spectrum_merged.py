@@ -48,14 +48,14 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._single_color = True
             # if everything is 1 color no use for a legend
             self._use_legend = False
-        self._colour_from_parameter = False
-        self._colours = None
-        self._colour_parameter = False
-        if isinstance(kwargs.get("colours", None), dict):
-            if isinstance(kwargs.get("colour_parameter", None), str):
-                self._colour_from_parameter = True
-                self._colours = kwargs.get("colours", None)
-                self._colour_parameter = kwargs.get("colour_parameter", None)
+        self._color_from_parameter = False
+        self._colors = None
+        self._color_parameter = False
+        if isinstance(kwargs.get("colors", None), dict):
+            if isinstance(kwargs.get("color_parameter", None), str):
+                self._color_from_parameter = True
+                self._colors = kwargs.get("colors", None)
+                self._color_parameter = kwargs.get("color_parameter", None)
         self._interactive = interactive
 
     def add_spectrum(self):
