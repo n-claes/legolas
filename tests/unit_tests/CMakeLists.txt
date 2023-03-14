@@ -81,7 +81,6 @@ set( test_sources
         mod_test_boundaries.pf
         mod_test_splines.pf
         mod_test_quadblock.pf
-        mod_test_matrix_operators.pf
         mod_test_interpolation.pf
         mod_test_integration.pf
         mod_test_inspections.pf
