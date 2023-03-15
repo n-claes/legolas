@@ -326,14 +326,16 @@ contains
     integer :: iostat
     character(str_len) :: iomsg
 
+    real(dp) :: unit_numberdensity
     real(dp) :: unit_density, unit_temperature, unit_magneticfield, unit_length
     real(dp) :: mean_molecular_weight
 
     namelist /unitslist/ &
-      unit_density, unit_temperature, unit_magneticfield, unit_length, &
-      mean_molecular_weight
+      unit_density, unit_numberdensity, unit_temperature, unit_magneticfield, &
+      unit_length, mean_molecular_weight
 
     ! defaults
+    unit_numberdensity = NaN
     unit_density = NaN
     unit_temperature = settings%units%get_unit_temperature()
     unit_magneticfield = settings%units%get_unit_magneticfield()
@@ -343,7 +345,14 @@ contains
     read(unit, nml=unitslist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
 
-    if (.not. is_NaN(unit_density)) then
+    if (.not. is_NaN(unit_numberdensity)) then
+      call settings%units%set_units_from_numberdensity( &
+        unit_length=unit_length, &
+        unit_temperature=unit_temperature, &
+        unit_numberdensity=unit_numberdensity, &
+        mean_molecular_weight=mean_molecular_weight &
+      )
+    else if (.not. is_NaN(unit_density)) then
       call settings%units%set_units_from_density( &
         unit_length=unit_length, &
         unit_magneticfield=unit_magneticfield, &

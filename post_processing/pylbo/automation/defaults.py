@@ -57,6 +57,7 @@ namelist_items = {
         ("electron_fraction", (int, np.integer, float)),
     ],
     "unitslist": [
+        ("unit_numberdensity", (int, np.integer, float)),
         ("unit_density", (int, np.integer, float)),
         ("unit_temperature", (int, np.integer, float)),
         ("unit_magneticfield", (int, np.integer, float)),
