@@ -16,6 +16,7 @@ program legolas
   use mod_console, only: print_console_info, print_whitespace
   use mod_timing, only: timer_t, new_timer
   use mod_settings, only: settings_t, new_settings
+  use mod_background, only: background_t, new_background
   use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
   implicit none
 
@@ -27,6 +28,7 @@ program legolas
   type(timer_t) :: timer
   !> dedicated settings type
   type(settings_t) :: settings
+  type(background_t) :: background
   type(eigenfunctions_t) :: eigenfunctions
   !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
@@ -38,6 +40,7 @@ program legolas
 
   timer = new_timer()
   settings = new_settings()
+  background = new_background()
 
   call timer%start_timer()
   call initialisation()
@@ -113,7 +116,7 @@ contains
     matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
 
     call initialise_equilibrium(settings)
-    call set_equilibrium(settings)
+    call set_equilibrium(settings, background)
 
     if (settings%physics%hall%is_enabled()) then
       ratio = maxval(hall_field % hallfactor) / ( &
@@ -171,6 +174,7 @@ contains
       call radiative_cooling_clean()
     end if
     call settings%delete()
+    call background%delete()
     call eigenfunctions%delete()
   end subroutine cleanup
 

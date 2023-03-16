@@ -49,7 +49,7 @@ contains
       tau = 11.0d0
     end if ! LCOV_EXCL_STOP
 
-    call flow_driven_instabilities_eq(settings)
+    call flow_driven_instabilities_eq(settings, background)
     ! manually force the magnetic field to zero, it's HD here (the above set
     ! of parameters still yield a B03 component)
     B_field % B02 = 0.0d0

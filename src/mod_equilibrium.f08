@@ -16,6 +16,7 @@ module mod_equilibrium
   use mod_equilibrium_params, only: k2, k3
   use mod_logging, only: logger, str, exp_fmt
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
   implicit none
 
   private
@@ -25,95 +26,125 @@ module mod_equilibrium
 
   !> interface to the different equilibrium submodules
   interface
-    module subroutine adiabatic_homo_eq(settings)
+    module subroutine adiabatic_homo_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine adiabatic_homo_eq
-    module subroutine constant_current_eq(settings)
+    module subroutine constant_current_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine constant_current_eq
-    module subroutine coronal_flux_tube_eq(settings)
+    module subroutine coronal_flux_tube_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine coronal_flux_tube_eq
-    module subroutine discrete_alfven_eq(settings)
+    module subroutine discrete_alfven_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine discrete_alfven_eq
-    module subroutine flow_driven_instabilities_eq(settings)
+    module subroutine flow_driven_instabilities_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine flow_driven_instabilities_eq
-    module subroutine gold_hoyle_eq(settings)
+    module subroutine gold_hoyle_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine gold_hoyle_eq
-    module subroutine gravito_acoustic_eq(settings)
+    module subroutine gravito_acoustic_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine gravito_acoustic_eq
-    module subroutine gravito_mhd_eq(settings)
+    module subroutine gravito_mhd_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine gravito_mhd_eq
-    module subroutine interchange_modes_eq(settings)
+    module subroutine interchange_modes_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine interchange_modes_eq
-    module subroutine internal_kink_eq(settings)
+    module subroutine internal_kink_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine internal_kink_eq
-    module subroutine isothermal_atmosphere_eq(settings)
+    module subroutine isothermal_atmosphere_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine isothermal_atmosphere_eq
-    module subroutine KHI_eq(settings)
+    module subroutine KHI_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine
-    module subroutine kh_cd_instability_eq(settings)
+    module subroutine kh_cd_instability_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine kh_cd_instability_eq
-    module subroutine magnetothermal_instability_eq(settings)
+    module subroutine magnetothermal_instability_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine magnetothermal_instability_eq
-    module subroutine MRI_accretion_eq(settings)
+    module subroutine MRI_accretion_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine MRI_accretion_eq
-    module subroutine photospheric_flux_tube_eq(settings)
+    module subroutine photospheric_flux_tube_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine photospheric_flux_tube_eq
-    module subroutine resistive_homo_eq(settings)
+    module subroutine resistive_homo_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine resistive_homo_eq
-    module subroutine resistive_tearing_modes_eq(settings)
+    module subroutine resistive_tearing_modes_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine resistive_tearing_modes_eq
-    module subroutine resistive_tearing_modes_flow_eq(settings)
+    module subroutine resistive_tearing_modes_flow_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine resistive_tearing_modes_flow_eq
-    module subroutine resonant_absorption_eq(settings)
+    module subroutine resonant_absorption_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine resonant_absorption_eq
-    module subroutine rotating_plasma_cyl_eq(settings)
+    module subroutine rotating_plasma_cyl_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine rotating_plasma_cyl_eq
-    module subroutine RTI_eq(settings)
+    module subroutine RTI_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine RTI_eq
-    module subroutine RTI_KHI_eq(settings)
+    module subroutine RTI_KHI_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine RTI_KHI_eq
-    module subroutine RTI_theta_pinch_eq(settings)
+    module subroutine RTI_theta_pinch_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine RTI_theta_pinch_eq
-    module subroutine suydam_cluster_eq(settings)
+    module subroutine suydam_cluster_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine suydam_cluster_eq
-    module subroutine couette_flow_eq(settings)
+    module subroutine couette_flow_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine couette_flow_eq
-    module subroutine taylor_couette_eq(settings)
+    module subroutine taylor_couette_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine taylor_couette_eq
-    module subroutine harris_sheet_eq(settings)
+    module subroutine harris_sheet_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine harris_sheet_eq
-    module subroutine tc_pinch_eq(settings)
+    module subroutine tc_pinch_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine tc_pinch_eq
-    module subroutine user_defined_eq(settings)
+    module subroutine user_defined_eq(settings, background)
       type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
     end subroutine user_defined_eq
   end interface
 
@@ -176,7 +207,7 @@ contains
   !! @warning Throws appropriate errors if the equilibrium configuration is
   !!          not balanced, contains NaN or if density/temperature contains
   !!          negative values.
-  subroutine set_equilibrium(settings)
+  subroutine set_equilibrium(settings, background)
     use mod_global_variables, only: dp_LIMIT
     use mod_inspections, only: perform_NaN_and_negative_checks, perform_sanity_checks
     use mod_resistivity, only: set_resistivity_values
@@ -185,11 +216,12 @@ contains
     use mod_thermal_conduction, only: set_conduction_values
     use mod_hall, only: set_hall_factors
     type(settings_t), intent(inout) :: settings
+      type(background_t), intent(inout) :: background
 
     ! Set equilibrium submodule to use
     call set_equilibrium_pointer(settings)
     ! Call submodule
-    call set_equilibrium_values(settings)
+    call set_equilibrium_values(settings, background)
 
     ! Check x_start if coaxial is true
     if (settings%grid%coaxial .and. settings%grid%get_grid_start() <= dp_LIMIT) then
