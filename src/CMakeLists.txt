@@ -27,6 +27,9 @@ set (sources
         background/mod_bg_profiles.f08
         background/mod_background.f08
         background/fields/mod_bg_density.f08
+        background/fields/mod_bg_temperature.f08
+        background/fields/mod_bg_velocity.f08
+        background/fields/mod_bg_magnetic.f08
         matrices/datastructure/mod_matrix_node.f08
         matrices/datastructure/mod_matrix_row.f08
         matrices/datastructure/mod_matrix_structure.f08
