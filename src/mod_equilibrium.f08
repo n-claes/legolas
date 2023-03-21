@@ -238,7 +238,7 @@ contains
     end if
     if (settings%physics%cooling%is_enabled()) then
       call initialise_radiative_cooling(settings)
-      call set_radiative_cooling_values(settings, rho_field, T_field, rc_field)
+      call set_radiative_cooling_values(settings, background, rc_field)
     end if
     if (settings%physics%conduction%is_enabled()) then
       call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
