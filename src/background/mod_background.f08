@@ -41,13 +41,13 @@ contains
     background%magnetic = new_bg_magnetic(default_func=zero)
   end function new_background
 
-  subroutine set_density_funcs(this, rho_func, drho_func)
+  subroutine set_density_funcs(this, rho0_func, drho0_func)
     class(background_t), intent(inout) :: this
-    procedure(real(dp)) :: rho_func
-    procedure(real(dp)), optional :: drho_func
+    procedure(real(dp)) :: rho0_func
+    procedure(real(dp)), optional :: drho0_func
 
-    this%density%rho0 => rho_func
-    if (present(drho_func)) this%density%drho0 => drho_func
+    this%density%rho0 => rho0_func
+    if (present(drho0_func)) this%density%drho0 => drho0_func
   end subroutine set_density_funcs
 
 

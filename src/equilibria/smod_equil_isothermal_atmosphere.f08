@@ -62,6 +62,11 @@ contains
       B_field % B0 = sqrt(B02()**2 + B03()**2)
     end do
 
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02)
+    call background%set_magnetic_3_funcs(B03_func=B03)
+
   end procedure isothermal_atmosphere_eq
 
 

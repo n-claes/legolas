@@ -91,6 +91,11 @@ contains
       B_field%B0(i) = sqrt(B02(r)**2 + B03(r)**2)
     end do
 
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
+    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
+
   end procedure gold_hoyle_eq
 
 

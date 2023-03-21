@@ -120,6 +120,10 @@ contains
       B_field % B0(i)  = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
     end do
 
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_3_funcs(B03_func=B03)
+
   end procedure coronal_flux_tube_eq
 
 

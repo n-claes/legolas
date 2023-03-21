@@ -63,6 +63,11 @@ contains
       B_field % d_B02_dr(i) = dB02(x)
       B_field % d_B03_dr(i) = dB03(x)
     end do
+
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
+    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
   end procedure interchange_modes_eq
 
 

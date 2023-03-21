@@ -62,6 +62,13 @@ contains
       B_field % d_B02_dr(i) = dB02(r)
       B_field % d_B03_dr(i) = dB03(r)
     end do
+
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_velocity_2_funcs(v02_func=v02)
+    call background%set_velocity_3_funcs(v03_func=v03, dv03_func=dv03)
+    call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
+    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
   end procedure suydam_cluster_eq
 
 

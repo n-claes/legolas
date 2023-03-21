@@ -52,11 +52,12 @@ contains
     call flow_driven_instabilities_eq(settings, background)
     ! manually force the magnetic field to zero, it's HD here (the above set
     ! of parameters still yield a B03 component)
-    B_field % B02 = 0.0_dp
-    B_field % B03 = 0.0_dp
-    B_field % B0 = 0.0_dp
-    B_field % d_B02_dr = 0.0_dp
-    B_field % d_B03_dr = 0.0_dp
+    call background%set_magnetic_2_funcs(B02_func=zero, dB02_func=zero)
+    call background%set_magnetic_3_funcs(B03_func=zero, dB03_func=zero)
   end procedure KHI_eq
+
+  real(dp) function zero()
+    zero = 0.0_dp
+  end function zero
 
 end submodule smod_equil_KHI

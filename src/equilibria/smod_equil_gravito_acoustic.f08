@@ -50,6 +50,9 @@ contains
     end do
     grav_field % grav = g
 
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0)
+
   end procedure gravito_acoustic_eq
 
 

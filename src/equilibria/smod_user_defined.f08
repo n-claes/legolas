@@ -36,6 +36,11 @@ contains
       B_field%B03(i) = B03(x)
       B_field%B0(i) = sqrt(B_field%B02(i)**2 + B_field%B03(i)**2)
     end do
+
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02, ddv02_func=ddv02)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_3_funcs(B03_func=B03)
   end procedure user_defined_eq
   ! LCOV_EXCL_STOP
 

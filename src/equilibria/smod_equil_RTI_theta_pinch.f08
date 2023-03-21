@@ -74,6 +74,11 @@ contains
       v_field % d_v02_dr(i) = dv02()
       B_field % d_B03_dr(i) = dB03(r)
     end do
+
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
   end procedure RTI_theta_pinch_eq
 
 

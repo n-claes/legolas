@@ -56,6 +56,11 @@ contains
       v_field % d_v02_dr(i) = dv02()
       v_field % d_v03_dr(i) = dv03()
     end do
+
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02)
+    call background%set_velocity_3_funcs(v03_func=v03, dv03_func=dv03)
+    call background%set_temperature_funcs(T0_func=T0)
   end procedure couette_flow_eq
 
 

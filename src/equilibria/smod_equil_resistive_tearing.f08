@@ -57,6 +57,11 @@ contains
       eta_field % dd_B02_dr(i) = ddB02(x)
       eta_field % dd_B03_dr(i) = ddB03(x)
     end do
+
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02, ddB02_func=ddB02)
+    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03, ddB03_func=ddB03)
   end procedure resistive_tearing_modes_eq
 
 

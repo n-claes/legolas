@@ -73,6 +73,10 @@ contains
       T_field % d_T0_dr(i) = dT0(r)
     end do
 
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02, ddv02_func=ddv02)
+    call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
+
     grid_middle = grid_gauss(int(gauss_gridpts/2))
     Ta = ( &
       cte_rho0 * v02(grid_middle) * h / viscosity_value &

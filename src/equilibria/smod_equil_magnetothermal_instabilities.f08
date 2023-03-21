@@ -64,6 +64,10 @@ contains
       rho_field % d_rho0_dr(i) = drho0(r)
       B_field % d_B02_dr(i) = dB02(r)
     end do
+
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
   end procedure magnetothermal_instability_eq
 
 

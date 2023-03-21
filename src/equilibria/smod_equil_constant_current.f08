@@ -50,6 +50,10 @@ contains
       T_field%T0(i) = T0(r)
       T_field%d_T0_dr(i) = dT0(r)
     end do
+
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
   end procedure constant_current_eq
 
   real(dp) function rho0()
