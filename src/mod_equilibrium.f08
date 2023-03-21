@@ -234,7 +234,7 @@ contains
 
     ! Setup additional physics
     if (settings%physics%resistivity%is_enabled()) then
-      call set_resistivity_values(settings, T_field, eta_field)
+      call set_resistivity_values(settings, background, eta_field)
     end if
     if (settings%physics%cooling%is_enabled()) then
       call initialise_radiative_cooling(settings)
