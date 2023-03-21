@@ -1,6 +1,6 @@
 module mod_background
   use mod_global_variables, only: dp
-  use mod_bg_profiles, only: zero
+  use mod_function_utils, only: zero_func
   use mod_bg_density, only: bg_density_t, new_bg_density
   use mod_bg_velocity, only: bg_velocity_t, new_bg_velocity
   use mod_bg_temperature, only: bg_temperature_t, new_bg_temperature
@@ -35,10 +35,10 @@ contains
   function new_background() result(background)
     type(background_t) :: background
 
-    background%density = new_bg_density(default_func=zero)
-    background%velocity = new_bg_velocity(default_func=zero)
-    background%temperature = new_bg_temperature(default_func=zero)
-    background%magnetic = new_bg_magnetic(default_func=zero)
+    background%density = new_bg_density(default_func=zero_func)
+    background%velocity = new_bg_velocity(default_func=zero_func)
+    background%temperature = new_bg_temperature(default_func=zero_func)
+    background%magnetic = new_bg_magnetic(default_func=zero_func)
   end function new_background
 
   subroutine set_density_funcs(this, rho0_func, drho0_func)

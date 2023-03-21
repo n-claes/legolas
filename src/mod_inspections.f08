@@ -10,7 +10,7 @@ module mod_inspections
   use mod_logging, only: logger, str, exp_fmt
   use mod_settings, only: settings_t
   use mod_background, only: background_t
-  use mod_bg_profiles, only: from_function
+  use mod_function_utils, only: from_function
   use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
   use mod_check_values, only: is_NaN, is_negative, is_zero
   implicit none

@@ -24,7 +24,7 @@ set (sources
         settings/mod_units.f08
         mod_physical_constants.f08
         utils/mod_get_indices.f08
-        background/mod_bg_profiles.f08
+        utils/mod_function_utils.f08
         background/mod_background.f08
         background/fields/mod_bg_density.f08
         background/fields/mod_bg_temperature.f08

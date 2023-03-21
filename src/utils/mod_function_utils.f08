@@ -1,17 +1,17 @@
-module mod_bg_profiles
+module mod_function_utils
   use mod_global_variables, only: dp
   implicit none
 
   private
 
-  public :: zero
+  public :: zero_func
   public :: from_function
 
 contains
 
-  real(dp) function zero()
-    zero = 0.0_dp
-  end function zero
+  real(dp) function zero_func()
+    zero_func = 0.0_dp
+  end function zero_func
 
 
   function from_function(func, values) result(array)
@@ -25,4 +25,4 @@ contains
     end do
   end function from_function
 
-end module mod_bg_profiles
+end module mod_function_utils
