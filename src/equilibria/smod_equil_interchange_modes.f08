@@ -17,15 +17,16 @@
 !!
 !! and can all be changed in the parfile. @endnote
 submodule (mod_equilibrium) smod_equil_interchange_modes
+  use mod_equilibrium_params, only: g, cte_rho0, cte_p0, alpha, beta, lambda
   implicit none
+
+  real(dp) :: B0
 
 contains
 
   !> Sets the equilibrium.
   module procedure interchange_modes_eq
-    use mod_equilibrium_params, only: g, cte_rho0, cte_p0, alpha, beta, lambda
-
-    real(dp)  :: x, B0
+    real(dp)  :: x
     integer   :: i
 
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
@@ -36,16 +37,16 @@ contains
       k2 = dpi
       k3 = dpi
 
-      cte_p0 = 0.25d0
-      g = 0.5d0
-      lambda = 0.0d0
-      alpha = 20.0d0
+      cte_p0 = 0.25_dp
+      g = 0.5_dp
+      lambda = 0.0_dp
+      alpha = 20.0_dp
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
 
-    B0 = 1.0d0
-    beta = 2.0d0*cte_p0 / B0**2
-    cte_rho0 = (alpha / g) * (cte_p0 + 0.5d0 * B0**2)
+    B0 = 1.0_dp
+    beta = 2.0_dp*cte_p0 / B0**2
+    cte_rho0 = (alpha / g) * (cte_p0 + 0.5_dp * B0**2)
 
     T_field % T0      = cte_p0 / cte_rho0
     grav_field % grav = g
@@ -53,17 +54,50 @@ contains
     do i = 1, settings%grid%get_gauss_gridpts()
       x = grid_gauss(i)
 
-      rho_field % rho0(i) = cte_rho0 * exp(-alpha*x)
-      B_field % B02(i)    = B0 * exp(-0.5d0 * alpha * x) * sin(lambda*x)
-      B_field % B03(i)    = B0 * exp(-0.5d0 * alpha * x) * cos(lambda*x)
-      B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
+      rho_field % rho0(i) = rho0(x)
+      B_field % B02(i) = B02(x)
+      B_field % B03(i) = B03(x)
+      B_field % B0(i) = sqrt(B_field % B02(i)**2 + B_field % B03(i)**2)
 
-      rho_field % d_rho0_dr(i) = -alpha * (rho_field % rho0(i))
-      B_field % d_B02_dr(i) = -0.5d0 * alpha * (B_field % B02(i)) &
-        + lambda * (B_field % B03(i))
-      B_field % d_B03_dr(i) = -0.5d0 * alpha * (B_field % B03(i)) &
-        - lambda * (B_field % B02(i))
+      rho_field % d_rho0_dr(i) = drho0(x)
+      B_field % d_B02_dr(i) = dB02(x)
+      B_field % d_B03_dr(i) = dB03(x)
     end do
   end procedure interchange_modes_eq
+
+
+  real(dp) function rho0(x)
+    real(dp), intent(in) :: x
+    rho0 = cte_rho0 * exp(-alpha*x)
+  end function rho0
+
+  real(dp) function drho0(x)
+    real(dp), intent(in) :: x
+    drho0 = -alpha * rho0(x)
+  end function drho0
+
+  real(dp) function T0()
+    T0 = cte_p0 / cte_rho0
+  end function T0
+
+  real(dp) function B02(x)
+    real(dp), intent(in) :: x
+    B02 = B0 * exp(-0.5_dp * alpha * x) * sin(lambda * x)
+  end function B02
+
+  real(dp) function dB02(x)
+    real(dp), intent(in) :: x
+    dB02 = -0.5_dp * alpha * B02(x) + lambda * B03(x)
+  end function dB02
+
+  real(dp) function B03(x)
+    real(dp), intent(in) :: x
+    B03 = B0 * exp(-0.5_dp * alpha * x) * cos(lambda * x)
+  end function B03
+
+  real(dp) function dB03(x)
+    real(dp), intent(in) :: x
+    dB03 = -0.5_dp * alpha * B03(x) - lambda * B02(x)
+  end function dB03
 
 end submodule smod_equil_interchange_modes

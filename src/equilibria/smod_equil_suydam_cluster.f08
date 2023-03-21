@@ -19,61 +19,118 @@
 !!
 !! and can all be changed in the parfile. @endnote
 submodule (mod_equilibrium) smod_equil_suydam_cluster
+  use mod_equilibrium_params, only: cte_rho0, cte_v02, cte_v03, cte_p0, p1, alpha
   implicit none
 
 contains
 
   !> Sets the equilibrium
   module procedure suydam_cluster_eq
-    use mod_equilibrium_params, only: cte_rho0, cte_v02, cte_v03, cte_p0, p1, alpha
-
     real(dp) :: r
-    real(dp) :: J0, J1, DJ0, DJ1
-    real(dp), allocatable:: P0_eq(:)
-    integer :: i, gauss_gridpts
+    integer :: i
 
     if (settings%equilibrium%use_defaults) then  ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       call settings%physics%enable_flow()
 
-      cte_rho0 = 1.0d0
-      cte_v02 = 0.0d0
-      cte_v03 = 0.14d0
-      cte_p0 = 0.05d0
-      p1 = 0.1d0
-      alpha = 2.0d0
+      cte_rho0 = 1.0_dp
+      cte_v02 = 0.0_dp
+      cte_v03 = 0.14_dp
+      cte_p0 = 0.05_dp
+      p1 = 0.1_dp
+      alpha = 2.0_dp
 
-      k2 = 1.0d0
-      k3 = -1.2d0
+      k2 = 1.0_dp
+      k3 = -1.2_dp
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
 
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
-    allocate(P0_eq(gauss_gridpts))
-    do i = 1, gauss_gridpts
+    do i = 1, settings%grid%get_gauss_gridpts()
       r = grid_gauss(i)
 
-      J0  = bessel_jn(0, alpha * r)
-      J1  = bessel_jn(1, alpha * r)
-      DJ0 = -alpha * J1
-      DJ1 = alpha * (0.5d0 * J0 - 0.5d0 * bessel_jn(2, alpha * r))
+      rho_field % rho0(i) = rho0()
+      v_field % v02(i) = v02()
+      v_field % v03(i) = v03(r)
+      B_field % B02(i) = B02(r)
+      B_field % B03(i) = B03(r)
+      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
+      T_field % T0(i) = T0(r)
 
-      rho_field % rho0(i) = cte_rho0
-      v_field % v02(i)    = cte_v02
-      v_field % v03(i)    = cte_v03 * (1.0d0 - r**2)
-      B_field % B02(i)    = J1
-      B_field % B03(i)    = sqrt(1.0d0 - p1) * J0
-      B_field % B0(i)     = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      P0_eq(i)            = cte_p0 + 0.5d0 * p1 * J0**2
-      T_field % T0(i)     = P0_eq(i) / (rho_field % rho0(i))
-
-      T_field % d_T0_dr(i)  = p1 * J0 * DJ0
-      v_field % d_v03_dr(i) = -2.0d0 * cte_v03 * r
-      B_field % d_B02_dr(i) = DJ1
-      B_field % d_B03_dr(i) = -alpha * sqrt(1.0d0 - p1) * J1
+      T_field % d_T0_dr(i) = dT0(r)
+      v_field % d_v03_dr(i) = dv03(r)
+      B_field % d_B02_dr(i) = dB02(r)
+      B_field % d_B03_dr(i) = dB03(r)
     end do
-    deallocate(P0_eq)
   end procedure suydam_cluster_eq
+
+
+  real(dp) function rho0()
+    rho0 = cte_rho0
+  end function rho0
+
+  real(dp) function T0(r)
+    real(dp), intent(in) :: r
+    T0 = (cte_p0 + 0.5_dp * p1 * J0(r)**2) / cte_rho0
+  end function T0
+
+  real(dp) function dT0(r)
+    real(dp), intent(in) :: r
+    dT0 = p1 * J0(r) * DJ0(r) / cte_rho0
+  end function dT0
+
+  real(dp) function v02()
+    v02 = cte_v02
+  end function v02
+
+  real(dp) function v03(r)
+    real(dp), intent(in) :: r
+    v03 = cte_v03 * (1.0_dp - r**2)
+  end function v03
+
+  real(dp) function dv03(r)
+    real(dp), intent(in) :: r
+    dv03 = -2.0_dp * cte_v03 * r
+  end function dv03
+
+  real(dp) function B02(r)
+    real(dp), intent(in) :: r
+    B02 = J1(r)
+  end function B02
+
+  real(dp) function dB02(r)
+    real(dp), intent(in) :: r
+    dB02 = DJ1(r)
+  end function dB02
+
+  real(dp) function B03(r)
+    real(dp), intent(in) :: r
+    B03 = sqrt(1.0_dp - p1) * J0(r)
+  end function B03
+
+  real(dp) function dB03(r)
+    real(dp), intent(in) :: r
+    dB03 = -alpha * sqrt(1.0_dp - p1) * J1(r)
+  end function dB03
+
+  real(dp) function J0(r)
+    real(dp), intent(in) :: r
+    J0 = bessel_jn(0, alpha * r)
+  end function J0
+
+  real(dp) function J1(r)
+    real(dp), intent(in) :: r
+    J1 = bessel_jn(1, alpha * r)
+  end function J1
+
+  real(dp) function DJ0(r)
+    real(dp), intent(in) :: r
+    DJ0 = -alpha * J1(r)
+  end function DJ0
+
+  real(dp) function DJ1(r)
+    real(dp), intent(in) :: r
+    DJ1 = alpha * (0.5_dp * J0(r) - 0.5_dp * bessel_jn(2, alpha * r))
+  end function DJ1
 
 end submodule smod_equil_suydam_cluster
