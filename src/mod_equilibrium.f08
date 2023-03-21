@@ -216,7 +216,7 @@ contains
     use mod_thermal_conduction, only: set_conduction_values
     use mod_hall, only: set_hall_factors
     type(settings_t), intent(inout) :: settings
-      type(background_t), intent(inout) :: background
+    type(background_t), intent(inout) :: background
 
     ! Set equilibrium submodule to use
     call set_equilibrium_pointer(settings)
@@ -230,9 +230,7 @@ contains
     end if
 
     ! Do initial checks for NaN and negative density/temperature
-    call perform_NaN_and_negative_checks( &
-      rho_field, T_field, B_field, v_field, grav_field &
-    )
+    call perform_NaN_and_negative_checks(background, grav_field)
 
     ! Setup additional physics
     if (settings%physics%resistivity%is_enabled()) then
@@ -250,16 +248,7 @@ contains
     end if
 
     ! Do final sanity checks on values
-    call perform_sanity_checks( &
-      settings, &
-      rho_field, &
-      T_field, &
-      B_field, &
-      v_field, &
-      grav_field, &
-      rc_field, &
-      kappa_field &
-    )
+    call perform_sanity_checks(settings, background, grav_field, rc_field, kappa_field)
   end subroutine set_equilibrium
 
 

@@ -5,7 +5,7 @@ module mod_bg_profiles
   private
 
   public :: zero
-  public :: from_profile
+  public :: from_function
 
 contains
 
@@ -14,7 +14,7 @@ contains
   end function zero
 
 
-  function from_profile(func, values) result(array)
+  function from_function(func, values) result(array)
     procedure(real(dp)), pointer :: func
     real(dp), intent(in) :: values(:)
     real(dp) :: array(size(values))
@@ -23,6 +23,6 @@ contains
     do i = 1, size(values)
       array(i) = func(values(i))
     end do
-  end function from_profile
+  end function from_function
 
 end module mod_bg_profiles
