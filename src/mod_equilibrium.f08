@@ -241,7 +241,7 @@ contains
       call set_radiative_cooling_values(settings, background, rc_field)
     end if
     if (settings%physics%conduction%is_enabled()) then
-      call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+      call set_conduction_values(settings, background, kappa_field)
     end if
     if (settings%physics%hall%is_enabled()) then
       call set_hall_factors(settings, hall_field)

@@ -7,6 +7,10 @@ module mod_thermal_conduction
   use mod_logging, only: logger, str
   use mod_settings, only: settings_t
   use mod_check_values, only: is_zero
+  use mod_background, only: background_t
+  use mod_function_utils, only: from_function
+  use mod_grid, only: grid_gauss
+  use mod_types, only: conduction_type
   implicit none
 
   private
@@ -23,16 +27,9 @@ contains
   !! and calls all other relevant subroutines defined in this module.
   !! @note    The derivatives of the perpendicular thermal conduction terms
   !!          are all zero if that value is taken to be fixed.
-  subroutine set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
-    use mod_types, only: density_type, temperature_type, bfield_type, conduction_type
-
+  subroutine set_conduction_values(settings, background, kappa_field)
     type(settings_t), intent(in) :: settings
-    !> the type containing the density attributes
-    type(density_type), intent(in)        :: rho_field
-    !> the type containing the temperature attributes
-    type(temperature_type), intent(in)    :: T_field
-    !> the type containing the magnetic field attributes
-    type(bfield_type), intent(in)         :: B_field
+    type(background_t), intent(in) :: background
     !> the type containing the thermal conduction attributes
     type(conduction_type), intent(inout)  :: kappa_field
 
@@ -46,31 +43,40 @@ contains
 
     call logger%debug("setting thermal conduction values")
     if (settings%physics%conduction%has_parallel_conduction()) then
-      call set_kappa_para(settings, T_field%T0, kappa_field%kappa_para)
-      call set_kappa_para_derivatives(settings, T_field%T0, kappa_field%d_kappa_para_dT)
+      call set_kappa_para( &
+        settings, from_function(background%temperature%T0, grid_gauss), &
+        kappa_field%kappa_para &
+      )
+      call set_kappa_para_derivatives( &
+        settings, &
+        from_function(background%temperature%T0, grid_gauss), &
+        kappa_field%d_kappa_para_dT &
+      )
     end if
     if (settings%physics%conduction%has_perpendicular_conduction()) then
       call set_kappa_perp( &
-        settings, T_field%T0, rho_field%rho0, B_field%B0, kappa_field%kappa_perp &
+        settings=settings, &
+        T0_eq=from_function(background%temperature%T0, grid_gauss), &
+        rho0_eq=from_function(background%density%rho0, grid_gauss), &
+        B0_eq=background%magnetic%get_B0(grid_gauss), &
+        tc_perp=kappa_field%kappa_perp &
       )
       ! set rho, T, B derivatives
       call set_kappa_perp_derivatives( &
-        settings, &
-        T_field % T0, &
-        rho_field % rho0, &
-        B_field % B0, &
-        kappa_field % d_kappa_perp_drho, &
-        kappa_field % d_kappa_perp_dB2, &
-        kappa_field % d_kappa_perp_dT &
+        settings=settings, &
+        T0_eq=from_function(background%temperature%T0, grid_gauss), &
+        rho0_eq=from_function(background%density%rho0, grid_gauss), &
+        B0_eq=background%magnetic%get_B0(grid_gauss), &
+        d_tc_drho=kappa_field % d_kappa_perp_drho, &
+        d_tc_dB2=kappa_field % d_kappa_perp_dB2, &
+        d_tc_dT=kappa_field % d_kappa_perp_dT &
       )
       ! set derivatives with respect to r
-      call set_kappa_perp_radial_derivative( &
-        settings, rho_field, T_field, B_field, kappa_field &
-      )
+      call set_kappa_perp_radial_derivative(settings, background, kappa_field)
     end if
 
     ! set conduction prefactor and its radial derivative
-    call set_conduction_prefactor(settings, T_field, B_field, kappa_field)
+    call set_conduction_prefactor(settings, background, kappa_field)
   end subroutine set_conduction_values
 
 
@@ -231,40 +237,37 @@ contains
   !!  + \frac{d\kappa_{\perp, 0}}{dT} T_0'
   !!  + \frac{d\kappa_{\perp, 0}}{d(B^2)}2B_0 B_0'
   !! $$
-  subroutine set_kappa_perp_radial_derivative( &
-    settings, rho_field, T_field, B_field, kappa_field &
-  )
-    use mod_types, only: density_type, temperature_type, bfield_type, conduction_type
-
+  subroutine set_kappa_perp_radial_derivative(settings, background, kappa_field)
     type(settings_t), intent(in) :: settings
-    !> the type containing the density attributes
-    type(density_type), intent(in) :: rho_field
-    !> the type containing the temperature attributes
-    type(temperature_type), intent(in)  :: T_field
-    !> the type containing the magnetic field attributes
-    type(bfield_type), intent(in) :: B_field
+    type(background_t), intent(in) :: background
     !> the type containing the thermal conduction attributes
     type(conduction_type), intent(inout)  :: kappa_field
 
-    real(dp)  :: dB0(size(B_field % B0))
+    real(dp) :: drho0(settings%grid%get_gauss_gridpts())
+    real(dp) :: dT0(settings%grid%get_gauss_gridpts())
+    real(dp) :: B0(settings%grid%get_gauss_gridpts())
+    real(dp) :: dB0(settings%grid%get_gauss_gridpts())
 
     if (settings%physics%conduction%has_fixed_tc_perp()) return
 
     call logger%debug("  setting kappa_perp radial derivative")
     if (.not. settings%has_bfield()) then
       call logger%debug("  no B-field, derivative is dkappa_para/dT * T0'")
-      kappa_field % d_kappa_perp_dr = kappa_field % d_kappa_perp_dT * T_field % d_T0_dr
+      kappa_field % d_kappa_perp_dr = ( &
+        kappa_field % d_kappa_perp_dT &
+        * from_function(background%temperature%dT0, grid_gauss) &
+      )
       return
     end if
-    ! magnetic field derivative
-    dB0 = ( &
-      B_field % B02 * B_field % d_B02_dr + B_field % B03 * B_field % d_B03_dr &
-    ) / B_field % B0
+    drho0 = from_function(background%density%drho0, grid_gauss)
+    dT0 = from_function(background%temperature%dT0, grid_gauss)
+    B0 = background%magnetic%get_B0(grid_gauss)
+    dB0 = background%magnetic%get_dB0(grid_gauss)
     ! coordinate derivative of kappa_perp
     kappa_field % d_kappa_perp_dr = ( &
-      kappa_field % d_kappa_perp_drho * rho_field % d_rho0_dr &
-      + kappa_field % d_kappa_perp_dT * T_field % d_T0_dr &
-      + kappa_field % d_kappa_perp_dB2 * 2.0d0 * B_field % B0 * dB0 &
+      kappa_field % d_kappa_perp_drho * drho0 &
+      + kappa_field % d_kappa_perp_dT * dT0 &
+      + kappa_field % d_kappa_perp_dB2 * 2.0d0 * B0 * dB0 &
     )
   end subroutine set_kappa_perp_radial_derivative
 
@@ -277,19 +280,17 @@ contains
   !!  +\left(\kappa_{\parallel, 0}' - \kappa_{\perp, 0}'\right)B_0
   !! \right]
   !! $$
-  subroutine set_conduction_prefactor(settings, T_field, B_field, kappa_field)
-    use mod_types, only: temperature_type, bfield_type, conduction_type
-
+  subroutine set_conduction_prefactor(settings, background, kappa_field)
     type(settings_t), intent(in) :: settings
-    !> the type containing the temperature attributes
-    type(temperature_type), intent(in)  :: T_field
-    !> the type containing the magnetic field attributes
-    type(bfield_type), intent(in) :: B_field
+    type(background_t), intent(in) :: background
     !> the type containing the thermal conduction attributes
     type(conduction_type), intent(inout)  :: kappa_field
 
-    real(dp)  :: d_kappa_para_dr(size(T_field % T0))
-    real(dp)  :: dB0(size(B_field % B0))
+    real(dp) :: d_kappa_para_dr(settings%grid%get_gauss_gridpts())
+    real(dp) :: drho0(settings%grid%get_gauss_gridpts())
+    real(dp) :: dT0(settings%grid%get_gauss_gridpts())
+    real(dp) :: B0(settings%grid%get_gauss_gridpts())
+    real(dp) :: dB0(settings%grid%get_gauss_gridpts())
 
     call logger%debug("  setting conduction prefactor")
     if (.not. settings%has_bfield()) then
@@ -299,23 +300,23 @@ contains
       return
     end if
 
+    drho0 = from_function(background%density%drho0, grid_gauss)
+    dT0 = from_function(background%temperature%dT0, grid_gauss)
+    B0 = background%magnetic%get_B0(grid_gauss)
+    dB0 = background%magnetic%get_dB0(grid_gauss)
+
     ! calculate and set conduction prefactor
     kappa_field % prefactor = ( &
-      (kappa_field % kappa_para - kappa_field % kappa_perp) / (B_field % B0**2) &
+      (kappa_field % kappa_para - kappa_field % kappa_perp) / (B0**2) &
     )
-
     ! radial derivative of parallel conduction component
-    d_kappa_para_dr = kappa_field % d_kappa_para_dT * T_field % d_T0_dr
-    ! radial derivative of magnetic field
-    dB0 = ( &
-      B_field % B02 * B_field % d_B02_dr + B_field % B03 * B_field % d_B03_dr &
-    ) / B_field % B0
+    d_kappa_para_dr = kappa_field % d_kappa_para_dT * dT0
 
     call logger%debug("  setting conduction prefactor radial derivative")
     kappa_field % d_prefactor_dr = ( &
-      (d_kappa_para_dr - kappa_field % d_kappa_perp_dr) * B_field % B0 &
+      (d_kappa_para_dr - kappa_field % d_kappa_perp_dr) * B0 &
       - 2.0d0 * (kappa_field % kappa_para - kappa_field % kappa_perp) * dB0 &
-    ) / (B_field % B0**3)
+    ) / B0**3
   end subroutine set_conduction_prefactor
 
 end module mod_thermal_conduction
