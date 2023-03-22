@@ -3,7 +3,7 @@
 !! thermal conduction values based on the equilibrium configuration.
 module mod_thermal_conduction
   use mod_global_variables, only: dp
-  use mod_physical_constants, only: dpi, coulomb_log
+  use mod_physical_constants, only: dpi, coulomb_log, tc_pf_kappa_para, tc_pf_kappa_perp
   use mod_logging, only: logger, str
   use mod_settings, only: settings_t
   use mod_check_values, only: is_zero
@@ -14,9 +14,6 @@ module mod_thermal_conduction
   implicit none
 
   private
-
-  real(dp)  :: pf_kappa_para
-  real(dp)  :: pf_kappa_perp
 
   public :: set_conduction_values
 
@@ -32,10 +29,6 @@ contains
     type(background_t), intent(in) :: background
     !> the type containing the thermal conduction attributes
     type(conduction_type), intent(inout)  :: kappa_field
-
-    ! set conduction prefactor in cgs units
-    pf_kappa_para = 1.8d-5
-    pf_kappa_perp = 8.2d-10
 
     if (.not. settings%has_bfield()) call logger%info( &
       "no B-field detected, using isotropic thermal conduction" &
@@ -102,7 +95,7 @@ contains
 
     call logger%debug("  using T-dependent parallel thermal conduction")
     T0_dimfull = T0_eq * settings%units%get_unit_temperature()
-    tc_para = pf_kappa_para * T0_dimfull**2.5d0 / coulomb_log
+    tc_para = tc_pf_kappa_para * T0_dimfull**2.5d0 / coulomb_log
     tc_para = tc_para / settings%units%get_unit_conduction()
   end subroutine set_kappa_para
 
@@ -142,7 +135,7 @@ contains
     T0_dimfull = T0_eq * settings%units%get_unit_temperature()
     B0_dimfull = B0_eq * settings%units%get_unit_magneticfield()
 
-    tc_perp = pf_kappa_para * pf_kappa_perp * coulomb_log * nH_dimfull**2 &
+    tc_perp = tc_pf_kappa_para * tc_pf_kappa_perp * coulomb_log * nH_dimfull**2 &
       / (B0_dimfull**2 * sqrt(T0_dimfull))
     tc_perp = tc_perp / settings%units%get_unit_conduction()
   end subroutine set_kappa_perp
@@ -165,7 +158,7 @@ contains
     unit_temperature = settings%units%get_unit_temperature()
     unit_dtc_dT = settings%units%get_unit_conduction() / unit_temperature
     T0_dimfull = T0_eq * unit_temperature
-    d_tcpara_dT = pf_kappa_para * 2.5d0 * T0_dimfull**1.5d0 / coulomb_log
+    d_tcpara_dT = tc_pf_kappa_para * 2.5d0 * T0_dimfull**1.5d0 / coulomb_log
     d_tcpara_dT = d_tcpara_dT / unit_dtc_dT
   end subroutine set_kappa_para_derivatives
 
@@ -216,14 +209,15 @@ contains
     B0_dimfull = B0_eq * settings%units%get_unit_magneticfield()
 
     ! density derivative
-    d_tc_drho = 2.0d0 * pf_kappa_para * pf_kappa_perp * coulomb_log * nH_dimfull &
+    d_tc_drho = 2.0d0 * tc_pf_kappa_para * tc_pf_kappa_perp * coulomb_log * nH_dimfull &
       / (B0_dimfull**2 * sqrt(T0_dimfull))
     ! magnetic field derivative
-    d_tc_dB2 = -pf_kappa_para * pf_kappa_perp * coulomb_log * nH_dimfull**2 &
+    d_tc_dB2 = -tc_pf_kappa_para * tc_pf_kappa_perp * coulomb_log * nH_dimfull**2 &
       / (B0_dimfull**4 * sqrt(T0_dimfull))
     ! temperature derivative
-    d_tc_dT = -0.5d0 * pf_kappa_para * pf_kappa_perp * coulomb_log * nH_dimfull**2 &
-      / (B0_dimfull**2 * T0_dimfull**(3.0d0/2.0d0))
+    d_tc_dT = ( &
+      -0.5d0 * tc_pf_kappa_para * tc_pf_kappa_perp * coulomb_log * nH_dimfull**2 &
+    ) / (B0_dimfull**2 * T0_dimfull**(3.0d0/2.0d0))
     d_tc_drho = d_tc_drho / (unit_conduction / settings%units%get_unit_density())
     d_tc_dB2 = d_tc_dB2 / (unit_conduction / settings%units%get_unit_magneticfield()**2)
     d_tc_dT = d_tc_dT / (unit_conduction / settings%units%get_unit_temperature())
