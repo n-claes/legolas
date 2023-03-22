@@ -2,31 +2,28 @@ module mod_test_conduction
   use mod_suite_utils
   use funit
   use mod_thermal_conduction, only: set_conduction_values
-  use mod_equilibrium, only: rho_field, T_field, B_field, kappa_field
-  use mod_physical_constants, only: coulomb_log
+  use mod_equilibrium, only: kappa_field
+  use mod_physical_constants
   use mod_grid, only: grid_gauss
   implicit none
 
-  ! prefactors in cgs
-  real(dp), parameter :: pf_para = 1.8d-5
-  real(dp), parameter :: pf_perp = 8.2d-10
-
   real(dp) :: unit_temperature, unit_density, unit_conduction, unit_numberdensity
   real(dp) :: unit_magneticfield
+  real(dp), allocatable :: expected(:), actual(:)
 
-  integer   :: array_size
   type(settings_t) :: settings
+  type(background_t) :: background
 
 contains
 
   @before
   subroutine init_test()
-    call reset_globals()
     settings = get_settings()
-    call create_test_grid(settings, pts=51, geometry="Cartesian")
+    background = new_background()
+    call create_test_grid(settings, geometry="Cartesian")
     call reset_fields(settings, init_fields=.true.)
-    array_size = size(T_field%T0)
     call set_default_units(settings)
+
     unit_temperature = settings%units%get_unit_temperature()
     unit_density = settings%units%get_unit_density()
     unit_conduction = settings%units%get_unit_conduction()
@@ -39,6 +36,9 @@ contains
   subroutine teardown_test()
     call clean_up(settings)
     call settings%delete()
+    call background%delete()
+    if (allocated(expected)) deallocate(expected)
+    if (allocated(actual)) deallocate(actual)
   end subroutine teardown_test
 
 
@@ -46,7 +46,7 @@ contains
   subroutine test_kappa_para_cte()
     call set_name("thermal conduction (kappa_para cte)")
     call settings%physics%enable_parallel_conduction(fixed_tc_para_value=1.0_dp)
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
 
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertTrue(settings%physics%conduction%has_fixed_tc_para())
@@ -64,7 +64,7 @@ contains
   subroutine test_kappa_para_cte_zero()
     call set_name("thermal conduction (kappa_para cte but zero)")
     call settings%physics%enable_parallel_conduction(fixed_tc_para_value=0.0_dp)
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
 
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertFalse(settings%physics%conduction%has_fixed_tc_para())
@@ -75,7 +75,7 @@ contains
   subroutine test_kappa_perp_cte()
     call set_name("thermal conduction (kappa_perp cte)")
     call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value=1.0_dp)
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
 
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertEqual(1.0_dp, kappa_field%kappa_perp, tolerance=TOL)
@@ -92,7 +92,7 @@ contains
   subroutine test_kappa_perp_cte_zero()
     call set_name("thermal conduction (kappa_perp cte but zero)")
     call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value=0.0_dp)
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
 
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertFalse(settings%physics%conduction%has_fixed_tc_perp())
@@ -101,212 +101,413 @@ contains
 
   @test
   subroutine test_kappa_para()
-    real(dp)  :: actual(array_size), expected(array_size)
-
     call set_name("thermal conduction (kappa_para)")
-    T_field%T0 = grid_gauss
+    call background%set_temperature_funcs(T0_func=T0)
     call settings%physics%enable_parallel_conduction()
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
     expected = ( &
-      pf_para * (grid_gauss * unit_temperature) ** 2.5d0 / coulomb_log &
+      tc_pf_kappa_para * (grid_gauss * unit_temperature) ** 2.5d0 / coulomb_log &
     )
     actual = kappa_field%kappa_para * unit_conduction
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertTrue(settings%physics%conduction%has_parallel_conduction())
     @assertFalse(settings%physics%conduction%has_perpendicular_conduction())
+    @assertTrue(any(abs(expected) > 0.0d0))
+    @assertTrue(any(abs(actual) > 0.0d0))
+    ! expected & actual are few orders in magnitude so 1e-6 is enough
     @assertEqual(0.0d0, abs(expected - actual), tolerance=1.0d-6)
+
+    contains
+
+    real(dp) function T0(x)
+      real(dp), intent(in) :: x
+      T0 = x
+    end function T0
   end subroutine test_kappa_para
 
 
   @test
   subroutine test_kappa_para_dT()
-    real(dp)  :: actual(array_size), expected(array_size)
-
     call set_name("thermal conduction (kappa_para dT)")
-    T_field%T0 = 2.0d0 * grid_gauss
+    call background%set_temperature_funcs(T0_func=T0)
     call settings%physics%enable_parallel_conduction()
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
     expected = ( &
-      pf_para * 2.5d0 * (2.0d0 * grid_gauss * unit_temperature) ** 1.5d0 / coulomb_log &
+      tc_pf_kappa_para &
+      * 2.5d0 &
+      * (2.0d0 * grid_gauss * unit_temperature) ** 1.5d0 &
+      / coulomb_log &
     )
     actual = kappa_field%d_kappa_para_dT * (unit_conduction / unit_temperature)
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertTrue(settings%physics%conduction%has_parallel_conduction())
     @assertFalse(settings%physics%conduction%has_perpendicular_conduction())
-    @assertEqual(0.0d0, abs(expected - actual), tolerance=1.0d-12)
+    @assertTrue(any(abs(expected) > 0.0d0))
+    @assertTrue(any(abs(actual) > 0.0d0))
+    @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
+
+    contains
+
+    real(dp) function T0(x)
+      real(dp), intent(in) :: x
+      T0 = 2.0d0 * x
+    end function T0
   end subroutine test_kappa_para_dT
 
 
   @test
   subroutine test_kappa_perp()
-    real(dp)  :: actual(array_size), expected(array_size)
-    real(dp)  :: rho(array_size), temp(array_size), B0(array_size)
-
     call set_name("thermal conduction (kappa_perp)")
-    rho = 3.0d0 * grid_gauss
-    temp = sqrt(grid_gauss)
-    B0 = 0.5d0 * grid_gauss**2
-    rho_field%rho0 = rho
-    T_field%T0 = temp
-    B_field%B0 = B0
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
     call settings%physics%enable_perpendicular_conduction()
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
     expected = ( &
-      pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
-      / ((B0 * unit_magneticfield) ** 2 * sqrt(temp * unit_temperature)) &
+      tc_pf_kappa_para &
+      * tc_pf_kappa_perp &
+      * coulomb_log &
+      * (3.0d0 * grid_gauss * unit_numberdensity) ** 2 &
+      / ( &
+        (0.5d0 * grid_gauss**2 * unit_magneticfield) ** 2 &
+        * sqrt(sqrt(grid_gauss) * unit_temperature) &
+      ) &
     )
     actual = kappa_field%kappa_perp * unit_conduction
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertFalse(settings%physics%conduction%has_parallel_conduction())
     @assertTrue(settings%physics%conduction%has_perpendicular_conduction())
+    @assertTrue(any(abs(expected) > 0.0d0))
+    @assertTrue(any(abs(actual) > 0.0d0))
     @assertEqual(0.0d0, abs(expected - actual), tolerance=1.0d-6)
+
+    contains
+
+    real(dp) function rho0(x)
+      real(dp), intent(in) :: x
+      rho0 = 3.0d0 * x
+    end function rho0
+
+    real(dp) function drho0()
+      drho0 = 3.0d0
+    end function drho0
+
+    real(dp) function T0(x)
+      real(dp), intent(in) :: x
+      T0 = sqrt(x)
+    end function T0
+
+    real(dp) function dT0(x)
+      real(dp), intent(in) :: x
+      dT0 = 0.5d0 / sqrt(x)
+    end function dT0
+
+    real(dp) function B02(x)
+      real(dp), intent(in) :: x
+      B02 = 0.5d0 * x**2
+    end function B02
+
+    real(dp) function dB02(x)
+      real(dp), intent(in) :: x
+      dB02 = x
+    end function dB02
   end subroutine test_kappa_perp
 
 
   @test
   subroutine test_kappa_perp_drho()
-    real(dp)  :: actual(array_size), expected(array_size)
-    real(dp)  :: rho(array_size), temp(array_size), B0(array_size)
-    real(dp) :: unit_dtc_drho
-
     call set_name("thermal conduction (kappa_perp drho)")
-    rho = 5.0d0 * grid_gauss
-    temp = 0.2d0 * sqrt(grid_gauss)
-    B0 = grid_gauss**2
-    rho_field%rho0 = rho
-    T_field%T0 = temp
-    B_field%B0 = B0
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
     call settings%physics%enable_perpendicular_conduction()
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
     expected = ( &
-      2.0d0 * pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) &
-      / ((B0 * unit_magneticfield) ** 2 * sqrt(temp * unit_temperature)) &
+      2.0d0 &
+      * tc_pf_kappa_para &
+      * tc_pf_kappa_perp &
+      * coulomb_log &
+      * (5.0d0 * grid_gauss * unit_numberdensity) &
+      / ( &
+        (grid_gauss**2 * unit_magneticfield) ** 2 &
+        * sqrt(0.2d0 * sqrt(grid_gauss) * unit_temperature) &
+      ) &
     )
-    unit_dtc_drho = unit_conduction / unit_density
+    actual = kappa_field%d_kappa_perp_drho * unit_conduction / unit_density
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertFalse(settings%physics%conduction%has_parallel_conduction())
     @assertTrue(settings%physics%conduction%has_perpendicular_conduction())
-    actual = kappa_field%d_kappa_perp_drho * unit_dtc_drho
+    @assertTrue(any(abs(expected) > 0.0d0))
+    @assertTrue(any(abs(actual) > 0.0d0))
     @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
+
+    contains
+
+    real(dp) function rho0(x)
+      real(dp), intent(in) :: x
+      rho0 = 5.0d0 * x
+    end function rho0
+
+    real(dp) function drho0()
+      drho0 = 5.0d0
+    end function drho0
+
+    real(dp) function T0(x)
+      real(dp), intent(in) :: x
+      T0 = 0.2d0 * sqrt(x)
+    end function T0
+
+    real(dp) function dT0(x)
+      real(dp), intent(in) :: x
+      dT0 = 0.1d0 / sqrt(x)
+    end function dT0
+
+    real(dp) function B02(x)
+      real(dp), intent(in) :: x
+      B02 = x**2
+    end function B02
+
+    real(dp) function dB02(x)
+      real(dp), intent(in) :: x
+      dB02 = 2.0d0 * x
+    end function dB02
   end subroutine test_kappa_perp_drho
 
 
   @test
   subroutine test_kappa_perp_dT()
-    real(dp)  :: actual(array_size), expected(array_size)
-    real(dp)  :: rho(array_size), temp(array_size), B0(array_size)
-    real(dp) :: unit_dtc_dT
-
     call set_name("thermal conduction (kappa_perp dT)")
-    rho = grid_gauss**2
-    temp = 5.0d0 * grid_gauss**2
-    B0 = 0.25d0 * grid_gauss
-    rho_field%rho0 = rho
-    T_field%T0 = temp
-    B_field%B0 = B0
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
     call settings%physics%enable_perpendicular_conduction()
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
     expected = ( &
-      -0.5d0 * pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
-      / ((B0 * unit_magneticfield) ** 2 * (temp * unit_temperature) ** 1.5d0) &
+      -0.5d0 &
+      * tc_pf_kappa_para &
+      * tc_pf_kappa_perp &
+      * coulomb_log &
+      * (grid_gauss**2 * unit_numberdensity) ** 2 &
+      / ( &
+        (0.25d0 * grid_gauss * unit_magneticfield) ** 2 &
+        * (5.0d0 * grid_gauss**2 * unit_temperature) ** 1.5d0 &
+      ) &
     )
-    unit_dtc_dT = unit_conduction / unit_temperature
-    actual = kappa_field%d_kappa_perp_dT * unit_dtc_dT
+    actual = kappa_field%d_kappa_perp_dT * unit_conduction / unit_temperature
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertFalse(settings%physics%conduction%has_parallel_conduction())
     @assertTrue(settings%physics%conduction%has_perpendicular_conduction())
+    @assertTrue(any(abs(expected) > 0.0d0))
+    @assertTrue(any(abs(actual) > 0.0d0))
     @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
+
+    contains
+
+    real(dp) function rho0(x)
+      real(dp), intent(in) :: x
+      rho0 = x**2
+    end function rho0
+
+    real(dp) function drho0(x)
+      real(dp), intent(in) :: x
+      drho0 = 2.0d0 * x
+    end function drho0
+
+    real(dp) function T0(x)
+      real(dp), intent(in) :: x
+      T0 = 5.0d0 * x**2
+    end function T0
+
+    real(dp) function dT0(x)
+      real(dp), intent(in) :: x
+      dT0 = 10.0d0 * x
+    end function dT0
+
+    real(dp) function B02(x)
+      real(dp), intent(in) :: x
+      B02 = 0.25d0 * x
+    end function B02
+
+    real(dp) function dB02()
+      dB02 = 0.25d0
+    end function dB02
   end subroutine test_kappa_perp_dT
 
 
   @test
   subroutine test_kappa_perp_dB2()
-    real(dp)  :: actual(array_size), expected(array_size)
-    real(dp)  :: rho(array_size), temp(array_size), B0(array_size)
-    real(dp) :: unit_dtc_dB2
-
     call set_name("thermal conduction (kappa_perp dB2)")
-    rho = grid_gauss**3
-    temp = 5.0d0 * grid_gauss
-    B0 = 3.0d0 * sqrt(grid_gauss)
-    rho_field%rho0 = rho
-    T_field%T0 = temp
-    B_field%B0 = B0
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
     call settings%physics%enable_perpendicular_conduction()
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
     expected = ( &
-      -pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
-      / ((B0 * unit_magneticfield) ** 4 * sqrt(temp * unit_temperature)) &
+      -tc_pf_kappa_para &
+      * tc_pf_kappa_perp &
+      * coulomb_log &
+      * (grid_gauss**3 * unit_numberdensity) ** 2 &
+      / ( &
+        (3.0d0 * sqrt(grid_gauss) * unit_magneticfield) ** 4 &
+        * sqrt(5.0d0 * grid_gauss * unit_temperature) &
+      ) &
     )
-    unit_dtc_dB2 = unit_conduction / (unit_magneticfield ** 2)
-    actual = kappa_field%d_kappa_perp_dB2 * unit_dtc_dB2
+    actual = kappa_field%d_kappa_perp_dB2 * unit_conduction / (unit_magneticfield ** 2)
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertFalse(settings%physics%conduction%has_parallel_conduction())
     @assertTrue(settings%physics%conduction%has_perpendicular_conduction())
+    @assertTrue(any(abs(expected) > 0.0d0))
+    @assertTrue(any(abs(actual) > 0.0d0))
     @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
+
+    contains
+
+    real(dp) function rho0(x)
+      real(dp), intent(in) :: x
+      rho0 = x**3
+    end function rho0
+
+    real(dp) function drho0(x)
+      real(dp), intent(in) :: x
+      drho0 = 3.0d0 * x**2
+    end function drho0
+
+    real(dp) function T0(x)
+      real(dp), intent(in) :: x
+      T0 = 5.0d0 * x
+    end function T0
+
+    real(dp) function dT0()
+      dT0 = 10.0d0
+    end function dT0
+
+    real(dp) function B03(x)
+      real(dp), intent(in) :: x
+      B03 = 3.0d0 * sqrt(x)
+    end function B03
+
+    real(dp) function dB03(x)
+      real(dp), intent(in) :: x
+      dB03 = 3.0d0 / (2.0d0 * sqrt(x))
+    end function dB03
   end subroutine test_kappa_perp_db2
 
 
   @test
   subroutine test_kappa_perp_dr()
-    real(dp)  :: actual(array_size), expected(array_size)
-    real(dp)  :: rho(array_size), temp(array_size), B0(array_size)
-    real(dp)  :: drho(array_size), dtemp(array_size), dB0(array_size)
-    real(dp)  :: B02(array_size), dB02(array_size), B03(array_size), dB03(array_size)
-    real(dp)  :: B01
-    real(dp)  :: dkrho(array_size), dkT(array_size), dkB2(array_size)
-    real(dp) :: unit_dtc_drho, unit_dtc_dB2, unit_dtc_dT
+    real(dp) :: dkrho(settings%grid%get_gauss_gridpts())
+    real(dp) :: dkT(settings%grid%get_gauss_gridpts())
+    real(dp) :: dkB2(settings%grid%get_gauss_gridpts())
 
     call set_name("thermal conduction (kappa_perp dr)")
-    rho = 5.0d0 * grid_gauss
-    drho = 5.0d0
-    temp = grid_gauss ** 2
-    dtemp = 2.0d0 * grid_gauss
-    B01 = 2.5d0
-    B02 = 3.0d0 * grid_gauss ** 2
-    dB02 = 6.0d0 * grid_gauss
-    B03 = 1.5d0 * grid_gauss ** 2
-    dB03 = 3.0d0 * grid_gauss
-    B0 = sqrt(B01**2 + B02**2 + B03**2)
-    dB0 = (B02 * dB02 + B03 * dB03) / B0
-
-    rho_field%rho0 = rho
-    rho_field%d_rho0_dr = drho
-    T_field%T0 = temp
-    T_field%d_T0_dr = dtemp
-    B_field%B01 = B01
-    B_field%B02 = B02
-    B_field%d_B02_dr = dB02
-    B_field%B03 = B03
-    B_field%d_B03_dr = dB03
-    B_field%B0 = B0
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
+    call background%set_magnetic_1_funcs(B01_func=B01)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
+    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
     call settings%physics%enable_perpendicular_conduction()
-    call set_conduction_values(settings, rho_field, T_field, B_field, kappa_field)
+    call set_conduction_values(settings, background, kappa_field)
 
-    unit_dtc_drho = unit_conduction / unit_density
-    unit_dtc_dB2 = unit_conduction / (unit_magneticfield ** 2)
-    unit_dtc_dT = unit_conduction / unit_temperature
-
-    ! kappa derivatives
     dkrho = ( &
-      2.0d0 * pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) &
-      / ((B0 * unit_magneticfield) ** 2 * sqrt(temp * unit_temperature)) &
-    ) / unit_dtc_drho
+      2.0d0 &
+      * tc_pf_kappa_para &
+      * tc_pf_kappa_perp &
+      * coulomb_log &
+      * (5.0d0 * grid_gauss * unit_numberdensity) &
+      / ( &
+        (B0(grid_gauss) * unit_magneticfield)**2 &
+        * sqrt(grid_gauss**2 * unit_temperature) &
+      ) &
+    ) / (unit_conduction / unit_density)
     dkT = ( &
-      -0.5d0 * pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
-      / ((B0 * unit_magneticfield) ** 2 * (temp * unit_temperature) ** 1.5d0) &
-    ) / unit_dtc_dT
+      -0.5d0 &
+      * tc_pf_kappa_para &
+      * tc_pf_kappa_perp &
+      * coulomb_log &
+      * (5.0d0 * grid_gauss * unit_numberdensity)**2 &
+      / ( &
+        (B0(grid_gauss) * unit_magneticfield)**2 &
+        * (grid_gauss**2 * unit_temperature)**1.5d0 &
+      ) &
+    ) / (unit_conduction / unit_temperature)
     dkB2 = ( &
-      -pf_para * pf_perp * coulomb_log * (rho * unit_numberdensity) ** 2 &
-      / ((B0 * unit_magneticfield) ** 4 * sqrt(temp * unit_temperature)) &
-    ) / unit_dtc_dB2
-    ! expected and actual values are approximately 1e-2 after multiplying with 1e8
-    expected = (dkrho * drho + dkT * dtemp + dkB2 * 2.0d0 * B0 * dB0) * 1.0d8
+      -tc_pf_kappa_para &
+      * tc_pf_kappa_perp &
+      * coulomb_log &
+      * (5.0d0 * grid_gauss * unit_numberdensity)**2 &
+      / ( &
+        (B0(grid_gauss) * unit_magneticfield)**4 &
+        * sqrt(grid_gauss**2 * unit_temperature) &
+      ) &
+    ) / (unit_conduction / unit_magneticfield**2)
+
+    expected = ( &
+      dkrho * 5.0d0 &
+      + dkT * 2.0d0 * grid_gauss &
+      + dkB2 * 2.0d0  * B0(grid_gauss) * dB0(grid_gauss) &
+    ) * 1.0d8
     actual = kappa_field%d_kappa_perp_dr * 1.0d8
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertFalse(settings%physics%conduction%has_parallel_conduction())
     @assertTrue(settings%physics%conduction%has_perpendicular_conduction())
+    @assertTrue(any(abs(expected) > 0.0d0))
+    @assertTrue(any(abs(actual) > 0.0d0))
     @assertEqual(0.0d0, abs(expected - actual), tolerance=TOL)
+
+    contains
+
+    real(dp) function rho0(x)
+      real(dp), intent(in) :: x
+      rho0 = 5.0d0 * x
+    end function rho0
+
+    real(dp) function drho0()
+      drho0 = 5.0d0
+    end function drho0
+
+    real(dp) function T0(x)
+      real(dp), intent(in) :: x
+      T0 = x**2
+    end function T0
+
+    real(dp) function dT0(x)
+      real(dp), intent(in) :: x
+      dT0 = 2.0d0 * x
+    end function dT0
+
+    real(dp) function B01()
+      B01 = 2.5d0
+    end function B01
+
+    real(dp) function B02(x)
+      real(dp), intent(in) :: x
+      B02 = 3.0d0 * x**2
+    end function B02
+
+    real(dp) function dB02(x)
+      real(dp), intent(in) :: x
+      dB02 = 6.0d0 * x
+    end function dB02
+
+    real(dp) function B03(x)
+      real(dp), intent(in) :: x
+      B03 = 1.5d0 * x**2
+    end function B03
+
+    real(dp) function dB03(x)
+      real(dp), intent(in) :: x
+      dB03 = 3.0d0 * x
+    end function dB03
+
+    impure elemental real(dp) function B0(x)
+      real(dp), intent(in) :: x
+      B0 = sqrt(B01()**2 + B02(x)**2 + B03(x)**2)
+    end function B0
+
+    impure elemental real(dp) function dB0(x)
+      real(dp), intent(in) :: x
+      dB0 = (B02(x) * dB02(x) + B03(x) * dB03(x)) / B0(x)
+    end function dB0
   end subroutine test_kappa_perp_dr
 
 end module mod_test_conduction
