@@ -26,8 +26,6 @@ module mod_solar_atmosphere
   integer   :: nbpoints
   !> integrated density profile
   real(dp), allocatable :: rho_values(:)
-  !> derivative of integrated density profile
-  real(dp), allocatable :: drho_values(:)
 
   real(dp) :: unit_length
   real(dp) :: unit_time
@@ -36,6 +34,7 @@ module mod_solar_atmosphere
   private
 
   public :: set_solar_atmosphere
+  public :: solar_atmosphere_dealloc
 
 contains
 
@@ -79,7 +78,7 @@ contains
     end if
 
     call logger%info("setting solar atmosphere...")
-    allocate(rho_values(nbpoints), drho_values(nbpoints))
+    allocate(rho_values(nbpoints))
     ! interpolate atmospheric tables
     allocate(h_interp(nbpoints), T_interp(nbpoints), dT_interp(nbpoints))
     allocate(nh_interp(nbpoints))
@@ -103,7 +102,6 @@ contains
     call integrate_ode_rk( &
       h_interp, axvalues, bxvalues, nbpoints, rhoinit, rho_values, adaptive=.false. &
     )
-    call get_numerical_derivative(h_interp, rho_values, drho_values)
     ! these are no longer needed
     deallocate(axvalues, bxvalues)
 
@@ -115,9 +113,6 @@ contains
     do i = 1, settings%grid%get_gauss_gridpts()
       grav_field%grav(i) = g0(grid_gauss(i))
     end do
-
-    deallocate(h_interp, T_interp, nh_interp, dT_interp)
-    deallocate(rho_values, drho_values)
   end subroutine set_solar_atmosphere
 
 
@@ -211,7 +206,6 @@ contains
     dT0 = lookup_table_value(x, h_interp, dT_interp)
   end function dT0
 
-
   !> Sets density derivative using the differential equation to ensure force balance,
   !! instead of relying on numerical differentiation.
   real(dp) function drho0(x)
@@ -220,5 +214,14 @@ contains
       - (dT0(x) + g0(x)) * rho0(x) + (B02() * dB02() + B03() * dB03()) &
     ) / T0(x)
   end function drho0
+
+
+  subroutine solar_atmosphere_dealloc()
+    if (allocated(h_interp)) deallocate(h_interp)
+    if (allocated(T_interp)) deallocate(T_interp)
+    if (allocated(dT_interp)) deallocate(dT_interp)
+    if (allocated(nh_interp)) deallocate(nh_interp)
+    if (allocated(rho_values)) deallocate(rho_values)
+  end subroutine solar_atmosphere_dealloc
 
 end module mod_solar_atmosphere
