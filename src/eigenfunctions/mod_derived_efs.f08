@@ -2,7 +2,7 @@ module mod_derived_efs
   use mod_global_variables, only: dp, str_len_arr, ic
   use mod_equilibrium_params, only: k2, k3
   use mod_settings, only: settings_t
-  use mod_base_efs, only: base_ef_t
+  use mod_background, only: background_t
   use mod_ef_assembly, only: assemble_eigenfunction, retransform_eigenfunction, &
     get_ef_eps, get_ef_deps
   use mod_derived_ef_names
@@ -23,7 +23,9 @@ module mod_derived_efs
     end function derived_ef_func
   end interface
 
-  type, extends(base_ef_t), public :: derived_ef_t
+  type, public :: derived_ef_t
+    character(str_len_arr) :: name
+    complex(dp), allocatable :: quantities(:, :)
     procedure(derived_ef_func), pointer, private, nopass :: get_derived_ef
 
   contains
@@ -51,20 +53,24 @@ contains
     integer, intent(in) :: ef_grid_size
     integer, intent(in) :: nb_efs
 
-    call this%base_ef_t%initialise(name, ef_grid_size, nb_efs)
+    this%name = name
+    allocate(this%quantities(ef_grid_size, nb_efs))
     call this%set_function_pointer()
   end subroutine initialise
 
 
-  subroutine assemble(this, settings, idxs_to_assemble, right_eigenvectors, ef_grid)
+  subroutine assemble( &
+    this, settings, background, idxs_to_assemble, right_eigenvectors, ef_grid &
+  )
     class(derived_ef_t), intent(inout) :: this
     type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
     integer, intent(in) :: idxs_to_assemble(:)
     complex(dp), intent(in) :: right_eigenvectors(:, :)
     real(dp), intent(in) :: ef_grid(:)
     integer :: i, idx
 
-    call set_equilibrium_arrays_on_ef_grid(ef_grid)
+    call set_equilibrium_arrays_on_ef_grid(background, ef_grid)
 
     do i = 1, size(idxs_to_assemble)
       idx = idxs_to_assemble(i)
@@ -79,8 +85,8 @@ contains
 
   pure subroutine delete(this)
     class(derived_ef_t), intent(inout) :: this
+    if (allocated(this%quantities)) deallocate(this%quantities)
     nullify(this%get_derived_ef)
-    call this%base_ef_t%delete()
   end subroutine delete
 
 
@@ -515,16 +521,26 @@ contains
   end function get_base_eigenfunction
 
 
-  subroutine set_equilibrium_arrays_on_ef_grid(ef_grid)
-    use mod_equilibrium, only: rho_field, B_field, T_field
+  subroutine set_equilibrium_arrays_on_ef_grid(background, ef_grid)
+    use mod_grid, only: grid_gauss
+    use mod_function_utils, only: from_function
 
+    type(background_t), intent(in) :: background
     real(dp), intent(in) :: ef_grid(:)
 
     if (.not. allocated(rho0_on_ef_grid)) then
-      rho0_on_ef_grid = interpolate_array_on_ef_grid(rho_field%rho0, ef_grid)
-      T0_on_ef_grid = interpolate_array_on_ef_grid(T_field%T0, ef_grid)
-      B02_on_ef_grid = interpolate_array_on_ef_grid(B_field%B02, ef_grid)
-      B03_on_ef_grid = interpolate_array_on_ef_grid(B_field%B03, ef_grid)
+      rho0_on_ef_grid = interpolate_array_on_ef_grid( &
+        from_function(background%density%rho0, grid_gauss), ef_grid &
+      )
+      T0_on_ef_grid = interpolate_array_on_ef_grid( &
+        from_function(background%temperature%T0, grid_gauss), ef_grid &
+      )
+      B02_on_ef_grid = interpolate_array_on_ef_grid( &
+        from_function(background%magnetic%B02, grid_gauss), ef_grid &
+      )
+      B03_on_ef_grid = interpolate_array_on_ef_grid( &
+        from_function(background%magnetic%B03, grid_gauss), ef_grid &
+      )
     end if
   end subroutine set_equilibrium_arrays_on_ef_grid
 

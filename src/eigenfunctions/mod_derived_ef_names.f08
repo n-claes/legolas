@@ -1,6 +1,7 @@
 module mod_derived_ef_names
   use mod_global_variables, only: str_len_arr
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
   use mod_get_indices, only: get_index
   implicit none
 
@@ -34,13 +35,15 @@ module mod_derived_ef_names
 
 contains
 
-  function create_and_set_derived_state_vector(settings) result(derived_state_vector)
+  function create_and_set_derived_state_vector(settings, background) &
+    result(derived_state_vector)
     type(settings_t), intent(inout) :: settings
+    type(background_t), intent(in) :: background
     character(len=str_len_arr), allocatable :: derived_state_vector(:)
     logical, allocatable :: derived_state_vector_mask(:)
 
     state_vector = settings%get_state_vector()
-    can_get_pp = can_calculate_pp_quantities()
+    can_get_pp = can_calculate_pp_quantities(background)
     derived_state_vector = [ &
       S_name, &
       div_v_name, &
@@ -186,20 +189,21 @@ contains
   end function can_get_curl_v_pp
 
 
-  logical function can_calculate_pp_quantities()
-    use mod_equilibrium, only: v_field, B_field
-    use mod_check_values, only: is_zero
+  logical function can_calculate_pp_quantities(background)
+    use mod_function_utils, only: zero_func
     use mod_logging, only: logger
 
+    type(background_t), intent(in) :: background
+
     can_calculate_pp_quantities = .false.
-    if (.not. is_zero(B_field%B01)) then
+    if (.not. associated(background%magnetic%B01, zero_func)) then
       call logger%warning( &
         "parallel/perpendicular derived quantities currently not supported &
         &for non-zero B01 components" &
       )
       return
     end if
-    if (.not. any(is_zero(v_field%v01))) then
+    if (.not. associated(background%velocity%v01, zero_func)) then
       call logger%warning( &
         "parallel/perpendicular derived quantities currently not supported &
         &for non-zero v01 components" &
@@ -207,7 +211,8 @@ contains
       return
     end if
     can_calculate_pp_quantities = ( &
-      .not. all(is_zero(B_field%B02)) .or. .not. all(is_zero(B_field%B03)) &
+      .not. associated(background%magnetic%B02, zero_func) &
+      .or. .not. associated(background%magnetic%B03, zero_func) &
     )
   end function can_calculate_pp_quantities
 
