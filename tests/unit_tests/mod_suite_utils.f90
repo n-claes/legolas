@@ -52,14 +52,12 @@ contains
 
 
   subroutine reset_fields(settings, init_fields)
-    use mod_equilibrium, only: rho_field, equilibrium_clean, initialise_equilibrium
+    use mod_equilibrium, only: equilibrium_clean, initialise_equilibrium
 
     type(settings_t), intent(inout), optional :: settings
     logical, intent(in) :: init_fields
 
-    if (allocated(rho_field % rho0)) then
-      call equilibrium_clean()
-    end if
+    call equilibrium_clean()
     if (init_fields) then
       call initialise_equilibrium(settings)
     end if

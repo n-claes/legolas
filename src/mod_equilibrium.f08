@@ -148,14 +148,6 @@ module mod_equilibrium
     end subroutine user_defined_eq
   end interface
 
-  !> type containing all density-related equilibrium variables
-  type (density_type)     :: rho_field
-  !> type containing all temperature-related equilibrium variables
-  type (temperature_type) :: T_field
-  !> type containing all magnetic field-related equilibrium variables
-  type (bfield_type)      :: B_field
-  !> type containing all velocity-related equilibrium variables
-  type (velocity_type)    :: v_field
   !> type containing all gravity-related equilibrium variables
   type (gravity_type)     :: grav_field
   !> type containing all resistivity-related equilibrium variables
@@ -167,10 +159,6 @@ module mod_equilibrium
   !> type containing all Hall related variables
   type (hall_type)        :: hall_field
 
-  public :: rho_field
-  public :: T_field
-  public :: B_field
-  public :: v_field
   public :: grav_field
   public :: eta_field
   public :: rc_field
@@ -189,10 +177,6 @@ contains
   subroutine initialise_equilibrium(settings)
     type(settings_t), intent(inout) :: settings
 
-    call initialise_type(settings, rho_field)
-    call initialise_type(settings, T_field)
-    call initialise_type(settings, B_field)
-    call initialise_type(settings, v_field)
     call initialise_type(settings, grav_field)
     call initialise_type(settings, eta_field)
     call initialise_type(settings, rc_field)
@@ -328,15 +312,11 @@ contains
 
   !> Cleaning routine, deallocates the equilibrium types.
   subroutine equilibrium_clean()
-    call deallocate_type(rho_field)
-    call deallocate_type(T_field)
-    call deallocate_type(B_field)
-    call deallocate_type(v_field)
-    call deallocate_type(grav_field)
-    call deallocate_type(eta_field)
-    call deallocate_type(rc_field)
-    call deallocate_type(kappa_field)
-    call deallocate_type(hall_field)
+    if (allocated(grav_field%grav)) call deallocate_type(grav_field)
+    if (allocated(eta_field%eta)) call deallocate_type(eta_field)
+    if (allocated(rc_field%L0)) call deallocate_type(rc_field)
+    if (allocated(kappa_field%kappa_para)) call deallocate_type(kappa_field)
+    if (allocated(hall_field%hallfactor)) call deallocate_type(hall_field)
   end subroutine equilibrium_clean
 
 end module mod_equilibrium

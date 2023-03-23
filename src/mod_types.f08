@@ -10,62 +10,6 @@ module mod_types
 
   private
 
-  !> type containing all density related equilibrium variables
-  type density_type
-    !> equilibrium density
-    real(dp), allocatable   :: rho0(:)
-    !> derivative of the equilibrium density
-    real(dp), allocatable   :: d_rho0_dr(:)
-  end type density_type
-
-  !> type containing all temperature related equilibrium variables
-  type temperature_type
-    !> equilibrium temperature
-    real(dp), allocatable   :: T0(:)
-    !> derivative of the equilibrium temperature
-    real(dp), allocatable   :: d_T0_dr(:)
-    !> second derivative of the equilibrium temperature
-    real(dp), allocatable   :: dd_T0_dr(:)
-  end type temperature_type
-
-  !> type containing all magnetic field related equilibrium variables
-  type bfield_type
-    !> constant equilibrium magnetic field in x or r direction
-    real(dp)                :: B01
-    !> equilibrium magnetic field in y or theta direction
-    real(dp), allocatable   :: B02(:)
-    !> equilibrium magnetic field in z direction
-    real(dp), allocatable   :: B03(:)
-    !> equilibrium magnetic field (total)
-    real(dp), allocatable   :: B0(:)
-    !> derivative of equilibrium B02
-    real(dp), allocatable   :: d_B02_dr(:)
-    !> derivative of equilibrium B03
-    real(dp), allocatable   :: d_B03_dr(:)
-  end type bfield_type
-
-  !> type containing all flow related equilibrium variables
-  type velocity_type
-    !> equilibrium velocity in the x or r direction
-    real(dp), allocatable   :: v01(:)
-    !> derivative of equilibrium v01
-    real(dp), allocatable   :: d_v01_dr(:)
-    !> second derivative of equilibrium v01
-    real(dp), allocatable   :: dd_v01_dr(:)
-    !> equilibrium velocity in the y or theta-direction
-    real(dp), allocatable   :: v02(:)
-    !> derivative of equilibrium v02
-    real(dp), allocatable   :: d_v02_dr(:)
-    !> second derivative of equilibrium v02
-    real(dp), allocatable   :: dd_v02_dr(:)
-    !> equilibrium velocity in the z direction
-    real(dp), allocatable   :: v03(:)
-    !> derivative of equilibrium v03
-    real(dp), allocatable   :: d_v03_dr(:)
-    !> second derivative of equilibrium v03
-    real(dp), allocatable   :: dd_v03_dr(:)
-  end type velocity_type
-
   !> type containing all gravity related equilibrium variables
   type gravity_type
     !> equilibrium gravity
@@ -133,10 +77,6 @@ module mod_types
 
   !> interface to initialise all the different types
   interface initialise_type
-    module procedure initialise_density_type
-    module procedure initialise_temperature_type
-    module procedure initialise_bfield_type
-    module procedure initialise_velocity_type
     module procedure initialise_gravity_type
     module procedure initialise_resistivity_type
     module procedure initialise_cooling_type
@@ -146,10 +86,6 @@ module mod_types
 
   !> interface to deallocate all the different types
   interface deallocate_type
-    module procedure deallocate_density_type
-    module procedure deallocate_temperature_type
-    module procedure deallocate_bfield_type
-    module procedure deallocate_velocity_type
     module procedure deallocate_gravity_type
     module procedure deallocate_resistivity_type
     module procedure deallocate_cooling_type
@@ -157,10 +93,6 @@ module mod_types
     module procedure deallocate_hall_type
   end interface deallocate_type
 
-  public :: density_type
-  public :: temperature_type
-  public :: bfield_type
-  public :: velocity_type
   public :: gravity_type
   public :: resistivity_type
   public :: cooling_type
@@ -171,97 +103,6 @@ module mod_types
   public :: deallocate_type
 
 contains
-
-
-  !> Allocates the density type and initialises all values to zero.
-  subroutine initialise_density_type(settings, type_rho)
-    type(settings_t), intent(in) :: settings
-    !> the type containing the density attributes
-    type (density_type), intent(inout)  :: type_rho
-    integer :: gauss_gridpts
-
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
-
-    allocate(type_rho % rho0(gauss_gridpts))
-    allocate(type_rho % d_rho0_dr(gauss_gridpts))
-
-    type_rho % rho0 = 0.0d0
-    type_rho % d_rho0_dr = 0.0d0
-  end subroutine initialise_density_type
-
-
-  !> Allocates the temperature type and initialises all values to zero.
-  subroutine initialise_temperature_type(settings, type_T)
-    type(settings_t), intent(in) :: settings
-    !> the type containing the temperature attributes
-    type (temperature_type), intent(inout) :: type_T
-    integer :: gauss_gridpts
-
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
-
-    allocate(type_T % T0(gauss_gridpts))
-    allocate(type_T % d_T0_dr(gauss_gridpts))
-    allocate(type_T % dd_T0_dr(gauss_gridpts))
-
-    type_T % T0 = 0.0d0
-    type_T % d_T0_dr = 0.0d0
-    type_T % dd_T0_dr = 0.0d0
-  end subroutine initialise_temperature_type
-
-
-  !> Allocates the magnetic field type and initialises all values to zero.
-  subroutine initialise_bfield_type(settings, type_B)
-    type(settings_t), intent(in) :: settings
-    !> the type containing the magnetic field attributes
-    type (bfield_type), intent(inout) :: type_B
-    integer :: gauss_gridpts
-
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
-
-    allocate(type_B % B02(gauss_gridpts))
-    allocate(type_B % B03(gauss_gridpts))
-    allocate(type_B % B0(gauss_gridpts))
-    allocate(type_B % d_B02_dr(gauss_gridpts))
-    allocate(type_B % d_B03_dr(gauss_gridpts))
-
-    type_B % B01 = 0.0d0
-    type_B % B02 = 0.0d0
-    type_B % B03 = 0.0d0
-    type_B % B0 = 0.0d0
-    type_B % d_B02_dr = 0.0d0
-    type_B % d_B03_dr = 0.0d0
-  end subroutine initialise_bfield_type
-
-
-  !> Allocates the velocity type and initialises all values to zero.
-  subroutine initialise_velocity_type(settings, type_v)
-    type(settings_t), intent(in) :: settings
-    !> the type containing the velocity attributes
-    type (velocity_type), intent(inout) :: type_v
-    integer :: gauss_gridpts
-
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
-
-    allocate(type_v % v01(gauss_gridpts))
-    allocate(type_v % d_v01_dr(gauss_gridpts))
-    allocate(type_v % dd_v01_dr(gauss_gridpts))
-    allocate(type_v % v02(gauss_gridpts))
-    allocate(type_v % d_v02_dr(gauss_gridpts))
-    allocate(type_v % dd_v02_dr(gauss_gridpts))
-    allocate(type_v % v03(gauss_gridpts))
-    allocate(type_v % d_v03_dr(gauss_gridpts))
-    allocate(type_v % dd_v03_dr(gauss_gridpts))
-
-    type_v % v01 = 0.0d0
-    type_v % d_v01_dr = 0.0d0
-    type_v % dd_v01_dr = 0.0d0
-    type_v % v02 = 0.0d0
-    type_v % d_v02_dr = 0.0d0
-    type_v % dd_v02_dr = 0.0d0
-    type_v % v03 = 0.0d0
-    type_v % d_v03_dr = 0.0d0
-    type_v % dd_v03_dr = 0.0d0
-  end subroutine initialise_velocity_type
 
 
   !> Allocates the gravity type and initialises all values to zero.
@@ -378,57 +219,6 @@ contains
     type_kappa % prefactor = 0.0d0
     type_kappa % d_prefactor_dr = 0.0d0
   end subroutine initialise_conduction_type
-
-
-  !> Deallocates all attributes contained in the  density type.
-  subroutine deallocate_density_type(type_rho)
-    !> the type containing the density attributes
-    type (density_type), intent(inout)  :: type_rho
-
-    deallocate(type_rho % rho0)
-    deallocate(type_rho % d_rho0_dr)
-  end subroutine deallocate_density_type
-
-
-  !> Deallocates all attributes contained in the temperature type.
-  subroutine deallocate_temperature_type(type_T)
-    !> the type containing the temperature attributes
-    type (temperature_type), intent(inout)  :: type_T
-
-    deallocate(type_T % T0)
-    deallocate(type_T % d_T0_dr)
-    deallocate(type_T % dd_T0_dr)
-  end subroutine deallocate_temperature_type
-
-
-  !> Deallocates all attributes contained in the magnetic field type.
-  subroutine deallocate_bfield_type(type_B)
-    !> the type containing the magnetic field attributes
-    type (bfield_type), intent(inout) :: type_B
-
-    deallocate(type_B % B02)
-    deallocate(type_B % B03)
-    deallocate(type_B % B0)
-    deallocate(type_B % d_B02_dr)
-    deallocate(type_B % d_B03_dr)
-  end subroutine deallocate_bfield_type
-
-
-  !> Deallocates all attributes contained in the velocity type.
-  subroutine deallocate_velocity_type(type_v)
-    !> the type containing the velocity attributes
-    type (velocity_type), intent(inout) :: type_v
-
-    deallocate(type_v % v01)
-    deallocate(type_v % d_v01_dr)
-    deallocate(type_v % dd_v01_dr)
-    deallocate(type_v % v02)
-    deallocate(type_v % d_v02_dr)
-    deallocate(type_v % dd_v02_dr)
-    deallocate(type_v % v03)
-    deallocate(type_v % d_v03_dr)
-    deallocate(type_v % dd_v03_dr)
-  end subroutine deallocate_velocity_type
 
 
   !> Deallocates all attributes contained in the gravity type.
