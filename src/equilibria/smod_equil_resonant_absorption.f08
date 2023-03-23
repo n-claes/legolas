@@ -33,9 +33,6 @@ contains
 
   !> Sets the equilibrium
   module procedure resonant_absorption_eq
-    real(dp) :: x
-    integer :: i
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
@@ -62,18 +59,6 @@ contains
 
     s = 0.5_dp * (x_start + x_end)
     zeta = rho_left / rho_right
-
-    do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
-
-      rho_field%rho0(i) = rho0(x)
-      rho_field%d_rho0_dr(i) = drho0(x)
-
-      T_field%T0(i) = T0()
-      B_field%B02(i) = B02()
-      B_field%B03(i) = B03()
-      B_field % B0 = sqrt((B_field % B02)**2 + (B_field % B03)**2)
-    end do
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_temperature_funcs(T0_func=T0)

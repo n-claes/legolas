@@ -24,9 +24,6 @@ submodule (mod_equilibrium) smod_equil_harris_sheet
 contains
 
   module procedure harris_sheet_eq
-    real(dp)      :: x
-    integer       :: i
-
     if (settings%equilibrium%use_defaults) then
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(-15.0_dp, 15.0_dp)
@@ -47,31 +44,11 @@ contains
     end if
     call initialise_grid(settings)
 
-    do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
-
-      rho_field % rho0(i) = rho0()
-
-      B_field % B02(i) = B02(x)
-      B_field % d_B02_dr(i) = dB02(x)
-      eta_field % dd_B02_dr(i) = ddB02(x)
-
-      B_field % B03(i) = B03(x)
-      B_field % d_B03_dr(i) = dB03(x)
-      eta_field % dd_B03_dr(i) = ddB03(x)
-
-      B_field % B0(i) = B0(x)
-
-      T_field % T0(i) = T0(x)
-      T_field % d_T0_dr(i) = dT0(x)
-    end do
-
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
     call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02, ddB02_func=ddB02)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03, ddB03_func=ddB03)
   end procedure harris_sheet_eq
-
 
 
   real(dp) function rho0()

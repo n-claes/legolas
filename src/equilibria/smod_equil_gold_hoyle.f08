@@ -41,9 +41,6 @@ submodule (mod_equilibrium) smod_equil_gold_hoyle
 contains
 
   module procedure gold_hoyle_eq
-    real(dp) :: r
-    integer :: i
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
@@ -79,17 +76,6 @@ contains
       ! )
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
-
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
-      rho_field%rho0(i) = rho0()
-      T_field%T0(i) = T0()
-      B_field%B02(i) = B02(r)
-      B_field%B03(i) = B03(r)
-      B_field%d_B02_dr(i) = dB02(r)
-      B_field%d_B03_dr(i) = dB03(r)
-      B_field%B0(i) = sqrt(B02(r)**2 + B03(r)**2)
-    end do
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_temperature_funcs(T0_func=T0)

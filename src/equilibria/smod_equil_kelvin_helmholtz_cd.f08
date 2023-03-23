@@ -30,9 +30,6 @@ contains
 
   !> Sets the equilibrium.
   module procedure kh_cd_instability_eq
-    real(dp)    :: r
-    integer     :: i
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%physics%enable_flow()
 
@@ -53,20 +50,6 @@ contains
     call settings%grid%set_geometry("cylindrical")
     call settings%grid%set_grid_boundaries(0.0_dp, 2.0_dp * rj)
     call initialise_grid(settings)
-
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
-
-      rho_field % rho0(i) = rho0()
-      v_field % v03(i) = v03(r)
-      B_field % B02(i) = B02(r)
-      B_field % B03(i) = B03()
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      T_field % T0(i) = T0(r)
-      B_field % d_B02_dr(i) = dB02(r)
-      v_field % d_v03_dr(i) = dv03(r)
-      T_field % d_T0_dr(i)  = dT0(r)
-    end do
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_velocity_3_funcs(v03_func=v03, dv03_func=dv03)

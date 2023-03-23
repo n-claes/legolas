@@ -31,9 +31,8 @@ submodule (mod_equilibrium) smod_equil_tc_pinch
 contains
 
   module procedure tc_pinch_eq
-    real(dp) :: r, x_start, x_end, r_mid
+    real(dp) :: x_start, x_end, r_mid
     real(dp) :: fixed_eta_value, viscosity_value
-    integer :: i, gauss_gridpts
 
     call settings%physics%enable_flow()
     settings%grid%coaxial = .true.
@@ -55,7 +54,6 @@ contains
     end if
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
     call initialise_grid(settings)
 
     fixed_eta_value = settings%physics%resistivity%get_fixed_resistivity()
@@ -84,28 +82,12 @@ contains
       - 0.5_dp * (A2 * x_end + B2 / x_end)**2 &
     ) / cte_rho0
 
-    do i = 1, gauss_gridpts
-      r = grid_gauss(i)
-
-      v_field % v02(i) = v02(r)
-      v_field % d_v02_dr(i) = dv02(r)
-      v_field % dd_v02_dr(i) = ddv02(r)
-
-      B_field % B02(i) = B02(r)
-      B_field % B0(i) = sqrt(B_field%B02(i)**2 + B_field%B03(i)**2)
-      B_field % d_B02_dr(i) = dB02(r)
-      eta_field % dd_B02_dr(i) = ddB02(r)
-
-      T_field % T0(i) = T0(r)
-      T_field % d_T0_dr(i) = dT0(r)
-    end do
-
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02, ddv02_func=ddv02)
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
     call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02, ddB02_func=ddB02)
 
-    r_mid = grid_gauss(int(gauss_gridpts/2))
+    r_mid = grid_gauss(int(settings%grid%get_gauss_gridpts() / 2))
     Ta = ( &
       cte_rho0 * v02(r_mid) * h / viscosity_value &
     )**2 * 2.0_dp * h / (x_start + x_end)

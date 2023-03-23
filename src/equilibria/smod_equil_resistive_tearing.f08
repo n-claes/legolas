@@ -24,9 +24,6 @@ contains
 
   !> Sets the equilibrium
   module procedure resistive_tearing_modes_eq
-    real(dp)              :: x
-    integer               :: i
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(-0.5_dp, 0.5_dp)
@@ -40,23 +37,6 @@ contains
       cte_rho0 = 1.0_dp
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
-
-    do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
-
-      rho_field % rho0(i) = rho0()
-      B_field % B02(i) = B02(x)
-      B_field % B03(i) = B03(x)
-      B_field % B0(i) = B0(x)
-      T_field % T0(i) = T0(x)
-
-      B_field % d_B02_dr(i) = dB02(x)
-      B_field % d_B03_dr(i) = dB03(x)
-      ! No d_T0_dr needed, as B0**2 is independent of r
-
-      eta_field % dd_B02_dr(i) = ddB02(x)
-      eta_field % dd_B03_dr(i) = ddB03(x)
-    end do
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_temperature_funcs(T0_func=T0)

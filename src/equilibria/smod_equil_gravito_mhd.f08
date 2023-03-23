@@ -24,9 +24,6 @@ submodule (mod_equilibrium) smod_equil_gravito_mhd
 contains
 
   module procedure gravito_mhd_eq
-    real(dp)  :: x
-    integer   :: i
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
@@ -46,24 +43,11 @@ contains
     call initialise_grid(settings)
 
     !! Equilibrium
-    T_field % T0 = cte_p0 / cte_rho0
     grav_field % grav = g
-
-    ! Full exponential prescription for the equilibrium configuration
-    do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
-
-      rho_field % rho0(i) = rho0(x)
-      rho_field % d_rho0_dr(i) = drho0(x)
-      B_field % B03(i) = B03(x)
-      B_field % d_B03_dr(i) = dB03(x)
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-    end do
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_temperature_funcs(T0_func=T0)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
-
   end procedure gravito_mhd_eq
 
 

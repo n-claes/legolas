@@ -28,10 +28,8 @@ implicit none
 contains
 
   module procedure taylor_couette_eq
-
-    real(dp) :: r, Ta, grid_middle
+    real(dp) :: Ta, grid_middle
     real(dp) :: viscosity_value
-    integer :: i, gauss_gridpts
 
     call settings%physics%enable_flow()
     settings%grid%coaxial = .true.
@@ -51,7 +49,6 @@ contains
     call initialise_grid(settings)
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
 
     viscosity_value = settings%physics%viscosity%get_viscosity_value()
     h = x_end - x_start
@@ -62,22 +59,11 @@ contains
       (A * x_start)**2 + 4.0_dp * A * B * log(x_start) - (B / x_start)**2 &
     )
 
-    do i = 1, gauss_gridpts
-      r = grid_gauss(i)
-
-      rho_field%rho0(i) = rho0()
-      v_field % v02(i) = v02(r)
-      v_field % d_v02_dr(i) = dv02(r)
-      v_field % dd_v02_dr(i) = ddv02(r)
-      T_field % T0(i) = T0(r)
-      T_field % d_T0_dr(i) = dT0(r)
-    end do
-
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02, ddv02_func=ddv02)
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
 
-    grid_middle = grid_gauss(int(gauss_gridpts/2))
+    grid_middle = grid_gauss(int(settings%grid%get_gauss_gridpts() / 2))
     Ta = ( &
       cte_rho0 * v02(grid_middle) * h / viscosity_value &
     )**2 * 2.0_dp * h / (x_start + x_end)

@@ -33,9 +33,6 @@ submodule (mod_equilibrium) smod_equil_discrete_alfven
 contains
 
   module procedure discrete_alfven_eq
-    integer :: i
-    real(dp) :: r
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
@@ -56,18 +53,6 @@ contains
 
     call initialise_grid(settings)
     x_end = settings%grid%get_grid_end()
-
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
-      rho_field%rho0(i) = rho0(r)
-      rho_field%d_rho0_dr(i) = drho0(r)
-      T_field%T0(i) = T0(r)
-      T_field%d_T0_dr(i) = dT0(r)
-      B_field%B02(i) = B02(r)
-      B_field%d_B02_dr(i) = dB02(r)
-      B_field%B03(i) = B03()
-      B_field%B0(i) = sqrt(B02(r)**2 + B03()**2)
-    end do
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)

@@ -25,6 +25,7 @@
 !!
 !! and can all be changed in the parfile. @endnote
 submodule (mod_equilibrium) smod_equil_KHI
+  use mod_function_utils, only: zero_func
   implicit none
 
 contains
@@ -52,12 +53,8 @@ contains
     call flow_driven_instabilities_eq(settings, background)
     ! manually force the magnetic field to zero, it's HD here (the above set
     ! of parameters still yield a B03 component)
-    call background%set_magnetic_2_funcs(B02_func=zero, dB02_func=zero)
-    call background%set_magnetic_3_funcs(B03_func=zero, dB03_func=zero)
+    call background%set_magnetic_2_funcs(B02_func=zero_func, dB02_func=zero_func)
+    call background%set_magnetic_3_funcs(B03_func=zero_func, dB03_func=zero_func)
   end procedure KHI_eq
-
-  real(dp) function zero()
-    zero = 0.0_dp
-  end function zero
 
 end submodule smod_equil_KHI

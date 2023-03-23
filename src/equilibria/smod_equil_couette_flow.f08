@@ -22,11 +22,6 @@ submodule (mod_equilibrium) smod_equil_couette_flow
 contains
 
   module procedure couette_flow_eq
-    use mod_equilibrium_params, only: cte_rho0, cte_v02, cte_v03, cte_T0
-
-    real(dp)    :: x
-    integer     :: i
-
     call settings%physics%enable_flow()
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
@@ -44,18 +39,6 @@ contains
 
     call initialise_grid(settings)
     width = settings%grid%get_grid_end() - settings%grid%get_grid_start()
-
-    do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
-
-      rho_field % rho0(i) = rho0()
-      v_field % v02(i) = v02(x)
-      v_field % v03(i) = v03(x)
-      T_field % T0(i) = T0()
-
-      v_field % d_v02_dr(i) = dv02()
-      v_field % d_v03_dr(i) = dv03()
-    end do
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02)

@@ -39,9 +39,6 @@ submodule (mod_equilibrium) smod_equil_RTI_theta_pinch
 contains
 
   module procedure RTI_theta_pinch_eq
-    real(dp) :: r
-    integer :: i
-
     call settings%physics%enable_flow()
     call settings%grid%set_geometry("cylindrical")
 
@@ -61,19 +58,6 @@ contains
     cte_p0 = 0.5_dp * (1.0_dp - delta)**2
     B_inf = width * sqrt(cte_rho0)
     bigO = alpha * sqrt(2.0_dp * delta * (1.0_dp - delta))
-
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
-      rho_field % rho0(i) = rho0(r)
-      v_field % v02(i) = v02(r)
-      B_field % B03(i) = B03(r)
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      T_field % T0(i) = T0()
-
-      rho_field % d_rho0_dr(i) = drho0(r)
-      v_field % d_v02_dr(i) = dv02()
-      B_field % d_B03_dr(i) = dB03(r)
-    end do
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02)

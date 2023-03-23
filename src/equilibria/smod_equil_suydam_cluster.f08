@@ -26,9 +26,6 @@ contains
 
   !> Sets the equilibrium
   module procedure suydam_cluster_eq
-    real(dp) :: r
-    integer :: i
-
     if (settings%equilibrium%use_defaults) then  ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
@@ -45,23 +42,6 @@ contains
       k3 = -1.2_dp
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
-
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
-
-      rho_field % rho0(i) = rho0()
-      v_field % v02(i) = v02()
-      v_field % v03(i) = v03(r)
-      B_field % B02(i) = B02(r)
-      B_field % B03(i) = B03(r)
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      T_field % T0(i) = T0(r)
-
-      T_field % d_T0_dr(i) = dT0(r)
-      v_field % d_v03_dr(i) = dv03(r)
-      B_field % d_B02_dr(i) = dB02(r)
-      B_field % d_B03_dr(i) = dB03(r)
-    end do
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_velocity_2_funcs(v02_func=v02)

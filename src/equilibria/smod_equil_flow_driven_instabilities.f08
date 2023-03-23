@@ -18,9 +18,6 @@ submodule (mod_equilibrium) smod_equil_flow_driven_instabilities
 contains
 
   module procedure flow_driven_instabilities_eq
-    real(dp) :: x
-    integer :: i
-
     call settings%grid%set_geometry("Cartesian")
     call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
     call initialise_grid(settings)
@@ -30,23 +27,7 @@ contains
     v2 = p3
     phi0 = p4
 
-    do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
-      rho_field%rho0(i) = rho0(x)
-      rho_field%d_rho0_dr(i) = drho0()
-      T_field%T0(i) = T0(x)
-      T_field%d_T0_dr(i) = dT0(x)
-      v_field%v02(i) = v02(x)
-      v_field%v03(i) = v03(x)
-      v_field%d_v02_dr(i) = dv02(x)
-      v_field%d_v03_dr(i) = dv03(x)
-      B_field%B02(i) = B02(x)
-      B_field%B03(i) = B03(x)
-      B_field%d_B02_dr(i) = dB02(x)
-      B_field%d_B03_dr(i) = dB03(x)
-      B_field%B0(i) = sqrt(B02(x)**2 + B03(x)**2)
-      grav_field % grav(i) = g
-    end do
+    grav_field%grav = g
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02)

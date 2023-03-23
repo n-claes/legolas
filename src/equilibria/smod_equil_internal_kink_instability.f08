@@ -25,9 +25,6 @@ submodule (mod_equilibrium) smod_equil_internal_kink_instability
 contains
 
   module procedure internal_kink_eq
-    real(dp)      :: r
-    integer       :: i
-
     call settings%grid%set_geometry("cylindrical")
     call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
     call initialise_grid(settings)
@@ -43,23 +40,6 @@ contains
       k2 = 1.0_dp
       k3 = 0.16_dp * alpha
     end if ! LCOV_EXCL_STOP
-
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
-
-      rho_field % rho0(i) = rho0(r)
-      v_field % v03(i) = v03(r)
-      B_field % B02(i) = B02(r)
-      B_field % B03(i) = B03(r)
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      T_field % T0(i) = T0(r)
-
-      rho_field % d_rho0_dr(i) = drho0(r)
-      T_field % d_T0_dr(i) = dT0(r)
-      v_field % d_v03_dr(i) = dv03(r)
-      B_field % d_B02_dr(i) = dB02(r)
-      B_field % d_B03_dr(i) = dB03(r)
-    end do
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_velocity_3_funcs(v03_func=v03, dv03_func=dv03)

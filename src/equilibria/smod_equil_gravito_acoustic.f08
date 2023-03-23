@@ -23,9 +23,6 @@ submodule (mod_equilibrium) smod_equil_gravito_acoustic
 contains
 
   module procedure gravito_acoustic_eq
-    real(dp)  :: x
-    integer   :: i
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
@@ -40,14 +37,6 @@ contains
     call initialise_grid(settings)
 
     cte_rho0 = alpha * cte_p0 / g
-
-    do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
-
-      rho_field % rho0(i) = rho0(x)
-      rho_field % d_rho0_dr(i) = drho0(x)
-      T_field % T0 = T0()
-    end do
     grav_field % grav = g
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)

@@ -33,12 +33,6 @@ contains
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
 
-    rho_field % rho0 = rho0()
-    T_field % T0     = T0()
-    B_field % B02    = B02()
-    B_field % B03    = B03()
-    B_field % B0     = sqrt(B02()**2 + B03()**2)
-
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_temperature_funcs(T0_func=T0)
     call background%set_magnetic_2_funcs(B02_func=B02)

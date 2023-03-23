@@ -34,10 +34,6 @@ submodule (mod_equilibrium) smod_equil_MRI
 contains
 
   module procedure MRI_accretion_eq
-    real(dp) :: r
-    real(dp) :: x_start, x_end
-    integer :: i, gauss_gridpts
-
     call settings%grid%set_geometry("cylindrical")
 
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
@@ -53,36 +49,16 @@ contains
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
 
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
-    x_start = settings%grid%get_grid_start()
-    x_end = settings%grid%get_grid_end()
-
     mu1 = tau
     epsilon = nu
 
-    delta = x_end / x_start
+    delta = settings%grid%get_grid_end() / settings%grid%get_grid_start()
     p1 = epsilon**2
     Bz1 = sqrt(2.0_dp * p1 / (beta * (1.0_dp + mu1**2)))
     Bth1 = mu1 * Bz1
     vth1 = sqrt(1.0_dp - 2.5_dp * p1 - 0.25_dp * Bth1**2 - 1.25_dp * Bz1**2)
 
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
-
-      rho_field % rho0(i) = rho0(r)
-      T_field % T0(i) = T0(r)
-      v_field % v02(i) = v02(r)
-      B_field % B02(i) = B02(r)
-      B_field % B03(i) = B03(r)
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      grav_field % grav(i) = 1.0_dp / r**2
-
-      rho_field % d_rho0_dr(i) = drho0(r)
-      T_field % d_T0_dr(i) = dT0(r)
-      v_field % d_v02_dr(i) = dv02(r)
-      B_field % d_B02_dr(i) = dB02(r)
-      B_field % d_B03_dr(i) = dB03(r)
-    end do
+    grav_field%grav = 1.0_dp / grid_gauss**2
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02)

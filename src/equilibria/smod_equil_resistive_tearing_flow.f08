@@ -23,9 +23,6 @@ submodule (mod_equilibrium) smod_equil_resistive_tearing_flow
 contains
 
   module procedure resistive_tearing_modes_flow_eq
-    real(dp)    :: x
-    integer     :: i
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(-0.5_dp, 0.5_dp)
@@ -41,31 +38,11 @@ contains
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
 
-    do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
-
-      rho_field % rho0(i) = rho0()
-      B_field % B02(i) = B02(x)
-      B_field % B03(i) = B03(x)
-      B_field % B0(i) = B0(x)
-      T_field % T0(i) = T0(x)
-      v_field % v02(i) = v02(x)
-
-      v_field % d_v02_dr(i) = dv02()
-      B_field % d_B02_dr(i) = dB02(x)
-      B_field % d_B03_dr(i) = dB03(x)
-      ! No d_T0_dr needed, as B0**2 is independent of r
-
-      eta_field % dd_B02_dr(i) = ddB02(x)
-      eta_field % dd_B03_dr(i) = ddB03(x)
-    end do
-
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02)
     call background%set_temperature_funcs(T0_func=T0)
     call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02, ddB02_func=ddB02)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03, ddB03_func=ddB03)
-
   end procedure resistive_tearing_modes_flow_eq
 
 

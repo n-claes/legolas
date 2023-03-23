@@ -31,7 +31,6 @@ contains
   module procedure photospheric_flux_tube_eq
     use mod_global_variables, only: dp_LIMIT
 
-    real(dp)  :: r
     real(dp), allocatable :: custom_grid(:)
     real(dp)  :: width, a_l, a_r, pct1, pct2, pct3, dx, dx1, dx2, dx3
     real(dp) :: gamma
@@ -110,18 +109,9 @@ contains
       call logger%error("equilibrium: total pressure balance not satisfied")
     end if
 
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
-      rho_field % rho0(i) = rho0(r)
-      B_field % B03(i) = B03(r)
-      T_field % T0(i) = T0(r)
-      B_field % B0(i)  = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-    end do
-
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_temperature_funcs(T0_func=T0)
     call background%set_magnetic_3_funcs(B03_func=B03)
-
   end procedure photospheric_flux_tube_eq
 
 
