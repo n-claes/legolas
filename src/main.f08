@@ -64,7 +64,13 @@ program legolas
 
   call timer%start_timer()
   call create_datfile( &
-    settings, omega, matrix_A, matrix_B, right_eigenvectors, eigenfunctions &
+    settings, &
+    background, &
+    omega, &
+    matrix_A, &
+    matrix_B, &
+    right_eigenvectors, &
+    eigenfunctions &
   )
   timer%datfile_time = timer%end_timer()
 
