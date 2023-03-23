@@ -1,8 +1,7 @@
 submodule (mod_boundary_manager) smod_natural_boundaries
   use mod_global_variables, only: ic, NaN
   use mod_build_quadblock, only: add_to_quadblock
-  use mod_grid, only: grid, eps_grid, d_eps_grid_dr
-  use mod_equilibrium, only: rho_field, T_field, B_field
+  use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
   use mod_equilibrium_params, only: k2, k3
   use mod_matrix_structure, only: matrix_t
   use mod_settings, only: settings_t
@@ -22,39 +21,46 @@ submodule (mod_boundary_manager) smod_natural_boundaries
   real(dp)  :: dh_cubic(4)
 
   interface
-    module subroutine add_natural_regular_terms(quadblock, settings)
+    module subroutine add_natural_regular_terms(quadblock, settings, background)
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_natural_regular_terms
 
-    module subroutine add_natural_flow_terms(quadblock, settings)
+    module subroutine add_natural_flow_terms(quadblock, settings, background)
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_natural_flow_terms
 
-    module subroutine add_natural_resistive_terms(quadblock, settings)
+    module subroutine add_natural_resistive_terms(quadblock, settings, background)
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_natural_resistive_terms
 
-    module subroutine add_natural_conduction_terms(quadblock, settings)
+    module subroutine add_natural_conduction_terms(quadblock, settings, background)
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_natural_conduction_terms
 
-    module subroutine add_natural_viscosity_terms(quadblock, settings)
+    module subroutine add_natural_viscosity_terms(quadblock, settings, background)
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_natural_viscosity_terms
 
-    module subroutine add_natural_hall_terms(quadblock, settings)
+    module subroutine add_natural_hall_terms(quadblock, settings, background)
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_natural_hall_terms
 
-    module subroutine add_natural_hall_Bterms(quadblock, settings)
+    module subroutine add_natural_hall_Bterms(quadblock, settings, background)
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_natural_hall_Bterms
   end interface
 
@@ -70,14 +76,14 @@ contains
     call set_basis_functions(settings=settings, edge="left")
 
     if (matrix%get_label() == "A") then
-      call add_natural_regular_terms(quadblock, settings)
-      call add_natural_flow_terms(quadblock, settings)
-      call add_natural_resistive_terms(quadblock, settings)
-      call add_natural_conduction_terms(quadblock, settings)
-      call add_natural_viscosity_terms(quadblock, settings)
-      call add_natural_hall_terms(quadblock, settings)
+      call add_natural_regular_terms(quadblock, settings, background)
+      call add_natural_flow_terms(quadblock, settings, background)
+      call add_natural_resistive_terms(quadblock, settings, background)
+      call add_natural_conduction_terms(quadblock, settings, background)
+      call add_natural_viscosity_terms(quadblock, settings, background)
+      call add_natural_hall_terms(quadblock, settings, background)
     else if (matrix%get_label() == "B") then
-      call add_natural_hall_Bterms(quadblock, settings)
+      call add_natural_hall_Bterms(quadblock, settings, background)
     end if
     ! add quadblock elements to left edge
     do j = 1, dim_quadblock
@@ -105,14 +111,14 @@ contains
     ishift = matrix%matrix_dim - dim_quadblock
 
     if (matrix%get_label() == "A") then
-      call add_natural_regular_terms(quadblock, settings)
-      call add_natural_flow_terms(quadblock, settings)
-      call add_natural_resistive_terms(quadblock, settings)
-      call add_natural_conduction_terms(quadblock, settings)
-      call add_natural_viscosity_terms(quadblock, settings)
-      call add_natural_hall_terms(quadblock, settings)
+      call add_natural_regular_terms(quadblock, settings, background)
+      call add_natural_flow_terms(quadblock, settings, background)
+      call add_natural_resistive_terms(quadblock, settings, background)
+      call add_natural_conduction_terms(quadblock, settings, background)
+      call add_natural_viscosity_terms(quadblock, settings, background)
+      call add_natural_hall_terms(quadblock, settings, background)
     else if (matrix%get_label() == "B") then
-      call add_natural_hall_Bterms(quadblock, settings)
+      call add_natural_hall_Bterms(quadblock, settings, background)
     end if
     ! add quadblock elements to right edge
     do j = 1, dim_quadblock

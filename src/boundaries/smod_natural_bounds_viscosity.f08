@@ -4,8 +4,6 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_vis
 contains
 
   module procedure add_natural_viscosity_terms
-    use mod_equilibrium, only: v_field
-
     real(dp)  :: eps, deps
     real(dp)  :: mu
     real(dp)  :: dv01, dv03
@@ -23,8 +21,8 @@ contains
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
     mu = settings%physics%viscosity%get_viscosity_value()
-    dv01 = v_field % d_v01_dr(grid_idx)
-    dv03 = v_field % d_v03_dr(grid_idx)
+    dv01 = background%velocity%dv01(grid_gauss(grid_idx))
+    dv03 = background%velocity%dv03(grid_gauss(grid_idx))
 
     ! ==================== Cubic * Cubic ====================
     call elements%add( &

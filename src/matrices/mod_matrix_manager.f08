@@ -234,7 +234,7 @@ contains
     end do
 
     deallocate(quadblock_A, quadblock_B)
-    call apply_boundary_conditions(matrix_A, matrix_B, settings)
+    call apply_boundary_conditions(matrix_A, matrix_B, settings, background)
   end subroutine build_matrices
 
 end module mod_matrix_manager
