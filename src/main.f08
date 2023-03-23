@@ -49,7 +49,7 @@ program legolas
   call print_console_info(settings)
 
   call timer%start_timer()
-  call build_matrices(matrix_B, matrix_A, settings)
+  call build_matrices(matrix_B, matrix_A, settings, background)
   timer%matrix_time = timer%end_timer()
 
   call logger%info("solving eigenvalue problem...")

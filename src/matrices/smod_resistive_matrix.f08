@@ -19,18 +19,21 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     ! magnetic field variables
-    B02 = B_field % B02(gauss_idx)
-    dB02 = B_field % d_B02_dr(gauss_idx)
+    B02 = background%magnetic%B02(grid_gauss(gauss_idx))
+    dB02 = background%magnetic%dB02(grid_gauss(gauss_idx))
     drB02 = deps * B02 + eps * dB02
-    ddB02 = eta_field % dd_B02_dr(gauss_idx)
-    B03 = B_field % B03(gauss_idx)
-    dB03 = B_field % d_B03_dr(gauss_idx)
-    ddB03 = eta_field % dd_B03_dr(gauss_idx)
+    ddB02 = background%magnetic%ddB02(grid_gauss(gauss_idx))
+    B03 = background%magnetic%B03(grid_gauss(gauss_idx))
+    dB03 = background%magnetic%dB03(grid_gauss(gauss_idx))
+    ddB03 = background%magnetic%ddB03(grid_gauss(gauss_idx))
     ! resistivity variables
     eta = eta_field % eta(gauss_idx)
     detadT = eta_field % d_eta_dT(gauss_idx)
     ! total derivative eta = deta_dr + dT0_dr * deta_dT
-    deta = eta_field % d_eta_dr(gauss_idx) + (T_field % d_T0_dr(gauss_idx) * detadT)
+    deta = ( &
+      eta_field % d_eta_dr(gauss_idx) &
+      + (background%temperature%dT0(grid_gauss(gauss_idx)) * detadT) &
+    )
 
     WVop = k2**2 / eps + eps * k3**2
     Rop_pos = deps * eta / eps + deta
