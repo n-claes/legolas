@@ -2,6 +2,7 @@ module mod_physics
   use mod_physics_utils, only: physics_i
   use mod_resistivity, only: resistivity_t, new_resistivity
   use mod_gravity, only: gravity_t, new_gravity
+  use mod_hall, only: hall_t, new_hall
   implicit none
 
   private
@@ -9,6 +10,7 @@ module mod_physics
   type, public :: physics_t
     type(resistivity_t) :: resistivity
     type(gravity_t) :: gravity
+    type(hall_t) :: hall
   contains
     procedure, public :: set_resistivity_funcs
     procedure, public :: set_gravity_funcs
@@ -23,6 +25,7 @@ contains
     type(physics_t) :: physics
     physics%resistivity = new_resistivity()
     physics%gravity = new_gravity()
+    physics%hall = new_hall()
   end function new_physics
 
 
