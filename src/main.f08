@@ -18,6 +18,7 @@ program legolas
   use mod_settings, only: settings_t, new_settings
   use mod_background, only: background_t, new_background
   use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
+  use mod_physics, only: physics_t, new_physics
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -30,6 +31,7 @@ program legolas
   type(settings_t) :: settings
   type(background_t) :: background
   type(eigenfunctions_t) :: eigenfunctions
+  type(physics_t) :: physics
   !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
@@ -41,6 +43,7 @@ program legolas
   timer = new_timer()
   settings = new_settings()
   background = new_background()
+  physics = new_physics()
 
   call timer%start_timer()
   call initialisation()
@@ -122,7 +125,7 @@ contains
     matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
 
     call initialise_equilibrium(settings)
-    call set_equilibrium(settings, background)
+    call set_equilibrium(settings, background, physics)
 
     if (settings%physics%hall%is_enabled()) then
       ratio = maxval(hall_field % hallfactor) / ( &
