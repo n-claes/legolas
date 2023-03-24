@@ -3,6 +3,7 @@ module mod_physics
   use mod_resistivity, only: resistivity_t, new_resistivity
   use mod_gravity, only: gravity_t, new_gravity
   use mod_hall, only: hall_t, new_hall
+  use mod_thermal_conduction, only: conduction_t, new_conduction
   implicit none
 
   private
@@ -11,9 +12,12 @@ module mod_physics
     type(resistivity_t) :: resistivity
     type(gravity_t) :: gravity
     type(hall_t) :: hall
+    type(conduction_t) :: conduction
   contains
     procedure, public :: set_resistivity_funcs
     procedure, public :: set_gravity_funcs
+    procedure, public :: set_parallel_conduction_funcs
+    procedure, public :: set_perpendicular_conduction_funcs
     procedure, public :: delete
   end type physics_t
 
@@ -26,6 +30,7 @@ contains
     physics%resistivity = new_resistivity()
     physics%gravity = new_gravity()
     physics%hall = new_hall()
+    physics%conduction = new_conduction()
   end function new_physics
 
 
@@ -48,10 +53,49 @@ contains
   end subroutine set_gravity_funcs
 
 
+  subroutine set_parallel_conduction_funcs( &
+    this, tcpara_func, dtcparadT_func, dtcparadr_func &
+  )
+    class(physics_t), intent(inout) :: this
+    procedure(physics_i) :: tcpara_func
+    procedure(physics_i), optional :: dtcparadT_func
+    procedure(physics_i), optional :: dtcparadr_func
+
+    this%conduction%tcpara => tcpara_func
+    if (present(dtcparadT_func)) this%conduction%dtcparadT => dtcparadT_func
+    if (present(dtcparadr_func)) this%conduction%dtcparadr => dtcparadr_func
+  end subroutine set_parallel_conduction_funcs
+
+
+  subroutine set_perpendicular_conduction_funcs( &
+    this, &
+    tcperp_func, &
+    dtcperpdT_func, &
+    dtcperpdrho_func, &
+    dtcperpdB2_func, &
+    dtcperpdr_func &
+  )
+    class(physics_t), intent(inout) :: this
+    procedure(physics_i) :: tcperp_func
+    procedure(physics_i), optional :: dtcperpdT_func
+    procedure(physics_i), optional :: dtcperpdrho_func
+    procedure(physics_i), optional :: dtcperpdB2_func
+    procedure(physics_i), optional :: dtcperpdr_func
+
+    this%conduction%tcperp => tcperp_func
+    if (present(dtcperpdT_func)) this%conduction%dtcperpdT => dtcperpdT_func
+    if (present(dtcperpdrho_func)) this%conduction%dtcperpdrho => dtcperpdrho_func
+    if (present(dtcperpdB2_func)) this%conduction%dtcperpdB2 => dtcperpdB2_func
+    if (present(dtcperpdr_func)) this%conduction%dtcperpdr => dtcperpdr_func
+  end subroutine set_perpendicular_conduction_funcs
+
+
   pure subroutine delete(this)
     class(physics_t), intent(inout) :: this
     call this%resistivity%delete()
     call this%gravity%delete()
+    call this%hall%delete()
+    call this%conduction%delete()
   end subroutine delete
 
 end module mod_physics
