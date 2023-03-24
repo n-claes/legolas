@@ -1,14 +1,17 @@
 module mod_physics
   use mod_physics_utils, only: physics_i
   use mod_resistivity, only: resistivity_t, new_resistivity
+  use mod_gravity, only: gravity_t, new_gravity
   implicit none
 
   private
 
   type, public :: physics_t
     type(resistivity_t) :: resistivity
+    type(gravity_t) :: gravity
   contains
     procedure, public :: set_resistivity_funcs
+    procedure, public :: set_gravity_funcs
     procedure, public :: delete
   end type physics_t
 
@@ -19,6 +22,7 @@ contains
   function new_physics() result(physics)
     type(physics_t) :: physics
     physics%resistivity = new_resistivity()
+    physics%gravity = new_gravity()
   end function new_physics
 
 
@@ -34,9 +38,17 @@ contains
   end subroutine set_resistivity_funcs
 
 
+  subroutine set_gravity_funcs(this, g0_func)
+    class(physics_t), intent(inout) :: this
+    procedure(physics_i) :: g0_func
+    this%gravity%g0 => g0_func
+  end subroutine set_gravity_funcs
+
+
   pure subroutine delete(this)
     class(physics_t), intent(inout) :: this
     call this%resistivity%delete()
+    call this%gravity%delete()
   end subroutine delete
 
 end module mod_physics

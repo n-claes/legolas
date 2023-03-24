@@ -30,8 +30,6 @@ set (sources
         background/fields/mod_bg_temperature.f08
         background/fields/mod_bg_velocity.f08
         background/fields/mod_bg_magnetic.f08
-        physics/mod_physics_utils.f08
-        physics/mod_physics.f08
         matrices/datastructure/mod_matrix_node.f08
         matrices/datastructure/mod_matrix_row.f08
         matrices/datastructure/mod_matrix_structure.f08
@@ -46,6 +44,9 @@ set (sources
         mod_interpolation.f08
         mod_integration.f08
         dataIO/mod_input.f08
+        physics/mod_physics_utils.f08
+        physics/mod_physics.f08
+        physics/mod_gravity.f08
         physics/mod_resistivity.f08
         physics/mod_cooling_curves.f08
         physics/mod_atmosphere_curves.f08
