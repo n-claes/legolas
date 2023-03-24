@@ -30,6 +30,8 @@ set (sources
         background/fields/mod_bg_temperature.f08
         background/fields/mod_bg_velocity.f08
         background/fields/mod_bg_magnetic.f08
+        physics/mod_physics_utils.f08
+        physics/mod_physics.f08
         matrices/datastructure/mod_matrix_node.f08
         matrices/datastructure/mod_matrix_row.f08
         matrices/datastructure/mod_matrix_structure.f08
