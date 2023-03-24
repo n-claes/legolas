@@ -19,18 +19,10 @@ module mod_physics_utils
   end interface
 
   public :: physics_i
-  public :: physics_zero_func
   public :: get_dropoff
   public :: get_dropoff_dr
 
 contains
-
-  real(dp) function physics_zero_func(x, settings, background)
-    real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
-    physics_zero_func = 0.0_dp
-  end function physics_zero_func
 
 
   real(dp) function get_dropoff(x, cte_value, settings, background)

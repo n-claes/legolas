@@ -28,11 +28,11 @@ contains
 
   subroutine set_resistivity_funcs(this, eta_func, detadT_func, detadr_func)
     class(physics_t), intent(inout) :: this
-    procedure(physics_i), optional :: eta_func
+    procedure(physics_i) :: eta_func
     procedure(physics_i), optional :: detadT_func
     procedure(physics_i), optional :: detadr_func
 
-    if (present(eta_func)) this%resistivity%eta => eta_func
+    this%resistivity%eta => eta_func
     if (present(detadT_func)) this%resistivity%detadT => detadT_func
     if (present(detadr_func)) this%resistivity%detadr => detadr_func
   end subroutine set_resistivity_funcs
