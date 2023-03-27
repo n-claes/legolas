@@ -11,6 +11,7 @@ module mod_inspections
   use mod_background, only: background_t
   use mod_physics, only: physics_t
   use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
+  use mod_function_utils, only: from_function
   use mod_check_values, only: is_NaN, is_negative, is_zero
   implicit none
 
@@ -26,7 +27,6 @@ contains
   !! We check the equilibrium arrays for NaN and see if all density and temperature
   !! values are positive.
   subroutine perform_NaN_and_negative_checks(settings, background, physics)
-    use mod_function_utils, only: from_function
     use mod_physics_utils, only: from_physics_function
 
     type(settings_t), intent(in) :: settings
@@ -223,7 +223,7 @@ contains
       eq_cond(i, 3) = rho0 * v01 * dv03 - B01 * dB03
 
       do j = 1, 3
-        if (abs(eq_cond(i, j)) > dp_LIMIT) then
+        if (.not. is_zero(abs(eq_cond(i, j)))) then
           counter(j) = counter(j) + 1
           satisfied(j) = .false.
           if (abs(eq_cond(i, j)) > discrepancy(j)) then
@@ -276,7 +276,6 @@ contains
     real(dp) :: kappa_perp, dkappa_perp_dr, Kp, dKp
     real(dp) :: L0
     real(dp) :: eps, deps
-    real(dp) :: balance_terms
     real(dp) :: discrepancy, r, eq_cond
     logical :: satisfied
     integer :: i, counter
@@ -383,7 +382,7 @@ contains
         B01 * dv03 - dB03 * v01 - B03 * dv01 + d_eps * (B01 * v03 - B03 * v01) / eps &
       )
       do j = 1, 2
-        if (abs(eq_cond(i, j)) > dp_LIMIT) then
+        if (.not. is_zero(abs(eq_cond(i, j)))) then
           counter(j) = counter(j) + 1
           satisfied(j) = .false.
           if (abs(eq_cond(i, j)) > discrepancy(j)) then
@@ -444,7 +443,7 @@ contains
 
       eq_cond(i) = drho0 * v01 + rho0 * dv01 + rho0 * v01 * d_eps / eps
 
-      if (abs(eq_cond(i)) > dp_LIMIT) then
+      if (.not. is_zero(abs(eq_cond(i)))) then
         counter = counter + 1
         satisfied = .false.
         if (abs(eq_cond(i)) > discrepancy) then

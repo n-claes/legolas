@@ -20,6 +20,7 @@ module mod_cooling_curves
   public :: interpolate_cooling_curves
   public :: get_lambdaT
   public :: get_dlambdadT
+  public :: deallocate_cooling_curves
 
 contains
 

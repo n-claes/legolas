@@ -167,23 +167,18 @@ contains
   subroutine cleanup()
     use mod_grid, only: grid_clean
     use mod_equilibrium, only: equilibrium_clean
-    use mod_radiative_cooling, only: radiative_cooling_clean
 
     call matrix_A%delete_matrix()
     call matrix_B%delete_matrix()
     deallocate(omega)
-    if (allocated(right_eigenvectors)) then
-      deallocate(right_eigenvectors)
-    end if
+    if (allocated(right_eigenvectors)) deallocate(right_eigenvectors)
 
     call grid_clean()
     call equilibrium_clean()
 
-    if (settings%physics%cooling%is_enabled()) then
-      call radiative_cooling_clean()
-    end if
     call settings%delete()
     call background%delete()
+    call physics%delete()
     call eigenfunctions%delete()
   end subroutine cleanup
 

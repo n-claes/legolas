@@ -225,11 +225,6 @@ contains
   subroutine set_equilibrium(settings, background, physics)
     use mod_global_variables, only: dp_LIMIT
     use mod_inspections, only: perform_NaN_and_negative_checks, perform_sanity_checks
-    use mod_resistivity, only: set_resistivity_values
-    use mod_radiative_cooling, only: initialise_radiative_cooling, &
-      set_radiative_cooling_values
-    use mod_thermal_conduction, only: set_conduction_values
-    use mod_hall, only: set_hall_factors
     type(settings_t), intent(inout) :: settings
     type(background_t), intent(inout) :: background
     type(physics_t), intent(inout) :: physics
@@ -248,23 +243,12 @@ contains
     ! Do initial checks for NaN and negative density/temperature
     call perform_NaN_and_negative_checks(settings, background, physics)
 
-    ! Setup additional physics
-    if (settings%physics%resistivity%is_enabled()) then
-      call set_resistivity_values(settings, background, eta_field)
-    end if
     if (settings%physics%cooling%is_enabled()) then
-      call initialise_radiative_cooling(settings)
-      call set_radiative_cooling_values(settings, background, rc_field)
-    end if
-    if (settings%physics%conduction%is_enabled()) then
-      call set_conduction_values(settings, background, kappa_field)
-    end if
-    if (settings%physics%hall%is_enabled()) then
-      call set_hall_factors(settings, hall_field)
+      call physics%cooling%enable(settings, background)
     end if
 
     ! Do final sanity checks on values
-    call perform_sanity_checks(settings, background, grav_field, rc_field, kappa_field)
+    call perform_sanity_checks(settings, background, physics)
   end subroutine set_equilibrium
 
 

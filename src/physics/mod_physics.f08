@@ -93,7 +93,7 @@ contains
   end subroutine set_perpendicular_conduction_funcs
 
 
-  pure subroutine delete(this)
+  subroutine delete(this)
     class(physics_t), intent(inout) :: this
     call this%resistivity%delete()
     call this%gravity%delete()
