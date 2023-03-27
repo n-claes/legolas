@@ -69,6 +69,7 @@ program legolas
   call create_datfile( &
     settings, &
     background, &
+    physics, &
     omega, &
     matrix_A, &
     matrix_B, &
