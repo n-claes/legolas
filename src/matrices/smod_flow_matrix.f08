@@ -19,19 +19,19 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     ! density variables
-    rho = background%density%rho0(grid_gauss(gauss_idx))
-    drho = background%density%drho0(grid_gauss(gauss_idx))
+    rho = background%density%rho0(x_gauss)
+    drho = background%density%drho0(x_gauss)
     ! temperature variables
-    T0 = background%temperature%T0(grid_gauss(gauss_idx))
+    T0 = background%temperature%T0(x_gauss)
     ! flow variables
-    v01 = background%velocity%v01(grid_gauss(gauss_idx))
-    dv01 = background%velocity%dv01(grid_gauss(gauss_idx))
+    v01 = background%velocity%v01(x_gauss)
+    dv01 = background%velocity%dv01(x_gauss)
     drv01 = deps * v01 + eps * dv01
-    v02 = background%velocity%v02(grid_gauss(gauss_idx))
-    dv02 = background%velocity%dv02(grid_gauss(gauss_idx))
+    v02 = background%velocity%v02(x_gauss)
+    dv02 = background%velocity%dv02(x_gauss)
     drv02 = deps * v02 + eps * dv02
-    v03 = background%velocity%v03(grid_gauss(gauss_idx))
-    dv03 = background%velocity%dv03(grid_gauss(gauss_idx))
+    v03 = background%velocity%v03(x_gauss)
+    dv03 = background%velocity%dv03(x_gauss)
     Vop = k2 * v02 / eps + k3 * v03
 
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
@@ -118,7 +118,7 @@ contains
       call elements%add(ic * rho * v01, "T", "T", spline1=dh_quad, spline2=h_quad)
     end if
 
-    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
     call elements%delete()
   end procedure add_flow_matrix_terms
 

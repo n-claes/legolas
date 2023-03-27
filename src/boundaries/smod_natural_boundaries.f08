@@ -33,16 +33,22 @@ submodule (mod_boundary_manager) smod_natural_boundaries
       type(background_t), intent(in) :: background
     end subroutine add_natural_flow_terms
 
-    module subroutine add_natural_resistive_terms(quadblock, settings, background)
+    module subroutine add_natural_resistive_terms( &
+      quadblock, settings, background, physics &
+    )
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
       type(background_t), intent(in) :: background
+      type(physics_t), intent(in) :: physics
     end subroutine add_natural_resistive_terms
 
-    module subroutine add_natural_conduction_terms(quadblock, settings, background)
+    module subroutine add_natural_conduction_terms( &
+      quadblock, settings, background, physics &
+    )
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
       type(background_t), intent(in) :: background
+      type(physics_t), intent(in) :: physics
     end subroutine add_natural_conduction_terms
 
     module subroutine add_natural_viscosity_terms(quadblock, settings, background)
@@ -51,16 +57,18 @@ submodule (mod_boundary_manager) smod_natural_boundaries
       type(background_t), intent(in) :: background
     end subroutine add_natural_viscosity_terms
 
-    module subroutine add_natural_hall_terms(quadblock, settings, background)
+    module subroutine add_natural_hall_terms(quadblock, settings, background, physics)
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
       type(background_t), intent(in) :: background
+      type(physics_t), intent(in) :: physics
     end subroutine add_natural_hall_terms
 
-    module subroutine add_natural_hall_Bterms(quadblock, settings, background)
+    module subroutine add_natural_hall_Bterms(quadblock, settings, background, physics)
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
       type(background_t), intent(in) :: background
+      type(physics_t), intent(in) :: physics
     end subroutine add_natural_hall_Bterms
   end interface
 
@@ -78,12 +86,12 @@ contains
     if (matrix%get_label() == "A") then
       call add_natural_regular_terms(quadblock, settings, background)
       call add_natural_flow_terms(quadblock, settings, background)
-      call add_natural_resistive_terms(quadblock, settings, background)
-      call add_natural_conduction_terms(quadblock, settings, background)
+      call add_natural_resistive_terms(quadblock, settings, background, physics)
+      call add_natural_conduction_terms(quadblock, settings, background, physics)
       call add_natural_viscosity_terms(quadblock, settings, background)
-      call add_natural_hall_terms(quadblock, settings, background)
+      call add_natural_hall_terms(quadblock, settings, background, physics)
     else if (matrix%get_label() == "B") then
-      call add_natural_hall_Bterms(quadblock, settings, background)
+      call add_natural_hall_Bterms(quadblock, settings, background, physics)
     end if
     ! add quadblock elements to left edge
     do j = 1, dim_quadblock
@@ -113,12 +121,12 @@ contains
     if (matrix%get_label() == "A") then
       call add_natural_regular_terms(quadblock, settings, background)
       call add_natural_flow_terms(quadblock, settings, background)
-      call add_natural_resistive_terms(quadblock, settings, background)
-      call add_natural_conduction_terms(quadblock, settings, background)
+      call add_natural_resistive_terms(quadblock, settings, background, physics)
+      call add_natural_conduction_terms(quadblock, settings, background, physics)
       call add_natural_viscosity_terms(quadblock, settings, background)
-      call add_natural_hall_terms(quadblock, settings, background)
+      call add_natural_hall_terms(quadblock, settings, background, physics)
     else if (matrix%get_label() == "B") then
-      call add_natural_hall_Bterms(quadblock, settings, background)
+      call add_natural_hall_Bterms(quadblock, settings, background, physics)
     end if
     ! add quadblock elements to right edge
     do j = 1, dim_quadblock
