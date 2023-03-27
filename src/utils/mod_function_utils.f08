@@ -1,5 +1,6 @@
 module mod_function_utils
   use mod_global_variables, only: dp
+
   implicit none
 
   private

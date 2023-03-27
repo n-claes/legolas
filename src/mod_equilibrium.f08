@@ -246,7 +246,7 @@ contains
     end if
 
     ! Do initial checks for NaN and negative density/temperature
-    call perform_NaN_and_negative_checks(background, grav_field)
+    call perform_NaN_and_negative_checks(settings, background, physics)
 
     ! Setup additional physics
     if (settings%physics%resistivity%is_enabled()) then

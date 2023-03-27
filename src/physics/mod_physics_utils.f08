@@ -19,6 +19,7 @@ module mod_physics_utils
   end interface
 
   public :: physics_i
+  public :: from_physics_function
   public :: get_dropoff
   public :: get_dropoff_dr
 
@@ -77,5 +78,19 @@ contains
       get_dropoff_dr = 0.0_dp
     end if
   end function get_dropoff_dr
+
+
+  function from_physics_function(func, values, settings, background) result(array)
+    procedure(physics_i), pointer :: func
+    real(dp), intent(in) :: values(:)
+    type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
+    real(dp) :: array(size(values))
+    integer :: i
+
+    do i = 1, size(values)
+      array(i) = func(values(i), settings, background)
+    end do
+  end function from_physics_function
 
 end module mod_physics_utils
