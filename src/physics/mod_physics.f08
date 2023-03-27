@@ -4,6 +4,7 @@ module mod_physics
   use mod_gravity, only: gravity_t, new_gravity
   use mod_hall, only: hall_t, new_hall
   use mod_thermal_conduction, only: conduction_t, new_conduction
+  use mod_radiative_cooling, only: cooling_t, new_cooling
   implicit none
 
   private
@@ -13,6 +14,7 @@ module mod_physics
     type(gravity_t) :: gravity
     type(hall_t) :: hall
     type(conduction_t) :: conduction
+    type(cooling_t) :: cooling
   contains
     procedure, public :: set_resistivity_funcs
     procedure, public :: set_gravity_funcs
@@ -31,6 +33,7 @@ contains
     physics%gravity = new_gravity()
     physics%hall = new_hall()
     physics%conduction = new_conduction()
+    physics%cooling = new_cooling()
   end function new_physics
 
 
@@ -96,6 +99,7 @@ contains
     call this%gravity%delete()
     call this%hall%delete()
     call this%conduction%delete()
+    call this%cooling%delete()
   end subroutine delete
 
 end module mod_physics

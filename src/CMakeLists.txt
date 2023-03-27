@@ -50,11 +50,11 @@ set (sources
         physics/cooling_curves/mod_data_rosner.f08
         physics/cooling_curves/mod_data_spex.f08
         physics/cooling_curves/mod_data_spex_enh.f08
+        physics/cooling_curves/mod_cooling_curves.f08
         physics/mod_physics_utils.f08
         physics/mod_physics.f08
         physics/mod_gravity.f08
         physics/mod_resistivity.f08
-        physics/mod_cooling_curves.f08
         physics/mod_atmosphere_curves.f08
         physics/mod_solar_atmosphere.f08
         physics/mod_radiative_cooling.f08
