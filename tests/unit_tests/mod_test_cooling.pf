@@ -1,9 +1,17 @@
 module mod_test_cooling
   use mod_suite_utils
+  use mod_cooling_curves, only: get_lambdaT, get_dlambdadT
   use funit
   implicit none
 
+  real(dp) :: unit_temperature, unit_lambdaT, unit_dlambdadT
   type(settings_t) :: settings
+  type(physics_t) :: physics
+  type(background_t) :: background
+
+  integer, parameter :: pts = 9
+  real(dp) :: logT0values(pts), T0values(pts), alpha_expected(pts), logxi_expected(pts)
+
 
 contains
 
@@ -11,41 +19,18 @@ contains
   subroutine init_test()
     call reset_globals()
     settings = get_settings()
+    physics = new_physics()
     call set_default_units(settings)
-    call reset_fields(settings, init_fields=.true.)
-  end subroutine init_test
-
-
-  @after
-  subroutine teardown_test()
-    call clean_up(settings)
-    call settings%delete()
-  end subroutine teardown_test
-
-
-  @test
-  subroutine test_rosner_curve()
-    use mod_cooling_curves, only: get_rosner_cooling
-
-    integer, parameter  :: nbvals = 9
-    real(dp) :: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
-    real(dp)  :: logT0(nbvals), T0(nbvals), lambda(nbvals), dlambda(nbvals)
-    real(dp)  :: results_l(nbvals), results_dl(nbvals)
-    real(dp)  :: alphavals(nbvals), logxivals(nbvals)
-    integer   :: i
-
-    call set_name("checking Rosner cooling curve")
-
     unit_temperature = settings%units%get_unit_temperature()
     unit_lambdaT = settings%units%get_unit_lambdaT()
-    unit_dlambdaT_dT = unit_lambdaT / unit_temperature
+    unit_dlambdadT = unit_lambdaT / unit_temperature
 
-    logT0 = [4.0d0, 5.0d0, 6.2d0, 4.4d0, 7.5d0, 4.7d0, 3.8d0, 5.6d0, 8.0d0]
-    T0 = 10.0d0 ** logT0 / unit_temperature
-    alphavals = [ &
+    logT0values = [4.0d0, 5.0d0, 6.2d0, 4.4d0, 7.5d0, 4.7d0, 3.8d0, 5.6d0, 8.0d0]
+    T0values = 10.0d0 ** logT0values / unit_temperature
+    alpha_expected = [ &
       6.15d0, 0.0d0, 0.0d0, 0.0d0, -2.0d0/3.0d0, 2.0d0, 11.7d0, -2.0d0, 0.5d0 &
     ]
-    logxivals = [ &
+    logxi_expected = [ &
       -48.307d0, &
       -21.2d0, &
       -21.94d0, &
@@ -56,19 +41,61 @@ contains
       -10.4d0, &
       -26.602d0 &
     ]
-    do i = 1, nbvals
-      results_l(i) = 10.0d0 ** (logxivals(i) + alphavals(i) * logT0(i))
-      results_dl(i) = alphavals(i) * 10.0d0 ** ( &
-        logxivals(i) + (alphavals(i) - 1.0d0) * logT0(i) &
-      )
+
+    call background%set_density_funcs(rho0_func=one)
+    call background%set_temperature_funcs(T0_func=get_T0)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call clean_up(settings)
+    call settings%delete()
+    call physics%delete()
+    T0values = 0.0_dp
+  end subroutine teardown_test
+
+
+  real(dp) function get_T0(x)
+    real(dp), intent(in) :: x
+    get_T0 = T0values(int(x))
+  end function get_T0
+
+
+  @test
+  subroutine test_rosner_curve_lambdaT()
+    real(dp) :: actual(pts), expected(pts)
+    integer   :: i
+
+    call set_name("cooling curve: rosner (lambdaT)")
+    call settings%physics%cooling%set_cooling_curve("rosner")
+    call physics%cooling%initialise(settings)
+    do i = 1, pts
+      expected(i) = 10.0d0**( &
+        logxi_expected(i) + alpha_expected(i) * logT0values(i) &
+      ) / unit_lambdaT
+      actual(i) = get_lambdaT(real(i, kind=dp), settings, background)
     end do
-    call get_rosner_cooling(settings, T0, lambda, dlambda)
+    @assertEqual(expected, actual, tolerance=1.0d-7)
+  end subroutine test_rosner_curve_lambdaT
 
-    results_l = results_l / unit_lambdaT
-    results_dl = results_dl / unit_dlambdaT_dT
 
-    @assertEqual(results_l, lambda, tolerance=1.0d-6)
-    @assertEqual(results_dl, dlambda, tolerance=1.0d-6)
-  end subroutine test_rosner_curve
+  @test
+  subroutine test_rosner_curve_dlambdaT()
+    real(dp) :: actual(pts), expected(pts)
+    integer :: i
+
+    call set_name("cooling curve: rosner (dlambdadT)")
+    call settings%physics%cooling%set_cooling_curve("rosner")
+    call physics%cooling%initialise(settings)
+
+    do i = 1, pts
+      expected(i) = alpha_expected(i) * 10.0_dp**( &
+        logxi_expected(i) + (alpha_expected(i) - 1.0_dp) * logT0values(i) &
+      ) / unit_dlambdadT
+      actual(i) = get_dlambdadT(real(i, kind=dp), settings, background)
+    end do
+    @assertEqual(expected, actual, tolerance=1.0d-7)
+  end subroutine test_rosner_curve_dlambdaT
 
 end module mod_test_cooling

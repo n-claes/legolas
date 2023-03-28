@@ -14,7 +14,6 @@ contains
   subroutine init_test()
     call reset_globals()
     settings = new_settings()
-    call reset_fields(settings, init_fields=.true.)
   end subroutine init_test
 
 

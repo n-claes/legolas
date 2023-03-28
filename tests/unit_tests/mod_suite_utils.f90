@@ -2,6 +2,7 @@ module mod_suite_utils
   use mod_global_variables, only: dp
   use mod_settings, only: settings_t, new_settings
   use mod_background, only: background_t, new_background
+  use mod_physics, only: physics_t, new_physics
   use mod_function_utils, only: from_function
   use mod_logging, only: logger
   implicit none
@@ -31,16 +32,20 @@ contains
 
   function get_settings() result(settings)
     type(settings_t) :: settings
-
     settings = new_settings()
   end function get_settings
 
 
   function get_background() result(background)
     type(background_t) :: background
-
     background = new_background()
   end function get_background
+
+
+  function get_physics() result(physics)
+    type(physics_t) :: physics
+    physics = new_physics()
+  end function get_physics
 
 
   integer function get_grid_idx(x)
@@ -51,32 +56,24 @@ contains
   end function get_grid_idx
 
 
-  subroutine reset_fields(settings, init_fields)
-    use mod_equilibrium, only: equilibrium_clean, initialise_equilibrium
+  real(dp) function zero(x)
+    real(dp), intent(in) :: x
+    zero = 0.0d0
+  end function zero
 
-    type(settings_t), intent(inout), optional :: settings
-    logical, intent(in) :: init_fields
 
-    call equilibrium_clean()
-    if (init_fields) then
-      call initialise_equilibrium(settings)
-    end if
-  end subroutine reset_fields
+  real(dp) function one(x)
+    real(dp), intent(in) :: x
+    one = 1.0d0
+  end function one
 
 
   subroutine clean_up(settings)
     use mod_grid, only: grid, grid_clean
-    use mod_radiative_cooling, only: radiative_cooling_clean
 
     type(settings_t), intent(in) :: settings
 
-    if (allocated(grid)) then
-      call grid_clean()
-    end if
-    call reset_fields(init_fields=.false.)
-    if (settings%physics%cooling%is_enabled()) then
-      call radiative_cooling_clean()
-    end if
+    if (allocated(grid)) call grid_clean()
   end subroutine clean_up
 
 

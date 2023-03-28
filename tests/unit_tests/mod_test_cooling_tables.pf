@@ -2,18 +2,22 @@ module mod_test_cooling_tables
   use mod_suite_utils
   use funit
   use mod_cooling_curves
-  use mod_radiative_cooling, only: initialise_radiative_cooling, &
-    set_radiative_cooling_values
-  use mod_equilibrium, only: rc_field
-  use mod_grid, only: grid_gauss
+  use mod_physics_utils, only: from_physics_function
+
+  use mod_data_jccorona
+  use mod_data_dalgarno
+  use mod_data_mlsolar
+  use mod_data_spex
+
   implicit none
 
   real(dp), allocatable :: expected(:)
   real(dp), allocatable :: actual(:)
+  real(dp), allocatable :: xvals(:)
   real(dp), allocatable :: T0vals(:)
-  integer :: gauss_gridpts
   type(settings_t) :: settings
   type(background_t) :: background
+  type(physics_t) :: physics
   real(dp) :: unit_temperature, unit_lambdaT, unit_dlambdaT_dT
 
 
@@ -23,18 +27,14 @@ contains
   subroutine init_test()
     settings = get_settings()
     background = get_background()
-    call create_test_grid(settings, pts=50, geometry="Cartesian")
-    call reset_fields(settings, init_fields=.true.)
+    physics = get_physics()
     call set_default_units(settings)
     unit_temperature = settings%units%get_unit_temperature()
     unit_lambdaT = settings%units%get_unit_lambdaT()
     unit_dlambdaT_dT = unit_lambdaT / unit_temperature
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
-    allocate(expected(gauss_gridpts), source=0.0_dp)
-    allocate(actual, source=expected)
-    allocate(T0vals, mold=expected)
 
     call background%set_density_funcs(rho0_func=rho0_func)
+    call background%set_temperature_funcs(T0_func=T0_func)
   end subroutine init_test
 
 
@@ -43,10 +43,28 @@ contains
     if (allocated(expected)) deallocate(expected)
     if (allocated(actual)) deallocate(actual)
     if (allocated(T0vals)) deallocate(T0vals)
-    call clean_up(settings)
+    if (allocated(xvals)) deallocate(xvals)
     call settings%delete()
     call background%delete()
+    call physics%delete()
   end subroutine teardown_test
+
+
+  subroutine set_cooling_curve(name)
+    character(len=*), intent(in) :: name
+    call settings%physics%enable_cooling(cooling_curve=name)
+    call physics%cooling%initialise(settings)
+  end subroutine set_cooling_curve
+
+
+  subroutine allocate_arrays(pts)
+    integer, intent(in) :: pts
+    allocate(expected(pts))
+    allocate(actual(pts))
+    allocate(T0vals(pts))
+    allocate(xvals(pts))
+    xvals = linspace(0.0_dp, 5.0_dp, pts)
+  end subroutine allocate_arrays
 
 
   real(dp) function rho0_func()
@@ -56,307 +74,270 @@ contains
 
   real(dp) function T0_func(x)
     real(dp), intent(in) :: x
-    T0_func = T0vals(get_grid_idx(x))
+    integer :: idx
+    idx = minloc(abs(xvals - x), dim=1)
+    T0_func = T0vals(idx)
   end function T0_func
 
 
-  subroutine set_cooling()
-    call initialise_radiative_cooling(settings)
-    call set_radiative_cooling_values(settings, background, rc_field)
-  end subroutine set_cooling
-
-
-  function get_brehmstrahlung_lambda(Tvals, Lvals) result(lambdavals)
+  function get_brehmstrahlung_lambda(T0, Tvals, Lvals) result(lambdavals)
+    real(dp), intent(in) :: T0(:)
     real(dp), intent(in) :: Tvals(:), Lvals(:)
     real(dp) :: Tmax, Lmax
-    real(dp) :: lambdavals(gauss_gridpts)
-    real(dp) :: T0(gauss_gridpts)
+    real(dp) :: lambdavals(size(T0))
 
     Tmax = 10.0d0 ** maxval(Tvals) / unit_temperature
     Lmax = 10.0d0 ** Lvals(size(Tvals)) / unit_lambdaT
-    T0 = from_function(background%temperature%T0, grid_gauss)
     lambdavals = Lmax * sqrt(T0 / Tmax)
   end function get_brehmstrahlung_lambda
 
 
-  function get_brehmstrahlung_dlambda(Tvals, Lvals) result(dlambdavals)
+  function get_brehmstrahlung_dlambda(T0, Tvals, Lvals) result(dlambdavals)
+    real(dp), intent(in) :: T0(:)
     real(dp), intent(in) :: Tvals(:), Lvals(:)
     real(dp) :: Tmax, Lmax
-    real(dp) :: dlambdavals(gauss_gridpts)
-    real(dp) :: T0(gauss_gridpts)
+    real(dp) :: dlambdavals(size(T0))
 
     Tmax = 10.0d0 ** maxval(Tvals) / unit_temperature
     Lmax = 10.0d0 ** Lvals(size(Tvals)) / unit_lambdaT
-    T0 = from_function(background%temperature%T0, grid_gauss)
     dlambdavals = 0.5d0 * Lmax / sqrt(T0 * Tmax)
   end function get_brehmstrahlung_dlambda
 
 
   function get_spex_dm_T_table()  result(Ttable)
-    integer :: ntable
-    real(dp)  :: Ttable(n_spex + n_dalgarno2 - 6)
-
-    ntable = n_spex + n_dalgarno2 - 6
-    Ttable(1:n_dalgarno2-1) = t_dalgarno2(1:n_dalgarno2-1)
-    Ttable(n_dalgarno2:ntable) = t_spex(6:n_spex)
+    real(dp), allocatable :: Ttable(:)
+    real(dp), allocatable :: dummy(:)
+    call get_cooling_table("spex_dalgarno", Ttable, dummy)
+    deallocate(dummy)
   end function get_spex_dm_T_table
 
 
   function get_spex_dm_L_table()  result(Ltable)
-    integer :: ntable
-    real(dp)  :: Ltable(n_spex + n_dalgarno2 - 6)
-
-    ntable = n_spex + n_dalgarno2 - 6
-    Ltable(1:n_dalgarno2-1) = l_dalgarno2(1:n_dalgarno2-1)
-    Ltable(n_dalgarno2:ntable) = l_spex(6:n_spex) + log10(n_spex_enh(6:n_spex))
+    real(dp), allocatable :: Ltable(:)
+    real(dp), allocatable :: dummy(:)
+    call get_cooling_table("spex_dalgarno", dummy, Ltable)
+    deallocate(dummy)
   end function get_spex_dm_L_table
 
 
   @test
   subroutine test_cooling_curve_unknown()
-    call set_name("radiative cooling (unknown)")
-    call settings%physics%enable_cooling(cooling_curve="unknown")
-    call initialise_radiative_cooling(settings)
+    call set_name("cooling curve: unknown")
+    call set_cooling_curve("unknown")
     @assertExceptionRaised("unknown cooling curve: unknown")
   end subroutine test_cooling_curve_unknown
 
 
   @test
   subroutine test_cooling_curve_jc_corona_below()
-    call set_name("radiative cooling (jc corona, below Tmin)")
-    call settings%physics%enable_cooling(cooling_curve="jc_corona")
-    T0vals = linspace(100.0d0, 3500.0d0, gauss_gridpts) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-
-    call set_cooling()
-    @assertEqual(0.0d0, rc_field % dL_drho, tolerance=TOL)
-    @assertEqual(0.0d0, rc_field % dL_dT, tolerance=TOL)
+    call set_name("cooling curve: jc_corona (below Tmin)")
+    call set_cooling_curve("jc_corona")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(100.0d0, 3500.0d0, 100) / unit_temperature
+    expected = 0.0_dp
+    actual = from_physics_function(physics%cooling%dLdT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
+    actual = from_physics_function(physics%cooling%dLdrho, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_jc_corona_below
 
 
   @test
   subroutine test_cooling_curve_jc_corona_above()
-    call set_name("radiative cooling (jc corona, above Tmax)")
-    call settings%physics%enable_cooling(cooling_curve="jc_corona")
-    T0vals = linspace(1.0d8, 1.0d9, gauss_gridpts) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    expected = get_brehmstrahlung_lambda(t_jc_corona, l_jc_corona)
-    @assertEqual(expected, rc_field % dL_drho, tolerance=TOL)
-    expected = get_brehmstrahlung_dlambda(t_jc_corona, l_jc_corona)
-    @assertEqual(expected, rc_field % dL_dT, tolerance=TOL)
+    call set_name("cooling curve: jc_corona (above Tmax)")
+    call set_cooling_curve("jc_corona")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(1.0d8, 1.0d9, 100) / unit_temperature
+    expected = get_brehmstrahlung_lambda(T0vals, logT_jccorona, logL_jccorona)
+    actual = from_physics_function(physics%cooling%dLdrho, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
+    expected = get_brehmstrahlung_dlambda(T0vals, logT_jccorona, logL_jccorona)
+    actual = from_physics_function(physics%cooling%dLdT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_jc_corona_above
 
 
   @test
   subroutine test_cooling_curve_jc_corona()
-    call set_name("radiative cooling (jc corona)")
-    call settings%physics%enable_cooling(cooling_curve="jc_corona")
-    T0vals = 10.0d0 ** linspace( &
-      t_jc_corona(20), t_jc_corona(30), gauss_gridpts &
-    ) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    ! approximate value 93
-    expected(1) = 10.0d0 ** l_jc_corona(20) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % dL_drho(1), tolerance=1.0d-1)
-    ! approximate value 27
-    expected(1) = 10.0d0 ** l_jc_corona(30) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % dL_drho(gauss_gridpts), tolerance=1.0d-2)
+    call set_name("cooling curve: jc_corona")
+    call set_cooling_curve("jc_corona")
+    call allocate_arrays(pts=21)
+    T0vals = 10.0_dp ** logT_jccorona(20:40) / unit_temperature
+    expected = 10.0_dp ** logL_jccorona(20:40) / unit_lambdaT
+    actual = from_physics_function(physics%cooling%lambdaT, xvals, settings, background)
+    ! approximately equal due to interpolation
+    @assertEqual(expected, actual, tolerance=1.0d-1)
   end subroutine test_cooling_curve_jc_corona
 
 
   @test
   subroutine test_cooling_curve_dalgarno_below()
-    call set_name("radiative cooling (dalgarno, below Tmin)")
-    call settings%physics%enable_cooling(cooling_curve="dalgarno")
-    T0vals = linspace(1.0d0, 95.0d0, gauss_gridpts) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    @assertEqual(0.0d0, rc_field % dL_drho, tolerance=TOL)
-    @assertEqual(0.0d0, rc_field % dL_dT, tolerance=TOL)
+    call set_name("cooling curve: dalgarno (below Tmin)")
+    call set_cooling_curve("dalgarno")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(1.0d0, 95.0d0, 100) / unit_temperature
+    expected = 0.0_dp
+    actual = from_physics_function(physics%cooling%dLdT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
+    actual = from_physics_function(physics%cooling%dLdrho, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_dalgarno_below
 
 
   @test
   subroutine test_cooling_curve_dalgarno_above()
-    call set_name("radiative cooling (dalgarno, above Tmax)")
-    call settings%physics%enable_cooling(cooling_curve="dalgarno")
-    T0vals = linspace(1.1d9, 1.0d10, gauss_gridpts) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    expected = get_brehmstrahlung_lambda(t_dalgarno, l_dalgarno)
-    @assertEqual(expected, rc_field % dL_drho, tolerance=TOL)
-    expected = get_brehmstrahlung_dlambda(t_dalgarno, l_dalgarno)
-    @assertEqual(expected, rc_field % dL_dT, tolerance=TOL)
+    call set_name("cooling curve: dalgarno (above Tmax)")
+    call set_cooling_curve("dalgarno")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(1.1d9, 1.0d10, 100) / unit_temperature
+    expected = get_brehmstrahlung_lambda(T0vals, logT_dalgarno, logL_dalgarno)
+    actual = from_physics_function(physics%cooling%dLdrho, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
+    expected = get_brehmstrahlung_dlambda(T0vals, logT_dalgarno, logL_dalgarno)
+    actual = from_physics_function(physics%cooling%dLdT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_dalgarno_above
 
 
   @test
   subroutine test_cooling_curve_dalgarno()
-    call set_name("radiative cooling (dalgarno)")
-    call settings%physics%enable_cooling(cooling_curve="dalgarno")
-    T0vals = 10.0d0 ** linspace( &
-      t_dalgarno(20), t_dalgarno(60), gauss_gridpts &
-    ) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    ! approximate value 0.01
-    expected(1) = 10.0d0 ** l_dalgarno(20) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % dL_drho(1), tolerance=1.0d-6)
-    ! approximate value 2
-    expected(1) = 10.0d0 ** l_dalgarno(60) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % dL_drho(gauss_gridpts), tolerance=1.0d-4)
+    call set_name("cooling curve: dalgarno")
+    call set_cooling_curve("dalgarno")
+    call allocate_arrays(pts=41)
+    T0vals = 10.0d0 ** logT_dalgarno(20:60) / unit_temperature
+    expected = 10.0d0 ** logL_dalgarno(20:60) / unit_lambdaT
+    actual = from_physics_function(physics%cooling%lambdaT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=2.0d-1)
   end subroutine test_cooling_curve_dalgarno
 
 
   @test
   subroutine test_cooling_curve_ml_solar_below()
-    call set_name("radiative cooling (ml solar, below Tmin)")
-    call settings%physics%enable_cooling(cooling_curve="ml_solar")
-    T0vals = linspace(1.0d0, 95.0d0, gauss_gridpts) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    @assertEqual(0.0d0, rc_field % dL_drho, tolerance=TOL)
-    @assertEqual(0.0d0, rc_field % dL_dT, tolerance=TOL)
+    call set_name("cooling curve: ml_solar (below Tmin)")
+    call set_cooling_curve("ml_solar")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(1.0d0, 95.0d0, 100) / unit_temperature
+    expected = 0.0_dp
+    actual = from_physics_function(physics%cooling%dLdT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
+    actual = from_physics_function(physics%cooling%dLdrho, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_ml_solar_below
 
 
   @test
   subroutine test_cooling_curve_ml_solar_above()
-    call set_name("radiative cooling (ml_solar, above Tmax)")
-    call settings%physics%enable_cooling(cooling_curve="ml_solar")
-    T0vals = linspace(1.1d9, 1.0d10, gauss_gridpts) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    expected = get_brehmstrahlung_lambda(t_ml_solar, l_ml_solar)
-    @assertEqual(expected, rc_field % dL_drho, tolerance=TOL)
-    expected = get_brehmstrahlung_dlambda(t_ml_solar, l_ml_solar)
-    @assertEqual(expected, rc_field % dL_dT, tolerance=TOL)
+    call set_name("cooling curve: ml_solar (above Tmax)")
+    call set_cooling_curve("ml_solar")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(1.1d9, 1.0d10, 100) / unit_temperature
+    expected = get_brehmstrahlung_lambda(T0vals, logT_mlsolar, logL_mlsolar)
+    actual = from_physics_function(physics%cooling%dLdrho, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
+    expected = get_brehmstrahlung_dlambda(T0vals, logT_mlsolar, logL_mlsolar)
+    actual = from_physics_function(physics%cooling%dLdT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_ml_solar_above
 
 
   @test
   subroutine test_cooling_curve_ml_solar()
-    call set_name("radiative cooling (dalgarno)")
-    call settings%physics%enable_cooling(cooling_curve="ml_solar")
-    T0vals = 10.0d0 ** linspace( &
-      t_ml_solar(20), t_ml_solar(60), gauss_gridpts &
-    ) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    ! approximate value 0.0001
-    expected(1) = 10.0d0 ** l_ml_solar(20) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % dL_drho(1), tolerance=1.0d-6)
-    ! approximate value 2
-    expected(1) = 10.0d0 ** l_ml_solar(60) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % dL_drho(gauss_gridpts), tolerance=1.0d-4)
+    call set_name("cooling curve: ml_solar")
+    call set_cooling_curve("ml_solar")
+    call allocate_arrays(pts=41)
+    T0vals = 10.0d0 ** logT_mlsolar(20:60) / unit_temperature
+    expected = 10.0_dp ** logL_mlsolar(20:60) / unit_lambdaT
+    actual = from_physics_function(physics%cooling%lambdaT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=2.0d-1)
   end subroutine test_cooling_curve_ml_solar
 
 
   @test
   subroutine test_cooling_curve_spex_below()
-    call set_name("radiative cooling (spex, below Tmin)")
-    call settings%physics%enable_cooling(cooling_curve="spex")
-    T0vals = linspace(250.0d0, 5000.0d0, gauss_gridpts) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    @assertEqual(0.0d0, rc_field % dL_drho, tolerance=TOL)
-    @assertEqual(0.0d0, rc_field % dL_dT, tolerance=TOL)
+    call set_name("cooling curve: spex (below Tmin)")
+    call set_cooling_curve("spex")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(250.0d0, 5000.0d0, 100) / unit_temperature
+    expected = 0.0_dp
+    actual = from_physics_function(physics%cooling%dLdT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
+    actual = from_physics_function(physics%cooling%dLdrho, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_spex_below
 
 
   @test
   subroutine test_cooling_curve_spex_above()
-    call set_name("radiative cooling (spex, above Tmax)")
-    call settings%physics%enable_cooling(cooling_curve="spex")
-    T0vals = linspace(5.0d8, 1.0d10, gauss_gridpts) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    expected = get_brehmstrahlung_lambda(t_spex, l_spex)
-    @assertEqual(expected, rc_field % dL_drho, tolerance=TOL)
-    expected = get_brehmstrahlung_dlambda(t_spex, l_spex)
-    @assertEqual(expected, rc_field % dL_dT, tolerance=TOL)
+    call set_name("cooling curve: spex (above Tmax)")
+    call set_cooling_curve("spex")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(5.0d8, 1.0d10, 100) / unit_temperature
+    expected = get_brehmstrahlung_lambda(T0vals, logT_spex, logL_spex)
+    actual = from_physics_function(physics%cooling%dLdrho, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
+    expected = get_brehmstrahlung_dlambda(T0vals, logT_spex, logL_spex)
+    actual = from_physics_function(physics%cooling%dLdT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_spex_above
 
 
   @test
   subroutine test_cooling_curve_spex()
-    call set_name("radiative cooling (spex)")
-    call settings%physics%enable_cooling(cooling_curve="spex")
-    T0vals = 10.0d0 ** linspace( &
-      t_spex(35), t_spex(100), gauss_gridpts &
-    ) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-    ! approximate value 200
-    expected(1) = 10.0d0 ** l_spex(35) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % dL_drho(1), tolerance=1.0d-1)
-    ! approximate value 3
-    expected(1) = 10.0d0 ** l_spex(100) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % dL_drho(gauss_gridpts), tolerance=1.0d-5)
+    call set_name("cooling curve: spex")
+    call set_cooling_curve("spex")
+    call allocate_arrays(pts=76)
+    T0vals = 10.0d0 ** logT_spex(25:100) / unit_temperature
+    expected = 10.0_dp ** logL_spex(25:100) / unit_lambdaT
+    actual = from_physics_function(physics%cooling%lambdaT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=1.0d-1)
   end subroutine test_cooling_curve_spex
 
 
   @test
   subroutine test_cooling_curve_spex_dalgarno_below()
-    call set_name("radiative cooling (spex dalgarno, below Tmin)")
-    call settings%physics%enable_cooling(cooling_curve="spex_dalgarno")
-    T0vals = linspace(1.0d0, 9.5d0, gauss_gridpts) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    @assertEqual(0.0d0, rc_field % dL_drho, tolerance=TOL)
-    @assertEqual(0.0d0, rc_field % dL_dT, tolerance=TOL)
+    call set_name("cooling curve: spex_dalgarno (below Tmin)")
+    call set_cooling_curve("spex_dalgarno")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(1.0d0, 9.5d0, 100) / unit_temperature
+    actual = from_physics_function(physics%cooling%dLdT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
+    actual = from_physics_function(physics%cooling%dLdrho, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_spex_dalgarno_below
 
 
   @test
   subroutine test_cooling_curve_spex_dalgarno_above()
-    call set_name("radiative cooling (spex dalgarno, above Tmax)")
-    call settings%physics%enable_cooling(cooling_curve="spex_dalgarno")
-    T0vals = linspace(5.0d8, 1.0d10, gauss_gridpts) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    expected = get_brehmstrahlung_lambda(get_spex_dm_T_table(), get_spex_dm_L_table())
-    @assertEqual(expected, rc_field % dL_drho, tolerance=TOL)
-    expected = get_brehmstrahlung_dlambda(get_spex_dm_T_table(), get_spex_dm_L_table())
-    @assertEqual(expected, rc_field % dL_dT, tolerance=TOL)
+    call set_name("cooling curve: spex_dalgarno (above Tmax)")
+    call set_cooling_curve("spex_dalgarno")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(5.0d8, 1.0d10, 100) / unit_temperature
+    expected = get_brehmstrahlung_lambda( &
+      T0vals, get_spex_dm_T_table(), get_spex_dm_L_table() &
+    )
+    actual = from_physics_function(physics%cooling%dLdrho, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
+    expected = get_brehmstrahlung_dlambda( &
+      T0vals, get_spex_dm_T_table(), get_spex_dm_L_table() &
+    )
+    actual = from_physics_function(physics%cooling%dLdT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_spex_dalgarno_above
 
 
   @test
   subroutine test_cooling_curve_spex_dalgarno()
-    real(dp)  :: spex_dm_T_table(n_spex + n_dalgarno2 - 6)
-    real(dp)  :: spex_dm_L_table(n_spex + n_dalgarno2 - 6)
+    real(dp), allocatable :: spex_dm_T_table(:)
+    real(dp), allocatable :: spex_dm_L_table(:)
 
-    call set_name("radiative cooling (spex dalgarno)")
-    call settings%physics%enable_cooling(cooling_curve="spex_dalgarno")
-    spex_dm_T_table = get_spex_dm_T_table()
-    spex_dm_L_table = get_spex_dm_L_table()
-    T0vals = 10.0d0 ** linspace( &
-      spex_dm_T_table(70), spex_dm_T_table(150), gauss_gridpts &
-    ) / unit_temperature
-    call background%set_temperature_funcs(T0_func=T0_func)
-    call set_cooling()
-
-    ! approximate value 0.02
-    expected(1) = 10.0d0 ** spex_dm_L_table(70) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % dL_drho(1), tolerance=1.0d-7)
-    ! approximate value 5
-    expected(1) = 10.0d0 ** spex_dm_L_table(150) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % dL_drho(gauss_gridpts), tolerance=1.0d-4)
+    call set_name("cooling curve: spex_dalgarno")
+    call set_cooling_curve("spex_dalgarno")
+    call allocate_arrays(pts=81)
+    call get_cooling_table("spex_dalgarno", spex_dm_T_table, spex_dm_L_table)
+    T0vals = 10.0d0 ** spex_dm_T_table(70:150) / unit_temperature
+    expected = 10.0_dp ** spex_dm_L_table(70:150) / unit_lambdaT
+    actual = from_physics_function(physics%cooling%lambdaT, xvals, settings, background)
+    @assertEqual(expected, actual, tolerance=2.0d-1)
   end subroutine test_cooling_curve_spex_dalgarno
 
 end module mod_test_cooling_tables
