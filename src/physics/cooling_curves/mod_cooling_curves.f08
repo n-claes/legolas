@@ -129,7 +129,7 @@ contains
     integer :: j
 
     get_rosner_index = 1
-    if (logT0 < logT_rosner(8)) then
+    if (logT0 > logT_rosner(8)) then
       get_rosner_index = 9
     else
       do j = 1, size(logT_rosner)
