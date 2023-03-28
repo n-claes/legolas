@@ -1,10 +1,11 @@
 module mod_cooling_curves
-  use mod_global_variables, only: dp
+  use mod_global_variables, only: dp, str_len
   use mod_settings, only: settings_t
   use mod_background, only: background_t
   use mod_logging, only: logger
   use mod_interpolation, only: lookup_table_value, get_numerical_derivative
 
+  use mod_cooling_curve_names
   use mod_data_rosner
 
   implicit none
@@ -18,8 +19,10 @@ module mod_cooling_curves
   real(dp) :: minT, maxT
 
   public :: interpolate_cooling_curves
+  public :: is_valid_cooling_curve
   public :: get_lambdaT
   public :: get_dlambdadT
+  public :: get_cooling_table
   public :: deallocate_cooling_curves
 
 contains
@@ -225,7 +228,18 @@ contains
   end function get_interpolated_dlambdadT
 
 
+  logical function is_valid_cooling_curve(name)
+    character(len=*), intent(in) :: name
+
+    is_valid_cooling_curve = any(name == KNOWN_CURVES)
+    if (.not. is_valid_cooling_curve) then
+      call logger%error("unknown cooling curve: " // name)
+    end if
+  end function is_valid_cooling_curve
+
+
   subroutine get_cooling_table(name, table_T, table_lambda)
+    use mod_cooling_curve_names
     use mod_data_dalgarno
     use mod_data_jccorona
     use mod_data_mlsolar
@@ -239,23 +253,23 @@ contains
     integer :: table_n
 
     select case(name)
-    case("jc_corona")
+    case(JC_CORONA)
       table_n = n_jccorona
       table_T = logT_jccorona
       table_lambda = logL_jccorona
-    case("dalgarno")
+    case(DALGARNO)
       table_n = n_dalgarno
       table_T = logT_dalgarno
       table_lambda = logL_dalgarno
-    case("ml_solar")
+    case(ML_SOLAR)
       table_n = n_mlsolar
       table_T = logT_mlsolar
       table_lambda = logL_mlsolar
-    case("spex")
+    case(SPEX)
       table_n = n_spex
       table_T = logT_spex
       table_lambda = logL_spex
-    case("spex_dalgarno")
+    case(SPEX_DALGARNO)
       table_n = n_spex + n_spex_enh_dalgarno - 6
       allocate(table_T(table_n))
       allocate(table_lambda(table_n))
@@ -269,8 +283,6 @@ contains
       table_lambda(n_spex_enh_dalgarno:) = ( &
         logL_spex(6:n_spex) + log10(L_spex_enh(6:n_spex)) &
       )
-    case default
-      call logger%error("unknown cooling curve: " // name)
     end select
   end subroutine get_cooling_table
 

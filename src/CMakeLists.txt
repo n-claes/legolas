@@ -43,6 +43,7 @@ set (sources
         mod_interpolation.f08
         mod_integration.f08
         dataIO/mod_input.f08
+        physics/cooling_curves/mod_cooling_curve_names.f08
         physics/cooling_curves/mod_data_dalgarno.f08
         physics/cooling_curves/mod_data_jccorona.f08
         physics/cooling_curves/mod_data_mlsolar.f08

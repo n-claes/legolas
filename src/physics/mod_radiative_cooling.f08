@@ -52,13 +52,21 @@ contains
 
 
   subroutine initialise(this, settings)
+    use mod_cooling_curves, only: is_valid_cooling_curve
+    use mod_cooling_curve_names, only: ROSNER
+
     class(cooling_t), intent(inout) :: this
     type(settings_t), intent(in) :: settings
+    character(:), allocatable :: curve
     logical :: use_interpolated_curve
 
     if (this%is_initialised) return
 
-    use_interpolated_curve = (settings%physics%cooling%get_cooling_curve() /= "rosner")
+    curve = settings%physics%cooling%get_cooling_curve()
+    if (.not. is_valid_cooling_curve(curve)) return
+    use_interpolated_curve = (curve /= ROSNER)
+    deallocate(curve)
+
     if (use_interpolated_curve) then
       call interpolate_cooling_curves(settings)
       this%is_initialised = .true.
