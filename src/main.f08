@@ -9,6 +9,7 @@
 program legolas
   use mod_global_variables, only: dp, str_len, initialise_globals
   use mod_matrix_structure, only: matrix_t
+  use mod_equilibrium, only: set_equilibrium
   use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_path, create_datfile
@@ -47,6 +48,7 @@ program legolas
 
   call timer%start_timer()
   call initialisation()
+  call set_equilibrium(settings, background, physics)
   timer%init_time = timer%end_timer()
 
   call print_console_info(settings)
@@ -93,17 +95,12 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: NaN
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
-    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
     use mod_console, only: print_logo
 
     character(len=5*str_len)  :: parfile
     integer   :: nb_evs
-
-    real(dp) :: ratio
-    ratio = NaN
 
     call get_parfile(parfile)
     call read_parfile(parfile, settings)
@@ -124,18 +121,6 @@ contains
     allocate(omega(nb_evs))
     matrix_A = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="A")
     matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
-
-    call initialise_equilibrium(settings)
-    call set_equilibrium(settings, background, physics)
-
-    if (settings%physics%hall%is_enabled()) then
-      ratio = maxval(hall_field % hallfactor) / ( &
-        settings%grid%get_grid_end() - settings%grid%get_grid_start() &
-      )
-      if (ratio > 0.1d0) then
-        call logger%warning("large ratio Hall scale / system scale: " // str(ratio))
-      end if
-    end if
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
     if ( &
@@ -167,7 +152,6 @@ contains
   !! routines of all relevant subroutines to do the same thing.
   subroutine cleanup()
     use mod_grid, only: grid_clean
-    use mod_equilibrium, only: equilibrium_clean
 
     call matrix_A%delete_matrix()
     call matrix_B%delete_matrix()
@@ -175,7 +159,6 @@ contains
     if (allocated(right_eigenvectors)) deallocate(right_eigenvectors)
 
     call grid_clean()
-    call equilibrium_clean()
 
     call settings%delete()
     call background%delete()

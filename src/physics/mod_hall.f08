@@ -16,6 +16,7 @@ module mod_hall
     procedure(physics_i), pointer, nopass :: inertiafactor
 
   contains
+    procedure, public :: validate_scale_ratio
     procedure, public :: delete
   end type hall_t
 
@@ -73,6 +74,30 @@ contains
     if (.not. settings%physics%hall%use_inertia_dropoff) return
     get_inertiafactor = get_dropoff_dr(x, get_inertiafactor, settings, background)
   end function get_inertiafactor
+
+
+  ! LCOV_EXCL_START
+  subroutine validate_scale_ratio(this, grid, settings, background)
+    use mod_physics_utils, only: from_physics_function
+    use mod_logging, only: logger, str
+
+    class(hall_t), intent(in) :: this
+    real(dp), intent(in) :: grid(:)
+    type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
+    real(dp) :: ratio
+
+    if (.not. settings%physics%hall%is_enabled()) return
+
+    ratio = maxval( &
+      from_physics_function(this%hallfactor, grid, settings, background) &
+    ) / (settings%grid%get_grid_end() - settings%grid%get_grid_start())
+
+    if (ratio > 0.1d0) then
+      call logger%warning("large ratio Hall scale / system scale: " // str(ratio))
+    end if
+  end subroutine validate_scale_ratio
+  ! LCOV_EXCL_STOP
 
 
   pure subroutine delete(this)

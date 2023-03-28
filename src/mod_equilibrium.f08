@@ -9,7 +9,6 @@
 !! @note    All use statements specified here at the main module scope
 !!          are automatically accessible in every submodule that extends this one.
 module mod_equilibrium
-  use mod_types
   use mod_global_variables, only: dp
   use mod_physical_constants, only: dpi
   use mod_grid, only: initialise_grid, grid_gauss
@@ -179,41 +178,9 @@ module mod_equilibrium
     end subroutine user_defined_eq
   end interface
 
-  !> type containing all gravity-related equilibrium variables
-  type (gravity_type)     :: grav_field
-  !> type containing all resistivity-related equilibrium variables
-  type (resistivity_type) :: eta_field
-  !> type containig all radiative cooling-related equilibrium variables
-  type (cooling_type)     :: rc_field
-  !> type containing all thermal conduction-related equilibrium variables
-  type (conduction_type)  :: kappa_field
-  !> type containing all Hall related variables
-  type (hall_type)        :: hall_field
-
-  public :: grav_field
-  public :: eta_field
-  public :: rc_field
-  public :: kappa_field
-  public :: hall_field
-
-  public :: initialise_equilibrium
   public :: set_equilibrium
-  public :: equilibrium_clean
 
 contains
-
-
-  !> Initialises the equilibrium types by calling the corresponding
-  !! subroutine, which allocates all necessary attributes.
-  subroutine initialise_equilibrium(settings)
-    type(settings_t), intent(inout) :: settings
-
-    call initialise_type(settings, grav_field)
-    call initialise_type(settings, eta_field)
-    call initialise_type(settings, rc_field)
-    call initialise_type(settings, kappa_field)
-    call initialise_type(settings, hall_field)
-  end subroutine initialise_equilibrium
 
 
   !> Calls the routine to set the equilibrium pointer, then calls the correct
@@ -225,6 +192,7 @@ contains
   subroutine set_equilibrium(settings, background, physics)
     use mod_global_variables, only: dp_LIMIT
     use mod_inspections, only: perform_NaN_and_negative_checks, perform_sanity_checks
+
     type(settings_t), intent(inout) :: settings
     type(background_t), intent(inout) :: background
     type(physics_t), intent(inout) :: physics
@@ -246,6 +214,7 @@ contains
     if (settings%physics%cooling%is_enabled()) then
       call physics%cooling%enable(settings, background)
     end if
+    call physics%hall%validate_scale_ratio(grid_gauss, settings, background)
 
     ! Do final sanity checks on values
     call perform_sanity_checks(settings, background, physics)
@@ -324,15 +293,5 @@ contains
       )
     end select
   end subroutine set_equilibrium_pointer
-
-
-  !> Cleaning routine, deallocates the equilibrium types.
-  subroutine equilibrium_clean()
-    if (allocated(grav_field%grav)) call deallocate_type(grav_field)
-    if (allocated(eta_field%eta)) call deallocate_type(eta_field)
-    if (allocated(rc_field%L0)) call deallocate_type(rc_field)
-    if (allocated(kappa_field%kappa_para)) call deallocate_type(kappa_field)
-    if (allocated(hall_field%hallfactor)) call deallocate_type(hall_field)
-  end subroutine equilibrium_clean
 
 end module mod_equilibrium
