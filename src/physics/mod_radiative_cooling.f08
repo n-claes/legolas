@@ -24,7 +24,7 @@ module mod_radiative_cooling
     logical, private :: is_initialised
 
   contains
-    procedure, public :: enable
+    procedure, public :: initialise
     procedure, public :: delete
   end type cooling_t
 
@@ -35,13 +35,11 @@ contains
   function new_cooling() result(cooling)
     type(cooling_t) :: cooling
     cooling%is_initialised = .false.
-    ! do nothing here since it depends on the cooling curves used, which is not
-    ! necessarily known when calling the constructor
-    cooling%lambdaT => zero
-    cooling%dlambdadT => zero
-    cooling%L0 => zero
-    cooling%dLdT => zero
-    cooling%dLdrho => zero
+    cooling%lambdaT => get_lambdaT
+    cooling%dlambdadT => get_dlambdadT
+    cooling%L0 => get_L0
+    cooling%dLdT => get_dLdT
+    cooling%dLdrho => get_dLdrho
   end function new_cooling
 
 
@@ -53,28 +51,37 @@ contains
   end function zero
 
 
-  subroutine enable(this, settings, background)
+  subroutine initialise(this, settings)
     class(cooling_t), intent(inout) :: this
     type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     logical :: use_interpolated_curve
 
+    if (this%is_initialised) return
+
     use_interpolated_curve = (settings%physics%cooling%get_cooling_curve() /= "rosner")
-    if (use_interpolated_curve .and. .not. this%is_initialised) then
+    if (use_interpolated_curve) then
       call interpolate_cooling_curves(settings)
       this%is_initialised = .true.
     end if
-    this%lambdaT => get_lambdaT
-    this%dlambdadT => get_dlambdadT
-    this%dLdT => get_dLdT
-    this%dLdrho => get_dLdrho
-  end subroutine enable
+  end subroutine initialise
+
+
+  real(dp) function get_L0(x, settings, background)
+    real(dp), intent(in) :: x
+    type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
+
+    get_L0 = 0.0_dp
+  end function get_L0
 
 
   real(dp) function get_dLdT(x, settings, background)
     real(dp), intent(in) :: x
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
+
+    get_dLdT = 0.0_dp
+    if (.not. settings%physics%cooling%is_enabled()) return
 
     get_dLdT = background%density%rho0(x) * get_dlambdadT(x, settings, background)
   end function get_dLdT
@@ -84,6 +91,9 @@ contains
     real(dp), intent(in) :: x
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
+
+    get_dLdrho = 0.0_dp
+    if (.not. settings%physics%cooling%is_enabled()) return
 
     get_dLdrho = get_lambdaT(x, settings, background)
   end function get_dLdrho

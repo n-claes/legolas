@@ -212,7 +212,7 @@ contains
     call perform_NaN_and_negative_checks(settings, background, physics)
 
     if (settings%physics%cooling%is_enabled()) then
-      call physics%cooling%enable(settings, background)
+      call physics%cooling%initialise(settings)
     end if
     call physics%hall%validate_scale_ratio(grid_gauss, settings, background)
 
