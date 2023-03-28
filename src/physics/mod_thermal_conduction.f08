@@ -55,7 +55,7 @@ contains
     real(dp) :: T0
 
     get_tcpara = 0.0_dp
-    if (.not. settings%physics%conduction%is_enabled()) return
+    if (.not. settings%physics%conduction%has_parallel_conduction()) return
     if (settings%physics%conduction%has_fixed_tc_para()) then
       get_tcpara = settings%physics%conduction%get_fixed_tc_para()
       return
@@ -76,7 +76,7 @@ contains
     real(dp) :: T0
 
     get_dtcparadT = 0.0_dp
-    if (.not. settings%physics%conduction%is_enabled()) return
+    if (.not. settings%physics%conduction%has_parallel_conduction()) return
     if (settings%physics%conduction%has_fixed_tc_para()) return
 
     unit_temperature = settings%units%get_unit_temperature()
@@ -95,7 +95,7 @@ contains
     real(dp) :: dT0
 
     get_dtcparadr = 0.0_dp
-    if (.not. settings%physics%conduction%is_enabled()) return
+    if (.not. settings%physics%conduction%has_parallel_conduction()) return
     if (settings%physics%conduction%has_fixed_tc_para()) return
 
     ! position derivative is dtcpara/dT * T0'
@@ -112,7 +112,7 @@ contains
     real(dp) :: T0, nh0, B0
 
     get_tcperp = 0.0_dp
-    if (.not. settings%physics%conduction%is_enabled()) return
+    if (.not. settings%physics%conduction%has_perpendicular_conduction()) return
     if (settings%physics%conduction%has_fixed_tc_perp()) then
       get_tcperp = settings%physics%conduction%get_fixed_tc_perp()
       return
@@ -138,7 +138,7 @@ contains
     real(dp) :: T0, nh0, B0
 
     get_dtcperpdrho = 0.0_dp
-    if (.not. settings%physics%conduction%is_enabled()) return
+    if (.not. settings%physics%conduction%has_perpendicular_conduction()) return
     if (settings%physics%conduction%has_fixed_tc_perp()) return
     if (.not. settings%has_bfield()) return
 
@@ -159,7 +159,7 @@ contains
     real(dp) :: T0, nh0, B0
 
     get_dtcperpdT = 0.0_dp
-    if (.not. settings%physics%conduction%is_enabled()) return
+    if (.not. settings%physics%conduction%has_perpendicular_conduction()) return
     if (settings%physics%conduction%has_fixed_tc_perp()) return
     if (.not. settings%has_bfield()) then
       get_dtcperpdT = get_dtcparadT(x, settings, background)
@@ -184,7 +184,7 @@ contains
     real(dp) :: unit_magneticfield
 
     get_dtcperpdB2 = 0.0_dp
-    if (.not. settings%physics%conduction%is_enabled()) return
+    if (.not. settings%physics%conduction%has_perpendicular_conduction()) return
     if (settings%physics%conduction%has_fixed_tc_perp()) return
     if (.not. settings%has_bfield()) return
 
@@ -205,7 +205,7 @@ contains
     real(dp) :: drho0, dT0, B0, dB0
 
     get_dtcperpdr = 0.0_dp
-    if (.not. settings%physics%conduction%is_enabled()) return
+    if (.not. settings%physics%conduction%has_perpendicular_conduction()) return
     if (settings%physics%conduction%has_fixed_tc_perp()) return
 
     if (.not. settings%has_bfield()) then
