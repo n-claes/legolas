@@ -45,12 +45,13 @@ program legolas
 
   timer = new_timer()
   settings = new_settings()
+
+  call timer%start_timer()
+  call initialisation()
   grid = new_grid(settings)
   background = new_background()
   physics = new_physics(settings, background)
 
-  call timer%start_timer()
-  call initialisation()
   call set_equilibrium(settings, grid, background, physics)
   timer%init_time = timer%end_timer()
 

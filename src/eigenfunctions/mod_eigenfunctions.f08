@@ -18,7 +18,6 @@ module mod_eigenfunctions
     type(derived_ef_t), allocatable :: derived_efs(:)
     logical, allocatable :: ef_written_flags(:)
     integer, allocatable :: ef_written_idxs(:)
-    real(dp), allocatable :: ef_grid(:)
 
   contains
 
@@ -124,7 +123,6 @@ contains
     end if
     if (allocated(this%ef_written_flags)) deallocate(this%ef_written_flags)
     if (allocated(this%ef_written_idxs)) deallocate(this%ef_written_idxs)
-    if (allocated(this%ef_grid)) deallocate(this%ef_grid)
     nullify(this%settings)
     nullify(this%background)
     nullify(this%grid)

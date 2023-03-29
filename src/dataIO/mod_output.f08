@@ -88,7 +88,7 @@ contains
     write(dat_fh) grid%base_grid, grid%gaussian_grid
     call write_equilibrium_data(settings, grid, background, physics)
     if (settings%io%write_eigenfunctions) then
-      call write_base_eigenfunction_data(eigenfunctions)
+      call write_base_eigenfunction_data(grid, eigenfunctions)
     end if
     if (settings%io%write_derived_eigenfunctions) then
       call write_derived_eigenfunction_data(settings, eigenfunctions)
@@ -377,12 +377,13 @@ contains
   end subroutine write_equilibrium_data
 
 
-  subroutine write_base_eigenfunction_data(eigenfunctions)
+  subroutine write_base_eigenfunction_data(grid, eigenfunctions)
+    type(grid_t), intent(in) :: grid
     type(eigenfunctions_t), intent(in) :: eigenfunctions
     integer :: i
 
     call logger%info("writing eigenfunctions...")
-    write(dat_fh) size(eigenfunctions%ef_grid), eigenfunctions%ef_grid
+    write(dat_fh) size(grid%ef_grid), grid%ef_grid
     write(dat_fh) size(eigenfunctions%ef_written_flags), eigenfunctions%ef_written_flags
     write(dat_fh) size(eigenfunctions%ef_written_idxs), eigenfunctions%ef_written_idxs
     do i = 1, size(eigenfunctions%base_efs)
