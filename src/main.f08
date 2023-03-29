@@ -31,6 +31,7 @@ program legolas
   type(timer_t) :: timer
   !> dedicated settings type
   type(settings_t) :: settings
+  type(grid_t) :: grid
   type(background_t) :: background
   type(eigenfunctions_t) :: eigenfunctions
   type(physics_t) :: physics
@@ -44,9 +45,9 @@ program legolas
 
   timer = new_timer()
   settings = new_settings()
+  grid = new_grid(settings)
   background = new_background()
   physics = new_physics(settings, background)
-  grid = new_grid(settings)
 
   call timer%start_timer()
   call initialisation()
@@ -72,6 +73,7 @@ program legolas
   call timer%start_timer()
   call create_datfile( &
     settings, &
+    grid, &
     background, &
     physics, &
     omega, &
@@ -153,16 +155,13 @@ contains
   !> Deallocates all main variables, then calls the cleanup
   !! routines of all relevant subroutines to do the same thing.
   subroutine cleanup()
-    use mod_grid, only: grid_clean
-
     call matrix_A%delete_matrix()
     call matrix_B%delete_matrix()
     deallocate(omega)
     if (allocated(right_eigenvectors)) deallocate(right_eigenvectors)
 
-    call grid_clean()
-
     call settings%delete()
+    call grid%delete()
     call background%delete()
     call physics%delete()
     call eigenfunctions%delete()
