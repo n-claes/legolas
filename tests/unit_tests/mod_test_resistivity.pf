@@ -2,7 +2,7 @@ module mod_test_resistivity
   use mod_suite_utils
   use funit
   use mod_physical_constants
-  use mod_physics_utils, only: from_physics_function
+  use mod_function_utils, only: from_function
   implicit none
 
   integer, parameter :: pts = 100
@@ -19,7 +19,7 @@ contains
   subroutine init_test()
     settings = get_settings()
     background = get_background()
-    physics = get_physics()
+    physics = get_physics(settings, background)
     call settings%units%set_units_from_numberdensity( &
       unit_length=1.0d2, unit_temperature=1.0d1, unit_numberdensity=1.0d4 &
     )
@@ -28,6 +28,7 @@ contains
     unit_deta_dT = unit_resistivity / unit_temperature
     call background%set_density_funcs(rho0_func=one)
     call background%set_temperature_funcs(T0_func=T0_x)
+    xvals = linspace(0.0d0, 1.0d0, pts)
   end subroutine init_test
 
 
@@ -49,6 +50,17 @@ contains
     idx = minloc(abs(xvals - x), dim=1)
     T0_x = temps(idx)
   end function T0_x
+
+
+  function get_actual(func) result(actual_vals)
+    procedure(real(dp)), pointer :: func
+    real(dp) :: actual_vals(size(xvals))
+    integer :: i
+
+    do i = 1, size(xvals)
+      actual_vals(i) = func(xvals(i))
+    end do
+  end function get_actual
 
 
   function get_spitzer_eta(T0vals) result(spitzer_eta)
@@ -91,15 +103,11 @@ contains
     call settings%physics%enable_resistivity(fixed_resistivity_value=2.0_dp)
     @assertTrue(settings%physics%resistivity%is_enabled())
     @assertTrue(settings%physics%resistivity%has_fixed_resistivity())
-    actual = from_physics_function(physics%resistivity%eta, xvals, settings, background)
+    actual = get_actual(physics%resistivity%eta)
     @assertEqual(2.0_dp, actual, tolerance=TOL)
-    actual = from_physics_function( &
-      physics%resistivity%detadT, xvals, settings, background &
-    )
+    actual = get_actual(physics%resistivity%detadT)
     @assertEqual(0.0d0, actual, tolerance=TOL)
-    actual = from_physics_function( &
-      physics%resistivity%detadr, xvals, settings, background &
-    )
+    actual = get_actual(physics%resistivity%detadr)
     @assertEqual(0.0d0, actual, tolerance=TOL)
   end subroutine test_set_eta_cte
 
@@ -117,27 +125,20 @@ contains
   subroutine test_set_eta()
     call set_name("setting varying resistivity")
     temps = linspace(10.0d0, 350.0d0, pts)
-    xvals = linspace(0.0d0, 1.0d0, pts)
     call settings%physics%enable_resistivity()
 
     ! test resistivity
     expected = get_spitzer_eta(temps) * 1.0d18
-    actual = from_physics_function( &
-      physics%resistivity%eta, xvals, settings, background &
-    ) * 1.0d18
+    actual = get_actual(physics%resistivity%eta) * 1.0d18
     @assertEqual(expected, actual, tolerance=TOL)
 
     ! test deta/dT
     expected = get_spitzer_deta_dT(temps) * 1.0d18
-    actual = from_physics_function( &
-      physics%resistivity%detadT, xvals, settings, background &
-    ) * 1.0d18
+    actual = get_actual(physics%resistivity%detadT) * 1.0d18
     @assertEqual(expected, actual, tolerance=TOL)
 
     ! test deta/dr
-    actual = from_physics_function( &
-      physics%resistivity%detadr, xvals, settings, background &
-    )
+    actual = get_actual(physics%resistivity%detadr)
     @assertEqual(0.0d0, actual, tolerance=TOL)
   end subroutine test_set_eta
 
@@ -150,16 +151,12 @@ contains
     settings%physics%dropoff_edge_dist = 0.05d0
     settings%physics%dropoff_width = 0.1d0
     xvals = linspace(0.0d0, 1.0d0, pts)
-    actual = from_physics_function( &
-      physics%resistivity%eta, xvals, settings, background &
-    )
+    actual = get_actual(physics%resistivity%eta)
     @assertEqual(0.0d0, actual(1), tolerance=TOL)
     @assertEqual(0.0d0, actual(pts), tolerance=TOL)
     @assertEqual(1.0d0, actual(int(pts / 2)), tolerance=TOL)
 
-    actual = from_physics_function( &
-      physics%resistivity%detadT, xvals, settings, background &
-    )
+    actual = get_actual(physics%resistivity%detadT)
     @assertEqual(0.0d0, actual, tolerance=TOL)
   end subroutine test_set_dropoff_eta
 

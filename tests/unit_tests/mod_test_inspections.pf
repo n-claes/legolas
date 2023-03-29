@@ -17,7 +17,7 @@ contains
     call reset_globals()
     settings = get_settings()
     background = get_background()
-    physics = get_physics()
+    physics = get_physics(settings, background)
     call create_test_grid(settings)
   end subroutine init_test
 

@@ -42,9 +42,11 @@ contains
   end function get_background
 
 
-  function get_physics() result(physics)
+  function get_physics(settings, background) result(physics)
+    type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
     type(physics_t) :: physics
-    physics = new_physics()
+    physics = new_physics(settings, background)
   end function get_physics
 
 

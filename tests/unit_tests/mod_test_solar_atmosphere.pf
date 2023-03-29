@@ -14,7 +14,7 @@ contains
   subroutine init_test()
     settings = get_settings()
     background = new_background()
-    physics = new_physics()
+    physics = new_physics(settings, background)
     call set_default_units(settings)
     call create_test_grid( &
       settings, geometry="Cartesian", grid_start=0.05d0, grid_end=0.35d0 &

@@ -2,7 +2,7 @@ module mod_test_conduction
   use mod_suite_utils
   use funit
   use mod_physical_constants
-  use mod_physics_utils, only: from_physics_function, physics_i
+  use mod_function_utils, only: from_function
   implicit none
 
   real(dp) :: unit_temperature, unit_density, unit_conduction, unit_numberdensity
@@ -20,7 +20,7 @@ contains
   subroutine init_test()
     settings = get_settings()
     background = new_background()
-    physics = new_physics()
+    physics = new_physics(settings, background)
     call set_default_units(settings)
 
     unit_temperature = settings%units%get_unit_temperature()
@@ -45,9 +45,13 @@ contains
 
 
   function get_actual(func) result(actual_vals)
-    procedure(physics_i), pointer :: func
-    real(dp), allocatable :: actual_vals(:)
-    actual_vals = from_physics_function(func, xvals, settings, background)
+    procedure(real(dp)), pointer :: func
+    real(dp) :: actual_vals(size(xvals))
+    integer :: i
+
+    do i = 1, size(xvals)
+      actual_vals(i) = func(xvals(i))
+    end do
   end function get_actual
 
 
