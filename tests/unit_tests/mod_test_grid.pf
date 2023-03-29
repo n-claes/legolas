@@ -1,11 +1,11 @@
 module mod_test_grid
   use mod_suite_utils
   use funit
-  use mod_grid, only: grid, initialise_grid
   implicit none
 
   integer :: i
   type(settings_t) :: settings
+  type(grid_t) :: grid
 
 contains
 
@@ -19,19 +19,19 @@ contains
 
   @after
   subroutine teardown_test()
-    call clean_up(settings)
     call settings%delete()
+    call grid%delete()
   end subroutine teardown_test
 
 
   @test
   subroutine test_cartesian_grid()
     call set_name("cartesian grid")
-    call create_test_grid(settings, 51, "Cartesian", 1.0d0, 3.0d0)
-    @assertEqual(1.0d0, grid(1), tolerance=TOL)
-    @assertEqual(3.0d0, grid(51), tolerance=TOL)
+    grid = create_test_grid(settings, 51, "Cartesian", 1.0d0, 3.0d0)
+    @assertEqual(1.0d0, grid%base_grid(1), tolerance=TOL)
+    @assertEqual(3.0d0, grid%base_grid(51), tolerance=TOL)
     do i = 1, 50
-      @assertLessThan(grid(i), grid(i + 1))
+      @assertLessThan(grid%base_grid(i), grid%base_grid(i + 1))
     end do
   end subroutine test_cartesian_grid
 
@@ -39,11 +39,11 @@ contains
   @test
   subroutine test_cylindrical_grid()
     call set_name("cylindrical grid")
-    call create_test_grid(settings, 31, "cylindrical", 0.0d0, 1.0d0)
-    @assertGreaterThan(grid(1), 2.0d-2)
-    @assertEqual(1.0d0, grid(31), tolerance=TOL)
+    grid = create_test_grid(settings, 31, "cylindrical", 0.0d0, 1.0d0)
+    @assertGreaterThan(grid%base_grid(1), 2.0d-2)
+    @assertEqual(1.0d0, grid%base_grid(31), tolerance=TOL)
     do i = 1, 30
-      @assertLessThan(grid(i), grid(i + 1))
+      @assertLessThan(grid%base_grid(i), grid%base_grid(i + 1))
     end do
   end subroutine test_cylindrical_grid
 
@@ -53,43 +53,23 @@ contains
     call set_name("cylindrical grid, force r=0")
     settings%grid%force_r0 = .true.
     call logger%set_logging_level(0)
-    call create_test_grid(settings, 31, "cylindrical", 0.0d0, 2.0d0)
-    @assertEqual(0.0d0, grid(1), tolerance=TOL)
-    @assertEqual(2.0d0, grid(31), tolerance=TOL)
+    grid = create_test_grid(settings, 31, "cylindrical", 0.0d0, 2.0d0)
+    @assertEqual(0.0d0, grid%base_grid(1), tolerance=TOL)
+    @assertEqual(2.0d0, grid%base_grid(31), tolerance=TOL)
     do i = 1, 30
-      @assertLessThan(grid(i), grid(i + 1))
+      @assertLessThan(grid%base_grid(i), grid%base_grid(i + 1))
     end do
   end subroutine test_cylindrical_grid_force_r0
 
 
   @test
   subroutine test_grid_gauss_monotonicity()
-    use mod_grid, only: grid_gauss
-
     call set_name("monotonicity grid_gauss")
-    call create_test_grid(settings, 31, "Cartesian")
+    grid = create_test_grid(settings, 31, "Cartesian")
     do i = 1, settings%grid%get_gauss_gridpts() - 1
-      @assertLessThan(grid_gauss(i), grid_gauss(i + 1))
+      @assertLessThan(grid%gaussian_grid(i), grid%gaussian_grid(i + 1))
     end do
   end subroutine test_grid_gauss_monotonicity
-
-
-  @test
-  subroutine test_grid_no_geometry_set()
-    call set_name("setting grid without geometry")
-    call settings%grid%set_geometry("")
-    call initialise_grid(settings)
-    @assertExceptionRaised("geometry must be set in submodule/parfile")
-  end subroutine test_grid_no_geometry_set
-
-
-  @test
-  subroutine test_grid_wrong_geometry_set()
-    call set_name("setting grid with unknown geometry")
-    call settings%grid%set_geometry("unknown")
-    call initialise_grid(settings)
-    @assertExceptionRaised("geometry not defined correctly: unknown")
-  end subroutine test_grid_wrong_geometry_set
 
 
   @test
@@ -98,11 +78,12 @@ contains
 
     call set_name("setting custom grid")
     call settings%grid%set_gridpts(50)
-    call settings%grid%set_geometry("Cartesian")
     custom_grid = linspace(x0=0.0d0, x1=3.0d0, xvals=50)
-    call initialise_grid(settings, custom_grid=custom_grid)
-    @assertEqual(0.0d0, grid(1), tolerance=TOL)
-    @assertEqual(3.0d0, grid(50), tolerance=TOL)
+    grid = new_grid(settings)
+    call grid%set_custom_grid(custom_grid)
+    call grid%initialise()
+    @assertEqual(0.0d0, grid%base_grid(1), tolerance=TOL)
+    @assertEqual(3.0d0, grid%base_grid(50), tolerance=TOL)
   end subroutine test_custom_grid
 
 
@@ -113,8 +94,9 @@ contains
 
     call set_name("setting custom grid, wrong size")
     call settings%grid%set_gridpts(100)
-    call settings%grid%set_geometry("Cartesian")
-    call initialise_grid(settings, custom_grid=custom_grid)
+    grid = new_grid(settings)
+    call grid%set_custom_grid(custom_grid)
+    call grid%initialise()
     error_msg = "custom grid: sizes do not match! Expected 100 points but got 50"
     @assertExceptionRaised(trim(error_msg))
   end subroutine test_custom_grid_wrong_size
@@ -127,10 +109,11 @@ contains
 
     call set_name("setting custom grid, not monotone")
     call settings%grid%set_gridpts(50)
-    call settings%grid%set_geometry("Cartesian")
     custom_grid = linspace(x0=0.0d0, x1=2.0d0, xvals=50)
     custom_grid(15) = 1.2d0
-    call initialise_grid(settings, custom_grid=custom_grid)
+    grid = new_grid(settings)
+    call grid%set_custom_grid(custom_grid)
+    call grid%initialise()
     error_msg = ( &
       "custom grid: supplied array is not monotone! &
       &Got x=1.20000000 at index 15 and x=0.61224490 at index 16" &
@@ -141,23 +124,19 @@ contains
 
   @test
   subroutine test_scale_factor_Cartesian()
-    use mod_grid, only: eps_grid, d_eps_grid_dr
-
     call set_name("scale factor Cartesian")
-    call create_test_grid(settings, 51, "Cartesian", 0.0d0, 2.0d0)
-    @assertEqual(1.0d0, eps_grid, tolerance=TOL)
-    @assertEqual(0.0d0, d_eps_grid_dr, tolerance=TOL)
+    grid = create_test_grid(settings, 51, "Cartesian", 0.0d0, 2.0d0)
+    @assertEqual(1.0d0, grid%get_eps(grid%gaussian_grid), tolerance=TOL)
+    @assertEqual(0.0d0, grid%get_deps(), tolerance=TOL)
   end subroutine test_scale_factor_Cartesian
 
 
   @test
   subroutine test_scale_factor_cylindrical()
-    use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
-
     call set_name("scale factor cylindrical")
-    call create_test_grid(settings, 51, "cylindrical", 0.0d0, 2.0d0)
-    @assertEqual(grid_gauss, eps_grid, tolerance=TOL)
-    @assertEqual(1.0d0, d_eps_grid_dr, tolerance=TOL)
+    grid = create_test_grid(settings, 51, "cylindrical", 0.0d0, 2.0d0)
+    @assertEqual(grid%gaussian_grid, grid%get_eps(grid%gaussian_grid), tolerance=TOL)
+    @assertEqual(1.0d0, grid%get_deps(), tolerance=TOL)
   end subroutine test_scale_factor_cylindrical
 
 end module mod_test_grid

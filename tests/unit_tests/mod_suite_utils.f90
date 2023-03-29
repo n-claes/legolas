@@ -3,6 +3,7 @@ module mod_suite_utils
   use mod_settings, only: settings_t, new_settings
   use mod_background, only: background_t, new_background
   use mod_physics, only: physics_t, new_physics
+  use mod_grid, only: grid_t, new_grid
   use mod_function_utils, only: from_function
   use mod_logging, only: logger
   implicit none
@@ -50,12 +51,11 @@ contains
   end function get_physics
 
 
-  integer function get_grid_idx(x)
-    use mod_grid, only: grid_gauss
-
-    real(dp), intent(in) :: x
-    get_grid_idx = minloc(abs(grid_gauss - x), dim=1)
-  end function get_grid_idx
+  function get_grid(settings) result(grid)
+    type(settings_t), intent(in) :: settings
+    type(grid_t) :: grid
+    grid = new_grid(settings)
+  end function get_grid
 
 
   real(dp) function zero(x)
@@ -70,22 +70,12 @@ contains
   end function one
 
 
-  subroutine clean_up(settings)
-    use mod_grid, only: grid, grid_clean
-
-    type(settings_t), intent(in) :: settings
-
-    if (allocated(grid)) call grid_clean()
-  end subroutine clean_up
-
-
-  subroutine create_test_grid(settings, pts, geometry, grid_start, grid_end)
-    use mod_grid, only: initialise_grid
-
+  function create_test_grid(settings, pts, geometry, grid_start, grid_end) result(grid)
     type(settings_t), intent(inout) :: settings
     integer, intent(in), optional :: pts
     character(len=*), intent(in), optional :: geometry
     real(dp), intent(in), optional  :: grid_start, grid_end
+    type(grid_t) :: grid
     real(dp) :: x_start, x_end
     integer :: gridpts
     character(:), allocatable :: grid_geometry
@@ -114,8 +104,10 @@ contains
     call settings%grid%set_grid_boundaries(x_start, x_end)
     call settings%grid%set_gridpts(gridpts)
     call settings%update_block_dimensions()
-    call initialise_grid(settings)
-  end subroutine create_test_grid
+
+    grid = new_grid(settings)
+    call grid%initialise()
+  end function create_test_grid
 
 
   subroutine set_default_units(settings)

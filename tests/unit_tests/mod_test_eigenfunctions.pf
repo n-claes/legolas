@@ -8,6 +8,7 @@ module mod_test_eigenfunctions
   complex(dp), allocatable :: eigenvectors(:, :)
   type(settings_t) :: settings
   type(background_t) :: background
+  type(grid_t) :: grid
   type(eigenfunctions_t) :: eigenfunctions
 
 contains
@@ -58,8 +59,8 @@ contains
     call reset_globals()
     settings = get_settings()
     background = get_background()
-    eigenfunctions = new_eigenfunctions(settings, background)
-    call create_test_grid(settings, pts=20, geometry="Cartesian")
+    grid = create_test_grid(settings, pts=20, geometry="Cartesian")
+    eigenfunctions = new_eigenfunctions(settings, grid, background)
     ! creates a square grid between (-2, 2) and (2, -2)
     pos = 1
     do i = 2, -2, -1
@@ -73,9 +74,9 @@ contains
 
   @after
   subroutine teardown_test()
-    call clean_up(settings)
     call eigenfunctions%delete()
     call settings%delete()
+    call grid%delete()
     if (allocated(eigenvectors)) deallocate(eigenvectors)
   end subroutine teardown_test
 
