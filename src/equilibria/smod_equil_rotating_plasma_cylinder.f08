@@ -52,7 +52,6 @@ contains
       b22 = p5
       b3 = p6
     end if
-    call initialise_grid(settings)
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02)

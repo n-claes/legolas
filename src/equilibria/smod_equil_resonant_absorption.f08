@@ -53,7 +53,6 @@ contains
       rho_left = p1
       rho_right = p2
     end if ! LCOV_EXCL_STOP
-    call initialise_grid(settings)
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
 

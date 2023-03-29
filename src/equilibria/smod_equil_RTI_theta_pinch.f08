@@ -53,7 +53,6 @@ contains
       k3 = 0.0_dp
     end if ! LCOV_EXCL_STOP
 
-    call initialise_grid(settings)
     width = settings%grid%get_grid_end() - settings%grid%get_grid_start()
     cte_p0 = 0.5_dp * (1.0_dp - delta)**2
     B_inf = width * sqrt(cte_rho0)

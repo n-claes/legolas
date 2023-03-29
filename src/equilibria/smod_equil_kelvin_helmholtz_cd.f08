@@ -49,7 +49,6 @@ contains
 
     call settings%grid%set_geometry("cylindrical")
     call settings%grid%set_grid_boundaries(0.0_dp, 2.0_dp * rj)
-    call initialise_grid(settings)
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_velocity_3_funcs(v03_func=v03, dv03_func=dv03)

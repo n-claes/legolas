@@ -44,7 +44,6 @@ contains
       k2 = 0.0_dp
       k3 = 2.0_dp
     end if  ! LCOV_EXCL_STOP
-    call initialise_grid(settings)
 
     scale_height = cte_T0 / g
 

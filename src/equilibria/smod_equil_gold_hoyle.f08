@@ -75,13 +75,11 @@ contains
       !   mean_molecular_weight=1.0_dp & ! pure proton plasma
       ! )
     end if ! LCOV_EXCL_STOP
-    call initialise_grid(settings)
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_temperature_funcs(T0_func=T0)
     call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
-
   end procedure gold_hoyle_eq
 
 

@@ -34,7 +34,6 @@ contains
       alpha = 20.42_dp
       g = 0.5_dp
     end if ! LCOV_EXCL_STOP
-    call initialise_grid(settings)
 
     cte_rho0 = alpha * cte_p0 / g
 
@@ -42,7 +41,6 @@ contains
     call background%set_temperature_funcs(T0_func=T0)
 
     call physics%set_gravity_funcs(g0_func=g0)
-
   end procedure gravito_acoustic_eq
 
 

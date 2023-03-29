@@ -27,7 +27,6 @@ contains
   module procedure internal_kink_eq
     call settings%grid%set_geometry("cylindrical")
     call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
-    call initialise_grid(settings)
 
     a0 = settings%grid%get_grid_end()
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START

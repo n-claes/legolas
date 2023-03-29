@@ -51,7 +51,6 @@ contains
       k3 = 0.05_dp
     end if ! LCOV_EXCL_STOP
 
-    call initialise_grid(settings)
     x_end = settings%grid%get_grid_end()
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)

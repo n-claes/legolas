@@ -37,7 +37,6 @@ contains
       call settings%physics%enable_viscosity(viscosity_value=0.001_dp)
     end if ! LCOV_EXCL_STOP
 
-    call initialise_grid(settings)
     width = settings%grid%get_grid_end() - settings%grid%get_grid_start()
 
     call background%set_density_funcs(rho0_func=rho0)

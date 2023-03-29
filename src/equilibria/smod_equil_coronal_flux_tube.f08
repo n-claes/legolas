@@ -96,7 +96,7 @@ contains
       end if
       custom_grid(i) = custom_grid(i - 1) + dx
     end do
-    call initialise_grid(settings, custom_grid=custom_grid)
+    call grid%set_custom_grid(custom_grid)
     deallocate(custom_grid)
 
     rho_e = 4.0_dp * (2.0_dp * gamma + 1.0_dp) * cte_rho0 / (50.0_dp * gamma + 1.0_dp)
@@ -113,7 +113,6 @@ contains
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_temperature_funcs(T0_func=T0)
     call background%set_magnetic_3_funcs(B03_func=B03)
-
   end procedure coronal_flux_tube_eq
 
 

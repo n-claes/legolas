@@ -20,7 +20,6 @@ contains
   module procedure flow_driven_instabilities_eq
     call settings%grid%set_geometry("Cartesian")
     call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
-    call initialise_grid(settings)
     call settings%physics%enable_flow()
     v0 = p1
     v1 = p2

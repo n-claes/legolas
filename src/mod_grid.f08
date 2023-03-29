@@ -199,8 +199,11 @@ contains
       call logger%warning( &
         "forcing on-axis r in cylindrical geometry, may lead to spurious eigenvalues" &
       )
-    else
-      if (is_zero(grid_start)) grid_start = 0.025_dp
+    else if (is_zero(grid_start)) then
+      grid_start = 0.025_dp
+      call logger%warning( &
+        "x_start set to 0.025 to avoid singularity, avoid by setting force_r0=.true." &
+      )
     end if
     is_valid_grid_start = .true.
     call settings%grid%set_grid_boundaries(grid_start, settings%grid%get_grid_end())

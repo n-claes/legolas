@@ -40,9 +40,6 @@ contains
     beta  = 2.0_dp * cte_p0 / B0**2
     cte_rho0 = (alpha / g) * (cte_p0 + 0.5_dp * B0**2)
 
-    call initialise_grid(settings)
-
-
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_temperature_funcs(T0_func=T0)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
