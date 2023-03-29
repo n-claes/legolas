@@ -6,7 +6,6 @@ module mod_matrix_manager
   use mod_equilibrium_params, only: k2, k3
   use mod_logging, only: logger, str
   use mod_matrix_elements, only: matrix_elements_t, new_matrix_elements
-  use mod_matrix_shortcuts, only: get_G_operator, get_F_operator, get_wv_operator
   use mod_settings, only: settings_t
   implicit none
 

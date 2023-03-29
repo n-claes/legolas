@@ -101,8 +101,8 @@ contains
     call settings%physics%enable_cooling(cooling_curve="jc_corona")
     T_field % T0 = linspace(100.0d0, 3500.0d0, gauss_gridpts) / unit_temperature
     call set_cooling()
-    @assertEqual(0.0d0, rc_field % d_L_drho, tolerance=TOL)
-    @assertEqual(0.0d0, rc_field % d_L_dT, tolerance=TOL)
+    @assertEqual(0.0d0, rc_field % dL_drho, tolerance=TOL)
+    @assertEqual(0.0d0, rc_field % dL_dT, tolerance=TOL)
   end subroutine test_cooling_curve_jc_corona_below
 
 
@@ -113,9 +113,9 @@ contains
     T_field % T0 = linspace(1.0d8, 1.0d9, gauss_gridpts) / unit_temperature
     call set_cooling()
     expected = get_brehmstrahlung(T_field % T0, t_jc_corona, l_jc_corona)
-    @assertEqual(expected, rc_field % d_L_drho, tolerance=TOL)
+    @assertEqual(expected, rc_field % dL_drho, tolerance=TOL)
     expected = get_brehmstrahlung_diff(T_field % T0, t_jc_corona, l_jc_corona)
-    @assertEqual(expected, rc_field % d_L_dT, tolerance=TOL)
+    @assertEqual(expected, rc_field % dL_dT, tolerance=TOL)
   end subroutine test_cooling_curve_jc_corona_above
 
 
@@ -129,10 +129,10 @@ contains
     call set_cooling()
     ! approximate value 100
     expected(1) = 10.0d0 ** l_jc_corona(20) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % d_L_drho(1), tolerance=1.0d-1)
+    @assertEqual(expected(1), rc_field % dL_drho(1), tolerance=1.0d-1)
     ! approximate value 30
     expected(1) = 10.0d0 ** l_jc_corona(30) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % d_L_drho(gauss_gridpts), tolerance=1.0d-2)
+    @assertEqual(expected(1), rc_field % dL_drho(gauss_gridpts), tolerance=1.0d-2)
   end subroutine test_cooling_curve_jc_corona
 
 
@@ -142,8 +142,8 @@ contains
     call settings%physics%enable_cooling(cooling_curve="dalgarno")
     T_field % T0 = linspace(1.0d0, 95.0d0, gauss_gridpts) / unit_temperature
     call set_cooling()
-    @assertEqual(0.0d0, rc_field % d_L_drho, tolerance=TOL)
-    @assertEqual(0.0d0, rc_field % d_L_dT, tolerance=TOL)
+    @assertEqual(0.0d0, rc_field % dL_drho, tolerance=TOL)
+    @assertEqual(0.0d0, rc_field % dL_dT, tolerance=TOL)
   end subroutine test_cooling_curve_dalgarno_below
 
 
@@ -154,9 +154,9 @@ contains
     T_field % T0 = linspace(1.1d9, 1.0d10, gauss_gridpts) / unit_temperature
     call set_cooling()
     expected = get_brehmstrahlung(T_field % T0, t_dalgarno, l_dalgarno)
-    @assertEqual(expected, rc_field % d_L_drho, tolerance=TOL)
+    @assertEqual(expected, rc_field % dL_drho, tolerance=TOL)
     expected = get_brehmstrahlung_diff(T_field % T0, t_dalgarno, l_dalgarno)
-    @assertEqual(expected, rc_field % d_L_dT, tolerance=TOL)
+    @assertEqual(expected, rc_field % dL_dT, tolerance=TOL)
   end subroutine test_cooling_curve_dalgarno_above
 
 
@@ -170,10 +170,10 @@ contains
     call set_cooling()
     ! approximate value 0.01
     expected(1) = 10.0d0 ** l_dalgarno(20) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % d_L_drho(1), tolerance=1.0d-6)
+    @assertEqual(expected(1), rc_field % dL_drho(1), tolerance=1.0d-6)
     ! approximate value 2
     expected(1) = 10.0d0 ** l_dalgarno(60) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % d_L_drho(gauss_gridpts), tolerance=1.0d-4)
+    @assertEqual(expected(1), rc_field % dL_drho(gauss_gridpts), tolerance=1.0d-4)
   end subroutine test_cooling_curve_dalgarno
 
 
@@ -183,8 +183,8 @@ contains
     call settings%physics%enable_cooling(cooling_curve="ml_solar")
     T_field % T0 = linspace(1.0d0, 95.0d0, gauss_gridpts) / unit_temperature
     call set_cooling()
-    @assertEqual(0.0d0, rc_field % d_L_drho, tolerance=TOL)
-    @assertEqual(0.0d0, rc_field % d_L_dT, tolerance=TOL)
+    @assertEqual(0.0d0, rc_field % dL_drho, tolerance=TOL)
+    @assertEqual(0.0d0, rc_field % dL_dT, tolerance=TOL)
   end subroutine test_cooling_curve_ml_solar_below
 
 
@@ -195,9 +195,9 @@ contains
     T_field % T0 = linspace(1.1d9, 1.0d10, gauss_gridpts) / unit_temperature
     call set_cooling()
     expected = get_brehmstrahlung(T_field % T0, t_ml_solar, l_ml_solar)
-    @assertEqual(expected, rc_field % d_L_drho, tolerance=TOL)
+    @assertEqual(expected, rc_field % dL_drho, tolerance=TOL)
     expected = get_brehmstrahlung_diff(T_field % T0, t_ml_solar, l_ml_solar)
-    @assertEqual(expected, rc_field % d_L_dT, tolerance=TOL)
+    @assertEqual(expected, rc_field % dL_dT, tolerance=TOL)
   end subroutine test_cooling_curve_ml_solar_above
 
 
@@ -211,10 +211,10 @@ contains
     call set_cooling()
     ! approximate value 0.0001
     expected(1) = 10.0d0 ** l_ml_solar(20) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % d_L_drho(1), tolerance=1.0d-6)
+    @assertEqual(expected(1), rc_field % dL_drho(1), tolerance=1.0d-6)
     ! approximate value 2
     expected(1) = 10.0d0 ** l_ml_solar(60) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % d_L_drho(gauss_gridpts), tolerance=1.0d-4)
+    @assertEqual(expected(1), rc_field % dL_drho(gauss_gridpts), tolerance=1.0d-4)
   end subroutine test_cooling_curve_ml_solar
 
 
@@ -224,8 +224,8 @@ contains
     call settings%physics%enable_cooling(cooling_curve="spex")
     T_field % T0 = linspace(250.0d0, 5000.0d0, gauss_gridpts) / unit_temperature
     call set_cooling()
-    @assertEqual(0.0d0, rc_field % d_L_drho, tolerance=TOL)
-    @assertEqual(0.0d0, rc_field % d_L_dT, tolerance=TOL)
+    @assertEqual(0.0d0, rc_field % dL_drho, tolerance=TOL)
+    @assertEqual(0.0d0, rc_field % dL_dT, tolerance=TOL)
   end subroutine test_cooling_curve_spex_below
 
 
@@ -236,9 +236,9 @@ contains
     T_field % T0 = linspace(5.0d8, 1.0d10, gauss_gridpts) / unit_temperature
     call set_cooling()
     expected = get_brehmstrahlung(T_field % T0, t_spex, l_spex)
-    @assertEqual(expected, rc_field % d_L_drho, tolerance=TOL)
+    @assertEqual(expected, rc_field % dL_drho, tolerance=TOL)
     expected = get_brehmstrahlung_diff(T_field % T0, t_spex, l_spex)
-    @assertEqual(expected, rc_field % d_L_dT, tolerance=TOL)
+    @assertEqual(expected, rc_field % dL_dT, tolerance=TOL)
   end subroutine test_cooling_curve_spex_above
 
 
@@ -252,10 +252,10 @@ contains
     call set_cooling()
     ! approximate value 200
     expected(1) = 10.0d0 ** l_spex(35) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % d_L_drho(1), tolerance=1.0d-1)
+    @assertEqual(expected(1), rc_field % dL_drho(1), tolerance=1.0d-1)
     ! approximate value 3
     expected(1) = 10.0d0 ** l_spex(100) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % d_L_drho(gauss_gridpts), tolerance=1.0d-5)
+    @assertEqual(expected(1), rc_field % dL_drho(gauss_gridpts), tolerance=1.0d-5)
   end subroutine test_cooling_curve_spex
 
 
@@ -265,8 +265,8 @@ contains
     call settings%physics%enable_cooling(cooling_curve="spex_dalgarno")
     T_field % T0 = linspace(1.0d0, 9.5d0, gauss_gridpts) / unit_temperature
     call set_cooling()
-    @assertEqual(0.0d0, rc_field % d_L_drho, tolerance=TOL)
-    @assertEqual(0.0d0, rc_field % d_L_dT, tolerance=TOL)
+    @assertEqual(0.0d0, rc_field % dL_drho, tolerance=TOL)
+    @assertEqual(0.0d0, rc_field % dL_dT, tolerance=TOL)
   end subroutine test_cooling_curve_spex_dalgarno_below
 
 
@@ -279,11 +279,11 @@ contains
     expected = get_brehmstrahlung( &
       T_field % T0, get_spex_dm_T_table(), get_spex_dm_L_table() &
     )
-    @assertEqual(expected, rc_field % d_L_drho, tolerance=TOL)
+    @assertEqual(expected, rc_field % dL_drho, tolerance=TOL)
     expected = get_brehmstrahlung_diff( &
       T_field % T0, get_spex_dm_T_table(), get_spex_dm_L_table() &
     )
-    @assertEqual(expected, rc_field % d_L_dT, tolerance=TOL)
+    @assertEqual(expected, rc_field % dL_dT, tolerance=TOL)
   end subroutine test_cooling_curve_spex_dalgarno_above
 
 
@@ -302,10 +302,10 @@ contains
     call set_cooling()
     ! approximate value 0.02
     expected(1) = 10.0d0 ** spex_dm_L_table(70) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % d_L_drho(1), tolerance=1.0d-7)
+    @assertEqual(expected(1), rc_field % dL_drho(1), tolerance=1.0d-7)
     ! approximate value 5
     expected(1) = 10.0d0 ** spex_dm_L_table(150) / unit_lambdaT
-    @assertEqual(expected(1), rc_field % d_L_drho(gauss_gridpts), tolerance=1.0d-4)
+    @assertEqual(expected(1), rc_field % dL_drho(gauss_gridpts), tolerance=1.0d-4)
   end subroutine test_cooling_curve_spex_dalgarno
 
 end module mod_test_cooling_tables

@@ -6,6 +6,7 @@ module mod_thermal_conduction
   use mod_physical_constants, only: dpi, coulomb_log
   use mod_logging, only: logger, str
   use mod_settings, only: settings_t
+  use mod_check_values, only: is_zero
   implicit none
 
   private
@@ -39,6 +40,11 @@ contains
     pf_kappa_para = 1.8d-5
     pf_kappa_perp = 8.2d-10
 
+    if (.not. settings%has_bfield()) call logger%info( &
+      "no B-field detected, using isotropic thermal conduction" &
+    )
+
+    call logger%debug("setting thermal conduction values")
     if (settings%physics%conduction%has_parallel_conduction()) then
       call set_kappa_para(settings, T_field%T0, kappa_field%kappa_para)
       call set_kappa_para_derivatives(settings, T_field%T0, kappa_field%d_kappa_para_dT)
@@ -64,7 +70,7 @@ contains
     end if
 
     ! set conduction prefactor and its radial derivative
-    call set_conduction_prefactor(T_field, B_field, kappa_field)
+    call set_conduction_prefactor(settings, T_field, B_field, kappa_field)
   end subroutine set_conduction_values
 
 
@@ -83,10 +89,12 @@ contains
     real(dp)              :: T0_dimfull(size(T0_eq))
 
     if (settings%physics%conduction%has_fixed_tc_para()) then
+      call logger%debug("  using fixed parallel thermal conduction")
       tc_para = settings%physics%conduction%get_fixed_tc_para()
       return
     end if
 
+    call logger%debug("  using T-dependent parallel thermal conduction")
     T0_dimfull = T0_eq * settings%units%get_unit_temperature()
     tc_para = pf_kappa_para * T0_dimfull**2.5d0 / coulomb_log
     tc_para = tc_para / settings%units%get_unit_conduction()
@@ -113,10 +121,17 @@ contains
     real(dp) :: nH_dimfull(size(T0_eq))
 
     if (settings%physics%conduction%has_fixed_tc_perp()) then
+      call logger%debug("  using fixed perpendicular thermal conduction")
       tc_perp = settings%physics%conduction%get_fixed_tc_perp()
       return
     end if
+    if (.not. settings%has_bfield()) then
+      call logger%debug("  no B-field, kappa_para = kappa_perp")
+      call set_kappa_para(settings, T0_eq, tc_perp)
+      return
+    end if
 
+    call logger%debug("  using (rho, T, B)-dependent perpendicular thermal conduction")
     nH_dimfull = rho0_eq * settings%units%get_unit_numberdensity()
     T0_dimfull = T0_eq * settings%units%get_unit_temperature()
     B0_dimfull = B0_eq * settings%units%get_unit_magneticfield()
@@ -141,7 +156,6 @@ contains
 
     if (settings%physics%conduction%has_fixed_tc_para()) return
 
-    call logger%debug("setting kappa_para derivatives")
     unit_temperature = settings%units%get_unit_temperature()
     unit_dtc_dT = settings%units%get_unit_conduction() / unit_temperature
     T0_dimfull = T0_eq * unit_temperature
@@ -179,7 +193,15 @@ contains
 
     if (settings%physics%conduction%has_fixed_tc_perp()) return
 
-    call logger%debug("setting kappa_perp rho, T, B derivatives")
+    call logger%debug("  setting kappa_perp derivatives")
+    if (.not. settings%has_bfield()) then
+      call logger%debug("  no Bfield, dkappa_perp/dT = dkappa_para/dT, others zero")
+      call set_kappa_para_derivatives(settings, T0_eq, d_tc_dT)
+      d_tc_drho = 0.0_dp
+      d_tc_dB2 = 0.0_dp
+      return
+    end if
+
     unit_conduction = settings%units%get_unit_conduction()
     ! re-dimensionalise variables, in normalised units nH = rho
     nH_dimfull = rho0_eq * settings%units%get_unit_numberdensity()
@@ -228,7 +250,12 @@ contains
 
     if (settings%physics%conduction%has_fixed_tc_perp()) return
 
-    call logger%debug("setting kappa_perp radial derivative")
+    call logger%debug("  setting kappa_perp radial derivative")
+    if (.not. settings%has_bfield()) then
+      call logger%debug("  no B-field, derivative is dkappa_para/dT * T0'")
+      kappa_field % d_kappa_perp_dr = kappa_field % d_kappa_perp_dT * T_field % d_T0_dr
+      return
+    end if
     ! magnetic field derivative
     dB0 = ( &
       B_field % B02 * B_field % d_B02_dr + B_field % B03 * B_field % d_B03_dr &
@@ -250,9 +277,10 @@ contains
   !!  +\left(\kappa_{\parallel, 0}' - \kappa_{\perp, 0}'\right)B_0
   !! \right]
   !! $$
-  subroutine set_conduction_prefactor(T_field, B_field, kappa_field)
+  subroutine set_conduction_prefactor(settings, T_field, B_field, kappa_field)
     use mod_types, only: temperature_type, bfield_type, conduction_type
 
+    type(settings_t), intent(in) :: settings
     !> the type containing the temperature attributes
     type(temperature_type), intent(in)  :: T_field
     !> the type containing the magnetic field attributes
@@ -263,7 +291,14 @@ contains
     real(dp)  :: d_kappa_para_dr(size(T_field % T0))
     real(dp)  :: dB0(size(B_field % B0))
 
-    call logger%debug("setting conduction prefactor")
+    call logger%debug("  setting conduction prefactor")
+    if (.not. settings%has_bfield()) then
+      call logger%debug("  no B-field, (kappa_para - kappa_perp) is zero")
+      kappa_field%prefactor = 0.0_dp
+      kappa_field%d_prefactor_dr = 0.0_dp
+      return
+    end if
+
     ! calculate and set conduction prefactor
     kappa_field % prefactor = ( &
       (kappa_field % kappa_para - kappa_field % kappa_perp) / (B_field % B0**2) &
@@ -276,7 +311,7 @@ contains
       B_field % B02 * B_field % d_B02_dr + B_field % B03 * B_field % d_B03_dr &
     ) / B_field % B0
 
-    call logger%debug("setting conduction prefactor radial derivative")
+    call logger%debug("  setting conduction prefactor radial derivative")
     kappa_field % d_prefactor_dr = ( &
       (d_kappa_para_dr - kappa_field % d_kappa_perp_dr) * B_field % B0 &
       - 2.0d0 * (kappa_field % kappa_para - kappa_field % kappa_perp) * dB0 &

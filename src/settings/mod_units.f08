@@ -9,6 +9,7 @@ module mod_units
     logical, private :: cgs
     logical, private :: based_on_density
     logical, private :: based_on_temperature
+    logical, private :: based_on_numberdensity
 
     real(dp), private :: unit_length
     real(dp), private :: unit_time
@@ -30,6 +31,7 @@ module mod_units
     procedure, public :: are_set
     procedure, public :: set_units_from_density
     procedure, public :: set_units_from_temperature
+    procedure, public :: set_units_from_numberdensity
     procedure, public :: set_mean_molecular_weight
     procedure, public :: get_unit_length
     procedure, public :: get_unit_time
@@ -47,6 +49,7 @@ module mod_units
     procedure, public :: get_unit_gravity
 
     procedure, private :: update_dependent_units
+    procedure, private :: set_based_on_to_false
 
   end type units_t
 
@@ -61,6 +64,7 @@ contains
     units%cgs = .true.
     units%based_on_density = .false.
     units%based_on_temperature = .false.
+    units%based_on_numberdensity = .false.
     units%mean_molecular_weight = 0.5_dp
 
     call units%set_units_from_temperature( &
@@ -83,6 +87,14 @@ contains
   end function are_set
 
 
+  pure subroutine set_based_on_to_false(this)
+    class(units_t), intent(inout) :: this
+    this%based_on_density = .false.
+    this%based_on_temperature = .false.
+    this%based_on_numberdensity = .false.
+  end subroutine set_based_on_to_false
+
+
   pure subroutine set_units_from_density( &
     this, unit_length, unit_magneticfield, unit_density, mean_molecular_weight &
   )
@@ -92,6 +104,7 @@ contains
     real(dp), intent(in) :: unit_density
     real(dp), intent(in), optional :: mean_molecular_weight
 
+    call this%set_based_on_to_false()
     this%unit_length = unit_length
     this%unit_magneticfield = unit_magneticfield
     this%unit_density = unit_density
@@ -112,6 +125,7 @@ contains
     real(dp), intent(in) :: unit_temperature
     real(dp), intent(in), optional :: mean_molecular_weight
 
+    call this%set_based_on_to_false()
     this%unit_length = unit_length
     this%unit_magneticfield = unit_magneticfield
     this%unit_temperature = unit_temperature
@@ -123,27 +137,64 @@ contains
   end subroutine set_units_from_temperature
 
 
+  pure subroutine set_units_from_numberdensity( &
+    this, unit_length, unit_temperature, unit_numberdensity, mean_molecular_weight &
+  )
+    class(units_t), intent(inout) :: this
+    real(dp), intent(in) :: unit_length
+    real(dp), intent(in) :: unit_temperature
+    real(dp), intent(in) :: unit_numberdensity
+    real(dp), intent(in), optional :: mean_molecular_weight
+
+    call this%set_based_on_to_false()
+    this%unit_length = unit_length
+    this%unit_temperature = unit_temperature
+    this%unit_numberdensity = unit_numberdensity
+    this%based_on_numberdensity = .true.
+    if (present(mean_molecular_weight)) then
+      this%mean_molecular_weight = mean_molecular_weight
+    end if
+    call this%update_dependent_units()
+  end subroutine set_units_from_numberdensity
+
+
   pure subroutine update_dependent_units(this)
     use mod_physical_constants, only: mu0_cgs, mp_cgs, kB_cgs
 
     class(units_t), intent(inout) :: this
 
-    this%unit_pressure = this%unit_magneticfield**2 / mu0_cgs
-    if (this%based_on_density) this%unit_temperature = ( &
-      this%mean_molecular_weight &
-      * this%unit_pressure &
-      * mp_cgs &
-      / (kB_cgs * this%unit_density) &
-    )
-    if (this%based_on_temperature) this%unit_density = ( &
-      this%mean_molecular_weight &
-      * this%unit_pressure &
-      * mp_cgs &
-      / (kB_cgs * this%unit_temperature) &
-    )
+    if (this%based_on_numberdensity) then
+      this%unit_density = mp_cgs * this%unit_numberdensity
+      this%unit_pressure = ( &
+        this%mean_molecular_weight &
+        * this%unit_numberdensity &
+        * kB_cgs &
+        * this%unit_temperature &
+      )
+      this%unit_velocity = sqrt(this%unit_pressure / this%unit_density)
+      this%unit_magneticfield = sqrt(mu0_cgs * this%unit_pressure)
+    else if (this%based_on_density) then
+      this%unit_pressure = this%unit_magneticfield**2 / mu0_cgs
+      this%unit_temperature = ( &
+        this%mean_molecular_weight &
+        * this%unit_pressure &
+        * mp_cgs &
+        / (kB_cgs * this%unit_density) &
+      )
+      this%unit_numberdensity = this%unit_density / mp_cgs
+      this%unit_velocity = this%unit_magneticfield / sqrt(mu0_cgs * this%unit_density)
+    else if (this%based_on_temperature) then
+      this%unit_pressure = this%unit_magneticfield**2 / mu0_cgs
+      this%unit_density = ( &
+        this%mean_molecular_weight &
+        * this%unit_pressure &
+        * mp_cgs &
+        / (kB_cgs * this%unit_temperature) &
+      )
+      this%unit_numberdensity = this%unit_density / mp_cgs
+      this%unit_velocity = this%unit_magneticfield / sqrt(mu0_cgs * this%unit_density)
+    end if
     this%unit_mass = this%unit_density * this%unit_length**3
-    this%unit_numberdensity = this%unit_density / mp_cgs
-    this%unit_velocity = this%unit_magneticfield / sqrt(mu0_cgs * this%unit_density)
     this%unit_time = this%unit_length / this%unit_velocity
     this%unit_resistivity = this%unit_length**2 / this%unit_time
     this%unit_lambdaT = this%unit_pressure / ( &

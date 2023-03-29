@@ -17,7 +17,7 @@ contains
     drho = rho_field % d_rho0_dr(gauss_idx)
     eta_H = hall_field % hallfactor(gauss_idx)
     eta_e = hall_field % inertiafactor(gauss_idx)
-    WVop = get_wv_operator(gauss_idx)
+    WVop = k2**2 / eps + eps * k3**2
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! ==================== Quadratic * Cubic ====================
@@ -126,10 +126,10 @@ contains
     drB02 = deps * B02 + eps * dB02
     dB02_r = dB02 / eps - B02 * deps / eps**2
 
-    Fop_plus = get_F_operator(gauss_idx, which="plus")
-    Gop_plus = get_G_operator(gauss_idx, which="plus")
-    Gop_min = get_G_operator(gauss_idx, which="minus")
-    WVop = get_wv_operator(gauss_idx)
+    Fop_plus = k2 * B02 / eps + k3 * B03
+    Gop_plus = k3 * B02 + k2 * B03 / eps
+    Gop_min = k3 * B02 - k2 * B03 / eps
+    WVop = k2**2 / eps + eps * k3**2
 
     eta_H = hall_field % hallfactor(gauss_idx)
     mu = settings%physics%viscosity%get_viscosity_value()

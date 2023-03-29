@@ -35,7 +35,7 @@ contains
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
     real(dp)  :: T0, dT0
-    real(dp)  :: B01, B02, dB02, drB02, B03, db03
+    real(dp)  :: B01, B02, dB02, drB02, B03, dB03
     real(dp)  :: Fop_plus, Gop_plus, Gop_min, WVop
     real(dp) :: gamma_1
 
@@ -58,10 +58,10 @@ contains
     B03 = B_field % B03(gauss_idx)
     dB03 = B_field % d_B03_dr(gauss_idx)
     ! operators
-    Fop_plus = get_F_operator(gauss_idx, which="plus")
-    Gop_plus = get_G_operator(gauss_idx, which="plus")
-    Gop_min = get_G_operator(gauss_idx, which="minus")
-    WVop = get_wv_operator(gauss_idx)
+    Fop_plus = k2 * B02 / eps + k3 * B03
+    Gop_plus = k3 * B02 + k2 * B03 / eps
+    Gop_min = k3 * B02 - k2 * B03 / eps
+    WVop = k2**2 / eps + eps * k3**2
 
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 

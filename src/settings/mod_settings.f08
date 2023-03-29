@@ -18,7 +18,9 @@ module mod_settings
     character(len=str_len_arr), private, allocatable :: state_vector(:)
     character(len=str_len_arr), private, allocatable :: derived_state_vector(:)
     character(len=:), private, allocatable :: physics_type
+    logical, private :: state_vector_has_bfield
     integer, private :: nb_eqs
+
     type(dims_t), public :: dims
     type(io_t), public :: io
     type(solvers_t), public :: solvers
@@ -38,9 +40,11 @@ module mod_settings
     procedure, public :: get_physics_type
     procedure, public :: get_nb_eqs
     procedure, public :: update_block_dimensions
+    procedure, public :: has_bfield
     procedure, public :: delete
 
     procedure, private :: set_nb_eqs
+    procedure, private :: check_bfield
   end type settings_t
 
   public :: new_settings
@@ -70,11 +74,14 @@ contains
     select case(physics_type)
       case("hd")
         this%state_vector = [character(3) :: "rho", "v1", "v2", "v3", "T"]
+      case("hd-1d")
+        this%state_vector = [character(3) :: "rho", "v1", "T"]
       case default
         this%state_vector = [ &
           character(3) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
         ]
       end select
+    call this%check_bfield()
     call this%set_nb_eqs(size(this%state_vector))
   end subroutine set_state_vector
 
@@ -138,6 +145,22 @@ contains
 
     call this%dims%set_block_dims(nb_eqs=this%nb_eqs, gridpts=this%grid%get_gridpts())
   end subroutine update_block_dimensions
+
+
+  pure subroutine check_bfield(this)
+    use mod_get_indices, only: get_index
+    class(settings_t), intent(inout) :: this
+
+    this%state_vector_has_bfield = ( &
+      any(get_index(names=["a1", "a2", "a3"], array=this%state_vector) /= 0) &
+    )
+  end subroutine check_bfield
+
+
+  pure logical function has_bfield(this)
+    class(settings_t), intent(in) :: this
+    has_bfield = this%state_vector_has_bfield
+  end function has_bfield
 
 
   pure subroutine delete(this)

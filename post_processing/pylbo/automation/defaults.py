@@ -36,6 +36,7 @@ namelist_items = {
         ("dropoff_width", (int, np.integer, float)),
         ("flow", bool),
         ("radiative_cooling", bool),
+        ("heating", bool),
         ("ncool", (int, np.integer)),
         ("cooling_curve", str),
         ("external_gravity", bool),
@@ -56,6 +57,7 @@ namelist_items = {
         ("electron_fraction", (int, np.integer, float)),
     ],
     "unitslist": [
+        ("unit_numberdensity", (int, np.integer, float)),
         ("unit_density", (int, np.integer, float)),
         ("unit_temperature", (int, np.integer, float)),
         ("unit_magneticfield", (int, np.integer, float)),

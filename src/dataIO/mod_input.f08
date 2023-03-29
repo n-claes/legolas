@@ -188,7 +188,7 @@ contains
     character(str_len) :: iomsg
 
     character(len=str_len) :: physics_type
-    logical :: flow, incompressible, radiative_cooling, external_gravity, &
+    logical :: flow, incompressible, radiative_cooling, heating, external_gravity, &
       parallel_conduction, perpendicular_conduction, resistivity, use_eta_dropoff, &
       viscosity, viscous_heating, hall_mhd, hall_dropoff, &
       elec_inertia, inertia_dropoff
@@ -201,7 +201,7 @@ contains
     real(dp) :: dropoff_edge_dist, dropoff_width
 
     namelist /physicslist/ &
-      physics_type, mhd_gamma, flow, incompressible, radiative_cooling, &
+      physics_type, mhd_gamma, flow, incompressible, radiative_cooling, heating, &
       external_gravity, parallel_conduction, perpendicular_conduction, &
       resistivity, use_eta_dropoff, viscosity, viscous_heating, hall_mhd, &
       hall_dropoff, elec_inertia, inertia_dropoff, ncool, &
@@ -219,6 +219,7 @@ contains
     flow = settings%physics%flow%is_enabled()
 
     radiative_cooling = settings%physics%cooling%is_enabled()
+    heating = settings%physics%heating%is_enabled()
     ncool = settings%physics%cooling%get_interpolation_points()
     cooling_curve = settings%physics%cooling%get_cooling_curve()
 
@@ -253,6 +254,7 @@ contains
     if (incompressible) call settings%physics%set_incompressible()
     if (flow) call settings%physics%flow%enable()
     if (radiative_cooling) call settings%physics%enable_cooling(cooling_curve, ncool)
+    if (heating) call settings%physics%enable_heating()
     if (external_gravity) call settings%physics%enable_gravity()
     if (parallel_conduction) then
       call settings%physics%enable_parallel_conduction(fixed_tc_para_value)
@@ -324,14 +326,16 @@ contains
     integer :: iostat
     character(str_len) :: iomsg
 
+    real(dp) :: unit_numberdensity
     real(dp) :: unit_density, unit_temperature, unit_magneticfield, unit_length
     real(dp) :: mean_molecular_weight
 
     namelist /unitslist/ &
-      unit_density, unit_temperature, unit_magneticfield, unit_length, &
-      mean_molecular_weight
+      unit_density, unit_numberdensity, unit_temperature, unit_magneticfield, &
+      unit_length, mean_molecular_weight
 
     ! defaults
+    unit_numberdensity = NaN
     unit_density = NaN
     unit_temperature = settings%units%get_unit_temperature()
     unit_magneticfield = settings%units%get_unit_magneticfield()
@@ -341,7 +345,14 @@ contains
     read(unit, nml=unitslist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
 
-    if (.not. is_NaN(unit_density)) then
+    if (.not. is_NaN(unit_numberdensity)) then
+      call settings%units%set_units_from_numberdensity( &
+        unit_length=unit_length, &
+        unit_temperature=unit_temperature, &
+        unit_numberdensity=unit_numberdensity, &
+        mean_molecular_weight=mean_molecular_weight &
+      )
+    else if (.not. is_NaN(unit_density)) then
       call settings%units%set_units_from_density( &
         unit_length=unit_length, &
         unit_magneticfield=unit_magneticfield, &

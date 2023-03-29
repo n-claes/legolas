@@ -8,6 +8,7 @@ set (sources
         dataIO/mod_console.f08
         settings/physics/mod_flow_settings.f08
         settings/physics/mod_cooling_settings.f08
+        settings/physics/mod_heating_settings.f08
         settings/physics/mod_gravity_settings.f08
         settings/physics/mod_resistivity_settings.f08
         settings/physics/mod_viscosity_settings.f08
@@ -88,7 +89,6 @@ set (sources
         matrices/elements/mod_matrix_element_node.f08
         matrices/elements/mod_matrix_elements.f08
         matrices/mod_build_quadblock.f08
-        matrices/mod_matrix_shortcuts.f08
         matrices/mod_matrix_manager.f08
         matrices/smod_regular_matrix.f08
         matrices/smod_flow_matrix.f08

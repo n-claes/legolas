@@ -4,8 +4,6 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_reg
 contains
 
   module procedure add_natural_regular_terms
-    use mod_matrix_shortcuts, only: get_G_operator
-
     real(dp)  :: eps
     real(dp)  :: rho, T0
     real(dp)  :: B01, B02, B03
@@ -18,7 +16,7 @@ contains
     B01 = B_field % B01
     B02 = B_field % B02(grid_idx)
     B03 = B_field % B03(grid_idx)
-    Gop_min = get_G_operator(grid_idx, which="minus")
+    Gop_min = k3 * B02 - k2 * B03 / eps
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! ==================== Cubic * Quadratic ====================

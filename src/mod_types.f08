@@ -89,11 +89,15 @@ module mod_types
   !> type containing all radiative cooling related equilibrium variables
   type cooling_type
     !> equilibrium heat-loss function L0 (losses - gains)
-    real(dp), allocatable   :: heat_loss(:)
+    real(dp), allocatable :: L0(:)
     !> derivative dL/dT
-    real(dp), allocatable   :: d_L_dT(:)
+    real(dp), allocatable :: dL_dT(:)
     !> derivative dL/drho
-    real(dp), allocatable   :: d_L_drho(:)
+    real(dp), allocatable :: dL_drho(:)
+    real(dp), allocatable :: H0(:)
+    real(dp), allocatable :: dH_drho(:)
+    real(dp), allocatable :: dH_dT(:)
+    real(dp), allocatable :: lambdaT(:)
   end type cooling_type
 
   !> Type containing all conduction related equilibrium variables
@@ -310,13 +314,21 @@ contains
 
     gauss_gridpts = settings%grid%get_gauss_gridpts()
 
-    allocate(type_rc % heat_loss(gauss_gridpts))
-    allocate(type_rc % d_L_dT(gauss_gridpts))
-    allocate(type_rc % d_L_drho(gauss_gridpts))
+    allocate(type_rc % L0(gauss_gridpts))
+    allocate(type_rc % dL_dT(gauss_gridpts))
+    allocate(type_rc % dL_drho(gauss_gridpts))
+    allocate(type_rc % H0(gauss_gridpts))
+    allocate(type_rc % dH_drho(gauss_gridpts))
+    allocate(type_rc % dH_dT(gauss_gridpts))
+    allocate(type_rc % lambdaT(gauss_gridpts))
 
-    type_rc % heat_loss = 0.0d0
-    type_rc % d_L_dT = 0.0d0
-    type_rc % d_L_drho = 0.0d0
+    type_rc % L0 = 0.0d0
+    type_rc % dL_dT = 0.0d0
+    type_rc % dL_drho = 0.0d0
+    type_rc % H0 = 0.0d0
+    type_rc % dH_drho = 0.0d0
+    type_rc % dH_dT = 0.0d0
+    type_rc % lambdaT = 0.0d0
   end subroutine initialise_cooling_type
 
 
@@ -446,9 +458,13 @@ contains
     !> the type containing the radiative cooling attributes
     type (cooling_type), intent(inout) :: type_rc
 
-    deallocate(type_rc % heat_loss)
-    deallocate(type_rc % d_L_dT)
-    deallocate(type_rc % d_L_drho)
+    deallocate(type_rc % L0)
+    deallocate(type_rc % dL_dT)
+    deallocate(type_rc % dL_drho)
+    deallocate(type_rc % H0)
+    deallocate(type_rc % dH_drho)
+    deallocate(type_rc % dH_dT)
+    deallocate(type_rc % lambdaT)
   end subroutine deallocate_cooling_type
 
 
