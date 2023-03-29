@@ -65,7 +65,7 @@ program legolas
   timer%evp_time = timer%end_timer()
 
   call timer%start_timer()
-  eigenfunctions = new_eigenfunctions(settings, background)
+  eigenfunctions = new_eigenfunctions(settings, grid, background)
   call get_eigenfunctions()
   timer%eigenfunction_time = timer%end_timer()
 

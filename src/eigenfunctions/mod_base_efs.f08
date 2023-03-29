@@ -1,9 +1,9 @@
 module mod_base_efs
   use mod_global_variables, only: dp, str_len_arr
   use mod_settings, only: settings_t
+  use mod_grid, only: grid_t
   use mod_get_indices, only: get_index
-  use mod_ef_assembly, only: assemble_eigenfunction, get_ef_eps, &
-    retransform_eigenfunction
+  use mod_ef_assembly, only: assemble_eigenfunction, retransform_eigenfunction
   implicit none
 
   private
@@ -32,35 +32,32 @@ contains
   end subroutine initialise
 
 
-  subroutine assemble(this, settings, idxs_to_assemble, right_eigenvectors, ef_grid)
+  subroutine assemble(this, settings, grid, idxs_to_assemble, right_eigenvectors)
     class(base_ef_t), intent(inout) :: this
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     integer, intent(in) :: idxs_to_assemble(:)
     complex(dp), intent(in) :: right_eigenvectors(:, :)
-    real(dp), intent(in) :: ef_grid(:)
 
     integer :: i, idx, state_vector_idx
-    real(dp), allocatable :: ef_eps(:)
-    complex(dp) :: assembled_ef(size(ef_grid))
+    complex(dp) :: assembled_ef(size(grid%ef_grid))
 
-    ef_eps = get_ef_eps(settings=settings, ef_grid=ef_grid)
     state_vector_idx = get_index(this%name, settings%get_state_vector())
     do i = 1, size(idxs_to_assemble)
       idx = idxs_to_assemble(i)
       assembled_ef = assemble_eigenfunction( &
         settings=settings, &
         ef_name=this%name, &
-        ef_grid=ef_grid, &
+        grid=grid, &
         state_vector_index=state_vector_idx, &
         eigenvector=right_eigenvectors(:, idx) &
       )
       this%quantities(:, i) = retransform_eigenfunction( &
         ef_name=this%name, &
-        ef_eps=ef_eps, &
+        ef_eps=grid%get_eps(grid%ef_grid), &
         eigenfunction=assembled_ef &
       )
     end do
-    if (allocated(ef_eps)) deallocate(ef_eps)
   end subroutine assemble
 
 
