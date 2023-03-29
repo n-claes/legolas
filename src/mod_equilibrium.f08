@@ -11,12 +11,12 @@
 module mod_equilibrium
   use mod_global_variables, only: dp
   use mod_physical_constants, only: dpi
-  use mod_grid, only: initialise_grid, grid_gauss
   use mod_equilibrium_params, only: k2, k3
   use mod_logging, only: logger, str, exp_fmt
   use mod_settings, only: settings_t
   use mod_background, only: background_t
   use mod_physics, only: physics_t
+  use mod_grid, only: grid_t
   implicit none
 
   private
@@ -189,11 +189,11 @@ contains
   !! @warning Throws appropriate errors if the equilibrium configuration is
   !!          not balanced, contains NaN or if density/temperature contains
   !!          negative values.
-  subroutine set_equilibrium(settings, background, physics)
-    use mod_global_variables, only: dp_LIMIT
+  subroutine set_equilibrium(settings, grid, background, physics)
     use mod_inspections, only: perform_NaN_and_negative_checks, perform_sanity_checks
 
     type(settings_t), intent(inout) :: settings
+    type(grid_t), intent(inout) :: grid
     type(background_t), intent(inout) :: background
     type(physics_t), intent(inout) :: physics
 
@@ -202,22 +202,16 @@ contains
     ! Call submodule
     call set_equilibrium_values(settings, background, physics)
 
-    ! Check x_start if coaxial is true
-    if (settings%grid%coaxial .and. settings%grid%get_grid_start() <= dp_LIMIT) then
-      call logger%error("x_start must be > 0 to introduce an inner wall boundary")
-      return
-    end if
-
     ! Do initial checks for NaN and negative density/temperature
-    call perform_NaN_and_negative_checks(settings, background, physics)
+    call perform_NaN_and_negative_checks(settings, grid, background, physics)
 
     if (settings%physics%cooling%is_enabled()) then
       call physics%cooling%initialise()
     end if
-    call physics%hall%validate_scale_ratio(grid_gauss)
+    call physics%hall%validate_scale_ratio(grid%gaussian_grid)
 
     ! Do final sanity checks on values
-    call perform_sanity_checks(settings, background, physics)
+    call perform_sanity_checks(settings, grid, background, physics)
   end subroutine set_equilibrium
 
 

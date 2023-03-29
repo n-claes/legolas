@@ -10,7 +10,7 @@ module mod_inspections
   use mod_settings, only: settings_t
   use mod_background, only: background_t
   use mod_physics, only: physics_t
-  use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
+  use mod_grid, only: grid_t
   use mod_function_utils, only: from_function
   use mod_check_values, only: is_NaN, is_negative, is_zero
   implicit none
@@ -26,38 +26,56 @@ contains
   !> General routine to do initial sanity checks on the various equilibrium attributes.
   !! We check the equilibrium arrays for NaN and see if all density and temperature
   !! values are positive.
-  subroutine perform_NaN_and_negative_checks(settings, background, physics)
+  subroutine perform_NaN_and_negative_checks(settings, grid, background, physics)
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
     type(physics_t), intent(in) :: physics
     character(50) :: name
 
     name = ""
-    if (any(is_negative(from_function(background%density%rho0, grid_gauss)))) then
+    ! TODO: is there an easier way to do this?
+    if (any(is_negative(from_function(background%density%rho0, grid%gaussian_grid)))) then
       call logger%error("negative density encountered!")
       return
     end if
-    if (any(is_negative(from_function(background%temperature%T0, grid_gauss)))) then
+    if (any( &
+      is_negative(from_function(background%temperature%T0, grid%gaussian_grid))) &
+    ) then
       call logger%error("negative temperature encountered!")
       return
     end if
-    if (any(is_NaN(from_function(background%density%rho0, grid_gauss)))) then
+    if (any(is_NaN(from_function(background%density%rho0, grid%gaussian_grid)))) then
       name = "density"
-    else if (any(is_NaN(from_function(background%temperature%T0, grid_gauss)))) then
+    else if (any( &
+      is_NaN(from_function(background%temperature%T0, grid%gaussian_grid))) &
+    ) then
       name = "temperature"
-    else if (any(is_NaN(from_function(background%magnetic%B01, grid_gauss)))) then
+    else if (any( &
+      is_NaN(from_function(background%magnetic%B01, grid%gaussian_grid))) &
+    ) then
       name = "B01"
-    else if (any(is_NaN(from_function(background%magnetic%B02, grid_gauss)))) then
+    else if (any( &
+      is_NaN(from_function(background%magnetic%B02, grid%gaussian_grid))) &
+    ) then
       name = "B02"
-    else if (any(is_NaN(from_function(background%magnetic%B03, grid_gauss)))) then
+    else if (any( &
+      is_NaN(from_function(background%magnetic%B03, grid%gaussian_grid))) &
+    ) then
       name = "B03"
-    else if (any(is_NaN(from_function(background%velocity%v01, grid_gauss)))) then
+    else if (any( &
+      is_NaN(from_function(background%velocity%v01, grid%gaussian_grid))) &
+    ) then
       name = "v01"
-    else if (any(is_NaN(from_function(background%velocity%v02, grid_gauss)))) then
+    else if (any( &
+      is_NaN(from_function(background%velocity%v02, grid%gaussian_grid))) &
+    ) then
       name = "v02"
-    else if (any(is_NaN(from_function(background%velocity%v03, grid_gauss)))) then
+    else if (any( &
+      is_NaN(from_function(background%velocity%v03, grid%gaussian_grid))) &
+    ) then
       name = "v03"
-    else if (any(is_NaN(from_function(physics%gravity%g0, grid_gauss)))) then
+    else if (any(is_NaN(from_function(physics%gravity%g0, grid%gaussian_grid)))) then
       name = "gravity"
     end if
 
@@ -71,27 +89,31 @@ contains
   !> General routine to do sanity checks on the different equilibrium types.
   !! We check the wavenumbers and on-axis values, as well as standard
   !! and non-adiabatic equilibrium force balance.
-  subroutine perform_sanity_checks(settings, background, physics)
+  subroutine perform_sanity_checks(settings, grid, background, physics)
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
     type(physics_t), intent(in) :: physics
 
     call check_wavenumbers(geometry=settings%grid%get_geometry())
-    call check_B01_cylindrical(settings, background)
+    call check_B01_cylindrical(settings, grid, background)
     call check_on_axis_values(settings, background)
-    call standard_equil_conditions(settings, background, physics)
-    call continuity_equil_conditions(settings, background)
-    call induction_equil_conditions(settings, background)
-    call check_energy_balance(settings, background, physics)
+    call standard_equil_conditions(settings, grid, background, physics)
+    call continuity_equil_conditions(settings, grid, background)
+    call induction_equil_conditions(settings, grid, background)
+    call check_energy_balance(settings, grid, background, physics)
   end subroutine perform_sanity_checks
 
 
-  subroutine check_B01_cylindrical(settings, background)
+  subroutine check_B01_cylindrical(settings, grid, background)
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
 
     if (.not. settings%grid%get_geometry() == "cylindrical") return
-    if (.not. all(is_zero(from_function(background%magnetic%B01, grid_gauss)))) then
+    if (.not. all( &
+      is_zero(from_function(background%magnetic%B01, grid%gaussian_grid))) &
+    ) then
       call logger%error( &
         "B01 component currently not supported for cylindrical geometries!" &
       )
@@ -167,8 +189,9 @@ contains
   !! $$ \rho_0 v_{01} v_{03}' - B_{01} B_{03}' = 0, $$
   !! and they should all be fulfilled.
   !! @warning   Throws a warning if force-balance is not satisfied.
-  subroutine standard_equil_conditions(settings, background, physics)
+  subroutine standard_equil_conditions(settings, grid, background, physics)
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
     type(physics_t), intent(in) :: physics
 
@@ -184,7 +207,7 @@ contains
     discrepancy = 0.0d0
     counter = 0
     do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
+      x = grid%gaussian_grid(i)
       rho0 = background%density%rho0(x)
       drho0 = background%density%drho0(x)
       B01 = background%magnetic%B01(x)
@@ -201,8 +224,8 @@ contains
       dv02 = background%velocity%dv02(x)
       dv03 = background%velocity%dv03(x)
       grav = physics%gravity%g0(x)
-      eps = eps_grid(i)
-      d_eps = d_eps_grid_dr(i)
+      eps = grid%get_eps(x)
+      d_eps = grid%get_deps()
 
       eq_cond(i, 1) = ( &
         drho0 * T0 &
@@ -224,7 +247,7 @@ contains
           satisfied(j) = .false.
           if (abs(eq_cond(i, j)) > discrepancy(j)) then
             discrepancy(j) = abs(eq_cond(i, j))
-            r(j) = grid_gauss(i)
+            r(j) = grid%gaussian_grid(i)
           end if
         end if
       end do
@@ -261,8 +284,9 @@ contains
   !! - \frac{1}{\varepsilon}\left(\varepsilon \kappa_{\perp, 0} T_0'\right)'
   !! + \frac{1}{(\gamma - 1)}T_0'\rho_0 v_{01} = 0
   !! $$
-  subroutine check_energy_balance(settings, background, physics)
+  subroutine check_energy_balance(settings, grid, background, physics)
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
     type(physics_t), intent(in) :: physics
 
@@ -280,7 +304,7 @@ contains
     discrepancy = 0.0_dp
     counter = 0
     do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
+      x = grid%gaussian_grid(i)
       rho0 = background%density%rho0(x)
       drho0 = background%density%drho0(x)
       B01 = background%magnetic%B01(x)
@@ -294,8 +318,8 @@ contains
       ddT0 = background%temperature%ddT0(x)
       v01 = background%velocity%v01(x)
       dv01 = background%velocity%dv01(x)
-      eps = eps_grid(i)
-      deps = d_eps_grid_dr(i)
+      eps = grid%get_eps(x)
+      deps = grid%get_deps()
       kappa_perp = physics%conduction%tcperp(x)
       dkappa_perp_dr = physics%conduction%dtcperpdr(x)
       Kp = physics%conduction%tcprefactor(x)
@@ -318,7 +342,7 @@ contains
         satisfied = .false.
         if (abs(eq_cond) > discrepancy) then
           discrepancy = abs(eq_cond)
-          r = grid_gauss(i)
+          r = grid%gaussian_grid(i)
         end if
       end if
     end do
@@ -344,8 +368,9 @@ contains
   !! $$
   !! and should both be fulfilled.
   !! @warning   Throws a warning if the equilibrium induction equation is not satisfied.
-  subroutine induction_equil_conditions(settings, background)
+  subroutine induction_equil_conditions(settings, grid, background)
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
 
     real(dp)  :: x, B01, B02, dB02, B03, dB03, v01, v02, v03, dv01, dv02, dv03
@@ -358,7 +383,7 @@ contains
     discrepancy = 0.0d0
     counter = 0
     do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
+      x = grid%gaussian_grid(i)
       B01 = background%magnetic%B01(x)
       B02 = background%magnetic%B02(x)
       B03 = background%magnetic%B03(x)
@@ -370,8 +395,8 @@ contains
       dv01 = background%velocity%dv01(x)
       dv02 = background%velocity%dv02(x)
       dv03 = background%velocity%dv03(x)
-      eps = eps_grid(i)
-      d_eps = d_eps_grid_dr(i)
+      eps = grid%get_eps(x)
+      d_eps = grid%get_deps()
 
       eq_cond(i, 1) = B01 * dv02 - B02 * dv01 - dB02 * v01
       eq_cond(i, 2) = ( &
@@ -383,7 +408,7 @@ contains
           satisfied(j) = .false.
           if (abs(eq_cond(i, j)) > discrepancy(j)) then
             discrepancy(j) = abs(eq_cond(i, j))
-            r(j) = grid_gauss(i)
+            r(j) = grid%gaussian_grid(i)
           end if
         end if
       end do
@@ -415,8 +440,9 @@ contains
   !> Checks the continuity equation for the equilibrium state. This is given by
   !! $$ \frac{1}{\varepsilon} \bigl( \varepsilon \rho_0 v_{01} \bigr)' = 0. $$
   !! @warning   Throws a warning if equilibrium continuity is not satisfied.
-  subroutine continuity_equil_conditions(settings, background)
+  subroutine continuity_equil_conditions(settings, grid, background)
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
 
     real(dp)  :: x, rho0, drho0, v01, dv01
@@ -429,13 +455,13 @@ contains
     discrepancy = 0.0d0
     counter = 0
     do i = 1, settings%grid%get_gauss_gridpts() - 1
-      x = grid_gauss(i)
+      x = grid%gaussian_grid(i)
       rho0 = background%density%rho0(x)
       drho0 = background%density%drho0(x)
       v01 = background%velocity%v01(x)
       dv01 = background%velocity%dv01(x)
-      eps = eps_grid(i)
-      d_eps = d_eps_grid_dr(i)
+      eps = grid%get_eps(x)
+      d_eps = grid%get_deps()
 
       eq_cond(i) = drho0 * v01 + rho0 * dv01 + rho0 * v01 * d_eps / eps
 
@@ -444,7 +470,7 @@ contains
         satisfied = .false.
         if (abs(eq_cond(i)) > discrepancy) then
           discrepancy = abs(eq_cond(i))
-          r = grid_gauss(i)
+          r = grid%gaussian_grid(i)
         end if
       end if
     end do

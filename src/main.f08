@@ -18,6 +18,7 @@ program legolas
   use mod_timing, only: timer_t, new_timer
   use mod_settings, only: settings_t, new_settings
   use mod_background, only: background_t, new_background
+  use mod_grid, only: grid_t, new_grid
   use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
   use mod_physics, only: physics_t, new_physics
   implicit none
@@ -45,10 +46,11 @@ program legolas
   settings = new_settings()
   background = new_background()
   physics = new_physics(settings, background)
+  grid = new_grid(settings)
 
   call timer%start_timer()
   call initialisation()
-  call set_equilibrium(settings, background, physics)
+  call set_equilibrium(settings, grid, background, physics)
   timer%init_time = timer%end_timer()
 
   call print_console_info(settings)
