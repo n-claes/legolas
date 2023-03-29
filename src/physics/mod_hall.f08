@@ -5,15 +5,18 @@ module mod_hall
   use mod_global_variables, only: dp
   use mod_settings, only: settings_t
   use mod_background, only: background_t
-  use mod_physics_utils, only: physics_i, get_dropoff, get_dropoff_dr
+  use mod_physics_utils, only: get_dropoff, get_dropoff_dr
   use mod_physical_constants, only: dpi, mp_cgs, ec_cgs, me_cgs
   implicit none
 
   private
 
+  type(settings_t), pointer :: settings => null()
+  type(background_t), pointer :: background => null()
+
   type, public :: hall_t
-    procedure(physics_i), pointer, nopass :: hallfactor
-    procedure(physics_i), pointer, nopass :: inertiafactor
+    procedure(real(dp)), pointer, nopass :: hallfactor
+    procedure(real(dp)), pointer, nopass :: inertiafactor
 
   contains
     procedure, public :: validate_scale_ratio
@@ -25,18 +28,22 @@ module mod_hall
 contains
 
 
-  function new_hall() result(hall)
+  function new_hall(settings_tgt, pointer_tgt) result(hall)
+    type(settings_t), target, intent(in) :: settings_tgt
+    type(background_t), pointer, intent(in) :: pointer_tgt
     type(hall_t) :: hall
+
+    settings => settings_tgt
+    background => pointer_tgt
+
     hall%hallfactor => get_hallfactor
     hall%inertiafactor => get_inertiafactor
   end function new_hall
 
 
   !> Retrieves the normalised Hall factor as described by Porth et al. (2014).
-  real(dp) function get_hallfactor(x, settings, background)
+  real(dp) function get_hallfactor(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: unit_velocity, unit_length, unit_magneticfield
 
     get_hallfactor = 0.0_dp
@@ -50,14 +57,12 @@ contains
     )
 
     if (.not. settings%physics%hall%use_dropoff) return
-    get_hallfactor = get_dropoff(x, get_hallfactor, settings, background)
+    get_hallfactor = get_dropoff(x, get_hallfactor, settings)
   end function get_hallfactor
 
 
-  real(dp) function get_inertiafactor(x, settings, background)
+  real(dp) function get_inertiafactor(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: unit_velocity, unit_length, unit_magneticfield
 
     get_inertiafactor = 0.0_dp
@@ -72,25 +77,23 @@ contains
     )
 
     if (.not. settings%physics%hall%use_inertia_dropoff) return
-    get_inertiafactor = get_dropoff_dr(x, get_inertiafactor, settings, background)
+    get_inertiafactor = get_dropoff_dr(x, get_inertiafactor, settings)
   end function get_inertiafactor
 
 
   ! LCOV_EXCL_START
-  subroutine validate_scale_ratio(this, grid, settings, background)
-    use mod_physics_utils, only: from_physics_function
+  subroutine validate_scale_ratio(this, grid)
+    use mod_function_utils, only: from_function
     use mod_logging, only: logger, str
 
     class(hall_t), intent(in) :: this
     real(dp), intent(in) :: grid(:)
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: ratio
 
     if (.not. settings%physics%hall%is_enabled()) return
 
     ratio = maxval( &
-      from_physics_function(this%hallfactor, grid, settings, background) &
+      from_function(this%hallfactor, grid) &
     ) / (settings%grid%get_grid_end() - settings%grid%get_grid_start())
 
     if (ratio > 0.1d0) then
@@ -100,8 +103,10 @@ contains
   ! LCOV_EXCL_STOP
 
 
-  pure subroutine delete(this)
+  subroutine delete(this)
     class(hall_t), intent(inout) :: this
+    nullify(settings)
+    nullify(background)
     nullify(this%hallfactor)
     nullify(this%inertiafactor)
   end subroutine delete

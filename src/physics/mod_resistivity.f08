@@ -6,15 +6,18 @@ module mod_resistivity
   use mod_physical_constants, only: dpi, Z_ion, coulomb_log, ec_cgs, me_cgs, kB_cgs
   use mod_settings, only: settings_t
   use mod_background, only: background_t
-  use mod_physics_utils, only: physics_i, get_dropoff, get_dropoff_dr
+  use mod_physics_utils, only: get_dropoff, get_dropoff_dr
   implicit none
 
   private
 
+  type(settings_t), pointer :: settings => null()
+  type(background_t), pointer :: background => null()
+
   type, public :: resistivity_t
-    procedure(physics_i), pointer, nopass :: eta
-    procedure(physics_i), pointer, nopass :: detadT
-    procedure(physics_i), pointer, nopass :: detadr
+    procedure(real(dp)), pointer, nopass :: eta
+    procedure(real(dp)), pointer, nopass :: detadT
+    procedure(real(dp)), pointer, nopass :: detadr
   contains
     procedure, public :: delete
   end type resistivity_t
@@ -24,8 +27,13 @@ module mod_resistivity
 contains
 
 
-  function new_resistivity() result(resistivity)
+  function new_resistivity(settings_tgt, background_tgt) result(resistivity)
+    type(settings_t), target, intent(in) :: settings_tgt
+    type(background_t), target, intent(in) :: background_tgt
     type(resistivity_t) :: resistivity
+
+    settings => settings_tgt
+    background => background_tgt
 
     resistivity%eta => spitzer_eta
     resistivity%detadT => spitzer_detadT
@@ -38,10 +46,8 @@ contains
   !! - a fixed resistivity value
   !! - zero (if resistivity is disabled)
   !! Values are normalised on return.
-  real(dp) function spitzer_eta(x, settings, background)
+  real(dp) function spitzer_eta(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: unit_temperature, unit_resistivity
     real(dp) :: T0
 
@@ -51,7 +57,7 @@ contains
     if (settings%physics%resistivity%has_fixed_resistivity()) then
       spitzer_eta = settings%physics%resistivity%get_fixed_resistivity()
       if (settings%physics%resistivity%use_dropoff) then
-        spitzer_eta = get_dropoff(x, spitzer_eta, settings, background)
+        spitzer_eta = get_dropoff(x, spitzer_eta, settings)
       end if
       return
     end if
@@ -76,10 +82,8 @@ contains
   !! - zero (if resistivity is disabled or for fixed resistivity)
   !! - derivative of Spitzer resistivity with respect to T
   !! Values are normalised on return.
-  real(dp) function spitzer_detadT(x, settings, background)
+  real(dp) function spitzer_detadT(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: unit_temperature, unit_detadT
     real(dp) :: T0
 
@@ -99,10 +103,8 @@ contains
 
   !> Default profile for the derivative of the resistivity $\eta$ with respect to
   !! position. Returns zero unless a dropoff profile was chosen.
-  real(dp) function spitzer_detadr(x, settings, background)
+  real(dp) function spitzer_detadr(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
 
     spitzer_detadr = 0.0_dp
     if (.not. settings%physics%resistivity%is_enabled()) return
@@ -110,10 +112,7 @@ contains
     if (settings%physics%resistivity%has_fixed_resistivity()) then
       if (settings%physics%resistivity%use_dropoff) then
         spitzer_detadr = get_dropoff_dr( &
-          x, &
-          settings%physics%resistivity%get_fixed_resistivity(), &
-          settings, &
-          background &
+          x, settings%physics%resistivity%get_fixed_resistivity(), settings &
         )
       end if
       return
@@ -121,8 +120,10 @@ contains
   end function spitzer_detadr
 
 
-  pure subroutine delete(this)
+  subroutine delete(this)
     class(resistivity_t), intent(inout) :: this
+    nullify(settings)
+    nullify(background)
     nullify(this%eta)
     nullify(this%detadT)
     nullify(this%detadr)

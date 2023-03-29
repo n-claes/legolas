@@ -1,5 +1,7 @@
 module mod_physics
-  use mod_physics_utils, only: physics_i
+  use mod_global_variables, only: dp
+  use mod_settings, only: settings_t
+  use mod_background, only: background_t
   use mod_resistivity, only: resistivity_t, new_resistivity
   use mod_gravity, only: gravity_t, new_gravity
   use mod_hall, only: hall_t, new_hall
@@ -27,21 +29,24 @@ module mod_physics
 
 contains
 
-  function new_physics() result(physics)
+  function new_physics(settings, background) result(physics)
+    type(settings_t), target, intent(in) :: settings
+    type(background_t), target, intent(in) :: background
     type(physics_t) :: physics
-    physics%resistivity = new_resistivity()
+
+    physics%resistivity = new_resistivity(settings, background)
     physics%gravity = new_gravity()
-    physics%hall = new_hall()
-    physics%conduction = new_conduction()
-    physics%cooling = new_cooling()
+    physics%hall = new_hall(settings, background)
+    physics%conduction = new_conduction(settings, background)
+    physics%cooling = new_cooling(settings, background)
   end function new_physics
 
 
   subroutine set_resistivity_funcs(this, eta_func, detadT_func, detadr_func)
     class(physics_t), intent(inout) :: this
-    procedure(physics_i) :: eta_func
-    procedure(physics_i), optional :: detadT_func
-    procedure(physics_i), optional :: detadr_func
+    procedure(real(dp)) :: eta_func
+    procedure(real(dp)), optional :: detadT_func
+    procedure(real(dp)), optional :: detadr_func
 
     this%resistivity%eta => eta_func
     if (present(detadT_func)) this%resistivity%detadT => detadT_func
@@ -51,7 +56,7 @@ contains
 
   subroutine set_gravity_funcs(this, g0_func)
     class(physics_t), intent(inout) :: this
-    procedure(physics_i) :: g0_func
+    procedure(real(dp)) :: g0_func
     this%gravity%g0 => g0_func
   end subroutine set_gravity_funcs
 
@@ -60,9 +65,9 @@ contains
     this, tcpara_func, dtcparadT_func, dtcparadr_func &
   )
     class(physics_t), intent(inout) :: this
-    procedure(physics_i) :: tcpara_func
-    procedure(physics_i), optional :: dtcparadT_func
-    procedure(physics_i), optional :: dtcparadr_func
+    procedure(real(dp)) :: tcpara_func
+    procedure(real(dp)), optional :: dtcparadT_func
+    procedure(real(dp)), optional :: dtcparadr_func
 
     this%conduction%tcpara => tcpara_func
     if (present(dtcparadT_func)) this%conduction%dtcparadT => dtcparadT_func
@@ -79,11 +84,11 @@ contains
     dtcperpdr_func &
   )
     class(physics_t), intent(inout) :: this
-    procedure(physics_i) :: tcperp_func
-    procedure(physics_i), optional :: dtcperpdT_func
-    procedure(physics_i), optional :: dtcperpdrho_func
-    procedure(physics_i), optional :: dtcperpdB2_func
-    procedure(physics_i), optional :: dtcperpdr_func
+    procedure(real(dp)) :: tcperp_func
+    procedure(real(dp)), optional :: dtcperpdT_func
+    procedure(real(dp)), optional :: dtcperpdrho_func
+    procedure(real(dp)), optional :: dtcperpdB2_func
+    procedure(real(dp)), optional :: dtcperpdr_func
 
     this%conduction%tcperp => tcperp_func
     if (present(dtcperpdT_func)) this%conduction%dtcperpdT => dtcperpdT_func

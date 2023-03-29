@@ -13,9 +13,9 @@ contains
 
     gamma_1 = settings%physics%get_gamma_1()
     rho = background%density%rho0(x_gauss)
-    Lrho = physics%cooling%dLdrho(x_gauss, settings, background)
-    LT = physics%cooling%dLdT(x_gauss, settings, background)
-    L0 = physics%cooling%L0(x_gauss, settings, background)
+    Lrho = physics%cooling%dLdrho(x_gauss)
+    LT = physics%cooling%dLdT(x_gauss)
+    L0 = physics%cooling%L0(x_gauss)
 
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 

@@ -44,7 +44,7 @@ program legolas
   timer = new_timer()
   settings = new_settings()
   background = new_background()
-  physics = new_physics()
+  physics = new_physics(settings, background)
 
   call timer%start_timer()
   call initialisation()

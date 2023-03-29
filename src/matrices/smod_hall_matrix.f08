@@ -14,8 +14,8 @@ contains
     deps = d_eps_grid_dr(gauss_idx)
     rho = background%density%rho0(x_gauss)
     drho = background%density%drho0(x_gauss)
-    eta_H = physics%hall%hallfactor(x_gauss, settings, background)
-    eta_e = physics%hall%inertiafactor(x_gauss, settings, background)
+    eta_H = physics%hall%hallfactor(x_gauss)
+    eta_e = physics%hall%inertiafactor(x_gauss)
     WVop = k2**2 / eps + eps * k3**2
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
@@ -128,7 +128,7 @@ contains
     Gop_min = k3 * B02 - k2 * B03 / eps
     WVop = k2**2 / eps + eps * k3**2
 
-    eta_H = physics%hall%hallfactor(x_gauss, settings, background)
+    eta_H = physics%hall%hallfactor(x_gauss)
     mu = settings%physics%viscosity%get_viscosity_value()
     efrac = settings%physics%hall%get_electron_fraction()
 

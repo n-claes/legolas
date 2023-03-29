@@ -20,8 +20,8 @@ module mod_cooling_curves
 
   public :: interpolate_cooling_curves
   public :: is_valid_cooling_curve
-  public :: get_lambdaT
-  public :: get_dlambdadT
+  public :: get_rosner_lambdaT, get_rosner_dlambdadT
+  public :: get_interpolated_lambdaT, get_interpolated_dlambdadT
   public :: get_cooling_table
   public :: deallocate_cooling_curves
 
@@ -98,32 +98,6 @@ contains
     deallocate(table_T)
     deallocate(table_lambda)
   end subroutine interpolate_cooling_curves
-
-
-  real(dp) function get_lambdaT(x, settings, background)
-    real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
-
-    if (settings%physics%cooling%get_cooling_curve() == "rosner") then
-      get_lambdaT = get_rosner_lambdaT(x, settings, background)
-    else
-      get_lambdaT = get_interpolated_lambdaT(x, settings, background)
-    end if
-  end function get_lambdaT
-
-
-  real(dp) function get_dlambdadT(x, settings, background)
-    real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
-
-    if (settings%physics%cooling%get_cooling_curve() == "rosner") then
-      get_dlambdadT = get_rosner_dlambdadT(x, settings, background)
-    else
-      get_dlambdadT = get_interpolated_dlambdadT(x, settings, background)
-    end if
-  end function get_dlambdadT
 
 
   pure integer function get_rosner_index(logT0)

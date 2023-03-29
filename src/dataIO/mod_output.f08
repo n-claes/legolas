@@ -333,7 +333,6 @@ contains
   subroutine write_equilibrium_data(settings, background, physics)
     use mod_grid, only: grid_gauss
     use mod_function_utils, only: from_function
-    use mod_physics_utils, only: from_physics_function
 
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
@@ -362,39 +361,17 @@ contains
     write(dat_fh) from_function(background%velocity%ddv02, grid_gauss)
     write(dat_fh) from_function(background%velocity%ddv03, grid_gauss)
 
-    write(dat_fh) from_physics_function( &
-      physics%cooling%L0, grid_gauss, settings, background &
-    )
-    write(dat_fh) from_physics_function( &
-      physics%cooling%dLdT, grid_gauss, settings, background &
-    )
-    write(dat_fh) from_physics_function( &
-      physics%cooling%dLdrho, grid_gauss, settings, background &
-    )
-    write(dat_fh) from_physics_function( &
-      physics%conduction%tcpara, grid_gauss, settings, background &
-    )
-    write(dat_fh) from_physics_function( &
-      physics%conduction%tcperp, grid_gauss, settings, background &
-    )
-    write(dat_fh) from_physics_function( &
-      physics%resistivity%eta, grid_gauss, settings, background &
-    )
-    write(dat_fh) from_physics_function( &
-      physics%resistivity%detadT, grid_gauss, settings, background &
-    )
-    write(dat_fh) from_physics_function( &
-      physics%resistivity%detadr, grid_gauss, settings, background &
-    )
-    write(dat_fh) from_physics_function( &
-      physics%gravity%g0, grid_gauss, settings, background &
-    )
-    write(dat_fh) from_physics_function( &
-      physics%hall%hallfactor, grid_gauss, settings, background &
-    )
-    write(dat_fh) from_physics_function( &
-      physics%hall%inertiafactor, grid_gauss, settings, background &
-    )
+    write(dat_fh) from_function(physics%cooling%L0, grid_gauss)
+    write(dat_fh) from_function(physics%cooling%dLdT, grid_gauss)
+    write(dat_fh) from_function(physics%cooling%dLdrho, grid_gauss)
+    write(dat_fh) from_function(physics%conduction%tcpara, grid_gauss)
+    write(dat_fh) from_function(physics%conduction%tcperp, grid_gauss)
+    write(dat_fh) from_function(physics%resistivity%eta, grid_gauss)
+    write(dat_fh) from_function(physics%resistivity%detadT, grid_gauss)
+    write(dat_fh) from_function(physics%resistivity%detadr, grid_gauss)
+    write(dat_fh) from_function(physics%gravity%g0, grid_gauss)
+    write(dat_fh) from_function(physics%hall%hallfactor, grid_gauss)
+    write(dat_fh) from_function(physics%hall%inertiafactor, grid_gauss)
   end subroutine write_equilibrium_data
 
 

@@ -110,7 +110,7 @@ contains
     call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
 
-    call physics%set_gravity_funcs(g0_func=g0_func)
+    call physics%set_gravity_funcs(g0_func=g0)
   end subroutine set_solar_atmosphere
 
 
@@ -188,15 +188,6 @@ contains
       / (unit_length / unit_time**2) &
     )
   end function g0
-
-
-  real(dp) function g0_func(x, settings, background)
-    real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
-    g0_func = g0(x)
-  end function g0_func
-
 
   real(dp) function rho0(x)
     real(dp), intent(in) :: x

@@ -27,8 +27,6 @@ contains
   !! We check the equilibrium arrays for NaN and see if all density and temperature
   !! values are positive.
   subroutine perform_NaN_and_negative_checks(settings, background, physics)
-    use mod_physics_utils, only: from_physics_function
-
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
     type(physics_t), intent(in) :: physics
@@ -59,9 +57,7 @@ contains
       name = "v02"
     else if (any(is_NaN(from_function(background%velocity%v03, grid_gauss)))) then
       name = "v03"
-    else if (any(is_NaN( &
-      from_physics_function(physics%gravity%g0, grid_gauss, settings, background) &
-    ))) then
+    else if (any(is_NaN(from_function(physics%gravity%g0, grid_gauss)))) then
       name = "gravity"
     end if
 
@@ -204,7 +200,7 @@ contains
       dv01 = background%velocity%dv01(x)
       dv02 = background%velocity%dv02(x)
       dv03 = background%velocity%dv03(x)
-      grav = physics%gravity%g0(x, settings, background)
+      grav = physics%gravity%g0(x)
       eps = eps_grid(i)
       d_eps = d_eps_grid_dr(i)
 
@@ -300,11 +296,11 @@ contains
       dv01 = background%velocity%dv01(x)
       eps = eps_grid(i)
       deps = d_eps_grid_dr(i)
-      kappa_perp = physics%conduction%tcperp(x, settings, background)
-      dkappa_perp_dr = physics%conduction%dtcperpdr(x, settings, background)
-      Kp = physics%conduction%tcprefactor(x, settings, background)
-      dKp = physics%conduction%dtcprefactordr(x, settings, background)
-      L0 = physics%cooling%L0(x, settings, background)
+      kappa_perp = physics%conduction%tcperp(x)
+      dkappa_perp_dr = physics%conduction%dtcperpdr(x)
+      Kp = physics%conduction%tcprefactor(x)
+      dKp = physics%conduction%dtcprefactordr(x)
+      L0 = physics%cooling%L0(x)
 
       eq_cond = ( &
         T0 * rho0 * (deps * v01 + eps * dv01) / eps &

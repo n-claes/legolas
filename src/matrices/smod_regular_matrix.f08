@@ -49,7 +49,7 @@ contains
     ! temperature variables
     T0 = background%temperature%T0(x_gauss)
     dT0 = background%temperature%dT0(x_gauss)
-    g0 = physics%gravity%g0(x_gauss, settings, background)
+    g0 = physics%gravity%g0(x_gauss)
     ! magnetic field variables
     B01 = background%magnetic%B01(x_gauss)
     B02 = background%magnetic%B02(x_gauss)

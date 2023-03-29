@@ -2,35 +2,20 @@ module mod_physics_utils
   use mod_global_variables, only: dp
   use mod_physical_constants, only: dpi
   use mod_settings, only: settings_t
-  use mod_background, only: background_t
   implicit none
 
   private
 
-  interface
-    real(dp) function physics_i(x, settings, background)
-      use mod_global_variables, only: dp
-      use mod_settings, only: settings_t
-      use mod_background, only: background_t
-      real(dp), intent(in) :: x
-      type(settings_t), intent(in) :: settings
-      type(background_t), intent(in) :: background
-    end function physics_i
-  end interface
-
-  public :: physics_i
-  public :: from_physics_function
   public :: get_dropoff
   public :: get_dropoff_dr
 
 contains
 
 
-  real(dp) function get_dropoff(x, cte_value, settings, background)
+  real(dp) function get_dropoff(x, cte_value, settings)
     real(dp), intent(in) :: x
     real(dp), intent(in) :: cte_value
     type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: edge_dist, width, sleft, sright, shift, stretch
 
     edge_dist = settings%physics%dropoff_edge_dist
@@ -52,11 +37,10 @@ contains
   end function get_dropoff
 
 
-  real(dp) function get_dropoff_dr(x, cte_value, settings, background)
+  real(dp) function get_dropoff_dr(x, cte_value, settings)
     real(dp), intent(in) :: x
     real(dp), intent(in) :: cte_value
     type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: edge_dist, width, sleft, sright, shift, stretch
 
     edge_dist = settings%physics%dropoff_edge_dist
@@ -78,19 +62,5 @@ contains
       get_dropoff_dr = 0.0_dp
     end if
   end function get_dropoff_dr
-
-
-  function from_physics_function(func, values, settings, background) result(array)
-    procedure(physics_i), pointer :: func
-    real(dp), intent(in) :: values(:)
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
-    real(dp) :: array(size(values))
-    integer :: i
-
-    do i = 1, size(values)
-      array(i) = func(values(i), settings, background)
-    end do
-  end function from_physics_function
 
 end module mod_physics_utils

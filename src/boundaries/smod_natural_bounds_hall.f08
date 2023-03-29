@@ -16,7 +16,7 @@ contains
     x = grid_gauss(grid_idx)
     eps = eps_grid(grid_idx)
     rho = background%density%rho0(grid_gauss(grid_idx))
-    eta_e = physics%hall%inertiafactor(x, settings, background)
+    eta_e = physics%hall%inertiafactor(x)
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! ==================== Cubic * Quadratic ====================
@@ -55,7 +55,7 @@ contains
     B02 = background%magnetic%B02(x)
     B03 = background%magnetic%B03(x)
 
-    eta_H = physics%hall%hallfactor(x, settings, background)
+    eta_H = physics%hall%hallfactor(x)
     mu = settings%physics%viscosity%get_viscosity_value()
     efrac = settings%physics%hall%get_electron_fraction()
     elements = new_matrix_elements(state_vector=settings%get_state_vector())

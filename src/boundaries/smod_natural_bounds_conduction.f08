@@ -21,10 +21,10 @@ contains
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
     dT0 = background%temperature%dT0(x)
-    dkappa_para_dT = physics%conduction%dtcparadT(x, settings, background)
-    kappa_perp = physics%conduction%tcperp(x, settings, background)
-    dkappa_perp_drho = physics%conduction%dtcperpdrho(x, settings, background)
-    dkappa_perp_dT = physics%conduction%dtcperpdT(x, settings, background)
+    dkappa_para_dT = physics%conduction%dtcparadT(x)
+    kappa_perp = physics%conduction%tcperp(x)
+    dkappa_perp_drho = physics%conduction%dtcperpdrho(x)
+    dkappa_perp_dT = physics%conduction%dtcperpdT(x)
 
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
@@ -80,19 +80,19 @@ contains
     deps = d_eps_grid_dr(grid_idx)
     x = grid_gauss(grid_idx)
     dT0 = background%temperature%dT0(x)
-    dkappa_para_dT = physics%conduction%dtcparadT(x, settings, background)
-    kappa_perp = physics%conduction%tcperp(x, settings, background)
-    dkappa_perp_drho = physics%conduction%dtcperpdrho(x, settings, background)
-    dkappa_perp_dT = physics%conduction%dtcperpdT(x, settings, background)
+    dkappa_para_dT = physics%conduction%dtcparadT(x)
+    kappa_perp = physics%conduction%tcperp(x)
+    dkappa_perp_drho = physics%conduction%dtcperpdrho(x)
+    dkappa_perp_dT = physics%conduction%dtcperpdT(x)
     B0 = background%magnetic%get_B0(x)
     B01 = background%magnetic%B01(x)
     B02 = background%magnetic%B02(x)
     B03 = background%magnetic%B03(x)
-    dkappa_perp_dB2 = physics%conduction%dtcperpdB2(x, settings, background)
+    dkappa_perp_dB2 = physics%conduction%dtcperpdB2(x)
 
     Gop_min = k3 * B02 - k2 * B03 / eps
     Fop = k2 * B02 / eps + k3 * B03
-    Kp = physics%conduction%tcprefactor(x, settings, background)
+    Kp = physics%conduction%tcprefactor(x)
     Kp_plus = Kp + dkappa_perp_dB2
     Kp_plusplus = dkappa_perp_dB2 - (B01**2 * Kp_plus / B0**2)
 

@@ -128,10 +128,8 @@ contains
     dB03 = -1.25_dp * Bz1 * r**(-2.25_dp)
   end function dB03
 
-  real(dp) function g0(x, settings, background)
+  real(dp) function g0(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     g0 = 1.0_dp / x**2
   end function g0
 

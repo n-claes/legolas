@@ -26,11 +26,11 @@ contains
     dB03 = background%magnetic%dB03(x_gauss)
     ddB03 = background%magnetic%ddB03(x_gauss)
     ! resistivity variables
-    eta = physics%resistivity%eta(x_gauss, settings, background)
-    detadT = physics%resistivity%detadT(x_gauss, settings, background)
+    eta = physics%resistivity%eta(x_gauss)
+    detadT = physics%resistivity%detadT(x_gauss)
     ! total derivative eta = deta_dr + dT0_dr * deta_dT
     deta = ( &
-      physics%resistivity%detadr(x_gauss, settings, background) &
+      physics%resistivity%detadr(x_gauss) &
       + (background%temperature%dT0(x_gauss) * detadT) &
     )
 

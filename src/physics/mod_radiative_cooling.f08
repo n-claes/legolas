@@ -9,18 +9,20 @@ module mod_radiative_cooling
   use mod_logging, only: logger
   use mod_settings, only: settings_t
   use mod_background, only: background_t
-  use mod_physics_utils, only: physics_i
-  use mod_cooling_curves, only: interpolate_cooling_curves, get_lambdaT, get_dlambdadT
+  use mod_cooling_curve_names, only: ROSNER
   implicit none
 
   private
 
+  type(settings_t), pointer :: settings => null()
+  type(background_t), pointer :: background => null()
+
   type, public :: cooling_t
-    procedure(physics_i), pointer, nopass :: lambdaT
-    procedure(physics_i), pointer, nopass :: dlambdadT
-    procedure(physics_i), pointer, nopass :: L0
-    procedure(physics_i), pointer, nopass :: dLdT
-    procedure(physics_i), pointer, nopass :: dLdrho
+    procedure(real(dp)), pointer, nopass :: lambdaT
+    procedure(real(dp)), pointer, nopass :: dlambdadT
+    procedure(real(dp)), pointer, nopass :: L0
+    procedure(real(dp)), pointer, nopass :: dLdT
+    procedure(real(dp)), pointer, nopass :: dLdrho
     logical, private :: is_initialised
 
   contains
@@ -32,8 +34,12 @@ module mod_radiative_cooling
 
 contains
 
-  function new_cooling() result(cooling)
+  function new_cooling(settings_tgt, background_tgt) result(cooling)
+    type(settings_t), target, intent(in) :: settings_tgt
+    type(background_t), target, intent(in) :: background_tgt
     type(cooling_t) :: cooling
+    settings => settings_tgt
+    background => background_tgt
     cooling%is_initialised = .false.
     cooling%lambdaT => get_lambdaT
     cooling%dlambdadT => get_dlambdadT
@@ -43,20 +49,10 @@ contains
   end function new_cooling
 
 
-  real(dp) function zero(x, settings, background)
-    real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
-    zero = 0.0_dp
-  end function zero
-
-
-  subroutine initialise(this, settings)
-    use mod_cooling_curves, only: is_valid_cooling_curve
-    use mod_cooling_curve_names, only: ROSNER
+  subroutine initialise(this)
+    use mod_cooling_curves, only: is_valid_cooling_curve, interpolate_cooling_curves
 
     class(cooling_t), intent(inout) :: this
-    type(settings_t), intent(in) :: settings
     character(:), allocatable :: curve
     logical :: use_interpolated_curve
 
@@ -74,43 +70,63 @@ contains
   end subroutine initialise
 
 
-  real(dp) function get_L0(x, settings, background)
+  real(dp) function get_L0(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
 
     get_L0 = 0.0_dp
   end function get_L0
 
 
-  real(dp) function get_dLdT(x, settings, background)
+  real(dp) function get_dLdT(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
 
     get_dLdT = 0.0_dp
     if (.not. settings%physics%cooling%is_enabled()) return
 
-    get_dLdT = background%density%rho0(x) * get_dlambdadT(x, settings, background)
+    get_dLdT = background%density%rho0(x) * get_dlambdadT(x)
   end function get_dLdT
 
 
-  real(dp) function get_dLdrho(x, settings, background)
+  real(dp) function get_dLdrho(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
 
     get_dLdrho = 0.0_dp
     if (.not. settings%physics%cooling%is_enabled()) return
 
-    get_dLdrho = get_lambdaT(x, settings, background)
+    get_dLdrho = get_lambdaT(x)
   end function get_dLdrho
+
+
+  real(dp) function get_lambdaT(x)
+    use mod_cooling_curves, only: get_rosner_lambdaT, get_interpolated_lambdaT
+    real(dp), intent(in) :: x
+
+    if (settings%physics%cooling%get_cooling_curve() == ROSNER) then
+      get_lambdaT = get_rosner_lambdaT(x, settings, background)
+    else
+      get_lambdaT = get_interpolated_lambdaT(x, settings, background)
+    end if
+  end function get_lambdaT
+
+
+  real(dp) function get_dlambdadT(x)
+    use mod_cooling_curves, only: get_rosner_dlambdadT, get_interpolated_dlambdadT
+    real(dp), intent(in) :: x
+
+    if (settings%physics%cooling%get_cooling_curve() == ROSNER) then
+      get_dlambdadT = get_rosner_dlambdadT(x, settings, background)
+    else
+      get_dlambdadT = get_interpolated_dlambdadT(x, settings, background)
+    end if
+  end function get_dlambdadT
 
 
   subroutine delete(this)
     use mod_cooling_curves, only: deallocate_cooling_curves
 
     class(cooling_t), intent(inout) :: this
+    nullify(settings)
+    nullify(background)
     nullify(this%lambdaT)
     nullify(this%dlambdadT)
     nullify(this%L0)

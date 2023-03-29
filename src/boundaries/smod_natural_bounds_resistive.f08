@@ -19,7 +19,7 @@ contains
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
     x = grid_gauss(grid_idx)
-    eta = physics%resistivity%eta(x, settings, background)
+    eta = physics%resistivity%eta(x)
     B02 = background%magnetic%B02(x)
     dB02 = background%magnetic%dB02(x)
     B03 = background%magnetic%B03(x)

@@ -17,9 +17,9 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     dT0 = background%temperature%dT0(x_gauss)
-    kappa_perp = physics%conduction%tcperp(x_gauss, settings, background)
-    dkappa_perp_drho = physics%conduction%dtcperpdrho(x_gauss, settings, background)
-    dkappa_perp_dT = physics%conduction%dtcperpdT(x_gauss, settings, background)
+    kappa_perp = physics%conduction%tcperp(x_gauss)
+    dkappa_perp_drho = physics%conduction%dtcperpdrho(x_gauss)
+    dkappa_perp_dT = physics%conduction%dtcperpdT(x_gauss)
     ! operators
     WVop = k2**2 / eps + eps * k3**2
 
@@ -99,16 +99,16 @@ contains
     B03 = background%magnetic%B03(x_gauss)
     dB03 = background%magnetic%dB03(x_gauss)
     ! parallel thermal conduction variables
-    kappa_para = physics%conduction%tcpara(x_gauss, settings, background)
-    dkappa_para_dT = physics%conduction%dtcparadT(x_gauss, settings, background)
+    kappa_para = physics%conduction%tcpara(x_gauss)
+    dkappa_para_dT = physics%conduction%dtcparadT(x_gauss)
     ! perpendicular thermal conduction variables
-    kappa_perp = physics%conduction%tcperp(x_gauss, settings, background)
-    dkappa_perp_drho = physics%conduction%dtcperpdrho(x_gauss, settings, background)
-    dkappa_perp_dT = physics%conduction%dtcperpdT(x_gauss, settings, background)
-    dkappa_perp_dB2 = physics%conduction%dtcperpdB2(x_gauss, settings, background)
+    kappa_perp = physics%conduction%tcperp(x_gauss)
+    dkappa_perp_drho = physics%conduction%dtcperpdrho(x_gauss)
+    dkappa_perp_dT = physics%conduction%dtcperpdT(x_gauss)
+    dkappa_perp_dB2 = physics%conduction%dtcperpdB2(x_gauss)
     ! prefactors
-    Kp = physics%conduction%tcprefactor(x_gauss, settings, background)
-    diffKp = physics%conduction%dtcprefactordr(x_gauss, settings, background)
+    Kp = physics%conduction%tcprefactor(x_gauss)
+    diffKp = physics%conduction%dtcprefactordr(x_gauss)
     Kp_plus = Kp + dkappa_perp_dB2
     Kp_plusplus = dkappa_perp_dB2 - (B01**2 * Kp_plus / B0**2)
     ! operators

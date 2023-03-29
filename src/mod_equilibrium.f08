@@ -212,9 +212,9 @@ contains
     call perform_NaN_and_negative_checks(settings, background, physics)
 
     if (settings%physics%cooling%is_enabled()) then
-      call physics%cooling%initialise(settings)
+      call physics%cooling%initialise()
     end if
-    call physics%hall%validate_scale_ratio(grid_gauss, settings, background)
+    call physics%hall%validate_scale_ratio(grid_gauss)
 
     ! Do final sanity checks on values
     call perform_sanity_checks(settings, background, physics)

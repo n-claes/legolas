@@ -3,7 +3,6 @@
 !! thermal conduction values based on the equilibrium configuration.
 module mod_thermal_conduction
   use mod_global_variables, only: dp
-  use mod_physics_utils, only: physics_i
   use mod_physical_constants, only: dpi, coulomb_log, tc_pf_kappa_para, tc_pf_kappa_perp
   use mod_logging, only: logger, str
   use mod_settings, only: settings_t
@@ -12,16 +11,19 @@ module mod_thermal_conduction
 
   private
 
-  type, public :: conduction_t
-    procedure(physics_i), pointer, nopass :: tcpara
-    procedure(physics_i), pointer, nopass :: dtcparadT
-    procedure(physics_i), pointer, nopass :: dtcparadr
+  type(settings_t), pointer :: settings
+  type(background_t), pointer :: background
 
-    procedure(physics_i), pointer, nopass :: tcperp
-    procedure(physics_i), pointer, nopass :: dtcperpdrho
-    procedure(physics_i), pointer, nopass :: dtcperpdT
-    procedure(physics_i), pointer, nopass :: dtcperpdB2
-    procedure(physics_i), pointer, nopass :: dtcperpdr
+  type, public :: conduction_t
+    procedure(real(dp)), pointer, nopass :: tcpara
+    procedure(real(dp)), pointer, nopass :: dtcparadT
+    procedure(real(dp)), pointer, nopass :: dtcparadr
+
+    procedure(real(dp)), pointer, nopass :: tcperp
+    procedure(real(dp)), pointer, nopass :: dtcperpdrho
+    procedure(real(dp)), pointer, nopass :: dtcperpdT
+    procedure(real(dp)), pointer, nopass :: dtcperpdB2
+    procedure(real(dp)), pointer, nopass :: dtcperpdr
   contains
     procedure, public :: tcprefactor
     procedure, public :: dtcprefactordr
@@ -33,8 +35,13 @@ module mod_thermal_conduction
 contains
 
 
-  function new_conduction() result(conduction)
+  function new_conduction(settings_tgt, background_tgt) result(conduction)
+    type(settings_t), target, intent(in) :: settings_tgt
+    type(background_t), target, intent(in) :: background_tgt
     type(conduction_t) :: conduction
+
+    settings => settings_tgt
+    background => background_tgt
 
     conduction%tcpara => get_tcpara
     conduction%dtcparadT => get_dtcparadT
@@ -48,10 +55,8 @@ contains
   end function new_conduction
 
 
-  real(dp) function get_tcpara(x, settings, background)
+  real(dp) function get_tcpara(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: T0
 
     get_tcpara = 0.0_dp
@@ -68,10 +73,8 @@ contains
   end function get_tcpara
 
 
-  real(dp) function get_dtcparadT(x, settings, background)
+  real(dp) function get_dtcparadT(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: unit_temperature, unit_conduction
     real(dp) :: T0
 
@@ -88,10 +91,8 @@ contains
   end function get_dtcparadT
 
 
-  real(dp) function get_dtcparadr(x, settings, background)
+  real(dp) function get_dtcparadr(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: dT0
 
     get_dtcparadr = 0.0_dp
@@ -100,15 +101,13 @@ contains
 
     ! position derivative is dtcpara/dT * T0'
     dT0 = background%temperature%dT0(x)
-    get_dtcparadr = get_dtcparadT(x, settings, background) * dT0
+    get_dtcparadr = get_dtcparadT(x) * dT0
   end function get_dtcparadr
 
 
 
-  real(dp) function get_tcperp(x, settings, background)
+  real(dp) function get_tcperp(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: T0, nh0, B0
 
     get_tcperp = 0.0_dp
@@ -118,7 +117,7 @@ contains
       return
     end if
     if (.not. settings%has_bfield()) then
-      get_tcperp = get_tcpara(x, settings, background)
+      get_tcperp = get_tcpara(x)
       return
     end if
 
@@ -131,10 +130,8 @@ contains
   end function get_tcperp
 
 
-  real(dp) function get_dtcperpdrho(x, settings, background)
+  real(dp) function get_dtcperpdrho(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: T0, nh0, B0
 
     get_dtcperpdrho = 0.0_dp
@@ -152,17 +149,15 @@ contains
   end function get_dtcperpdrho
 
 
-  real(dp) function get_dtcperpdT(x, settings, background)
+  real(dp) function get_dtcperpdT(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: T0, nh0, B0
 
     get_dtcperpdT = 0.0_dp
     if (.not. settings%physics%conduction%has_perpendicular_conduction()) return
     if (settings%physics%conduction%has_fixed_tc_perp()) return
     if (.not. settings%has_bfield()) then
-      get_dtcperpdT = get_dtcparadT(x, settings, background)
+      get_dtcperpdT = get_dtcparadT(x)
       return
     end if
 
@@ -176,10 +171,8 @@ contains
   end function get_dtcperpdT
 
 
-  real(dp) function get_dtcperpdB2(x, settings, background)
+  real(dp) function get_dtcperpdB2(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: T0, nh0, B0
     real(dp) :: unit_magneticfield
 
@@ -198,10 +191,8 @@ contains
   end function get_dtcperpdB2
 
 
-  real(dp) function get_dtcperpdr(x, settings, background)
+  real(dp) function get_dtcperpdr(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: drho0, dT0, B0, dB0
 
     get_dtcperpdr = 0.0_dp
@@ -209,7 +200,7 @@ contains
     if (settings%physics%conduction%has_fixed_tc_perp()) return
 
     if (.not. settings%has_bfield()) then
-      get_dtcperpdr = get_dtcparadr(x, settings, background)
+      get_dtcperpdr = get_dtcparadr(x)
       return
     end if
     drho0 = background%density%drho0(x)
@@ -217,18 +208,16 @@ contains
     B0 = background%magnetic%get_B0(x)
     dB0 = background%magnetic%get_dB0(x)
     get_dtcperpdr = ( &
-      get_dtcperpdrho(x, settings, background) * drho0 &
-      + get_dtcperpdT(x, settings, background) * dT0 &
-      + get_dtcperpdB2(x, settings, background) * 2.0_dp * B0 * dB0 &
+      get_dtcperpdrho(x) * drho0 &
+      + get_dtcperpdT(x) * dT0 &
+      + get_dtcperpdB2(x) * 2.0_dp * B0 * dB0 &
     )
   end function get_dtcperpdr
 
 
-  real(dp) function tcprefactor(this, x, settings, background)
+  real(dp) function tcprefactor(this, x)
     class(conduction_t), intent(in) :: this
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: B0
 
     tcprefactor = 0.0_dp
@@ -237,16 +226,14 @@ contains
 
     B0 = background%magnetic%get_B0(x)
     tcprefactor = ( &
-      this%tcpara(x, settings, background) - this%tcperp(x, settings, background) &
+      this%tcpara(x) - this%tcperp(x) &
     ) / B0**2
   end function tcprefactor
 
 
-  real(dp) function dtcprefactordr(this, x, settings, background)
+  real(dp) function dtcprefactordr(this, x)
     class(conduction_t), intent(in) :: this
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     real(dp) :: B0, dB0
 
     dtcprefactordr = 0.0_dp
@@ -256,20 +243,18 @@ contains
     B0 = background%magnetic%get_B0(x)
     dB0 = background%magnetic%get_dB0(x)
     dtcprefactordr = ( &
-      ( &
-        this%dtcparadr(x, settings, background) &
-        - this%dtcperpdr(x, settings, background) &
-      ) * B0 &
-      - 2.0_dp * ( &
-        this%tcpara(x, settings, background) &
-        - this%tcperp(x, settings, background) &
-      ) * dB0 &
+      (this%dtcparadr(x) - this%dtcperpdr(x)) * B0 &
+      - 2.0_dp * (this%tcpara(x) - this%tcperp(x)) * dB0 &
     ) / B0**3
   end function dtcprefactordr
 
 
-  pure subroutine delete(this)
+  subroutine delete(this)
     class(conduction_t), intent(inout) :: this
+
+    nullify(settings)
+    nullify(background)
+
     nullify(this%tcpara)
     nullify(this%dtcparadT)
     nullify(this%dtcparadr)

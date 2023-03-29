@@ -76,10 +76,7 @@ contains
   end function dB03
 
 
-  real(dp) function g0(x, settings, background)
-    real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
+  real(dp) function g0()
     g0 = g
   end function g0
 

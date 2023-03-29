@@ -114,10 +114,7 @@ contains
     v_prof = v0 + v1 * (x - 0.5_dp) + v2 * sin(tau * (x - 0.5_dp))
   end function v_prof
 
-  real(dp) function g0(x, settings, background)
-    real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
+  real(dp) function g0()
     g0 = g
   end function g0
 
