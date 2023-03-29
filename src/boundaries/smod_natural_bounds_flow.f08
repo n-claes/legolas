@@ -10,8 +10,8 @@ contains
 
     if (.not. settings%physics%flow%is_enabled()) return
 
-    rho = background%density%rho0(grid_gauss(grid_idx))
-    v01 = background%velocity%v01(grid_gauss(grid_idx))
+    rho = background%density%rho0(x)
+    v01 = background%velocity%v01(x)
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! ==================== Cubic * Cubic ====================

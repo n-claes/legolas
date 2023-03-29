@@ -10,12 +10,12 @@ contains
     real(dp)  :: Gop_min
     type(matrix_elements_t) :: elements
 
-    eps = eps_grid(grid_idx)
-    rho = background%density%rho0(grid_gauss(grid_idx))
-    T0 = background%temperature%T0(grid_gauss(grid_idx))
-    B01 = background%magnetic%B01(grid_gauss(grid_idx))
-    B02 = background%magnetic%B02(grid_gauss(grid_idx))
-    B03 = background%magnetic%B03(grid_gauss(grid_idx))
+    eps = grid%get_eps(x)
+    rho = background%density%rho0(x)
+    T0 = background%temperature%T0(x)
+    B01 = background%magnetic%B01(x)
+    B02 = background%magnetic%B02(x)
+    B03 = background%magnetic%B03(x)
     Gop_min = k3 * B02 - k2 * B03 / eps
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 

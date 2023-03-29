@@ -10,16 +10,14 @@ contains
     real(dp) :: kappa_perp
     real(dp) :: dkappa_perp_drho, dkappa_perp_dT
     real(dp) :: gamma_1
-    real(dp) :: x
     type(matrix_elements_t) :: elements
 
     if (.not. settings%physics%conduction%is_enabled()) return
 
-    x = grid_gauss(grid_idx)
 
     gamma_1 = settings%physics%get_gamma_1()
-    eps = eps_grid(grid_idx)
-    deps = d_eps_grid_dr(grid_idx)
+    eps = grid%get_eps(x)
+    deps = grid%get_deps()
     dT0 = background%temperature%dT0(x)
     dkappa_para_dT = physics%conduction%dtcparadT(x)
     kappa_perp = physics%conduction%tcperp(x)
@@ -49,7 +47,9 @@ contains
     )
 
     if (settings%has_bfield()) then
-      call add_natural_conduction_terms_bfield(settings, background, physics, elements)
+      call add_natural_conduction_terms_bfield( &
+        x, settings, grid, background, physics, elements &
+      )
     end if
 
     call add_to_quadblock(quadblock, elements, weight, settings%dims)
@@ -58,9 +58,11 @@ contains
 
 
   subroutine add_natural_conduction_terms_bfield( &
-    settings, background, physics, elements &
+    x, settings, grid, background, physics, elements &
   )
+    real(dp), intent(in) :: x
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
     type(physics_t), intent(in) :: physics
     type(matrix_elements_t), intent(inout) :: elements
@@ -73,12 +75,10 @@ contains
     real(dp) :: dkappa_perp_drho, dkappa_perp_dT, dkappa_perp_dB2
     real(dp) :: Fop, Gop_min, Kp, Kp_plus, Kp_plusplus
     real(dp) :: gamma_1
-    real(dp) :: x
 
     gamma_1 = settings%physics%get_gamma_1()
-    eps = eps_grid(grid_idx)
-    deps = d_eps_grid_dr(grid_idx)
-    x = grid_gauss(grid_idx)
+    eps = grid%get_eps(x)
+    deps = grid%get_deps()
     dT0 = background%temperature%dT0(x)
     dkappa_para_dT = physics%conduction%dtcparadT(x)
     kappa_perp = physics%conduction%tcperp(x)

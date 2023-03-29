@@ -18,11 +18,11 @@ contains
     is_compressible = .not. settings%physics%is_incompressible
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
-    eps = eps_grid(grid_idx)
-    deps = d_eps_grid_dr(grid_idx)
+    eps = grid%get_eps(x)
+    deps = grid%get_deps()
     mu = settings%physics%viscosity%get_viscosity_value()
-    dv01 = background%velocity%dv01(grid_gauss(grid_idx))
-    dv03 = background%velocity%dv03(grid_gauss(grid_idx))
+    dv01 = background%velocity%dv01(x)
+    dv03 = background%velocity%dv03(x)
 
     ! ==================== Cubic * Cubic ====================
     call elements%add( &

@@ -8,7 +8,7 @@ contains
     real(dp)  :: rho, eps
 
     rho = background%density%rho0(x_gauss)
-    eps = eps_grid(gauss_idx)
+    eps = grid%get_eps(x_gauss)
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! Quadratic * Quadratic
@@ -41,8 +41,8 @@ contains
     gamma_1 = settings%physics%get_gamma_1()
 
     ! grid variables
-    eps = eps_grid(gauss_idx)
-    deps = d_eps_grid_dr(gauss_idx)
+    eps = grid%get_eps(x_gauss)
+    deps = grid%get_deps()
     ! density variables
     rho = background%density%rho0(x_gauss)
     drho = background%density%drho0(x_gauss)

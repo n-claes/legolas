@@ -7,15 +7,13 @@ contains
     real(dp)  :: eps
     real(dp)  :: rho
     real(dp)  :: eta_e
-    real(dp) :: x
     type(matrix_elements_t) :: elements
 
     if (.not. settings%physics%hall%is_enabled()) return
     if (.not. settings%physics%hall%has_electron_inertia()) return
 
-    x = grid_gauss(grid_idx)
-    eps = eps_grid(grid_idx)
-    rho = background%density%rho0(grid_gauss(grid_idx))
+    eps = grid%get_eps(x)
+    rho = background%density%rho0(x)
     eta_e = physics%hall%inertiafactor(x)
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
@@ -38,16 +36,14 @@ contains
     real(dp)  :: eps, deps
     real(dp)  :: rho, T0, B01, B02, B03
     real(dp)  :: eta_H, mu, efrac
-    real(dp) :: x
     type(matrix_elements_t) :: elements
 
     if (.not. settings%physics%hall%is_enabled()) return
     ! Hall by substitution of the momentum equation, only contains viscosity terms
     if (.not. settings%physics%viscosity%is_enabled()) return
 
-    eps = eps_grid(grid_idx)
-    deps = d_eps_grid_dr(grid_idx)
-    x = grid_gauss(grid_idx)
+    eps = grid%get_eps(x)
+    deps = grid%get_deps()
 
     rho = background%density%rho0(x)
     T0 = background%temperature%T0(x)

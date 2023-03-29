@@ -10,8 +10,8 @@ contains
     real(dp)  :: WVop
     type(matrix_elements_t) :: elements
 
-    eps = eps_grid(gauss_idx)
-    deps = d_eps_grid_dr(gauss_idx)
+    eps = grid%get_eps(x_gauss)
+    deps = grid%get_deps()
     rho = background%density%rho0(x_gauss)
     drho = background%density%drho0(x_gauss)
     eta_H = physics%hall%hallfactor(x_gauss)
@@ -95,8 +95,8 @@ contains
     type(matrix_elements_t) :: elements
     logical :: has_viscosity
 
-    eps = eps_grid(gauss_idx)
-    deps = d_eps_grid_dr(gauss_idx)
+    eps = grid%get_eps(x_gauss)
+    deps = grid%get_deps()
 
     v01 = background%velocity%v01(x_gauss)
     v02 = background%velocity%v02(x_gauss)

@@ -9,16 +9,14 @@ contains
     real(dp)  :: B02, dB02, drB02
     real(dp)  :: B03, dB03
     real(dp) :: gamma_1
-    real(dp) :: x
     type(matrix_elements_t) :: elements
 
     if (.not. settings%physics%resistivity%is_enabled()) return
 
     gamma_1 = settings%physics%get_gamma_1()
 
-    eps = eps_grid(grid_idx)
-    deps = d_eps_grid_dr(grid_idx)
-    x = grid_gauss(grid_idx)
+    eps = grid%get_eps(x)
+    deps = grid%get_deps()
     eta = physics%resistivity%eta(x)
     B02 = background%magnetic%B02(x)
     dB02 = background%magnetic%dB02(x)
