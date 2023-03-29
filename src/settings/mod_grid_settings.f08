@@ -26,13 +26,15 @@ module mod_grid_settings
     procedure, public :: get_grid_start
     procedure, public :: get_grid_end
     procedure, public :: delete
+
+    procedure, private :: validate_grid_start
   end type grid_settings_t
 
   public :: new_grid_settings
 
 contains
 
-  pure function new_grid_settings() result(grid_settings)
+  function new_grid_settings() result(grid_settings)
     type(grid_settings_t) :: grid_settings
 
     call grid_settings%set_geometry("Cartesian")
@@ -84,12 +86,13 @@ contains
   end function get_ef_gridpts
 
 
-  pure subroutine set_grid_boundaries(this, grid_start, grid_end)
+  subroutine set_grid_boundaries(this, grid_start, grid_end)
     class(grid_settings_t), intent(inout) :: this
     real(dp), intent(in) :: grid_start
     real(dp), intent(in) :: grid_end
 
     this%grid_start = grid_start
+    if (this%get_geometry() == "cylindrical") call this%validate_grid_start()
     this%grid_end = grid_end
   end subroutine set_grid_boundaries
 
@@ -104,6 +107,36 @@ contains
     class(grid_settings_t), intent(in) :: this
     get_grid_end = this%grid_end
   end function get_grid_end
+
+
+  subroutine validate_grid_start(this)
+    use mod_check_values, only: is_zero
+    use mod_logging, only: logger
+    class(grid_settings_t), intent(inout) :: this
+
+    if (this%grid_start < 0.0_dp) then
+      call logger%error("grid start must be >= 0 in cylindrical geometry")
+      return
+    end if
+
+    if (this%coaxial .and. is_zero(this%grid_start)) then
+      call logger%error("grid start must be > 0 to introduce an inner wall boundary")
+      return
+    end if
+
+    if (this%force_r0) then
+      this%grid_start = 0.0_dp
+      call logger%warning( &
+        "forcing on-axis r in cylindrical geometry, may lead to spurious eigenvalues" &
+      )
+    else if (is_zero(this%grid_start)) then
+      this%grid_start = 0.025_dp
+      call logger%warning( &
+        "grid start set to 0.025 to avoid on-axis singularity. " // &
+        "Set 'force_r0 = .true.' to force r=0. " &
+      )
+    end if
+  end subroutine validate_grid_start
 
 
   pure subroutine delete(this)

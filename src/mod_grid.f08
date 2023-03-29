@@ -56,7 +56,6 @@ contains
     class(grid_t), intent(inout) :: this
 
     if (this%is_initialised) return
-    if (.not. is_valid_grid_start(this%settings)) return
 
     if (.not. this%uses_custom_base_grid) call this%set_base_grid()
     call this%set_gaussian_grid()
@@ -170,44 +169,6 @@ contains
     nullify(this%settings)
     this%is_initialised = .false.
   end subroutine delete
-
-
-  logical function is_valid_grid_start(settings)
-    use mod_check_values, only: is_zero
-    type(settings_t), intent(inout) :: settings
-    real(dp) :: grid_start
-
-    is_valid_grid_start = .false.
-    if (settings%grid%get_geometry() /= "cylindrical") then
-      is_valid_grid_start = .true.
-      return
-    end if
-
-    grid_start = settings%grid%get_grid_start()
-    if (grid_start < 0.0_dp) then
-      call logger%error("x_start must be >= 0 in cylindrical geometry")
-      return
-    end if
-
-    if (settings%grid%coaxial .and. is_zero(grid_start)) then
-      call logger%error("x_start must be > 0 to introduce an inner wall boundary")
-      return
-    end if
-
-    if (settings%grid%force_r0) then
-      grid_start = 0.0_dp
-      call logger%warning( &
-        "forcing on-axis r in cylindrical geometry, may lead to spurious eigenvalues" &
-      )
-    else if (is_zero(grid_start)) then
-      grid_start = 0.025_dp
-      call logger%warning( &
-        "x_start set to 0.025 to avoid singularity, avoid by setting force_r0=.true." &
-      )
-    end if
-    is_valid_grid_start = .true.
-    call settings%grid%set_grid_boundaries(grid_start, settings%grid%get_grid_end())
-  end function is_valid_grid_start
 
 
   logical function is_valid_custom_base_grid(settings, custom_grid)
