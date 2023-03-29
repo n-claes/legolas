@@ -20,10 +20,10 @@ contains
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
     eta = eta_field % eta(grid_idx)
-    B02 = B_field % B02(grid_idx)
-    dB02 = B_field % d_B02_dr(grid_idx)
-    B03 = B_field % B03(grid_idx)
-    dB03 = B_field % d_B03_dr(grid_idx)
+    B02 = background%magnetic%B02(grid_gauss(grid_idx))
+    dB02 = background%magnetic%dB02(grid_gauss(grid_idx))
+    B03 = background%magnetic%B03(grid_gauss(grid_idx))
+    dB03 = background%magnetic%dB03(grid_gauss(grid_idx))
 
     drB02 = deps * B02 + eps * dB02
     elements = new_matrix_elements(state_vector=settings%get_state_vector())

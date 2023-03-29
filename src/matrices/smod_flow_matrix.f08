@@ -1,5 +1,4 @@
 submodule (mod_matrix_manager) smod_flow_matrix
-  use mod_equilibrium, only: v_field
   implicit none
 
 contains
@@ -20,19 +19,19 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     ! density variables
-    rho = rho_field % rho0(gauss_idx)
-    drho = rho_field % d_rho0_dr(gauss_idx)
+    rho = background%density%rho0(grid_gauss(gauss_idx))
+    drho = background%density%drho0(grid_gauss(gauss_idx))
     ! temperature variables
-    T0 = T_field % T0(gauss_idx)
+    T0 = background%temperature%T0(grid_gauss(gauss_idx))
     ! flow variables
-    v01 = v_field % v01(gauss_idx)
-    dv01 = v_field % d_v01_dr(gauss_idx)
+    v01 = background%velocity%v01(grid_gauss(gauss_idx))
+    dv01 = background%velocity%dv01(grid_gauss(gauss_idx))
     drv01 = deps * v01 + eps * dv01
-    v02 = v_field % v02(gauss_idx)
-    dv02 = v_field % d_v02_dr(gauss_idx)
+    v02 = background%velocity%v02(grid_gauss(gauss_idx))
+    dv02 = background%velocity%dv02(grid_gauss(gauss_idx))
     drv02 = deps * v02 + eps * dv02
-    v03 = v_field % v03(gauss_idx)
-    dv03 = v_field % d_v03_dr(gauss_idx)
+    v03 = background%velocity%v03(grid_gauss(gauss_idx))
+    dv03 = background%velocity%dv03(grid_gauss(gauss_idx))
     Vop = k2 * v02 / eps + k3 * v03
 
     elements = new_matrix_elements(state_vector=settings%get_state_vector())

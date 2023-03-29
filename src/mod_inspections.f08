@@ -5,11 +5,14 @@
 !! on-axis values obey regularity conditions. Equilibrium balance
 !! for both the Cartesian and cylindrical cases is checked.
 module mod_inspections
-  use mod_global_variables, only: dp
-  use mod_types, only: density_type, temperature_type, bfield_type, velocity_type, &
-    gravity_type, cooling_type, conduction_type
+  use mod_global_variables, only: dp, dp_LIMIT
+  use mod_types, only: gravity_type, cooling_type, conduction_type
   use mod_logging, only: logger, str, exp_fmt
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
+  use mod_function_utils, only: from_function
+  use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
+  use mod_check_values, only: is_NaN, is_negative, is_zero
   implicit none
 
   private
@@ -23,50 +26,38 @@ contains
   !> General routine to do initial sanity checks on the various equilibrium attributes.
   !! We check the equilibrium arrays for NaN and see if all density and temperature
   !! values are positive.
-  subroutine perform_NaN_and_negative_checks( &
-    rho_field, T_field, B_field, v_field, grav_field &
-  )
-    use mod_check_values, only: is_NaN, is_negative
-
-    !> the type containing the density attributes
-    type(density_type), intent(in)      :: rho_field
-    !> the type containing the temperature attributes
-    type(temperature_type), intent(in)  :: T_field
-    !> the type containing the magnetic field attributes
-    type(bfield_type), intent(in)       :: B_field
-    !> the type containing the velocity attributes
-    type(velocity_type), intent(in)     :: v_field
+  subroutine perform_NaN_and_negative_checks(background, grav_field)
+    type(background_t), intent(in) :: background
     !> the type containing the gravity attributes
     type(gravity_type), intent(in)      :: grav_field
 
     character(50) :: name
 
     name = ""
-
     ! TODO: is there an easier way to do this?
-    if (any(is_negative(rho_field % rho0))) then
+    if (any(is_negative(from_function(background%density%rho0, grid_gauss)))) then
       call logger%error("negative density encountered!")
       return
     end if
-    if (any(is_negative(T_field % T0))) then
+    if (any(is_negative(from_function(background%temperature%T0, grid_gauss)))) then
       call logger%error("negative temperature encountered!")
       return
     end if
-    if (any(is_NaN(rho_field % rho0))) then
+    if (any(is_NaN(from_function(background%density%rho0, grid_gauss)))) then
       name = "density"
-    else if (any(is_NaN(T_field % T0))) then
+    else if (any(is_NaN(from_function(background%temperature%T0, grid_gauss)))) then
       name = "temperature"
-    else if (is_NaN(B_field % B01)) then
+    else if (any(is_NaN(from_function(background%magnetic%B01, grid_gauss)))) then
       name = "B01"
-    else if (any(is_NaN(B_field % B02))) then
+    else if (any(is_NaN(from_function(background%magnetic%B02, grid_gauss)))) then
       name = "B02"
-    else if (any(is_NaN(B_field % B03))) then
+    else if (any(is_NaN(from_function(background%magnetic%B03, grid_gauss)))) then
       name = "B03"
-    else if (any(is_NaN(v_field % v01))) then
+    else if (any(is_NaN(from_function(background%velocity%v01, grid_gauss)))) then
       name = "v01"
-    else if (any(is_NaN(v_field % v02))) then
+    else if (any(is_NaN(from_function(background%velocity%v02, grid_gauss)))) then
       name = "v02"
-    else if (any(is_NaN(v_field % v03))) then
+    else if (any(is_NaN(from_function(background%velocity%v03, grid_gauss)))) then
       name = "v03"
     else if (any(is_NaN(grav_field % grav))) then
       name = "gravity"
@@ -83,18 +74,11 @@ contains
   !! We check the wavenumbers and on-axis values, as well as standard
   !! and non-adiabatic equilibrium force balance.
   subroutine perform_sanity_checks( &
-    settings, rho_field, T_field, B_field, v_field, grav_field, rc_field, kappa_field &
+    settings, background, grav_field, rc_field, kappa_field &
   )
     !> the settings object
     type(settings_t), intent(in) :: settings
-    !> the type containing the density attributes
-    type(density_type), intent(in)      :: rho_field
-    !> the type containing the temperature attributes
-    type(temperature_type), intent(in)  :: T_field
-    !> the type containing the magnetic field attributes
-    type(bfield_type), intent(in)       :: B_field
-    !> the type containing the velocity attributes
-    type(velocity_type), intent(in)     :: v_field
+    type(background_t), intent(in) :: background
     !> the type containing the gravity attributes
     type(gravity_type), intent(in)      :: grav_field
     !> the type containing the radiative cooling attributes
@@ -103,17 +87,26 @@ contains
     type(conduction_type), intent(in)   :: kappa_field
 
     call check_wavenumbers(geometry=settings%grid%get_geometry())
-    call check_on_axis_values(settings, B_field, v_field)
-    call standard_equil_conditions( &
-      settings, rho_field, T_field, B_field, v_field, grav_field &
-    )
-    call continuity_equil_conditions(settings, rho_field, v_field)
-    call induction_equil_conditions(settings, B_field, v_field)
-    ! set the energy balance based on the equilibrium conditions
-    call check_energy_balance( &
-      settings, rho_field, T_field, B_field, v_field, rc_field, kappa_field &
-    )
+    call check_B01_cylindrical(settings, background)
+    call check_on_axis_values(settings, background)
+    call standard_equil_conditions(settings, background, grav_field)
+    call continuity_equil_conditions(settings, background)
+    call induction_equil_conditions(settings, background)
+    call check_energy_balance(settings, background, rc_field, kappa_field)
   end subroutine perform_sanity_checks
+
+
+  subroutine check_B01_cylindrical(settings, background)
+    type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
+
+    if (.not. settings%grid%get_geometry() == "cylindrical") return
+    if (.not. all(is_zero(from_function(background%magnetic%B01, grid_gauss)))) then
+      call logger%error( &
+        "B01 component currently not supported for cylindrical geometries!" &
+      )
+    end if
+  end subroutine check_B01_cylindrical
 
 
   !> Sanity check on the wavenumbers.
@@ -121,7 +114,6 @@ contains
   !! @warning An error if thrown if the geometry is cylindrical and k2 is not
   !!          an integer.
   subroutine check_wavenumbers(geometry)
-    use mod_global_variables, only: dp_LIMIT
     use mod_equilibrium_params, only: k2
 
     character(len=*), intent(in) :: geometry
@@ -144,43 +136,32 @@ contains
   !! - \(B_z'\) is not zero on-axis.
   !! - \(v_\theta\) is not zero on-axis.
   !! - \(v_z'\) is not zero on-axis. @endwarning
-  subroutine check_on_axis_values(settings, B_field, v_field)
+  subroutine check_on_axis_values(settings, background)
     type(settings_t), intent(in) :: settings
-    !> the type containing the magnetic field attributes
-    type(bfield_type), intent(in)   :: B_field
-    !> the type containing the velocity attributes
-    type(velocity_type), intent(in) :: v_field
+    type(background_t), intent(in) :: background
 
-    real(dp)  :: on_axis_limit
-
-    if (settings%grid%get_geometry() == "Cartesian") then
-      return
-    end if
-
-    on_axis_limit = 1.0d-3
-    if (settings%grid%get_grid_start() > on_axis_limit) then
-      return
-    end if
+    if (settings%grid%get_geometry() == "Cartesian") return
+    if (settings%grid%get_grid_start() > 0.0_dp) return
 
     ! LCOV_EXCL_START
-    if (abs(B_field % B02(1)) > on_axis_limit) then
+    if (.not. is_zero(background%magnetic%B02(0.0_dp))) then
       call logger%warning( &
-        "B_theta non-zero on axis! Value: " // str(B_field % B02(1)) &
+        "B_theta non-zero on axis! Value: " // str(background%magnetic%B02(0.0_dp)) &
       )
     end if
-    if (abs(B_field % d_B03_dr(1)) > on_axis_limit) then
+    if (.not. is_zero(background%magnetic%dB03(0.0_dp))) then
       call logger%warning( &
-        "dBz/dr non-zero on axis! Value: " // str(B_field % d_B03_dr(1)) &
+        "dBz/dr non-zero on axis! Value: " // str(background%magnetic%dB03(0.0_dp)) &
       )
     end if
-    if (abs(v_field % v02(1)) > on_axis_limit) then
+    if (.not. is_zero(background%velocity%v02(0.0_dp))) then
       call logger%warning( &
-        "v_theta non-zero on axis! Value: " // str(v_field % v02(1)) &
+        "v_theta non-zero on axis! Value: " // str(background%velocity%v02(0.0_dp)) &
       )
     end if
-    if (abs(v_field % d_v03_dr(1)) > on_axis_limit) then
+    if (.not. is_zero(background%velocity%dv03(0.0_dp))) then
       call logger%warning( &
-        "dvz_dr non-zero on axis! Value: " // str(v_field % d_v03_dr(1)) &
+        "dvz_dr non-zero on axis! Value: " // str(background%velocity%dv03(0.0_dp)) &
       )
     end if
     ! LCOV_EXCL_STOP
@@ -196,64 +177,57 @@ contains
   !! $$ \rho_0 v_{01} v_{03}' - B_{01} B_{03}' = 0, $$
   !! and they should all be fulfilled.
   !! @warning   Throws a warning if force-balance is not satisfied.
-  subroutine standard_equil_conditions( &
-    settings, rho_field, T_field, B_field, v_field, grav_field &
-  )
-    use mod_global_variables, only: dp_LIMIT
-    use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
-
+  subroutine standard_equil_conditions(settings, background, grav_field)
     type(settings_t), intent(in) :: settings
-    !> the type containing the density attributes
-    type(density_type), intent(in)      :: rho_field
-    !> the type containing the temperature attributes
-    type(temperature_type), intent(in)  :: T_field
-    !> the type containing the magnetic field attributes
-    type(bfield_type), intent(in)       :: B_field
-    !> the type containing the velocity attributes
-    type(velocity_type), intent(in)     :: v_field
+    type(background_t), intent(in) :: background
     !> the type containing the gravity attributes
     type(gravity_type), intent(in)      :: grav_field
 
-    real(dp)  :: rho, drho, B01, B02, dB02, B03, dB03, T0, dT0, grav
-    real(dp)  :: v01, v02, v03, dv01, dv02, dv03
-    real(dp)  :: eps, d_eps, r(3), discrepancy(3)
-    real(dp)  :: eq_cond(settings%grid%get_gauss_gridpts(), 3)
-    integer   :: i, j, counter(3)
-    logical   :: satisfied(3)
-
-    B01 = B_field % B01
-    if ( &
-      (settings%grid%get_geometry() == "cylindrical") .and. (abs(B01) > dp_LIMIT) &
-    ) call logger%error( &
-      "B01 component currently not supported for cylindrical geometries!" &
-    )
+    real(dp) :: x
+    real(dp) :: rho0, drho0, B01, B02, dB02, B03, dB03, T0, dT0, grav
+    real(dp) :: v01, v02, v03, dv01, dv02, dv03
+    real(dp) :: eps, d_eps, r(3), discrepancy(3)
+    real(dp) :: eq_cond(settings%grid%get_gauss_gridpts(), 3)
+    integer :: i, j, counter(3)
+    logical :: satisfied(3)
 
     satisfied = .true.
     discrepancy = 0.0d0
     counter = 0
     do i = 1, settings%grid%get_gauss_gridpts()
-      rho = rho_field % rho0(i)
-      drho = rho_field % d_rho0_dr(i)
-      B02 = B_field % B02(i)
-      B03 = B_field % B03(i)
-      dB02 = B_field % d_B02_dr(i)
-      dB03 = B_field % d_B03_dr(i)
-      T0 = T_field % T0(i)
-      dT0 = T_field % d_T0_dr(i)
+      x = grid_gauss(i)
+      rho0 = background%density%rho0(x)
+      drho0 = background%density%drho0(x)
+      B01 = background%magnetic%B01(x)
+      B02 = background%magnetic%B02(x)
+      B03 = background%magnetic%B03(x)
+      dB02 = background%magnetic%dB02(x)
+      dB03 = background%magnetic%dB03(x)
+      T0 = background%temperature%T0(x)
+      dT0 = background%temperature%dT0(x)
+      v01 = background%velocity%v01(x)
+      v02 = background%velocity%v02(x)
+      v03 = background%velocity%v03(x)
+      dv01 = background%velocity%dv01(x)
+      dv02 = background%velocity%dv02(x)
+      dv03 = background%velocity%dv03(x)
       grav = grav_field % grav(i)
-      v01 = v_field % v01(i)
-      v02 = v_field % v02(i)
-      v03 = v_field % v03(i)
-      dv01 = v_field % d_v01_dr(i)
-      dv02 = v_field % d_v02_dr(i)
-      dv03 = v_field % d_v03_dr(i)
       eps = eps_grid(i)
       d_eps = d_eps_grid_dr(i)
 
-      eq_cond(i, 1) = drho * T0 + rho * dT0 + B02 * dB02 + B03 * dB03 + rho * grav &
-                    - (d_eps/eps) * (rho * v02**2 - B02**2) + rho * v01 * dv01
-      eq_cond(i, 2) = rho * v01 * (dv02 + v02 * d_eps / eps) - B01 * (dB02 + B02 * d_eps / eps)
-      eq_cond(i, 3) = rho * v01 * dv03 - B01 * dB03
+      eq_cond(i, 1) = ( &
+        drho0 * T0 &
+        + rho0 * dT0 &
+        + B02 * dB02 &
+        + B03 * dB03 &
+        + rho0 * grav &
+        - (d_eps/eps) * (rho0 * v02**2 - B02**2) &
+        + rho0 * v01 * dv01 &
+      )
+      eq_cond(i, 2) = ( &
+        rho0 * v01 * (dv02 + v02 * d_eps / eps) - B01 * (dB02 + B02 * d_eps / eps) &
+      )
+      eq_cond(i, 3) = rho0 * v01 * dv03 - B01 * dB03
 
       do j = 1, 3
         if (abs(eq_cond(i, j)) > dp_LIMIT) then
@@ -298,29 +272,17 @@ contains
   !! - \frac{1}{\varepsilon}\left(\varepsilon \kappa_{\perp, 0} T_0'\right)'
   !! + \frac{1}{(\gamma - 1)}T_0'\rho_0 v_{01} = 0
   !! $$
-  subroutine check_energy_balance( &
-    settings, rho_field, T_field, B_field, v_field, rc_field, kappa_field &
-  )
-    use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
-    use mod_check_values, only: is_zero
-
+  subroutine check_energy_balance(settings, background, rc_field, kappa_field)
     !> the settings object
     type(settings_t), intent(in) :: settings
-    !> the type containing the density attributes
-    type(density_type), intent(in)  :: rho_field
-    !> the type containing the temperature attributes
-    type(temperature_type), intent(in)  :: T_field
-    !> the type containing the magnetic field attributes
-    type(bfield_type), intent(in) :: B_field
-    !> the type containing the velocity attributes
-    type(velocity_type), intent(in) :: v_field
+    type(background_t), intent(in) :: background
     !> the type containing the radiative cooling attributes
     type(cooling_type), intent(inout)  :: rc_field
     !> the type containing the thermal conduction attributes
     type(conduction_type), intent(in) :: kappa_field
 
-    real(dp) :: rho0, drho0, T0, dT0, ddT0
-    real(dp) :: B01, B02, dB02, B03, dB03, B0, dB0
+    real(dp) :: x, rho0, drho0, T0, dT0, ddT0
+    real(dp) :: B01, B02, dB02, B03, dB03, B0
     real(dp) :: v01, dv01
     real(dp) :: kappa_perp, dkappa_perp_dr, Kp, dKp
     real(dp) :: eps, deps
@@ -332,21 +294,21 @@ contains
     satisfied = .true.
     discrepancy = 0.0_dp
     counter = 0
-    B01 = B_field % B01
     do i = 1, settings%grid%get_gauss_gridpts()
-      rho0 = rho_field % rho0(i)
-      drho0 = rho_field % d_rho0_dr(i)
-      T0 = T_field % T0(i)
-      dT0 = T_field % d_T0_dr(i)
-      ddT0 = T_field % dd_T0_dr(i)
-      B02 = B_field % B02(i)
-      dB02 = B_field % d_B02_dr(i)
-      B03 = B_field % B03(i)
-      dB03 = B_field % d_B03_dr(i)
-      B0 = B_field % B0(i)
-      dB0 = (B02 * dB02 + B03 * dB03) / B0
-      v01 = v_field % v01(i)
-      dv01 = v_field % d_v01_dr(i)
+      x = grid_gauss(i)
+      rho0 = background%density%rho0(x)
+      drho0 = background%density%drho0(x)
+      B01 = background%magnetic%B01(x)
+      B02 = background%magnetic%B02(x)
+      B03 = background%magnetic%B03(x)
+      dB02 = background%magnetic%dB02(x)
+      dB03 = background%magnetic%dB03(x)
+      B0 = background%magnetic%get_B0(x)
+      T0 = background%temperature%T0(x)
+      dT0 = background%temperature%dT0(x)
+      ddT0 = background%temperature%ddT0(x)
+      v01 = background%velocity%v01(x)
+      dv01 = background%velocity%dv01(x)
       eps = eps_grid(i)
       deps = d_eps_grid_dr(i)
       kappa_perp = kappa_field % kappa_perp(i)
@@ -413,17 +375,11 @@ contains
   !! $$
   !! and should both be fulfilled.
   !! @warning   Throws a warning if the equilibrium induction equation is not satisfied.
-  subroutine induction_equil_conditions(settings, B_field, v_field)
-    use mod_global_variables, only: dp_LIMIT
-    use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
-
+  subroutine induction_equil_conditions(settings, background)
     type(settings_t), intent(in) :: settings
-    !> the type containing the magnetic field attributes
-    type(bfield_type), intent(in)       :: B_field
-    !> the type containing the velocity attributes
-    type(velocity_type), intent(in)     :: v_field
+    type(background_t), intent(in) :: background
 
-    real(dp)  :: B01, B02, dB02, B03, dB03, v01, v02, v03, dv01, dv02, dv03
+    real(dp)  :: x, B01, B02, dB02, B03, dB03, v01, v02, v03, dv01, dv02, dv03
     real(dp)  :: eps, d_eps, r(2), discrepancy(2)
     real(dp)  :: eq_cond(settings%grid%get_gauss_gridpts(), 2)
     integer   :: i, j, counter(2)
@@ -432,24 +388,26 @@ contains
     satisfied = .true.
     discrepancy = 0.0d0
     counter = 0
-    B01 = B_field % B01
     do i = 1, settings%grid%get_gauss_gridpts()
-      B02 = B_field % B02(i)
-      B03 = B_field % B03(i)
-      dB02 = B_field % d_B02_dr(i)
-      dB03 = B_field % d_B03_dr(i)
-      v01 = v_field % v01(i)
-      v02 = v_field % v02(i)
-      v03 = v_field % v03(i)
-      dv01 = v_field % d_v01_dr(i)
-      dv02 = v_field % d_v02_dr(i)
-      dv03 = v_field % d_v03_dr(i)
+      x = grid_gauss(i)
+      B01 = background%magnetic%B01(x)
+      B02 = background%magnetic%B02(x)
+      B03 = background%magnetic%B03(x)
+      dB02 = background%magnetic%dB02(x)
+      dB03 = background%magnetic%dB03(x)
+      v01 = background%velocity%v01(x)
+      v02 = background%velocity%v02(x)
+      v03 = background%velocity%v03(x)
+      dv01 = background%velocity%dv01(x)
+      dv02 = background%velocity%dv02(x)
+      dv03 = background%velocity%dv03(x)
       eps = eps_grid(i)
       d_eps = d_eps_grid_dr(i)
 
       eq_cond(i, 1) = B01 * dv02 - B02 * dv01 - dB02 * v01
-      eq_cond(i, 2) = B01 * dv03 - dB03 * v01 - B03 * dv01 &
-                      + d_eps * (B01 * v03 - B03 * v01) / eps
+      eq_cond(i, 2) = ( &
+        B01 * dv03 - dB03 * v01 - B03 * dv01 + d_eps * (B01 * v03 - B03 * v01) / eps &
+      )
       do j = 1, 2
         if (abs(eq_cond(i, j)) > dp_LIMIT) then
           counter(j) = counter(j) + 1
@@ -488,17 +446,11 @@ contains
   !> Checks the continuity equation for the equilibrium state. This is given by
   !! $$ \frac{1}{\varepsilon} \bigl( \varepsilon \rho_0 v_{01} \bigr)' = 0. $$
   !! @warning   Throws a warning if equilibrium continuity is not satisfied.
-  subroutine continuity_equil_conditions(settings, rho_field, v_field)
-    use mod_global_variables, only: dp_LIMIT
-    use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
-
+  subroutine continuity_equil_conditions(settings, background)
     type(settings_t), intent(in) :: settings
-    !> the type containing the density attributes
-    type(density_type), intent(in)      :: rho_field
-    !> the type containing the velocity attributes
-    type(velocity_type), intent(in)  :: v_field
+    type(background_t), intent(in) :: background
 
-    real(dp)  :: rho, drho, v01, dv01
+    real(dp)  :: x, rho0, drho0, v01, dv01
     real(dp)  :: eps, d_eps, r, discrepancy
     real(dp)  :: eq_cond(settings%grid%get_gauss_gridpts())
     integer   :: i, counter
@@ -507,15 +459,16 @@ contains
     satisfied = .true.
     discrepancy = 0.0d0
     counter = 0
-    do i = 1, settings%grid%get_gauss_gridpts()-1
-      rho = rho_field % rho0(i)
-      drho = rho_field % d_rho0_dr(i)
-      v01 = v_field % v01(i)
-      dv01 = v_field % d_v01_dr(i)
+    do i = 1, settings%grid%get_gauss_gridpts() - 1
+      x = grid_gauss(i)
+      rho0 = background%density%rho0(x)
+      drho0 = background%density%drho0(x)
+      v01 = background%velocity%v01(x)
+      dv01 = background%velocity%dv01(x)
       eps = eps_grid(i)
       d_eps = d_eps_grid_dr(i)
 
-      eq_cond(i) = drho * v01 + rho * dv01 + rho * v01 * d_eps / eps
+      eq_cond(i) = drho0 * v01 + rho0 * dv01 + rho0 * v01 * d_eps / eps
 
       if (abs(eq_cond(i)) > dp_LIMIT) then
         counter = counter + 1

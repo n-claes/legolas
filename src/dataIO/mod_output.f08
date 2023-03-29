@@ -1,6 +1,7 @@
 module mod_output
   use mod_global_variables, only: dp, str_len, str_len_arr
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
   use mod_matrix_structure, only: matrix_t
   use mod_logging, only: logger
   use mod_eigenfunctions, only: eigenfunctions_t
@@ -51,12 +52,19 @@ contains
 
 
   subroutine create_datfile( &
-    settings, eigenvalues, matrix_A, matrix_B, eigenvectors, eigenfunctions &
+    settings, &
+    background, &
+    eigenvalues, &
+    matrix_A, &
+    matrix_B, &
+    eigenvectors, &
+    eigenfunctions &
   )
     use mod_version, only: LEGOLAS_VERSION
     use mod_grid, only: grid, grid_gauss
 
     type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
     complex(dp), intent(in) :: eigenvalues(:)
     type(matrix_t), intent(in) :: matrix_A
     type(matrix_t), intent(in) :: matrix_B
@@ -73,7 +81,7 @@ contains
 
     write(dat_fh) size(eigenvalues), eigenvalues
     write(dat_fh) grid, grid_gauss
-    call write_equilibrium_data(settings)
+    call write_equilibrium_data(background)
     if (settings%io%write_eigenfunctions) then
       call write_base_eigenfunction_data(eigenfunctions)
     end if
@@ -319,20 +327,36 @@ contains
   end subroutine write_equilibrium_names
 
 
-  subroutine write_equilibrium_data(settings)
+  subroutine write_equilibrium_data(background)
     use mod_equilibrium
-    type(settings_t), intent(in) :: settings
-    real(dp) :: B01(settings%grid%get_gauss_gridpts())
+    use mod_grid, only: grid_gauss
+    use mod_function_utils, only: from_function
 
-    B01 = B_field%B01
+    type(background_t), intent(in) :: background
 
-    write(dat_fh) rho_field%rho0, rho_field%d_rho0_dr
-    write(dat_fh) T_field%T0, T_field%d_T0_dr, T_field%dd_T0_dr
-    write(dat_fh) B01, B_field%B02, B_field%B03, B_field%d_B02_dr, &
-      B_field%d_B03_dr, eta_field%dd_B02_dr, eta_field%dd_B03_dr, B_field%B0
-    write(dat_fh) v_field%v01, v_field%v02, v_field%v03, v_field%d_v01_dr, &
-      v_field%d_v02_dr, v_field%d_v03_dr, v_field%dd_v01_dr, &
-      v_field%dd_v02_dr, v_field%dd_v03_dr
+    write(dat_fh) from_function(background%density%rho0, grid_gauss)
+    write(dat_fh) from_function(background%density%drho0, grid_gauss)
+    write(dat_fh) from_function(background%temperature%T0, grid_gauss)
+    write(dat_fh) from_function(background%temperature%dT0, grid_gauss)
+    write(dat_fh) from_function(background%temperature%ddT0, grid_gauss)
+    write(dat_fh) from_function(background%magnetic%B01, grid_gauss)
+    write(dat_fh) from_function(background%magnetic%B02, grid_gauss)
+    write(dat_fh) from_function(background%magnetic%B03, grid_gauss)
+    write(dat_fh) from_function(background%magnetic%dB02, grid_gauss)
+    write(dat_fh) from_function(background%magnetic%db03, grid_gauss)
+    write(dat_fh) from_function(background%magnetic%ddB02, grid_gauss)
+    write(dat_fh) from_function(background%magnetic%ddb03, grid_gauss)
+    write(dat_fh) background%magnetic%get_B0(grid_gauss)
+    write(dat_fh) from_function(background%velocity%v01, grid_gauss)
+    write(dat_fh) from_function(background%velocity%v02, grid_gauss)
+    write(dat_fh) from_function(background%velocity%v03, grid_gauss)
+    write(dat_fh) from_function(background%velocity%dv01, grid_gauss)
+    write(dat_fh) from_function(background%velocity%dv02, grid_gauss)
+    write(dat_fh) from_function(background%velocity%dv03, grid_gauss)
+    write(dat_fh) from_function(background%velocity%ddv01, grid_gauss)
+    write(dat_fh) from_function(background%velocity%ddv02, grid_gauss)
+    write(dat_fh) from_function(background%velocity%ddv03, grid_gauss)
+
     write(dat_fh) rc_field%L0, rc_field%dL_dT, rc_field%dL_drho
     write(dat_fh) rc_field%H0, rc_field%dH_dT, rc_field%dH_drho
     write(dat_fh) kappa_field%kappa_para, kappa_field%kappa_perp

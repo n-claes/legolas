@@ -17,7 +17,7 @@ contains
     gamma_1 = settings%physics%get_gamma_1()
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
-    dT0 = T_field % d_T0_dr(gauss_idx)
+    dT0 = background%temperature%dT0(grid_gauss(gauss_idx))
     kappa_perp = kappa_field % kappa_perp(gauss_idx)
     dkappa_perp_drho = kappa_field % d_kappa_perp_drho(gauss_idx)
     dkappa_perp_dT = kappa_field % d_kappa_perp_dT(gauss_idx)
@@ -55,7 +55,7 @@ contains
     )
 
     if (settings%has_bfield()) then
-      call add_conduction_matrix_terms_bfield(gauss_idx, settings, elements)
+      call add_conduction_matrix_terms_bfield(gauss_idx, settings, background, elements)
     end if
 
     call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
@@ -63,9 +63,12 @@ contains
   end procedure add_conduction_matrix_terms
 
 
-  subroutine add_conduction_matrix_terms_bfield(gauss_idx, settings, elements)
-    type(settings_t), intent(in) :: settings
+  subroutine add_conduction_matrix_terms_bfield( &
+    gauss_idx, settings, background, elements &
+  )
     integer, intent(in) :: gauss_idx
+    type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
     type(matrix_elements_t), intent(inout) :: elements
 
     real(dp)  :: eps, deps
@@ -83,15 +86,15 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     ! temperature variables
-    dT0 = T_field % d_T0_dr(gauss_idx)
-    ddT0 = T_field % dd_T0_dr(gauss_idx)
+    dT0 = background%temperature%dT0(grid_gauss(gauss_idx))
+    ddT0 = background%temperature%ddT0(grid_gauss(gauss_idx))
     ! magnetic field variables
-    B0 = B_field % B0(gauss_idx)
-    B01 = B_field % B01
-    B02 = B_field % B02(gauss_idx)
-    dB02 = B_field % d_B02_dr(gauss_idx)
-    B03 = B_field % B03(gauss_idx)
-    dB03 = B_field % d_B03_dr(gauss_idx)
+    B0 = background%magnetic%get_B0(grid_gauss(gauss_idx))
+    B01 = background%magnetic%B01(grid_gauss(gauss_idx))
+    B02 = background%magnetic%B02(grid_gauss(gauss_idx))
+    dB02 = background%magnetic%dB02(grid_gauss(gauss_idx))
+    B03 = background%magnetic%B03(grid_gauss(gauss_idx))
+    dB03 = background%magnetic%dB03(grid_gauss(gauss_idx))
     ! parallel thermal conduction variables
     kappa_para = kappa_field % kappa_para(gauss_idx)
     dkappa_para_dT = kappa_field % d_kappa_para_dT(gauss_idx)

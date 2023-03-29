@@ -25,68 +25,94 @@
 !!
 !! and can all be changed in the parfile. @endnote
 submodule (mod_equilibrium) smod_equil_discrete_alfven
+  use mod_equilibrium_params, only: j0, delta
   implicit none
+
+  real(dp) :: x_end
 
 contains
 
   module procedure discrete_alfven_eq
-    use mod_equilibrium_params, only: j0, delta
-
-    real(dp) :: r, x_end
-    real(dp), allocatable :: p_r(:), dp_r(:)
-    integer :: i, gauss_gridpts
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       call settings%physics%enable_cooling(cooling_curve="rosner")
       call settings%physics%enable_parallel_conduction()
       call settings%units%set_units_from_density( &
-        unit_density=1.5d-15, &
-        unit_magneticfield=50.0d0, &
-        unit_length=1.0d10, &
-        mean_molecular_weight=1.0d0 & ! pure proton plasma
+        unit_density=1.5e-15_dp, &
+        unit_magneticfield=50.0_dp, &
+        unit_length=1.0e10_dp, &
+        mean_molecular_weight=1.0_dp & ! pure proton plasma
       )
 
-      j0 = 0.125d0
-      delta = 0.2d0   ! d parameter in density prescription
-      k2 = 1.0d0
-      k3 = 0.05d0
+      j0 = 0.125_dp
+      delta = 0.2_dp   ! d parameter in density prescription
+      k2 = 1.0_dp
+      k3 = 0.05_dp
     end if ! LCOV_EXCL_STOP
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
-    allocate(p_r(gauss_gridpts))
-    allocate(dp_r(gauss_gridpts))
 
     call initialise_grid(settings)
     x_end = settings%grid%get_grid_end()
 
-    do i = 1, gauss_gridpts
-      r = grid_gauss(i)
-
-      rho_field % rho0(i) = 1.0d0 - (1.0d0 - delta) * (r / x_end)**2
-      B_field % B02(i) = j0 * r * (r**4 - 3.0d0 * r**2 + 3.0d0) / 6.0d0
-      B_field % B03(i) = 1.0d0
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      p_r(i) = (j0**2 / 720.0d0) * ( &
-        12.0d0 * (x_end**10 - r**10) &
-        - 75.0d0 * (x_end**8 - r**8) &
-        + 200.0d0 * (x_end**6 - r**6) &
-        - 270.0d0 * (x_end**4 - r**4) &
-        + 180.0d0 * (x_end**2 - r**2) &
-      )
-      T_field % T0(i) = p_r(i) / (rho_field % rho0(i))
-
-      rho_field % d_rho0_dr(i) = 2.0d0 * r * (delta - 1.0d0) / x_end**2
-      B_field % d_B02_dr(i) = j0 * (5.0d0 * r**4 - 9.0d0 * r**2 + 3.0d0) / 6.0d0
-      dp_r(i) = j0**2 * r * ( &
-        -r**8 + 5.0d0 * r**6 - 10.0d0 * r**4 + 9.0d0 * r**2 - 3.0d0 &
-      ) / 6.0d0
-      T_field % d_T0_dr(i) = ( &
-        dp_r(i) * (rho_field % rho0(i)) - (rho_field % d_rho0_dr(i)) * p_r(i) &
-      ) / (rho_field % rho0(i))**2
-    end do
-    deallocate(p_r)
-    deallocate(dp_r)
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
+    call background%set_magnetic_3_funcs(B03_func=B03)
   end procedure discrete_alfven_eq
+
+
+  real(dp) function rho0(r)
+    real(dp), intent(in) :: r
+    rho0 = 1.0_dp - (1.0_dp - delta) * (r / x_end)**2
+  end function rho0
+
+  real(dp) function drho0(r)
+    real(dp), intent(in) :: r
+    drho0 = 2.0_dp * r * (delta - 1.0_dp) / x_end**2
+  end function drho0
+
+
+  real(dp) function T0(r)
+    real(dp), intent(in) :: r
+    T0 = p0(r) / rho0(r)
+  end function T0
+
+  real(dp) function dT0(r)
+    real(dp), intent(in) :: r
+    dT0 = (dp0(r) * rho0(r) - drho0(r) * p0(r)) / rho0(r)**2
+  end function dT0
+
+  real(dp) function B02(r)
+    real(dp), intent(in) :: r
+    B02 = j0 * r * (r**4 - 3.0_dp * r**2 + 3.0_dp) / 6.0_dp
+  end function B02
+
+  real(dp) function dB02(r)
+    real(dp), intent(in) :: r
+    dB02 = j0 * (5.0_dp * r**4 - 9.0_dp * r**2 + 3.0_dp) / 6.0_dp
+  end function dB02
+
+  real(dp) function B03()
+    B03 = 1.0_dp
+  end function B03
+
+  real(dp) function p0(r)
+    real(dp), intent(in) :: r
+    p0 = (j0**2 / 720.0_dp) * ( &
+      12.0_dp * (x_end**10 - r**10) &
+      - 75.0_dp * (x_end**8 - r**8) &
+      + 200.0_dp * (x_end**6 - r**6) &
+      - 270.0_dp * (x_end**4 - r**4) &
+      + 180.0_dp * (x_end**2 - r**2) &
+    )
+  end function p0
+
+
+  real(dp) function dp0(r)
+    real(dp), intent(in) :: r
+    dp0 = j0**2 * r * ( &
+      -r**8 + 5.0_dp * r**6 - 10.0_dp * r**4 + 9.0_dp * r**2 - 3.0_dp &
+    ) / 6.0_dp
+  end function dp0
 
 end submodule smod_equil_discrete_alfven

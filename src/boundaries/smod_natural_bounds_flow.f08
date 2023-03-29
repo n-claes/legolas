@@ -4,16 +4,14 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_flo
 contains
 
   module procedure add_natural_flow_terms
-    use mod_equilibrium, only: v_field
-
     real(dp)  :: rho
     real(dp)  :: v01
     type(matrix_elements_t) :: elements
 
     if (.not. settings%physics%flow%is_enabled()) return
 
-    rho = rho_field % rho0(grid_idx)
-    v01 = v_field % v01(grid_idx)
+    rho = background%density%rho0(grid_gauss(grid_idx))
+    v01 = background%velocity%v01(grid_gauss(grid_idx))
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! ==================== Cubic * Cubic ====================

@@ -7,7 +7,7 @@ contains
     type(matrix_elements_t) :: elements
     real(dp)  :: rho, eps
 
-    rho = rho_field % rho0(gauss_idx)
+    rho = background%density%rho0(grid_gauss(gauss_idx))
     eps = eps_grid(gauss_idx)
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
@@ -45,18 +45,18 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     ! density variables
-    rho = rho_field % rho0(gauss_idx)
-    drho = rho_field % d_rho0_dr(gauss_idx)
+    rho = background%density%rho0(grid_gauss(gauss_idx))
+    drho = background%density%drho0(grid_gauss(gauss_idx))
     ! temperature variables
-    T0 = T_field % T0(gauss_idx)
-    dT0 = T_field % d_T0_dr(gauss_idx)
+    T0 = background%temperature%T0(grid_gauss(gauss_idx))
+    dT0 = background%temperature%dT0(grid_gauss(gauss_idx))
     ! magnetic field variables
-    B01 = B_field % B01
-    B02 = B_field % B02(gauss_idx)
-    dB02 = B_field % d_B02_dr(gauss_idx)
+    B01 = background%magnetic%B01(grid_gauss(gauss_idx))
+    B02 = background%magnetic%B02(grid_gauss(gauss_idx))
+    dB02 = background%magnetic%dB02(grid_gauss(gauss_idx))
+    B03 = background%magnetic%B03(grid_gauss(gauss_idx))
+    dB03 = background%magnetic%dB03(grid_gauss(gauss_idx))
     drB02 = deps * B02 + eps * dB02
-    B03 = B_field % B03(gauss_idx)
-    dB03 = B_field % d_B03_dr(gauss_idx)
     ! operators
     Fop_plus = k2 * B02 / eps + k3 * B03
     Gop_plus = k3 * B02 + k2 * B03 / eps

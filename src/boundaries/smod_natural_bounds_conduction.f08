@@ -18,7 +18,7 @@ contains
     gamma_1 = settings%physics%get_gamma_1()
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
-    dT0 = T_field % d_T0_dr(grid_idx)
+    dT0 = background%temperature%dT0(grid_gauss(grid_idx))
     dkappa_para_dT = kappa_field % d_kappa_para_dT(grid_idx)
     kappa_perp = kappa_field % kappa_perp(grid_idx)
     dkappa_perp_drho = kappa_field % d_kappa_perp_drho(grid_idx)
@@ -47,7 +47,7 @@ contains
     )
 
     if (settings%has_bfield()) then
-      call add_natural_conduction_terms_bfield(settings, elements)
+      call add_natural_conduction_terms_bfield(settings, background, elements)
     end if
 
     call add_to_quadblock(quadblock, elements, weight, settings%dims)
@@ -55,8 +55,9 @@ contains
   end procedure add_natural_conduction_terms
 
 
-  subroutine add_natural_conduction_terms_bfield(settings, elements)
+  subroutine add_natural_conduction_terms_bfield(settings, background, elements)
     type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
     type(matrix_elements_t), intent(inout) :: elements
 
     real(dp) :: eps, deps
@@ -71,15 +72,15 @@ contains
     gamma_1 = settings%physics%get_gamma_1()
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
-    dT0 = T_field % d_T0_dr(grid_idx)
+    dT0 = background%temperature%dT0(grid_gauss(grid_idx))
     dkappa_para_dT = kappa_field % d_kappa_para_dT(grid_idx)
     kappa_perp = kappa_field % kappa_perp(grid_idx)
     dkappa_perp_drho = kappa_field % d_kappa_perp_drho(grid_idx)
     dkappa_perp_dT = kappa_field % d_kappa_perp_dT(grid_idx)
-    B0 = B_field % B0(grid_idx)
-    B01 = B_field % B01
-    B02 = B_field % B02(grid_idx)
-    B03 = B_field % B03(grid_idx)
+    B0 = background%magnetic%get_B0(grid_gauss(grid_idx))
+    B01 = background%magnetic%B01(grid_gauss(grid_idx))
+    B02 = background%magnetic%B02(grid_gauss(grid_idx))
+    B03 = background%magnetic%B03(grid_gauss(grid_idx))
     dkappa_perp_dB2 = kappa_field % d_kappa_perp_dB2(grid_idx)
 
     Gop_min = k3 * B02 - k2 * B03 / eps

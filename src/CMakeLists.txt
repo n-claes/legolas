@@ -24,6 +24,12 @@ set (sources
         settings/mod_units.f08
         mod_physical_constants.f08
         utils/mod_get_indices.f08
+        utils/mod_function_utils.f08
+        background/mod_background.f08
+        background/fields/mod_bg_density.f08
+        background/fields/mod_bg_temperature.f08
+        background/fields/mod_bg_velocity.f08
+        background/fields/mod_bg_magnetic.f08
         matrices/datastructure/mod_matrix_node.f08
         matrices/datastructure/mod_matrix_row.f08
         matrices/datastructure/mod_matrix_structure.f08

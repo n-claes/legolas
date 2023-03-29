@@ -35,66 +35,84 @@
 !!                <tt>unit_length</tt> = 1.0e11 cm,
 !!                corresponding to a temperature of 2.6e6 K. @endnote
 submodule (mod_equilibrium) smod_equil_gold_hoyle
+  use mod_equilibrium_params, only: cte_T0, cte_rho0, alpha
   implicit none
 
 contains
 
   module procedure gold_hoyle_eq
-    use mod_equilibrium_params, only: cte_T0, cte_rho0, alpha
-
-    real(dp)  :: r
-    integer   :: i
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       call settings%physics%enable_cooling(cooling_curve="rosner")
       call settings%physics%enable_parallel_conduction()
 
-      k2 = 1.0d0
-      k3 = 1.0d0
-      cte_rho0 = 1.0d0
-      cte_T0 = 0.001d0
-      alpha = 20.0d0
+      k2 = 1.0_dp
+      k3 = 1.0_dp
+      cte_rho0 = 1.0_dp
+      cte_T0 = 0.001_dp
+      alpha = 20.0_dp
 
       ! cool plasma: B = 22.5 G, rho = 1.6726e-12 kg/m3, R = 1e8 m, T = 2.9e5 K
       call settings%units%set_units_from_density( &
-        unit_density=1.6727d-15, &
-        unit_magneticfield=22.5d0, &
-        unit_length=1.0d10, &
-        mean_molecular_weight=1.0d0 & ! pure proton plasma
+        unit_density=1.6727e-15_dp, &
+        unit_magneticfield=22.5_dp, &
+        unit_length=1.0e10_dp, &
+        mean_molecular_weight=1.0_dp & ! pure proton plasma
       )
       ! hot plasma: B = 67.0 G, rho = 1.6726e-12 kg/m3, R = 1e9 m, T = 2.6e6 K
       ! call settings%units%set_units_from_density( &
-      !   unit_density=1.6727d-15, &
-      !   unit_magneticfield=67.0d0, &
-      !   unit_length=1.0d11, &
-      !   mean_molecular_weight=1.0d0 & ! pure proton plasma
+      !   unit_density=1.6727e-15_dp, &
+      !   unit_magneticfield=67.0_dp, &
+      !   unit_length=1.0e11_dp, &
+      !   mean_molecular_weight=1.0_dp & ! pure proton plasma
       ! )
       ! cold plasma: B = 10.0 G, rho = 1.6726e-12 kg/m3, R = 1e8 m, T = 5.7e4 K
       ! call settings%units%set_units_from_density( &
-      !   unit_density=1.6727d-15, &
-      !   unit_magneticfield=10.0d0, &
-      !   unit_length=1.0d10, &
-      !   mean_molecular_weight=1.0d0 & ! pure proton plasma
+      !   unit_density=1.6727e-15_dp, &
+      !   unit_magneticfield=10.0_dp, &
+      !   unit_length=1.0e10_dp, &
+      !   mean_molecular_weight=1.0_dp & ! pure proton plasma
       ! )
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
 
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
+    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
 
-      rho_field % rho0(i) = cte_rho0
-      T_field % T0(i) = cte_T0
-      B_field % B02(i) = alpha * r / (1.0d0 + alpha**2 * r**2)
-      B_field % B03(i) = 1.0d0 / (1.0d0 + alpha**2 * r**2)
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-
-      B_field % d_B02_dr(i) = -(alpha**3 * r**2 - alpha) / ( &
-        alpha**4 * r**4 + 2.0d0 * alpha**2 * r**2 + 1.0d0 &
-      )
-      B_field % d_B03_dr(i) = -2.0d0 * alpha**2 * r / (alpha**2 * r**2 + 1.0d0)**2
-    end do
   end procedure gold_hoyle_eq
+
+
+  real(dp) function rho0()
+    rho0 = cte_rho0
+  end function rho0
+
+  real(dp) function T0()
+    T0 = cte_T0
+  end function T0
+
+  real(dp) function B02(r)
+    real(dp) :: r
+    B02 = alpha * r / (1.0_dp + alpha**2 * r**2)
+  end function B02
+
+  real(dp) function dB02(r)
+    real(dp) :: r
+    dB02 = -(alpha**3 * r**2 - alpha) / ( &
+      alpha**4 * r**4 + 2.0_dp * alpha**2 * r**2 + 1.0_dp &
+    )
+  end function dB02
+
+  real(dp) function B03(r)
+    real(dp) :: r
+    B03 = 1.0_dp / (1.0_dp + alpha**2 * r**2)
+  end function B03
+
+  real(dp) function dB03(r)
+    real(dp) :: r
+    dB03 = -2.0_dp * alpha**2 * r / (alpha**2 * r**2 + 1.0_dp)**2
+  end function dB03
 
 end submodule smod_equil_gold_hoyle

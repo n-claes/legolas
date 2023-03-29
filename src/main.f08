@@ -16,6 +16,7 @@ program legolas
   use mod_console, only: print_console_info, print_whitespace
   use mod_timing, only: timer_t, new_timer
   use mod_settings, only: settings_t, new_settings
+  use mod_background, only: background_t, new_background
   use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
   implicit none
 
@@ -27,6 +28,7 @@ program legolas
   type(timer_t) :: timer
   !> dedicated settings type
   type(settings_t) :: settings
+  type(background_t) :: background
   type(eigenfunctions_t) :: eigenfunctions
   !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
@@ -38,6 +40,7 @@ program legolas
 
   timer = new_timer()
   settings = new_settings()
+  background = new_background()
 
   call timer%start_timer()
   call initialisation()
@@ -46,7 +49,7 @@ program legolas
   call print_console_info(settings)
 
   call timer%start_timer()
-  call build_matrices(matrix_B, matrix_A, settings)
+  call build_matrices(matrix_B, matrix_A, settings, background)
   timer%matrix_time = timer%end_timer()
 
   call logger%info("solving eigenvalue problem...")
@@ -55,13 +58,19 @@ program legolas
   timer%evp_time = timer%end_timer()
 
   call timer%start_timer()
-  eigenfunctions = new_eigenfunctions(settings)
+  eigenfunctions = new_eigenfunctions(settings, background)
   call get_eigenfunctions()
   timer%eigenfunction_time = timer%end_timer()
 
   call timer%start_timer()
   call create_datfile( &
-    settings, omega, matrix_A, matrix_B, right_eigenvectors, eigenfunctions &
+    settings, &
+    background, &
+    omega, &
+    matrix_A, &
+    matrix_B, &
+    right_eigenvectors, &
+    eigenfunctions &
   )
   timer%datfile_time = timer%end_timer()
 
@@ -113,7 +122,7 @@ contains
     matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
 
     call initialise_equilibrium(settings)
-    call set_equilibrium(settings)
+    call set_equilibrium(settings, background)
 
     if (settings%physics%hall%is_enabled()) then
       ratio = maxval(hall_field % hallfactor) / ( &
@@ -171,6 +180,7 @@ contains
       call radiative_cooling_clean()
     end if
     call settings%delete()
+    call background%delete()
     call eigenfunctions%delete()
   end subroutine cleanup
 

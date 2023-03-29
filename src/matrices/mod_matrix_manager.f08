@@ -2,11 +2,11 @@ module mod_matrix_manager
   use mod_global_variables, only: dp, ir, ic
   use mod_grid, only: grid, grid_gauss, eps_grid, d_eps_grid_dr
   use mod_build_quadblock, only: add_to_quadblock
-  use mod_equilibrium, only: rho_field, T_field, B_field
   use mod_equilibrium_params, only: k2, k3
   use mod_logging, only: logger, str
   use mod_matrix_elements, only: matrix_elements_t, new_matrix_elements
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
   implicit none
 
   !> quadratic basis functions
@@ -19,83 +19,94 @@ module mod_matrix_manager
   real(dp)  :: dh_cubic(4)
 
   interface
-    module subroutine add_bmatrix_terms(gauss_idx, current_weight, quadblock, settings)
+    module subroutine add_bmatrix_terms( &
+      gauss_idx, current_weight, quadblock, settings, background &
+    )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_bmatrix_terms
 
     module subroutine add_regular_matrix_terms( &
-      gauss_idx, current_weight, quadblock, settings &
+      gauss_idx, current_weight, quadblock, settings, background &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_regular_matrix_terms
 
     module subroutine add_flow_matrix_terms( &
-      gauss_idx, current_weight, quadblock, settings &
+      gauss_idx, current_weight, quadblock, settings, background &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_flow_matrix_terms
 
     module subroutine add_resistive_matrix_terms( &
-      gauss_idx, current_weight, quadblock, settings &
+      gauss_idx, current_weight, quadblock, settings, background &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_resistive_matrix_terms
 
     module subroutine add_cooling_matrix_terms( &
-      gauss_idx, current_weight, quadblock, settings &
+      gauss_idx, current_weight, quadblock, settings, background &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_cooling_matrix_terms
 
     module subroutine add_conduction_matrix_terms( &
-      gauss_idx, current_weight, quadblock, settings &
+      gauss_idx, current_weight, quadblock, settings, background &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_conduction_matrix_terms
 
     module subroutine add_viscosity_matrix_terms( &
-      gauss_idx, current_weight, quadblock, settings &
+      gauss_idx, current_weight, quadblock, settings, background &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_viscosity_matrix_terms
 
     module subroutine add_hall_matrix_terms( &
-      gauss_idx, current_weight, quadblock, settings &
+      gauss_idx, current_weight, quadblock, settings, background &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_hall_matrix_terms
 
     module subroutine add_hall_bmatrix_terms( &
-      gauss_idx, current_weight, quadblock, settings &
+      gauss_idx, current_weight, quadblock, settings, background &
     )
       integer, intent(in)   :: gauss_idx
       real(dp), intent(in)  :: current_weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine add_hall_bmatrix_terms
   end interface
 
@@ -105,7 +116,7 @@ module mod_matrix_manager
 
 contains
 
-  subroutine build_matrices(matrix_B, matrix_A, settings)
+  subroutine build_matrices(matrix_B, matrix_A, settings, background)
     use mod_global_variables, only: n_gauss, gaussian_weights
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
@@ -118,6 +129,7 @@ contains
     type(matrix_t), intent(inout) :: matrix_A
     !> the settings object
     type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
 
     !> quadblock for the A-matrix
     complex(dp), allocatable :: quadblock_A(:, :)
@@ -164,30 +176,38 @@ contains
         call cubic_factors_deriv(current_x_gauss, x_left, x_right, dh_cubic)
 
         ! get matrix elements
-        call add_bmatrix_terms(gauss_idx, current_weight, quadblock_B, settings)
-        call add_regular_matrix_terms(gauss_idx, current_weight, quadblock_A, settings)
+        call add_bmatrix_terms( &
+          gauss_idx, current_weight, quadblock_B, settings, background &
+        )
+        call add_regular_matrix_terms( &
+          gauss_idx, current_weight, quadblock_A, settings, background &
+        )
         if (settings%physics%flow%is_enabled()) call add_flow_matrix_terms( &
-          gauss_idx, current_weight, quadblock_A, settings &
+          gauss_idx, current_weight, quadblock_A, settings, background &
         )
         if (settings%physics%resistivity%is_enabled()) then
           call add_resistive_matrix_terms( &
-            gauss_idx, current_weight, quadblock_A, settings &
+            gauss_idx, current_weight, quadblock_A, settings, background &
           )
         end if
         if (settings%physics%cooling%is_enabled()) call add_cooling_matrix_terms( &
-          gauss_idx, current_weight, quadblock_A, settings &
+          gauss_idx, current_weight, quadblock_A, settings, background &
         )
         if (settings%physics%conduction%is_enabled()) then
           call add_conduction_matrix_terms( &
-            gauss_idx, current_weight, quadblock_A, settings &
+            gauss_idx, current_weight, quadblock_A, settings, background &
           )
         end if
         if (settings%physics%viscosity%is_enabled()) call add_viscosity_matrix_terms( &
-          gauss_idx, current_weight, quadblock_A, settings &
+          gauss_idx, current_weight, quadblock_A, settings, background &
         )
         if (settings%physics%hall%is_enabled()) then
-          call add_hall_matrix_terms(gauss_idx, current_weight, quadblock_A, settings)
-          call add_hall_bmatrix_terms(gauss_idx, current_weight, quadblock_B, settings)
+          call add_hall_matrix_terms( &
+            gauss_idx, current_weight, quadblock_A, settings, background &
+        )
+          call add_hall_bmatrix_terms( &
+            gauss_idx, current_weight, quadblock_B, settings, background &
+        )
         end if
       end do
 
@@ -214,7 +234,7 @@ contains
     end do
 
     deallocate(quadblock_A, quadblock_B)
-    call apply_boundary_conditions(matrix_A, matrix_B, settings)
+    call apply_boundary_conditions(matrix_A, matrix_B, settings, background)
   end subroutine build_matrices
 
 end module mod_matrix_manager

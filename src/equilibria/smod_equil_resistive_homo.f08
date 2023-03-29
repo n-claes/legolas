@@ -17,33 +17,52 @@
 !!
 !! and can all be changed in the parfile. @endnote
 submodule (mod_equilibrium) smod_equil_resistive_homo
+  use mod_equilibrium_params, only: beta, cte_rho0, cte_B02, cte_B03
   implicit none
 
 contains
 
   !> Sets the equilibrium.
   module procedure resistive_homo_eq
-    use mod_equilibrium_params, only: beta, cte_rho0, cte_B02, cte_B03
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("Cartesian")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       call settings%physics%enable_resistivity(fixed_resistivity_value=0.001_dp)
 
-      k2 = 0.0d0
-      k3 = 1.0d0
-      beta = 0.25d0
-      cte_rho0 = 1.0d0
-      cte_B02 = 0.0d0
-      cte_B03 = 1.0d0
+      k2 = 0.0_dp
+      k3 = 1.0_dp
+      beta = 0.25_dp
+      cte_rho0 = 1.0_dp
+      cte_B02 = 0.0_dp
+      cte_B03 = 1.0_dp
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
 
-    rho_field % rho0 = cte_rho0
-    B_field % B02    = cte_B02
-    B_field % B03    = cte_B03
-    B_field % B0     = sqrt((B_field % B02)**2 + (B_field % B03)**2)
-    T_field % T0     = beta * (B_field % B0)**2 / (2.0d0)
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02)
+    call background%set_magnetic_3_funcs(B03_func=B03)
   end procedure resistive_homo_eq
+
+
+  real(dp) function rho0()
+    rho0 = cte_rho0
+  end function rho0
+
+  real(dp) function T0()
+    T0 = beta * B0()**2 / 2.0_dp
+  end function T0
+
+  real(dp) function B02()
+    B02 = cte_B02
+  end function B02
+
+  real(dp) function B03()
+    B03 = cte_B03
+  end function B03
+
+  real(dp) function B0()
+    B0 = sqrt(B02()**2 + B03()**2)
+  end function B0
 
 end submodule smod_equil_resistive_homo

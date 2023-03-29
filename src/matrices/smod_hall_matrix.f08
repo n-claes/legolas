@@ -13,8 +13,8 @@ contains
 
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
-    rho = rho_field % rho0(gauss_idx)
-    drho = rho_field % d_rho0_dr(gauss_idx)
+    rho = background%density%rho0(grid_gauss(gauss_idx))
+    drho = background%density%drho0(grid_gauss(gauss_idx))
     eta_H = hall_field % hallfactor(gauss_idx)
     eta_e = hall_field % inertiafactor(gauss_idx)
     WVop = k2**2 / eps + eps * k3**2
@@ -88,8 +88,6 @@ contains
 
 
   module procedure add_hall_matrix_terms
-    use mod_equilibrium, only: v_field, rho_field, T_field, B_field
-
     real(dp)  :: eps, deps
     real(dp)  :: v01, v02, v03, dv01, dv02, dv03, ddv01, ddv02, ddv03
     real(dp)  :: rho, drho, T0, dT0, B01, B02, B03, dB02, dB03
@@ -101,26 +99,26 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
 
-    v01 = v_field % v01(gauss_idx)
-    v02 = v_field % v02(gauss_idx)
-    v03 = v_field % v03(gauss_idx)
-    dv01 = v_field % d_v01_dr(gauss_idx)
-    dv02 = v_field % d_v02_dr(gauss_idx)
-    dv03 = v_field % d_v03_dr(gauss_idx)
-    ddv01 = v_field % dd_v01_dr(gauss_idx)
-    ddv02 = v_field % dd_v02_dr(gauss_idx)
-    ddv03 = v_field % dd_v03_dr(gauss_idx)
+    v01 = background%velocity%v01(grid_gauss(gauss_idx))
+    v02 = background%velocity%v02(grid_gauss(gauss_idx))
+    v03 = background%velocity%v03(grid_gauss(gauss_idx))
+    dv01 = background%velocity%dv01(grid_gauss(gauss_idx))
+    dv02 = background%velocity%dv02(grid_gauss(gauss_idx))
+    dv03 = background%velocity%dv03(grid_gauss(gauss_idx))
+    ddv01 = background%velocity%ddv01(grid_gauss(gauss_idx))
+    ddv02 = background%velocity%ddv02(grid_gauss(gauss_idx))
+    ddv03 = background%velocity%ddv03(grid_gauss(gauss_idx))
 
-    rho = rho_field % rho0(gauss_idx)
-    drho = rho_field % d_rho0_dr(gauss_idx)
-    T0 = T_field % T0(gauss_idx)
-    dT0 = T_field % d_T0_dr(gauss_idx)
+    rho = background%density%rho0(grid_gauss(gauss_idx))
+    drho = background%density%drho0(grid_gauss(gauss_idx))
+    T0 = background%temperature%T0(grid_gauss(gauss_idx))
+    dT0 = background%temperature%dT0(grid_gauss(gauss_idx))
 
-    B01 = B_field % B01
-    B02 = B_field % B02(gauss_idx)
-    dB02 = B_field % d_B02_dr(gauss_idx)
-    B03 = B_field % B03(gauss_idx)
-    dB03 = B_field % d_B03_dr(gauss_idx)
+    B01 = background%magnetic%B01(grid_gauss(gauss_idx))
+    B02 = background%magnetic%B02(grid_gauss(gauss_idx))
+    dB02 = background%magnetic%dB02(grid_gauss(gauss_idx))
+    B03 = background%magnetic%B03(grid_gauss(gauss_idx))
+    dB03 = background%magnetic%dB03(grid_gauss(gauss_idx))
 
     ! Calculate derivatives eps*B02, B02/eps
     drB02 = deps * B02 + eps * dB02

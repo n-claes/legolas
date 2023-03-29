@@ -31,56 +31,86 @@
 ! Obtained from Goedbloed, Phys. Plasmas 25, 032110 (2018), Fig. 9, 11
 ! Also appears in Magnetohydrodynamics (2019), Fig. 13.12, 13.14
 submodule (mod_equilibrium) smod_equil_RTI_theta_pinch
+  use mod_equilibrium_params, only: cte_rho0, cte_p0, alpha, delta, r0
   implicit none
+
+  real(dp) :: width, B_inf, bigO
 
 contains
 
   module procedure RTI_theta_pinch_eq
-    use mod_equilibrium_params, only: cte_rho0, cte_p0, alpha, delta, r0
-
-    real(dp) :: B_inf, bigO, a
-    real(dp) :: r, x, fx, dfx
-    real(dp) :: x_start, x_end
-    integer :: i
-
     call settings%physics%enable_flow()
     call settings%grid%set_geometry("cylindrical")
 
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
-      cte_rho0 = 1.0d0
-      alpha = 2.0d0
-      delta = 1.0d0 / 6.0d0
-      r0 = 0.0d0
+      cte_rho0 = 1.0_dp
+      alpha = 2.0_dp
+      delta = 1.0_dp / 6.0_dp
+      r0 = 0.0_dp
 
-      k2 = 1.0d0
-      k3 = 0.0d0
+      k2 = 1.0_dp
+      k3 = 0.0_dp
     end if ! LCOV_EXCL_STOP
 
     call initialise_grid(settings)
-    x_start = settings%grid%get_grid_start()
-    x_end = settings%grid%get_grid_end()
-    a = x_end - x_start
-    cte_p0 = 0.5d0 * (1.0d0 - delta)**2
-    B_inf = a * sqrt(cte_rho0)
-    bigO = alpha * sqrt(2.0d0 * delta * (1.0d0 - delta))
+    width = settings%grid%get_grid_end() - settings%grid%get_grid_start()
+    cte_p0 = 0.5_dp * (1.0_dp - delta)**2
+    B_inf = width * sqrt(cte_rho0)
+    bigO = alpha * sqrt(2.0_dp * delta * (1.0_dp - delta))
 
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
-      x = r / a
-      fx = alpha**2 * (x**2 - r0**2)
-      dfx = alpha**2 * 2.0d0 * x / a
-
-      rho_field % rho0(i) = cte_rho0 / cosh(fx)**2
-      v_field % v02(i) = bigO * r
-      B_field % B03(i) = B_inf * (delta + (1.0d0 - delta) * tanh(fx))
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      T_field % T0(i) = cte_p0 / cte_rho0
-
-      rho_field % d_rho0_dr(i) = -2.0d0 * cte_rho0 * dfx * tanh(fx) / cosh(fx)**2
-      v_field % d_v02_dr(i) = bigO
-      B_field % d_B03_dr(i) = B_inf * (1.0d0 - delta ) * dfx / cosh(fx)**2
-    end do
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
   end procedure RTI_theta_pinch_eq
+
+
+  real(dp) function fx(r)
+    real(dp), intent(in) :: r
+    real(dp) :: x
+    x = r / width
+    fx = alpha**2 * (x**2 - r0**2)
+  end function fx
+
+  real(dp) function dfx(r)
+    real(dp), intent(in) :: r
+    real(dp) :: x
+    x = r / width
+    dfx = alpha**2 * 2.0_dp * x / width
+  end function dfx
+
+  real(dp) function rho0(r)
+    real(dp), intent(in) :: r
+    rho0 = cte_rho0 / cosh(fx(r))**2
+  end function rho0
+
+  real(dp) function drho0(r)
+    real(dp), intent(in) :: r
+    drho0 = -2.0_dp * cte_rho0 * dfx(r) * tanh(fx(r)) / cosh(fx(r))**2
+  end function drho0
+
+  real(dp) function T0()
+    T0 = cte_p0 / cte_rho0
+  end function T0
+
+  real(dp) function v02(r)
+    real(dp), intent(in) :: r
+    v02 = bigO * r
+  end function v02
+
+  real(dp) function dv02()
+    dv02 = bigO
+  end function dv02
+
+  real(dp) function B03(r)
+    real(dp), intent(in) :: r
+    B03 = B_inf * (delta + (1.0_dp - delta) * tanh(fx(r)))
+  end function B03
+
+  real(dp) function dB03(r)
+    real(dp), intent(in) :: r
+    dB03 = B_inf * (1.0_dp - delta) * dfx(r) / cosh(fx(r))**2
+  end function dB03
 
 end submodule smod_equil_RTI_theta_pinch

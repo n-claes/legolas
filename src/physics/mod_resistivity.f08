@@ -5,6 +5,9 @@ module mod_resistivity
   use mod_global_variables, only: dp
   use mod_physical_constants, only: dpi, Z_ion, coulomb_log
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
+  use mod_function_utils, only: from_function
+  use mod_grid, only: grid_gauss
   implicit none
 
   private
@@ -16,17 +19,22 @@ contains
 
   !> This routines sets all resistivity values in \p eta_field,
   !! and calls all other relevant subroutines defined in this module.
-  subroutine set_resistivity_values(settings, T_field, eta_field)
-    use mod_types, only: temperature_type, resistivity_type
+  subroutine set_resistivity_values(settings, background, eta_field)
+    use mod_types, only: resistivity_type
 
     type(settings_t), intent(in) :: settings
-    !> the type containing the temperature attributes
-    type(temperature_type), intent(in)    :: T_field
+    type(background_t), intent(in) :: background
     !> the type containing the resistivity attributes
     type(resistivity_type), intent(inout) :: eta_field
 
-    call get_eta(settings, T_field % T0, eta_field % eta)
-    call get_deta_dT(settings, T_field % T0, eta_field % d_eta_dT)
+    call get_eta( &
+      settings, from_function(background%temperature%T0, grid_gauss), eta_field % eta &
+    )
+    call get_deta_dT( &
+      settings, &
+      from_function(background%temperature%T0, grid_gauss), &
+      eta_field % d_eta_dT &
+    )
     if (settings%physics%resistivity%use_dropoff) then
       call set_eta_dropoff(settings, eta_field)
     end if
@@ -106,7 +114,6 @@ contains
   subroutine set_eta_dropoff(settings, eta_field)
     use mod_types, only: resistivity_type
     use mod_logging, only: logger, str
-    use mod_grid, only: grid_gauss
     use mod_physical_constants, only: dpi
 
     type(settings_t), intent(in) :: settings

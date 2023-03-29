@@ -1,5 +1,4 @@
 submodule (mod_matrix_manager) smod_viscosity_matrix
-  use mod_equilibrium, only: v_field
   implicit none
 
 contains
@@ -24,14 +23,14 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     ! viscous heating variables
-    v01 = v_field % v01(gauss_idx)
-    dv01 = v_field % d_v01_dr(gauss_idx)
-    ddv01 = v_field % dd_v01_dr(gauss_idx)
-    v02 = v_field % v02(gauss_idx)
-    dv02 = v_field % d_v02_dr(gauss_idx)
-    v03 = v_field % v03(gauss_idx)
-    dv03 = v_field % d_v03_dr(gauss_idx)
-    ddv03 = v_field % dd_v03_dr(gauss_idx)
+    v01 = background%velocity%v01(grid_gauss(gauss_idx))
+    dv01 = background%velocity%dv01(grid_gauss(gauss_idx))
+    ddv01 = background%velocity%ddv01(grid_gauss(gauss_idx))
+    v02 = background%velocity%v02(grid_gauss(gauss_idx))
+    dv02 = background%velocity%dv02(grid_gauss(gauss_idx))
+    v03 = background%velocity%v03(grid_gauss(gauss_idx))
+    dv03 = background%velocity%dv03(grid_gauss(gauss_idx))
+    ddv03 = background%velocity%ddv03(grid_gauss(gauss_idx))
     ! viscosity value
     mu = settings%physics%viscosity%get_viscosity_value()
     ! operators

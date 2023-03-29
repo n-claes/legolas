@@ -8,6 +8,8 @@ module mod_radiative_cooling
   use mod_global_variables, only: dp
   use mod_logging, only: logger
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
+  use mod_function_utils, only: from_function
   implicit none
 
   private
@@ -114,26 +116,24 @@ contains
   !!          cooling curve. If T0 is above the upper limit of the cooling curve,
   !!          pure Bremmstrahlung is assumed. @endnote
   !! @warning Throws an error if the cooling curve is unknown.
-  subroutine set_radiative_cooling_values(settings, rho_field, T_field, rc_field)
-    use mod_types, only: density_type, temperature_type, cooling_type
+  subroutine set_radiative_cooling_values(settings, background, rc_field)
+    use mod_types, only: cooling_type
     use mod_cooling_curves, only: get_rosner_cooling
     use mod_interpolation, only: lookup_table_value
+    use mod_grid, only: grid_gauss
 
     type(settings_t), intent(in) :: settings
-    !> the type containing the density attributes
-    type(density_type), intent(in)      :: rho_field
-    !> the type containing the temperature attributes
-    type(temperature_type), intent(in)  :: T_field
+    type(background_t), intent(in) :: background
     !> the type containing the radiative cooling attributes
     type(cooling_type), intent(inout)   :: rc_field
 
     real(dp) :: lambda_T(settings%grid%get_gauss_gridpts())
-    real(dp) :: d_lambda_dT(settings%grid%get_gauss_gridpts())
+    real(dp) :: dlambda_dT(settings%grid%get_gauss_gridpts())
     real(dp) :: T0, min_T, max_T
     integer :: i, ncool
 
     lambda_T = 0.0d0
-    d_lambda_dT = 0.0d0
+    dlambda_dT = 0.0d0
     ncool = settings%physics%cooling%get_interpolation_points()
 
     if (interpolated_curve) then
@@ -141,32 +141,37 @@ contains
       max_T = maxval(interp_table_T)
       do i = 1, settings%grid%get_gauss_gridpts()
         ! current temperature in the grid
-        T0 = T_field % T0(i)
+        T0 = background%temperature%T0(grid_gauss(i))
         if (T0 <= min_T) then
           ! no cooling if T0 below lower limit cooling curve
           lambda_T(i) = 0.0d0
-          d_lambda_dT(i) = 0.0d0
+          dlambda_dT(i) = 0.0d0
         else if (T0 >= max_T) then
           ! assume Bremmstrahlung sqrt(T/Tmax) if T above upper limit cooling curve
           lambda_T(i) = interp_table_L(ncool) * sqrt(T0 / max_T)
-          d_lambda_dT(i) = 0.5d0 * interp_table_L(ncool) / sqrt(T0 * max_T)
+          dlambda_dT(i) = 0.5d0 * interp_table_L(ncool) / sqrt(T0 * max_T)
         else
           ! lookup lambda(T0) and dlambda(T0) in interpolated tables
           lambda_T(i) = lookup_table_value(T0, interp_table_T, interp_table_L)
-          d_lambda_dT(i) = lookup_table_value(T0, interp_table_T, interp_table_dLdT)
+          dlambda_dT(i) = lookup_table_value(T0, interp_table_T, interp_table_dLdT)
         end if
       end do
     else
       ! In this case an analytical cooling curve is used
       select case(settings%physics%cooling%get_cooling_curve())
       case("rosner")
-        call get_rosner_cooling(settings, T_field % T0, lambda_T, d_lambda_dT)
+        call get_rosner_cooling( &
+          settings=settings, &
+          T0=from_function(background%temperature%T0, grid_gauss), &
+          lambda_T=lambda_T, &
+          dlambda_dT=dlambda_dT &
+        )
       end select
     end if
 
     rc_field%lambdaT = lambda_T
     ! dL/dT = rho0 * d_lambda_dT where lambda_T equals the cooling curve
-    rc_field%dL_dT = rho_field%rho0 * d_lambda_dT
+    rc_field%dL_dT = from_function(background%density%rho0, grid_gauss) * dlambda_dT
     ! dL/drho = lambda(T)
     rc_field%dL_drho = lambda_T
 

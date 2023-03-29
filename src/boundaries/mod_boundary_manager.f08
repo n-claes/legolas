@@ -4,6 +4,7 @@ module mod_boundary_manager
   use mod_matrix_structure, only: matrix_t
   use mod_matrix_elements, only: matrix_elements_t, new_matrix_elements
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
   implicit none
 
   private
@@ -26,14 +27,16 @@ module mod_boundary_manager
       type(settings_t), intent(in) :: settings
     end subroutine apply_essential_boundaries_right
 
-    module subroutine apply_natural_boundaries_left(matrix, settings)
+    module subroutine apply_natural_boundaries_left(matrix, settings, background)
       type(matrix_t), intent(inout) :: matrix
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine apply_natural_boundaries_left
 
-    module subroutine apply_natural_boundaries_right(matrix, settings)
+    module subroutine apply_natural_boundaries_right(matrix, settings, background)
       type(matrix_t), intent(inout) :: matrix
       type(settings_t), intent(in) :: settings
+      type(background_t), intent(in) :: background
     end subroutine apply_natural_boundaries_right
   end interface
 
@@ -41,27 +44,28 @@ module mod_boundary_manager
 
 contains
 
-  subroutine apply_boundary_conditions(matrix_A, matrix_B, settings)
+  subroutine apply_boundary_conditions(matrix_A, matrix_B, settings, background)
     !> the A-matrix with boundary conditions imposed on exit
     type(matrix_t), intent(inout) :: matrix_A
     !> the B-matrix with boundary conditions imposed on exit
     type(matrix_t), intent(inout) :: matrix_B
     !> the settings object
     type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
 
     call set_boundary_flags(settings)
 
     ! handle left side boundary conditions B-matrix
-    call apply_natural_boundaries_left(matrix_B, settings)
+    call apply_natural_boundaries_left(matrix_B, settings, background)
     call apply_essential_boundaries_left(matrix_B, settings)
     ! handle left side boundary conditions A-matrix
-    call apply_natural_boundaries_left(matrix_A, settings)
+    call apply_natural_boundaries_left(matrix_A, settings, background)
     call apply_essential_boundaries_left(matrix_A, settings)
     ! handle right side boundary conditions B-matrix
-    call apply_natural_boundaries_right(matrix_B, settings)
+    call apply_natural_boundaries_right(matrix_B, settings, background)
     call apply_essential_boundaries_right(matrix_B, settings)
     ! handle right side boundary conditions A-matrix
-    call apply_natural_boundaries_right(matrix_A, settings)
+    call apply_natural_boundaries_right(matrix_A, settings, background)
     call apply_essential_boundaries_right(matrix_A, settings)
   end subroutine apply_boundary_conditions
 

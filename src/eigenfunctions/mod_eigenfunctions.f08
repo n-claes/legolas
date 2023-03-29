@@ -1,6 +1,7 @@
 module mod_eigenfunctions
   use mod_global_variables, only: dp
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
   use mod_base_efs, only: base_ef_t
   use mod_derived_efs, only: derived_ef_t, deallocate_derived_ef_module_variables
   use mod_derived_ef_names, only: create_and_set_derived_state_vector
@@ -10,6 +11,7 @@ module mod_eigenfunctions
 
   type, public :: eigenfunctions_t
     type(settings_t), pointer, private :: settings
+    type(background_t), pointer, private :: background
     type(base_ef_t), allocatable :: base_efs(:)
     type(derived_ef_t), allocatable :: derived_efs(:)
     logical, allocatable :: ef_written_flags(:)
@@ -29,10 +31,12 @@ module mod_eigenfunctions
 
 contains
 
-  function new_eigenfunctions(settings) result(eigenfunctions)
+  function new_eigenfunctions(settings, background) result(eigenfunctions)
     type(settings_t), target, intent(inout) :: settings
+    type(background_t), target, intent(in) :: background
     type(eigenfunctions_t) :: eigenfunctions
     eigenfunctions%settings => settings
+    eigenfunctions%background => background
   end function new_eigenfunctions
 
 
@@ -58,7 +62,9 @@ contains
 
     if (.not. this%settings%io%write_derived_eigenfunctions) return
 
-    derived_state_vector = create_and_set_derived_state_vector(this%settings)
+    derived_state_vector = create_and_set_derived_state_vector( &
+      this%settings, this%background &
+    )
     allocate(this%derived_efs(size(derived_state_vector)))
     do i = 1, size(this%derived_efs)
       call this%derived_efs(i)%initialise( &
@@ -88,6 +94,7 @@ contains
     do i = 1, size(this%derived_efs)
       call this%derived_efs(i)%assemble( &
         settings=this%settings, &
+        background=this%background, &
         idxs_to_assemble=this%ef_written_idxs, &
         right_eigenvectors=right_eigenvectors, &
         ef_grid=this%ef_grid &

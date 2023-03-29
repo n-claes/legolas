@@ -35,22 +35,22 @@ contains
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%physics%enable_gravity()
 
-      k2 = 0.0d0
-      k3 = 1.0d0
-      cte_rho0 = 1.0d0
-      cte_p0 = 1000.0d0
-      delta = -5.0d0
-      g = 100.0d0
+      k2 = 0.0_dp
+      k3 = 1.0_dp
+      cte_rho0 = 1.0_dp
+      cte_p0 = 1000.0_dp
+      delta = -5.0_dp
+      g = 100.0_dp
       alpha = -dpi
-      theta = 0.0d0
-      p1 = 1.0d0
-      p2 = 2.0d0
-      p3 = 1.0d0
-      p4 = 0.5d0 * dpi
-      tau = 4.0d0
+      theta = 0.0_dp
+      p1 = 1.0_dp
+      p2 = 2.0_dp
+      p3 = 1.0_dp
+      p4 = 0.5_dp * dpi
+      tau = 4.0_dp
     end if ! LCOV_EXCL_STOP
 
-    call flow_driven_instabilities_eq(settings)
+    call flow_driven_instabilities_eq(settings, background)
   end procedure RTI_KHI_eq
 
 end submodule smod_equil_RTI_KHI

@@ -2,18 +2,30 @@ module mod_test_resistivity
   use mod_suite_utils
   use funit
   use mod_resistivity, only: set_resistivity_values
+  use mod_equilibrium, only: eta_field
+  use mod_physical_constants
   implicit none
 
+  real(dp) :: unit_resistivity, unit_temperature, unit_deta_dT
   type(settings_t) :: settings
+  type(background_t) :: background
+  real(dp), allocatable :: expected(:), actual(:)
+  real(dp), allocatable :: temps(:)
 
 contains
 
   @before
   subroutine init_test()
-    call reset_globals()
     settings = get_settings()
+    background = get_background()
     call reset_fields(settings, init_fields=.true.)
     call set_default_units(settings)
+    call create_test_grid( &
+      settings, pts=settings%grid%get_gridpts(), geometry="Cartesian" &
+    )
+    unit_resistivity = settings%units%get_unit_resistivity()
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_deta_dT = unit_resistivity / unit_temperature
   end subroutine init_test
 
 
@@ -21,16 +33,58 @@ contains
   subroutine teardown_test()
     call clean_up(settings)
     call settings%delete()
+    call background%delete()
+    if (allocated(expected)) deallocate(expected)
+    if (allocated(actual)) deallocate(actual)
+    if (allocated(temps)) deallocate(temps)
   end subroutine teardown_test
+
+
+  real(dp) function T0_x(x)
+    real(dp), intent(in) :: x
+    T0_x = temps(get_grid_idx(x))
+  end function T0_x
+
+
+  function get_spitzer_eta(T0vals) result(spitzer_eta)
+    real(dp), intent(in) :: T0vals(:)
+    real(dp), allocatable :: spitzer_eta(:)
+
+    allocate(spitzer_eta(size(T0vals)))
+    spitzer_eta = ( &
+      (4.0d0 / 3.0d0) &
+      * sqrt(2.0d0 * dpi) &
+      * Z_ion &
+      * ec_cgs**2 &
+      * sqrt(me_cgs) &
+      * coulomb_log &
+      / (kB_cgs * T0vals * unit_temperature)**(3.0d0 / 2.0d0) &
+    ) / settings%units%get_unit_resistivity()
+  end function get_spitzer_eta
+
+
+  function get_spitzer_deta_dT(T0vals) result(spitzer_deta)
+    real(dp), intent(in) :: T0vals(:)
+    real(dp), allocatable :: spitzer_deta(:)
+
+    allocate(spitzer_deta(size(T0vals)))
+    spitzer_deta = ( &
+      -2.0d0 &
+      * sqrt(2.0d0 * dpi) &
+      * Z_ion &
+      * ec_cgs**2 &
+      * sqrt(me_cgs) &
+      * coulomb_log &
+      / (kB_cgs**(3.0d0 / 2.0d0) * (T0vals * unit_temperature)**(5.0d0 / 2.0d0)) &
+    ) / unit_deta_dT
+  end function get_spitzer_deta_dT
 
 
   @test
   subroutine test_set_eta_cte()
-    use mod_equilibrium, only: T_field, eta_field
-
     call set_name("setting constant resistivity")
     call settings%physics%enable_resistivity(fixed_resistivity_value=2.0_dp)
-    call set_resistivity_values(settings, T_field, eta_field)
+    call set_resistivity_values(settings, background, eta_field)
     @assertTrue(settings%physics%resistivity%is_enabled())
     @assertTrue(settings%physics%resistivity%has_fixed_resistivity())
     @assertEqual(2.0_dp, eta_field % eta, tolerance=TOL)
@@ -51,45 +105,35 @@ contains
 
   @test
   subroutine test_set_eta()
-    use mod_equilibrium, only: T_field, eta_field
-
-    real(dp) :: expected_eta(4), expected_deta(4)
-    real(dp) :: unit_resistivity, unit_deta_dT
-
     call set_name("setting varying resistivity")
-    call settings%grid%set_gridpts(2)
-    call reset_fields(settings, init_fields=.true.)
-    T_field % T0 = [0.5d0, 1.0d0, 1.5d0, 3.0d0]
+    temps = linspace(1.0d-5, 3.5d0, settings%grid%get_gauss_gridpts())
     call settings%physics%enable_resistivity()
-    call set_resistivity_values(settings, T_field, eta_field)
+    call background%set_temperature_funcs(T0_func=T0_x)
+    call set_resistivity_values(settings, background, eta_field)
 
-    unit_resistivity = settings%units%get_unit_resistivity()
-    unit_deta_dT = unit_resistivity / settings%units%get_unit_temperature()
+    ! test resistivity
+    expected = get_spitzer_eta(temps) * 1.0d30
+    actual = eta_field%eta * 1.0d30
+    @assertEqual(expected, actual, tolerance=TOL)
 
-    expected_eta = [ &
-      5.65272704d-18, 1.99854081d-18, 1.08786783d-18, 3.84619359d-19 &
-    ] / unit_resistivity
-    expected_deta = [ &
-      -1.69581811d-23, -2.99781122d-24, -1.08786783d-24, -1.92309679d-25 &
-    ] / unit_deta_dT
+    ! test deta/dT
+    expected = get_spitzer_deta_dT(temps) * 1.0d30
+    actual = eta_field%d_eta_dT * 1.0d30
+    @assertEqual(expected, actual, tolerance=TOL)
 
-    @assertEqual(expected_eta, eta_field % eta, tolerance=1.0d-8)
-    @assertEqual(expected_deta, eta_field % d_eta_dT, tolerance=1.0d-8)
-    @assertEqual(0.0d0, eta_field % d_eta_dr, tolerance=TOL)
+    ! test deta/dr
+    @assertEqual(0.0d0, eta_field%d_eta_dr, tolerance=TOL)
   end subroutine test_set_eta
 
 
   @test
   subroutine test_set_dropoff_eta_fail()
-    use mod_equilibrium, only: T_field, eta_field
-
     call set_name("setting eta dropoff (not constant)")
-    call create_test_grid(settings, 100, "Cartesian")
-    call reset_fields(settings, init_fields=.true.)
+    allocate(temps(settings%grid%get_gauss_gridpts()), source=1.0d0)
     call settings%physics%enable_resistivity()
     settings%physics%resistivity%use_dropoff = .true.
-    T_field % T0 = 1.0d0
-    call set_resistivity_values(settings, T_field, eta_field)
+    call background%set_temperature_funcs(T0_func=T0_x)
+    call set_resistivity_values(settings, background, eta_field)
 
     @assertExceptionRaised("eta dropoff only possible with a fixed resistivity value")
   end subroutine test_set_dropoff_eta_fail
@@ -97,18 +141,16 @@ contains
 
   @test
   subroutine test_set_dropoff_eta()
-    use mod_equilibrium, only: T_field, eta_field
-
     integer :: middle, gauss_gridpts
 
     call set_name("setting eta dropoff (constant)")
-    call create_test_grid(settings, 100, "Cartesian")
-    call reset_fields(settings, init_fields=.true.)
     call settings%physics%enable_resistivity(fixed_resistivity_value=1.0_dp)
+    temps = linspace(1.0d0, 2.0d0, settings%grid%get_gauss_gridpts())
+    call background%set_temperature_funcs(T0_func=T0_x)
     settings%physics%resistivity%use_dropoff = .true.
     settings%physics%dropoff_edge_dist = 0.05
     settings%physics%dropoff_width = 0.1
-    call set_resistivity_values(settings, T_field, eta_field)
+    call set_resistivity_values(settings, background, eta_field)
     gauss_gridpts = settings%grid%get_gauss_gridpts()
     middle = int(gauss_gridpts / 2)
 

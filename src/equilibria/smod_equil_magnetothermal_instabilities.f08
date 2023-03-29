@@ -25,52 +25,64 @@
 !!       you can set k2 = 10. To reproduce the thermal continuum plot,
 !!       set <tt>unit_length</tt> = 2.44e9 cm in _CASE I_. @endnote
 submodule(mod_equilibrium) smod_equil_magnetothermal_instabilities
+  use mod_equilibrium_params, only: cte_T0
   implicit none
 
 contains
 
   !> Sets the equilibrium
   module procedure magnetothermal_instability_eq
-    use mod_equilibrium_params, only: cte_T0
-
-    real(dp)  :: r
-    real(dp), allocatable :: p_r(:)
-    integer   :: i
-
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
       call settings%physics%enable_cooling(cooling_curve="rosner")
       call settings%physics%enable_parallel_conduction()
       call settings%units%set_units_from_temperature( &
-        unit_temperature=2.6d6, &
-        unit_magneticfield=10.0d0, &
-        unit_length=1.00d8, &
-        mean_molecular_weight=1.0d0 & ! this work assumes pure proton plasma
+        unit_temperature=2.6e6_dp, &
+        unit_magneticfield=10.0_dp, &
+        unit_length=1.00e8_dp, &
+        mean_molecular_weight=1.0_dp & ! this work assumes pure proton plasma
       )
 
-      cte_T0 = 1.0d0
-      k2 = 0.0d0
-      k3 = 1.0d0
+      cte_T0 = 1.0_dp
+      k2 = 0.0_dp
+      k3 = 1.0_dp
     end if ! LCOV_EXCL_STOP
     call initialise_grid(settings)
 
-    allocate(p_r(settings%grid%get_gauss_gridpts()))
-    do i = 1, settings%grid%get_gauss_gridpts()
-      r = grid_gauss(i)
-
-      B_field % B02(i) = r / (1.0d0 + r**2)
-      B_field % B03(i) = 0.0d0
-      B_field % B0(i) = sqrt((B_field % B02(i))**2 + (B_field % B03(i))**2)
-      p_r(i) = 1.0d0 / ( 2.0d0 * (1.0d0 + r**2)**2 )
-      T_field % T0(i) = cte_T0
-      rho_field % rho0(i) = p_r(i) / cte_T0
-
-      rho_field % d_rho0_dr(i) = -2.0d0 * r / (cte_T0 * (r**2 + 1.0d0)**3)
-      B_field % d_B02_dr(i) = (1.0d0 - r**2) / (r**4 + 2.0d0 * r**2 + 1.0d0)
-      ! Temperature derivative is zero due to isothermal
-    end do
-    deallocate(p_r)
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
   end procedure magnetothermal_instability_eq
+
+
+  real(dp) function p0(r)
+    real(dp), intent(in) :: r
+    p0 = 1.0_dp / (2.0_dp * (1.0_dp + r**2)**2)
+  end function p0
+
+  real(dp) function rho0(r)
+    real(dp), intent(in) :: r
+    rho0 = p0(r) / cte_T0
+  end function rho0
+
+  real(dp) function drho0(r)
+    real(dp), intent(in) :: r
+    drho0 = -2.0_dp * r / (cte_T0 * (r**2 + 1.0_dp)**3)
+  end function drho0
+
+  real(dp) function T0()
+    T0 = cte_T0
+  end function T0
+
+  real(dp) function B02(r)
+    real(dp), intent(in) :: r
+    B02 = r / (1.0_dp + r**2)
+  end function B02
+
+  real(dp) function dB02(r)
+    real(dp), intent(in) :: r
+    dB02 = (1.0_dp - r**2) / (r**4 + 2.0_dp * r**2 + 1.0_dp)
+  end function dB02
 
 end submodule smod_equil_magnetothermal_instabilities

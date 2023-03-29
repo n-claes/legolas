@@ -25,6 +25,7 @@
 !!
 !! and can all be changed in the parfile. @endnote
 submodule (mod_equilibrium) smod_equil_KHI
+  use mod_function_utils, only: zero_func
   implicit none
 
 contains
@@ -34,29 +35,26 @@ contains
       p4, alpha, cte_rho0, cte_p0
 
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
-      k2 = 0.0d0
-      k3 = 1.0d0
-      cte_rho0 = 1.0d0
-      cte_p0 = 1000d0
-      delta = 0.0d0
-      g = 0.0d0
-      alpha = 0.0d0
-      theta = 0.0d0
-      p1 = 0.0d0
-      p2 = 0.0d0
-      p3 = 1.0d0
-      p4 = 0.0d0
-      tau = 11.0d0
+      k2 = 0.0_dp
+      k3 = 1.0_dp
+      cte_rho0 = 1.0_dp
+      cte_p0 = 1000_dp
+      delta = 0.0_dp
+      g = 0.0_dp
+      alpha = 0.0_dp
+      theta = 0.0_dp
+      p1 = 0.0_dp
+      p2 = 0.0_dp
+      p3 = 1.0_dp
+      p4 = 0.0_dp
+      tau = 11.0_dp
     end if ! LCOV_EXCL_STOP
 
-    call flow_driven_instabilities_eq(settings)
+    call flow_driven_instabilities_eq(settings, background)
     ! manually force the magnetic field to zero, it's HD here (the above set
     ! of parameters still yield a B03 component)
-    B_field % B02 = 0.0d0
-    B_field % B03 = 0.0d0
-    B_field % B0 = 0.0d0
-    B_field % d_B02_dr = 0.0d0
-    B_field % d_B03_dr = 0.0d0
+    call background%set_magnetic_2_funcs(B02_func=zero_func, dB02_func=zero_func)
+    call background%set_magnetic_3_funcs(B03_func=zero_func, dB03_func=zero_func)
   end procedure KHI_eq
 
 end submodule smod_equil_KHI

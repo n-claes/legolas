@@ -1,6 +1,8 @@
 module mod_suite_utils
   use mod_global_variables, only: dp
   use mod_settings, only: settings_t, new_settings
+  use mod_background, only: background_t, new_background
+  use mod_function_utils, only: from_function
   use mod_logging, only: logger
   implicit none
 
@@ -34,15 +36,28 @@ contains
   end function get_settings
 
 
+  function get_background() result(background)
+    type(background_t) :: background
+
+    background = new_background()
+  end function get_background
+
+
+  integer function get_grid_idx(x)
+    use mod_grid, only: grid_gauss
+
+    real(dp), intent(in) :: x
+    get_grid_idx = minloc(abs(grid_gauss - x), dim=1)
+  end function get_grid_idx
+
+
   subroutine reset_fields(settings, init_fields)
-    use mod_equilibrium, only: rho_field, equilibrium_clean, initialise_equilibrium
+    use mod_equilibrium, only: equilibrium_clean, initialise_equilibrium
 
     type(settings_t), intent(inout), optional :: settings
     logical, intent(in) :: init_fields
 
-    if (allocated(rho_field % rho0)) then
-      call equilibrium_clean()
-    end if
+    call equilibrium_clean()
     if (init_fields) then
       call initialise_equilibrium(settings)
     end if
@@ -69,11 +84,23 @@ contains
     use mod_grid, only: initialise_grid
 
     type(settings_t), intent(inout) :: settings
-    integer, intent(in)             :: pts
-    character(len=*), intent(in)    :: geometry
+    integer, intent(in), optional :: pts
+    character(len=*), intent(in), optional :: geometry
     real(dp), intent(in), optional  :: grid_start, grid_end
     real(dp) :: x_start, x_end
+    integer :: gridpts
+    character(:), allocatable :: grid_geometry
 
+    if (present(pts)) then
+      gridpts = pts
+    else
+      gridpts = settings%grid%get_gridpts()
+    end if
+    if (present(geometry)) then
+      grid_geometry = geometry
+    else
+      grid_geometry = settings%grid%get_geometry()
+    end if
     if (present(grid_start)) then
       x_start = grid_start
     else
@@ -84,9 +111,9 @@ contains
     else
       x_end = 1.0d0
     end if
-    call settings%grid%set_geometry(geometry)
+    call settings%grid%set_geometry(grid_geometry)
     call settings%grid%set_grid_boundaries(x_start, x_end)
-    call settings%grid%set_gridpts(pts)
+    call settings%grid%set_gridpts(gridpts)
     call settings%update_block_dimensions()
     call initialise_grid(settings)
   end subroutine create_test_grid
@@ -106,9 +133,11 @@ contains
   function linspace(x0, x1, xvals) result(xarray)
     real(dp), intent(in)  :: x0, x1
     integer, intent(in)   :: xvals
-    real(dp)  :: dx, xarray(xvals)
+    real(dp), allocatable :: xarray(:)
+    real(dp)  :: dx
     integer   :: i
 
+    allocate(xarray(xvals))
     dx = (x1 - x0) / (xvals - 1)
     do i = 1, xvals
       xarray(i) = x0 + (i - 1) * dx

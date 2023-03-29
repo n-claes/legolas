@@ -21,47 +21,43 @@
 !! and can all be changed in the parfile. @endnote
 ! SUBMODULE: smod_equil_tc_pinch
 submodule (mod_equilibrium) smod_equil_tc_pinch
+  use mod_equilibrium_params, only: cte_rho0, cte_B02, alpha, beta, tau
   implicit none
+
+  real(dp) :: h, A, B, A2, B2, Bc1, Bc2, Bc3
+  real(dp) :: Tstart, Tend
+  real(dp) :: Ta, Ha, Re, Pm
 
 contains
 
   module procedure tc_pinch_eq
-    use mod_equilibrium_params, only: cte_rho0, cte_B02, alpha, beta, tau
-
-    real(dp) :: r, h, A, B, A2, B2, Bc1, Bc2, Bc3, Tstart, Tend, Ta, Ha, Re, Pm
-    real(dp) :: x_start, x_end
+    real(dp) :: x_start, x_end, r_mid
     real(dp) :: fixed_eta_value, viscosity_value
-    integer :: i, gauss_gridpts
 
     call settings%physics%enable_flow()
-
     settings%grid%coaxial = .true.
 
     if (settings%equilibrium%use_defaults) then
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(1.0_dp, 2.0_dp)
-      cte_rho0 = 1.0d3
-      alpha = 1.0d-6
-      beta = 1.5d-6
-      cte_B02 = 1.0d-3
-      tau = 4.0d-3
+      cte_rho0 = 1.0e3_dp
+      alpha = 1.0e-6_dp
+      beta = 1.5e-6_dp
+      cte_B02 = 1.0e-3_dp
+      tau = 4.0e-3_dp
 
-      k2 = 0.0d0
-      k3 = 1.0d0
+      k2 = 0.0_dp
+      k3 = 1.0_dp
 
       call settings%physics%enable_resistivity(fixed_resistivity_value=1.0e-4_dp)
       call settings%physics%enable_viscosity(viscosity_value=1.0e-6_dp)
     end if
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
     call initialise_grid(settings)
-
 
     fixed_eta_value = settings%physics%resistivity%get_fixed_resistivity()
     viscosity_value = settings%physics%viscosity%get_viscosity_value()
-
-    rho_field % rho0 = cte_rho0
 
     h = x_end - x_start
     A = (beta * x_end**2 - alpha * x_start**2) / (x_end**2 - x_start**2)
@@ -73,52 +69,93 @@ contains
     Bc2 = cte_rho0 * A * B - A2 * B2
     Bc3 = cte_rho0 * B**2 - B2**2
 
-    Tstart = ( 0.5d0 * Bc1 * x_start**2 &
-              + 2.0d0 * Bc2 * log(x_start) - 0.5d0 * Bc3 / x_start**2 &
-              - 0.5d0 * (A2 * x_start + B2 / x_start)**2 ) / cte_rho0
-    Tend = ( 0.5d0 * Bc1 * x_end**2 &
-              + 2.0d0 * Bc2 * log(x_end) - 0.5d0 * Bc3 / x_end**2 &
-              - 0.5d0 * (A2 * x_end + B2 / x_end)**2 ) / cte_rho0
+    Tstart = ( &
+      0.5_dp * Bc1 * x_start**2 &
+      + 2.0_dp * Bc2 * log(x_start) &
+      - 0.5_dp * Bc3 / x_start**2 &
+      - 0.5_dp * (A2 * x_start + B2 / x_start)**2 &
+    ) / cte_rho0
+    Tend = ( &
+      0.5_dp * Bc1 * x_end**2 &
+      + 2.0_dp * Bc2 * log(x_end) &
+      - 0.5_dp * Bc3 / x_end**2 &
+      - 0.5_dp * (A2 * x_end + B2 / x_end)**2 &
+    ) / cte_rho0
 
-    do i = 1, gauss_gridpts
-      r = grid_gauss(i)
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02, ddv02_func=ddv02)
+    call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02, ddB02_func=ddB02)
 
-      v_field % v02(i) = A * r + B / r
-      v_field % d_v02_dr(i) = A - B / r**2
-      v_field % dd_v02_dr(i) = 2.0d0 * B / r**3
-
-      B_field % B02(i)         = A2 * r + B2 / r
-      B_field % B0(i)          = B_field % B02(i)
-      B_field % d_B02_dr(i)    = A2 - B2 / r**2
-      eta_field % dd_B02_dr(i) = 2.0d0 * B2 / r**3
-
-      if ((Tstart > 0) .and. (Tend > 0)) then
-        T_field % T0(i) = ( 0.5d0 * Bc1 * r**2 &
-                          + 2.0d0 * Bc2 * log(r) - 0.5d0 * Bc3 / r**2 &
-                          - 0.5d0 * (A2 * r + B2 / r)**2 ) / cte_rho0
-      else
-        T_field % T0(i) = 2.0d0 * max(abs(Tstart), abs(Tend)) + ( 0.5d0 * Bc1 * r**2 &
-                          + 2.0d0 * Bc2 * log(r) - 0.5d0 * Bc3 / r**2 &
-                          - 0.5d0 * (A2 * r + B2 / r)**2 ) / cte_rho0
-      end if
-
-      T_field % d_T0_dr(i) = ( (cte_rho0 * (v_field % v02(i))**2 &
-                                - (B_field % B02(i))**2) / r &
-                                - (B_field % B02(i)) * (B_field % d_B02_dr(i)) &
-                              ) / cte_rho0
-    end do
-
-    Ta = (cte_rho0 * (v_field % v02(int(gauss_gridpts/2))) * h / viscosity_value)**2 &
-          * 2.0d0 * h / (x_start + x_end)
-    call logger%info("Taylor number:  " // str(Ta, fmt=exp_fmt))
+    r_mid = grid_gauss(int(settings%grid%get_gauss_gridpts() / 2))
+    Ta = ( &
+      cte_rho0 * v02(r_mid) * h / viscosity_value &
+    )**2 * 2.0_dp * h / (x_start + x_end)
+    call logger%info("Taylor number  :  " // str(Ta, fmt=exp_fmt))
     Pm = viscosity_value / (cte_rho0 * fixed_eta_value)
-    call logger%info("Prandtl number: " // str(Pm, fmt=exp_fmt))
+    call logger%info("Prandtl number : " // str(Pm, fmt=exp_fmt))
     Ha = cte_B02 * sqrt(x_start * (x_end - x_start)) &
-          / sqrt(viscosity_value * fixed_eta_value)
-    call logger%info("Hartmann number " // str(Ha, fmt=exp_fmt))
+      / sqrt(viscosity_value * fixed_eta_value)
+    call logger%info("Hartmann number: " // str(Ha, fmt=exp_fmt))
     Re = alpha * cte_rho0 * x_start * (x_end - x_start) / viscosity_value
-    call logger%info("Reynolds number " // str(Re, fmt=exp_fmt))
-
+    call logger%info("Reynolds number: " // str(Re, fmt=exp_fmt))
   end procedure tc_pinch_eq
+
+
+  real(dp) function rho0()
+    rho0 = cte_rho0
+  end function rho0
+
+  real(dp) function v02(r)
+    real(dp), intent(in) :: r
+    v02 = A * r + B / r
+  end function v02
+
+  real(dp) function dv02(r)
+    real(dp), intent(in) :: r
+    dv02 = A - B / r**2
+  end function dv02
+
+  real(dp) function ddv02(r)
+    real(dp), intent(in) :: r
+    ddv02 = 2.0_dp * B / r**3
+  end function ddv02
+
+  real(dp) function T0(r)
+    real(dp), intent(in) :: r
+    T0 = ( &
+      0.5_dp * Bc1 * r**2 &
+      + 2.0_dp * Bc2 * log(r) &
+      - 0.5_dp * Bc3 / r**2 &
+      - 0.5_dp * B02(r)**2 &
+    ) / cte_rho0
+    if (.not. (Tstart > 0.0_dp .and. Tend > 0.0_dp)) then
+      T0 = T0 + 2.0_dp * max(abs(Tstart), abs(Tend))
+    end if
+  end function T0
+
+  real(dp) function dT0(r)
+    real(dp), intent(in) :: r
+    dT0 = ( &
+      (cte_rho0 * v02(r)**2 - B02(r)**2) / r - B02(r) * dB02(r) &
+    ) / cte_rho0
+
+  end function dT0
+
+  real(dp) function B02(r)
+    real(dp), intent(in) :: r
+    B02 = A2 * r + B2 / r
+  end function B02
+
+  real(dp) function dB02(r)
+    real(dp), intent(in) :: r
+    dB02 = A2 - B2 / r**2
+  end function dB02
+
+  real(dp) function ddB02(r)
+    real(dp), intent(in) :: r
+    ddB02 = 2.0_dp * B2 / r**3
+  end function ddB02
+
 
 end submodule smod_equil_tc_pinch

@@ -64,4 +64,11 @@ module mod_physical_constants
   !> solar constant (intensity at 1 AU) in erg/cm^2/s
   real(dp), parameter   :: fsun_cgs = 1.36d6
 
+  !> coefficient of parallel thermal conduction in erg*s/cm/K
+  !! the coulomb logarithm ln(Lambda) has not yet been included
+  real(dp), parameter :: tc_pf_kappa_para = 1.8d-5
+  !> coefficient of perpendicular thermal conduction in erg*s/cm/K
+  !! the coulomb logarithm ln(Lambda) has not yet been included
+  real(dp), parameter :: tc_pf_kappa_perp = 8.2d-13
+
 end module mod_physical_constants

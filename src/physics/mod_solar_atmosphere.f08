@@ -4,8 +4,14 @@
 !! geometries only.
 module mod_solar_atmosphere
   use mod_global_variables, only: dp
+  use mod_physical_constants, only: gsun_cgs, Rsun_cgs
   use mod_logging, only: logger, str
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
+  use mod_function_utils, only: from_function, zero_func
+  use mod_interpolation, only: lookup_table_value
+  use mod_equilibrium, only: grav_field
+  use mod_grid, only: grid_gauss
   implicit none
 
   !> interpolated heights from atmosphere tables
@@ -20,33 +26,15 @@ module mod_solar_atmosphere
   integer   :: nbpoints
   !> integrated density profile
   real(dp), allocatable :: rho_values(:)
-  !> derivative of integrated density profile
-  real(dp), allocatable :: drho_values(:)
 
-  !> chosen profile for B02(x)
-  procedure(oned_profile), pointer :: b02_prof
-  !> chosen profile for dB02(x)
-  procedure(oned_profile), pointer :: db02_prof
-  !> chosen profile for B03(x)
-  procedure(oned_profile), pointer :: b03_prof
-  !> chosen profile for dB03(x)
-  procedure(oned_profile), pointer :: db03_prof
-  !> chosen profile for g(x)
-  procedure(oned_profile), pointer :: gravity_prof
-
-  abstract interface
-    function oned_profile(x, settings)
-      use mod_global_variables, only: dp
-      use mod_settings, only: settings_t
-      real(dp), intent(in) :: x(:)
-      type(settings_t), intent(in) :: settings
-      real(dp)  :: oned_profile(size(x))
-    end function oned_profile
-  end interface
+  real(dp) :: unit_length
+  real(dp) :: unit_time
+  real(dp) :: unit_magneticfield
 
   private
 
   public :: set_solar_atmosphere
+  public :: solar_atmosphere_dealloc
 
 contains
 
@@ -64,70 +52,25 @@ contains
   !! table, the curve is sampled on the Gaussian grid, meaning that grid variations
   !! can all use the same result.
   !! @warning   Throws an error if the geometry is not Cartesian. @endwarning
-  subroutine set_solar_atmosphere( &
-    settings, f_b02, f_db02, f_b03, f_db03, f_g, n_interp, load_from, save_to &
-  )
-    use mod_grid, only: grid_gauss
+  subroutine set_solar_atmosphere(settings, background, n_interp)
     use mod_interpolation, only: lookup_table_value, get_numerical_derivative
     use mod_integration, only: integrate_ode_rk
-    use mod_equilibrium, only: rho_field, T_field, B_field, grav_field
 
     type(settings_t), intent(in) :: settings
-    !> function reference for calculation of B02
-    procedure(oned_profile), optional :: f_b02
-    !> function reference for calculation of B02'
-    procedure(oned_profile), optional :: f_db02
-    !> function reference for calculation of B03
-    procedure(oned_profile), optional :: f_b03
-    !> function reference for calculation of B03'
-    procedure(oned_profile), optional :: f_db03
-    !> function reference for calculation of gravitational profile
-    procedure(oned_profile), optional :: f_g
+    type(background_t), intent(inout) :: background
     !> points used for interpolation, defaults to 4000 if not present
     integer, intent(in), optional :: n_interp
-    !> if present loads the (previously) integrated density profile from this
-    character(len=*), intent(in), optional  :: load_from
-    !> if present, saves the integrated density profile to this
-    character(len=*), intent(in), optional  :: save_to
 
     integer   :: i
     real(dp)  :: x, rhoinit
     real(dp), allocatable  :: axvalues(:), bxvalues(:)
-    logical, save :: loaded
 
-    ! check for presence of custom profiles, if not, use default ones
-    if (present(f_b02)) then
-      if (.not. present(f_db02)) then
-        call logger%error("solar atmosphere: B02 defined but no dB02")
-        return
-      end if
-      b02_prof => f_b02
-      db02_prof => f_db02
-    else
-      b02_prof => default_b02_profile
-      db02_prof => default_db02_profile
-    end if
-    if (present(f_b03)) then
-      if (.not. present(f_db03)) then
-        call logger%error("solar atmosphere: B03 defined but no dB03")
-        return
-      end if
-      b03_prof => f_b03
-      db03_prof => f_db03
-    else
-      b03_prof => default_b03_profile
-      db03_prof => default_db03_profile
-    end if
-    if (present(f_g)) then
-      gravity_prof => f_g
-    else
-      gravity_prof => default_gravity_profile
-    end if
+    unit_length = settings%units%get_unit_length()
+    unit_time = settings%units%get_unit_time()
+    unit_magneticfield = settings%units%get_unit_magneticfield()
 
     nbpoints = 4000
-    if (present(n_interp)) then
-      nbpoints = n_interp
-    end if
+    if (present(n_interp)) nbpoints = n_interp
 
     if (settings%grid%get_geometry() /= "Cartesian") then
       call logger%error("solar atmosphere can only be set in Cartesian geometries!")
@@ -135,87 +78,41 @@ contains
     end if
 
     call logger%info("setting solar atmosphere...")
-    ! load pre-existing profiles from file
-    if (present(load_from)) then
-      ! this allocates and sets rho_values and drho_values
-      call load_profile_from_file(settings, load_from, loading_ok=loaded)
-      if (.not. loaded) then
-        call logger%error("solar atmosphere: profile loading failed!")
-        return
-      end if
-    else
-      allocate(rho_values(nbpoints), drho_values(nbpoints))
-      loaded = .false.
-    end if
-
+    allocate(rho_values(nbpoints))
     ! interpolate atmospheric tables
     allocate(h_interp(nbpoints), T_interp(nbpoints), dT_interp(nbpoints))
     allocate(nh_interp(nbpoints))
     ! curves are normalised on return
     call create_atmosphere_curves(settings)
 
-    ! only do integration if no profile was loaded
-    if (.not. loaded) then
-      ! fill ODE functions, use high resolution arrays
-      allocate(axvalues(nbpoints), bxvalues(nbpoints))
-      axvalues = -(dT_interp + gravity_prof(h_interp, settings)) / (T_interp)
-      bxvalues = ( &
-        -( &
-          b02_prof(h_interp, settings) * db02_prof(h_interp, settings) &
-          + b03_prof(h_interp, settings) * db03_prof(h_interp, settings) &
-        ) &
-        / T_interp &
-      )
-      ! set initial density value (numberdensity = density in normalised units)
-      rhoinit = nh_interp(1)
-      ! solve differential equation
-      call logger%info( &
-        "solving equilibrium ODE for density (" // str(nbpoints) // " points)" &
-      )
-      ! do integration
-      call integrate_ode_rk( &
-        h_interp, axvalues, bxvalues, nbpoints, rhoinit, rho_values, adaptive=.false. &
-      )
-      call get_numerical_derivative(h_interp, rho_values, drho_values)
-      ! these are no longer needed
-      deallocate(axvalues, bxvalues)
-    end if
-
-    ! save to file if asked but don't load and save at the same time
-    if (present(save_to) .and. .not. loaded) then
-      call save_profile_to_file(settings, save_to)
-    end if
-
-    ! set the various equilibrium attributes
-    do i = 1, settings%grid%get_gauss_gridpts()
-      x = grid_gauss(i)
-      ! density
-      rho_field % rho0(i) = lookup_table_value(x, h_interp, rho_values)
-      ! temperature
-      T_field % T0(i) = lookup_table_value(x, h_interp, T_interp)
-      T_field % d_T0_dr(i) = lookup_table_value(x, h_interp, dT_interp)
+    ! fill ODE functions, use high resolution arrays
+    allocate(axvalues(nbpoints), bxvalues(nbpoints))
+    do i = 1, nbpoints
+      x = h_interp(i)
+      axvalues(i) = -(dT_interp(i) + g0(x)) / T_interp(i)
+      bxvalues = -(B02() * dB02() + B03() * dB03()) / T_interp(i)
     end do
-    ! gravitational field
-    grav_field % grav = gravity_prof(grid_gauss, settings)
-    ! magnetic fields
-    B_field % B02 = b02_prof(grid_gauss, settings)
-    B_field % d_B02_dr = db02_prof(grid_gauss, settings)
-    B_field % B03 = b03_prof(grid_gauss, settings)
-    B_field % d_B03_dr = db03_prof(grid_gauss, settings)
-    B_field % B0 = sqrt(B_field % B02**2 + B_field % B03**2)
+    ! set initial density value (numberdensity = density in normalised units)
+    rhoinit = nh_interp(1)
+    ! solve differential equation
+    call logger%info( &
+      "solving equilibrium ODE for density (" // str(nbpoints) // " points)" &
+    )
+    ! do integration
+    call integrate_ode_rk( &
+      h_interp, axvalues, bxvalues, nbpoints, rhoinit, rho_values, adaptive=.false. &
+    )
+    ! these are no longer needed
+    deallocate(axvalues, bxvalues)
 
-    ! set density derivative USING the differential equation. The difference between
-    ! drho_interp and doing it like this is due to numerical accuracy, but the
-    ! differences are quite acceptable (about 0.01% or lower). Setting this ensures
-    ! that the equilibrium is satisfied up to machine precision.
-    rho_field % d_rho0_dr = ( &
-      - (T_field % d_T0_dr + grav_field % grav) * rho_field % rho0 &
-      + (B_field % B02 * B_field % d_B02_dr + B_field % B03 * B_field % d_B03_dr) &
-    ) / T_field % T0
+    call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
+    call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
+    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
+    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
 
-    call logger%info("rho, T, B and gravity attributes have been set")
-    deallocate(h_interp, T_interp, nh_interp, dT_interp)
-    deallocate(rho_values, drho_values)
+    do i = 1, settings%grid%get_gauss_gridpts()
+      grav_field%grav(i) = g0(grid_gauss(i))
+    end do
   end subroutine set_solar_atmosphere
 
 
@@ -226,9 +123,8 @@ contains
     use mod_interpolation, only: interpolate_table, get_numerical_derivative
 
     type(settings_t), intent(in) :: settings
-    real(dp) :: unit_length, unit_temperature, unit_numberdensity
+    real(dp) :: unit_temperature, unit_numberdensity
 
-    unit_length = settings%units%get_unit_length()
     unit_temperature = settings%units%get_unit_temperature()
     unit_numberdensity = settings%units%get_unit_numberdensity()
 
@@ -268,240 +164,64 @@ contains
   end subroutine create_atmosphere_curves
 
 
-  !> Saves the density and density derivatives to the given filename. These can be
-  !! used later on to set the values instead of solving the differential equation.
-  subroutine save_profile_to_file(settings, filename)
-    type(settings_t), intent(in) :: settings
-    !> values are saved to this filename
-    character(len=*), intent(in)  :: filename
-    integer   :: unit
+  real(dp) function B02()
+    B02 = 0.0_dp
+  end function B02
 
-    unit = 1001
-    open(unit=unit, file=filename, access="stream", status="unknown", action="write")
-    write(unit) size(rho_values)
-    ! write dimensions, so normalisations happen correctly when loading
-    write(unit) settings%units%get_unit_length()
-    write(unit) settings%units%get_unit_temperature()
-    write(unit) settings%units%get_unit_magneticfield()
-    write(unit) settings%units%get_unit_density()
-    ! next we write the B and g values to file, these are checked when loading
-    write(unit) h_interp
-    write(unit) b02_prof(h_interp, settings), db02_prof(h_interp, settings)
-    write(unit) b03_prof(h_interp, settings), db03_prof(h_interp, settings)
-    write(unit) gravity_prof(h_interp, settings)
-    write(unit) rho_values, drho_values
-    close(unit)
-    call logger%info( &
-      "integrated density profiles saved to " // trim(adjustl(filename)) &
-    )
-  end subroutine save_profile_to_file
+  real(dp) function dB02()
+    dB02 = 0.0_dp
+  end function dB02
 
+  real(dp) function B03()
+    b03 = 10.0_dp / unit_magneticfield
+  end function B03
 
-  !> Loads a previously calculated profile and uses that to set the resolution,
-  !! density and density derivatives.
-  subroutine load_profile_from_file(settings, filename, loading_ok)
-    use mod_check_values, only: is_equal, is_constant
+  real(dp) function dB03()
+    db03 = 0.0_dp
+  end function dB03
 
-    type(settings_t), intent(in) :: settings
-    !> values are loaded from this file
-    character(len=*), intent(in) :: filename
-    logical, intent(out) :: loading_ok
-
-    integer :: unit, resolution
-    real(dp) :: length_file, temperature_file, magneticfield_file, density_file
-    real(dp) :: unit_length, unit_temperature, unit_magneticfield, unit_density
-    logical :: b02_cte, b03_cte, db02_zero, db03_zero
-    character(len=:), allocatable :: prof_names
-    real(dp), allocatable :: hfile(:), profile(:)
-
-    unit_length = settings%units%get_unit_length()
-    unit_temperature = settings%units%get_unit_temperature()
-    unit_magneticfield = settings%units%get_unit_magneticfield()
-    unit_density = settings%units%get_unit_density()
-
-    loading_ok = .false.
-    unit = 1002
-    open(unit=unit, file=filename, access="stream", status="old", action="read")
-
-    read(unit) resolution
-    if (.not. resolution == nbpoints) then
-      call logger%warning( &
-        "set resolution (" // str(nbpoints) // &
-        ") has been overriden by resolution from file (" // str(resolution) // ")" &
-      )
-    end if
-    nbpoints = resolution
-    call logger%info( &
-      "restoring density profiles from " // filename // " [" // str(nbpoints) // "]" &
-    )
-
-    ! check normalisations
-    read(unit) length_file, temperature_file, magneticfield_file, density_file
-    if (.not. is_equal(length_file, unit_length)) then
-      call logger%warning( &
-        "profile inconsistency: length units do not match! Got " // &
-        str(length_file) // " but expected " // str(unit_length) &
-      )
-      close(unit)
-      return
-    end if
-    if (.not. is_equal(temperature_file, unit_temperature)) then
-      call logger%warning( &
-        "profile inconsistency: temperature units do not match! Got " // &
-        str(temperature_file) // " but expected " // str(unit_temperature) &
-      )
-      close(unit)
-      return
-    end if
-    if (.not. is_equal(magneticfield_file, unit_magneticfield)) then
-      call logger%warning( &
-        "profile inconsistency: magnetic units do not match! Got " // &
-        str(magneticfield_file) // " but expected " // str(unit_magneticfield) &
-      )
-      close(unit)
-      return
-    end if
-    if (.not. is_equal(density_file, unit_density)) then
-      call logger%warning( &
-        "profile inconsistency: density units do not match! Got " // &
-        str(length_file) // " but expected " // str(unit_length) &
-      )
-      close(unit)
-      return
-    end if
-
-    ! Here we check if the profiles that are provided correspond to the ones that
-    ! were used to save the integrated profile. Since Fortran cannot save function
-    ! statements themselves, the B and g values were saved to the file instead and we
-    ! compare them at the same resolution here.
-    allocate(hfile(nbpoints), profile(nbpoints))
-    allocate(prof_names, mold="")
-
-    ! check B02
-    read(unit) hfile, profile
-    if (.not. all(is_equal(profile, b02_prof(hfile, settings)))) then
-      prof_names = trim(prof_names // " B02")
-    end if
-    b02_cte = (is_constant(b02_prof(hfile, settings)) .and. is_constant(profile))
-    ! check dB02
-    read(unit) profile
-    if (.not. all(is_equal(profile, db02_prof(hfile, settings)))) then
-      prof_names = trim(prof_names // " dB02")
-    end if
-    db02_zero = ( &
-      all(is_equal(db02_prof(hfile, settings), 0.0d0)) &
-      .and. all(is_equal(profile, 0.0d0)) &
-    )
-    ! check B03
-    read(unit) profile
-    if (.not. all(is_equal(profile, b03_prof(hfile, settings)))) then
-      prof_names = trim(prof_names // " B03")
-    end if
-    b03_cte = (is_constant(b03_prof(hfile, settings)) .and. is_constant(profile))
-    ! check dB03
-    read(unit) profile
-    if (.not. all(is_equal(profile, db03_prof(hfile, settings)))) then
-      prof_names = trim(prof_names // " dB03")
-    end if
-    db03_zero = ( &
-      all(is_equal(db03_prof(hfile, settings), 0.0d0)) &
-      .and. all(is_equal(profile, 0.0d0)) &
-    )
-
-    ! if both B02 and B03 are constant then values do not matter for profile, so skip
-    if (b02_cte .and. dB02_zero .and. b03_cte .and. dB03_zero) then
-      deallocate(prof_names)
-      allocate(prof_names, mold="")
-      call logger%debug("load profile: B02 and B03 are constant, skipping B0 checks")
-    end if
-
-    ! check gravity
-    read(unit) profile
-    if (.not. all(is_equal(profile, gravity_prof(hfile, settings)))) then
-      prof_names = trim(prof_names // " gravity")
-    end if
-    if (.not. prof_names == "") then
-      call logger%warning( &
-        "profile inconsistency in [" // prof_names // " ] when loading from file" &
-      )
-      close(unit)
-      return
-    end if
-    deallocate(hfile, profile)
-
-    ! if everything checks out, read in density profile
-    allocate(rho_values(nbpoints), drho_values(nbpoints))
-    read(unit) rho_values, drho_values
-    close(unit)
-    loading_ok = .true.
-  end subroutine load_profile_from_file
-
-
-  !> Sets the default profile for B02, taken to be zero.
-  function default_b02_profile(x, settings) result(b02)
-    !> x-values to evaluate the profile in
-    real(dp), intent(in)  :: x(:)
-    type(settings_t), intent(in) :: settings
-    !> resulting B02 profile
-    real(dp)  :: b02(size(x))
-
-    b02 = 0.0d0 / settings%units%get_unit_magneticfield()
-  end function default_b02_profile
-
-
-  !> Sets the default profile for dB02, taken to be zero.
-  function default_db02_profile(x, settings) result(db02)
-    real(dp), intent(in)  :: x(:)
-    type(settings_t), intent(in) :: settings
-    !> resulting dB02 profile
-    real(dp)  :: db02(size(x))
-
-    db02 = 0.0d0 / settings%units%get_unit_magneticfield()
-  end function default_db02_profile
-
-
-  !> Sets the default profile for B03, taken to be a uniform field of 10 Gauss.
-  function default_b03_profile(x, settings) result(b03)
-    !> x-values to evaluate the profile in
-    real(dp), intent(in)  :: x(:)
-    type(settings_t), intent(in) :: settings
-    !> resulting B03 profile
-    real(dp)  :: b03(size(x))
-
-    b03 = 10.0d0 / settings%units%get_unit_magneticfield()
-  end function default_b03_profile
-
-
-  !> Sets the default profile for dB03, taken to be zero.
-  function default_db03_profile(x, settings) result(db03)
-    real(dp), intent(in)  :: x(:)
-    type(settings_t), intent(in) :: settings
-    !> resulting dB03 profile
-    real(dp)  :: db03(size(x))
-
-    db03 = 0.0d0 / settings%units%get_unit_magneticfield()
-  end function default_db03_profile
-
-
-  !> Sets the default profile for the gravitational field, taken to be
+  !> Default profile for the solar gravitational field
   !! $$ g(x) = g_\odot \left(\frac{R_\odot}{(R_\odot + x)}\right)^2 $$
-  function default_gravity_profile(x, settings) result(grav)
-    use mod_physical_constants, only: gsun_cgs, Rsun_cgs
-
-    !> x-values to evaluate the profile in
-    real(dp), intent(in)  :: x(:)
-    type(settings_t), intent(in) :: settings
-    !> resulting gravitational profile
-    real(dp)  :: grav(size(x))
-    real(dp) :: unit_length, unit_time
-
-    unit_length = settings%units%get_unit_length()
-    unit_time = settings%units%get_unit_time()
-    grav = ( &
+  real(dp) function g0(x)
+    real(dp), intent(in)  :: x
+    g0 = ( &
       gsun_cgs &
       * (Rsun_cgs / (Rsun_cgs + x * unit_length))**2 &
       / (unit_length / unit_time**2) &
     )
-  end function default_gravity_profile
+  end function g0
+
+  real(dp) function rho0(x)
+    real(dp), intent(in) :: x
+    rho0 = lookup_table_value(x, h_interp, rho_values)
+  end function rho0
+
+  real(dp) function T0(x)
+    real(dp), intent(in) :: x
+    T0 = lookup_table_value(x, h_interp, T_interp)
+  end function T0
+
+  real(dp) function dT0(x)
+    real(dp), intent(in) :: x
+    dT0 = lookup_table_value(x, h_interp, dT_interp)
+  end function dT0
+
+  !> Sets density derivative using the differential equation to ensure force balance,
+  !! instead of relying on numerical differentiation.
+  real(dp) function drho0(x)
+    real(dp), intent(in) :: x
+    drho0 = ( &
+      - (dT0(x) + g0(x)) * rho0(x) + (B02() * dB02() + B03() * dB03()) &
+    ) / T0(x)
+  end function drho0
+
+
+  subroutine solar_atmosphere_dealloc()
+    if (allocated(h_interp)) deallocate(h_interp)
+    if (allocated(T_interp)) deallocate(T_interp)
+    if (allocated(dT_interp)) deallocate(dT_interp)
+    if (allocated(nh_interp)) deallocate(nh_interp)
+    if (allocated(rho_values)) deallocate(rho_values)
+  end subroutine solar_atmosphere_dealloc
 
 end module mod_solar_atmosphere
