@@ -1,6 +1,7 @@
 module mod_output
   use mod_global_variables, only: dp, str_len, str_len_arr
   use mod_settings, only: settings_t
+  use mod_grid, only: grid_t
   use mod_background, only: background_t
   use mod_physics, only: physics_t
   use mod_matrix_structure, only: matrix_t
@@ -54,6 +55,7 @@ contains
 
   subroutine create_datfile( &
     settings, &
+    grid, &
     background, &
     physics, &
     eigenvalues, &
@@ -63,9 +65,9 @@ contains
     eigenfunctions &
   )
     use mod_version, only: LEGOLAS_VERSION
-    use mod_grid, only: grid, grid_gauss
 
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
     type(physics_t), intent(in) :: physics
     complex(dp), intent(in) :: eigenvalues(:)
@@ -83,10 +85,10 @@ contains
     call write_header(settings)
 
     write(dat_fh) size(eigenvalues), eigenvalues
-    write(dat_fh) grid, grid_gauss
-    call write_equilibrium_data(settings, background, physics)
+    write(dat_fh) grid%base_grid, grid%gaussian_grid
+    call write_equilibrium_data(settings, grid, background, physics)
     if (settings%io%write_eigenfunctions) then
-      call write_base_eigenfunction_data(eigenfunctions)
+      call write_base_eigenfunction_data(grid, eigenfunctions)
     end if
     if (settings%io%write_derived_eigenfunctions) then
       call write_derived_eigenfunction_data(settings, eigenfunctions)
@@ -330,57 +332,58 @@ contains
   end subroutine write_equilibrium_names
 
 
-  subroutine write_equilibrium_data(settings, background, physics)
-    use mod_grid, only: grid_gauss
+  subroutine write_equilibrium_data(settings, grid, background, physics)
     use mod_function_utils, only: from_function
 
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
     type(physics_t), intent(in) :: physics
 
-    write(dat_fh) from_function(background%density%rho0, grid_gauss)
-    write(dat_fh) from_function(background%density%drho0, grid_gauss)
-    write(dat_fh) from_function(background%temperature%T0, grid_gauss)
-    write(dat_fh) from_function(background%temperature%dT0, grid_gauss)
-    write(dat_fh) from_function(background%temperature%ddT0, grid_gauss)
-    write(dat_fh) from_function(background%magnetic%B01, grid_gauss)
-    write(dat_fh) from_function(background%magnetic%B02, grid_gauss)
-    write(dat_fh) from_function(background%magnetic%B03, grid_gauss)
-    write(dat_fh) from_function(background%magnetic%dB02, grid_gauss)
-    write(dat_fh) from_function(background%magnetic%db03, grid_gauss)
-    write(dat_fh) from_function(background%magnetic%ddB02, grid_gauss)
-    write(dat_fh) from_function(background%magnetic%ddb03, grid_gauss)
-    write(dat_fh) background%magnetic%get_B0(grid_gauss)
-    write(dat_fh) from_function(background%velocity%v01, grid_gauss)
-    write(dat_fh) from_function(background%velocity%v02, grid_gauss)
-    write(dat_fh) from_function(background%velocity%v03, grid_gauss)
-    write(dat_fh) from_function(background%velocity%dv01, grid_gauss)
-    write(dat_fh) from_function(background%velocity%dv02, grid_gauss)
-    write(dat_fh) from_function(background%velocity%dv03, grid_gauss)
-    write(dat_fh) from_function(background%velocity%ddv01, grid_gauss)
-    write(dat_fh) from_function(background%velocity%ddv02, grid_gauss)
-    write(dat_fh) from_function(background%velocity%ddv03, grid_gauss)
+    write(dat_fh) from_function(background%density%rho0, grid%gaussian_grid)
+    write(dat_fh) from_function(background%density%drho0, grid%gaussian_grid)
+    write(dat_fh) from_function(background%temperature%T0, grid%gaussian_grid)
+    write(dat_fh) from_function(background%temperature%dT0, grid%gaussian_grid)
+    write(dat_fh) from_function(background%temperature%ddT0, grid%gaussian_grid)
+    write(dat_fh) from_function(background%magnetic%B01, grid%gaussian_grid)
+    write(dat_fh) from_function(background%magnetic%B02, grid%gaussian_grid)
+    write(dat_fh) from_function(background%magnetic%B03, grid%gaussian_grid)
+    write(dat_fh) from_function(background%magnetic%dB02, grid%gaussian_grid)
+    write(dat_fh) from_function(background%magnetic%db03, grid%gaussian_grid)
+    write(dat_fh) from_function(background%magnetic%ddB02, grid%gaussian_grid)
+    write(dat_fh) from_function(background%magnetic%ddb03, grid%gaussian_grid)
+    write(dat_fh) background%magnetic%get_B0(grid%gaussian_grid)
+    write(dat_fh) from_function(background%velocity%v01, grid%gaussian_grid)
+    write(dat_fh) from_function(background%velocity%v02, grid%gaussian_grid)
+    write(dat_fh) from_function(background%velocity%v03, grid%gaussian_grid)
+    write(dat_fh) from_function(background%velocity%dv01, grid%gaussian_grid)
+    write(dat_fh) from_function(background%velocity%dv02, grid%gaussian_grid)
+    write(dat_fh) from_function(background%velocity%dv03, grid%gaussian_grid)
+    write(dat_fh) from_function(background%velocity%ddv01, grid%gaussian_grid)
+    write(dat_fh) from_function(background%velocity%ddv02, grid%gaussian_grid)
+    write(dat_fh) from_function(background%velocity%ddv03, grid%gaussian_grid)
 
-    write(dat_fh) from_function(physics%cooling%L0, grid_gauss)
-    write(dat_fh) from_function(physics%cooling%dLdT, grid_gauss)
-    write(dat_fh) from_function(physics%cooling%dLdrho, grid_gauss)
-    write(dat_fh) from_function(physics%conduction%tcpara, grid_gauss)
-    write(dat_fh) from_function(physics%conduction%tcperp, grid_gauss)
-    write(dat_fh) from_function(physics%resistivity%eta, grid_gauss)
-    write(dat_fh) from_function(physics%resistivity%detadT, grid_gauss)
-    write(dat_fh) from_function(physics%resistivity%detadr, grid_gauss)
-    write(dat_fh) from_function(physics%gravity%g0, grid_gauss)
-    write(dat_fh) from_function(physics%hall%hallfactor, grid_gauss)
-    write(dat_fh) from_function(physics%hall%inertiafactor, grid_gauss)
+    write(dat_fh) from_function(physics%cooling%L0, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%cooling%dLdT, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%cooling%dLdrho, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%conduction%tcpara, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%conduction%tcperp, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%resistivity%eta, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%resistivity%detadT, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%resistivity%detadr, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%gravity%g0, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%hall%hallfactor, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%hall%inertiafactor, grid%gaussian_grid)
   end subroutine write_equilibrium_data
 
 
-  subroutine write_base_eigenfunction_data(eigenfunctions)
+  subroutine write_base_eigenfunction_data(grid, eigenfunctions)
+    type(grid_t), intent(in) :: grid
     type(eigenfunctions_t), intent(in) :: eigenfunctions
     integer :: i
 
     call logger%info("writing eigenfunctions...")
-    write(dat_fh) size(eigenfunctions%ef_grid), eigenfunctions%ef_grid
+    write(dat_fh) size(grid%ef_grid), grid%ef_grid
     write(dat_fh) size(eigenfunctions%ef_written_flags), eigenfunctions%ef_written_flags
     write(dat_fh) size(eigenfunctions%ef_written_idxs), eigenfunctions%ef_written_idxs
     do i = 1, size(eigenfunctions%base_efs)

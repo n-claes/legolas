@@ -46,7 +46,6 @@ contains
       call settings%physics%enable_viscosity(viscosity_value=0.001_dp)
     end if ! LCOV_EXCL_STOP
 
-    call initialise_grid(settings)
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
 
@@ -63,7 +62,7 @@ contains
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02, ddv02_func=ddv02)
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
 
-    grid_middle = grid_gauss(int(settings%grid%get_gauss_gridpts() / 2))
+    grid_middle = 0.5_dp * (x_start + x_end)
     Ta = ( &
       cte_rho0 * v02(grid_middle) * h / viscosity_value &
     )**2 * 2.0_dp * h / (x_start + x_end)

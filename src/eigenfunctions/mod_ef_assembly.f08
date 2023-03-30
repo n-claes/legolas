@@ -1,50 +1,20 @@
 module mod_ef_assembly
   use mod_global_variables, only: dp, ic, NaN
   use mod_settings, only: settings_t
-  use mod_grid, only: grid
+  use mod_grid, only: grid_t
   use mod_get_indices, only: get_index
   use mod_logging, only: logger, str
   implicit none
 
   private
 
-  public :: get_ef_eps
-  public :: get_ef_deps
   public :: retransform_eigenfunction
   public :: assemble_eigenfunction
 
 contains
 
-  pure function get_ef_eps(settings, ef_grid) result(ef_eps)
-    type(settings_t), intent(in) :: settings
-    real(dp), intent(in) :: ef_grid(:)
-    real(dp) :: ef_eps(size(ef_grid))
-    if (settings%grid%get_geometry() == "Cartesian") then
-      ef_eps = 1.0_dp
-    else if (settings%grid%get_geometry() == "cylindrical") then
-      ef_eps = ef_grid
-    else
-      ef_eps = NaN
-    end if
-  end function get_ef_eps
-
-
-  pure function get_ef_deps(settings) result(ef_deps)
-    type(settings_t), intent(in) :: settings
-    real(dp) :: ef_deps
-    if (settings%grid%get_geometry() == "Cartesian") then
-      ef_deps = 0.0_dp
-    else if (settings%grid%get_geometry() == "cylindrical") then
-      ef_deps = 1.0_dp
-    else
-      ef_deps = NaN
-    end if
-  end function get_ef_deps
-
-
-  function retransform_eigenfunction( &
-    ef_name, ef_eps, eigenfunction &
-  ) result(ef_transformed)
+  function retransform_eigenfunction(ef_name, ef_eps, eigenfunction) &
+    result(ef_transformed)
     character(len=*), intent(in) :: ef_name
     real(dp), intent(in) :: ef_eps(:)
     complex(dp), intent(in) :: eigenfunction(:)
@@ -67,11 +37,11 @@ contains
 
 
   function assemble_eigenfunction( &
-    settings, ef_name, ef_grid, state_vector_index, eigenvector, derivative_order &
+    settings, ef_name, grid, state_vector_index, eigenvector, derivative_order &
   ) result(assembled_ef)
     type(settings_t), intent(in) :: settings
     character(len=*), intent(in) :: ef_name
-    real(dp), intent(in) :: ef_grid(:)
+    type(grid_t), intent(in) :: grid
     integer, intent(in) :: state_vector_index
     complex(dp), intent(in) :: eigenvector(:)
     complex(dp) :: assembled_ef(settings%grid%get_ef_gridpts())
@@ -89,7 +59,7 @@ contains
 
     ! first gridpoint contribution
     basis_function = get_basis_function( &
-      ef_name, ef_grid=ef_grid, grid_idx=1, ef_grid_idx=1, diff_order=diff_order &
+      ef_name, grid=grid, grid_idx=1, ef_grid_idx=1, diff_order=diff_order &
     )
     assembled_ef(1) = get_combined_value_from_eigenvector( &
       eigenvector, &
@@ -102,7 +72,7 @@ contains
       do ef_grid_idx = 2 * grid_idx, 2 * grid_idx + 1
         basis_function = get_basis_function( &
           ef_name, &
-          ef_grid=ef_grid, &
+          grid=grid, &
           grid_idx=grid_idx, &
           ef_grid_idx=ef_grid_idx, &
           diff_order=diff_order &
@@ -137,12 +107,12 @@ contains
 
 
   function get_basis_function( &
-    ef_name, ef_grid, grid_idx, ef_grid_idx, diff_order &
+    ef_name, grid, grid_idx, ef_grid_idx, diff_order &
   ) result(spline)
     use mod_spline_functions
 
     character(len=*), intent(in) :: ef_name
-    real(dp), intent(in) :: ef_grid(:)
+    type(grid_t), intent(in) :: grid
     integer, intent(in) :: grid_idx
     integer, intent(in) :: ef_grid_idx
     integer, intent(in) :: diff_order
@@ -184,7 +154,10 @@ contains
       )
     end select
     call basis_function( &
-      ef_grid(ef_grid_idx), grid(grid_idx), grid(grid_idx + 1), spline &
+      grid%ef_grid(ef_grid_idx), &
+      grid%base_grid(grid_idx), &
+      grid%base_grid(grid_idx + 1), &
+      spline &
     )
   end function get_basis_function
 

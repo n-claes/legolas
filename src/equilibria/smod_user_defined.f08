@@ -10,19 +10,21 @@ contains
   module procedure user_defined_eq
     call settings%grid%set_geometry("Cartesian")
     call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
-    call initialise_grid(settings)
 
     k2 = 0.0_dp
     k3 = 1.0_dp
 
     ! additional physics
     call settings%physics%enable_flow()
+    call settings%physics%enable_gravity()
 
     ! Note: functions that are not set are automatically set to zero.
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02, ddv02_func=ddv02)
     call background%set_temperature_funcs(T0_func=T0)
     call background%set_magnetic_3_funcs(B03_func=B03)
+
+    call physics%set_gravity_funcs(g0_func=g0)
   end procedure user_defined_eq
 
   real(dp) function rho0(x)
@@ -57,6 +59,13 @@ contains
     real(dp), intent(in) :: x
     B03 = x
   end function B03
+
+  real(dp) function g0(x, settings, background)
+    real(dp), intent(in) :: x
+    type(settings_t), intent(in) :: settings
+    type(background_t), intent(in) :: background
+    g0 = 1.0_dp / x**2
+  end function g0
 
   ! LCOV_EXCL_STOP
 end submodule smod_user_defined

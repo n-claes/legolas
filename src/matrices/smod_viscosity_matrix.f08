@@ -20,8 +20,8 @@ contains
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! grid variables
-    eps = eps_grid(gauss_idx)
-    deps = d_eps_grid_dr(gauss_idx)
+    eps = grid%get_eps(x_gauss)
+    deps = grid%get_deps()
     ! viscous heating variables
     v01 = background%velocity%v01(x_gauss)
     dv01 = background%velocity%dv01(x_gauss)

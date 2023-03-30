@@ -42,7 +42,6 @@ contains
       !> eq_bool >> if True, the alternative force-free Harris sheet is used
       eq_bool = .false.
     end if
-    call initialise_grid(settings)
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)

@@ -41,7 +41,6 @@ contains
       k2 = 1.0_dp
       k3 = -1.2_dp
     end if ! LCOV_EXCL_STOP
-    call initialise_grid(settings)
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_velocity_2_funcs(v02_func=v02)

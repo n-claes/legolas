@@ -48,7 +48,6 @@ contains
       k2 = 0.0_dp
       k3 = 1.0_dp
     end if ! LCOV_EXCL_STOP
-    call initialise_grid(settings)
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_temperature_funcs(T0_func=T0)

@@ -50,7 +50,7 @@ contains
       tau = 0.0_dp
     end if ! LCOV_EXCL_STOP
 
-    call flow_driven_instabilities_eq(settings, background, physics)
+    call flow_driven_instabilities_eq(settings, grid, background, physics)
   end procedure RTI_eq
 
 end submodule smod_equil_RTI

@@ -39,7 +39,6 @@ contains
       lambda = 0.0_dp
       alpha = 20.0_dp
     end if ! LCOV_EXCL_STOP
-    call initialise_grid(settings)
 
     B0 = 1.0_dp
     beta = 2.0_dp*cte_p0 / B0**2

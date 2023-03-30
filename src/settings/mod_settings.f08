@@ -51,7 +51,7 @@ module mod_settings
 
 contains
 
-  pure function new_settings() result(settings)
+  function new_settings() result(settings)
     type(settings_t) :: settings
 
     call settings%set_state_vector(physics_type="mhd")

@@ -47,7 +47,6 @@ contains
       tau = 1.0_dp
       nu = 0.1_dp
     end if ! LCOV_EXCL_STOP
-    call initialise_grid(settings)
 
     mu1 = tau
     epsilon = nu

@@ -1,6 +1,5 @@
 module mod_matrix_manager
   use mod_global_variables, only: dp, ir, ic
-  use mod_grid, only: grid, eps_grid, d_eps_grid_dr
   use mod_build_quadblock, only: add_to_quadblock
   use mod_equilibrium_params, only: k2, k3
   use mod_logging, only: logger, str
@@ -8,6 +7,7 @@ module mod_matrix_manager
   use mod_settings, only: settings_t
   use mod_background, only: background_t
   use mod_physics, only: physics_t
+  use mod_grid, only: grid_t
   implicit none
 
   !> quadratic basis functions
@@ -21,109 +21,109 @@ module mod_matrix_manager
 
   interface
     module subroutine add_bmatrix_terms( &
-      gauss_idx, x_gauss, weight, quadblock, settings, background, physics &
+      x_gauss, weight, quadblock, settings, grid, background, physics &
     )
-      integer, intent(in) :: gauss_idx
       real(dp), intent(in) :: x_gauss
       real(dp), intent(in)  :: weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
       type(physics_t), intent(in) :: physics
     end subroutine add_bmatrix_terms
 
     module subroutine add_regular_matrix_terms( &
-      gauss_idx, x_gauss, weight, quadblock, settings, background, physics &
+      x_gauss, weight, quadblock, settings, grid, background, physics &
     )
-      integer, intent(in) :: gauss_idx
       real(dp), intent(in) :: x_gauss
       real(dp), intent(in)  :: weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
       type(physics_t), intent(in) :: physics
     end subroutine add_regular_matrix_terms
 
     module subroutine add_flow_matrix_terms( &
-      gauss_idx, x_gauss, weight, quadblock, settings, background, physics &
+      x_gauss, weight, quadblock, settings, grid, background, physics &
     )
-      integer, intent(in) :: gauss_idx
       real(dp), intent(in) :: x_gauss
       real(dp), intent(in)  :: weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
       type(physics_t), intent(in) :: physics
     end subroutine add_flow_matrix_terms
 
     module subroutine add_resistive_matrix_terms( &
-      gauss_idx, x_gauss, weight, quadblock, settings, background, physics &
+      x_gauss, weight, quadblock, settings, grid, background, physics &
     )
-      integer, intent(in) :: gauss_idx
       real(dp), intent(in) :: x_gauss
       real(dp), intent(in)  :: weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
       type(physics_t), intent(in) :: physics
     end subroutine add_resistive_matrix_terms
 
     module subroutine add_cooling_matrix_terms( &
-      gauss_idx, x_gauss, weight, quadblock, settings, background, physics &
+      x_gauss, weight, quadblock, settings, grid, background, physics &
     )
-      integer, intent(in) :: gauss_idx
       real(dp), intent(in) :: x_gauss
       real(dp), intent(in)  :: weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
       type(physics_t), intent(in) :: physics
     end subroutine add_cooling_matrix_terms
 
     module subroutine add_conduction_matrix_terms( &
-      gauss_idx, x_gauss, weight, quadblock, settings, background, physics &
+      x_gauss, weight, quadblock, settings, grid, background, physics &
     )
-      integer, intent(in) :: gauss_idx
       real(dp), intent(in) :: x_gauss
       real(dp), intent(in)  :: weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
       type(physics_t), intent(in) :: physics
     end subroutine add_conduction_matrix_terms
 
     module subroutine add_viscosity_matrix_terms( &
-      gauss_idx, x_gauss, weight, quadblock, settings, background, physics &
+      x_gauss, weight, quadblock, settings, grid, background, physics &
     )
-      integer, intent(in) :: gauss_idx
       real(dp), intent(in) :: x_gauss
       real(dp), intent(in)  :: weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
       type(physics_t), intent(in) :: physics
     end subroutine add_viscosity_matrix_terms
 
     module subroutine add_hall_matrix_terms( &
-      gauss_idx, x_gauss, weight, quadblock, settings, background, physics &
+      x_gauss, weight, quadblock, settings, grid, background, physics &
     )
-      integer, intent(in) :: gauss_idx
       real(dp), intent(in) :: x_gauss
       real(dp), intent(in)  :: weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
       type(physics_t), intent(in) :: physics
     end subroutine add_hall_matrix_terms
 
     module subroutine add_hall_bmatrix_terms( &
-      gauss_idx, x_gauss, weight, quadblock, settings, background, physics &
+      x_gauss, weight, quadblock, settings, grid, background, physics &
     )
-      integer, intent(in) :: gauss_idx
       real(dp), intent(in) :: x_gauss
       real(dp), intent(in)  :: weight
       complex(dp), intent(inout)  :: quadblock(:, :)
       type(settings_t), intent(in) :: settings
+      type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
       type(physics_t), intent(in) :: physics
     end subroutine add_hall_bmatrix_terms
@@ -135,13 +135,12 @@ module mod_matrix_manager
 
 contains
 
-  subroutine build_matrices(matrix_B, matrix_A, settings, background, physics)
+  subroutine build_matrices(matrix_B, matrix_A, settings, grid, background, physics)
     use mod_global_variables, only: n_gauss, gaussian_weights
     use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
       cubic_factors, cubic_factors_deriv
     use mod_matrix_structure, only: matrix_t
     use mod_boundary_manager, only: apply_boundary_conditions
-    use mod_grid, only: grid_gauss
 
     !> the B-matrix
     type(matrix_t), intent(inout) :: matrix_B
@@ -149,6 +148,7 @@ contains
     type(matrix_t), intent(inout) :: matrix_A
     !> the settings object
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
     type(physics_t), intent(in) :: physics
 
@@ -180,14 +180,14 @@ contains
       quadblock_B = (0.0d0, 0.0d0)
 
       ! get interval boundaries
-      x_left = grid(i)
-      x_right = grid(i + 1)
+      x_left = grid%base_grid(i)
+      x_right = grid%base_grid(i + 1)
 
       ! loop over Gaussian points to calculate integral
       do j = 1, n_gauss
         ! current grid index of Gaussian grid
         gauss_idx = (i - 1) * n_gauss + j
-        x_gauss = grid_gauss(gauss_idx)
+        x_gauss = grid%gaussian_grid(gauss_idx)
         weight = gaussian_weights(j)
 
         ! calculate spline functions for this point in the Gaussian grid
@@ -198,36 +198,36 @@ contains
 
         ! get matrix elements
         call add_bmatrix_terms( &
-          gauss_idx, x_gauss, weight, quadblock_B, settings, background, physics &
+          x_gauss, weight, quadblock_B, settings, grid, background, physics &
         )
         call add_regular_matrix_terms( &
-          gauss_idx, x_gauss, weight, quadblock_A, settings, background, physics &
+          x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
         if (settings%physics%flow%is_enabled()) call add_flow_matrix_terms( &
-          gauss_idx, x_gauss, weight, quadblock_A, settings, background, physics &
+          x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
         if (settings%physics%resistivity%is_enabled()) then
           call add_resistive_matrix_terms( &
-            gauss_idx, x_gauss, weight, quadblock_A, settings, background, physics &
+            x_gauss, weight, quadblock_A, settings, grid, background, physics &
           )
         end if
         if (settings%physics%cooling%is_enabled()) call add_cooling_matrix_terms( &
-          gauss_idx, x_gauss, weight, quadblock_A, settings, background, physics &
+          x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
         if (settings%physics%conduction%is_enabled()) then
           call add_conduction_matrix_terms( &
-            gauss_idx, x_gauss, weight, quadblock_A, settings, background, physics &
+            x_gauss, weight, quadblock_A, settings, grid, background, physics &
           )
         end if
         if (settings%physics%viscosity%is_enabled()) call add_viscosity_matrix_terms( &
-          gauss_idx, x_gauss, weight, quadblock_A, settings, background, physics &
+          x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
         if (settings%physics%hall%is_enabled()) then
           call add_hall_matrix_terms( &
-            gauss_idx, x_gauss, weight, quadblock_A, settings, background, physics &
+            x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
           call add_hall_bmatrix_terms( &
-            gauss_idx, x_gauss, weight, quadblock_B, settings, background, physics &
+            x_gauss, weight, quadblock_B, settings, grid, background, physics &
         )
         end if
       end do
@@ -255,7 +255,9 @@ contains
     end do
 
     deallocate(quadblock_A, quadblock_B)
-    call apply_boundary_conditions(matrix_A, matrix_B, settings, background, physics)
+    call apply_boundary_conditions( &
+      matrix_A, matrix_B, settings, grid, background, physics &
+    )
   end subroutine build_matrices
 
 end module mod_matrix_manager

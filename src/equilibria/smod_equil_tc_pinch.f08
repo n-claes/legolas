@@ -54,7 +54,6 @@ contains
     end if
     x_start = settings%grid%get_grid_start()
     x_end = settings%grid%get_grid_end()
-    call initialise_grid(settings)
 
     fixed_eta_value = settings%physics%resistivity%get_fixed_resistivity()
     viscosity_value = settings%physics%viscosity%get_viscosity_value()
@@ -87,7 +86,7 @@ contains
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
     call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02, ddB02_func=ddB02)
 
-    r_mid = grid_gauss(int(settings%grid%get_gauss_gridpts() / 2))
+    r_mid = 0.5_dp * (x_start + x_end)
     Ta = ( &
       cte_rho0 * v02(r_mid) * h / viscosity_value &
     )**2 * 2.0_dp * h / (x_start + x_end)

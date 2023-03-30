@@ -18,6 +18,7 @@ program legolas
   use mod_timing, only: timer_t, new_timer
   use mod_settings, only: settings_t, new_settings
   use mod_background, only: background_t, new_background
+  use mod_grid, only: grid_t, new_grid
   use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
   use mod_physics, only: physics_t, new_physics
   implicit none
@@ -30,6 +31,7 @@ program legolas
   type(timer_t) :: timer
   !> dedicated settings type
   type(settings_t) :: settings
+  type(grid_t) :: grid
   type(background_t) :: background
   type(eigenfunctions_t) :: eigenfunctions
   type(physics_t) :: physics
@@ -43,18 +45,20 @@ program legolas
 
   timer = new_timer()
   settings = new_settings()
-  background = new_background()
-  physics = new_physics(settings, background)
 
   call timer%start_timer()
   call initialisation()
-  call set_equilibrium(settings, background, physics)
+  grid = new_grid(settings)
+  background = new_background()
+  physics = new_physics(settings, background)
+
+  call set_equilibrium(settings, grid, background, physics)
   timer%init_time = timer%end_timer()
 
   call print_console_info(settings)
 
   call timer%start_timer()
-  call build_matrices(matrix_B, matrix_A, settings, background, physics)
+  call build_matrices(matrix_B, matrix_A, settings, grid, background, physics)
   timer%matrix_time = timer%end_timer()
 
   call logger%info("solving eigenvalue problem...")
@@ -63,13 +67,14 @@ program legolas
   timer%evp_time = timer%end_timer()
 
   call timer%start_timer()
-  eigenfunctions = new_eigenfunctions(settings, background)
+  eigenfunctions = new_eigenfunctions(settings, grid, background)
   call get_eigenfunctions()
   timer%eigenfunction_time = timer%end_timer()
 
   call timer%start_timer()
   call create_datfile( &
     settings, &
+    grid, &
     background, &
     physics, &
     omega, &
@@ -151,16 +156,13 @@ contains
   !> Deallocates all main variables, then calls the cleanup
   !! routines of all relevant subroutines to do the same thing.
   subroutine cleanup()
-    use mod_grid, only: grid_clean
-
     call matrix_A%delete_matrix()
     call matrix_B%delete_matrix()
     deallocate(omega)
     if (allocated(right_eigenvectors)) deallocate(right_eigenvectors)
 
-    call grid_clean()
-
     call settings%delete()
+    call grid%delete()
     call background%delete()
     call physics%delete()
     call eigenfunctions%delete()

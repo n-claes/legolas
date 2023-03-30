@@ -15,8 +15,8 @@ contains
     gamma_1 = settings%physics%get_gamma_1()
 
     ! grid variables
-    eps = eps_grid(gauss_idx)
-    deps = d_eps_grid_dr(gauss_idx)
+    eps = grid%get_eps(x_gauss)
+    deps = grid%get_deps()
     ! magnetic field variables
     B02 = background%magnetic%B02(x_gauss)
     dB02 = background%magnetic%dB02(x_gauss)

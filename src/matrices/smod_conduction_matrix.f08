@@ -14,8 +14,8 @@ contains
     if (settings%physics%is_incompressible) return
 
     gamma_1 = settings%physics%get_gamma_1()
-    eps = eps_grid(gauss_idx)
-    deps = d_eps_grid_dr(gauss_idx)
+    eps = grid%get_eps(x_gauss)
+    deps = grid%get_deps()
     dT0 = background%temperature%dT0(x_gauss)
     kappa_perp = physics%conduction%tcperp(x_gauss)
     dkappa_perp_drho = physics%conduction%dtcperpdrho(x_gauss)
@@ -55,7 +55,7 @@ contains
 
     if (settings%has_bfield()) then
       call add_conduction_matrix_terms_bfield( &
-        gauss_idx, x_gauss, settings, background, physics, elements &
+        x_gauss, settings, grid, background, physics, elements &
       )
     end if
 
@@ -65,11 +65,11 @@ contains
 
 
   subroutine add_conduction_matrix_terms_bfield( &
-    gauss_idx, x_gauss, settings, background, physics, elements &
+    x_gauss, settings, grid, background, physics, elements &
   )
-    integer, intent(in) :: gauss_idx
     real(dp), intent(in) :: x_gauss
     type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
     type(physics_t), intent(in) :: physics
     type(matrix_elements_t), intent(inout) :: elements
@@ -86,8 +86,8 @@ contains
 
     gamma_1 = settings%physics%get_gamma_1()
     ! grid variables
-    eps = eps_grid(gauss_idx)
-    deps = d_eps_grid_dr(gauss_idx)
+    eps = grid%get_eps(x_gauss)
+    deps = grid%get_deps()
     ! temperature variables
     dT0 = background%temperature%dT0(x_gauss)
     ddT0 = background%temperature%ddT0(x_gauss)

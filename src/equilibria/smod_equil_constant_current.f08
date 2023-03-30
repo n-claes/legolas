@@ -33,7 +33,6 @@ contains
       cte_rho0 = 1.0_dp
       cte_B03 = 1.0_dp
     end if ! LCOV_EXCL_STOP
-    call initialise_grid(settings)
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)

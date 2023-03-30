@@ -9,6 +9,7 @@ module mod_test_inspections
   type(settings_t) :: settings
   type(background_t) :: background
   type(physics_t) :: physics
+  type(grid_t) :: grid
 
 contains
 
@@ -18,16 +19,16 @@ contains
     settings = get_settings()
     background = get_background()
     physics = get_physics(settings, background)
-    call create_test_grid(settings)
+    grid = create_test_grid(settings)
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
-    call clean_up(settings)
     call settings%delete()
     call background%delete()
     call physics%delete()
+    call grid%delete()
   end subroutine teardown_test
 
 
@@ -49,7 +50,7 @@ contains
 
   subroutine do_checks()
     use mod_inspections, only: perform_NaN_and_negative_checks
-    call perform_NaN_and_negative_checks(settings, background, physics)
+    call perform_NaN_and_negative_checks(settings, grid, background, physics)
   end subroutine do_checks
 
 

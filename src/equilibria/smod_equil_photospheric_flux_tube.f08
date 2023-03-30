@@ -97,7 +97,7 @@ contains
       end if
       custom_grid(i) = custom_grid(i - 1) + dx
     end do
-    call initialise_grid(settings, custom_grid=custom_grid)
+    call grid%set_custom_grid(custom_grid)
     deallocate(custom_grid)
 
     rho_e = 8.0_dp * (2.0_dp * gamma + 1.0_dp) * cte_rho0 / (gamma + 18.0_dp)

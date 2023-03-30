@@ -50,7 +50,6 @@ contains
 
   @after
   subroutine teardown_test()
-    call clean_up(settings)
     call settings%delete()
     call physics%delete()
     T0values = 0.0_dp
