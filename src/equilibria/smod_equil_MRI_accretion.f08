@@ -58,13 +58,13 @@ contains
     Bth1 = mu1 * Bz1
     vth1 = sqrt(1.0_dp - 2.5_dp * p1 - 0.25_dp * Bth1**2 - 1.25_dp * Bz1**2)
 
-    grav_field%grav = 1.0_dp / grid_gauss**2
-
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02)
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
     call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
+
+    call physics%set_gravity_funcs(g0_func=g0)
   end procedure MRI_accretion_eq
 
 
@@ -127,5 +127,10 @@ contains
     real(dp), intent(in) :: r
     dB03 = -1.25_dp * Bz1 * r**(-2.25_dp)
   end function dB03
+
+  real(dp) function g0(x)
+    real(dp), intent(in) :: x
+    g0 = 1.0_dp / x**2
+  end function g0
 
 end submodule smod_equil_MRI

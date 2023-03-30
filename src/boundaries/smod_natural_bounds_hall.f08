@@ -4,19 +4,19 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_hal
 contains
 
   module procedure add_natural_hall_Bterms
-    use mod_equilibrium, only: hall_field
-
     real(dp)  :: eps
     real(dp)  :: rho
     real(dp)  :: eta_e
+    real(dp) :: x
     type(matrix_elements_t) :: elements
 
     if (.not. settings%physics%hall%is_enabled()) return
     if (.not. settings%physics%hall%has_electron_inertia()) return
 
+    x = grid_gauss(grid_idx)
     eps = eps_grid(grid_idx)
     rho = background%density%rho0(grid_gauss(grid_idx))
-    eta_e = hall_field % inertiafactor(grid_idx)
+    eta_e = physics%hall%inertiafactor(x)
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
     ! ==================== Cubic * Quadratic ====================
@@ -35,11 +35,10 @@ contains
   end procedure add_natural_hall_Bterms
 
   module procedure add_natural_hall_terms
-    use mod_equilibrium, only: hall_field
-
     real(dp)  :: eps, deps
     real(dp)  :: rho, T0, B01, B02, B03
     real(dp)  :: eta_H, mu, efrac
+    real(dp) :: x
     type(matrix_elements_t) :: elements
 
     if (.not. settings%physics%hall%is_enabled()) return
@@ -48,14 +47,15 @@ contains
 
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
+    x = grid_gauss(grid_idx)
 
-    rho = background%density%rho0(grid_gauss(grid_idx))
-    T0 = background%temperature%T0(grid_gauss(grid_idx))
-    B01 = background%magnetic%B01(grid_gauss(grid_idx))
-    B02 = background%magnetic%B02(grid_gauss(grid_idx))
-    B03 = background%magnetic%B03(grid_gauss(grid_idx))
+    rho = background%density%rho0(x)
+    T0 = background%temperature%T0(x)
+    B01 = background%magnetic%B01(x)
+    B02 = background%magnetic%B02(x)
+    B03 = background%magnetic%B03(x)
 
-    eta_H = hall_field % hallfactor(grid_idx)
+    eta_H = physics%hall%hallfactor(x)
     mu = settings%physics%viscosity%get_viscosity_value()
     efrac = settings%physics%hall%get_electron_fraction()
     elements = new_matrix_elements(state_vector=settings%get_state_vector())

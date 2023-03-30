@@ -56,7 +56,6 @@ contains
     integer :: i, j, pos
 
     call reset_globals()
-    call reset_fields(settings, init_fields=.true.)
     settings = get_settings()
     background = get_background()
     eigenfunctions = new_eigenfunctions(settings, background)

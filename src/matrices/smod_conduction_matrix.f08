@@ -1,5 +1,4 @@
 submodule (mod_matrix_manager) smod_conduction_matrix
-  use mod_equilibrium, only: kappa_field
   implicit none
 
 contains
@@ -17,10 +16,10 @@ contains
     gamma_1 = settings%physics%get_gamma_1()
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
-    dT0 = background%temperature%dT0(grid_gauss(gauss_idx))
-    kappa_perp = kappa_field % kappa_perp(gauss_idx)
-    dkappa_perp_drho = kappa_field % d_kappa_perp_drho(gauss_idx)
-    dkappa_perp_dT = kappa_field % d_kappa_perp_dT(gauss_idx)
+    dT0 = background%temperature%dT0(x_gauss)
+    kappa_perp = physics%conduction%tcperp(x_gauss)
+    dkappa_perp_drho = physics%conduction%dtcperpdrho(x_gauss)
+    dkappa_perp_dT = physics%conduction%dtcperpdT(x_gauss)
     ! operators
     WVop = k2**2 / eps + eps * k3**2
 
@@ -55,20 +54,24 @@ contains
     )
 
     if (settings%has_bfield()) then
-      call add_conduction_matrix_terms_bfield(gauss_idx, settings, background, elements)
+      call add_conduction_matrix_terms_bfield( &
+        gauss_idx, x_gauss, settings, background, physics, elements &
+      )
     end if
 
-    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
     call elements%delete()
   end procedure add_conduction_matrix_terms
 
 
   subroutine add_conduction_matrix_terms_bfield( &
-    gauss_idx, settings, background, elements &
+    gauss_idx, x_gauss, settings, background, physics, elements &
   )
     integer, intent(in) :: gauss_idx
+    real(dp), intent(in) :: x_gauss
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
+    type(physics_t), intent(in) :: physics
     type(matrix_elements_t), intent(inout) :: elements
 
     real(dp)  :: eps, deps
@@ -86,26 +89,26 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     ! temperature variables
-    dT0 = background%temperature%dT0(grid_gauss(gauss_idx))
-    ddT0 = background%temperature%ddT0(grid_gauss(gauss_idx))
+    dT0 = background%temperature%dT0(x_gauss)
+    ddT0 = background%temperature%ddT0(x_gauss)
     ! magnetic field variables
-    B0 = background%magnetic%get_B0(grid_gauss(gauss_idx))
-    B01 = background%magnetic%B01(grid_gauss(gauss_idx))
-    B02 = background%magnetic%B02(grid_gauss(gauss_idx))
-    dB02 = background%magnetic%dB02(grid_gauss(gauss_idx))
-    B03 = background%magnetic%B03(grid_gauss(gauss_idx))
-    dB03 = background%magnetic%dB03(grid_gauss(gauss_idx))
+    B0 = background%magnetic%get_B0(x_gauss)
+    B01 = background%magnetic%B01(x_gauss)
+    B02 = background%magnetic%B02(x_gauss)
+    dB02 = background%magnetic%dB02(x_gauss)
+    B03 = background%magnetic%B03(x_gauss)
+    dB03 = background%magnetic%dB03(x_gauss)
     ! parallel thermal conduction variables
-    kappa_para = kappa_field % kappa_para(gauss_idx)
-    dkappa_para_dT = kappa_field % d_kappa_para_dT(gauss_idx)
+    kappa_para = physics%conduction%tcpara(x_gauss)
+    dkappa_para_dT = physics%conduction%dtcparadT(x_gauss)
     ! perpendicular thermal conduction variables
-    kappa_perp = kappa_field % kappa_perp(gauss_idx)
-    dkappa_perp_drho = kappa_field % d_kappa_perp_drho(gauss_idx)
-    dkappa_perp_dT = kappa_field % d_kappa_perp_dT(gauss_idx)
-    dkappa_perp_dB2 = kappa_field % d_kappa_perp_dB2(gauss_idx)
+    kappa_perp = physics%conduction%tcperp(x_gauss)
+    dkappa_perp_drho = physics%conduction%dtcperpdrho(x_gauss)
+    dkappa_perp_dT = physics%conduction%dtcperpdT(x_gauss)
+    dkappa_perp_dB2 = physics%conduction%dtcperpdB2(x_gauss)
     ! prefactors
-    Kp = kappa_field % prefactor(gauss_idx)
-    diffKp = kappa_field % d_prefactor_dr(gauss_idx)
+    Kp = physics%conduction%tcprefactor(x_gauss)
+    diffKp = physics%conduction%dtcprefactordr(x_gauss)
     Kp_plus = Kp + dkappa_perp_dB2
     Kp_plusplus = dkappa_perp_dB2 - (B01**2 * Kp_plus / B0**2)
     ! operators

@@ -12,14 +12,40 @@ if (${Coverage})
     message(STATUS "Building with code coverage enabled.")
     message(STATUS "Default Fortran flags are disabled, optimisation disabled.")
     message(STATUS "====================")
-    set (CMAKE_Fortran_FLAGS "--coverage -o0 -g -cpp -ffree-line-length-none")
+    set(
+        CMAKE_Fortran_FLAGS
+        "--coverage -o0 -g -cpp -ffree-line-length-none -Wno-unused-dummy-argument"
+    )
 elseif(Debug)
-    set(CMAKE_Fortran_FLAGS "-fcheck=all -fbounds-check -Wall -ffree-line-length-none \
-                             -Wextra -Wconversion -pedantic -fbacktrace -cpp")
+    set(
+        CMAKE_Fortran_FLAGS
+        "-fcheck=all \
+        -fbounds-check \
+        -Wall \
+        -ffree-line-length-none \
+        -Wextra \
+        -Wconversion \
+        -pedantic \
+        -fbacktrace \
+        -cpp \
+        -Wno-unused-dummy-argument"
+    )
 else() # Release
-    set(CMAKE_Fortran_FLAGS "-fcheck=all -Wall -Wextra -ffree-line-length-none \
-                             -O3 -funroll-loops -ftree-vectorize -Wconversion \
-                             -pedantic -fbacktrace -cpp")
+    set(
+        CMAKE_Fortran_FLAGS
+        "-fcheck=all \
+        -Wall \
+        -Wextra \
+        -ffree-line-length-none \
+        -O3 \
+        -funroll-loops \
+        -ftree-vectorize \
+        -Wconversion \
+        -pedantic \
+        -fbacktrace \
+        -cpp \
+        -Wno-unused-dummy-argument"
+    )
 endif()
 
 if (DEFINED ENV{LEGOLASDIR})

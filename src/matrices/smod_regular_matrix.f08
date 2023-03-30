@@ -7,7 +7,7 @@ contains
     type(matrix_elements_t) :: elements
     real(dp)  :: rho, eps
 
-    rho = background%density%rho0(grid_gauss(gauss_idx))
+    rho = background%density%rho0(x_gauss)
     eps = eps_grid(gauss_idx)
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
@@ -23,18 +23,17 @@ contains
     call elements%add(1.0_dp, "a2", "a2", spline1=h_cubic, spline2=h_cubic)
     call elements%add(eps, "a3", "a3", spline1=h_cubic, spline2=h_cubic)
 
-    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
     call elements%delete()
   end procedure add_bmatrix_terms
 
 
   module procedure add_regular_matrix_terms
-    use mod_equilibrium, only: grav_field
-
     type(matrix_elements_t) :: elements
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
     real(dp)  :: T0, dT0
+    real(dp) :: g0
     real(dp)  :: B01, B02, dB02, drB02, B03, dB03
     real(dp)  :: Fop_plus, Gop_plus, Gop_min, WVop
     real(dp) :: gamma_1
@@ -45,17 +44,18 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     ! density variables
-    rho = background%density%rho0(grid_gauss(gauss_idx))
-    drho = background%density%drho0(grid_gauss(gauss_idx))
+    rho = background%density%rho0(x_gauss)
+    drho = background%density%drho0(x_gauss)
     ! temperature variables
-    T0 = background%temperature%T0(grid_gauss(gauss_idx))
-    dT0 = background%temperature%dT0(grid_gauss(gauss_idx))
+    T0 = background%temperature%T0(x_gauss)
+    dT0 = background%temperature%dT0(x_gauss)
+    g0 = physics%gravity%g0(x_gauss)
     ! magnetic field variables
-    B01 = background%magnetic%B01(grid_gauss(gauss_idx))
-    B02 = background%magnetic%B02(grid_gauss(gauss_idx))
-    dB02 = background%magnetic%dB02(grid_gauss(gauss_idx))
-    B03 = background%magnetic%B03(grid_gauss(gauss_idx))
-    dB03 = background%magnetic%dB03(grid_gauss(gauss_idx))
+    B01 = background%magnetic%B01(x_gauss)
+    B02 = background%magnetic%B02(x_gauss)
+    dB02 = background%magnetic%dB02(x_gauss)
+    B03 = background%magnetic%B03(x_gauss)
+    dB03 = background%magnetic%dB03(x_gauss)
     drB02 = deps * B02 + eps * dB02
     ! operators
     Fop_plus = k2 * B02 / eps + k3 * B03
@@ -124,7 +124,7 @@ contains
     ! ==================== Cubic * Quadratic ====================
     call elements%add(-deps * T0 / eps, "v1", "rho", spline1=h_cubic, spline2=h_quad)
     if (settings%physics%gravity%is_enabled()) call elements%add( &
-      grav_field%grav(gauss_idx), "v1", "rho", spline1=h_cubic, spline2=h_quad &
+      g0, "v1", "rho", spline1=h_cubic, spline2=h_quad &
     )
     call elements%add(-deps * rho / eps, "v1", "T", spline1=h_cubic, spline2=h_quad)
     call elements%add(deps * Gop_plus, "v1", "a1", spline1=h_cubic, spline2=h_quad)
@@ -158,7 +158,7 @@ contains
     call elements%add(ic * eps * B01, "v2", "a3", spline1=dh_quad, spline2=dh_cubic)
     call elements%add(-ic * B01, "v3", "a2", spline1=dh_quad, spline2=dh_cubic)
 
-    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
     call elements%delete()
   end procedure add_regular_matrix_terms
 

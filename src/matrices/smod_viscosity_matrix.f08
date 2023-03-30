@@ -23,14 +23,14 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     ! viscous heating variables
-    v01 = background%velocity%v01(grid_gauss(gauss_idx))
-    dv01 = background%velocity%dv01(grid_gauss(gauss_idx))
-    ddv01 = background%velocity%ddv01(grid_gauss(gauss_idx))
-    v02 = background%velocity%v02(grid_gauss(gauss_idx))
-    dv02 = background%velocity%dv02(grid_gauss(gauss_idx))
-    v03 = background%velocity%v03(grid_gauss(gauss_idx))
-    dv03 = background%velocity%dv03(grid_gauss(gauss_idx))
-    ddv03 = background%velocity%ddv03(grid_gauss(gauss_idx))
+    v01 = background%velocity%v01(x_gauss)
+    dv01 = background%velocity%dv01(x_gauss)
+    ddv01 = background%velocity%ddv01(x_gauss)
+    v02 = background%velocity%v02(x_gauss)
+    dv02 = background%velocity%dv02(x_gauss)
+    v03 = background%velocity%v03(x_gauss)
+    dv03 = background%velocity%dv03(x_gauss)
+    ddv03 = background%velocity%ddv03(x_gauss)
     ! viscosity value
     mu = settings%physics%viscosity%get_viscosity_value()
     ! operators
@@ -168,7 +168,7 @@ contains
       )
     end if
 
-    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
     call elements%delete()
   end procedure add_viscosity_matrix_terms
 

@@ -1,7 +1,6 @@
 module mod_test_inspections
   use mod_suite_utils
   use funit
-  use mod_equilibrium, only: grav_field
   use mod_inspections, only: check_wavenumbers
   use mod_equilibrium_params, only: k2, k3
   use mod_global_variables, only: NaN
@@ -9,6 +8,7 @@ module mod_test_inspections
 
   type(settings_t) :: settings
   type(background_t) :: background
+  type(physics_t) :: physics
 
 contains
 
@@ -17,8 +17,8 @@ contains
     call reset_globals()
     settings = get_settings()
     background = get_background()
+    physics = get_physics(settings, background)
     call create_test_grid(settings)
-    call reset_fields(settings, init_fields=.true.)
   end subroutine init_test
 
 
@@ -27,6 +27,7 @@ contains
     call clean_up(settings)
     call settings%delete()
     call background%delete()
+    call physics%delete()
   end subroutine teardown_test
 
 
@@ -48,7 +49,7 @@ contains
 
   subroutine do_checks()
     use mod_inspections, only: perform_NaN_and_negative_checks
-    call perform_NaN_and_negative_checks(background, grav_field)
+    call perform_NaN_and_negative_checks(settings, background, physics)
   end subroutine do_checks
 
 
@@ -145,9 +146,16 @@ contains
   @test
   subroutine test_gravity_nan()
     call set_name("gravity NaN")
-    grav_field % grav = NaN
+    call physics%set_gravity_funcs(g0_func=g0)
     call do_checks()
     @assertExceptionRaised("NaN encountered in gravity")
+  contains
+    real(dp) function g0(x, sett, bg)
+      real(dp), intent(in) :: x
+      type(settings_t), intent(in) :: sett
+      type(background_t), intent(in) :: bg
+      g0 = uniform_nan()
+    end function
   end subroutine test_gravity_nan
 
 

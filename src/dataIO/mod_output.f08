@@ -2,6 +2,7 @@ module mod_output
   use mod_global_variables, only: dp, str_len, str_len_arr
   use mod_settings, only: settings_t
   use mod_background, only: background_t
+  use mod_physics, only: physics_t
   use mod_matrix_structure, only: matrix_t
   use mod_logging, only: logger
   use mod_eigenfunctions, only: eigenfunctions_t
@@ -54,6 +55,7 @@ contains
   subroutine create_datfile( &
     settings, &
     background, &
+    physics, &
     eigenvalues, &
     matrix_A, &
     matrix_B, &
@@ -65,6 +67,7 @@ contains
 
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
+    type(physics_t), intent(in) :: physics
     complex(dp), intent(in) :: eigenvalues(:)
     type(matrix_t), intent(in) :: matrix_A
     type(matrix_t), intent(in) :: matrix_B
@@ -81,7 +84,7 @@ contains
 
     write(dat_fh) size(eigenvalues), eigenvalues
     write(dat_fh) grid, grid_gauss
-    call write_equilibrium_data(background)
+    call write_equilibrium_data(settings, background, physics)
     if (settings%io%write_eigenfunctions) then
       call write_base_eigenfunction_data(eigenfunctions)
     end if
@@ -307,7 +310,7 @@ contains
 
 
   subroutine write_equilibrium_names()
-    integer, parameter :: nb_names = 36
+    integer, parameter :: nb_names = 33
     character(len=str_len_arr) :: equilibrium_names(nb_names)
 
     equilibrium_names = [ &
@@ -316,7 +319,7 @@ contains
       "T0", "dT0", "ddT0", &
       "B01", "B02", "B03", "dB02", "db03", "ddB02", "ddb03", "B0", &
       "v01", "v02", "v03", "dv01", "dv02", "dv03", "ddv01", "ddv02", "ddv03", &
-      "L0", "dLdT", "dLdrho", "H0", "dHdT", "dHdrho", &
+      "L0", "dLdT", "dLdrho", &
       "kappa_para", "kappa_perp", &
       "eta", "detadT", "detadr", &
       "gravity", &
@@ -327,12 +330,13 @@ contains
   end subroutine write_equilibrium_names
 
 
-  subroutine write_equilibrium_data(background)
-    use mod_equilibrium
+  subroutine write_equilibrium_data(settings, background, physics)
     use mod_grid, only: grid_gauss
     use mod_function_utils, only: from_function
 
+    type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
+    type(physics_t), intent(in) :: physics
 
     write(dat_fh) from_function(background%density%rho0, grid_gauss)
     write(dat_fh) from_function(background%density%drho0, grid_gauss)
@@ -357,12 +361,17 @@ contains
     write(dat_fh) from_function(background%velocity%ddv02, grid_gauss)
     write(dat_fh) from_function(background%velocity%ddv03, grid_gauss)
 
-    write(dat_fh) rc_field%L0, rc_field%dL_dT, rc_field%dL_drho
-    write(dat_fh) rc_field%H0, rc_field%dH_dT, rc_field%dH_drho
-    write(dat_fh) kappa_field%kappa_para, kappa_field%kappa_perp
-    write(dat_fh) eta_field%eta, eta_field%d_eta_dT, eta_field%d_eta_dr
-    write(dat_fh) grav_field%grav
-    write(dat_fh) hall_field%hallfactor, hall_field%inertiafactor
+    write(dat_fh) from_function(physics%cooling%L0, grid_gauss)
+    write(dat_fh) from_function(physics%cooling%dLdT, grid_gauss)
+    write(dat_fh) from_function(physics%cooling%dLdrho, grid_gauss)
+    write(dat_fh) from_function(physics%conduction%tcpara, grid_gauss)
+    write(dat_fh) from_function(physics%conduction%tcperp, grid_gauss)
+    write(dat_fh) from_function(physics%resistivity%eta, grid_gauss)
+    write(dat_fh) from_function(physics%resistivity%detadT, grid_gauss)
+    write(dat_fh) from_function(physics%resistivity%detadr, grid_gauss)
+    write(dat_fh) from_function(physics%gravity%g0, grid_gauss)
+    write(dat_fh) from_function(physics%hall%hallfactor, grid_gauss)
+    write(dat_fh) from_function(physics%hall%inertiafactor, grid_gauss)
   end subroutine write_equilibrium_data
 
 

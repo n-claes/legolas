@@ -6,6 +6,7 @@ module mod_test_solar_atmosphere
 
   type(settings_t) :: settings
   type(background_t) :: background
+  type(physics_t) :: physics
 
 contains
 
@@ -13,7 +14,7 @@ contains
   subroutine init_test()
     settings = get_settings()
     background = new_background()
-    call reset_fields(settings, init_fields=.true.)
+    physics = new_physics(settings, background)
     call set_default_units(settings)
     call create_test_grid( &
       settings, geometry="Cartesian", grid_start=0.05d0, grid_end=0.35d0 &
@@ -26,6 +27,7 @@ contains
     call clean_up(settings)
     call settings%delete()
     call background%delete()
+    call physics%delete()
     call solar_atmosphere_dealloc()
   end subroutine tear_down
 
@@ -34,7 +36,7 @@ contains
   subroutine test_sa_invalid_geometry()
     call set_name("solar atmosphere (invalid geometry)")
     call settings%grid%set_geometry("cylindrical")
-    call set_solar_atmosphere(settings, background)
+    call set_solar_atmosphere(settings, background, physics)
     @assertExceptionRaised("solar atmosphere can only be set in Cartesian geometries!")
   end subroutine test_sa_invalid_geometry
 
@@ -42,10 +44,9 @@ contains
   @test
   subroutine test_sa_neg_and_nans()
     use mod_inspections, only: perform_NaN_and_negative_checks
-    use mod_equilibrium, only: grav_field
     call set_name("solar atmosphere (NaNs and negative values)")
-    call set_solar_atmosphere(settings, background)
-    call perform_NaN_and_negative_checks(background, grav_field)
+    call set_solar_atmosphere(settings, background, physics)
+    call perform_NaN_and_negative_checks(settings, background, physics)
   end subroutine test_sa_neg_and_nans
 
 end module mod_test_solar_atmosphere

@@ -4,88 +4,111 @@
 module mod_hall
   use mod_global_variables, only: dp
   use mod_settings, only: settings_t
+  use mod_background, only: background_t
+  use mod_physics_utils, only: get_dropoff, get_dropoff_dr
+  use mod_physical_constants, only: dpi, mp_cgs, ec_cgs, me_cgs
+  implicit none
 
-implicit none
+  private
 
-private
+  type(settings_t), pointer :: settings => null()
+  type(background_t), pointer :: background => null()
 
-public  :: set_hall_factors
+  type, public :: hall_t
+    procedure(real(dp)), pointer, nopass :: hallfactor
+    procedure(real(dp)), pointer, nopass :: inertiafactor
+
+  contains
+    procedure, public :: validate_scale_ratio
+    procedure, public :: delete
+  end type hall_t
+
+  public :: new_hall
 
 contains
 
-  !> Retrieves the normalised Hall factor as described by Porth et al. (2014),
-  !! with a dropoff at the boundary, if desired. Additionally, defines the
-  !! electron inertia factor if included, with a dropoff profile, if desired.
-  subroutine set_hall_factors(settings, hall_field)
-    use mod_grid, only: grid_gauss
-    use mod_physical_constants, only: dpi, mp_cgs, ec_cgs, me_cgs
-    use mod_types, only: hall_type
 
-    type(settings_t), intent(in) :: settings
-    type(hall_type), intent(inout)  :: hall_field
+  function new_hall(settings_tgt, pointer_tgt) result(hall)
+    type(settings_t), target, intent(in) :: settings_tgt
+    type(background_t), pointer, intent(in) :: pointer_tgt
+    type(hall_t) :: hall
 
+    settings => settings_tgt
+    background => pointer_tgt
+
+    hall%hallfactor => get_hallfactor
+    hall%inertiafactor => get_inertiafactor
+  end function new_hall
+
+
+  !> Retrieves the normalised Hall factor as described by Porth et al. (2014).
+  real(dp) function get_hallfactor(x)
+    real(dp), intent(in) :: x
     real(dp) :: unit_velocity, unit_length, unit_magneticfield
-    real(dp)  :: sleft, sright, width, hallval, inertiaval, edge_dist
-    real(dp)  :: x, shift, stretch, shift2, stretch2
-    integer   :: i, gauss_gridpts
 
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
-    width = settings%physics%dropoff_width
-    edge_dist = settings%physics%dropoff_edge_dist
+    get_hallfactor = 0.0_dp
+    if (.not. settings%physics%hall%is_enabled()) return
 
     unit_velocity = settings%units%get_unit_velocity()
     unit_length = settings%units%get_unit_length()
     unit_magneticfield = settings%units%get_unit_magneticfield()
-    hallval = (mp_cgs * unit_velocity) / (ec_cgs * unit_length * unit_magneticfield)
-    inertiaval = ( &
+    get_hallfactor = ( &
+      (mp_cgs * unit_velocity) / (ec_cgs * unit_length * unit_magneticfield) &
+    )
+
+    if (.not. settings%physics%hall%use_dropoff) return
+    get_hallfactor = get_dropoff(x, get_hallfactor, settings)
+  end function get_hallfactor
+
+
+  real(dp) function get_inertiafactor(x)
+    real(dp), intent(in) :: x
+    real(dp) :: unit_velocity, unit_length, unit_magneticfield
+
+    get_inertiafactor = 0.0_dp
+    if (.not. settings%physics%hall%has_electron_inertia()) return
+
+    unit_velocity = settings%units%get_unit_velocity()
+    unit_length = settings%units%get_unit_length()
+    unit_magneticfield = settings%units%get_unit_magneticfield()
+    get_inertiafactor = ( &
       mp_cgs * me_cgs * unit_velocity**2 &
       / (ec_cgs * unit_length * unit_magneticfield)**2 &
     )
 
-    sleft = grid_gauss(1) + 0.5d0 * width + edge_dist
-    sright = grid_gauss(gauss_gridpts) - edge_dist - 0.5d0 * width
+    if (.not. settings%physics%hall%use_inertia_dropoff) return
+    get_inertiafactor = get_dropoff_dr(x, get_inertiafactor, settings)
+  end function get_inertiafactor
 
-    if (settings%physics%hall%use_dropoff) then
-      shift = hallval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
-      stretch = hallval / (tanh(dpi) - tanh(-dpi))
 
-      do i = 1, gauss_gridpts
-        x = grid_gauss(i)
-        if (sleft - 0.5d0*width <= x .and. x <= sleft + 0.5d0*width) then
-          hall_field % hallfactor(i) = shift + stretch * tanh(2.0d0 * dpi * (x - sleft) / width)
-        else if (sleft + 0.5d0*width < x .and. x < sright - 0.5d0*width) then
-          hall_field % hallfactor(i) = hallval
-        else if (sright - 0.5d0*width <= x .and. x <= sright + 0.5d0*width) then
-          hall_field % hallfactor(i) = shift + stretch * tanh(2.0d0 * dpi * (sright - x) / width)
-        else
-          hall_field % hallfactor(i) = 0.0d0
-        end if
-      end do
-    else
-      hall_field % hallfactor = hallval
+  ! LCOV_EXCL_START
+  subroutine validate_scale_ratio(this, grid)
+    use mod_function_utils, only: from_function
+    use mod_logging, only: logger, str
+
+    class(hall_t), intent(in) :: this
+    real(dp), intent(in) :: grid(:)
+    real(dp) :: ratio
+
+    if (.not. settings%physics%hall%is_enabled()) return
+
+    ratio = maxval( &
+      from_function(this%hallfactor, grid) &
+    ) / (settings%grid%get_grid_end() - settings%grid%get_grid_start())
+
+    if (ratio > 0.1d0) then
+      call logger%warning("large ratio Hall scale / system scale: " // str(ratio))
     end if
+  end subroutine validate_scale_ratio
+  ! LCOV_EXCL_STOP
 
-    if (settings%physics%hall%has_electron_inertia()) then
-      if (settings%physics%hall%use_inertia_dropoff) then
-        shift2 = inertiaval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
-        stretch2 = inertiaval / (tanh(dpi) - tanh(-dpi))
 
-        do i = 1, gauss_gridpts
-          x = grid_gauss(i)
-          if (sleft - 0.5d0*width <= x .and. x <= sleft + 0.5d0*width) then
-            hall_field % inertiafactor(i) = shift2 + stretch2 * tanh(2.0d0 * dpi * (x - sleft) / width)
-          else if (sleft + 0.5d0*width < x .and. x < sright - 0.5d0*width) then
-            hall_field % inertiafactor(i) = inertiaval
-          else if (sright - 0.5d0*width <= x .and. x <= sright + 0.5d0*width) then
-            hall_field % inertiafactor(i) = shift2 + stretch2 * tanh(2.0d0 * dpi * (sright - x) / width)
-          else
-            hall_field % inertiafactor(i) = 0.0d0
-          end if
-        end do
-      else
-        hall_field % inertiafactor = inertiaval
-      end if
-    end if
-  end subroutine set_hall_factors
+  subroutine delete(this)
+    class(hall_t), intent(inout) :: this
+    nullify(settings)
+    nullify(background)
+    nullify(this%hallfactor)
+    nullify(this%inertiafactor)
+  end subroutine delete
 
 end module mod_hall

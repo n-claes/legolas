@@ -4,13 +4,12 @@ submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_res
 contains
 
   module procedure add_natural_resistive_terms
-    use mod_equilibrium, only: eta_field
-
     real(dp)  :: eps, deps
     real(dp)  :: eta
     real(dp)  :: B02, dB02, drB02
     real(dp)  :: B03, dB03
     real(dp) :: gamma_1
+    real(dp) :: x
     type(matrix_elements_t) :: elements
 
     if (.not. settings%physics%resistivity%is_enabled()) return
@@ -19,11 +18,12 @@ contains
 
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
-    eta = eta_field % eta(grid_idx)
-    B02 = background%magnetic%B02(grid_gauss(grid_idx))
-    dB02 = background%magnetic%dB02(grid_gauss(grid_idx))
-    B03 = background%magnetic%B03(grid_gauss(grid_idx))
-    dB03 = background%magnetic%dB03(grid_gauss(grid_idx))
+    x = grid_gauss(grid_idx)
+    eta = physics%resistivity%eta(x)
+    B02 = background%magnetic%B02(x)
+    dB02 = background%magnetic%dB02(x)
+    B03 = background%magnetic%B03(x)
+    dB03 = background%magnetic%dB03(x)
 
     drB02 = deps * B02 + eps * dB02
     elements = new_matrix_elements(state_vector=settings%get_state_vector())

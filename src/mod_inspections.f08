@@ -5,13 +5,13 @@
 !! on-axis values obey regularity conditions. Equilibrium balance
 !! for both the Cartesian and cylindrical cases is checked.
 module mod_inspections
-  use mod_global_variables, only: dp, dp_LIMIT
-  use mod_types, only: gravity_type, cooling_type, conduction_type
+  use mod_global_variables, only: dp
   use mod_logging, only: logger, str, exp_fmt
   use mod_settings, only: settings_t
   use mod_background, only: background_t
-  use mod_function_utils, only: from_function
+  use mod_physics, only: physics_t
   use mod_grid, only: grid_gauss, eps_grid, d_eps_grid_dr
+  use mod_function_utils, only: from_function
   use mod_check_values, only: is_NaN, is_negative, is_zero
   implicit none
 
@@ -26,15 +26,13 @@ contains
   !> General routine to do initial sanity checks on the various equilibrium attributes.
   !! We check the equilibrium arrays for NaN and see if all density and temperature
   !! values are positive.
-  subroutine perform_NaN_and_negative_checks(background, grav_field)
+  subroutine perform_NaN_and_negative_checks(settings, background, physics)
+    type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
-    !> the type containing the gravity attributes
-    type(gravity_type), intent(in)      :: grav_field
-
+    type(physics_t), intent(in) :: physics
     character(50) :: name
 
     name = ""
-    ! TODO: is there an easier way to do this?
     if (any(is_negative(from_function(background%density%rho0, grid_gauss)))) then
       call logger%error("negative density encountered!")
       return
@@ -59,7 +57,7 @@ contains
       name = "v02"
     else if (any(is_NaN(from_function(background%velocity%v03, grid_gauss)))) then
       name = "v03"
-    else if (any(is_NaN(grav_field % grav))) then
+    else if (any(is_NaN(from_function(physics%gravity%g0, grid_gauss)))) then
       name = "gravity"
     end if
 
@@ -73,26 +71,18 @@ contains
   !> General routine to do sanity checks on the different equilibrium types.
   !! We check the wavenumbers and on-axis values, as well as standard
   !! and non-adiabatic equilibrium force balance.
-  subroutine perform_sanity_checks( &
-    settings, background, grav_field, rc_field, kappa_field &
-  )
-    !> the settings object
+  subroutine perform_sanity_checks(settings, background, physics)
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
-    !> the type containing the gravity attributes
-    type(gravity_type), intent(in)      :: grav_field
-    !> the type containing the radiative cooling attributes
-    type(cooling_type), intent(inout)   :: rc_field
-    !> the type containing the thermal conduction attributes
-    type(conduction_type), intent(in)   :: kappa_field
+    type(physics_t), intent(in) :: physics
 
     call check_wavenumbers(geometry=settings%grid%get_geometry())
     call check_B01_cylindrical(settings, background)
     call check_on_axis_values(settings, background)
-    call standard_equil_conditions(settings, background, grav_field)
+    call standard_equil_conditions(settings, background, physics)
     call continuity_equil_conditions(settings, background)
     call induction_equil_conditions(settings, background)
-    call check_energy_balance(settings, background, rc_field, kappa_field)
+    call check_energy_balance(settings, background, physics)
   end subroutine perform_sanity_checks
 
 
@@ -119,7 +109,7 @@ contains
     character(len=*), intent(in) :: geometry
 
     ! in cylindrical geometry k2 should be an integer
-    if (geometry == "cylindrical" .and. abs(int(k2) - k2) > dp_LIMIT) then
+    if (geometry == "cylindrical" .and. .not. is_zero(abs(int(k2) - k2))) then
       call logger%error( &
         "cylindrical geometry but k2 is not an integer! Value: " // str(k2) &
       )
@@ -177,11 +167,10 @@ contains
   !! $$ \rho_0 v_{01} v_{03}' - B_{01} B_{03}' = 0, $$
   !! and they should all be fulfilled.
   !! @warning   Throws a warning if force-balance is not satisfied.
-  subroutine standard_equil_conditions(settings, background, grav_field)
+  subroutine standard_equil_conditions(settings, background, physics)
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
-    !> the type containing the gravity attributes
-    type(gravity_type), intent(in)      :: grav_field
+    type(physics_t), intent(in) :: physics
 
     real(dp) :: x
     real(dp) :: rho0, drho0, B01, B02, dB02, B03, dB03, T0, dT0, grav
@@ -211,7 +200,7 @@ contains
       dv01 = background%velocity%dv01(x)
       dv02 = background%velocity%dv02(x)
       dv03 = background%velocity%dv03(x)
-      grav = grav_field % grav(i)
+      grav = physics%gravity%g0(x)
       eps = eps_grid(i)
       d_eps = d_eps_grid_dr(i)
 
@@ -230,7 +219,7 @@ contains
       eq_cond(i, 3) = rho0 * v01 * dv03 - B01 * dB03
 
       do j = 1, 3
-        if (abs(eq_cond(i, j)) > dp_LIMIT) then
+        if (.not. is_zero(abs(eq_cond(i, j)))) then
           counter(j) = counter(j) + 1
           satisfied(j) = .false.
           if (abs(eq_cond(i, j)) > discrepancy(j)) then
@@ -272,21 +261,17 @@ contains
   !! - \frac{1}{\varepsilon}\left(\varepsilon \kappa_{\perp, 0} T_0'\right)'
   !! + \frac{1}{(\gamma - 1)}T_0'\rho_0 v_{01} = 0
   !! $$
-  subroutine check_energy_balance(settings, background, rc_field, kappa_field)
-    !> the settings object
+  subroutine check_energy_balance(settings, background, physics)
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
-    !> the type containing the radiative cooling attributes
-    type(cooling_type), intent(inout)  :: rc_field
-    !> the type containing the thermal conduction attributes
-    type(conduction_type), intent(in) :: kappa_field
+    type(physics_t), intent(in) :: physics
 
     real(dp) :: x, rho0, drho0, T0, dT0, ddT0
     real(dp) :: B01, B02, dB02, B03, dB03, B0
     real(dp) :: v01, dv01
     real(dp) :: kappa_perp, dkappa_perp_dr, Kp, dKp
+    real(dp) :: L0
     real(dp) :: eps, deps
-    real(dp) :: balance_terms
     real(dp) :: discrepancy, r, eq_cond
     logical :: satisfied
     integer :: i, counter
@@ -311,31 +296,15 @@ contains
       dv01 = background%velocity%dv01(x)
       eps = eps_grid(i)
       deps = d_eps_grid_dr(i)
-      kappa_perp = kappa_field % kappa_perp(i)
-      dkappa_perp_dr = kappa_field % d_kappa_perp_dr(i)
-      Kp = kappa_field % prefactor(i)
-      dKp = kappa_field % d_prefactor_dr(i)
-
-      balance_terms = ( &
-        -(T0 / eps) * (deps * v01 + eps * dv01) &
-        + dT0 * v01 / settings%physics%get_gamma_1() &
-        + (B01**2 / rho0) * (dKp * dT0 + Kp * ddT0) &
-        + ( &
-          deps * kappa_perp * dT0 &
-          + eps * dkappa_perp_dr * dT0 &
-          + eps * kappa_perp * ddT0 &
-        ) / (eps * rho0) &
-      )
-
-      if (settings%physics%cooling%ensure_equilibrium) then
-        rc_field%L0(i) = balance_terms
-      else
-        rc_field%L0(i) = rho0 * rc_field%lambdaT(i) - rc_field%H0(i)
-      end if
+      kappa_perp = physics%conduction%tcperp(x)
+      dkappa_perp_dr = physics%conduction%dtcperpdr(x)
+      Kp = physics%conduction%tcprefactor(x)
+      dKp = physics%conduction%dtcprefactordr(x)
+      L0 = physics%cooling%L0(x)
 
       eq_cond = ( &
         T0 * rho0 * (deps * v01 + eps * dv01) / eps &
-        + rho0 * rc_field%L0(i) &
+        + rho0 * L0 &
         - B01**2 * (Kp * dT0 + dKp * T0) &
         - (1.0_dp / eps) * ( &
           deps * kappa_perp * dT0 &
@@ -409,7 +378,7 @@ contains
         B01 * dv03 - dB03 * v01 - B03 * dv01 + d_eps * (B01 * v03 - B03 * v01) / eps &
       )
       do j = 1, 2
-        if (abs(eq_cond(i, j)) > dp_LIMIT) then
+        if (.not. is_zero(abs(eq_cond(i, j)))) then
           counter(j) = counter(j) + 1
           satisfied(j) = .false.
           if (abs(eq_cond(i, j)) > discrepancy(j)) then
@@ -470,7 +439,7 @@ contains
 
       eq_cond(i) = drho0 * v01 + rho0 * dv01 + rho0 * v01 * d_eps / eps
 
-      if (abs(eq_cond(i)) > dp_LIMIT) then
+      if (.not. is_zero(abs(eq_cond(i)))) then
         counter = counter + 1
         satisfied = .false.
         if (abs(eq_cond(i)) > discrepancy) then

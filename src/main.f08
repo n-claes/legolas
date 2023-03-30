@@ -9,6 +9,7 @@
 program legolas
   use mod_global_variables, only: dp, str_len, initialise_globals
   use mod_matrix_structure, only: matrix_t
+  use mod_equilibrium, only: set_equilibrium
   use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_path, create_datfile
@@ -18,6 +19,7 @@ program legolas
   use mod_settings, only: settings_t, new_settings
   use mod_background, only: background_t, new_background
   use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
+  use mod_physics, only: physics_t, new_physics
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -30,6 +32,7 @@ program legolas
   type(settings_t) :: settings
   type(background_t) :: background
   type(eigenfunctions_t) :: eigenfunctions
+  type(physics_t) :: physics
   !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
@@ -41,15 +44,17 @@ program legolas
   timer = new_timer()
   settings = new_settings()
   background = new_background()
+  physics = new_physics(settings, background)
 
   call timer%start_timer()
   call initialisation()
+  call set_equilibrium(settings, background, physics)
   timer%init_time = timer%end_timer()
 
   call print_console_info(settings)
 
   call timer%start_timer()
-  call build_matrices(matrix_B, matrix_A, settings, background)
+  call build_matrices(matrix_B, matrix_A, settings, background, physics)
   timer%matrix_time = timer%end_timer()
 
   call logger%info("solving eigenvalue problem...")
@@ -66,6 +71,7 @@ program legolas
   call create_datfile( &
     settings, &
     background, &
+    physics, &
     omega, &
     matrix_A, &
     matrix_B, &
@@ -89,17 +95,12 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_global_variables, only: NaN
     use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
-    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium, hall_field
     use mod_console, only: print_logo
 
     character(len=5*str_len)  :: parfile
     integer   :: nb_evs
-
-    real(dp) :: ratio
-    ratio = NaN
 
     call get_parfile(parfile)
     call read_parfile(parfile, settings)
@@ -120,18 +121,6 @@ contains
     allocate(omega(nb_evs))
     matrix_A = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="A")
     matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
-
-    call initialise_equilibrium(settings)
-    call set_equilibrium(settings, background)
-
-    if (settings%physics%hall%is_enabled()) then
-      ratio = maxval(hall_field % hallfactor) / ( &
-        settings%grid%get_grid_end() - settings%grid%get_grid_start() &
-      )
-      if (ratio > 0.1d0) then
-        call logger%warning("large ratio Hall scale / system scale: " // str(ratio))
-      end if
-    end if
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
     if ( &
@@ -163,24 +152,17 @@ contains
   !! routines of all relevant subroutines to do the same thing.
   subroutine cleanup()
     use mod_grid, only: grid_clean
-    use mod_equilibrium, only: equilibrium_clean
-    use mod_radiative_cooling, only: radiative_cooling_clean
 
     call matrix_A%delete_matrix()
     call matrix_B%delete_matrix()
     deallocate(omega)
-    if (allocated(right_eigenvectors)) then
-      deallocate(right_eigenvectors)
-    end if
+    if (allocated(right_eigenvectors)) deallocate(right_eigenvectors)
 
     call grid_clean()
-    call equilibrium_clean()
 
-    if (settings%physics%cooling%is_enabled()) then
-      call radiative_cooling_clean()
-    end if
     call settings%delete()
     call background%delete()
+    call physics%delete()
     call eigenfunctions%delete()
   end subroutine cleanup
 

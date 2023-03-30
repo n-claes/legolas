@@ -42,12 +42,12 @@ contains
 
     call initialise_grid(settings)
 
-    !! Equilibrium
-    grav_field % grav = g
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_temperature_funcs(T0_func=T0)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
+
+    call physics%set_gravity_funcs(g0_func=g0)
   end procedure gravito_mhd_eq
 
 
@@ -74,5 +74,10 @@ contains
     real(dp), intent(in) :: x
     dB03 = -0.5_dp * alpha * B03(x)
   end function dB03
+
+
+  real(dp) function g0()
+    g0 = g
+  end function g0
 
 end submodule smod_equil_gravito_mhd

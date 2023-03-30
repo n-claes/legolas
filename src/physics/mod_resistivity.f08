@@ -3,180 +3,130 @@
 !! and sets the resistivity values based on the equilibrium configuration.
 module mod_resistivity
   use mod_global_variables, only: dp
-  use mod_physical_constants, only: dpi, Z_ion, coulomb_log
+  use mod_physical_constants, only: dpi, Z_ion, coulomb_log, ec_cgs, me_cgs, kB_cgs
   use mod_settings, only: settings_t
   use mod_background, only: background_t
-  use mod_function_utils, only: from_function
-  use mod_grid, only: grid_gauss
+  use mod_physics_utils, only: get_dropoff, get_dropoff_dr
   implicit none
 
   private
 
-  public :: set_resistivity_values
+  type(settings_t), pointer :: settings => null()
+  type(background_t), pointer :: background => null()
+
+  type, public :: resistivity_t
+    procedure(real(dp)), pointer, nopass :: eta
+    procedure(real(dp)), pointer, nopass :: detadT
+    procedure(real(dp)), pointer, nopass :: detadr
+  contains
+    procedure, public :: delete
+  end type resistivity_t
+
+  public :: new_resistivity
 
 contains
 
 
-  !> This routines sets all resistivity values in \p eta_field,
-  !! and calls all other relevant subroutines defined in this module.
-  subroutine set_resistivity_values(settings, background, eta_field)
-    use mod_types, only: resistivity_type
+  function new_resistivity(settings_tgt, background_tgt) result(resistivity)
+    type(settings_t), target, intent(in) :: settings_tgt
+    type(background_t), target, intent(in) :: background_tgt
+    type(resistivity_t) :: resistivity
 
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
-    !> the type containing the resistivity attributes
-    type(resistivity_type), intent(inout) :: eta_field
+    settings => settings_tgt
+    background => background_tgt
 
-    call get_eta( &
-      settings, from_function(background%temperature%T0, grid_gauss), eta_field % eta &
-    )
-    call get_deta_dT( &
-      settings, &
-      from_function(background%temperature%T0, grid_gauss), &
-      eta_field % d_eta_dT &
-    )
-    if (settings%physics%resistivity%use_dropoff) then
-      call set_eta_dropoff(settings, eta_field)
-    end if
-  end subroutine set_resistivity_values
+    resistivity%eta => spitzer_eta
+    resistivity%detadT => spitzer_detadT
+    resistivity%detadr => spitzer_detadr
+  end function new_resistivity
 
 
-  !> Calculates the resistivity. Returns either the full Spitzer resistivity
-  !! based on the equilibrium parameters, or a fixed resistivity value if
-  !! specified in the global variables module. The unit resistivity is also set in this routine.
-  !! If a fixed resistivity is used, eta is assumed to be normalised and
-  !! the unit resistivity remains unity.
-  !! @note    The temperature should be normalised when calling this routine,
-  !!          the resistivity is normalised on exit.
-  subroutine get_eta(settings, T0_eq, eta)
-    type(settings_t), intent(in) :: settings
-    !> equilibrium temperature
-    real(dp), intent(in) :: T0_eq(:)
-    !> resistivity values, normalised on exit
-    real(dp), intent(inout) :: eta(:)
+  !> Default profile for the resistivity $\eta$. Returns one of the following:
+  !! - The Spitzer resistivity based on the equilibrium temperature profile
+  !! - a fixed resistivity value
+  !! - zero (if resistivity is disabled)
+  !! Values are normalised on return.
+  real(dp) function spitzer_eta(x)
+    real(dp), intent(in) :: x
+    real(dp) :: unit_temperature, unit_resistivity
+    real(dp) :: T0
 
-    real(dp) :: ec, me, kB
-    real(dp) :: T0_dimfull(size(T0_eq))
+    spitzer_eta = 0.0_dp
+    if (.not. settings%physics%resistivity%is_enabled()) return
 
     if (settings%physics%resistivity%has_fixed_resistivity()) then
-      eta = settings%physics%resistivity%get_fixed_resistivity()
-      return
-    end if
-
-    call get_constants(ec, me, kB)
-    T0_dimfull = T0_eq * settings%units%get_unit_temperature()
-    eta = ( &
-      (4.0d0 / 3.0d0) * sqrt(2.0d0 * dpi) * Z_ion * ec**2 * sqrt(me) * coulomb_log &
-      / (kB * T0_dimfull)**(3.0d0 / 2.0d0) &
-    ) / settings%units%get_unit_resistivity()
-  end subroutine get_eta
-
-
-  !> Calculates the derivative of the resistivity.
-  !! Returns the derivative of the full Spitzer resistivity with respect
-  !! to the equilibrium temperature, if a fixed resistivity was set instead
-  !! this routine returns zero.
-  !! @note    The temperature should be normalised when calling this routine,
-  !!          the derivative of the resistivity is normalised on exit.
-  subroutine get_deta_dT(settings, T0_eq, deta_dT)
-    type(settings_t), intent(in) :: settings
-    !> equilibrium temperature
-    real(dp), intent(in) :: T0_eq(:)
-    !> derivative of resistivity with respect to temperature, normalised on exit
-    real(dp), intent(out) :: deta_dT(:)
-
-    real(dp) :: ec, me, kB
-    real(dp) :: unit_temperature, unit_deta_dT
-    real(dp) :: T0_dimfull(size(T0_eq))
-
-    if (settings%physics%resistivity%has_fixed_resistivity()) then
-      deta_dT = 0.0d0
-      return
-    end if
-
-    call get_constants(ec, me, kB)
-    unit_temperature = settings%units%get_unit_temperature()
-    T0_dimfull = T0_eq * unit_temperature
-    unit_deta_dT = settings%units%get_unit_resistivity() / unit_temperature
-    deta_dT = ( &
-      -2.0d0 * sqrt(2.0d0 * dpi) * Z_ion * ec**2 * sqrt(me) * coulomb_log &
-      / (kB**(3.0d0 / 2.0d0) * T0_dimfull**(5.0d0 / 2.0d0)) &
-    ) / unit_deta_dT
-  end subroutine get_deta_dT
-
-
-  !> Sets a hyperbolic tangent profile for the resistivity so it goes smoothly to zero
-  !! near the edges. The location and width of the dropoff profile can be controlled
-  !! through <tt>dropoff_edge_dist</tt> and <tt>dropoff_width</tt>.
-  !! @warning Throws an error if:
-  !!
-  !! - a dropoff profile is requested but the resistivity is not constant. @endwarning
-  subroutine set_eta_dropoff(settings, eta_field)
-    use mod_types, only: resistivity_type
-    use mod_logging, only: logger, str
-    use mod_physical_constants, only: dpi
-
-    type(settings_t), intent(in) :: settings
-    !> the type containing the resistivity attributes
-    type(resistivity_type), intent(inout) :: eta_field
-
-    real(dp) :: sleft, sright, width, etaval, edge_dist
-    real(dp) :: x, shift, stretch
-    integer :: i, gauss_gridpts
-
-    if (.not. settings%physics%resistivity%has_fixed_resistivity()) then
-      call logger%error("eta dropoff only possible with a fixed resistivity value")
-      return
-    end if
-
-    gauss_gridpts = settings%grid%get_gauss_gridpts()
-    width = settings%physics%dropoff_width
-    edge_dist = settings%physics%dropoff_edge_dist
-    etaval = settings%physics%resistivity%get_fixed_resistivity()
-    sleft = grid_gauss(1) + 0.5d0 * width + edge_dist
-    sright = grid_gauss(gauss_gridpts) - edge_dist - 0.5d0 * width
-
-    shift = etaval * tanh(-dpi) / (tanh(-dpi) - tanh(dpi))
-    stretch = etaval / (tanh(dpi) - tanh(-dpi))
-
-    call logger%info("setting eta-dropoff profile")
-    call logger%info("dropoff width = " // str(width))
-    call logger%info("distance from edge = " // str(edge_dist))
-
-    do i = 1, gauss_gridpts
-      x = grid_gauss(i)
-      if (sleft - 0.5d0*width <= x .and. x <= sleft + 0.5d0*width) then
-        eta_field % eta(i) = shift + stretch * tanh(2.0d0 * dpi * (x - sleft) / width)
-        eta_field % d_eta_dr(i) = (2.0d0 * dpi * stretch / width) / cosh(2.0d0 * dpi * (x - sleft) / width)**2
-      else if (sleft + 0.5d0*width < x .and. x < sright - 0.5d0*width) then
-        eta_field % eta(i) = etaval
-        eta_field % d_eta_dT(i) = 0.0d0
-      else if (sright - 0.5d0*width <= x .and. x <= sright + 0.5d0*width) then
-        eta_field % eta(i) = shift + stretch * tanh(2.0d0 * dpi * (sright - x) / width)
-        eta_field % d_eta_dr(i) = (-2.0d0 * dpi * stretch / width) / cosh(2.0d0 * dpi * (sright - x) / width)**2
-      else
-        eta_field % eta(i) = 0.0d0
-        eta_field % d_eta_dr(i) = 0.0d0
+      spitzer_eta = settings%physics%resistivity%get_fixed_resistivity()
+      if (settings%physics%resistivity%use_dropoff) then
+        spitzer_eta = get_dropoff(x, spitzer_eta, settings)
       end if
-    end do
-  end subroutine set_eta_dropoff
+      return
+    end if
+
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_resistivity = settings%units%get_unit_resistivity()
+    T0 = background%temperature%T0(x) * unit_temperature
+    spitzer_eta = ( &
+      (4.0_dp / 3.0_dp) &
+      * sqrt(2.0_dp * dpi) &
+      * Z_ion &
+      * ec_cgs**2 &
+      * sqrt(me_cgs) &
+      * coulomb_log &
+      / (kB_cgs * T0)**(3.0_dp / 2.0_dp) &
+    ) / unit_resistivity
+  end function spitzer_eta
 
 
-  !> Retrieves resistivity constants.
-  !! Returns all physical constants used to calculate the Spitzer resistivity.
-  subroutine get_constants(ec, me, kB)
-    use mod_physical_constants, only: ec_cgs, me_cgs, kB_cgs
+  !> Default profile for the derivative of the resistivity $\eta$ with respect to
+  !! the temperature $T$. Returns one of the following:
+  !! - zero (if resistivity is disabled or for fixed resistivity)
+  !! - derivative of Spitzer resistivity with respect to T
+  !! Values are normalised on return.
+  real(dp) function spitzer_detadT(x)
+    real(dp), intent(in) :: x
+    real(dp) :: unit_temperature, unit_detadT
+    real(dp) :: T0
 
-    !> electric charge
-    real(dp), intent(out) :: ec
-    !> electron mass
-    real(dp), intent(out) :: me
-    !> Boltzmann constant
-    real(dp), intent(out) :: kB
+    spitzer_detadT = 0.0_dp
+    if (.not. settings%physics%resistivity%is_enabled()) return
+    if (settings%physics%resistivity%has_fixed_resistivity()) return
 
-    ec = ec_cgs
-    me = me_cgs
-    kB = kB_cgs
-  end subroutine get_constants
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_detadT = settings%units%get_unit_resistivity() / unit_temperature
+    T0 = background%temperature%T0(x) * unit_temperature
+    spitzer_detadT = ( &
+      -2.0_dp * sqrt(2.0_dp * dpi) * Z_ion * ec_cgs**2 * sqrt(me_cgs) * coulomb_log &
+      / (kB_cgs**(3.0_dp / 2.0_dp) * T0**(5.0_dp / 2.0_dp)) &
+    ) / unit_detadT
+  end function spitzer_detadT
+
+
+  !> Default profile for the derivative of the resistivity $\eta$ with respect to
+  !! position. Returns zero unless a dropoff profile was chosen.
+  real(dp) function spitzer_detadr(x)
+    real(dp), intent(in) :: x
+
+    spitzer_detadr = 0.0_dp
+    if (.not. settings%physics%resistivity%is_enabled()) return
+
+    if (settings%physics%resistivity%has_fixed_resistivity()) then
+      if (settings%physics%resistivity%use_dropoff) then
+        spitzer_detadr = get_dropoff_dr( &
+          x, settings%physics%resistivity%get_fixed_resistivity(), settings &
+        )
+      end if
+      return
+    end if
+  end function spitzer_detadr
+
+
+  subroutine delete(this)
+    class(resistivity_t), intent(inout) :: this
+    nullify(settings)
+    nullify(background)
+    nullify(this%eta)
+    nullify(this%detadT)
+    nullify(this%detadr)
+  end subroutine delete
 
 end module mod_resistivity

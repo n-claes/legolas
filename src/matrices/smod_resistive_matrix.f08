@@ -1,5 +1,4 @@
 submodule (mod_matrix_manager) smod_resistive_matrix
-  use mod_equilibrium, only: eta_field
   implicit none
 
 contains
@@ -19,20 +18,20 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
     ! magnetic field variables
-    B02 = background%magnetic%B02(grid_gauss(gauss_idx))
-    dB02 = background%magnetic%dB02(grid_gauss(gauss_idx))
+    B02 = background%magnetic%B02(x_gauss)
+    dB02 = background%magnetic%dB02(x_gauss)
     drB02 = deps * B02 + eps * dB02
-    ddB02 = background%magnetic%ddB02(grid_gauss(gauss_idx))
-    B03 = background%magnetic%B03(grid_gauss(gauss_idx))
-    dB03 = background%magnetic%dB03(grid_gauss(gauss_idx))
-    ddB03 = background%magnetic%ddB03(grid_gauss(gauss_idx))
+    ddB02 = background%magnetic%ddB02(x_gauss)
+    B03 = background%magnetic%B03(x_gauss)
+    dB03 = background%magnetic%dB03(x_gauss)
+    ddB03 = background%magnetic%ddB03(x_gauss)
     ! resistivity variables
-    eta = eta_field % eta(gauss_idx)
-    detadT = eta_field % d_eta_dT(gauss_idx)
+    eta = physics%resistivity%eta(x_gauss)
+    detadT = physics%resistivity%detadT(x_gauss)
     ! total derivative eta = deta_dr + dT0_dr * deta_dT
     deta = ( &
-      eta_field % d_eta_dr(gauss_idx) &
-      + (background%temperature%dT0(grid_gauss(gauss_idx)) * detadT) &
+      physics%resistivity%detadr(x_gauss) &
+      + (background%temperature%dT0(x_gauss) * detadT) &
     )
 
     WVop = k2**2 / eps + eps * k3**2
@@ -82,7 +81,7 @@ contains
       call add_compressible_resistive_terms()
     end if
 
-    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
     call elements%delete()
 
   contains

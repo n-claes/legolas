@@ -1,5 +1,4 @@
 submodule (mod_matrix_manager) smod_hall_matrix
-  use mod_equilibrium, only: hall_field
   implicit none
 
 contains
@@ -13,10 +12,10 @@ contains
 
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
-    rho = background%density%rho0(grid_gauss(gauss_idx))
-    drho = background%density%drho0(grid_gauss(gauss_idx))
-    eta_H = hall_field % hallfactor(gauss_idx)
-    eta_e = hall_field % inertiafactor(gauss_idx)
+    rho = background%density%rho0(x_gauss)
+    drho = background%density%drho0(x_gauss)
+    eta_H = physics%hall%hallfactor(x_gauss)
+    eta_e = physics%hall%inertiafactor(x_gauss)
     WVop = k2**2 / eps + eps * k3**2
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
@@ -82,7 +81,7 @@ contains
         eta_e * eps / rho, "a3", "a3", spline1=dh_cubic, spline2=dh_cubic &
       )
     end if
-    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
     call elements%delete()
   end procedure add_hall_bmatrix_terms
 
@@ -99,26 +98,26 @@ contains
     eps = eps_grid(gauss_idx)
     deps = d_eps_grid_dr(gauss_idx)
 
-    v01 = background%velocity%v01(grid_gauss(gauss_idx))
-    v02 = background%velocity%v02(grid_gauss(gauss_idx))
-    v03 = background%velocity%v03(grid_gauss(gauss_idx))
-    dv01 = background%velocity%dv01(grid_gauss(gauss_idx))
-    dv02 = background%velocity%dv02(grid_gauss(gauss_idx))
-    dv03 = background%velocity%dv03(grid_gauss(gauss_idx))
-    ddv01 = background%velocity%ddv01(grid_gauss(gauss_idx))
-    ddv02 = background%velocity%ddv02(grid_gauss(gauss_idx))
-    ddv03 = background%velocity%ddv03(grid_gauss(gauss_idx))
+    v01 = background%velocity%v01(x_gauss)
+    v02 = background%velocity%v02(x_gauss)
+    v03 = background%velocity%v03(x_gauss)
+    dv01 = background%velocity%dv01(x_gauss)
+    dv02 = background%velocity%dv02(x_gauss)
+    dv03 = background%velocity%dv03(x_gauss)
+    ddv01 = background%velocity%ddv01(x_gauss)
+    ddv02 = background%velocity%ddv02(x_gauss)
+    ddv03 = background%velocity%ddv03(x_gauss)
 
-    rho = background%density%rho0(grid_gauss(gauss_idx))
-    drho = background%density%drho0(grid_gauss(gauss_idx))
-    T0 = background%temperature%T0(grid_gauss(gauss_idx))
-    dT0 = background%temperature%dT0(grid_gauss(gauss_idx))
+    rho = background%density%rho0(x_gauss)
+    drho = background%density%drho0(x_gauss)
+    T0 = background%temperature%T0(x_gauss)
+    dT0 = background%temperature%dT0(x_gauss)
 
-    B01 = background%magnetic%B01(grid_gauss(gauss_idx))
-    B02 = background%magnetic%B02(grid_gauss(gauss_idx))
-    dB02 = background%magnetic%dB02(grid_gauss(gauss_idx))
-    B03 = background%magnetic%B03(grid_gauss(gauss_idx))
-    dB03 = background%magnetic%dB03(grid_gauss(gauss_idx))
+    B01 = background%magnetic%B01(x_gauss)
+    B02 = background%magnetic%B02(x_gauss)
+    dB02 = background%magnetic%dB02(x_gauss)
+    B03 = background%magnetic%B03(x_gauss)
+    dB03 = background%magnetic%dB03(x_gauss)
 
     ! Calculate derivatives eps*B02, B02/eps
     drB02 = deps * B02 + eps * dB02
@@ -129,7 +128,7 @@ contains
     Gop_min = k3 * B02 - k2 * B03 / eps
     WVop = k2**2 / eps + eps * k3**2
 
-    eta_H = hall_field % hallfactor(gauss_idx)
+    eta_H = physics%hall%hallfactor(x_gauss)
     mu = settings%physics%viscosity%get_viscosity_value()
     efrac = settings%physics%hall%get_electron_fraction()
 
@@ -364,7 +363,7 @@ contains
       spline2=h_quad &
     )
 
-    call add_to_quadblock(quadblock, elements, current_weight, settings%dims)
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
     call elements%delete()
   end procedure add_hall_matrix_terms
 

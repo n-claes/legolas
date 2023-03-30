@@ -8,10 +8,9 @@ module mod_solar_atmosphere
   use mod_logging, only: logger, str
   use mod_settings, only: settings_t
   use mod_background, only: background_t
-  use mod_function_utils, only: from_function, zero_func
+  use mod_physics, only: physics_t
+  use mod_function_utils, only: zero_func
   use mod_interpolation, only: lookup_table_value
-  use mod_equilibrium, only: grav_field
-  use mod_grid, only: grid_gauss
   implicit none
 
   !> interpolated heights from atmosphere tables
@@ -52,12 +51,13 @@ contains
   !! table, the curve is sampled on the Gaussian grid, meaning that grid variations
   !! can all use the same result.
   !! @warning   Throws an error if the geometry is not Cartesian. @endwarning
-  subroutine set_solar_atmosphere(settings, background, n_interp)
+  subroutine set_solar_atmosphere(settings, background, physics, n_interp)
     use mod_interpolation, only: lookup_table_value, get_numerical_derivative
     use mod_integration, only: integrate_ode_rk
 
     type(settings_t), intent(in) :: settings
     type(background_t), intent(inout) :: background
+    type(physics_t), intent(inout) :: physics
     !> points used for interpolation, defaults to 4000 if not present
     integer, intent(in), optional :: n_interp
 
@@ -110,9 +110,7 @@ contains
     call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
 
-    do i = 1, settings%grid%get_gauss_gridpts()
-      grav_field%grav(i) = g0(grid_gauss(i))
-    end do
+    call physics%set_gravity_funcs(g0_func=g0)
   end subroutine set_solar_atmosphere
 
 

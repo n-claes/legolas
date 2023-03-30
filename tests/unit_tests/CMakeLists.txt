@@ -6,9 +6,19 @@ enable_language(Fortran)
 option(Coverage "Coverage" OFF)
 
 get_filename_component(Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
-set(CMAKE_Fortran_FLAGS "-fcheck=all -fbounds-check -Wall \
-                         -Wextra -Wconversion -pedantic -fbacktrace -cpp \
-                         -ffree-line-length-256")
+set(
+    CMAKE_Fortran_FLAGS
+    "-fcheck=all \
+    -fbounds-check \
+    -Wall \
+    -Wextra \
+    -Wconversion \
+    -pedantic \
+    -fbacktrace \
+    -cpp \
+    -ffree-line-length-256 \
+    -Wno-unused-dummy-argument"
+)
 
 find_package(PFUNIT REQUIRED)
 enable_testing()

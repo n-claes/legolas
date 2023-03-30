@@ -20,6 +20,7 @@ module mod_test_boundaries
   type(matrix_t) :: bmat
   type(settings_t) :: settings
   type(background_t) :: background
+  type(physics_t) :: physics
 
 contains
 
@@ -28,10 +29,10 @@ contains
     call reset_globals()
     settings = get_settings()
     background = get_background()
-    call reset_fields(settings, init_fields=.true.)
+    physics = get_physics(settings, background)
     call create_test_grid(settings, pts=10, geometry="Cartesian")
     ! avoid division by B0 for MHD in boundaries if conduction is enabled
-    call background%set_magnetic_3_funcs(B03_func=unity)
+    call background%set_magnetic_3_funcs(B03_func=one)
 
     call reset_ab(avalue=(2.0d0, 3.0d0), bvalue=5.0d0)
     amat = array_to_matrix(array=amat_array, label="A")
@@ -41,17 +42,13 @@ contains
 
   @after
   subroutine teardown_test()
-    call clean_up(settings)
+    call grid_clean()
     call amat%delete_matrix()
     call bmat%delete_matrix()
     call settings%delete()
     call background%delete()
+    call physics%delete()
   end subroutine teardown_test
-
-
-  real(dp) function unity()
-    unity = 1.0d0
-  end function unity
 
 
   subroutine reset_ab(avalue, bvalue)
@@ -104,7 +101,7 @@ contains
     call set_name("regular boundary conditions (B-matrix, wall)")
 
     ! boundary conditions on odd v1, a2, a3
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=bmat, array=bmat_array)
     ! set expected
     call zero_out_expected_left_idxs([3, 13, 15])
@@ -117,7 +114,7 @@ contains
   subroutine test_regular_boundaries_wall_amat()
     call set_name("regular boundary conditions (A-matrix, wall)")
     ! boundary conditions on odd v1, a2, a3
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 13, 15])
     call zero_out_expected_right_idxs([147, 157, 159])
@@ -130,7 +127,7 @@ contains
     call set_name("conduction boundary conditions (B-matrix, wall, no k_perp)")
     call settings%physics%enable_parallel_conduction()
     ! boundary conditions on odd v1, a2, a3
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=bmat, array=bmat_array)
     call zero_out_expected_left_idxs([3, 13, 15])
     call zero_out_expected_right_idxs([147, 157, 159])
@@ -144,7 +141,7 @@ contains
     call set_name("conduction boundary conditions (A-matrix, wall, no k_perp)")
     call settings%physics%enable_parallel_conduction()
     ! boundary conditions on odd v1, a2, a3
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 13, 15])
     call zero_out_expected_right_idxs([147, 157, 159])
@@ -158,7 +155,7 @@ contains
     call set_name("conduction boundary conditions (B-matrix, wall, k_perp)")
     call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value=1.0_dp)
     ! boundary conditions on odd v1, a2, a3, even T1
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=bmat, array=bmat_array)
     call zero_out_expected_left_idxs([3, 10, 13, 15])
     call zero_out_expected_right_idxs([147, 154, 157, 159])
@@ -172,7 +169,7 @@ contains
     call set_name("conduction boundary conditions (A-matrix, wall, k_perp)")
     call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value=1.0_dp)
     ! boundary conditions on odd v1, a2, a3, even T1
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 10, 13, 15])
     call zero_out_expected_right_idxs([147, 154, 157, 159])
@@ -187,7 +184,7 @@ contains
     ! zero viscosity value to prevent natural boundaries from being applied
     call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
     ! boundary conditions on odd v1, a2, a3, even v2, v3
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=bmat, array=bmat_array)
     call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
     call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
@@ -201,7 +198,7 @@ contains
     call set_name("viscous boundary conditions (A-matrix, wall)")
     call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
     ! boundary conditions on odd v1, a2, a3, even v2, v3
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
     call zero_out_expected_right_idxs([147, 150, 152, 157, 159])
@@ -217,7 +214,7 @@ contains
     call grid_clean()
     call create_test_grid(settings, pts=10, geometry="cylindrical")
     call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=bmat, array=bmat_array)
     ! no additional left side boundary conditions
     call zero_out_expected_left_idxs([3, 13, 15])
@@ -235,7 +232,7 @@ contains
     call grid_clean()
     call create_test_grid(settings, pts=10, geometry="cylindrical")
     call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=amat, array=amat_array)
     ! no additional left side boundary conditions
     call zero_out_expected_left_idxs([3, 13, 15])
@@ -254,7 +251,7 @@ contains
     call create_test_grid(settings, pts=10, geometry="cylindrical")
     call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
     settings%grid%coaxial = .true.
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=bmat, array=bmat_array)
     call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
     ! boundary conditions on odd v1, a2, a3, even v2, v3
@@ -272,7 +269,7 @@ contains
     call create_test_grid(settings, pts=10, geometry="cylindrical")
     call settings%physics%enable_viscosity(viscosity_value=0.0_dp)
     settings%grid%coaxial = .true.
-    call apply_boundary_conditions(amat, bmat, settings, background)
+    call apply_boundary_conditions(amat, bmat, settings, background, physics)
     call matrix_to_array(matrix=amat, array=amat_array)
     call zero_out_expected_left_idxs([3, 6, 8, 13, 15])
     ! boundary conditions on odd v1, a2, a3, even v2, v3

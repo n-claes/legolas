@@ -45,12 +45,12 @@ contains
     beta = 2.0_dp*cte_p0 / B0**2
     cte_rho0 = (alpha / g) * (cte_p0 + 0.5_dp * B0**2)
 
-    grav_field % grav = g
-
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_temperature_funcs(T0_func=T0)
     call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
+
+    call physics%set_gravity_funcs(g0_func=g0)
   end procedure interchange_modes_eq
 
 
@@ -87,5 +87,9 @@ contains
     real(dp), intent(in) :: x
     dB03 = -0.5_dp * alpha * B03(x) - lambda * B02(x)
   end function dB03
+
+  real(dp) function g0()
+  g0 = g
+end function g0
 
 end submodule smod_equil_interchange_modes

@@ -37,10 +37,11 @@ contains
     call initialise_grid(settings)
 
     cte_rho0 = alpha * cte_p0 / g
-    grav_field % grav = g
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_temperature_funcs(T0_func=T0)
+
+    call physics%set_gravity_funcs(g0_func=g0)
 
   end procedure gravito_acoustic_eq
 
@@ -58,5 +59,10 @@ contains
   real(dp) function T0()
     T0 = cte_p0 / cte_rho0
   end function T0
+
+
+  real(dp) function g0()
+    g0 = g
+  end function g0
 
 end submodule smod_equil_gravito_acoustic

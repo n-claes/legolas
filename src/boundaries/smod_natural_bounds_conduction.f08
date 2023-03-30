@@ -1,5 +1,4 @@
 submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_conduction
-  use mod_equilibrium, only: kappa_field
   implicit none
 
 contains
@@ -11,18 +10,21 @@ contains
     real(dp) :: kappa_perp
     real(dp) :: dkappa_perp_drho, dkappa_perp_dT
     real(dp) :: gamma_1
+    real(dp) :: x
     type(matrix_elements_t) :: elements
 
     if (.not. settings%physics%conduction%is_enabled()) return
 
+    x = grid_gauss(grid_idx)
+
     gamma_1 = settings%physics%get_gamma_1()
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
-    dT0 = background%temperature%dT0(grid_gauss(grid_idx))
-    dkappa_para_dT = kappa_field % d_kappa_para_dT(grid_idx)
-    kappa_perp = kappa_field % kappa_perp(grid_idx)
-    dkappa_perp_drho = kappa_field % d_kappa_perp_drho(grid_idx)
-    dkappa_perp_dT = kappa_field % d_kappa_perp_dT(grid_idx)
+    dT0 = background%temperature%dT0(x)
+    dkappa_para_dT = physics%conduction%dtcparadT(x)
+    kappa_perp = physics%conduction%tcperp(x)
+    dkappa_perp_drho = physics%conduction%dtcperpdrho(x)
+    dkappa_perp_dT = physics%conduction%dtcperpdT(x)
 
     elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
@@ -47,7 +49,7 @@ contains
     )
 
     if (settings%has_bfield()) then
-      call add_natural_conduction_terms_bfield(settings, background, elements)
+      call add_natural_conduction_terms_bfield(settings, background, physics, elements)
     end if
 
     call add_to_quadblock(quadblock, elements, weight, settings%dims)
@@ -55,9 +57,12 @@ contains
   end procedure add_natural_conduction_terms
 
 
-  subroutine add_natural_conduction_terms_bfield(settings, background, elements)
+  subroutine add_natural_conduction_terms_bfield( &
+    settings, background, physics, elements &
+  )
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
+    type(physics_t), intent(in) :: physics
     type(matrix_elements_t), intent(inout) :: elements
 
     real(dp) :: eps, deps
@@ -68,24 +73,26 @@ contains
     real(dp) :: dkappa_perp_drho, dkappa_perp_dT, dkappa_perp_dB2
     real(dp) :: Fop, Gop_min, Kp, Kp_plus, Kp_plusplus
     real(dp) :: gamma_1
+    real(dp) :: x
 
     gamma_1 = settings%physics%get_gamma_1()
     eps = eps_grid(grid_idx)
     deps = d_eps_grid_dr(grid_idx)
-    dT0 = background%temperature%dT0(grid_gauss(grid_idx))
-    dkappa_para_dT = kappa_field % d_kappa_para_dT(grid_idx)
-    kappa_perp = kappa_field % kappa_perp(grid_idx)
-    dkappa_perp_drho = kappa_field % d_kappa_perp_drho(grid_idx)
-    dkappa_perp_dT = kappa_field % d_kappa_perp_dT(grid_idx)
-    B0 = background%magnetic%get_B0(grid_gauss(grid_idx))
-    B01 = background%magnetic%B01(grid_gauss(grid_idx))
-    B02 = background%magnetic%B02(grid_gauss(grid_idx))
-    B03 = background%magnetic%B03(grid_gauss(grid_idx))
-    dkappa_perp_dB2 = kappa_field % d_kappa_perp_dB2(grid_idx)
+    x = grid_gauss(grid_idx)
+    dT0 = background%temperature%dT0(x)
+    dkappa_para_dT = physics%conduction%dtcparadT(x)
+    kappa_perp = physics%conduction%tcperp(x)
+    dkappa_perp_drho = physics%conduction%dtcperpdrho(x)
+    dkappa_perp_dT = physics%conduction%dtcperpdT(x)
+    B0 = background%magnetic%get_B0(x)
+    B01 = background%magnetic%B01(x)
+    B02 = background%magnetic%B02(x)
+    B03 = background%magnetic%B03(x)
+    dkappa_perp_dB2 = physics%conduction%dtcperpdB2(x)
 
     Gop_min = k3 * B02 - k2 * B03 / eps
     Fop = k2 * B02 / eps + k3 * B03
-    Kp = kappa_field % prefactor(grid_idx)
+    Kp = physics%conduction%tcprefactor(x)
     Kp_plus = Kp + dkappa_perp_dB2
     Kp_plusplus = dkappa_perp_dB2 - (B01**2 * Kp_plus / B0**2)
 
