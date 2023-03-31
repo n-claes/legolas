@@ -14,6 +14,9 @@ contains
   subroutine init_test()
     call reset_globals()
     settings = new_settings()
+    call settings%grid%set_geometry("Cartesian")
+    call settings%grid%set_gridpts(50)
+    call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
   end subroutine init_test
 
 
@@ -24,51 +27,55 @@ contains
   end subroutine teardown_test
 
 
+  logical function is_monotonic(array)
+    real(dp), intent(in) :: array(:)
+    is_monotonic = .true.
+    do i = 1, size(array) - 1
+      if (array(i) > array(i + 1)) then
+        is_monotonic = .false.
+        exit
+      end if
+    end do
+  end function is_monotonic
+
+
   @test
   subroutine test_cartesian_grid()
-    call set_name("cartesian grid")
+    call set_name("grid: cartesian")
     grid = create_test_grid(settings, 51, "Cartesian", 1.0d0, 3.0d0)
     @assertEqual(1.0d0, grid%base_grid(1), tolerance=TOL)
     @assertEqual(3.0d0, grid%base_grid(51), tolerance=TOL)
-    do i = 1, 50
-      @assertLessThan(grid%base_grid(i), grid%base_grid(i + 1))
-    end do
+    @assertTrue(is_monotonic(grid%base_grid))
   end subroutine test_cartesian_grid
 
 
   @test
   subroutine test_cylindrical_grid()
-    call set_name("cylindrical grid")
+    call set_name("grid: cylindrical")
     grid = create_test_grid(settings, 31, "cylindrical", 0.0d0, 1.0d0)
     @assertGreaterThan(grid%base_grid(1), 2.0d-2)
     @assertEqual(1.0d0, grid%base_grid(31), tolerance=TOL)
-    do i = 1, 30
-      @assertLessThan(grid%base_grid(i), grid%base_grid(i + 1))
-    end do
+    @assertTrue(is_monotonic(grid%base_grid))
   end subroutine test_cylindrical_grid
 
 
   @test
   subroutine test_cylindrical_grid_force_r0()
-    call set_name("cylindrical grid, force r=0")
+    call set_name("grid: cylindrical, force r=0")
     settings%grid%force_r0 = .true.
     call logger%set_logging_level(0)
     grid = create_test_grid(settings, 31, "cylindrical", 0.0d0, 2.0d0)
     @assertEqual(0.0d0, grid%base_grid(1), tolerance=TOL)
     @assertEqual(2.0d0, grid%base_grid(31), tolerance=TOL)
-    do i = 1, 30
-      @assertLessThan(grid%base_grid(i), grid%base_grid(i + 1))
-    end do
+    @assertTrue(is_monotonic(grid%base_grid))
   end subroutine test_cylindrical_grid_force_r0
 
 
   @test
   subroutine test_grid_gauss_monotonicity()
-    call set_name("monotonicity grid_gauss")
+    call set_name("grid: monotonicity Gaussian grid")
     grid = create_test_grid(settings, 31, "Cartesian")
-    do i = 1, settings%grid%get_gauss_gridpts() - 1
-      @assertLessThan(grid%gaussian_grid(i), grid%gaussian_grid(i + 1))
-    end do
+    @assertTrue(is_monotonic(grid%gaussian_grid))
   end subroutine test_grid_gauss_monotonicity
 
 
@@ -76,7 +83,7 @@ contains
   subroutine test_custom_grid()
     real(dp)  :: custom_grid(50)
 
-    call set_name("setting custom grid")
+    call set_name("grid: setting custom grid")
     call settings%grid%set_gridpts(50)
     custom_grid = linspace(x0=0.0d0, x1=3.0d0, xvals=50)
     grid = new_grid(settings)
@@ -92,7 +99,7 @@ contains
     real(dp)  :: custom_grid(50)
     character(len=125) :: error_msg
 
-    call set_name("setting custom grid, wrong size")
+    call set_name("grid: setting custom grid, wrong size")
     call settings%grid%set_gridpts(100)
     grid = new_grid(settings)
     call grid%set_custom_grid(custom_grid)
@@ -107,7 +114,7 @@ contains
     real(dp)  :: custom_grid(50)
     character(len=125) :: error_msg
 
-    call set_name("setting custom grid, not monotone")
+    call set_name("grid: setting custom grid, not monotone")
     call settings%grid%set_gridpts(50)
     custom_grid = linspace(x0=0.0d0, x1=2.0d0, xvals=50)
     custom_grid(15) = 1.2d0
@@ -124,7 +131,7 @@ contains
 
   @test
   subroutine test_scale_factor_Cartesian()
-    call set_name("scale factor Cartesian")
+    call set_name("grid: scale factor Cartesian")
     grid = create_test_grid(settings, 51, "Cartesian", 0.0d0, 2.0d0)
     @assertEqual(1.0d0, grid%get_eps(grid%gaussian_grid), tolerance=TOL)
     @assertEqual(0.0d0, grid%get_deps(), tolerance=TOL)
@@ -133,10 +140,108 @@ contains
 
   @test
   subroutine test_scale_factor_cylindrical()
-    call set_name("scale factor cylindrical")
+    call set_name("grid: scale factor cylindrical")
     grid = create_test_grid(settings, 51, "cylindrical", 0.0d0, 2.0d0)
     @assertEqual(grid%gaussian_grid, grid%get_eps(grid%gaussian_grid), tolerance=TOL)
     @assertEqual(1.0d0, grid%get_deps(), tolerance=TOL)
   end subroutine test_scale_factor_cylindrical
+
+
+  @test
+  subroutine test_spacing_function_default()
+    integer, parameter :: pts = 100
+    real(dp) :: dx_expected, dx_actual
+    call set_name("grid: default spacing function")
+    call settings%grid%set_grid_boundaries(-1.0_dp, 1.0_dp)
+    call settings%grid%set_gridpts(pts)
+    grid = new_grid(settings)
+    call grid%initialise()
+
+    dx_expected = 2.0_dp / (pts - 1)
+    do i = 1, pts - 1
+      dx_actual = grid%base_grid(i + 1) - grid%base_grid(i)
+      @assertEqual(dx_expected, dx_actual, tolerance=TOL)
+    end do
+    @assertTrue(is_monotonic(grid%base_grid))
+  end subroutine test_spacing_function_default
+
+
+  @test
+  subroutine test_spacing_function_custom_constant()
+    integer, parameter :: pts = 100
+    integer :: gridpts
+    real(dp) :: dx_expected, dx_actual
+    call set_name("grid: custom spacing function, constant")
+    call settings%grid%set_grid_boundaries(-1.0_dp, 2.0_dp)
+    call settings%grid%set_gridpts(pts)
+    grid = new_grid(settings)
+    call grid%set_spacing_function(dx)
+    call grid%initialise()
+    gridpts = settings%grid%get_gridpts()
+
+    @assertEqual(-1.0_dp, grid%base_grid(1))
+    @assertEqual(2.0_dp, grid%base_grid(gridpts))
+    dx_expected = dx(1.0_dp)
+    do i = 2, gridpts - 1
+      dx_actual = grid%base_grid(i + 1) - grid%base_grid(i)
+      @assertEqual(dx_expected, dx_actual, tolerance=TOL)
+    end do
+    @assertTrue(is_monotonic(grid%base_grid))
+
+  contains
+
+    real(dp) function dx(x)
+      real(dp), intent(in) :: x
+      dx = 3.0_dp / (2 * pts - 1)
+    end function dx
+  end subroutine test_spacing_function_custom_constant
+
+
+  @test
+  subroutine test_spacing_function_custom_exponential()
+    integer, parameter :: pts = 100
+    integer :: gridpts
+    call set_name("grid: custom spacing function, exponential")
+    call settings%grid%set_grid_boundaries(-2.0_dp, 2.0_dp)
+    call settings%grid%set_gridpts(pts)
+    grid = new_grid(settings)
+    call grid%set_spacing_function(exponential_dx)
+    call grid%initialise()
+    gridpts = settings%grid%get_gridpts()
+
+    @assertEqual(-2.0_dp, grid%base_grid(1))
+    @assertEqual(2.0_dp, grid%base_grid(gridpts))
+    @assertTrue(is_monotonic(grid%base_grid))
+
+  contains
+
+    real(dp) function exponential_dx(x)
+      real(dp), intent(in) :: x
+      exponential_dx = 1.0_dp / (exp(2.0_dp * x) + 5.0_dp)
+    end function exponential_dx
+  end subroutine test_spacing_function_custom_exponential
+
+
+  @test
+  subroutine test_spacing_function_custom_negative_dx()
+    call set_name("grid: custom spacing function, negative dx")
+    call settings%grid%set_grid_boundaries(-1.0_dp, 1.0_dp)
+    call settings%grid%set_gridpts(100)
+    grid = new_grid(settings)
+    call grid%set_spacing_function(negative_dx)
+    call grid%initialise()
+    @assertExceptionRaised("dx must be positive, got dx = -0.10000000")
+
+  contains
+
+    real(dp) function negative_dx(x)
+      real(dp), intent(in) :: x
+      if (x < 0.5_dp) then
+        negative_dx = 0.1_dp
+      else
+        negative_dx = -0.1_dp
+      end if
+    end function negative_dx
+  end subroutine test_spacing_function_custom_negative_dx
 
 end module mod_test_grid

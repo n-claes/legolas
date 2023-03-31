@@ -17,23 +17,34 @@ module mod_grid
 
   private
 
+  interface
+    real(dp) function dx_func_i(x)
+      use mod_global_variables, only: dp
+      real(dp), intent(in) :: x
+    end function dx_func_i
+  end interface
+
   type, public :: grid_t
     real(dp), allocatable, public :: base_grid(:)
     real(dp), allocatable, public :: gaussian_grid(:)
     real(dp), allocatable, public :: ef_grid(:)
+    procedure(dx_func_i), pointer, nopass, private :: dx_func => null()
 
     type(settings_t), pointer, private :: settings
     logical, private :: is_initialised
     logical, private :: uses_custom_base_grid
+    logical, private :: uses_custom_dx
 
   contains
 
     procedure, private :: set_base_grid
     procedure, private :: set_gaussian_grid
     procedure, private :: set_ef_grid
+    procedure, private :: generate_grid
 
     procedure, public :: initialise
     procedure, public :: set_custom_grid
+    procedure, public :: set_spacing_function
     procedure, public :: get_eps
     procedure, public :: get_deps
     procedure, public :: delete
@@ -49,6 +60,7 @@ contains
     grid%settings => settings
     grid%is_initialised = .false.
     grid%uses_custom_base_grid = .false.
+    grid%uses_custom_dx = .false.
   end function new_grid
 
 
@@ -74,20 +86,35 @@ contains
   end subroutine set_custom_grid
 
 
-  pure subroutine set_base_grid(this)
+  subroutine set_spacing_function(this, dx_func)
     class(grid_t), intent(inout) :: this
-    integer :: i, gridpts
-    real(dp) :: dx, grid_start, grid_end
+    procedure(dx_func_i) :: dx_func
 
-    gridpts = this%settings%grid%get_gridpts()
-    allocate(this%base_grid(gridpts))
+    this%dx_func => dx_func
+    this%uses_custom_dx = .true.
+    call logger%info("grid generation: using custom grid spacing function")
+  end subroutine set_spacing_function
+
+
+  subroutine set_base_grid(this)
+    class(grid_t), intent(inout) :: this
+    integer :: gridpts
+    real(dp) :: grid_start, grid_end
+
     grid_start = this%settings%grid%get_grid_start()
     grid_end = this%settings%grid%get_grid_end()
-    ! minus one to include the end point
-    dx = (grid_end - grid_start) / (gridpts - 1)
-    do i = 1, gridpts
-      this%base_grid(i) = grid_start + (i - 1) * dx
-    end do
+    gridpts = this%settings%grid%get_gridpts()
+
+    if (.not. associated(this%dx_func)) this%dx_func => constant_dx
+    call this%generate_grid()
+
+    contains
+
+    real(dp) function constant_dx(x)
+      real(dp), intent(in) :: x
+      ! minus one to include the end point
+      constant_dx = (grid_end - grid_start) / (gridpts - 1)
+    end function constant_dx
   end subroutine set_base_grid
 
 
@@ -130,6 +157,37 @@ contains
   end subroutine set_ef_grid
 
 
+  subroutine generate_grid(this)
+    class(grid_t), intent(inout) :: this
+    real(dp) :: kappa, grid_start, grid_end
+    real(dp), allocatable :: xbar(:)
+    integer :: i, pts
+
+    if (this%uses_custom_dx) then
+      pts = get_updated_number_of_gridpoints(this%settings, this%dx_func)
+      call this%settings%grid%set_gridpts(pts)
+    else
+      pts = this%settings%grid%get_gridpts()
+    end if
+
+    grid_start = this%settings%grid%get_grid_start()
+    grid_end = this%settings%grid%get_grid_end()
+    allocate(xbar(pts))
+    xbar(1) = grid_start
+    do i = 2, pts
+      xbar(i) = xbar(i - 1) + this%dx_func(xbar(i - 1))
+    end do
+    kappa = (grid_end - xbar(pts - 1)) / (xbar(pts) - xbar(pts - 1))
+
+    allocate(this%base_grid(pts))
+    this%base_grid(1) = grid_start
+    do i = 1, pts - 1
+      this%base_grid(i + 1) = xbar(i) + kappa * this%dx_func(xbar(i))
+    end do
+    deallocate(xbar)
+  end subroutine generate_grid
+
+
   impure real(dp) elemental function get_eps(this, x)
     class(grid_t), intent(in) :: this
     real(dp), intent(in) :: x
@@ -167,6 +225,7 @@ contains
     if (allocated(this%gaussian_grid)) deallocate(this%gaussian_grid)
     if (allocated(this%ef_grid)) deallocate(this%ef_grid)
     nullify(this%settings)
+    nullify(this%dx_func)
     this%is_initialised = .false.
   end subroutine delete
 
@@ -200,5 +259,49 @@ contains
     call settings%grid%set_grid_boundaries(custom_grid(1), custom_grid(gridpts))
     is_valid_custom_base_grid = .true.
   end function is_valid_custom_base_grid
+
+
+  function get_updated_number_of_gridpoints(settings, dx_func) result(updated_pts)
+    type(settings_t), intent(in) :: settings
+    procedure(dx_func_i) :: dx_func
+    integer :: gridpts, updated_pts
+    real(dp) :: dx, xbar, grid_start, grid_end
+
+    grid_start = settings%grid%get_grid_start()
+    grid_end = settings%grid%get_grid_end()
+    gridpts = settings%grid%get_gridpts()
+    ! first pass to get updated number of gridpoints (no change for constant dx)
+    xbar = grid_start
+    updated_pts = 1
+    do while (xbar < grid_end)
+      dx = dx_func(xbar)
+      if (.not. is_valid_dx(dx)) return
+      xbar = xbar + dx
+      updated_pts = updated_pts + 1
+    end do
+    call log_msg_by_gridpoint_change(old_pts=gridpts, new_pts=updated_pts)
+  end function get_updated_number_of_gridpoints
+
+
+  logical function is_valid_dx(dx)
+    real(dp), intent(in) :: dx
+    is_valid_dx = .true.
+    if (dx <= 0.0_dp) then
+      is_valid_dx = .false.
+      call logger%error("dx must be positive, got dx = " // str(dx))
+    end if
+  end function is_valid_dx
+
+
+  subroutine log_msg_by_gridpoint_change(old_pts, new_pts)
+    integer, intent(in) :: old_pts
+    integer, intent(in) :: new_pts
+
+    if (old_pts == new_pts) return
+    call logger%info( &
+      "grid generation: number of gridpoints changed from " // &
+      str(old_pts) // " to " // str(new_pts) // " to accomodate specified dx." &
+    )
+  end subroutine log_msg_by_gridpoint_change
 
 end module mod_grid

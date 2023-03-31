@@ -131,7 +131,7 @@ contains
       )
     else if (is_zero(this%grid_start)) then
       this%grid_start = 0.025_dp
-      call logger%warning( &
+      call logger%info( &
         "grid start set to 0.025 to avoid on-axis singularity. " // &
         "Set 'force_r0 = .true.' to force r=0. " &
       )
