@@ -7,6 +7,7 @@ module mod_physics
   use mod_hall, only: hall_t, new_hall
   use mod_thermal_conduction, only: conduction_t, new_conduction
   use mod_radiative_cooling, only: cooling_t, new_cooling
+  use mod_heating, only: heating_t, new_heating
   use mod_heatloss, only: heatloss_t, new_heatloss
   implicit none
 
@@ -18,6 +19,7 @@ module mod_physics
     type(hall_t) :: hall
     type(conduction_t) :: conduction
     type(cooling_t) :: cooling
+    type(heating_t) :: heating
     type(heatloss_t) :: heatloss
     contains
     procedure, public :: set_resistivity_funcs
@@ -41,7 +43,10 @@ contains
     physics%hall = new_hall(settings, background)
     physics%conduction = new_conduction(settings, background)
     physics%cooling = new_cooling(settings, background)
-    physics%heatloss = new_heatloss(settings, background, physics%cooling)
+    physics%heating = new_heating(settings, background)
+    physics%heatloss = new_heatloss( &
+      settings, background, physics%cooling, physics%heating &
+    )
   end function new_physics
 
 
@@ -108,6 +113,7 @@ contains
     call this%hall%delete()
     call this%conduction%delete()
     call this%cooling%delete()
+    call this%heating%delete()
     call this%heatloss%delete
   end subroutine delete
 

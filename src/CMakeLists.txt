@@ -58,6 +58,7 @@ set (sources
         physics/mod_atmosphere_curves.f08
         physics/mod_solar_atmosphere.f08
         physics/mod_radiative_cooling.f08
+        physics/mod_heating.f08
         physics/mod_heatloss.f08
         physics/mod_thermal_conduction.f08
         physics/mod_hall.f08

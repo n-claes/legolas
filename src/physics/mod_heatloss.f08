@@ -3,12 +3,14 @@ module mod_heatloss
   use mod_settings, only: settings_t
   use mod_background, only: background_t
   use mod_radiative_cooling, only: cooling_t
+  use mod_heating, only: heating_t
   implicit none
   private
 
   type(settings_t), pointer :: settings => null()
   type(background_t), pointer :: background => null()
   type(cooling_t), pointer :: cooling =>  null()
+  type(heating_t), pointer :: heating => null()
 
   type, public :: heatloss_t
     procedure(real(dp)), pointer, nopass :: L0
@@ -23,15 +25,19 @@ module mod_heatloss
 
 contains
 
-  function new_heatloss(settings_tgt, background_tgt, cooling_tgt) result(heatloss)
+  function new_heatloss( &
+    settings_tgt, background_tgt, cooling_tgt, heating_tgt &
+  ) result(heatloss)
     type(settings_t), target, intent(in) :: settings_tgt
     type(background_t), target, intent(in) :: background_tgt
     type(cooling_t), target, intent(in) :: cooling_tgt
+    type(heating_t), target, intent(in) :: heating_tgt
     type(heatloss_t) :: heatloss
 
     settings => settings_tgt
     background => background_tgt
     cooling => cooling_tgt
+    heating => heating_tgt
 
     heatloss%L0 => get_L0
     heatloss%dLdT => get_dLdT
@@ -62,6 +68,7 @@ contains
     nullify(settings)
     nullify(background)
     nullify(cooling)
+    nullify(heating)
     nullify(this%L0)
     nullify(this%dLdT)
     nullify(this%dLdrho)
