@@ -193,9 +193,9 @@ class EigenfunctionInterface:
         """
         if not self._selected_idxs:
             return
-        print(
-            "Currently selected eigenvalues and number of zeroes of their \
-                eigenfunctions:"
+        pylboLogger.info(
+            "Currently selected eigenvalues and number of zeroes "
+            "of their eigenfunctions:"
         )
         ef_name = self._function_names[self._selected_name_idx]
         for ds, points in self._selected_idxs.items():
@@ -209,7 +209,9 @@ class EigenfunctionInterface:
                 current_index += 1
 
             nzeroes = count_zeroes(eigfuncs)
-            print(f"{ds.datfile.stem} | {dict(zip(ds.eigenvalues[idxs], nzeroes))}")
+            pylboLogger.info(
+                f"{ds.datfile.stem} | {dict(zip(ds.eigenvalues[idxs], nzeroes))}"
+            )
 
     def _get_label(self, ds, ev_idx, w):
         """
