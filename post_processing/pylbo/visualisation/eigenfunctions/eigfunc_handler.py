@@ -145,7 +145,6 @@ class EigenfunctionHandler(EigenfunctionInterface):
         continua_keys = ds.continua.keys()
 
         for continuum_key in continua_keys:
-            print(continuum_key)
             continuum = ds.continua[continuum_key]
             if np.allclose(continuum, 0, atol=1e-12):
                 continue
