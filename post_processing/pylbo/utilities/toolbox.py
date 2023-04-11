@@ -311,14 +311,6 @@ def invert_continuum_array(cont, r_gauss, sigma):
                 r_inv = (np.real(sigma) - np.real(cont[i - 1])) / (
                     np.real(cont[i]) - np.real(cont[i - 1])
                 ) * (r_gauss[i] - r_gauss[i - 1]) + r_gauss[i - 1]
-                print(
-                    np.real(sigma),
-                    np.real(cont)[i],
-                    np.real(cont)[i - 1],
-                    r_inv,
-                    r_gauss[i],
-                    r_gauss[i - 1],
-                )
                 return r_inv
             elif diff[i] * diff[i - 1] == 0:
                 # The exact same value is in the continuum array, return it.
