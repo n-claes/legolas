@@ -1,7 +1,7 @@
 import numpy as np
 from pylbo.data_containers import LegolasDataSet
 from pylbo.exceptions import EigenfunctionsNotPresent
-from pylbo.utilities.toolbox import transform_to_numpy, invert_continuum_array
+from pylbo.utilities.toolbox import transform_to_numpy
 from pylbo.visualisation.eigenfunctions.eigfunc_interface import EigenfunctionInterface
 from pylbo.visualisation.utils import ef_name_to_latex
 
@@ -91,61 +91,3 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
     def _mark_points_without_data_written(self):
         self._condition_to_make_transparent = "has_derived_efs"
         super()._mark_points_without_data_written()
-
-    def _invert_continua(self, ds, ev_idx):
-        """
-        Calculates the locations of resonance with the continua for a specific
-        eigenmode.
-
-        Parameters
-        ----------
-        ef_idx : int
-            The number of the eigenvalue in the dataset.
-
-        Returns
-        -------
-        r_inv : dict
-            Dictionary of continua names and inverted resonance locations
-            (float, or None if not in domain).
-        labels : dict
-            Dictionary containing the corresponding labels to be printed when drawing
-            the locations of resonance.
-        """
-
-        CONTINUUM_LABELS = {
-            "slow-": r"$r(\Omega_S^-)",
-            "slow+": r"$r(\Omega_S^+)",
-            "alfven-": r"$r(\Omega_A^-)",
-            "alfven+": r"$r(\Omega_A^+)",
-            "thermal": r"$r(\Omega_T)",
-            "doppler": r"$r(\Omega_0)",
-        }
-
-        r_inv = dict()
-        labels = dict()
-
-        eigfuncs = ds.get_eigenfunctions(ev_idxs=[ev_idx])
-        sigma = eigfuncs[0].get("eigenvalue")
-
-        continua_keys = ds.continua.keys()
-
-        for continuum_key in continua_keys:
-            continuum = ds.continua[continuum_key]
-            if np.allclose(continuum, 0, atol=1e-12):
-                continue
-            # removes duplicates
-            continuum = np.sort(
-                np.array(list(set(continuum)), dtype=complex)
-            )  # for some reason unsorted
-
-            r_inv_temp = invert_continuum_array(continuum, ds.grid_gauss, sigma)
-
-            r_inv[continuum_key] = r_inv_temp
-            labels[continuum_key] = CONTINUUM_LABELS[continuum_key]
-
-        if ds.gamma > 1e3:
-            # Approximation for incompressibility currently implemented.
-            del r_inv["slow-"]
-            del r_inv["slow+"]
-
-        return r_inv, labels
