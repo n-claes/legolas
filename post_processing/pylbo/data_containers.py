@@ -883,7 +883,4 @@ class LegolasDataSeries(LegolasDataContainer):
             of the eigenvalue that has the largest real or imaginary part.
         """
 
-        if real:
-            return np.array([ds.get_omega_max(real=True) for ds in self.datasets])
-        else:
-            return np.array([ds.get_omega_max(real=False) for ds in self.datasets])
+        return np.array([ds.get_omega_max(real) for ds in self.datasets])
