@@ -1,3 +1,4 @@
+from __future__ import annotations
 from os import PathLike
 from typing import BinaryIO
 
@@ -121,7 +122,7 @@ class LegolasFileReader:
 
     def read_matrix_A(
         self, header: LegolasHeader
-    ) -> "tuple[np.ndarray, np.ndarray, np.ndarray]":
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         with open(self.datfile, "rb") as istream:
             hdr = read_mixed_from_istream(
                 istream,
@@ -139,7 +140,7 @@ class LegolasFileReader:
 
     def read_matrix_B(
         self, header: LegolasHeader
-    ) -> "tuple[np.ndarray, np.ndarray, np.ndarray]":
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         with open(self.datfile, "rb") as istream:
             hdr = read_mixed_from_istream(
                 istream,
