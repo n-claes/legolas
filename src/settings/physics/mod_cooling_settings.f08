@@ -7,7 +7,6 @@ module mod_cooling_settings
     integer, private :: n_interp
     character(:), private, allocatable :: cooling_curve
     logical, private :: has_cooling
-    logical :: ensure_equilibrium
 
   contains
 
@@ -30,7 +29,6 @@ contains
     cooling%has_cooling = .false.
     call cooling%set_cooling_curve("jc_corona")
     call cooling%set_interpolation_points(4000)
-    cooling%ensure_equilibrium = .true.
   end function new_cooling_settings
 
 

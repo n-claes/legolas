@@ -363,9 +363,9 @@ contains
     write(dat_fh) from_function(background%velocity%ddv02, grid%gaussian_grid)
     write(dat_fh) from_function(background%velocity%ddv03, grid%gaussian_grid)
 
-    write(dat_fh) from_function(physics%cooling%L0, grid%gaussian_grid)
-    write(dat_fh) from_function(physics%cooling%dLdT, grid%gaussian_grid)
-    write(dat_fh) from_function(physics%cooling%dLdrho, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%heatloss%L0, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%heatloss%dLdT, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%heatloss%dLdrho, grid%gaussian_grid)
     write(dat_fh) from_function(physics%conduction%tcpara, grid%gaussian_grid)
     write(dat_fh) from_function(physics%conduction%tcperp, grid%gaussian_grid)
     write(dat_fh) from_function(physics%resistivity%eta, grid%gaussian_grid)

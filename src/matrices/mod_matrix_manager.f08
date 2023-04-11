@@ -68,7 +68,7 @@ module mod_matrix_manager
       type(physics_t), intent(in) :: physics
     end subroutine add_resistive_matrix_terms
 
-    module subroutine add_cooling_matrix_terms( &
+    module subroutine add_heatloss_matrix_terms( &
       x_gauss, weight, quadblock, settings, grid, background, physics &
     )
       real(dp), intent(in) :: x_gauss
@@ -78,7 +78,7 @@ module mod_matrix_manager
       type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
       type(physics_t), intent(in) :: physics
-    end subroutine add_cooling_matrix_terms
+    end subroutine add_heatloss_matrix_terms
 
     module subroutine add_conduction_matrix_terms( &
       x_gauss, weight, quadblock, settings, grid, background, physics &
@@ -211,7 +211,7 @@ contains
             x_gauss, weight, quadblock_A, settings, grid, background, physics &
           )
         end if
-        if (settings%physics%cooling%is_enabled()) call add_cooling_matrix_terms( &
+        if (settings%physics%cooling%is_enabled()) call add_heatloss_matrix_terms( &
           x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
         if (settings%physics%conduction%is_enabled()) then
