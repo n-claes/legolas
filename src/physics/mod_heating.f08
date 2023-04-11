@@ -12,7 +12,6 @@ module mod_heating
 
   type, public :: heating_t
     procedure(real(dp)), pointer, nopass :: H
-    procedure(real(dp)), pointer, nopass :: dH
     procedure(real(dp)), pointer, nopass :: dHdT
     procedure(real(dp)), pointer, nopass :: dHdrho
 
@@ -32,7 +31,6 @@ contains
     background => background_tgt
 
     heating%H => zero_func
-    heating%dH => zero_func
     heating%dHdT => zero_func
     heating%dHdrho => zero_func
   end function new_heating
@@ -42,7 +40,6 @@ contains
     nullify(settings)
     nullify(background)
     nullify(this%H)
-    nullify(this%dH)
     nullify(this%dHdT)
     nullify(this%dHdrho)
   end subroutine delete

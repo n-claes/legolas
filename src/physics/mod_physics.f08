@@ -21,11 +21,13 @@ module mod_physics
     type(cooling_t) :: cooling
     type(heating_t) :: heating
     type(heatloss_t) :: heatloss
-    contains
+  contains
     procedure, public :: set_resistivity_funcs
     procedure, public :: set_gravity_funcs
     procedure, public :: set_parallel_conduction_funcs
     procedure, public :: set_perpendicular_conduction_funcs
+    procedure, public :: set_cooling_funcs
+    procedure, public :: set_heating_funcs
     procedure, public :: delete
   end type physics_t
 
@@ -104,6 +106,28 @@ contains
     if (present(dtcperpdB2_func)) this%conduction%dtcperpdB2 => dtcperpdB2_func
     if (present(dtcperpdr_func)) this%conduction%dtcperpdr => dtcperpdr_func
   end subroutine set_perpendicular_conduction_funcs
+
+
+  subroutine set_cooling_funcs(this, lambdaT_func, dlambdadT_func)
+    class(physics_t), intent(inout) :: this
+    procedure(real(dp)) :: lambdaT_func
+    procedure(real(dp)), optional :: dlambdadT_func
+
+    this%cooling%lambdaT => lambdaT_func
+    if (present(dlambdadT_func)) this%cooling%dlambdadT => dlambdadT_func
+  end subroutine set_cooling_funcs
+
+
+  subroutine set_heating_funcs(this, H_func, dHdT_func, dHdrho_func)
+    class(physics_t), intent(inout) :: this
+    procedure(real(dp)) :: H_func
+    procedure(real(dp)), optional :: dHdT_func
+    procedure(real(dp)), optional :: dHdrho_func
+
+    this%heating%H => H_func
+    if (present(dHdT_func)) this%heating%dHdT => dHdT_func
+    if (present(dHdrho_func)) this%heating%dHdrho => dHdrho_func
+  end subroutine set_heating_funcs
 
 
   subroutine delete(this)

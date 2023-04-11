@@ -312,7 +312,7 @@ contains
 
 
   subroutine write_equilibrium_names()
-    integer, parameter :: nb_names = 33
+    integer, parameter :: nb_names = 36
     character(len=str_len_arr) :: equilibrium_names(nb_names)
 
     equilibrium_names = [ &
@@ -322,6 +322,7 @@ contains
       "B01", "B02", "B03", "dB02", "db03", "ddB02", "ddb03", "B0", &
       "v01", "v02", "v03", "dv01", "dv02", "dv03", "ddv01", "ddv02", "ddv03", &
       "L0", "dLdT", "dLdrho", &
+      "H0", "dHdT", "dHdrho", &
       "kappa_para", "kappa_perp", &
       "eta", "detadT", "detadr", &
       "gravity", &
@@ -366,6 +367,10 @@ contains
     write(dat_fh) from_function(physics%heatloss%L0, grid%gaussian_grid)
     write(dat_fh) from_function(physics%heatloss%dLdT, grid%gaussian_grid)
     write(dat_fh) from_function(physics%heatloss%dLdrho, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%heating%H, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%heating%dHdT, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%heating%dHdrho, grid%gaussian_grid)
+
     write(dat_fh) from_function(physics%conduction%tcpara, grid%gaussian_grid)
     write(dat_fh) from_function(physics%conduction%tcperp, grid%gaussian_grid)
     write(dat_fh) from_function(physics%resistivity%eta, grid%gaussian_grid)

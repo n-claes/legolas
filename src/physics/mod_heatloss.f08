@@ -47,19 +47,19 @@ contains
 
   real(dp) function get_L0(x)
     real(dp), intent(in) :: x
-    get_L0 = 0.0_dp
+    get_L0 = background%density%rho0(x) * cooling%lambdaT(x) - heating%H(x)
   end function get_L0
 
 
   real(dp) function get_dLdT(x)
     real(dp), intent(in) :: x
-    get_dLdT = background%density%rho0(x) * cooling%dlambdadT(x)
+    get_dLdT = background%density%rho0(x) * cooling%dlambdadT(x) - heating%dHdT(x)
   end function get_dLdT
 
 
   real(dp) function get_dLdrho(x)
     real(dp), intent(in) :: x
-    get_dLdrho = cooling%lambdaT(x)
+    get_dLdrho = cooling%lambdaT(x) - heating%dHdrho(x)
   end function get_dLdrho
 
 
