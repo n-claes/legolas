@@ -588,8 +588,8 @@ class LegolasDataSet(LegolasDataContainer):
 
     def get_nearest_eigenvalues(self, ev_guesses) -> tuple(np.ndarray, np.ndarray):
         """
-        Calculates the eigenvalues nearest to a given guess. This calculates
-        the nearest eigenvalue based on the distance between two points.
+        Calculates the eigenvalues nearest to a given guess based on
+        the distance between two points.
 
         Parameters
         ----------
@@ -604,6 +604,32 @@ class LegolasDataSet(LegolasDataContainer):
             The nearest eigenvalues to the provided guesses, corresponding with the
             indices `idxs`.
         """
+        idxs, eigenvals = self.get_eigenvalues_at_distance(ev_guesses, min_distance=0.0)
+        return idxs, eigenvals
+
+    def get_eigenvalues_at_distance(
+        self, ev_guesses, min_distance=0.0
+    ) -> tuple(np.ndarray, np.ndarray):
+        """
+        Calculates the nearest eigenvalues nearest to a given guess
+        but at a minimum distance away.
+
+        Parameters
+        ----------
+        ev_guesses : float, complex, list of float, list of complex
+            The guesses for the eigenvalues. These can be a single float/complex value,
+            or a list/Numpy array of floats/complex values.
+        min_distance : float
+            Minimum distance from the guess the eigenvalue should have.
+
+        Returns
+        -------
+        Tuple(numpy.ndarray, numpy.ndarray)
+            The indices of the nearest eigenvalues at the minimum distance
+            in the :attr:`eigenvalues` array.
+            The nearest eigenvalues at a minimum distance to the provided guesses,
+            corresponding with the indices `idxs`.
+        """
         ev_guesses = transform_to_numpy(ev_guesses)
         idxs = np.empty(shape=len(ev_guesses), dtype=int)
         eigenvals = np.empty(shape=len(ev_guesses), dtype=complex)
@@ -612,11 +638,53 @@ class LegolasDataSet(LegolasDataContainer):
             distances = (self.eigenvalues.real - ev_guess.real) ** 2 + (
                 self.eigenvalues.imag - ev_guess.imag
             ) ** 2
+            # we don't want eigenvalues closer than min_distance
+            with np.errstate(invalid="ignore"):
+                mask = distances < min_distance**2
+            distances[mask] = np.nan
             # closest distance (squared)
             idx = np.nanargmin(distances)
             idxs[i] = idx
             eigenvals[i] = self.eigenvalues[idx]
         return idxs, eigenvals
+
+    def get_omega_max(self, real=True, strip=False, range_omega=(0.0, 1e24)):
+        """
+        Calculates the maximum of the real or imaginary part of a spectrum.
+
+        Parameters
+        ----------
+        real : bool
+            Returns the largest real part if True (default option),
+            returns the largest imaginary part if False.
+        strip : bool
+            Look for maximum in a horizontal half-plane if True. Default False.
+        range_omega : tuple of floats
+            The horizontal range of the strip if strip=True.
+
+        Returns
+        -------
+        omega_max : complex
+            The eigenvalue that has the largest real or imaginary part in
+            the chosen strip. Default: in the whole complex plane.
+        """
+
+        eigvals = np.copy(self.eigenvalues)
+
+        if strip:
+            omega_min, omega_max = range_omega
+            # all eigvals outside of strip locally get replaced by NaN
+            mask = (np.real(self.eigenvalues) - omega_min) * (
+                np.real(self.eigenvalues) - omega_max
+            ) > 0
+            eigvals[mask] = np.nan
+
+        if real:
+            idx = np.nanargmax(np.real(eigvals))
+        else:
+            idx = np.nanargmax(np.imag(eigvals))
+
+        return self.eigenvalues[idx]
 
 
 class LegolasDataSeries(LegolasDataContainer):
@@ -818,3 +886,23 @@ class LegolasDataSeries(LegolasDataContainer):
             squared wavenumber for each.
         """
         return np.array([ds.get_k0_squared() for ds in self.datasets], dtype=float)
+
+    def get_omega_max(self, real=True):
+        """
+        Calculates the maximum of the real or imaginary part of the spectrum for
+        the various datasets.
+
+        Parameters
+        ----------
+        real : bool
+            Returns the largest real part if True (default option),
+            returns the largest imaginary part if False.
+
+        Returns
+        -------
+        omega_max : numpy.ndarray
+            A Numpy array of same length as the number of datasets, containing tuples
+            of the eigenvalue that has the largest real or imaginary part.
+        """
+
+        return np.array([ds.get_omega_max(real) for ds in self.datasets])

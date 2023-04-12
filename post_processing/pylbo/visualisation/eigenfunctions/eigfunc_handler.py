@@ -48,6 +48,8 @@ class EigenfunctionHandler(EigenfunctionInterface):
                 # get color of selected point
                 color = self._selected_idxs.get(ds).get(str(ev_idx)).get_color()
                 self.axis.plot(ds.ef_grid, ef, color=color, label=label)
+                if self._draw_resonances:
+                    self._show_resonances(ds, ev_idx, color)
         self.axis.axhline(y=0, linestyle="dotted", color="grey")
         if isinstance(self.data, LegolasDataSet):
             self.axis.axvline(x=self.data.x_start, linestyle="dotted", color="grey")

@@ -109,6 +109,8 @@ class SpectrumFigure(InteractiveFigureWindow):
         self.color = plot_props.pop("color", "blue")
         self.markersize = plot_props.pop("markersize", 6)
         self.alpha = plot_props.pop("alpha", 0.8)
+        self.color_dict = plot_props.pop("color_dict", None)
+        self.color_parameter = plot_props.pop("color_parameter", None)
         self.plot_props = plot_props
 
     def add_spectrum(self):

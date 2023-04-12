@@ -8,7 +8,11 @@ import numpy as np
 from matplotlib.collections import PathCollection
 from pylbo.data_containers import LegolasDataSeries, LegolasDataSet
 from pylbo.utilities.logger import pylboLogger
-from pylbo.utilities.toolbox import add_pickradius_to_item
+from pylbo.utilities.toolbox import (
+    add_pickradius_to_item,
+    count_zeroes,
+    invert_continuum_array,
+)
 
 
 def get_artist_data(artist: plt.Artist) -> tuple[np.ndarray, np.ndarray]:
@@ -58,6 +62,8 @@ class EigenfunctionInterface:
 
         self._ef_subset_artists = None
         self._display_tooltip()
+
+        self._draw_resonances = False
 
     def _check_data_is_present(self):
         """
@@ -184,6 +190,33 @@ class EigenfunctionInterface:
             )
             count += 1
 
+    def _print_nzeroes(self):
+        """
+        Counts and prints the number of zeroes of the eigenfunctions for all selected
+        eigenvalues on the plot, together with eigvals.
+        """
+        if not self._selected_idxs:
+            return
+        pylboLogger.info(
+            "Currently selected eigenvalues and number of zeroes "
+            "of their eigenfunctions:"
+        )
+        ef_name = self._function_names[self._selected_name_idx]
+        for ds, points in self._selected_idxs.items():
+            idxs = np.array([int(idx) for idx in points.keys()])
+
+            ef_container = ds.get_eigenfunctions(ev_idxs=idxs)
+            eigfuncs = np.zeros((len(idxs), len(ds.ef_grid)), dtype="complex")
+            current_index = 0
+            for ev_idx, efs in zip(idxs, ef_container):
+                eigfuncs[current_index] = efs.get(ef_name)
+                current_index += 1
+
+            nzeroes = count_zeroes(eigfuncs)
+            pylboLogger.info(
+                f"{ds.datfile.stem} | {dict(zip(ds.eigenvalues[idxs], nzeroes))}"
+            )
+
     def _get_label(self, ds, ev_idx, w):
         """
         Returns the label used in the legend. In case of a data series, the datfile
@@ -272,6 +305,8 @@ class EigenfunctionInterface:
             self._retransform_functions()
         elif event.key == "w":
             self._print_selected_eigenvalues()
+        elif event.key == "n":
+            self._print_nzeroes()
         elif event.key == "a":
             self._save_eigenvalue_selection()
         elif event.key == "j":
@@ -485,3 +520,85 @@ class EigenfunctionInterface:
             va="center",
             weight="bold",
         )
+
+    def _invert_continua(self, ds, ev_idx):
+        """
+        Calculates the locations of resonance with the continua for a specific
+        eigenmode.
+
+        Parameters
+        ----------
+        ef_idx : int
+            The number of the eigenvalue in the dataset.
+
+        Returns
+        -------
+        r_inv : dict
+            Dictionary of continua names and inverted resonance locations
+            (float, or None if not in domain).
+        labels : dict
+            Dictionary containing the corresponding labels to be printed when drawing
+            the locations of resonance.
+        """
+
+        CONTINUUM_LABELS = {
+            "slow-": r"$r(\Omega_S^-)",
+            "slow+": r"$r(\Omega_S^+)",
+            "alfven-": r"$r(\Omega_A^-)",
+            "alfven+": r"$r(\Omega_A^+)",
+            "thermal": r"$r(\Omega_T)",
+            "doppler": r"$r(\Omega_0)",
+        }
+
+        r_inv = dict()
+        labels = dict()
+
+        eigfuncs = ds.get_eigenfunctions(ev_idxs=[ev_idx])
+        sigma = eigfuncs[0].get("eigenvalue")
+
+        continua_keys = ds.continua.keys()
+
+        for continuum_key in continua_keys:
+            continuum = ds.continua[continuum_key]
+            if np.allclose(continuum, 0, atol=1e-12):
+                continue
+            # removes duplicates
+            continuum = np.array(continuum, dtype=complex)
+
+            r_inv_temp = invert_continuum_array(continuum, ds.grid_gauss, sigma)
+
+            r_inv[continuum_key] = r_inv_temp
+            labels[continuum_key] = CONTINUUM_LABELS[continuum_key]
+
+        if ds.gamma > 1e3:
+            # Approximation for incompressibility currently implemented.
+            del r_inv["slow-"]
+            del r_inv["slow+"]
+
+        return r_inv, labels
+
+    def _show_resonances(self, ds, ev_idx, color):
+        """
+        Shows the locations of resonance with the continua.
+        There is a different linestyle for every continuum.
+
+        """
+        RESONANCE_STYLES = {
+            "slow-": "dotted",
+            "slow+": "dotted",
+            "alfven-": "dashed",
+            "alfven+": "dashed",
+            "thermal": "solid",
+            "doppler": "dashdot",
+        }
+
+        r_inv, labels = self._invert_continua(ds, ev_idx)
+        cont_keys = r_inv.keys()
+        for cont_key in cont_keys:
+            if r_inv[cont_key] is not None:
+                self.axis.axvline(
+                    x=r_inv[cont_key],
+                    linestyle=RESONANCE_STYLES[cont_key],
+                    color=color,
+                    alpha=0.4,
+                )

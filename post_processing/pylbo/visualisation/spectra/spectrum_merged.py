@@ -45,6 +45,10 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._single_color = True
             # if everything is 1 color no use for a legend
             self._use_legend = False
+        # option to color spectrum based on parameter value:
+        self._color_from_parameter = False
+        if isinstance(self.color_dict, dict):
+            self._color_from_parameter = isinstance(self.color_parameter, str)
         self._interactive = interactive
 
     def add_spectrum(self):
@@ -53,6 +57,11 @@ class MergedSpectrumPlot(SpectrumFigure):
         if self._single_color:
             color = self.color
         for ds in self.data:
+            # coloring based on parameter value:
+            if self._color_from_parameter:
+                color = self.color_dict.get(
+                    ds.parameters[self.color_parameter], self.color
+                )
             spectrum_point = self.ax.scatter(
                 ds.eigenvalues.real * self.x_scaling,
                 ds.eigenvalues.imag * self.y_scaling,

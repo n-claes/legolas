@@ -134,6 +134,19 @@ class SingleSpectrumPlot(SpectrumFigure):
             )
         super().add_eigenfunction_interface(efhandler=self._def_handler)
 
+    def draw_resonances(self):
+        """
+        In case the (derived) eigenfunctions are added to the plot, the locations
+        of resonance with the continua will also be drawn.
+        Does nothing if the (derived) eigenfunctions are not shown.
+        """
+        if self._ef_handler is not None:
+            self._ef_handler._draw_resonances = True
+            self._ef_handler.update_plot()
+        if self._def_handler is not None:
+            self._def_handler._draw_resonances = True
+            self._def_handler.update_plot()
+
     def _get_colors(self) -> np.ndarray:
         """Returns the colors for the spectrum points."""
         if self._use_residuals:
