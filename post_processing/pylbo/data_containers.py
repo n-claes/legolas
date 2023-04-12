@@ -586,12 +586,31 @@ class LegolasDataSet(LegolasDataContainer):
             getter_func=self.filereader.read_derived_eigenfunction,
         )
 
-    def get_nearest_eigenvalues(
+    def get_nearest_eigenvalues(self, ev_guesses) -> tuple(np.ndarray, np.ndarray):
+        """
+        Calculates the eigenvalues nearest to a given guess based on the distance between two points.
+
+        Parameters
+        ----------
+        ev_guesses : float, complex, list of float, list of complex
+            The guesses for the eigenvalues. These can be a single float/complex value,
+            or a list/Numpy array of floats/complex values.
+
+        Returns
+        -------
+        Tuple(numpy.ndarray, numpy.ndarray)
+            The indices of the nearest eigenvalues in the :attr:`eigenvalues` array.
+            The nearest eigenvalues to the provided guesses, corresponding with the
+            indices `idxs`.
+        """
+        idxs, eigenvals = self.get_eigenvalues_at_distance(ev_guesses, min_distance=0.0)
+        return idxs, eigenvals
+
+    def get_eigenvalues_at_distance(
         self, ev_guesses, min_distance=0.0
     ) -> tuple(np.ndarray, np.ndarray):
         """
-        Calculates the eigenvalues nearest to a given guess. This calculates
-        the nearest eigenvalue based on the distance between two points.
+        Calculates the nearest eigenvalues nearest to a given guess but at a minimum distance away.
 
         Parameters
         ----------
@@ -604,8 +623,8 @@ class LegolasDataSet(LegolasDataContainer):
         Returns
         -------
         Tuple(numpy.ndarray, numpy.ndarray)
-            The indices of the nearest eigenvalues in the :attr:`eigenvalues` array.
-            The nearest eigenvalues to the provided guesses, corresponding with the
+            The indices of the nearest eigenvalues at the minimum distance in the :attr:`eigenvalues` array.
+            The nearest eigenvalues at a minimum distance to the provided guesses, corresponding with the
             indices `idxs`.
         """
         ev_guesses = transform_to_numpy(ev_guesses)
