@@ -68,8 +68,8 @@ contains
     integer   :: i
 
     call set_name("cooling curve: rosner (lambdaT)")
-    call settings%physics%cooling%set_cooling_curve("rosner")
-    call physics%cooling%initialise()
+    call settings%physics%enable_cooling(cooling_curve="rosner")
+    call physics%heatloss%cooling%initialise()
     do i = 1, pts
       expected(i) = 10.0d0**( &
         logxi_expected(i) + alpha_expected(i) * logT0values(i) &
@@ -86,8 +86,8 @@ contains
     integer :: i
 
     call set_name("cooling curve: rosner (dlambdadT)")
-    call settings%physics%cooling%set_cooling_curve("rosner")
-    call physics%cooling%initialise()
+    call settings%physics%enable_cooling(cooling_curve="rosner")
+    call physics%heatloss%cooling%initialise()
 
     do i = 1, pts
       expected(i) = alpha_expected(i) * 10.0_dp**( &

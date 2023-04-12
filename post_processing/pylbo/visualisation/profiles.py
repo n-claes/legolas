@@ -38,6 +38,8 @@ class EquilibriumProfile(InteractiveFigureWindow):
             name = name.replace("0", "_0")
         name = name.replace("01", "_{01}").replace("02", "_{02}").replace("03", "_{03}")
         name = name.replace("_para", "_{\\parallel}").replace("_perp", "_{\\perp}")
+        name = name.replace("lambdaT", r"{\Lambda(T)}")
+        name = name.replace("dlambdadT", r"d{\Lambda(T)}dT")
         if "dL" in name:
             name = name.replace("dL", r"d\mathcal{L}")
         return f"${name}$"

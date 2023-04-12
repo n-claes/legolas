@@ -4,6 +4,7 @@ module mod_heating_settings
   private
 
   type, public :: heating_settings_t
+    logical :: force_thermal_balance
     logical, private :: has_heating
 
   contains
@@ -20,6 +21,7 @@ contains
   pure function new_heating_settings() result(heating)
     type(heating_settings_t) :: heating
     heating%has_heating = .false.
+    heating%force_thermal_balance = .true.
   end function new_heating_settings
 
 

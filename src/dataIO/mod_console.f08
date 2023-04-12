@@ -123,6 +123,7 @@ contains
     call log_flow_info()
     call log_gravity_info()
     call log_cooling_info()
+    call log_heating_info()
     call log_parallel_conduction_info()
     call log_perpendicular_conduction_info()
     call log_resistivity_info()
@@ -152,6 +153,16 @@ contains
         trim(adjustl(settings%physics%cooling%get_cooling_curve())) &
       )
     end subroutine log_cooling_info
+
+    subroutine log_heating_info()
+      logical :: heating
+      heating = settings%physics%heating%is_enabled()
+      call logger%info("heating                  : " // str(heating))
+      if (.not. heating) return
+      call logger%info("  forcing thermal balance: " // &
+        str(settings%physics%heating%force_thermal_balance) &
+      )
+    end subroutine log_heating_info
 
     subroutine log_parallel_conduction_info()
       logical :: tc_para

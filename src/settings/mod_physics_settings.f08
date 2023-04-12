@@ -59,6 +59,7 @@ contains
 
     physics%flow = new_flow_settings()
     physics%cooling = new_cooling_settings()
+    physics%heating = new_heating_settings()
     physics%gravity = new_gravity_settings()
     physics%resistivity = new_resistivity_settings()
     physics%viscosity = new_viscosity_settings()
@@ -112,8 +113,14 @@ contains
   end subroutine enable_cooling
 
 
-  pure subroutine enable_heating(this)
+  pure subroutine enable_heating(this, force_thermal_balance)
     class(physics_t), intent(inout) :: this
+    logical, intent(in), optional :: force_thermal_balance
+    logical :: force_balance
+
+    force_balance = .true.
+    if (present(force_thermal_balance)) force_balance = force_thermal_balance
+    this%heating%force_thermal_balance = force_balance
     call this%heating%enable()
   end subroutine enable_heating
 

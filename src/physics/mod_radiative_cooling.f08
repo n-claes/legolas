@@ -20,9 +20,6 @@ module mod_radiative_cooling
   type, public :: cooling_t
     procedure(real(dp)), pointer, nopass :: lambdaT
     procedure(real(dp)), pointer, nopass :: dlambdadT
-    procedure(real(dp)), pointer, nopass :: L0
-    procedure(real(dp)), pointer, nopass :: dLdT
-    procedure(real(dp)), pointer, nopass :: dLdrho
     logical, private :: is_initialised
 
   contains
@@ -43,9 +40,6 @@ contains
     cooling%is_initialised = .false.
     cooling%lambdaT => get_lambdaT
     cooling%dlambdadT => get_dlambdadT
-    cooling%L0 => get_L0
-    cooling%dLdT => get_dLdT
-    cooling%dLdrho => get_dLdrho
   end function new_cooling
 
 
@@ -70,36 +64,12 @@ contains
   end subroutine initialise
 
 
-  real(dp) function get_L0(x)
-    real(dp), intent(in) :: x
-
-    get_L0 = 0.0_dp
-  end function get_L0
-
-
-  real(dp) function get_dLdT(x)
-    real(dp), intent(in) :: x
-
-    get_dLdT = 0.0_dp
-    if (.not. settings%physics%cooling%is_enabled()) return
-
-    get_dLdT = background%density%rho0(x) * get_dlambdadT(x)
-  end function get_dLdT
-
-
-  real(dp) function get_dLdrho(x)
-    real(dp), intent(in) :: x
-
-    get_dLdrho = 0.0_dp
-    if (.not. settings%physics%cooling%is_enabled()) return
-
-    get_dLdrho = get_lambdaT(x)
-  end function get_dLdrho
-
-
   real(dp) function get_lambdaT(x)
     use mod_cooling_curves, only: get_rosner_lambdaT, get_interpolated_lambdaT
     real(dp), intent(in) :: x
+
+    get_lambdaT = 0.0_dp
+    if (.not. settings%physics%cooling%is_enabled()) return
 
     if (settings%physics%cooling%get_cooling_curve() == ROSNER) then
       get_lambdaT = get_rosner_lambdaT(x, settings, background)
@@ -112,6 +82,9 @@ contains
   real(dp) function get_dlambdadT(x)
     use mod_cooling_curves, only: get_rosner_dlambdadT, get_interpolated_dlambdadT
     real(dp), intent(in) :: x
+
+    get_dlambdadT = 0.0_dp
+    if (.not. settings%physics%cooling%is_enabled()) return
 
     if (settings%physics%cooling%get_cooling_curve() == ROSNER) then
       get_dlambdadT = get_rosner_dlambdadT(x, settings, background)
@@ -129,9 +102,6 @@ contains
     nullify(background)
     nullify(this%lambdaT)
     nullify(this%dlambdadT)
-    nullify(this%L0)
-    nullify(this%dLdT)
-    nullify(this%dLdrho)
     this%is_initialised = .false.
     call deallocate_cooling_curves()
   end subroutine delete

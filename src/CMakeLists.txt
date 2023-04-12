@@ -58,6 +58,8 @@ set (sources
         physics/mod_atmosphere_curves.f08
         physics/mod_solar_atmosphere.f08
         physics/mod_radiative_cooling.f08
+        physics/mod_heating.f08
+        physics/mod_heatloss.f08
         physics/mod_thermal_conduction.f08
         physics/mod_hall.f08
         mod_inspections.f08
@@ -108,7 +110,7 @@ set (sources
         matrices/smod_regular_matrix.f08
         matrices/smod_flow_matrix.f08
         matrices/smod_resistive_matrix.f08
-        matrices/smod_cooling_matrix.f08
+        matrices/smod_heatloss_matrix.f08
         matrices/smod_conduction_matrix.f08
         matrices/smod_viscosity_matrix.f08
         matrices/smod_hall_matrix.f08

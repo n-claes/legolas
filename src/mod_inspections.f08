@@ -324,7 +324,7 @@ contains
       dkappa_perp_dr = physics%conduction%dtcperpdr(x)
       Kp = physics%conduction%tcprefactor(x)
       dKp = physics%conduction%dtcprefactordr(x)
-      L0 = physics%cooling%L0(x)
+      L0 = physics%heatloss%get_L0(x)
 
       eq_cond = ( &
         T0 * rho0 * (deps * v01 + eps * dv01) / eps &

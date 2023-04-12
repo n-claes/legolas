@@ -239,8 +239,11 @@ contains
     call perform_NaN_and_negative_checks(settings, grid, background, physics)
 
     if (settings%physics%cooling%is_enabled()) then
-      call physics%cooling%initialise()
+      call physics%heatloss%cooling%initialise()
     end if
+    call physics%heatloss%check_if_thermal_balance_needs_enforcing( &
+      physics%conduction, grid &
+    )
     call physics%hall%validate_scale_ratio(grid%gaussian_grid)
 
     ! Do final sanity checks on values

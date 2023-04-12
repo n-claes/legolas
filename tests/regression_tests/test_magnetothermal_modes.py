@@ -19,6 +19,8 @@ class MagnetoThermalModes(RegressionTest):
     parameters = {"k2": 0.0, "k3": 1.0, "cte_T0": 1.0}
     physics_settings = {
         "radiative_cooling": True,
+        "heating": True,
+        "force_thermal_balance": True,
         "cooling_curve": "rosner",
         "parallel_conduction": True,
         "perpendicular_conduction": False,
