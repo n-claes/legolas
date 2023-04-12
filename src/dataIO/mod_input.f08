@@ -188,7 +188,8 @@ contains
     character(str_len) :: iomsg
 
     character(len=str_len) :: physics_type
-    logical :: flow, incompressible, radiative_cooling, heating, external_gravity, &
+    logical :: flow, incompressible, radiative_cooling, heating, &
+      force_thermal_balance, external_gravity, &
       parallel_conduction, perpendicular_conduction, resistivity, use_eta_dropoff, &
       viscosity, viscous_heating, hall_mhd, hall_dropoff, &
       elec_inertia, inertia_dropoff
@@ -201,7 +202,8 @@ contains
     real(dp) :: dropoff_edge_dist, dropoff_width
 
     namelist /physicslist/ &
-      physics_type, mhd_gamma, flow, incompressible, radiative_cooling, heating, &
+      physics_type, mhd_gamma, flow, incompressible, radiative_cooling, &
+      heating, force_thermal_balance, &
       external_gravity, parallel_conduction, perpendicular_conduction, &
       resistivity, use_eta_dropoff, viscosity, viscous_heating, hall_mhd, &
       hall_dropoff, elec_inertia, inertia_dropoff, ncool, &
@@ -220,6 +222,7 @@ contains
 
     radiative_cooling = settings%physics%cooling%is_enabled()
     heating = settings%physics%heating%is_enabled()
+    force_thermal_balance = settings%physics%heating%force_thermal_balance
     ncool = settings%physics%cooling%get_interpolation_points()
     cooling_curve = settings%physics%cooling%get_cooling_curve()
 
@@ -254,7 +257,7 @@ contains
     if (incompressible) call settings%physics%set_incompressible()
     if (flow) call settings%physics%flow%enable()
     if (radiative_cooling) call settings%physics%enable_cooling(cooling_curve, ncool)
-    if (heating) call settings%physics%enable_heating()
+    if (heating) call settings%physics%enable_heating(force_thermal_balance)
     if (external_gravity) call settings%physics%enable_gravity()
     if (parallel_conduction) then
       call settings%physics%enable_parallel_conduction(fixed_tc_para_value)

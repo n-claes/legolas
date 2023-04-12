@@ -158,6 +158,10 @@ contains
       logical :: heating
       heating = settings%physics%heating%is_enabled()
       call logger%info("heating                  : " // str(heating))
+      if (.not. heating) return
+      call logger%info("  forcing thermal balance: " // &
+        str(settings%physics%heating%force_thermal_balance) &
+      )
     end subroutine log_heating_info
 
     subroutine log_parallel_conduction_info()

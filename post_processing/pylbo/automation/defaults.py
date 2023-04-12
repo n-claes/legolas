@@ -37,6 +37,7 @@ namelist_items = {
         ("flow", bool),
         ("radiative_cooling", bool),
         ("heating", bool),
+        ("force_thermal_balance", bool),
         ("ncool", (int, np.integer)),
         ("cooling_curve", str),
         ("external_gravity", bool),
