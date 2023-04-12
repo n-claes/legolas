@@ -2,7 +2,14 @@ import numpy as np
 from pylbo.utilities.logger import pylboLogger
 from pylbo.visualisation.legend_handler import LegendHandler
 
-CONTINUA_NAMES = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]
+CONTINUA_NAMES = {
+    "slow-": r"$\Omega_S^-",
+    "slow+": r"$\Omega_S^+",
+    "alfven-": r"$\Omega_A^-",
+    "alfven+": r"$\Omega_A^+",
+    "thermal": r"$\Omega_T",
+    "doppler": r"$\Omega_0",
+}
 CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "green", "grey"]
 
 
@@ -133,12 +140,12 @@ def calculate_continua(ds):
 
     # get doppler-shifted continua and return
     continua = {
-        CONTINUA_NAMES[0]: doppler + slow_min,  # minus is accounted for in slow_min
-        CONTINUA_NAMES[1]: doppler + slow_plus,
-        CONTINUA_NAMES[2]: doppler - np.sqrt(alfven2),
-        CONTINUA_NAMES[3]: doppler + np.sqrt(alfven2),
-        CONTINUA_NAMES[4]: thermal,
-        CONTINUA_NAMES[5]: doppler,
+        list(CONTINUA_NAMES.keys())[0]: doppler + slow_min,  # minus already in slow_min
+        list(CONTINUA_NAMES.keys())[1]: doppler + slow_plus,
+        list(CONTINUA_NAMES.keys())[2]: doppler - np.sqrt(alfven2),
+        list(CONTINUA_NAMES.keys())[3]: doppler + np.sqrt(alfven2),
+        list(CONTINUA_NAMES.keys())[4]: thermal,
+        list(CONTINUA_NAMES.keys())[5]: doppler,
     }
     return continua
 
@@ -160,7 +167,8 @@ class ContinuaHandler(LegendHandler):
 
     def __init__(self, interactive):
         super().__init__(interactive)
-        self.continua_names = CONTINUA_NAMES
+        self.continua_names = list(CONTINUA_NAMES.keys())
+        self.continua_latex = list(CONTINUA_NAMES.values())
         self._continua_colors = CONTINUA_COLORS
         self.marker = "."
         self.markersize = 6
