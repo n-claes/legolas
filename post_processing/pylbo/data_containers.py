@@ -588,7 +588,8 @@ class LegolasDataSet(LegolasDataContainer):
 
     def get_nearest_eigenvalues(self, ev_guesses) -> tuple(np.ndarray, np.ndarray):
         """
-        Calculates the eigenvalues nearest to a given guess based on the distance between two points.
+        Calculates the eigenvalues nearest to a given guess based on
+        the distance between two points.
 
         Parameters
         ----------
@@ -610,7 +611,8 @@ class LegolasDataSet(LegolasDataContainer):
         self, ev_guesses, min_distance=0.0
     ) -> tuple(np.ndarray, np.ndarray):
         """
-        Calculates the nearest eigenvalues nearest to a given guess but at a minimum distance away.
+        Calculates the nearest eigenvalues nearest to a given guess
+        but at a minimum distance away.
 
         Parameters
         ----------
@@ -623,9 +625,10 @@ class LegolasDataSet(LegolasDataContainer):
         Returns
         -------
         Tuple(numpy.ndarray, numpy.ndarray)
-            The indices of the nearest eigenvalues at the minimum distance in the :attr:`eigenvalues` array.
-            The nearest eigenvalues at a minimum distance to the provided guesses, corresponding with the
-            indices `idxs`.
+            The indices of the nearest eigenvalues at the minimum distance
+            in the :attr:`eigenvalues` array.
+            The nearest eigenvalues at a minimum distance to the provided guesses,
+            corresponding with the indices `idxs`.
         """
         ev_guesses = transform_to_numpy(ev_guesses)
         idxs = np.empty(shape=len(ev_guesses), dtype=int)

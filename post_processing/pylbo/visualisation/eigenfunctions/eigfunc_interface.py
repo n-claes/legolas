@@ -579,7 +579,8 @@ class EigenfunctionInterface:
 
     def _show_resonances(self, ds, ev_idx, color):
         """
-        Shows the locations of resonance with the continua. There is a different linestyle for every continuum.
+        Shows the locations of resonance with the continua.
+        There is a different linestyle for every continuum.
 
         """
         RESONANCE_STYLES = {

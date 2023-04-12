@@ -136,7 +136,9 @@ class SingleSpectrumPlot(SpectrumFigure):
 
     def draw_resonances(self):
         """
-        In case the (derived) eigenfunctions are added to the plot, the locations of resonance with the continua will also be drawn. Does nothing if the (derived) eigenfunctions are not shown.
+        In case the (derived) eigenfunctions are added to the plot, the locations
+        of resonance with the continua will also be drawn.
+        Does nothing if the (derived) eigenfunctions are not shown.
         """
         if self._ef_handler is not None:
             self._ef_handler._draw_resonances = True
