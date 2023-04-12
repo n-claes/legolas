@@ -304,14 +304,14 @@ def invert_continuum_array(cont, r_gauss, sigma):
     if len(np.unique(diff)) < 2:
         # There is no sign change, value is not contained in array.
         return None
-    else:
-        for i in range(1, len(diff) - 1):
-            if diff[i] * diff[i - 1] < 0:
-                # Linear interpolation between the points where the sign change occurs.
-                r_inv = (np.real(sigma) - np.real(cont[i - 1])) / (
-                    np.real(cont[i]) - np.real(cont[i - 1])
-                ) * (r_gauss[i] - r_gauss[i - 1]) + r_gauss[i - 1]
-                return r_inv
-            elif diff[i] * diff[i - 1] == 0:
-                # The exact same value is in the continuum array, return it.
-                return r_gauss[i]
+
+    for i in range(1, len(diff) - 1):
+        if diff[i] * diff[i - 1] < 0:
+            # Linear interpolation between the points where the sign change occurs.
+            r_inv = (np.real(sigma) - np.real(cont[i - 1])) / (
+                np.real(cont[i]) - np.real(cont[i - 1])
+            ) * (r_gauss[i] - r_gauss[i - 1]) + r_gauss[i - 1]
+            return r_inv
+        elif diff[i] * diff[i - 1] == 0:
+            # The exact same value is in the continuum array, return it.
+            return r_gauss[i]

@@ -48,8 +48,7 @@ class MergedSpectrumPlot(SpectrumFigure):
         # option to color spectrum based on parameter value:
         self._color_from_parameter = False
         if isinstance(self.color_dict, dict):
-            if isinstance(self.color_parameter, str):
-                self._color_from_parameter = True
+            self._color_from_parameter = isinstance(self.color_parameter, str)
         self._interactive = interactive
 
     def add_spectrum(self):
