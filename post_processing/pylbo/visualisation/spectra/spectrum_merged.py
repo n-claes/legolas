@@ -1,4 +1,4 @@
-from pylbo.utilities.toolbox import add_pickradius_to_item
+from pylbo.utilities.toolbox import add_pickradius_to_item, without_keys
 from pylbo.visualisation.eigenfunctions.derived_eigfunc_handler import (
     DerivedEigenfunctionHandler,
 )
@@ -38,10 +38,9 @@ class MergedSpectrumPlot(SpectrumFigure):
         )
         self.data = data
         self.leg_handle = LegendHandler(interactive)
-        kwargs_plt = dict(kwargs)
-        kwargs_plt.pop("colors", None)
-        kwargs_plt.pop("color_parameter", None)
-        super()._set_plot_properties(kwargs_plt)
+        super()._set_plot_properties(
+            without_keys(kwargs, ["colors", "color_parameter"])
+        )
         self._use_legend = legend
         self._single_color = False
         if isinstance(kwargs.get("color", None), str):
