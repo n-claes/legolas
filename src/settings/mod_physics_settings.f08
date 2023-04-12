@@ -59,6 +59,7 @@ contains
 
     physics%flow = new_flow_settings()
     physics%cooling = new_cooling_settings()
+    physics%heating = new_heating_settings()
     physics%gravity = new_gravity_settings()
     physics%resistivity = new_resistivity_settings()
     physics%viscosity = new_viscosity_settings()
