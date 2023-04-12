@@ -6,8 +6,6 @@ module mod_physics
   use mod_gravity, only: gravity_t, new_gravity
   use mod_hall, only: hall_t, new_hall
   use mod_thermal_conduction, only: conduction_t, new_conduction
-  use mod_radiative_cooling, only: cooling_t, new_cooling
-  use mod_heating, only: heating_t, new_heating
   use mod_heatloss, only: heatloss_t, new_heatloss
   implicit none
 
@@ -18,8 +16,6 @@ module mod_physics
     type(gravity_t) :: gravity
     type(hall_t) :: hall
     type(conduction_t) :: conduction
-    type(cooling_t) :: cooling
-    type(heating_t) :: heating
     type(heatloss_t) :: heatloss
   contains
     procedure, public :: set_resistivity_funcs
@@ -44,11 +40,7 @@ contains
     physics%gravity = new_gravity()
     physics%hall = new_hall(settings, background)
     physics%conduction = new_conduction(settings, background)
-    physics%cooling = new_cooling(settings, background)
-    physics%heating = new_heating(settings, background)
-    physics%heatloss = new_heatloss( &
-      settings, background, physics%cooling, physics%heating &
-    )
+    physics%heatloss = new_heatloss(settings, background)
   end function new_physics
 
 
@@ -113,8 +105,8 @@ contains
     procedure(real(dp)) :: lambdaT_func
     procedure(real(dp)), optional :: dlambdadT_func
 
-    this%cooling%lambdaT => lambdaT_func
-    if (present(dlambdadT_func)) this%cooling%dlambdadT => dlambdadT_func
+    this%heatloss%cooling%lambdaT => lambdaT_func
+    if (present(dlambdadT_func)) this%heatloss%cooling%dlambdadT => dlambdadT_func
   end subroutine set_cooling_funcs
 
 
@@ -124,9 +116,9 @@ contains
     procedure(real(dp)), optional :: dHdT_func
     procedure(real(dp)), optional :: dHdrho_func
 
-    this%heating%H => H_func
-    if (present(dHdT_func)) this%heating%dHdT => dHdT_func
-    if (present(dHdrho_func)) this%heating%dHdrho => dHdrho_func
+    this%heatloss%heating%H => H_func
+    if (present(dHdT_func)) this%heatloss%heating%dHdT => dHdT_func
+    if (present(dHdrho_func)) this%heatloss%heating%dHdrho => dHdrho_func
   end subroutine set_heating_funcs
 
 
@@ -136,8 +128,6 @@ contains
     call this%gravity%delete()
     call this%hall%delete()
     call this%conduction%delete()
-    call this%cooling%delete()
-    call this%heating%delete()
     call this%heatloss%delete
   end subroutine delete
 

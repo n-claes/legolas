@@ -3,8 +3,8 @@ module mod_heatloss
   use mod_logging, only: logger
   use mod_settings, only: settings_t
   use mod_background, only: background_t
-  use mod_radiative_cooling, only: cooling_t
-  use mod_heating, only: heating_t
+  use mod_radiative_cooling, only: cooling_t, new_cooling
+  use mod_heating, only: heating_t, new_heating
   use mod_thermal_conduction, only: conduction_t
   use mod_grid, only: grid_t
   implicit none
@@ -12,17 +12,19 @@ module mod_heatloss
 
   type(settings_t), pointer :: settings => null()
   type(background_t), pointer :: background => null()
-  type(cooling_t), pointer :: cooling =>  null()
-  type(heating_t), pointer :: heating => null()
+
+  type(cooling_t), pointer :: cooling => null()
   type(conduction_t), pointer :: conduction => null()
   type(grid_t), pointer :: grid => null()
 
   type, public :: heatloss_t
-    procedure(real(dp)), pointer, nopass :: L0
-    procedure(real(dp)), pointer, nopass :: dLdT
-    procedure(real(dp)), pointer, nopass :: dLdrho
+    type(cooling_t) :: cooling
+    type(heating_t) :: heating
 
   contains
+    procedure, public :: get_L0
+    procedure, public :: get_dLdT
+    procedure, public :: get_dLdrho
     procedure, public :: check_if_thermal_balance_needs_enforcing
     procedure, public :: delete
   end type heatloss_t
@@ -31,58 +33,63 @@ module mod_heatloss
 
 contains
 
-  function new_heatloss( &
-    settings_tgt, background_tgt, cooling_tgt, heating_tgt &
-  ) result(heatloss)
+  function new_heatloss(settings_tgt, background_tgt) result(heatloss)
     type(settings_t), target, intent(in) :: settings_tgt
     type(background_t), target, intent(in) :: background_tgt
-    type(cooling_t), target, intent(in) :: cooling_tgt
-    type(heating_t), target, intent(in) :: heating_tgt
     type(heatloss_t) :: heatloss
 
     settings => settings_tgt
     background => background_tgt
-    cooling => cooling_tgt
-    heating => heating_tgt
-
-    heatloss%L0 => get_L0
-    heatloss%dLdT => get_dLdT
-    heatloss%dLdrho => get_dLdrho
+    heatloss%cooling = new_cooling(settings_tgt, background_tgt)
+    heatloss%heating = new_heating(settings_tgt, background_tgt)
   end function new_heatloss
 
 
-  real(dp) function get_L0(x)
+  impure elemental real(dp) function get_L0(this, x)
+    class(heatloss_t), intent(in) :: this
     real(dp), intent(in) :: x
-    get_L0 = background%density%rho0(x) * cooling%lambdaT(x) - heating%H(x)
+    get_L0 = background%density%rho0(x) * this%cooling%lambdaT(x) - this%heating%H(x)
   end function get_L0
 
 
-  real(dp) function get_dLdT(x)
+  impure elemental real(dp) function get_dLdT(this, x)
+    class(heatloss_t), intent(in) :: this
     real(dp), intent(in) :: x
-    get_dLdT = background%density%rho0(x) * cooling%dlambdadT(x) - heating%dHdT(x)
+    get_dLdT = ( &
+      background%density%rho0(x) * this%cooling%dlambdadT(x) - this%heating%dHdT(x) &
+    )
   end function get_dLdT
 
 
-  real(dp) function get_dLdrho(x)
+  impure elemental real(dp) function get_dLdrho(this, x)
+    class(heatloss_t), intent(in) :: this
     real(dp), intent(in) :: x
-    get_dLdrho = cooling%lambdaT(x) - heating%dHdrho(x)
+    get_dLdrho = this%cooling%lambdaT(x) - this%heating%dHdrho(x)
   end function get_dLdrho
+
+
+  subroutine set_module_pointers(conduction_tgt, grid_tgt, cooling_tgt)
+    type(conduction_t), target, intent(in) :: conduction_tgt
+    type(grid_t), target, intent(in) :: grid_tgt
+    type(cooling_t), target, intent(in) :: cooling_tgt
+
+    conduction => conduction_tgt
+    grid => grid_tgt
+    cooling => cooling_tgt
+  end subroutine set_module_pointers
 
 
   subroutine check_if_thermal_balance_needs_enforcing(this, conduction_tgt, grid_tgt)
     class(heatloss_t), intent(inout) :: this
-    type(conduction_t), target, intent(in) :: conduction_tgt
-    type(grid_t), target, intent(in) :: grid_tgt
+    type(conduction_t), intent(in) :: conduction_tgt
+    type(grid_t), intent(in) :: grid_tgt
 
     if (.not. settings%physics%heating%is_enabled()) return
     if (.not. settings%physics%heating%force_thermal_balance) return
 
-    ! needed for eps and deps + physics in function below
-    grid => grid_tgt
-    conduction => conduction_tgt
-
+    call set_module_pointers(conduction_tgt, grid_tgt, this%cooling)
     call logger%info("enforcing thermal balance by setting a constant heating term")
-    heating%H => H_for_thermal_balance
+    this%heating%H => H_for_thermal_balance
   end subroutine check_if_thermal_balance_needs_enforcing
 
 
@@ -123,13 +130,11 @@ contains
     class(heatloss_t), intent(inout) :: this
     nullify(settings)
     nullify(background)
-    nullify(cooling)
-    nullify(heating)
-    nullify(grid)
     nullify(conduction)
-    nullify(this%L0)
-    nullify(this%dLdT)
-    nullify(this%dLdrho)
+    nullify(grid)
+    nullify(cooling)
+    call this%cooling%delete()
+    call this%heating%delete()
   end subroutine delete
 
 end module mod_heatloss
