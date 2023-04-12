@@ -11,8 +11,8 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
     Main handler for derived eigenfunctions.
     """
 
-    def __init__(self, data, def_ax, spec_ax, draw_resonance):
-        super().__init__(data, def_ax, spec_ax, draw_resonance)
+    def __init__(self, data, def_ax, spec_ax):
+        super().__init__(data, def_ax, spec_ax)
         self._function_names = self.data.derived_ef_names
         self.spec_axis.set_title(
             f"{self.spec_axis.get_title()} -- derived eigenfunctions"
