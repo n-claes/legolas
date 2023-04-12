@@ -173,24 +173,6 @@ def transform_to_numpy(obj: any) -> np.ndarray:
         return obj
     return np.asarray([obj])
 
-def without_keys(d, keys):
-    """
-    Removes keys or entries from a given list or dictionary d.
-
-    Parameters
-    ----------
-    obj : list, dictionary
-        The full object.
-    keys : list elements or dictionary keys
-
-    Returns
-    -------
-    list or dict
-        The original object but without the specified entries.
-
-    """
-    return {x: d[x] for x in d if x not in keys}
-
 
 def solve_cubic_exact(a, b, c, d):
     """

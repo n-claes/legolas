@@ -1,4 +1,4 @@
-from pylbo.utilities.toolbox import add_pickradius_to_item, without_keys
+from pylbo.utilities.toolbox import add_pickradius_to_item
 from pylbo.visualisation.eigenfunctions.derived_eigfunc_handler import (
     DerivedEigenfunctionHandler,
 )
@@ -38,23 +38,18 @@ class MergedSpectrumPlot(SpectrumFigure):
         )
         self.data = data
         self.leg_handle = LegendHandler(interactive)
-        super()._set_plot_properties(
-            without_keys(kwargs, ["colors", "color_parameter"])
-        )
+        super()._set_plot_properties(kwargs)
         self._use_legend = legend
         self._single_color = False
         if isinstance(kwargs.get("color", None), str):
             self._single_color = True
             # if everything is 1 color no use for a legend
             self._use_legend = False
+        # option to color spectrum based on parameter value:
         self._color_from_parameter = False
-        self._colors = None
-        self._color_parameter = False
-        if isinstance(kwargs.get("colors", None), dict):
-            if isinstance(kwargs.get("color_parameter", None), str):
+        if isinstance(self.color_dict, dict):
+            if isinstance(self.color_parameter, str):
                 self._color_from_parameter = True
-                self._colors = kwargs.get("colors", None)
-                self._color_parameter = kwargs.get("color_parameter", None)
         self._interactive = interactive
 
     def add_spectrum(self):
@@ -63,8 +58,11 @@ class MergedSpectrumPlot(SpectrumFigure):
         if self._single_color:
             color = self.color
         for ds in self.data:
+            # coloring based on parameter value:
             if self._color_from_parameter:
-                color = self._colors[ds.parameters[self._color_parameter]]
+                color = self.color_dict.get(
+                    ds.parameters[self.color_parameter], self.color
+                )
             spectrum_point = self.ax.scatter(
                 ds.eigenvalues.real * self.x_scaling,
                 ds.eigenvalues.imag * self.y_scaling,
