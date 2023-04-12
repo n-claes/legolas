@@ -13,6 +13,8 @@ class TestDiscreteAlfvenQR(RegressionTest):
     parameters = {"k2": 1.0, "k3": 0.05, "j0": 0.125, "delta": 0.2}
     physics_settings = {
         "radiative_cooling": True,
+        "heating": True,
+        "force_thermal_balance": True,
         "cooling_curve": "rosner",
         "parallel_conduction": True,
         "perpendicular_conduction": False,
