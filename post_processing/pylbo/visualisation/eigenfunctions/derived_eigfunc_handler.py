@@ -26,15 +26,6 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
             )
 
     def update_plot(self):
-        RESONANCE_STYLES = {
-            "slow-": "dotted",
-            "slow+": "dotted",
-            "alfven-": "dashed",
-            "alfven+": "dashed",
-            "thermal": "solid",
-            "doppler": "dashdot",
-        }
-
         self.axis.clear()
         if not self._selected_idxs:
             self._display_tooltip()
@@ -54,16 +45,7 @@ class DerivedEigenfunctionHandler(EigenfunctionInterface):
                 color = self._selected_idxs.get(ds).get(str(ev_idx)).get_color()
                 self.axis.plot(ds.ef_grid, ef, color=color, label=label)
                 if self._draw_resonances:
-                    r_inv, labels = self._invert_continua(ds, ev_idx)
-                    cont_keys = r_inv.keys()
-                    for cont_key in cont_keys:
-                        if r_inv[cont_key] is not None:
-                            self.axis.axvline(
-                                x=r_inv[cont_key],
-                                linestyle=RESONANCE_STYLES[cont_key],
-                                color=color,
-                                alpha=0.4,
-                            )
+                    self._show_resonances(ds, ev_idx, color)
         self.axis.axhline(y=0, linestyle="dotted", color="grey")
         if isinstance(self.data, LegolasDataSet):
             self.axis.axvline(x=self.data.x_start, linestyle="dotted", color="grey")

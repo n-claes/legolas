@@ -576,3 +576,28 @@ class EigenfunctionInterface:
             del r_inv["slow+"]
 
         return r_inv, labels
+
+    def _show_resonances(self, ds, ev_idx, color):
+        """
+        Shows the locations of resonance with the continua. There is a different linestyle for every continuum.
+
+        """
+        RESONANCE_STYLES = {
+            "slow-": "dotted",
+            "slow+": "dotted",
+            "alfven-": "dashed",
+            "alfven+": "dashed",
+            "thermal": "solid",
+            "doppler": "dashdot",
+        }
+
+        r_inv, labels = self._invert_continua(ds, ev_idx)
+        cont_keys = r_inv.keys()
+        for cont_key in cont_keys:
+            if r_inv[cont_key] is not None:
+                self.axis.axvline(
+                    x=r_inv[cont_key],
+                    linestyle=RESONANCE_STYLES[cont_key],
+                    color=color,
+                    alpha=0.4,
+                )
