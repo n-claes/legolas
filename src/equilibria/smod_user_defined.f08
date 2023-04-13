@@ -60,10 +60,8 @@ contains
     B03 = x
   end function B03
 
-  real(dp) function g0(x, settings, background)
+  real(dp) function g0(x)
     real(dp), intent(in) :: x
-    type(settings_t), intent(in) :: settings
-    type(background_t), intent(in) :: background
     g0 = 1.0_dp / x**2
   end function g0
 
