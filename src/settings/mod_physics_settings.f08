@@ -13,7 +13,7 @@ module mod_physics_settings
 
   private
 
-  type, public :: physics_t
+  type, public :: physics_settings_t
     real(dp), private :: gamma
     logical :: is_incompressible
     real(dp) :: dropoff_edge_dist
@@ -43,65 +43,65 @@ module mod_physics_settings
     procedure, public :: enable_parallel_conduction
     procedure, public :: enable_perpendicular_conduction
     procedure, public :: enable_hall
-  end type physics_t
+  end type physics_settings_t
 
   public :: new_physics_settings
 
 contains
 
-  pure function new_physics_settings() result(physics)
-    type(physics_t) :: physics
+  pure function new_physics_settings() result(physics_settings)
+    type(physics_settings_t) :: physics_settings
 
-    call physics%set_gamma(5.0_dp / 3.0_dp)
-    physics%is_incompressible = .false.
-    physics%dropoff_edge_dist = 0.0_dp
-    physics%dropoff_width = 0.0_dp
+    call physics_settings%set_gamma(5.0_dp / 3.0_dp)
+    physics_settings%is_incompressible = .false.
+    physics_settings%dropoff_edge_dist = 0.0_dp
+    physics_settings%dropoff_width = 0.0_dp
 
-    physics%flow = new_flow_settings()
-    physics%cooling = new_cooling_settings()
-    physics%heating = new_heating_settings()
-    physics%gravity = new_gravity_settings()
-    physics%resistivity = new_resistivity_settings()
-    physics%viscosity = new_viscosity_settings()
-    physics%conduction = new_conduction_settings()
-    physics%hall = new_hall_settings()
+    physics_settings%flow = new_flow_settings()
+    physics_settings%cooling = new_cooling_settings()
+    physics_settings%heating = new_heating_settings()
+    physics_settings%gravity = new_gravity_settings()
+    physics_settings%resistivity = new_resistivity_settings()
+    physics_settings%viscosity = new_viscosity_settings()
+    physics_settings%conduction = new_conduction_settings()
+    physics_settings%hall = new_hall_settings()
   end function new_physics_settings
 
 
   pure subroutine set_gamma(this, gamma)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     real(dp), intent(in) :: gamma
     this%gamma = gamma
   end subroutine set_gamma
 
 
   pure real(dp) function get_gamma(this)
-    class(physics_t), intent(in) :: this
+    class(physics_settings_t), intent(in) :: this
     get_gamma = this%gamma
   end function get_gamma
 
 
   pure real(dp) function get_gamma_1(this)
-    class(physics_t), intent(in) :: this
+    class(physics_settings_t), intent(in) :: this
     get_gamma_1 = this%get_gamma() - 1.0_dp
   end function get_gamma_1
 
 
   pure subroutine set_incompressible(this)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     this%is_incompressible = .true.
     call this%set_gamma(1.0e12_dp)
   end subroutine set_incompressible
 
 
   pure subroutine enable_flow(this)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     call this%flow%enable()
   end subroutine enable_flow
 
 
   pure subroutine enable_cooling(this, cooling_curve, interpolation_points)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     character(len=*), intent(in) :: cooling_curve
     integer, intent(in), optional :: interpolation_points
 
@@ -114,7 +114,7 @@ contains
 
 
   pure subroutine enable_heating(this, force_thermal_balance)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     logical, intent(in), optional :: force_thermal_balance
     logical :: force_balance
 
@@ -126,13 +126,13 @@ contains
 
 
   pure subroutine enable_gravity(this)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     call this%gravity%enable()
   end subroutine enable_gravity
 
 
   pure subroutine enable_resistivity(this, fixed_resistivity_value)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     real(dp), intent(in), optional :: fixed_resistivity_value
     real(dp) :: fixed_eta
 
@@ -147,7 +147,7 @@ contains
 
 
   pure subroutine enable_viscosity(this, viscosity_value, viscous_heating)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     real(dp), intent(in) :: viscosity_value
     logical, intent(in), optional :: viscous_heating
     logical :: heating
@@ -161,7 +161,7 @@ contains
 
 
   pure subroutine enable_parallel_conduction(this, fixed_tc_para_value)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     real(dp), intent(in), optional :: fixed_tc_para_value
     real(dp) :: fixed_tc_para
 
@@ -176,7 +176,7 @@ contains
 
 
   pure subroutine enable_perpendicular_conduction(this, fixed_tc_perp_value)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     real(dp), intent(in), optional :: fixed_tc_perp_value
     real(dp) :: fixed_tc_perp
 
@@ -191,7 +191,7 @@ contains
 
 
   pure subroutine enable_hall(this, electron_inertia, electron_fraction)
-    class(physics_t), intent(inout) :: this
+    class(physics_settings_t), intent(inout) :: this
     logical, intent(in), optional :: electron_inertia
     real(dp), intent(in), optional :: electron_fraction
     logical :: inertia
