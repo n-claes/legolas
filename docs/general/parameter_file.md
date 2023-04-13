@@ -7,44 +7,42 @@ sidebar:
 toc: true
 toc_label: "Namelists"
 toc_icon: "code"
-last_modified_at: 2022-10-03
+last_modified_at: 2023-04-13
 ---
 
-The Legolas parfile allows for a full customisation of all Legolas variables. Lots of these variables
-have default values, except for the ones you _have_ to set. These are initialised using a Fortran `ieee_quiet_nan`,
-so if a variable is not properly set a `NaN` is propagated and flagged during the sanity checks.
+The Legolas parfile allows for a full customisation of all Legolas variables, and most of these have default values.
 Legolas explicitly inspects your equilibrium for nonsensical values and will warn you if something is not right.
 Whenever the code catches something during its inspection phase it either logs a warning and continues running, or
 exits with an error depending on the severity of the issue.
 
 You can create the parfile manually using this guide, or let Pylbo take care of generating one.
-More information on generating parfiles with Pylbo can be found [here](../../pylbo/generate_parfiles).
+More information on generating parfiles with Pylbo can be found [here](../../pylbo/legolas_interface/#generating-parfiles).
 
 ## gridlist
 This namelist includes all grid-related variables.
 
 <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-**Warning:** For cylindrical geometries we override the start value with `r = 0.025` if it is initialised
-with zero. Some matrix elements scale with $1/r$ and may blow up when `r = 0`, resulting in numerical difficulties. Note that the matrix elements and equilibria
-are evaluated in the _Gaussian_ grid, the first point of which may be very small but will never be exactly zero. <br><br>
+**Warning:** For cylindrical geometries we override the start value with $r = 0.025$ if it is initialised
+with zero. Some matrix elements scale with $1/r$ and may become very large when $r \rightarrow 0$, resulting in very large elements which may throw off some solvers.
+Note that the matrix elements and equilibria are evaluated in the _Gaussian_ grid, the first point of which may be very small but will never be exactly zero. <br><br>
 Setting `force_r0 = .true.` in the gridlist forces the `r = 0` condition, but this is not recommended.
 {: .notice--warning}
 
 | Parameter    | Type     | Description | Default value     |
 | :---         | :---:    |    :----  |          :---:      |
-| geometry     | string   | geometry of the setup, `"Cartesian"` or `"cylindrical"`. Must be set in the parfile or equilibrium module   | - |
-| x_start      | real     | start of the grid, must be set  |  - |
-| x_end        | real     | end of the grid, must be set   | - |
-| gridpoints   | int      | base number of gridpoints to use  |  31 |
-| force_r0     | logical  | forces `r=0` in cylindrical geometry | `.false.` |
+| geometry     | string   | geometry of the setup   | `"Cartesian"` |
+| gridpoints   | int      | number of gridpoints in the base grid  |  50 |
+| x_start      | real     | starting point of the base grid  | 0 |
+| x_end        | real     | end point of the base grid  | 1 |
 | coaxial      | logical  | use a coaxial inner boundary in cylindrical geometry | `.false.` |
+| force_r0     | logical  | forces `r=0` in cylindrical geometry | `.false.` |
 
 ## equilibriumlist
 This namelist includes all equilibrium-related variables.
 
 | Parameter    | Type | Description      | Default value     |
 | :---         | :---: |   :----        |          :---:      |
-| equilibrium_type  | string | the equilibrium configuration to use, see the [various options](../../general/equilibria) | `"adiabatic_homo"`    |
+| equilibrium_type  | string | the equilibrium configuration to use, see the [various options](../../general/equilibria). Set to `"user_defined"` to use a custom configuration. | `"adiabatic_homo"`    |
 | boundary_type |  string |   boundary conditions to use  | `"wall"`  |
 | use_defaults  | logical | if `.true.`, uses the default values in the equilibrium submodule | `.true.` |
 
@@ -54,55 +52,62 @@ This namelist includes all physics-related variables.
 
 | Parameter             | Type    | Description      | Default value     |
 | :---                  |  :---:  |  :----        |          :---:      |
-| mhd_gamma             | real    | the value for the ratio of specific heats $\gamma$   | $\frac{5}{3}$   |
-| flow                  | logical | inclusion of background flow effects  | `.false.`     |
-| radiative_cooling     | logical | inclusion of optically thin radiative losses | `.false.`     |
-| ncool                 | int     | amount of points used to interpolate the radiative cooling tables  | 4000  |
-| cooling_curve         | string  | cooling curve to use, options are `"jc_corona"`, `"dalgarno"`, `"ml_solar"`, `"spex"`, `"spex_dalgarno"` and `"rosner"` | `"jc_corona"` |
-| external_gravity      | logical | inclusion of external gravity | `.false.` |
-| thermal_conduction    | logical | inclusion of thermal conduction  | `.false.` |
-| use_fixed_tc_para     | logical | whether to use a constant value for thermal conduction parallel to the magnetic field lines    | `.false.` |
-| fixed_tc_para_value   | real    | constant value to use if `use_fixed_tc_para = .true.` | 0   |
-| use_fixed_tc_perp     | logical | whether to use a constant value for thermal conduction perpendicular to the magnetic field lines    | `.false.` |
-| fixed_tc_perp_value   | real    | constant value to use if `use_fixed_tc_perp = .true.` | 0   |
-| resistivity           | logical | inclusion of resistivity  | `.false.` |
-| use_fixed_resistivity | logical | whether to use a constant resistivity value    | `.false.` |
-| fixed_eta_value       | real    | constant value to use if `use_fixed_resistivity = .true.` | 0   |
-| use_eta_dropoff       | logical | if `.true.`, smoothly drops off the resistivity profile to zero near the edges using a hyperbolic tangent profile  | `.false.` |
-| dropoff_edge_dist     | real    | distance between grid edge and the smoothened profile center if `use_eta_dropoff = .true.`  | 0.05  |
-| dropoff_width         | real    | sets the width over which the profile is smoothened out if `use_eta_dropoff = .true.`   | 0.1   |
-| viscosity             | logical | inclusion of viscosity | `.false.` |
-| viscous_heating       | logical | whether to include viscous heating in the viscosity prescription | `.false.` |
-| viscosity_value       | real    | constant value for the viscosity | 0 |
-| incompressible        | logical | if `.true.`, uses an incompressible approximation | `.false.` |
-| hall_mhd              | logical | inclusion of Hall effects | `.false.` |
-| elec_intertia         | logical | whether to include the electron intertia term in Ohm's law if `hall_mhd = .true.` | `.false.` |
+| physics_type          | string  | physics type to use, can be `{"mhd", "hd", "hd-1d"}` | `"mhd"` |
+| mhd_gamma             | real    | ratio of specific heats $\gamma$ | $\frac{5}{3}$ |
+| incompressible | logical | whether to use the incompressible approximation, this sets $\gamma = 10^{12}$ and eliminates some matrix elements | `.false.` |
+| flow  | logical | inclusion of background flow effects | `.false.` |
+| radiative_cooling | logical | whether to include optically thin radiative losses | `.false.` |
+| ncool | int | number of points used when interpolating cooling curves | 4000 |
+| cooling_curve | string | which cooling curve to use, can be `{"jc_corona", "dalgarno", "ml_solar", "spex", "spex_dalgarno", "rosner"}` | `"jc_corona"` |
+| heating | logical | whether to include background heating | `.false.` |
+| force_thermal_balance | logical | whether to set the heating in such a way to enforce thermal equilibrium | `.true.` |
+| external_gravity | logical | whether to include external gravity | `.false.` |
+| parallel_conduction | logical | whether to include parallel thermal conduction | `.false.` |
+| fixed_tc_para_value | real | if given (and not 0) a constant value for the parallel thermal conduction will be used | 0 |
+| perpendicular_conduction | logical | whether to include perpendicular thermal conduction | `.false.` |
+| fixed_tc_perp_value | real | if given (and not 0) a constant value for the perpendicular thermal conduction will be used | 0 |
+| resistivity | logical | whether to include resistivity | `.false.` |
+| fixed_resistivity_value | real | if given (and not 0) a constant value for the resistivity will be used | 0 |
+| use_eta_dropoff | logical | if `.true.`, smoothly drops off the resistivity profile to zero near the edges using a hyperbolic tangent profile | `.false.` |
+| viscosity | logical | whether to include viscosity | `.false.` |
+| viscosity_value | real | constant value for the viscosity | 0 |
+| viscous_heating | logical | whether to include viscous heating | `.false.` |
+| hall_mhd | logical | whether to include Hall MHD effects | `.false.` |
+| hall_dropoff | logical | if `.true.` the Hall MHD profile is smoothly dropped off to zero near the edges using a hyperbolic tangent profile | `.false.` |
+| elec_inertia | logical | whether to include electron inertia | `.false.` |
+| inertia_dropoff | logical | if `.true.` the electron inertia profile is smoothly dropped off to zero near the edges using a hyperbolic tangent profile | `.false.` |
+| electron_fraction | real | fraction of electrons in the plasma | 0.5 |
+| dropoff_edge_dist | real | distance between the grid edge and the smoothened dropoff profile | 0 |
+| dropoff_width | real | the width over which the profile is smoothened | 0 |
+
 
 ## solvelist
 This namelist includes all solver-related variables. For more information, see [Solvers](../../general/solvers)
 
 | Parameter     | Type  | Description   | Default value     |
 | :---          | :---: | :----         | :---:             |
-| solver        | string    | which solver to use, if 'none' eigenvalues and -functions are set to NaN | `"QR-invert"` |
-| arpack_mode   | string    | the mode for ARPACK, only used if `solver="arnoldi"` | `"standard"`  |
-| number_of_eigenvalues | int   | number of eigenvalues to calculate (k) , only used if `solver="arnoldi"`   | 10    |
-| which_eigenvalues | string    | which eigenvalues to calculate, only used if `solver="arnoldi"`   |   `"LM"`  |
-| maxiter       | int   | the maximum number of iterations the Arnoldi or inverse iteration solver may take | max(100, 10k)   |
-| sigma         | complex   | sigma-value around which to do shift-invert, only for `arpack_mode="shift-invert"` and inverse iteration  | - |
-| ncv           | int   | the number of basis vectors used by the Arnoldi solver | 2 $\times$ `number_of_eigenvalues` |
-| tolerance     | real  | tolerance used for eigenvalue convergence in the solvers | $5 \times 10^{-15}$ |
+| solver | string | which solver to use, can be `{"none", "arnoldi", "QR-invert", "QR-cholesky", "QZ-direct", "inverse-it"}` | `"QR-invert"` |
+| arpack_mode | string | the mode for arpack (Arnoldi) | `"general"` |
+| which_eigenvalues | string | which eigenvalues to calculate (Arnoldi). Can be `{"LM", "SM", "LR", "SR", "LI", "SI"}` | `"LM"` |
+| number_of_eigenvalues | int | number of eigenvalues ($k$) to calculate (Arnoldi) | 10 |
+| maxiter | int | maximum number of iterations (Arnoldi, shift-invert) | `max(100, 10N)`|
+| ncv | int | number of basis vectors to use (Arnoldi) | `max(k+1, min(2k, N))` |
+| tolerance | real | tolerance for eigenvalue convergence (Arnoldi, shift-invert) | $5 \times 10^{-15}$ |
+| sigma | complex | shift in the complex plane for iterative methods (Arnoldi, shift-invert) | `NaN + NaNj` |
+
 
 ## unitslist
-This namelist includes all units-related variables.
+This namelist includes all units-related variables, all units are in cgs. Defaults are
+set from a unit temperature, unit magnetic field and unit length.
 
 | Parameter    | Type | Description      | Default value     |
 | :---         | :---: |  :----        |          :---:      |
-| cgs_units     | logical | if `.true.` cgs normalisations are used   | `.true.`  |
-| unit_density  | real | sets the unit density | N/A (we use temperature instead) |
-| unit_temperature  | real | sets the unit temperature | $10^6$ K |
-| unit_magneticfield |  real | sets the unit magnetic field    | $10$ Gauss    |
-| unit_length   | real | sets the unit length  | $ 10^9$ cm    |
-| mean_molecular_weight | real | the mean molecular weight to use | 1 |
+| unit_numberdensity | real | sets the unit number density in cm$^{-3}$ | - |
+| unit_density  | real | sets the unit density in g cm$^{-3}$ | - |
+| unit_temperature  | real | sets the unit temperature in K | $10^6$ |
+| unit_magneticfield |  real | sets the unit magnetic field in Gauss   | $10$    |
+| unit_length   | real | sets the unit length in cm | $ 10^9$ |
+| mean_molecular_weight | real | the mean molecular weight to use | 0.5 |
 
 
 ## savelist
@@ -111,9 +116,9 @@ This namelist includes all variables related to data output.
 {% capture notice-info %}
 **Note:** Legolas uses a logging-based system to write information to the console, similar to Python's logging module.
 The level of output is controlled through the integer `logging_level`:
-* **level 0** : only critical errors are printed, everything else is suppressed. Use this for multiruns
+* **level 0** : only critical errors are printed, everything else is suppressed.
 * **level 1** : only critical errors and warnings are printed
-* **level 2** : prints info messages, warnings and critical errors
+* **level 2** : prints info messages, warnings and critical errors (default)
 * **level 3** : (or higher) prints debug messages in addition to all of the above
 {% endcapture %}
 <div class="notice--info">
@@ -122,25 +127,22 @@ The level of output is controlled through the integer `logging_level`:
 
 | Parameter    | Type | Description      | Default value     |
 | :---         | :---: |   :----        |          :---:      |
-| write_matrices    | logical | if `.true.` the matrices are written to the datfile   |   `.false.`   |
-| write_eigenfunctions  | logical | if `.true.` eigenfunctions are calculated and written to the datfile  |   `.true.`  |
-| write_derived_eigenfunctions | logical | if `.true.` also calculates derived eigenfunction quantities ($\nabla \cdot \mathbf{B_1}$, $S$, $v_\parallel$, etc.) |  `.false.` |
-| write_eigenvectors | logical | if `.true.` the eigenvectors are calculated and written to the datfile   |   `.false.`   |
-| write_residuals | logical | if `.true.` the relative residuals are calculated and written to the datfile   |   `.true.`   |
-| write_eigenfunction_subset | logical | if `.true.` only saves a part of the eigenfunctions to the datfile, based on a given radius and complex point | `.false.` |
-| eigenfunction_subset_center | complex | point in the complex plane that defines the center of the circle in which to save eigenfunctions, needs `eigenfunction_subset_radius` to be set | - |
-| eigenfunction_subset_radius | float | radius around `eigenfunction_subset_center`, all eigenvalues within this circle will have their eigenfunctions saved | - |
-| show_results  | logical | calls the python wrapper after the run is finished and plots the results, requires `pylbo_wrapper.py` to be in the same directory as the executable.  | `.true.`  |
-| basename_datfile  | string | the base name of the datfile, this is prepended with the output directory and appended with `".dat"`  | `"datfile"`   |
-| basename_logfile  | string | if not an empty string, saves the eigenvalues to a plain text file with name `basename_logfile.log` (mainly used for testing)  | `""`  |
-| output_folder | string | the output folder, this is prepended to the datfile name  | `"output"`    |
-| logging_level | int | controls the amount of console info, see the note above   | 2 |
-| dry_run   |  logical | if `.true.` forces all eigenvalues to zero and does not call the solver, useful for iterating over the equilibrium implementation    | `.false.` |
+| write_matrices | logical | whether to write the matrices to the datfile | `.false.` |
+| write_eigenvectors | logical | whether to write the eigenvectors to the datfile | `.false.` |
+| write_residuals | logial | whether to write the residuals to the datfile | `.false.` |
+| write_eigenfunctions | logical | whether to write the eigenfunctions to the datfile | `.true.` |
+| write_derived_eigenfunctions | logical | whether to write the derived eigenfunctions to the datfile | `.false.` |
+| write_eigenfunction_subset | logical | if `.true.` only writes eigenfunctions for eigenvalues inside a given radius around a point in the complex plane | `.false.` |
+| eigenfunction_subset_radius | real | radius of the subset | `NaN` |
+| eigenfunction_subset_center | complex | center of the subset | `NaN + NaNj` |
+| show_results | logical | whether to call the Pylbo script after the run | `.true.` |
+| basename_datfile | string | basename of the datfile | `"datfile"` |
+| output_folder | string | folder to write the datfile to | `"output"` |
+| logging_level | int | controls console information, see note above | 2 |
 
 
 ## paramlist
-This namelist handles constant parameters which are used in the equilibrium prescriptions, and is only read
-in if `use_defaults = .false.`. This is meant to be used in parameter studies, for a comprehensive list of all
+This namelist handles constant parameters which are used in the equilibrium prescriptions, This is meant to be used in parameter studies, for a comprehensive list of all
 the possible parameters we refer to [this page](../../ford/module/mod_equilibrium_params.html) in the
 Legolas source code documentation. To see which parameters are used in which equilibria, take a look
 [here](../equilibria/).
