@@ -6,8 +6,8 @@ intro:
   - image_path: /assets/images/logo_legolas_1280x640.png
     excerpt:
       Legolas, short for **L**arge **E**igensystem **G**enerator for **O**ne-dimensional p**LAS**mas, is a novel
-      finite element code tailored to MHD spectroscopy of 1D Cartesian/cylindrical
-      equilibria with flow that balance pressure gradients, enriched with various non-adiabatic effects.
+      finite element code tailored to (M)HD spectroscopy of 3D Cartesian/cylindrical equilibria with nontrivial 1D variation.
+      The code includes a myriad of physical effects, most of which are fully user-customisable.
 
 feature_row:
   - image_path: /assets/images/fortran_python.png
@@ -58,8 +58,7 @@ using_legolas:
     excerpt:
       Legolas is the result of months and months of development and testing. Since this takes a lot of effort and time,
       we kindly ask that _**the first published peer-reviewed paper from applying Legolas is done in co-authorship with at least
-      one of the original authors**_. Since the code is brand new we would like to know how it is used and provide guidance if possible.
-      Additionally, if you use Legolas in a publication we kindly request that you cite our paper.
+      one of the original authors**_. Additionally, if you use Legolas in a publication we kindly request that you cite the code paper.
     title: Using Legolas
     url: https://ui.adsabs.harvard.edu/abs/2020arXiv201014148C/exportcitation
     btn_label: BibTex citation
