@@ -4,7 +4,7 @@
 module mod_arpack_type
   use mod_logging, only: logger, str
   use mod_global_variables, only: dp
-  use mod_solver_settings, only: solvers_t
+  use mod_solver_settings, only: solver_settings_t
   implicit none
 
   !> General type containing the ARPACK configuration.
@@ -78,7 +78,7 @@ contains
     integer, intent(in) :: mode
     !> type of the matrix B
     character(len=1), intent(in) :: bmat
-    type(solvers_t), intent(inout) :: solver_settings
+    type(solver_settings_t), intent(inout) :: solver_settings
     !> initialised arpack configuration
     type(arpack_t) :: arpack_config
 
