@@ -5,6 +5,7 @@ classes: wide
 sidebar:
   nav: "leftcontents"
 toc: true
+toc_icon: "chevron-circle-down"
 last_modified_at: 2021-04-13
 ---
 {% capture tip %}

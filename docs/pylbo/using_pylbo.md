@@ -5,9 +5,8 @@ classes: wide
 sidebar:
   nav: "leftcontents"
 toc: true
-toc_label: "Pylbo guide contents"
-toc_icon: "laptop-code"
-last_modified_at: 2021-07-27
+toc_icon: "chevron-circle-down"
+last_modified_at: 2023-04-13
 ---
 
 Using Pylbo is quite straightforward, for a detailed guide on the API we refer to the
@@ -101,8 +100,10 @@ Below is a detailed overview of the various commands:
 | _down arrow_ | Cycles to the previous variable in the list. |
 | _d_ | Clears current selection. |
 | _t_ | Retransforms the eigenfunctions using the scale factor, hence has no effect if `geometry = "Cartesian"`. You can use this to cycle between the $rv_r$ and $v_r$ eigenfunctions in cylindrical geometry, for example. |
-| _w_ | prints out the currently selected eigenvalues to the console. This may come in handy if you want to copy the exact values somewhere, to extract eigenfunctions for example. |
-| _e_ | toggles a visualisation of the subset of eigenvalues that have their eigenfunctions saved, has no effect if `write_eigenfunction_subset` was set to `.false.`. |
+| _w_ | Prints out the currently selected eigenvalues to the console. This may come in handy if you want to copy the exact values somewhere, to extract eigenfunctions for example. |
+| _n_ | Counts and prints out the number of zeroes in the selected eigenfunctions, along with the corresponding eigenvalues. |
+| _j_ | Saves the indices of all selected eigenvalues as an array in a `.npy` file, which can be loaded using the `numpy.load` function. |
+| _e_ | Toggles a visualisation of the subset of eigenvalues that have their eigenfunctions saved, has no effect if `write_eigenfunction_subset` was set to `.false.`. |
 
 #### Retrieving eigenvalues & eigenfunctions
 You can manually retrieve the eigenfunctions from the dataset as well. You can either supply the eigenvalue indices (based on the interactive legend on the eigenfunction panel),

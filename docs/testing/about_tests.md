@@ -5,8 +5,8 @@ classes: wide
 sidebar:
   nav: "leftcontents"
 toc: true
-toc_icon: "laptop-code"
-last_modified_at: 2021-07-27
+toc_icon: "chevron-circle-down"
+last_modified_at: 2023-04-13
 ---
 
 This page gives a detailed overview on the various Legolas testing suites, how to run them and what they are testing.
@@ -235,7 +235,7 @@ To run the Pylbo unit tests you also need pytest, along with the [`timeout`](htt
 ```bash
 pip install pytest-timeout
 ```
-Then, ro tun the tests navigate to the `tests` folder, down one level to the Pylbo unit tests and run
+Then, ro tun the tests navigate to the `tests/pylbo_tests` folder and run
 ```bash
 pytest -v
 ```
