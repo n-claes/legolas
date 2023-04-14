@@ -321,9 +321,9 @@ contains
       eps = grid%get_eps(x)
       deps = grid%get_deps()
       kappa_perp = physics%conduction%tcperp(x)
-      dkappa_perp_dr = physics%conduction%dtcperpdr(x)
-      Kp = physics%conduction%tcprefactor(x)
-      dKp = physics%conduction%dtcprefactordr(x)
+      dkappa_perp_dr = physics%conduction%get_dtcperpdr(x)
+      Kp = physics%conduction%get_tcprefactor(x)
+      dKp = physics%conduction%get_dtcprefactordr(x)
       L0 = physics%heatloss%get_L0(x)
 
       eq_cond = ( &

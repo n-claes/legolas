@@ -108,10 +108,10 @@ contains
     B01 = background%magnetic%B01(x)
     eps = grid%get_eps(x)
     deps = grid%get_deps()
-    Kp = conduction%tcprefactor(x)
-    dKp = conduction%dtcprefactordr(x)
+    Kp = conduction%get_tcprefactor(x)
+    dKp = conduction%get_dtcprefactordr(x)
     tcperp = conduction%tcperp(x)
-    dtcperpdr = conduction%dtcperpdr(x)
+    dtcperpdr = conduction%get_dtcperpdr(x)
 
     H_for_thermal_balance = rho0 * cooling%lambdaT(x) + (1.0_dp / rho0) * ( &
       T0 * rho0 * (deps * v01 + eps * dv01) / eps &
