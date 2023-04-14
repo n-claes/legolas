@@ -44,10 +44,10 @@ contains
 
   @test
   subroutine test_sa_neg_and_nans()
-    use mod_inspections, only: perform_NaN_and_negative_checks
+    use mod_inspections, only: do_equilibrium_inspections
     call set_name("solar atmosphere (NaNs and negative values)")
     call set_solar_atmosphere(settings, background, physics)
-    call perform_NaN_and_negative_checks(settings, grid, background, physics)
+    call do_equilibrium_inspections(settings, grid, background, physics)
   end subroutine test_sa_neg_and_nans
 
 end module mod_test_solar_atmosphere
