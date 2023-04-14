@@ -81,7 +81,7 @@ contains
     integer, intent(in) :: lines
     integer :: i
 
-    if (logger%get_logging_level() >= 1) then
+    if (logger%get_logging_level() > 1) then
       do i = 1, lines
         write(*, *) ""
       end do
@@ -91,14 +91,15 @@ contains
 
   subroutine log_grid_info(settings)
     type(settings_t), intent(in) :: settings
+    integer :: dims
 
     call logger%info("              << Grid settings >>")
-    call logger%info("geometry           : " // settings%grid%get_geometry())
-    call logger%info("grid start         : " // str(settings%grid%get_grid_start()))
-    call logger%info("grid end           : " // str(settings%grid%get_grid_end()))
-    call logger%info("gridpoints (base)  : " // str(settings%grid%get_gridpts()))
-    call logger%info("gridpoints (Gauss) : " // str(settings%grid%get_gauss_gridpts()))
-    call logger%info("gridpoints (matrix): " // str(settings%dims%get_dim_matrix()))
+    call logger%info("geometry         : " // settings%grid%get_geometry())
+    call logger%info("grid start       : " // str(settings%grid%get_grid_start()))
+    call logger%info("grid end         : " // str(settings%grid%get_grid_end()))
+    call logger%info("points base grid : " // str(settings%grid%get_gridpts()))
+    dims = settings%dims%get_dim_matrix()
+    call logger%info("matrix dimensions: " // str(dims) // " x " // str(dims))
   end subroutine log_grid_info
 
 
@@ -135,20 +136,22 @@ contains
     subroutine log_flow_info()
       logical :: flow
       flow = settings%physics%flow%is_enabled()
+      if (.not. flow) return
       call logger%info("flow                     : " // str(flow))
     end subroutine log_flow_info
 
     subroutine log_gravity_info()
       logical :: gravity
       gravity = settings%physics%gravity%is_enabled()
+      if (.not. gravity) return
       call logger%info("external gravity         : " // str(gravity))
     end subroutine log_gravity_info
 
     subroutine log_cooling_info()
       logical :: cooling
       cooling = settings%physics%cooling%is_enabled()
-      call logger%info("radiative cooling        : " // str(cooling))
       if (.not. cooling) return
+      call logger%info("radiative cooling        : " // str(cooling))
       call logger%info("  cooling curve          : " // &
         trim(adjustl(settings%physics%cooling%get_cooling_curve())) &
       )
@@ -157,8 +160,8 @@ contains
     subroutine log_heating_info()
       logical :: heating
       heating = settings%physics%heating%is_enabled()
-      call logger%info("heating                  : " // str(heating))
       if (.not. heating) return
+      call logger%info("heating                  : " // str(heating))
       call logger%info("  forcing thermal balance: " // &
         str(settings%physics%heating%force_thermal_balance) &
       )
@@ -167,8 +170,8 @@ contains
     subroutine log_parallel_conduction_info()
       logical :: tc_para
       tc_para = settings%physics%conduction%has_parallel_conduction()
-      call logger%info("parallel conduction      : " // str(tc_para))
       if (.not. tc_para) return
+      call logger%info("parallel conduction      : " // str(tc_para))
       if (settings%physics%conduction%has_fixed_tc_para()) then
         call logger%info("  fixed value            : " // &
           str(settings%physics%conduction%get_fixed_tc_para(), fmt=exp_fmt) &
@@ -179,8 +182,8 @@ contains
     subroutine log_perpendicular_conduction_info()
       logical :: tc_perp
       tc_perp = settings%physics%conduction%has_perpendicular_conduction()
-      call logger%info("perpendicular conduction : " // str(tc_perp))
       if (.not. tc_perp) return
+      call logger%info("perpendicular conduction : " // str(tc_perp))
       if (settings%physics%conduction%has_fixed_tc_perp()) then
         call logger%info("  fixed value            : " // &
           str(settings%physics%conduction%get_fixed_tc_perp(), fmt=exp_fmt) &
@@ -191,8 +194,8 @@ contains
     subroutine log_resistivity_info()
       logical :: resistivity
       resistivity = settings%physics%resistivity%is_enabled()
-      call logger%info("resistivity              : " // str(resistivity))
       if (.not. resistivity) return
+      call logger%info("resistivity              : " // str(resistivity))
       if (settings%physics%resistivity%has_fixed_resistivity()) then
         call logger%info("  fixed eta value        : " // &
           str(settings%physics%resistivity%get_fixed_resistivity(), fmt=exp_fmt) &
@@ -203,8 +206,8 @@ contains
     subroutine log_viscosity_info()
       logical :: viscosity
       viscosity = settings%physics%viscosity%is_enabled()
-      call logger%info("viscosity                : " // str(viscosity))
       if (.not. viscosity) return
+      call logger%info("viscosity                : " // str(viscosity))
       call logger%info( &
         "  viscosity value        : " // &
         str(settings%physics%viscosity%get_viscosity_value()) &
@@ -218,8 +221,8 @@ contains
     subroutine log_hall_info()
       logical :: hall
       hall = settings%physics%hall%is_enabled()
-      call logger%info("hall mhd                 : " // str(hall))
       if (.not. hall) return
+      call logger%info("hall mhd                 : " // str(hall))
       call logger%info( &
         "  by substitution        : " // &
         str(settings%physics%hall%is_using_substitution()) &
@@ -276,13 +279,12 @@ contains
       "write derived eigenfunctions : " &
       // str(settings%io%write_derived_eigenfunctions) &
     )
+    if (.not. settings%io%write_ef_subset) return
     call logger%info( &
       "write eigenfunction subset : " // str(settings%io%write_ef_subset) &
     )
-    if (settings%io%write_ef_subset) then
-      call logger%info("    subset center : " // str(settings%io%ef_subset_center))
-      call logger%info("    subset radius : " // str(settings%io%ef_subset_radius))
-    end if
+    call logger%info("    subset center : " // str(settings%io%ef_subset_center))
+    call logger%info("    subset radius : " // str(settings%io%ef_subset_radius))
   end subroutine log_io_info
 
 end module mod_console
