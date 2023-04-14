@@ -8,7 +8,7 @@ last_modified_at: 2023-04-13
 ---
 
 For a complete list of implemented equilibria we refer to the [Legolas docs](../../ford/lists/modules.html), more specifically
-all descendants of the `mod_equilibrium` module.
+all descendants of the `mod_equilibrium` module. These all follow the naming convention `smod_equil_*` ("submodule equilibrium").
 You can take a look at the documentation of every submodule for information on default parameters, which ones you can vary and where
 they comes from. Below we give a small overview of which equilibria are implemented together with the default included
 physical effects, and links to the source docs.
