@@ -2,15 +2,26 @@ import numpy as np
 from pylbo.utilities.logger import pylboLogger
 from pylbo.visualisation.legend_handler import LegendHandler
 
+SLOW_MIN = "slow-"
+SLOW_PLUS = "slow+"
+ALFVEN_MIN = "alfven-"
+ALFVEN_PLUS = "alfven+"
+THERMAL = "thermal"
+DOPPLER = "doppler"
+
 CONTINUA_NAMES = {
-    "slow-": r"$\Omega_S^-",
-    "slow+": r"$\Omega_S^+",
-    "alfven-": r"$\Omega_A^-",
-    "alfven+": r"$\Omega_A^+",
-    "thermal": r"$\Omega_T",
-    "doppler": r"$\Omega_0",
+    SLOW_MIN: r"$\Omega_S^-",
+    SLOW_PLUS: r"$\Omega_S^+",
+    ALFVEN_MIN: r"$\Omega_A^-",
+    ALFVEN_PLUS: r"$\Omega_A^+",
+    THERMAL: r"$\Omega_T",
+    DOPPLER: r"$\Omega_0",
 }
 CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "green", "grey"]
+
+
+def is_zero(values):
+    return np.all(np.isclose(values, 0, atol=1e-10))
 
 
 def calculate_continua(ds):
@@ -47,7 +58,6 @@ def calculate_continua(ds):
     doppler = k2 * v02 / ds.scale_factor + k3 * v03
     slow_min = -np.sqrt(slow2)
     slow_plus = np.sqrt(slow2)
-    slow_is_zero = np.all(np.isclose(slow2, 0))
 
     # Thermal continuum calculation
     # wave vector parallel to magnetic field, uses vector projection and scale factor
@@ -65,17 +75,17 @@ def calculate_continua(ds):
     kappa_perp = ds.equilibria["kappa_perp"]
     # if there is no conduction/cooling, there is no thermal continuum.
     if (
-        all(dLdT == 0)
-        and all(dLdrho == 0)
-        and all(kappa_para == 0)
-        and all(kappa_perp == 0)
+        is_zero(dLdT)
+        and is_zero(dLdrho)
+        and is_zero(kappa_para)
+        and is_zero(kappa_perp)
     ):
         thermal = np.zeros_like(ds.grid_gauss)
     # if temperature is zero (no pressure), set to zero and return
-    elif (T == 0).all():
+    elif is_zero(T):
         thermal = np.zeros_like(ds.grid_gauss)
     # if slow continuum vanishes, thermal continuum is analytical
-    elif slow_is_zero:
+    elif is_zero(slow2):
         thermal = 1j * (gamma - 1) * (rho * dLdrho - dLdT * (ci2 + vA2)) / (cs2 + vA2)
     else:
         sigma_A2 = kpara**2 * vA2  # Alfvén frequency
@@ -139,14 +149,16 @@ def calculate_continua(ds):
             slow_plus[idx] = s_pos
 
     # get doppler-shifted continua and return
-    continua = {
-        list(CONTINUA_NAMES.keys())[0]: doppler + slow_min,  # minus already in slow_min
-        list(CONTINUA_NAMES.keys())[1]: doppler + slow_plus,
-        list(CONTINUA_NAMES.keys())[2]: doppler - np.sqrt(alfven2),
-        list(CONTINUA_NAMES.keys())[3]: doppler + np.sqrt(alfven2),
-        list(CONTINUA_NAMES.keys())[4]: thermal,
-        list(CONTINUA_NAMES.keys())[5]: doppler,
-    }
+    continua = {THERMAL: thermal, DOPPLER: doppler}
+    # minus already in slow_min
+    continua[SLOW_MIN] = doppler + slow_min if not is_zero(slow_min) else slow_min
+    continua[SLOW_PLUS] = doppler + slow_plus if not is_zero(slow_plus) else slow_plus
+    continua[ALFVEN_MIN] = (
+        doppler - np.sqrt(alfven2) if not is_zero(alfven2) else -np.sqrt(alfven2)
+    )
+    continua[ALFVEN_PLUS] = (
+        doppler + np.sqrt(alfven2) if not is_zero(alfven2) else np.sqrt(alfven2)
+    )
     return continua
 
 
