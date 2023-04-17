@@ -3,8 +3,8 @@ main:
     url: /index
   - title: "About"
     url: /about/
-  - title: "Code paper"
-    url: "https://arxiv.org/abs/2010.14148"
+  - title: "Publications"
+    url: /publications/
   - title: "Detailed guide"
     url: /getting-started/installation/
 
