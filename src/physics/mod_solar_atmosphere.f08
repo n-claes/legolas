@@ -52,8 +52,7 @@ contains
   !! can all use the same result.
   !! @warning   Throws an error if the geometry is not Cartesian. @endwarning
   subroutine set_solar_atmosphere(settings, background, physics, n_interp)
-    use mod_interpolation, only: lookup_table_value, get_numerical_derivative
-    use mod_integration, only: integrate_ode_rk
+    use mod_integration, only: integrate_ode_rk45
 
     type(settings_t), intent(in) :: settings
     type(background_t), intent(inout) :: background
@@ -61,9 +60,7 @@ contains
     !> points used for interpolation, defaults to 4000 if not present
     integer, intent(in), optional :: n_interp
 
-    integer   :: i
-    real(dp)  :: x, rhoinit
-    real(dp), allocatable  :: axvalues(:), bxvalues(:)
+    real(dp)  :: rhoinit
 
     unit_length = settings%units%get_unit_length()
     unit_time = settings%units%get_unit_time()
@@ -85,25 +82,20 @@ contains
     ! curves are normalised on return
     call create_atmosphere_curves(settings)
 
-    ! fill ODE functions, use high resolution arrays
-    allocate(axvalues(nbpoints), bxvalues(nbpoints))
-    do i = 1, nbpoints
-      x = h_interp(i)
-      axvalues(i) = -(dT_interp(i) + g0(x)) / T_interp(i)
-      bxvalues = -(B02() * dB02() + B03() * dB03()) / T_interp(i)
-    end do
     ! set initial density value (numberdensity = density in normalised units)
     rhoinit = nh_interp(1)
-    ! solve differential equation
     call logger%info( &
       "solving equilibrium ODE for density (" // str(nbpoints) // " points)" &
     )
-    ! do integration
-    call integrate_ode_rk( &
-      h_interp, axvalues, bxvalues, nbpoints, rhoinit, rho_values, adaptive=.false. &
+    call integrate_ode_rk45( &
+      x0=h_interp(1), &
+      x1=h_interp(nbpoints), &
+      ax_func=ax_values, &
+      bx_func=bx_values, &
+      nbpoints=nbpoints, &
+      yinit=rhoinit, &
+      yvalues=rho_values &
     )
-    ! these are no longer needed
-    deallocate(axvalues, bxvalues)
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0)
@@ -161,6 +153,16 @@ contains
     end if ! LCOV_EXCL_STOP
   end subroutine create_atmosphere_curves
 
+
+  real(dp) function ax_values(x)
+    real(dp), intent(in) :: x
+    ax_values = -(dT0(x) + g0(x)) / T0(x)
+  end function ax_values
+
+  real(dp) function bx_values(x)
+    real(dp), intent(in) :: x
+    bx_values = -(B02() * dB02() + B03() * dB03()) / T0(x)
+  end function bx_values
 
   real(dp) function B02()
     B02 = 0.0_dp
