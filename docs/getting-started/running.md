@@ -5,33 +5,28 @@ classes: wide
 sidebar:
   nav: "leftcontents"
 toc: false
-last_modified_at: 2021-07-26
+last_modified_at: 2023-04-13
 ---
 
 Once you cloned the repository and installed both Legolas and the Pylbo framework you are set to run your first problem.
 As an example here we will run one of the pre-implemented equilibria already present in the source code.
 
-## Running your first problem
-Navigate to a directory of your choosing where you want to place the configuration files and output, and call the setup script:
+## Setting up a directory
+Navigate to any directory of your choosing where you want to place the configuration files and output, and call the setup script:
 ```bash
 cd my_favourite_directory
 setuplegolas.py
 ```
 Follow the instructions, this script will do and ask you a couple of things:
 1. It copies over a `CMakeLists.txt` file if not already present
-2. Ask if you want to copy over `pylbo_wrapper.py`, you need this if you want to plot your results immediately after running. **Answer yes**
-3. Ask if you want to copy over a parfile if none was found. **Answer no**
-4. Ask if you want to copy over a default submodule template `smod_user_defined.f08` if none was found. **Answer no**
-
-Since we are running a pre-implemented equilibrium we do not need the `smod_user_defined.f08` file, this one is only needed if you want to
-set up and run your own problem.
+2. Ask if you want to copy over `pylbo_wrapper.py`, you need this if you want to plot your results immediately after running.
+3. Ask if you want to copy over a parfile if none was found.
 
 Next call the build script:
 ```bash
 buildlegolas.sh
 ```
-If everything went well you should have 5 items in your current working directory: a `CMakeLists.txt` file, a `build` folder, an `output` folder,
-the file `pylbo_wrapper.py` and the `legolas` executable.
+If everything went well you should have a few files in your current working directory, including a `CMakeLists.txt` file, a `build` folder, an `output` folder and the `legolas` executable.
 
 <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
 It is NOT recommended to create custom build or run directories _inside_ the main legolas folder.
@@ -42,8 +37,7 @@ Run the setup scripts in a separate directory and let them take care of linking.
 ## Creating the configuration file
 Configuring Legolas is done through use of a "parfile", where various options are passed in the form of Fortran namelists. For an overview
 of different possibilities you can take a look [here](../../general/parameter_file).
-During setup we answered "no" when the script asked to copy over the parfile.
- For now, create a new file called `my_setup.par` in which you copy the following lines:
+Create a new file with a `.par` extension (or modify the existing one if it was copied over when setting up), and edit it as follows:
 ```fortran
 &gridlist
   gridpoints = 50
@@ -67,7 +61,7 @@ Finally call `legolas` and supply the parfile you just created as argument:
 This will run a setup which defines Rayleigh-Taylor instabilities in a Cartesian geometry,
 the spectrum itself should correspond to case **a** in Section 13.2, p. 487 of [MHD of Laboratory and Astrophysical Plasmas](http://doi.org/10.1017/9781316403679).
 
-When the run is completed (this should take a few seconds) the code will immediately fire up the post-processing framework since we set `show_results = .true.` in the parfile.
+When the run is completed (this should only take a few seconds) the code will immediately fire up the post-processing framework since we set `show_results = .true.` in the parfile.
 A few interactive figures will pop up, including the spectrum. Click on one of the eigenvalues in the figure and press `Enter`, this will draw the corresponding eigenfunctions.
 You can cycle through multiple eigenfunctions using the arrow keys, right-clicking a point unselects it and pressing the `d` key clears all selected points.
 

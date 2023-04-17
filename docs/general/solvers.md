@@ -6,7 +6,7 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2022-10-03
+last_modified_at: 2023-04-13
 ---
 
 Legolas has interfaces implemented to various BLAS, LAPACK and ARPACK routines.
@@ -31,7 +31,7 @@ near the interesting regions. Comparing the eigenvalues between both solution st
 
 
 ## QR-invert
-This is the default solver that Legolas uses, which transforms the general eigenvalue problem into a standard on:
+This is the default solver that Legolas uses, which transforms the general eigenvalue problem into a standard one:
 
 $$ B^{-1}A\mathbf{x} = \omega\mathbf{x}, $$
 
@@ -45,7 +45,7 @@ The LAPACK routine [`zgbsv`](https://netlib.org/lapack/explore-html/d9/dbb/group
 is used to solve the system of linear equations. This is followed by a call to  LAPACK's [`zgeev`](https://netlib.org/lapack/explore-html/db/d55/group__complex16_g_eeigen_ga0eb4e3d75621a1ce1685064db1ac58f0.html)
 which returns all eigenvalues and optionally the right eigenvectors.
 
-Note that while this routine stores B in banded form, the product $B^{-1}A$ passed to `zgeev` has to be in a dense format (which unfortunately looses sparsity). For very high-resolution runs this routine should not be used, unless enough RAM is available to store such a dense matrix in memory.
+Note that while this routine stores B in banded form, the product $B^{-1}A$ passed to `zgeev` has to be in a dense format (which unfortunately looses sparsity). For very high-resolution runs this routine should not be used, unless enough RAM is available to store such a dense matrix in memory. Note that in full MHD matrix dimensions are $16N \times 16N$, in HD this reduces to $10N \times 10N$ with $N$ the number of gridpoints in the base grid.
 
 This solver can be explicitly specified in the `solvelist` through
 ```fortran
@@ -67,7 +67,7 @@ and is called by default if no `solvelist` is supplied.
 **Cons:**
 - Needs to store one dense matrix in memory
 - Datfiles become very large at high resolution if eigenfunctions are included, this can be mitigated by saving a subset.
-- _May_ show numerical instability at very large $Re(\omega)$ values (far into the fast sequence), this should always be visually clear in the spectrum.
+- _May_ show numerical instability at very large $Re(\omega)$ values (far into the sequence), this should always be visually clear in the spectrum.
   In most cases this is not a problem, since those modes will not have their eigenfunctions resolved anyway.
 {% endcapture %}
 <div class="notice--danger">
@@ -138,7 +138,7 @@ This solver can be specified in the `solvelist` through
 {% capture cons %}
 **Cons:**
 - Needs more memory than QR-invert, as it needs to store 2 dense matrices in memory instead of one.
-- Slightly slower than QR-invert.
+- Slower than QR-invert/cholesky.
 - Datfiles become very large at high resolution if eigenfunctions are included, this can be mitigated by saving a subset.
 {% endcapture %}
 <div class="notice--danger">
@@ -172,9 +172,7 @@ When using Arnoldi-based solvers the solvelist can be set as follows:
 ```
 
 - `arpack_mode`: which mode to use, see the subsections below.
-- `number_of_eigenvalues`: this is an integer denoting the $k$ eigenvalues to be computed.
-   Note that this number (obviously) has to be positive and should be smaller than the dimension of
-   the eigenvalue problem (that is, `matrix_gridpts`).
+- `number_of_eigenvalues`: the number of eigenvalues $k$ to be computed.
 - `which_eigenvalues`: denotes the type of eigenvalues that should be calculated
    - `"LM"`: eigenvalues with largest magnitude
    - `"SM"`: eigenvalues with smallest magnitude
@@ -183,19 +181,16 @@ When using Arnoldi-based solvers the solvelist can be set as follows:
    - `"LI"`: eigenvalues with largest imaginary part
    - `"SI"`: eigenvalues with smallest imaginary part
 - `maxiter`: integer which limits the maximum iterations the Arnoldi solver may take when
-   doing the reverse communication. This defaults to 10 times the size of the eigenvalue problem,
-   so for 100 gridpoints `maxiter` will be 10 x 100 x 16 = 16000, which is usually more than sufficient.
-   However, sometimes (especially for small eigenvalues) this may not be enough,
-   in which case you can increase this number.
-- `ncv`: the number of basis vectors to use during the iteration, must be at least `number_of_eigenvalues + 1`.
-  Defaults to `ncv = 2 * number_of_eigenvalues`.
+   doing the reverse communication. This defaults to $max(100, 10N)$, where $N$ is the
+   number of gridpoints in the base grid, and is usually more than sufficient.
+- `ncv`: the number of basis vectors to use during the iteration, by default set to max$(k + 1, $min$(2k, 10N))$.
+    Tweaking this value can have a large impact on convergence and/or performance, see the points of note below.
 
 If the iterative solver reaches `maxiter`, only a number $j < k$ eigenvalues will be converged.
 Legolas will notify you how many are converged, and you can still plot these $j$ eigenvalues and their eigenfunctions.
 
-Note that ARPACK is better at finding large eigenvalues. We recommend using the shift-invert mode
-if you want better performance for smaller eigenvalues. Ideally a combination of both is used, where
-one first solves for all eigenvalues using QR-invert or the standard/general Arnoldi solver, locate
+Note that ARPACK is better at finding large eigenvalues, and for small eigenvalues shift-invert is the better choice.
+Ideally a combination of direct and iterative solvers is used, where one first solves for all eigenvalues using a QR variant, locate
 spectral regions of interest, and then follow-up with shift-invert at those locations.
 
 ### Points of note
@@ -308,7 +303,15 @@ This solver can be specified in the parfile by setting
   solver = "inverse-iteration"
   sigma = (1.0d0, 0.05d0)
   maxiter = 100
-  tolerance = 1.0d-12
+  tolerance = 1.0d-7
 /
 ```
-The quantity `maxiter` (default 100 if not given) specifies the maximum number of iterations, the inverse iteration process will continue until the eigenvalue is either converged or `maxiter` is reached. Note that is no tolerance is given the solver defaults to a tolerance near machine precision (`5e-15`). In some cases this may be too strict such that Legolas will have difficulties converging, typically warnings will be raised that `maxiter` is reached. Reducing `tolerance` to something like `1e-12` may help with convergence in those cases, as well as providing a better shift.
+The quantity `maxiter` (default 100 if not given) specifies the maximum number of iterations, the inverse iteration process will continue until the eigenvalue is either converged or `maxiter` is reached. Note that is no tolerance is given the solver defaults to a tolerance near machine precision (`5e-15`). In some cases this may be too strict such that Legolas will have difficulties converging, typically warnings will be raised that `maxiter` is reached.
+The eigenvalue obtained after one iteration is considered converged if the following criterion is satisfied
+
+$$
+|| \mathbf{A}\mathbf{x}_i - \mu_{i + 1}\mathbf{B}\mathbf{x}_i || < |\mu_{i + 1}\epsilon|,
+$$
+
+with $\epsilon$ the tolerance. For small eigenvalues and tolerances this right-hand side may drop below machine precision, which implies that Legolas will never converge.
+In typical use cases a tolerance of $\epsilon = 10^{-7}$ is more than sufficient.

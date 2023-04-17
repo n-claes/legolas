@@ -5,7 +5,8 @@ classes: wide
 sidebar:
   nav: "leftcontents"
 toc: true
-last_modified_at: 2021-07-27
+toc_icon: "chevron-circle-down"
+last_modified_at: 2021-04-13
 ---
 {% capture tip %}
 <i class="fas fa-lightbulb" aria-hidden="true"></i>
@@ -142,8 +143,7 @@ config = {
     },
     "equilibrium_type": "resistive_homo",
     "resistivity": True,
-    "use_fixed_resistivity": True,
-    "fixed_eta_value": np.linspace(0.001, 0.01, 50),
+    "fixed_resistivity_value": np.linspace(0.001, 0.01, 50),
     "logging_level": 0,
     "show_results": False,
     "write_eigenfunctions": True,
@@ -170,8 +170,8 @@ you can supply a full path instead, either as a string (e.g.`output_dir="/users/
 ## Running Legolas with Pylbo
 The parfiles generated in the above examples can be passed on to Pylbo, which in turn will pass those on to Legolas.
 
-**Remark**: Note that Pylbo will always link to the executable in the Legolas home directory by default. It is therefore good
-practice to explicitly specify the Legolas executable when calling the runner.
+<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+Note that Pylbo will always link to the executable in the Legolas home directory by default. It is therefore good practice to explicitly specify the Legolas executable when calling the runner.
 {: .notice--danger}
 
 ### Single run

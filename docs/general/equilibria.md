@@ -4,11 +4,11 @@ layout: single
 classes: wide
 sidebar:
   nav: "leftcontents"
-last_modified_at: 2021-07-26
+last_modified_at: 2023-04-13
 ---
 
 For a complete list of implemented equilibria we refer to the [Legolas docs](../../ford/lists/modules.html), more specifically
-all descendants of the `mod_equilibrium` module.
+all descendants of the `mod_equilibrium` module. These all follow the naming convention `smod_equil_*` ("submodule equilibrium").
 You can take a look at the documentation of every submodule for information on default parameters, which ones you can vary and where
 they comes from. Below we give a small overview of which equilibria are implemented together with the default included
 physical effects, and links to the source docs.
@@ -40,6 +40,10 @@ physical effects, and links to the source docs.
 - [Gravito MHD waves](../../ford/module/smod_equil_gravito_mhd.html): Cartesian, external gravity
   ```fortran
   equilibrium_type = "gravito_mhd"
+  ```
+- [Harris sheet with tearing modes](../../ford/module/smod_equil_harris_sheet.html): Cartesian, resistive
+  ```fortran
+  equilibrium_type = "harris_sheet"
   ```
 - [Flux tube under coronal conditions](../../ford/module/smod_equil_coronal_flux_tube.html): cylindrical, adiabatic
   ```fortran
