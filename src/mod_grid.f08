@@ -166,6 +166,7 @@ contains
     if (this%uses_custom_dx) then
       pts = get_updated_number_of_gridpoints(this%settings, this%dx_func)
       call this%settings%grid%set_gridpts(pts)
+      call this%settings%update_block_dimensions()
     else
       pts = this%settings%grid%get_gridpts()
     end if
