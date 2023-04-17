@@ -1,7 +1,7 @@
 module mod_test_inspections
   use mod_suite_utils
   use funit
-  use mod_inspections, only: check_wavenumbers
+  use mod_inspections, only: do_equilibrium_inspections
   use mod_equilibrium_params, only: k2, k3
   use mod_global_variables, only: NaN
   implicit none
@@ -49,8 +49,7 @@ contains
 
 
   subroutine do_checks()
-    use mod_inspections, only: perform_NaN_and_negative_checks
-    call perform_NaN_and_negative_checks(settings, grid, background, physics)
+    call do_equilibrium_inspections(settings, grid, background, physics)
   end subroutine do_checks
 
 
@@ -59,7 +58,7 @@ contains
     call set_name("negative density")
     call background%set_density_funcs(rho0_func=uniform)
     call do_checks()
-    @assertExceptionRaised("negative density encountered!")
+    @assertExceptionRaised("negative values encountered in rho0")
   end subroutine test_density_negative
 
 
@@ -68,7 +67,7 @@ contains
     call set_name("negative temperature")
     call background%set_temperature_funcs(T0_func=uniform)
     call do_checks()
-    @assertExceptionRaised("negative temperature encountered!")
+    @assertExceptionRaised("negative values encountered in T0")
   end subroutine test_temperature_negative
 
 
@@ -77,7 +76,7 @@ contains
     call set_name("density NaN")
     call background%set_density_funcs(rho0_func=uniform_nan)
     call do_checks()
-    @assertExceptionRaised("NaN encountered in density")
+    @assertExceptionRaised("NaN encountered in rho0")
   end subroutine test_density_nan
 
 
@@ -86,7 +85,7 @@ contains
     call set_name("temperature NaN")
     call background%set_temperature_funcs(T0_func=uniform_nan)
     call do_checks()
-    @assertExceptionRaised("NaN encountered in temperature")
+    @assertExceptionRaised("NaN encountered in T0")
   end subroutine test_temperature_nan
 
 
@@ -166,7 +165,7 @@ contains
     call set_name("wavenumber k2 non-int in cylindrical")
     call settings%grid%set_geometry("cylindrical")
     k2 = 1.2d0
-    call check_wavenumbers(settings%grid%get_geometry())
+    call do_equilibrium_inspections(settings, grid, background, physics)
     error_msg = "cylindrical geometry but k2 is not an integer! Value: 1.20000000"
     @assertExceptionRaised(error_msg)
   end subroutine test_invalid_k2
@@ -177,7 +176,7 @@ contains
     call set_name("wavenumber k2 cylindrical")
     call settings%grid%set_geometry("cylindrical")
     k2 = 2.0d0
-    call check_wavenumbers(settings%grid%get_geometry())
+    call do_equilibrium_inspections(settings, grid, background, physics)
     @assertEqual(2.0d0, k2, tolerance=TOL)
   end subroutine test_integer_k2
 
@@ -186,7 +185,7 @@ contains
   subroutine test_k2_cartesian()
     call set_name("wavenumber k2 Cartesian")
     k2 = 0.5d0
-    call check_wavenumbers(settings%grid%get_geometry())
+    call do_equilibrium_inspections(settings, grid, background, physics)
     @assertEqual(0.5d0, k2, tolerance=TOL)
   end subroutine test_k2_cartesian
 

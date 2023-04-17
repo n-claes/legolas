@@ -1,9 +1,9 @@
 module mod_settings
   use mod_global_variables, only: str_len_arr
   use mod_dims, only: dims_t, new_block_dims
-  use mod_io_settings, only: io_t, new_io_settings
-  use mod_solver_settings, only: solvers_t, new_solver_settings
-  use mod_physics_settings, only: physics_t, new_physics_settings
+  use mod_io_settings, only: io_settings_t, new_io_settings
+  use mod_solver_settings, only: solver_settings_t, new_solver_settings
+  use mod_physics_settings, only: physics_settings_t, new_physics_settings
   use mod_grid_settings, only: grid_settings_t, new_grid_settings
   use mod_equilibrium_settings, only: equilibrium_settings_t, new_equilibrium_settings
   use mod_units, only: units_t, new_unit_system
@@ -22,9 +22,9 @@ module mod_settings
     integer, private :: nb_eqs
 
     type(dims_t), public :: dims
-    type(io_t), public :: io
-    type(solvers_t), public :: solvers
-    type(physics_t), public :: physics
+    type(io_settings_t), public :: io
+    type(solver_settings_t), public :: solvers
+    type(physics_settings_t), public :: physics
     type(grid_settings_t), public :: grid
     type(equilibrium_settings_t), public :: equilibrium
     type(units_t), public :: units

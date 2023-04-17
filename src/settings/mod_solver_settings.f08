@@ -4,7 +4,7 @@ module mod_solver_settings
 
   private
 
-  type, public :: solvers_t
+  type, public :: solver_settings_t
     character(:), allocatable, private :: solver
     character(:), allocatable, private :: arpack_mode
     integer :: number_of_eigenvalues
@@ -21,31 +21,31 @@ module mod_solver_settings
     procedure, public :: set_arpack_mode
     procedure, public :: get_arpack_mode
     procedure, public :: delete
-  end type solvers_t
+  end type solver_settings_t
 
   public :: new_solver_settings
 
 contains
 
-  pure function new_solver_settings() result(solvers)
+  pure function new_solver_settings() result(solver_settings)
     use mod_global_variables, only: dp_LIMIT, NaN
 
-    type(solvers_t) :: solvers
+    type(solver_settings_t) :: solver_settings
 
-    call solvers%set_solver("QR-invert")
-    call solvers%set_arpack_mode("general")
-    solvers%number_of_eigenvalues = 10
-    solvers%which_eigenvalues = "LM"
+    call solver_settings%set_solver("QR-invert")
+    call solver_settings%set_arpack_mode("general")
+    solver_settings%number_of_eigenvalues = 10
+    solver_settings%which_eigenvalues = "LM"
     ! these two get determined at runtime
-    solvers%maxiter = 0
-    solvers%ncv = 0
-    solvers%sigma = cmplx(NaN, NaN, kind=dp)
-    solvers%tolerance = dp_LIMIT
+    solver_settings%maxiter = 0
+    solver_settings%ncv = 0
+    solver_settings%sigma = cmplx(NaN, NaN, kind=dp)
+    solver_settings%tolerance = dp_LIMIT
   end function new_solver_settings
 
 
   pure subroutine set_solver(this, solver)
-    class(solvers_t), intent(inout) :: this
+    class(solver_settings_t), intent(inout) :: this
     character(len=*), intent(in) :: solver
 
     this%solver = trim(adjustl(solver))
@@ -53,7 +53,7 @@ contains
 
 
   pure function get_solver(this) result(solver)
-    class(solvers_t), intent(in) :: this
+    class(solver_settings_t), intent(in) :: this
     character(:), allocatable :: solver
 
     solver = trim(adjustl(this%solver))
@@ -61,7 +61,7 @@ contains
 
 
   pure subroutine set_arpack_mode(this, arpack_mode)
-    class(solvers_t), intent(inout) :: this
+    class(solver_settings_t), intent(inout) :: this
     character(len=*), intent(in) :: arpack_mode
 
     this%arpack_mode = trim(adjustl(arpack_mode))
@@ -69,7 +69,7 @@ contains
 
 
   pure function get_arpack_mode(this) result(arpack_mode)
-    class(solvers_t), intent(in) :: this
+    class(solver_settings_t), intent(in) :: this
     character(:), allocatable :: arpack_mode
 
     arpack_mode = trim(adjustl(this%arpack_mode))
@@ -77,7 +77,7 @@ contains
 
 
   pure subroutine delete(this)
-    class(solvers_t), intent(inout) :: this
+    class(solver_settings_t), intent(inout) :: this
 
     if (allocated(this%solver)) deallocate(this%solver)
     if (allocated(this%arpack_mode)) deallocate(this%arpack_mode)

@@ -17,16 +17,16 @@ module mod_thermal_conduction
   type, public :: conduction_t
     procedure(real(dp)), pointer, nopass :: tcpara
     procedure(real(dp)), pointer, nopass :: dtcparadT
-    procedure(real(dp)), pointer, nopass :: dtcparadr
 
     procedure(real(dp)), pointer, nopass :: tcperp
     procedure(real(dp)), pointer, nopass :: dtcperpdrho
     procedure(real(dp)), pointer, nopass :: dtcperpdT
     procedure(real(dp)), pointer, nopass :: dtcperpdB2
-    procedure(real(dp)), pointer, nopass :: dtcperpdr
   contains
-    procedure, public :: tcprefactor
-    procedure, public :: dtcprefactordr
+    procedure, public :: get_dtcparadr
+    procedure, public :: get_dtcperpdr
+    procedure, public :: get_tcprefactor
+    procedure, public :: get_dtcprefactordr
     procedure, public :: delete
   end type conduction_t
 
@@ -45,13 +45,11 @@ contains
 
     conduction%tcpara => get_tcpara
     conduction%dtcparadT => get_dtcparadT
-    conduction%dtcparadr => get_dtcparadr
 
     conduction%tcperp => get_tcperp
     conduction%dtcperpdrho => get_dtcperpdrho
     conduction%dtcperpdT => get_dtcperpdT
     conduction%dtcperpdB2 => get_dtcperpdB2
-    conduction%dtcperpdr => get_dtcperpdr
   end function new_conduction
 
 
@@ -91,7 +89,8 @@ contains
   end function get_dtcparadT
 
 
-  real(dp) function get_dtcparadr(x)
+  impure elemental real(dp) function get_dtcparadr(this, x)
+    class(conduction_t), intent(in) :: this
     real(dp), intent(in) :: x
     real(dp) :: dT0
 
@@ -101,7 +100,7 @@ contains
 
     ! position derivative is dtcpara/dT * T0'
     dT0 = background%temperature%dT0(x)
-    get_dtcparadr = get_dtcparadT(x) * dT0
+    get_dtcparadr = this%dtcparadT(x) * dT0
   end function get_dtcparadr
 
 
@@ -191,7 +190,8 @@ contains
   end function get_dtcperpdB2
 
 
-  real(dp) function get_dtcperpdr(x)
+  impure elemental real(dp) function get_dtcperpdr(this, x)
+    class(conduction_t), intent(in) :: this
     real(dp), intent(in) :: x
     real(dp) :: drho0, dT0, B0, dB0
 
@@ -200,7 +200,7 @@ contains
     if (settings%physics%conduction%has_fixed_tc_perp()) return
 
     if (.not. settings%has_bfield()) then
-      get_dtcperpdr = get_dtcparadr(x)
+      get_dtcperpdr = this%get_dtcparadr(x)
       return
     end if
     drho0 = background%density%drho0(x)
@@ -208,45 +208,43 @@ contains
     B0 = background%magnetic%get_B0(x)
     dB0 = background%magnetic%get_dB0(x)
     get_dtcperpdr = ( &
-      get_dtcperpdrho(x) * drho0 &
-      + get_dtcperpdT(x) * dT0 &
-      + get_dtcperpdB2(x) * 2.0_dp * B0 * dB0 &
+      this%dtcperpdrho(x) * drho0 &
+      + this%dtcperpdT(x) * dT0 &
+      + this%dtcperpdB2(x) * 2.0_dp * B0 * dB0 &
     )
   end function get_dtcperpdr
 
 
-  real(dp) function tcprefactor(this, x)
+  impure elemental real(dp) function get_tcprefactor(this, x)
     class(conduction_t), intent(in) :: this
     real(dp), intent(in) :: x
     real(dp) :: B0
 
-    tcprefactor = 0.0_dp
+    get_tcprefactor = 0.0_dp
     if (.not. settings%physics%conduction%is_enabled()) return
     if (.not. settings%has_bfield()) return
 
     B0 = background%magnetic%get_B0(x)
-    tcprefactor = ( &
-      this%tcpara(x) - this%tcperp(x) &
-    ) / B0**2
-  end function tcprefactor
+    get_tcprefactor = (this%tcpara(x) - this%tcperp(x)) / B0**2
+  end function get_tcprefactor
 
 
-  real(dp) function dtcprefactordr(this, x)
+  impure elemental real(dp) function get_dtcprefactordr(this, x)
     class(conduction_t), intent(in) :: this
     real(dp), intent(in) :: x
     real(dp) :: B0, dB0
 
-    dtcprefactordr = 0.0_dp
+    get_dtcprefactordr = 0.0_dp
     if (.not. settings%physics%conduction%is_enabled()) return
     if (.not. settings%has_bfield()) return
 
     B0 = background%magnetic%get_B0(x)
     dB0 = background%magnetic%get_dB0(x)
-    dtcprefactordr = ( &
-      (this%dtcparadr(x) - this%dtcperpdr(x)) * B0 &
+    get_dtcprefactordr = ( &
+      (this%get_dtcparadr(x) - this%get_dtcperpdr(x)) * B0 &
       - 2.0_dp * (this%tcpara(x) - this%tcperp(x)) * dB0 &
     ) / B0**3
-  end function dtcprefactordr
+  end function get_dtcprefactordr
 
 
   subroutine delete(this)
@@ -257,13 +255,11 @@ contains
 
     nullify(this%tcpara)
     nullify(this%dtcparadT)
-    nullify(this%dtcparadr)
 
     nullify(this%tcperp)
     nullify(this%dtcperpdrho)
     nullify(this%dtcperpdT)
     nullify(this%dtcperpdB2)
-    nullify(this%dtcperpdr)
   end subroutine delete
 
 end module mod_thermal_conduction

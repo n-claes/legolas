@@ -10,6 +10,7 @@ program legolas
   use mod_global_variables, only: dp, str_len, initialise_globals
   use mod_matrix_structure, only: matrix_t
   use mod_equilibrium, only: set_equilibrium
+  use mod_inspections, only: do_equilibrium_inspections
   use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_path, create_datfile
@@ -56,6 +57,7 @@ program legolas
   timer%init_time = timer%end_timer()
 
   call print_console_info(settings)
+  call do_equilibrium_inspections(settings, grid, background, physics)
 
   call timer%start_timer()
   call build_matrices(matrix_B, matrix_A, settings, grid, background, physics)

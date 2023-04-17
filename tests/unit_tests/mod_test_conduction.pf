@@ -54,6 +54,26 @@ contains
     end do
   end function get_actual
 
+  function get_dtcparadr() result(dtcparadr_vals)
+    real(dp) :: dtcparadr_vals(size(xvals))
+    dtcparadr_vals = physics%conduction%get_dtcparadr(xvals)
+  end function get_dtcparadr
+
+  function get_dtcperpdr() result(dtcperpdr_vals)
+    real(dp) :: dtcperpdr_vals(size(xvals))
+    dtcperpdr_vals = physics%conduction%get_dtcperpdr(xvals)
+  end function get_dtcperpdr
+
+  function get_tcprefactor() result(tcprefactor_vals)
+    real(dp) :: tcprefactor_vals(size(xvals))
+    tcprefactor_vals = physics%conduction%get_tcprefactor(xvals)
+  end function get_tcprefactor
+
+  function get_dtcprefactordr() result(dtcprefactordr_vals)
+    real(dp) :: dtcprefactordr_vals(size(xvals))
+    dtcprefactordr_vals = physics%conduction%get_dtcprefactordr(xvals)
+  end function get_dtcprefactordr
+
 
   @test
   subroutine test_kappa_para_cte()
@@ -67,7 +87,7 @@ contains
     @assertEqual(0.0d0, get_actual(physics%conduction%dtcperpdrho), tolerance=TOL)
     @assertEqual(0.0d0, get_actual(physics%conduction%dtcperpdB2), tolerance=TOL)
     @assertEqual(0.0d0, get_actual(physics%conduction%dtcperpdT), tolerance=TOL)
-    @assertEqual(0.0d0, get_actual(physics%conduction%dtcperpdr), tolerance=TOL)
+    @assertEqual(0.0d0, get_dtcperpdr(), tolerance=TOL)
   end subroutine test_kappa_para_cte
 
 
@@ -91,7 +111,7 @@ contains
     @assertEqual(0.0d0, get_actual(physics%conduction%dtcperpdrho), tolerance=TOL)
     @assertEqual(0.0d0, get_actual(physics%conduction%dtcperpdB2), tolerance=TOL)
     @assertEqual(0.0d0, get_actual(physics%conduction%dtcparadT), tolerance=TOL)
-    @assertEqual(0.0d0, get_actual(physics%conduction%dtcperpdr), tolerance=TOL)
+    @assertEqual(0.0d0, get_dtcperpdr(), tolerance=TOL)
   end subroutine test_kappa_perp_cte
 
 
@@ -451,7 +471,7 @@ contains
       + dkT * 2.0d0 * xvals &
       + dkB2 * 2.0d0  * B0(xvals) * dB0(xvals) &
     ) * 1.0d8
-    actual = get_actual(physics%conduction%dtcperpdr) * 1.0d8
+    actual = get_dtcperpdr() * 1.0d8
     @assertTrue(settings%physics%conduction%is_enabled())
     @assertFalse(settings%physics%conduction%has_parallel_conduction())
     @assertTrue(settings%physics%conduction%has_perpendicular_conduction())

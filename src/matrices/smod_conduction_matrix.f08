@@ -107,8 +107,8 @@ contains
     dkappa_perp_dT = physics%conduction%dtcperpdT(x_gauss)
     dkappa_perp_dB2 = physics%conduction%dtcperpdB2(x_gauss)
     ! prefactors
-    Kp = physics%conduction%tcprefactor(x_gauss)
-    diffKp = physics%conduction%dtcprefactordr(x_gauss)
+    Kp = physics%conduction%get_tcprefactor(x_gauss)
+    diffKp = physics%conduction%get_dtcprefactordr(x_gauss)
     Kp_plus = Kp + dkappa_perp_dB2
     Kp_plusplus = dkappa_perp_dB2 - (B01**2 * Kp_plus / B0**2)
     ! operators

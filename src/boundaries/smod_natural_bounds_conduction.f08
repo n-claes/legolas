@@ -92,7 +92,7 @@ contains
 
     Gop_min = k3 * B02 - k2 * B03 / eps
     Fop = k2 * B02 / eps + k3 * B03
-    Kp = physics%conduction%tcprefactor(x)
+    Kp = physics%conduction%get_tcprefactor(x)
     Kp_plus = Kp + dkappa_perp_dB2
     Kp_plusplus = dkappa_perp_dB2 - (B01**2 * Kp_plus / B0**2)
 

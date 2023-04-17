@@ -222,8 +222,6 @@ contains
   !!          not balanced, contains NaN or if density/temperature contains
   !!          negative values.
   subroutine set_equilibrium(settings, grid, background, physics)
-    use mod_inspections, only: perform_NaN_and_negative_checks, perform_sanity_checks
-
     type(settings_t), intent(inout) :: settings
     type(grid_t), intent(inout) :: grid
     type(background_t), intent(inout) :: background
@@ -235,9 +233,6 @@ contains
     call set_equilibrium_values(settings, grid, background, physics)
     call grid%initialise()
 
-    ! Do initial checks for NaN and negative density/temperature
-    call perform_NaN_and_negative_checks(settings, grid, background, physics)
-
     if (settings%physics%cooling%is_enabled()) then
       call physics%heatloss%cooling%initialise()
     end if
@@ -245,9 +240,6 @@ contains
       physics%conduction, grid &
     )
     call physics%hall%validate_scale_ratio(grid%gaussian_grid)
-
-    ! Do final sanity checks on values
-    call perform_sanity_checks(settings, grid, background, physics)
   end subroutine set_equilibrium
 
 

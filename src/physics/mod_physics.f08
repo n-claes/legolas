@@ -63,40 +63,29 @@ contains
   end subroutine set_gravity_funcs
 
 
-  subroutine set_parallel_conduction_funcs( &
-    this, tcpara_func, dtcparadT_func, dtcparadr_func &
-  )
+  subroutine set_parallel_conduction_funcs(this, tcpara_func, dtcparadT_func)
     class(physics_t), intent(inout) :: this
     procedure(real(dp)) :: tcpara_func
     procedure(real(dp)), optional :: dtcparadT_func
-    procedure(real(dp)), optional :: dtcparadr_func
 
     this%conduction%tcpara => tcpara_func
     if (present(dtcparadT_func)) this%conduction%dtcparadT => dtcparadT_func
-    if (present(dtcparadr_func)) this%conduction%dtcparadr => dtcparadr_func
   end subroutine set_parallel_conduction_funcs
 
 
   subroutine set_perpendicular_conduction_funcs( &
-    this, &
-    tcperp_func, &
-    dtcperpdT_func, &
-    dtcperpdrho_func, &
-    dtcperpdB2_func, &
-    dtcperpdr_func &
+    this, tcperp_func, dtcperpdT_func, dtcperpdrho_func, dtcperpdB2_func &
   )
     class(physics_t), intent(inout) :: this
     procedure(real(dp)) :: tcperp_func
     procedure(real(dp)), optional :: dtcperpdT_func
     procedure(real(dp)), optional :: dtcperpdrho_func
     procedure(real(dp)), optional :: dtcperpdB2_func
-    procedure(real(dp)), optional :: dtcperpdr_func
 
     this%conduction%tcperp => tcperp_func
     if (present(dtcperpdT_func)) this%conduction%dtcperpdT => dtcperpdT_func
     if (present(dtcperpdrho_func)) this%conduction%dtcperpdrho => dtcperpdrho_func
     if (present(dtcperpdB2_func)) this%conduction%dtcperpdB2 => dtcperpdB2_func
-    if (present(dtcperpdr_func)) this%conduction%dtcperpdr => dtcperpdr_func
   end subroutine set_perpendicular_conduction_funcs
 
 
