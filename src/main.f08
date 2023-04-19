@@ -8,7 +8,7 @@
 !! KU Leuven, Belgium.
 program legolas
   use mod_global_variables, only: dp, str_len, initialise_globals
-  use mod_matrix_structure, only: matrix_t
+  use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_equilibrium, only: set_equilibrium
   use mod_inspections, only: do_equilibrium_inspections
   use mod_matrix_manager, only: build_matrices
@@ -60,6 +60,8 @@ program legolas
   call do_equilibrium_inspections(settings, grid, background, physics)
 
   call timer%start_timer()
+  matrix_A = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="A")
+  matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
   call build_matrices(matrix_B, matrix_A, settings, grid, background, physics)
   timer%matrix_time = timer%end_timer()
 
@@ -67,6 +69,7 @@ program legolas
   call timer%start_timer()
   call solve_evp(matrix_A, matrix_B, settings, omega, right_eigenvectors)
   timer%evp_time = timer%end_timer()
+  call logger%info("done.")
 
   call timer%start_timer()
   eigenfunctions = new_eigenfunctions(settings, grid, background)
@@ -102,7 +105,6 @@ contains
   !! Allocates and initialises main and global variables, then the equilibrium state
   !! and eigenfunctions are initialised and the equilibrium is set.
   subroutine initialisation()
-    use mod_matrix_structure, only: new_matrix
     use mod_input, only: read_parfile, get_parfile
     use mod_console, only: print_logo
 
@@ -126,8 +128,6 @@ contains
     end select
     call logger%debug("setting #eigenvalues to " // str(nb_evs))
     allocate(omega(nb_evs))
-    matrix_A = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="A")
-    matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
     if ( &
