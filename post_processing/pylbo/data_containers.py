@@ -7,6 +7,7 @@ from typing import Callable, Union
 import numpy as np
 from pylbo._version import VersionHandler
 from pylbo.exceptions import (
+    BackgroundNotPresent,
     EigenfunctionsNotPresent,
     EigenvectorsNotPresent,
     MatricesNotPresent,
@@ -53,6 +54,10 @@ class LegolasDataContainer(ABC):
 
     @abstractmethod
     def ef_names(self):
+        pass
+
+    @abstractmethod
+    def has_background(self):
         pass
 
     @abstractmethod
@@ -230,6 +235,11 @@ class LegolasDataSet(LegolasDataContainer):
         return self._parameters
 
     @property
+    def has_background(self) -> bool:
+        """Returns `True` if background is present."""
+        return self.header["has_background"]
+
+    @property
     def has_efs(self) -> bool:
         """Returns `True` if eigenfunctions are present."""
         return self.header["has_efs"]
@@ -294,6 +304,8 @@ class LegolasDataSet(LegolasDataContainer):
             Array with the sound speed at every grid point, or a float corresponding
             to the value of `which_values` if provided.
         """
+        if not self.has_background:
+            raise BackgroundNotPresent(self.datfile, "get sound speed")
         pressure = self.equilibria["T0"] * self.equilibria["rho0"]
         cs = np.sqrt(self.gamma * pressure / self.equilibria["rho0"])
         return get_values(cs, which_values)
@@ -314,6 +326,8 @@ class LegolasDataSet(LegolasDataContainer):
             Array with the Alfvén speed at every grid point,
             or a float corresponding to the value of `which_values` if provided.
         """
+        if not self.has_background:
+            raise BackgroundNotPresent(self.datfile, "get Alfvén speed")
         cA = self.equilibria["B0"] / np.sqrt(self.equilibria["rho0"])
         return get_values(cA, which_values)
 
@@ -339,11 +353,12 @@ class LegolasDataSet(LegolasDataContainer):
                 "geometry is not cylindrical, unable to calculate tube speed"
             )
             return None
-        else:
-            cA = self.get_alfven_speed()
-            cs = self.get_sound_speed()
-            ct = cs * cA / np.sqrt(cs**2 + cA**2)
-            return get_values(ct, which_values)
+        if not self.has_background:
+            raise BackgroundNotPresent(self.datfile, "get tube speed")
+        cA = self.get_alfven_speed()
+        cs = self.get_sound_speed()
+        ct = cs * cA / np.sqrt(cs**2 + cA**2)
+        return get_values(ct, which_values)
 
     def get_reynolds_nb(self, which_values=None) -> Union[float, np.ndarray]:
         """
@@ -363,6 +378,8 @@ class LegolasDataSet(LegolasDataContainer):
             or a float corresponding to the value of `which_values` if provided.
             Returns `None` if the resistivity is zero somewhere on the domain.
         """
+        if not self.has_background:
+            raise BackgroundNotPresent(self.datfile, "get Reynolds number")
         cs = self.get_sound_speed()
         a = self.x_end - self.x_start
         eta = self.equilibria["eta"]
@@ -372,9 +389,8 @@ class LegolasDataSet(LegolasDataContainer):
                 "calculate the Reynolds number"
             )
             return None
-        else:
-            Re = a * cs / eta
-            return get_values(Re, which_values)
+        Re = a * cs / eta
+        return get_values(Re, which_values)
 
     def get_magnetic_reynolds_nb(self, which_values=None) -> Union[float, np.ndarray]:
         """
@@ -394,6 +410,8 @@ class LegolasDataSet(LegolasDataContainer):
             or a float corresponding to the value of `which_values` if provided.
             Returns `None` if the resistivity is zero somewhere on the domain.
         """
+        if not self.has_background:
+            raise BackgroundNotPresent(self.datfile, "get magnetic Reynolds number")
         cA = self.get_alfven_speed()
         a = self.x_end - self.x_start
         eta = self.equilibria["eta"]
@@ -403,9 +421,8 @@ class LegolasDataSet(LegolasDataContainer):
                 "calculate the magnetic Reynolds number"
             )
             return None
-        else:
-            Rm = a * cA / eta
-            return get_values(Rm, which_values)
+        Rm = a * cA / eta
+        return get_values(Rm, which_values)
 
     def get_k0_squared(self) -> float:
         """
@@ -734,6 +751,11 @@ class LegolasDataSeries(LegolasDataContainer):
             for key in keys:
                 _params[key].append(ds.parameters[key])
         return {key: np.array(values) for key, values in _params.items()}
+
+    @property
+    def has_background(self) -> np.ndarray:
+        """Returns `True` if background is present."""
+        return np.array([ds.has_background for ds in self.datasets], dtype=bool)
 
     @property
     def has_efs(self) -> np.ndarray:

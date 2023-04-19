@@ -86,7 +86,9 @@ contains
 
     write(dat_fh) size(eigenvalues), eigenvalues
     write(dat_fh) grid%base_grid, grid%gaussian_grid
-    call write_equilibrium_data(settings, grid, background, physics)
+    if (settings%io%write_background) then
+      call write_background_data(settings, grid, background, physics)
+    end if
     if (settings%io%write_eigenfunctions) then
       call write_base_eigenfunction_data(grid, eigenfunctions)
     end if
@@ -114,7 +116,7 @@ contains
     call write_units_info(settings)
     call write_physics_info(settings)
     call write_parameters(settings)
-    call write_equilibrium_names()
+    call write_background_names(settings)
   end subroutine write_header
 
 
@@ -311,7 +313,8 @@ contains
   end subroutine write_parameters
 
 
-  subroutine write_equilibrium_names()
+  subroutine write_background_names(settings)
+    type(settings_t), intent(in) :: settings
     integer, parameter :: nb_names = 38
     character(len=str_len_arr) :: equilibrium_names(nb_names)
 
@@ -329,12 +332,16 @@ contains
       "gravity", &
       "Hall", "inertia" &
     ]
+    if (.not. settings%io%write_background) then
+      write(dat_fh) 0, 0
+      return
+    end if
     write(dat_fh) nb_names, len(equilibrium_names(1))
     write(dat_fh) equilibrium_names
-  end subroutine write_equilibrium_names
+  end subroutine write_background_names
 
 
-  subroutine write_equilibrium_data(settings, grid, background, physics)
+  subroutine write_background_data(settings, grid, background, physics)
     use mod_function_utils, only: from_function
 
     type(settings_t), intent(in) :: settings
@@ -382,7 +389,7 @@ contains
     write(dat_fh) from_function(physics%gravity%g0, grid%gaussian_grid)
     write(dat_fh) from_function(physics%hall%hallfactor, grid%gaussian_grid)
     write(dat_fh) from_function(physics%hall%inertiafactor, grid%gaussian_grid)
-  end subroutine write_equilibrium_data
+  end subroutine write_background_data
 
 
   subroutine write_base_eigenfunction_data(grid, eigenfunctions)

@@ -176,6 +176,8 @@ class MultiSpectrumPlot(SpectrumFigure):
         interactive : bool
             If `True`, makes the legend interactive.
         """
+        if not self.has_valid_continua(self.dataseries):
+            return
         if self._c_handler is None:
             self._c_handler = ContinuaHandler(interactive=interactive)
 

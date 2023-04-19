@@ -5,6 +5,7 @@ from typing import List, Union
 
 import numpy as np
 from pylbo.data_containers import LegolasDataSet
+from pylbo.exceptions import BackgroundNotPresent
 from pylbo.utilities.logger import pylboLogger
 from pylbo.visualisation.utils import ef_name_to_latex, validate_ef_name
 
@@ -56,6 +57,8 @@ class ModeVisualisationData:
         self.ds = ds
         self.use_real_part = use_real_part
         self.complex_factor = self._validate_complex_factor(complex_factor)
+        if add_background and not ds.has_background:
+            raise BackgroundNotPresent(ds.datfile, "add background to solution")
         self.add_background = add_background
         self._print_bg_info = True
 

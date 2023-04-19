@@ -217,7 +217,12 @@ class LegolasHeader:
 
     def _read_equilibrium_names(self, istream: BinaryIO) -> dict:
         nb_names, len_name = read_int_from_istream(istream, amount=2)
-        names = read_string_from_istream(istream, length=len_name, amount=nb_names)
+        self.data["has_background"] = nb_names > 0
+        names = (
+            read_string_from_istream(istream, length=len_name, amount=nb_names)
+            if self.data["has_background"]
+            else []
+        )
         return {"equilibrium_names": names}
 
     def _get_eigenfunction_offsets(self, istream: BinaryIO) -> dict:

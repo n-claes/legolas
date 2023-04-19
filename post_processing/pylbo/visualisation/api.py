@@ -196,6 +196,12 @@ def plot_equilibrium(data, figsize=None, interactive=True, **kwargs):
         The profile instance containing the equilibrium plots.
     """
     ensure_dataset(data)
+    if not data.has_background:
+        pylboLogger.warning(
+            "The dataset does not contain a background, equilibrium profiles "
+            "can not be plotted."
+        )
+        return
     p = EquilibriumProfile(data, figsize, interactive, **kwargs)
     return p
 
@@ -218,6 +224,13 @@ def plot_equilibrium_balance(data, figsize=None, **kwargs):
     p : ~pylbo.visualisation.profiles.EquilibriumBalance
         The profile instance containing the equilibrium balance plots.
     """
+    ensure_dataset(data)
+    if not data.has_background:
+        pylboLogger.warning(
+            "The dataset does not contain a background, equilibrium balance "
+            "can not be plotted."
+        )
+        return
     p = EquilibriumBalance(data, figsize, **kwargs)
     return p
 
