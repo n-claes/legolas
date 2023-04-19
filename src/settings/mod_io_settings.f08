@@ -93,7 +93,6 @@ contains
 
   pure subroutine set_all_io_to_false(this)
     class(io_settings_t), intent(inout) :: this
-    this%write_matrices = .false.
     this%write_eigenvectors = .false.
     this%write_residuals = .false.
     this%write_eigenfunctions = .false.
