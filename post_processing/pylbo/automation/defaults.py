@@ -18,6 +18,7 @@ namelist_items = {
         ("write_matrices", bool),
         ("write_eigenvectors", bool),
         ("write_residuals", bool),
+        ("write_background", bool),
         ("write_eigenfunctions", bool),
         ("write_derived_eigenfunctions", bool),
         ("show_results", bool),

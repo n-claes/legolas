@@ -8,6 +8,7 @@ module mod_io_settings
     logical, public :: write_matrices
     logical, public :: write_eigenvectors
     logical, public :: write_residuals
+    logical, public :: write_background
     logical, public :: write_eigenfunctions
     logical, public :: write_derived_eigenfunctions
     logical, public :: write_ef_subset
@@ -42,6 +43,7 @@ contains
     io_settings%write_matrices = .false.
     io_settings%write_eigenvectors = .false.
     io_settings%write_residuals = .false.
+    io_settings%write_background = .true.
     io_settings%write_eigenfunctions = .true.
     io_settings%write_derived_eigenfunctions = .false.
     io_settings%write_ef_subset = .false.
