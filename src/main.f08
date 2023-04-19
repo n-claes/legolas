@@ -48,7 +48,10 @@ program legolas
   settings = new_settings()
 
   call timer%start_timer()
-  call initialisation()
+
+  call read_user_parfile()
+  call print_startup_info()
+
   grid = new_grid(settings)
   background = new_background()
   physics = new_physics(settings, background)
@@ -67,6 +70,7 @@ program legolas
 
   call logger%info("solving eigenvalue problem...")
   call timer%start_timer()
+  call do_eigenvalue_problem_allocations()
   call solve_evp(matrix_A, matrix_B, settings, omega, right_eigenvectors)
   timer%evp_time = timer%end_timer()
   call logger%info("done.")
@@ -101,22 +105,24 @@ program legolas
 
 contains
 
-  !> Subroutine responsible for all initialisations.
-  !! Allocates and initialises main and global variables, then the equilibrium state
-  !! and eigenfunctions are initialised and the equilibrium is set.
-  subroutine initialisation()
-    use mod_input, only: read_parfile, get_parfile
-    use mod_console, only: print_logo
-
-    character(len=5*str_len)  :: parfile
-    integer   :: nb_evs
-
+  subroutine read_user_parfile()
+    use mod_input, only: get_parfile, read_parfile
+    character(len=5*str_len) :: parfile
     call get_parfile(parfile)
     call read_parfile(parfile, settings)
+  end subroutine read_user_parfile
 
+
+  subroutine print_startup_info()
+    use mod_console, only: print_logo
     call print_logo()
     call logger%info("the physics type is " // settings%get_physics_type())
     call logger%info("the state vector is " // str(settings%get_state_vector()))
+  end subroutine print_startup_info
+
+
+  subroutine do_eigenvalue_problem_allocations()
+    integer :: nb_evs
 
     select case(settings%solvers%get_solver())
     case ("arnoldi")
@@ -126,7 +132,7 @@ contains
     case default
       nb_evs = settings%dims%get_dim_matrix()
     end select
-    call logger%debug("setting #eigenvalues to " // str(nb_evs))
+    call logger%debug("allocating eigenvalue array of size " // str(nb_evs))
     allocate(omega(nb_evs))
 
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
@@ -144,7 +150,7 @@ contains
       call logger%debug("allocating eigenvector arrays as dummy")
       allocate(right_eigenvectors(2, 2))
     end if
-  end subroutine initialisation
+  end subroutine do_eigenvalue_problem_allocations
 
 
   !> Initialises and calculates the eigenfunctions if requested.
@@ -158,16 +164,16 @@ contains
   !> Deallocates all main variables, then calls the cleanup
   !! routines of all relevant subroutines to do the same thing.
   subroutine cleanup()
-    call matrix_A%delete_matrix()
-    call matrix_B%delete_matrix()
     deallocate(omega)
     if (allocated(right_eigenvectors)) deallocate(right_eigenvectors)
 
-    call settings%delete()
+    call matrix_A%delete_matrix()
+    call matrix_B%delete_matrix()
+    call eigenfunctions%delete()
+    call physics%delete()
     call grid%delete()
     call background%delete()
-    call physics%delete()
-    call eigenfunctions%delete()
+    call settings%delete()
   end subroutine cleanup
 
 
