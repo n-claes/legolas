@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pylbo
 import pytest
-from pylbo.exceptions import EigenfunctionsNotPresent
+from pylbo.exceptions import BackgroundNotPresent, EigenfunctionsNotPresent
 from pylbo.utilities.toolbox import get_axis_geometry
 from pylbo.visualisation.spectra.spectrum_single import SingleSpectrumPlot
 
@@ -125,6 +125,12 @@ def test_spectrum_plot_figlabel(ds_v112):
     assert p.figure_id == "testfig"
 
 
+def test_spectrum_plot_nobg_continua(ds_v200_tear_nobg):
+    p = pylbo.plot_spectrum(ds_v200_tear_nobg)
+    p.add_continua()
+    assert getattr(p, "c_handler") is None
+
+
 def test_multispectrum_plot_invalid_data(ds_v112):
     with pytest.raises(TypeError):
         pylbo.plot_spectrum_multi(ds_v112, xdata="k2")
@@ -239,6 +245,12 @@ def test_multispectrum_plot_eigenfunctions_notpresent(series_v100):
         p.add_eigenfunctions()
 
 
+def test_multispectrum_plot_nobg_continua(series_v200_nobg):
+    p = pylbo.plot_spectrum_multi(series_v200_nobg, xdata="k3")
+    p.add_continua()
+    assert getattr(p, "c_handler") is None
+
+
 def test_merged_plot(series_v112):
     p = pylbo.plot_merged_spectrum(series_v112)
     p.draw()
@@ -326,3 +338,17 @@ def test_comparison_plot_eigenfunctions(ds_v112):
     assert get_axis_geometry(p.panel2.ax) == (2, 1, 0)
     assert get_axis_geometry(p.panel2.ef_ax) == (2, 1, 1)
     assert len(p.fig.get_axes()) == 4
+
+
+def test_2d_visualisation_no_bg(ds_v200_tear_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        pylbo.plot_2d_slice(
+            ds_v200_tear_nobg,
+            omega=0.1,
+            ef_name="rho",
+            u2=np.linspace(0, 1, 20),
+            u3=0.5,
+            time=0,
+            slicing_axis="z",
+            add_background=True,
+        )
