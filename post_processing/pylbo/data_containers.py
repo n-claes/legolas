@@ -348,13 +348,13 @@ class LegolasDataSet(LegolasDataContainer):
             or a float corresponding to the value of `which_values` if provided.
             Returns `None` if the geometry is not cylindrical.
         """
+        if not self.has_background:
+            raise BackgroundNotPresent(self.datfile, "get tube speed")
         if not self.geometry == "cylindrical":
             pylboLogger.warning(
                 "geometry is not cylindrical, unable to calculate tube speed"
             )
             return None
-        if not self.has_background:
-            raise BackgroundNotPresent(self.datfile, "get tube speed")
         cA = self.get_alfven_speed()
         cs = self.get_sound_speed()
         ct = cs * cA / np.sqrt(cs**2 + cA**2)
@@ -732,7 +732,10 @@ class LegolasDataSeries(LegolasDataContainer):
         Returns the continua. Each key corresponds to a multiple Numpy arrays,
         one for each dataset.
         """
-        keys = self[0].continua.keys()
+        continua = self[0].continua
+        if continua is None:
+            return np.array([None] * len(self), dtype=object)
+        keys = continua.keys()
         _continua = {key: [] for key in keys}
         for ds in self:
             for key in keys:
