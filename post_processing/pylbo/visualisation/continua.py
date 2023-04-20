@@ -35,9 +35,13 @@ def calculate_continua(ds):
 
     Returns
     -------
-    continua : dict
-        Dictonary containing the various continua as numpy arrays.
+    continua : dict, None
+        Dictonary containing the various continua as numpy arrays. If the
+        dataset does not contain a background, `None` is returned.
     """
+    if not ds.has_background:
+        return None
+
     rho = ds.equilibria["rho0"]
     B02 = ds.equilibria["B02"]
     B03 = ds.equilibria["B03"]

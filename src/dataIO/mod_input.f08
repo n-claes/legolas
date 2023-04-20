@@ -90,7 +90,7 @@ contains
     integer :: iostat
     character(str_len) :: iomsg
 
-    logical :: write_matrices, write_eigenvectors, write_residuals
+    logical :: write_matrices, write_eigenvectors, write_residuals, write_background
     logical :: write_eigenfunctions, write_derived_eigenfunctions
     logical :: write_eigenfunction_subset
     logical :: show_results
@@ -100,8 +100,8 @@ contains
     character(len=str_len) :: basename_datfile, output_folder
 
     namelist /savelist/ &
-      write_matrices, write_eigenvectors, write_residuals, write_eigenfunctions, &
-      write_derived_eigenfunctions, write_eigenfunction_subset, &
+      write_matrices, write_eigenvectors, write_residuals, write_background, &
+      write_eigenfunctions, write_derived_eigenfunctions, write_eigenfunction_subset, &
       show_results, basename_datfile, output_folder, logging_level, &
       eigenfunction_subset_radius, eigenfunction_subset_center
 
@@ -109,6 +109,7 @@ contains
     write_matrices = settings%io%write_matrices
     write_eigenvectors = settings%io%write_eigenvectors
     write_residuals = settings%io%write_residuals
+    write_background = settings%io%write_background
     write_eigenfunctions = settings%io%write_eigenfunctions
     write_derived_eigenfunctions = settings%io%write_derived_eigenfunctions
     write_eigenfunction_subset = settings%io%write_ef_subset
@@ -127,6 +128,7 @@ contains
     settings%io%write_matrices = write_matrices
     settings%io%write_eigenvectors = write_eigenvectors
     settings%io%write_residuals = write_residuals
+    settings%io%write_background = write_background
     settings%io%write_eigenfunctions = write_eigenfunctions
     settings%io%write_derived_eigenfunctions = write_derived_eigenfunctions
     settings%io%write_ef_subset = write_eigenfunction_subset

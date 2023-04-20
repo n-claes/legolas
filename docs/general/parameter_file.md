@@ -130,6 +130,7 @@ The level of output is controlled through the integer `logging_level`:
 | write_matrices | logical | whether to write the matrices to the datfile | `.false.` |
 | write_eigenvectors | logical | whether to write the eigenvectors to the datfile | `.false.` |
 | write_residuals | logial | whether to write the residuals to the datfile | `.false.` |
+| write_background | logical | whether to write the background to the datfile | `.true.` |
 | write_eigenfunctions | logical | whether to write the eigenfunctions to the datfile | `.true.` |
 | write_derived_eigenfunctions | logical | whether to write the derived eigenfunctions to the datfile | `.false.` |
 | write_eigenfunction_subset | logical | if `.true.` only writes eigenfunctions for eigenvalues inside a given radius around a point in the complex plane | `.false.` |

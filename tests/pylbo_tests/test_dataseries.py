@@ -1,5 +1,7 @@
 import numpy as np
+import pytest
 from pylbo.data_containers import LegolasDataSeries, LegolasDataSet
+from pylbo.exceptions import BackgroundNotPresent
 
 
 def test_series_iterable(series_v112):
@@ -119,3 +121,28 @@ def test_series_get_parameters(series_v112):
     for value in params.values():
         assert isinstance(value, np.ndarray)
         assert len(value) == len(series_v112)
+
+
+def test_series_no_bg(series_v200_nobg):
+    assert not any(series_v200_nobg.has_background)
+
+
+def test_series_nobg_continua(series_v200_nobg):
+    continua = series_v200_nobg.continua
+    assert isinstance(continua, np.ndarray)
+    assert all(val is None for val in continua)
+
+
+def test_series_nobg_soundspeed(series_v200_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        series_v200_nobg.get_sound_speed()
+
+
+def test_series_nobg_alfven_speed(series_v200_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        series_v200_nobg.get_alfven_speed()
+
+
+def test_series_nobg_tube_speed(series_v200_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        series_v200_nobg.get_tube_speed()

@@ -271,14 +271,19 @@ contains
     call logger%info("            << DataIO settings >>")
     call logger%info("datfile name         : " // settings%io%get_basename_datfile())
     call logger%info("output folder        : " // settings%io%get_output_folder())
+    call logger%info("write background     : " // str(settings%io%write_background))
     call logger%info("write matrices       : " // str(settings%io%write_matrices))
-    call logger%info("write eigenvectors   : " // str(settings%io%write_eigenvectors))
-    call logger%info("write residuals      : " // str(settings%io%write_residuals))
     call logger%info("write eigenfunctions : " // str(settings%io%write_eigenfunctions))
     call logger%info( &
       "write derived eigenfunctions : " &
       // str(settings%io%write_derived_eigenfunctions) &
     )
+    if (settings%io%write_eigenvectors) then
+      call logger%info("write eigenvectors   : " // str(settings%io%write_eigenvectors))
+    end if
+    if (settings%io%write_residuals) then
+      call logger%info("write residuals      : " // str(settings%io%write_residuals))
+    end if
     if (.not. settings%io%write_ef_subset) return
     call logger%info( &
       "write eigenfunction subset : " // str(settings%io%write_ef_subset) &

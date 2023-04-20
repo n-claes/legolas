@@ -89,6 +89,8 @@ class SingleSpectrumPlot(SpectrumFigure):
         c_handler : ~pylbo.continua.ContinuaHandler
             The legendhandler used to plot the continua.
         """
+        if not self.has_valid_continua(self.dataset):
+            return
         if self._c_handler is None:
             self._c_handler = ContinuaHandler(interactive=interactive)
 

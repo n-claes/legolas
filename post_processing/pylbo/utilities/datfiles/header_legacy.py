@@ -205,3 +205,4 @@ class LegolasLegacyHeader(LegolasHeader):
             "dim_quadblock": 2 * 8 * 2,
             "dim_matrix": self.data["gridpoints"] * 8 * 2,
         }
+        self.data["has_background"] = True
