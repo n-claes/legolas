@@ -1,12 +1,34 @@
 cmake_minimum_required(VERSION 3.2)
 project(Legolas)
-set(VERSION 1.0)
+set(VERSION 2.0)
 enable_language(Fortran)
 
 option(Debug "Debug" OFF)
 option(Coverage "Coverage" OFF)
 
 get_filename_component(Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
+if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
+    # require at least gfortran 9
+    if (CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 9)
+        message(
+            WARNING
+            "Your gfortran version is ${CMAKE_Fortran_COMPILER_VERSION}, which is below"
+            " the minimum recommended version of 9.0. It is HIGHLY recommended to"
+            " update your compilers. If you decide to continue with outdated compiler"
+            " versions, note that while the compilation of Legolas may be succesful,"
+            " it may give rise to unexpected results. Proceed with caution."
+        )
+    endif()
+else()
+    message(
+        WARNING
+        "Compilation has only been tested with gfortran."
+        " You are using ${CMAKE_Fortran_COMPILER_ID} ${Fortran_COMPILER_NAME}"
+        " version ${CMAKE_Fortran_COMPILER_VERSION}. Please report unexpected"
+        " results to the developers."
+    )
+endif()
+
 if (${Coverage})
     message(STATUS "====================")
     message(STATUS "Building with code coverage enabled.")
