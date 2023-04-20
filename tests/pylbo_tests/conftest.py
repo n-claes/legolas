@@ -201,6 +201,12 @@ def ds_v200_mri_efs():
 
 
 @pytest.mark.timeout(5)
+@pytest.fixture(scope="session")
+def ds_v200_tear_nobg():
+    return pylbo.load(utils / "v2.0.0_tear_nobg.dat")
+
+
+@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v100():
     return pylbo.load_series([utils / "v1_datfile_matrices.dat"] * 3)
@@ -216,3 +222,9 @@ def series_v112():
 @pytest.fixture
 def series_v112_eta():
     return pylbo.load_series([utils / "v1.1.2_datfile_eta.dat"] * 5)
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture
+def series_v200_nobg():
+    return pylbo.load_series([utils / "v2.0.0_tear_nobg.dat"] * 7)

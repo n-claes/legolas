@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from pylbo.exceptions import MatricesNotPresent
+from pylbo.exceptions import BackgroundNotPresent, MatricesNotPresent
 
 ds_v112_ev_guess = -0.14360602 + 0.00688731j
 ds_v112_ev_idx = 158
@@ -187,3 +187,39 @@ def test_ds_get_parameters(ds_v112):
     assert isinstance(params, dict)
     for value in params.values():
         assert np.isscalar(value)
+
+
+def test_ds_nobg_empty_equilibria_dict(ds_v200_tear_nobg):
+    bg = ds_v200_tear_nobg.equilibria
+    assert not ds_v200_tear_nobg.has_background
+    assert isinstance(bg, dict)
+    assert not bg
+
+
+def test_ds_nobg_continua(ds_v200_tear_nobg):
+    assert ds_v200_tear_nobg.continua is None
+
+
+def test_ds_nobg_soundspeed(ds_v200_tear_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        ds_v200_tear_nobg.get_sound_speed()
+
+
+def test_ds_nobg_alfvenspeed(ds_v200_tear_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        ds_v200_tear_nobg.get_alfven_speed()
+
+
+def test_ds_nobg_tube_speed(ds_v200_tear_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        ds_v200_tear_nobg.get_tube_speed()
+
+
+def test_ds_nobg_reynolds(ds_v200_tear_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        ds_v200_tear_nobg.get_reynolds_nb()
+
+
+def test_ds_nobg_magnetic_reynolds(ds_v200_tear_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        ds_v200_tear_nobg.get_magnetic_reynolds_nb()
