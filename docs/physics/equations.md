@@ -84,6 +84,26 @@ The function $\HH(\rho, T)$ specifies the heating function. If thermal balance i
 constant in time but possibly varying in space and as such that it balances out the cooling contribution to ensure thermal equilibrium. $\HH(\rho, T)$ can be user-specified, in which case its density and
 temperature derivatives should be provided as well.
 
+#### Cooling curves
+At the moment 8 tabulated cooling curves are implemented, along with 1 analytical cooling curve. The list below gives an overview of the cooling curves that are available, along with their references.
+
+| Name    		 		| Notes   | Approximate $\log_{10}(T)$ range | Reference     |
+| :---         		| :---    | :---: 		|   :---  		 |
+| `rosner`     		| Analytical cooling curve | $3.891 - 7.605$ | [Rosner et al. (1978)](https://ui.adsabs.harvard.edu/abs/1978ApJ...220..643R/abstract) |
+| `jc_corona` 	  | Cooling curve for coronal conditions | $4.000 - 7.954$ | [Colgan et al. (2008)](https://ui.adsabs.harvard.edu/abs/2008ApJ...689..585C/abstract) |
+| `dalgarno`   	  | Cooling curve for low temperatures | $2.000 - 9.000$ | [Dalgarno & McCray (1972)](https://ui.adsabs.harvard.edu/abs/1972ARA%26A..10..375D/abstract) |
+| `dalgarno2` 		| Cooling curve for very low temperatures | $1.000 - 4.000$ | [Dalgarno & McCray (1972)](https://ui.adsabs.harvard.edu/abs/1972ARA%26A..10..375D/abstract) |
+| `ml_solar`  		| Cooling curve for solar abundances | $2.000 - 9.000$ | [Mellema & Lundqvist (2002)](https://ui.adsabs.harvard.edu/abs/2002A%26A...394..901M/abstract) |
+| `spex`			 		| Cooling curve for solar abundances | $3.800 - 8.160$ | [Schure et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009A%26A...508..751S/abstract) |
+| `spex_dalgarno` | `spex` supplemented with `dalgarno` for lower temperatures | $2.000 - 8.160$ | - |
+| `colgan`     		| The original cooling curve | $4.065 - 9.065$ | [Colgan & Feldman (2008)](https://ui.adsabs.harvard.edu/abs/2008ApJ...689..585C/abstract) |
+| `colgan_dm`  		| `colgan` supplemented with `dalgarno2` for lower temperatures | $1.000 - 9.065$ | - |
+
+All cooling curves are interpolated at high resolution using a local second order polynomial and then sampled on the grid, with the exception of the analytical curves.
+Note that all tabulated cooling curves are extended to higher temperatures (i.e. outside of their tabulated range) by assuming pure Brehmsstrahlung ($\Lambda(T) \sim \sqrt{T}$). For temperatures
+below the tabulated range the cooling is set to zero.
+
+
 ### Thermal conduction
 The thermal conduction prescription relies on a tensor representation to model the anisotropy in MHD and is given by
 
