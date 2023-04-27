@@ -114,7 +114,11 @@ jobs:
           cmake -DCoverage=ON ..
           make -j 2
           cd ..
-          ./test_legolas
+          # ensure failures are caught, pFUnit sometimes silently fails?
+          ./test_legolas | tee test_legolas.log
+          if grep -q "FAILURES" test_legolas.log; then
+            exit 1
+          fi
         elif [[ "${{ matrix.name }}" == "regression" ]]; then
           cd $LEGOLASDIR/tests/regression_tests
           pytest
