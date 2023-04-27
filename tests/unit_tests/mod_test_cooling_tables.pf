@@ -6,8 +6,10 @@ module mod_test_cooling_tables
 
   use mod_data_jccorona
   use mod_data_dalgarno
+  use mod_data_dalgarno2
   use mod_data_mlsolar
   use mod_data_spex
+  use mod_data_colgan
 
   implicit none
 
@@ -143,6 +145,22 @@ contains
   end function get_spex_dm_L_table
 
 
+  function get_colgan_dm_T_table()  result(Ttable)
+    real(dp), allocatable :: Ttable(:)
+    real(dp), allocatable :: dummy(:)
+    call get_cooling_table("colgan_dm", Ttable, dummy)
+    deallocate(dummy)
+  end function get_colgan_dm_T_table
+
+
+  function get_colgan_dm_L_table()  result(Ltable)
+    real(dp), allocatable :: Ltable(:)
+    real(dp), allocatable :: dummy(:)
+    call get_cooling_table("colgan_dm", dummy, Ltable)
+    deallocate(dummy)
+  end function get_colgan_dm_L_table
+
+
   @test
   subroutine test_cooling_curve_unknown()
     call set_name("cooling curve: unknown")
@@ -235,6 +253,47 @@ contains
 
 
   @test
+  subroutine test_cooling_curve_dalgarno2_below()
+    call set_name("cooling curve: dalgarno2 (below Tmin)")
+    call set_cooling_curve("dalgarno2")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(1.0d0, 9.5d0, 100) / unit_temperature
+    expected = 0.0_dp
+    actual = get_dLdT()
+    @assertEqual(expected, actual, tolerance=TOL)
+    actual = get_dLdrho()
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_cooling_curve_dalgarno2_below
+
+
+  @test
+  subroutine test_cooling_curve_dalgarno2_above()
+    call set_name("cooling curve: dalgarno2 (above Tmax)")
+    call set_cooling_curve("dalgarno2")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(1.1d9, 1.0d10, 100) / unit_temperature
+    expected = get_brehmstrahlung_lambda(T0vals, logT_dalgarno2, logL_dalgarno2)
+    actual = get_dLdrho()
+    @assertEqual(expected, actual, tolerance=TOL)
+    expected = get_brehmstrahlung_dlambda(T0vals, logT_dalgarno2, logL_dalgarno2)
+    actual = get_dLdT()
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_cooling_curve_dalgarno2_above
+
+
+  @test
+  subroutine test_cooling_curve_dalgarno2()
+    call set_name("cooling curve: dalgarno2")
+    call set_cooling_curve("dalgarno2")
+    call allocate_arrays(pts=41)
+    T0vals = 10.0d0 ** logT_dalgarno2(20:60) / unit_temperature
+    expected = 10.0d0 ** logL_dalgarno2(20:60) / unit_lambdaT
+    actual = get_actual(physics%heatloss%cooling%lambdaT)
+    @assertEqual(expected, actual, tolerance=2.0d-1)
+  end subroutine test_cooling_curve_dalgarno2
+
+
+  @test
   subroutine test_cooling_curve_ml_solar_below()
     call set_name("cooling curve: ml_solar (below Tmin)")
     call set_cooling_curve("ml_solar")
@@ -322,6 +381,7 @@ contains
     call set_cooling_curve("spex_dalgarno")
     call allocate_arrays(pts=100)
     T0vals = linspace(1.0d0, 9.5d0, 100) / unit_temperature
+    expected = 0.0_dp
     actual = get_dLdT()
     @assertEqual(expected, actual, tolerance=TOL)
     actual = get_dLdrho()
@@ -362,5 +422,95 @@ contains
     actual = get_actual(physics%heatloss%cooling%lambdaT)
     @assertEqual(expected, actual, tolerance=2.0d-1)
   end subroutine test_cooling_curve_spex_dalgarno
+
+
+  @test
+  subroutine test_cooling_curve_colgan_below()
+    call set_name("cooling curve: colgan (below Tmin)")
+    call set_cooling_curve("colgan")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(1.0d0, 95.0d0, 100) / unit_temperature
+    expected = 0.0_dp
+    actual = get_dLdT()
+    @assertEqual(expected, actual, tolerance=TOL)
+    actual = get_dLdrho()
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_cooling_curve_colgan_below
+
+
+  @test
+  subroutine test_cooling_curve_colgan_above()
+    call set_name("cooling curve: colgan (above Tmax)")
+    call set_cooling_curve("colgan")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(2.0d9, 1.0d10, 100) / unit_temperature
+    expected = get_brehmstrahlung_lambda(T0vals, logT_colgan, logL_colgan)
+    actual = get_dLdrho()
+    @assertEqual(expected, actual, tolerance=TOL)
+    expected = get_brehmstrahlung_dlambda(T0vals, logT_colgan, logL_colgan)
+    actual = get_dLdT()
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_cooling_curve_colgan_above
+
+
+  @test
+  subroutine test_cooling_curve_colgan()
+    call set_name("cooling curve: colgan")
+    call set_cooling_curve("colgan")
+    call allocate_arrays(pts=41)
+    T0vals = 10.0d0 ** logT_colgan(10:50) / unit_temperature
+    expected = 10.0d0 ** logL_colgan(10:50) / unit_lambdaT
+    actual = get_actual(physics%heatloss%cooling%lambdaT)
+    @assertEqual(expected, actual, tolerance=2.0d-1)
+  end subroutine test_cooling_curve_colgan
+
+
+  @test
+  subroutine test_cooling_curve_colgan_dm_below()
+    call set_name("cooling curve: colgan_dm (below Tmin)")
+    call set_cooling_curve("colgan_dm")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(1.0d0, 9.5d0, 100) / unit_temperature
+    expected = 0.0_dp
+    actual = get_dLdT()
+    @assertEqual(expected, actual, tolerance=TOL)
+    actual = get_dLdrho()
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_cooling_curve_colgan_dm_below
+
+
+  @test
+  subroutine test_cooling_curve_colgan_dm_above()
+    call set_name("cooling curve: colgan_dm (above Tmax)")
+    call set_cooling_curve("colgan_dm")
+    call allocate_arrays(pts=100)
+    T0vals = linspace(2.0d9, 1.0d10, 100) / unit_temperature
+    expected = get_brehmstrahlung_lambda( &
+      T0vals, get_colgan_dm_T_table(), get_colgan_dm_L_table() &
+    )
+    actual = get_dLdrho()
+    @assertEqual(expected, actual, tolerance=TOL)
+    expected = get_brehmstrahlung_dlambda( &
+      T0vals, get_colgan_dm_T_table(), get_colgan_dm_L_table() &
+    )
+    actual = get_dLdT()
+    @assertEqual(expected, actual, tolerance=TOL)
+  end subroutine test_cooling_curve_colgan_dm_above
+
+
+  @test
+  subroutine test_cooling_curve_colgan_dm()
+    real(dp), allocatable :: colgan_dm_T_table(:)
+    real(dp), allocatable :: colgan_dm_L_table(:)
+
+    call set_name("cooling curve: colgan_dm")
+    call set_cooling_curve("colgan_dm")
+    call allocate_arrays(pts=91)
+    call get_cooling_table("colgan_dm", colgan_dm_T_table, colgan_dm_L_table)
+    T0vals = 10.0d0 ** colgan_dm_T_table(30:120) / unit_temperature
+    expected = 10.0_dp ** colgan_dm_L_table(30:120) / unit_lambdaT
+    actual = get_actual(physics%heatloss%cooling%lambdaT)
+    @assertEqual(expected, actual, tolerance=3.5d-1)
+  end subroutine test_cooling_curve_colgan_dm
 
 end module mod_test_cooling_tables

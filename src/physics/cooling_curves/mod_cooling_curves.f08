@@ -215,11 +215,13 @@ contains
   subroutine get_cooling_table(name, table_T, table_lambda)
     use mod_cooling_curve_names
     use mod_data_dalgarno
+    use mod_data_dalgarno2
     use mod_data_jccorona
     use mod_data_mlsolar
     use mod_data_rosner
     use mod_data_spex
     use mod_data_spex_enh
+    use mod_data_colgan
 
     character(len=*), intent(in) :: name
     real(dp), intent(out), allocatable :: table_T(:)
@@ -235,6 +237,10 @@ contains
       table_n = n_dalgarno
       table_T = logT_dalgarno
       table_lambda = logL_dalgarno
+    case(DALGARNO2)
+      table_n = n_dalgarno2
+      table_T = logT_dalgarno2
+      table_lambda = logL_dalgarno2
     case(ML_SOLAR)
       table_n = n_mlsolar
       table_T = logT_mlsolar
@@ -257,6 +263,18 @@ contains
       table_lambda(n_spex_enh_dalgarno:) = ( &
         logL_spex(6:n_spex) + log10(L_spex_enh(6:n_spex)) &
       )
+    case(COLGAN)
+      table_n = n_colgan
+      table_T = logT_colgan
+      table_lambda = logL_colgan
+    case(COLGAN_DM)
+      table_n = n_colgan + n_dalgarno2
+      allocate(table_T(table_n))
+      allocate(table_lambda(table_n))
+      table_T(1:n_dalgarno2) = logT_dalgarno2(1:n_dalgarno2)
+      table_T(n_dalgarno2+1:) = logT_colgan(1:n_colgan)
+      table_lambda(1:n_dalgarno2) = logL_dalgarno2(1:n_dalgarno2)
+      table_lambda(n_dalgarno2+1:) = logL_colgan(1:n_colgan)
     end select
   end subroutine get_cooling_table
 
