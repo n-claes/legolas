@@ -54,7 +54,9 @@ contains
     call read_parfile("test_parfiles/parfile_dryrun.par", settings)
     @assertEqual("none", settings%solvers%get_solver())
     @assertFalse(settings%io%write_eigenfunctions)
-    @assertFalse(settings%io%write_matrices)
+    @assertFalse(settings%io%write_derived_eigenfunctions)
+    @assertFalse(settings%io%write_residuals)
+    @assertTrue(settings%io%write_matrices)
   end subroutine test_parfile_dryrun
 
 
