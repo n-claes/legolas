@@ -13,10 +13,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [unit-tests]
         os: [ubuntu-latest]
-        compiler: [gfortran-11]
-        coverage: [true]
+        compiler: [gfortran-9, gfortran-10, gfortran-12]
+        coverage: [false]
+        include:
+          - os: ubuntu-latest
+            compiler: gfortran-11
+            coverage: true
 
     env:
       FC: ${{ matrix.compiler }}
@@ -24,7 +27,7 @@ jobs:
       LEGOLASDIR: /home/runner/work/legolas/legolas
       ARPACK_ROOT: /home/runner/work/legolas/legolas/tests/arpack-ng
 
-    name: ${{ matrix.name }}
+    name: unit-tests / ${{ matrix.os }} / ${{ matrix.compiler }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.9
@@ -60,7 +63,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: tests/pFUnit/
-        key: ${{ runner.os }}-pfunitv2
+        key: ${{ runner.os }}-${{ matrix.compiler }}-pfunitv1
 
     - name: Build pFUnit
       if: steps.pfunit-cache.outputs.cache-hit != 'true'
@@ -79,7 +82,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: tests/arpack-ng/
-        key: ${{ runner.os }}-arpackv3
+        key: ${{ runner.os }}-${{ matrix.compiler }}-arpackv1
 
     - name: Build ARPACK
       if: steps.arpack-cache.outputs.cache-hit != 'true'
@@ -125,7 +128,7 @@ jobs:
         mkdir coverage
         cd coverage
         lcov --capture --directory $LEGOLASDIR/build \
-            --output-file ${{ matrix.name }}.info \
+            --output-file unit-tests-${{ matrix.compiler }}.info \
             --gcov-tool /usr/bin/gcov-11
         # filter out coverage files
         find $LEGOLASDIR/build -name '*.gc*' -delete
@@ -141,5 +144,5 @@ jobs:
       uses: codecov/codecov-action@v1
       if: ${{ matrix.coverage }}
       with:
-        files: ./coverage/${{ matrix.name }}.info
+        files: ./coverage/unit-tests-${{ matrix.compiler }}.info
         flags: legolas
