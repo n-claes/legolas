@@ -13,14 +13,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [unit-tests, regression]
+        name: [regression]
         os: [ubuntu-latest]
         compiler: [gfortran-11]
         coverage: [true]
 
     env:
       FC: ${{ matrix.compiler }}
-      PFUNIT_DIR: /home/runner/work/legolas/legolas/tests/pFUnit/build/installed
       LEGOLASDIR: /home/runner/work/legolas/legolas
       ARPACK_ROOT: /home/runner/work/legolas/legolas/tests/arpack-ng
 
@@ -55,25 +54,6 @@ jobs:
         cd post_processing
         python setup.py develop
 
-    - name: Cache pFUnit
-      id: pfunit-cache
-      uses: actions/cache@v1
-      with:
-        path: tests/pFUnit/
-        key: ${{ runner.os }}-pfunitv2
-
-    - name: Build pFUnit
-      if: steps.pfunit-cache.outputs.cache-hit != 'true'
-      run: |
-        cd tests/
-        git clone https://github.com/Goddard-Fortran-Ecosystem/pFUnit.git
-        cd pFUnit
-        mkdir build
-        cd build
-        cmake .. -DSKIP_MPI=YES -DSKIP_OPENMP=YES -DSKIP_FHAMCREST=YES
-        make -j 2 tests
-        make -j 2 install
-
     - name: Cache ARPACK
       id: arpack-cache
       uses: actions/cache@v1
@@ -107,22 +87,8 @@ jobs:
 
     - name: Run tests
       run: |
-        if [[ "${{ matrix.name }}" == "unit-tests" ]]; then
-          cd $LEGOLASDIR/tests/unit_tests
-          mkdir build
-          cd build
-          cmake -DCoverage=ON ..
-          make -j 2
-          cd ..
-          # ensure failures are caught, pFUnit sometimes silently fails?
-          ./test_legolas | tee test_legolas.log
-          if grep -q "FAILURES" test_legolas.log; then
-            exit 1
-          fi
-        elif [[ "${{ matrix.name }}" == "regression" ]]; then
-          cd $LEGOLASDIR/tests/regression_tests
-          pytest
-        fi
+        cd $LEGOLASDIR/tests/regression_tests
+        pytest
 
     - name: Generate coverage report
       if: ${{ matrix.coverage }}
