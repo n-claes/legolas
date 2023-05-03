@@ -65,14 +65,18 @@ contains
     allocate(yvalues(nbpoints), xivalues(nbpoints))
     xivalues(1) = xi
     yvalues(1) = yi
-    do i = 2, nbpoints
+    do i = 2, nbpoints - 1
       call rk45(xi, dh, ax_func, bx_func, yi, ysolrk4, ysolrk5)
       yi = ysolrk5
       xi = xi + dh
       yvalues(i) = yi
       xivalues(i) = xi
     end do
-
+    ! final step, do outside loop to ensure dh ends up at x1 (rounding errors)
+    dh = x1 - xi
+    call rk45(xi, dh, ax_func, bx_func, yi, ysolrk4, ysolrk5)
+    yvalues(nbpoints) = ysolrk5
+    xivalues(nbpoints) = x1
     if (present(xvalues)) xvalues = xivalues
     deallocate(xivalues)
   end subroutine integrate_ode_rk45
