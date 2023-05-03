@@ -5,4 +5,5 @@
 &savelist
   write_matrices = .true.
   write_eigenfunctions = .true.
+  write_derived_eigenfunctions = .true.
 /

@@ -172,6 +172,7 @@ contains
       call logger%error( &
         "Arnoldi: number of eigenvalues must be >= 0 but got " // str(nev) &
       )
+      this%nev = 0
       return
     end if
     if (nev >= this%evpdim) then
@@ -179,6 +180,7 @@ contains
         "Arnoldi: number of eigenvalues (" // str(nev) &
         // ") >= " // "matrix size (" // str(this%evpdim) // ")" &
       )
+      this%nev = 0
       return
     end if
     this%nev = nev
