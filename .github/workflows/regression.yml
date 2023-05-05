@@ -1,4 +1,4 @@
-name: legolas
+name: regression
 
 on:
   push:

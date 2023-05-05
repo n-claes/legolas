@@ -1,4 +1,4 @@
-name: legolas
+name: unit tests
 
 on:
   push:
