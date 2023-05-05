@@ -173,6 +173,13 @@ contains
 
     grid_start = this%settings%grid%get_grid_start()
     grid_end = this%settings%grid%get_grid_end()
+    if (grid_start > grid_end) then
+      call logger%error( &
+        "grid generation: grid start = " // str(grid_start) &
+        // " > grid end = " // str(grid_end) &
+      )
+      return
+    end if
     allocate(xbar(pts))
     xbar(1) = grid_start
     do i = 2, pts
