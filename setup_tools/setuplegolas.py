@@ -8,7 +8,7 @@ from pathlib import Path
 
 try:
     LEGOLASDIR = os.environ["LEGOLASDIR"]
-except KeyError as e:
+except KeyError:
     print(
         "The environment variable $LEGOLASDIR has not been set! Set it with: \n"
         "export $LEGOLASDIR=path_to_legolas"
@@ -75,16 +75,11 @@ def main():
 
     # check user-defined submodule
     usr_mod_filepath = (Path(os.getcwd()) / "smod_user_defined.f08").resolve()
-    if not usr_mod_filepath.exists():
-        answer = input(
-            ">> No user-defined submodule found, copy default template? [y/n] "
-        ).lower()
-        if answer in ("yes", "y"):
-            copy_file("smod_user_defined.f08", location="src/equilibria")
-        else:
-            print(">> Submodule not copied, using default in Legolas src directory.")
-            # at this point we're done, and won't use the submodule
-            complete_setup()
+    if usr_mod_filepath.exists():
+        print(">> User-defined submodule found.")
+    else:
+        print(">> No user-defined submodule found, using default template.")
+        copy_file("smod_user_defined.f08", location="src/equilibria")
 
     # if user-defined submodule is present, we have to tell CMake to use THIS one
     cmakefile = "CMakeLists.txt"

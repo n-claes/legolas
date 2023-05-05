@@ -1,5 +1,7 @@
 import numpy as np
-from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
+import pytest
+from pylbo.data_containers import LegolasDataSeries, LegolasDataSet
+from pylbo.exceptions import BackgroundNotPresent
 
 
 def test_series_iterable(series_v112):
@@ -21,17 +23,17 @@ def test_series_getslice(series_v112):
 
 
 def test_series_efs_none(series_v100):
-    assert isinstance(series_v100.efs_written, np.ndarray)
-    assert not np.all(series_v100.efs_written)
+    assert isinstance(series_v100.has_efs, np.ndarray)
+    assert not np.all(series_v100.has_efs)
 
 
-def test_series_efs_written(series_v112):
-    assert isinstance(series_v112.efs_written, np.ndarray)
-    assert np.all(series_v112.efs_written)
+def test_series_has_efs(series_v112):
+    assert isinstance(series_v112.has_efs, np.ndarray)
+    assert np.all(series_v112.has_efs)
 
 
 def test_series_ef_names_not_present(series_v100):
-    assert series_v100.ef_names is None
+    assert np.all(series_v100.ef_names) is None
 
 
 def test_series_ef_names(series_v112):
@@ -119,3 +121,28 @@ def test_series_get_parameters(series_v112):
     for value in params.values():
         assert isinstance(value, np.ndarray)
         assert len(value) == len(series_v112)
+
+
+def test_series_no_bg(series_v200_nobg):
+    assert not any(series_v200_nobg.has_background)
+
+
+def test_series_nobg_continua(series_v200_nobg):
+    continua = series_v200_nobg.continua
+    assert isinstance(continua, np.ndarray)
+    assert all(val is None for val in continua)
+
+
+def test_series_nobg_soundspeed(series_v200_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        series_v200_nobg.get_sound_speed()
+
+
+def test_series_nobg_alfven_speed(series_v200_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        series_v200_nobg.get_alfven_speed()
+
+
+def test_series_nobg_tube_speed(series_v200_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        series_v200_nobg.get_tube_speed()

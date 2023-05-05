@@ -1,0 +1,116 @@
+name: legolas
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [regression]
+        os: [ubuntu-latest]
+        compiler: [gfortran-11]
+        coverage: [true]
+
+    env:
+      FC: ${{ matrix.compiler }}
+      LEGOLASDIR: /home/runner/work/legolas/legolas
+      ARPACK_ROOT: /home/runner/work/legolas/legolas/tests/arpack-ng
+
+    name: ${{ matrix.name }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+
+    - name: Install cmake
+      uses: jwlawson/actions-setup-cmake@v1.13.0
+      with:
+        cmake-version: "3.24.x"
+
+    - name: Install Legolas dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install ${{ matrix.compiler }}
+        sudo apt-get install libblas-dev
+        sudo apt-get install liblapack-dev
+        sudo apt-get install lcov
+        ${FC} --version
+        cmake --version
+        gcov --version
+
+    - name: Install Python dependencies & Pylbo
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest numpy matplotlib f90nml tqdm psutil pytest-mpl
+        cd post_processing
+        python setup.py develop
+
+    - name: Cache ARPACK
+      id: arpack-cache
+      uses: actions/cache@v1
+      with:
+        path: tests/arpack-ng/
+        key: ${{ runner.os }}-arpackv3
+
+    - name: Build ARPACK
+      if: steps.arpack-cache.outputs.cache-hit != 'true'
+      run: |
+        cd tests
+        git clone https://github.com/opencollab/arpack-ng.git
+        cd arpack-ng
+        mkdir build
+        mkdir installed
+        cd build
+        cmake -DEXAMPLES=OFF -DMPI=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=../installed ..
+        make -j 2
+        sudo make -j 2 install
+
+    - name: Compile Legolas
+      run: |
+        mkdir build
+        cd build
+        if [[ "${{ matrix.coverage }}" ]]; then
+          cmake -DCoverage=ON ..
+        else
+          cmake -DDebug=ON ..
+        fi
+        make -j 2
+
+    - name: Run tests
+      run: |
+        cd $LEGOLASDIR/tests/regression_tests
+        pytest
+
+    - name: Generate coverage report
+      if: ${{ matrix.coverage }}
+      run: |
+        mkdir coverage
+        cd coverage
+        lcov --capture --directory $LEGOLASDIR/build \
+            --output-file ${{ matrix.name }}.info \
+            --gcov-tool /usr/bin/gcov-11
+        # filter out coverage files
+        find $LEGOLASDIR/build -name '*.gc*' -delete
+
+    - name: Archive failed logs
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: failed_logs
+        path: tests/regression_tests/test_results
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v1
+      if: ${{ matrix.coverage }}
+      with:
+        files: ./coverage/${{ matrix.name }}.info
+        flags: legolas

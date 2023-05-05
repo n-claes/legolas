@@ -1,0 +1,52 @@
+module mod_test_settings
+  use funit
+  use mod_suite_utils
+  use mod_arpack_type, only: arpack_t, new_arpack_config
+  implicit none
+
+  character(:), allocatable :: error_msg
+  type(settings_t) :: settings
+  type(arpack_t) :: arpack_settings
+
+contains
+
+  @before
+  subroutine init_test()
+    call reset_globals()
+    settings = get_settings()
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call settings%delete()
+    call arpack_settings%destroy()
+    if (allocated(error_msg)) deallocate(error_msg)
+  end subroutine teardown_test
+
+
+  subroutine set_arpack_settings()
+    arpack_settings = new_arpack_config(100, 2, "I", settings%solvers)
+  end subroutine set_arpack_settings
+
+
+  @test
+  subroutine test_maxiter_default()
+    call set_name("settings: default maxiter")
+    call settings%solvers%set_solver("arnoldi")
+    settings%solvers%maxiter = 0
+    call set_arpack_settings()
+    @assertEqual(arpack_settings%get_maxiter(), settings%solvers%maxiter)
+  end subroutine test_maxiter_default
+
+
+  @test
+  subroutine test_ncv_default()
+    call set_name("settings: devault ncv")
+    call settings%solvers%set_solver("arnoldi")
+    settings%solvers%ncv = 0
+    call set_arpack_settings()
+    @assertEqual(arpack_settings%get_ncv(), settings%solvers%ncv)
+  end subroutine test_ncv_default
+
+end module mod_test_settings

@@ -1,108 +1,163 @@
 module mod_test_resistivity
   use mod_suite_utils
   use funit
-  use mod_resistivity, only: set_resistivity_values
+  use mod_physical_constants
+  use mod_function_utils, only: from_function
   implicit none
+
+  integer, parameter :: pts = 100
+  real(dp) :: unit_resistivity, unit_temperature, unit_deta_dT
+  type(settings_t) :: settings
+  type(background_t) :: background
+  type(physics_t) :: physics
+  real(dp), allocatable :: expected(:), actual(:)
+  real(dp), allocatable :: temps(:), xvals(:)
 
 contains
 
   @before
   subroutine init_test()
-    call reset_globals()
-    call reset_fields(init_fields=.true.)
-    call set_default_units()
+    settings = get_settings()
+    background = get_background()
+    physics = get_physics(settings, background)
+    call settings%units%set_units_from_numberdensity( &
+      unit_length=1.0d2, unit_temperature=1.0d1, unit_numberdensity=1.0d4 &
+    )
+    unit_resistivity = settings%units%get_unit_resistivity()
+    unit_temperature = settings%units%get_unit_temperature()
+    unit_deta_dT = unit_resistivity / unit_temperature
+    call background%set_density_funcs(rho0_func=one)
+    call background%set_temperature_funcs(T0_func=T0_x)
+    xvals = linspace(0.0d0, 1.0d0, pts)
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
-    call clean_up()
+    call settings%delete()
+    call background%delete()
+    call physics%delete()
+    if (allocated(expected)) deallocate(expected)
+    if (allocated(actual)) deallocate(actual)
+    if (allocated(temps)) deallocate(temps)
+    if (allocated(xvals)) deallocate(xvals)
   end subroutine teardown_test
+
+
+  real(dp) function T0_x(x)
+    real(dp), intent(in) :: x
+    integer :: idx
+    idx = minloc(abs(xvals - x), dim=1)
+    T0_x = temps(idx)
+  end function T0_x
+
+
+  function get_actual(func) result(actual_vals)
+    procedure(real(dp)), pointer :: func
+    real(dp) :: actual_vals(size(xvals))
+    integer :: i
+
+    do i = 1, size(xvals)
+      actual_vals(i) = func(xvals(i))
+    end do
+  end function get_actual
+
+
+  function get_spitzer_eta(T0vals) result(spitzer_eta)
+    real(dp), intent(in) :: T0vals(:)
+    real(dp), allocatable :: spitzer_eta(:)
+
+    allocate(spitzer_eta(size(T0vals)))
+    spitzer_eta = ( &
+      (4.0d0 / 3.0d0) &
+      * sqrt(2.0d0 * dpi) &
+      * Z_ion &
+      * ec_cgs**2 &
+      * sqrt(me_cgs) &
+      * coulomb_log &
+      / (kB_cgs * T0vals * unit_temperature)**(3.0d0 / 2.0d0) &
+    ) / settings%units%get_unit_resistivity()
+  end function get_spitzer_eta
+
+
+  function get_spitzer_deta_dT(T0vals) result(spitzer_deta)
+    real(dp), intent(in) :: T0vals(:)
+    real(dp), allocatable :: spitzer_deta(:)
+
+    allocate(spitzer_deta(size(T0vals)))
+    spitzer_deta = ( &
+      -2.0d0 &
+      * sqrt(2.0d0 * dpi) &
+      * Z_ion &
+      * ec_cgs**2 &
+      * sqrt(me_cgs) &
+      * coulomb_log &
+      / (kB_cgs**(3.0d0 / 2.0d0) * (T0vals * unit_temperature)**(5.0d0 / 2.0d0)) &
+    ) / unit_deta_dT
+  end function get_spitzer_deta_dT
 
 
   @test
   subroutine test_set_eta_cte()
-    use mod_equilibrium, only: T_field, eta_field
-    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value
-
     call set_name("setting constant resistivity")
-    use_fixed_resistivity = .true.
-    fixed_eta_value = 2.0d0
-    call set_resistivity_values(T_field, eta_field)
-    @assertEqual(fixed_eta_value, eta_field % eta, tolerance=TOL)
-    @assertEqual(0.0d0, eta_field % d_eta_dT, tolerance=TOL)
-    @assertEqual(0.0d0, eta_field % d_eta_dr, tolerance=TOL)
+    call settings%physics%enable_resistivity(fixed_resistivity_value=2.0_dp)
+    @assertTrue(settings%physics%resistivity%is_enabled())
+    @assertTrue(settings%physics%resistivity%has_fixed_resistivity())
+    actual = get_actual(physics%resistivity%eta)
+    @assertEqual(2.0_dp, actual, tolerance=TOL)
+    actual = get_actual(physics%resistivity%detadT)
+    @assertEqual(0.0d0, actual, tolerance=TOL)
+    actual = get_actual(physics%resistivity%detadr)
+    @assertEqual(0.0d0, actual, tolerance=TOL)
   end subroutine test_set_eta_cte
 
 
   @test
+  subroutine test_set_eta_cte_zero()
+    call set_name("setting constant resistivity but zero")
+    call settings%physics%enable_resistivity(fixed_resistivity_value=0.0_dp)
+    @assertTrue(settings%physics%resistivity%is_enabled())
+    @assertFalse(settings%physics%resistivity%has_fixed_resistivity())
+  end subroutine test_set_eta_cte_zero
+
+
+  @test
   subroutine test_set_eta()
-    use mod_equilibrium, only: T_field, eta_field
-    use mod_global_variables, only: set_gridpts
-    use mod_units, only: unit_resistivity, unit_deta_dT
-
-    real(dp) :: etavals(4), detavals(4)
-
     call set_name("setting varying resistivity")
-    call set_gridpts(2)
-    call reset_fields(init_fields=.true.)
-    T_field % T0 = [0.5d0, 1.0d0, 1.5d0, 3.0d0]
-    etavals = [ &
-      5.65272704d-18, 1.99854081d-18, 1.08786783d-18, 3.84619359d-19 &
-    ] / unit_resistivity
-    detavals = [ &
-      -1.69581811d-23, -2.99781122d-24, -1.08786783d-24, -1.92309679d-25 &
-    ] / unit_deta_dT
-    call set_resistivity_values(T_field, eta_field)
+    temps = linspace(10.0d0, 350.0d0, pts)
+    call settings%physics%enable_resistivity()
 
-    @assertEqual(etavals, eta_field % eta, tolerance=1.0d-8)
-    @assertEqual(detavals, eta_field % d_eta_dT, tolerance=1.0d-8)
-    @assertEqual(0.0d0, eta_field % d_eta_dr, tolerance=TOL)
+    ! test resistivity
+    expected = get_spitzer_eta(temps) * 1.0d18
+    actual = get_actual(physics%resistivity%eta) * 1.0d18
+    @assertEqual(expected, actual, tolerance=TOL)
+
+    ! test deta/dT
+    expected = get_spitzer_deta_dT(temps) * 1.0d18
+    actual = get_actual(physics%resistivity%detadT) * 1.0d18
+    @assertEqual(expected, actual, tolerance=TOL)
+
+    ! test deta/dr
+    actual = get_actual(physics%resistivity%detadr)
+    @assertEqual(0.0d0, actual, tolerance=TOL)
   end subroutine test_set_eta
 
 
   @test
-  subroutine test_set_dropoff_eta_fail()
-    use mod_equilibrium, only: T_field, eta_field
-    use mod_global_variables, only: use_fixed_resistivity, use_eta_dropoff
-
-    call set_name("setting eta dropoff (not constant)")
-    call create_test_grid(pts=100, geom="Cartesian")
-    call reset_fields(init_fields=.true.)
-    use_fixed_resistivity = .false.
-    use_eta_dropoff = .true.
-    T_field % T0 = 1.0d0
-    call set_resistivity_values(T_field, eta_field)
-
-    @assertExceptionRaised("eta dropoff only possible with a fixed resistivity value")
-  end subroutine test_set_dropoff_eta_fail
-
-
-  @test
   subroutine test_set_dropoff_eta()
-    use mod_equilibrium, only: T_field, eta_field
-    use mod_global_variables, only: use_fixed_resistivity, fixed_eta_value, &
-      use_eta_dropoff, gauss_gridpts
+    call set_name("setting eta dropoff")
+    call settings%physics%enable_resistivity(fixed_resistivity_value=1.0_dp)
+    settings%physics%resistivity%use_dropoff = .true.
+    settings%physics%dropoff_edge_dist = 0.05d0
+    settings%physics%dropoff_width = 0.1d0
+    xvals = linspace(0.0d0, 1.0d0, pts)
+    actual = get_actual(physics%resistivity%eta)
+    @assertEqual(0.0d0, actual(1), tolerance=TOL)
+    @assertEqual(0.0d0, actual(pts), tolerance=TOL)
+    @assertEqual(1.0d0, actual(int(pts / 2)), tolerance=TOL)
 
-    integer :: middle
-
-    call set_name("setting eta dropoff (constant)")
-    call create_test_grid(pts=100, geom="Cartesian")
-    call reset_fields(init_fields=.true.)
-    use_fixed_resistivity = .true.
-    fixed_eta_value = 1.0d0
-    use_eta_dropoff = .true.
-    call set_resistivity_values(T_field, eta_field)
-    middle = int(gauss_gridpts / 2)
-
-    @assertEqual(0.0d0, eta_field % eta(1), tolerance=TOL)
-    @assertEqual(0.0d0, eta_field % eta(gauss_gridpts), tolerance=TOL)
-    @assertEqual(fixed_eta_value, eta_field % eta(middle), tolerance=TOL)
-    @assertEqual(0.0d0, eta_field % d_eta_dT(:), tolerance=TOL)
-
-    @assertEqual(0.0d0, eta_field % d_eta_dr(1), tolerance=TOL)
-    @assertEqual(0.0d0, eta_field % d_eta_dr(gauss_gridpts), tolerance=TOL)
-    @assertEqual(0.0d0, eta_field % d_eta_dr(middle), tolerance=TOL)
+    actual = get_actual(physics%resistivity%detadT)
+    @assertEqual(0.0d0, actual, tolerance=TOL)
   end subroutine test_set_dropoff_eta
 
 end module mod_test_resistivity

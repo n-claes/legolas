@@ -48,29 +48,19 @@ message(STATUS "Finding ARPACK")
 set(ARPACK_FOUND False)
 set(PARPACK_FOUND False)
 
-if(DEFINED ENV{ARPACK_LIBRARIES})
-    message(STATUS "ARPACK found: $ENV{ARPACK_LIBRARIES}")
-    set(ARPACK_FOUND True)
-    set(ARPACK_LIBRARIES $ENV{ARPACK_LIBRARIES})
-    if(DEFINED ENV{PARPACK_LIBRARIES})
-        message(STATUS "PARPACK found: $ENV{PARPACK_LIBRARIES}")
-        set(PARPACK_FOUND True)
-        set(PARPACK_LIBRARIES $ENV{PARPACK_LIBRARIES})
-    endif()
-    return()
-endif()
-
 if (NOT DEFINED ENV{ARPACK_ROOT})
-    message(
-        STATUS "Environment variable $ARPACK_ROOT not set, searching default locations"
-    )
+    message(STATUS "Environment variable $ARPACK_ROOT not set!")
+    unable_to_find()
+    return()
 endif()
 
 # try to find ARPACK include dir
 find_path(ARPACK_INCLUDE_DIR
     NAMES arpackdef.h
-    HINTS $ENV{ARPACK_ROOT}
-    PATH_SUFFIXES include/arpack installed/include/arpack
+    HINTS $ENV{ARPACK_ROOT} $ENV{ARPACK_ROOT}/installed
+    PATH_SUFFIXES
+        include/arpack
+        include/arpack-ng
 )
 if(ARPACK_INCLUDE_DIR)
     message(STATUS "Looking for ARPACK include directory - found")

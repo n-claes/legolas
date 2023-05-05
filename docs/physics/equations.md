@@ -62,24 +62,47 @@ Resistivity can either be constant over the entire grid, or a more general tempe
 by the Spitzer resistivity:
 
 $$
-\eta = \frac{4\sqrt{2\pi}}{3}\frac{Z_\text{ion}e^2\sqrt{m_e}\ln(\lambda)}{(4\pi\epsilon_0)^2(k_B T)^{3/2}},
+\eta(T) = \frac{4\sqrt{2\pi}}{3}\frac{Z_\text{ion}e^2\sqrt{m_e}\ln(\lambda)}{(4\pi\epsilon_0)^2(k_B T)^{3/2}},
 $$
 
-with the Coulomb logarithm $\ln(\lambda) \approx 22$.
+with the Coulomb logarithm $\ln(\lambda) \approx 22$. The function $\eta(T)$ can be user-specified, in which case its temperature derivative should be provided as well.
+If the resistivity profile explicitly depends on position as well, providing the derivative of $\eta(x, T)$ with respect to $x$ is an additional requirement.
 
-### Optically thin radiative losses
+### Heating and optically thin radiative losses
 Radiative cooling is governed by the heat-loss function, specified as the difference between energy gains and energy losses
 
 $$
-\HL = \rho\Lambda(T) - \HH,
+\HL = \rho\Lambda(T) - \HH(\rho, T),
 $$
 
 The function $\Lambda(T)$ here is called the _cooling curve_, which is a tabulated set of values resulting from detailed molecular calculations.
 Legolas has multiple cooling curves from existing literature implemented which are interpolated at high resolution and sampled on the given grid.
 We have also included analytical, piecewise prescriptions (e.g. the `rosner` curve). See the [physicslist](../../general/parameter_file/#physicslist) for an overview of the different options.
+The function $\Lambda(T)$ can be user-specified, in which case its temperature derivative should be provided as well.
 
-The function $\HH$ is called the _heating term_, and it is currently not (yet) possible to specify this. We assume that this term only depends on the equilibrium background, meaning that it is
-constant in time but possibly varying in space and as such that it balances out the cooling contribution to ensure thermal equilibrium.
+The function $\HH(\rho, T)$ specifies the heating function. If thermal balance is forced we assume that this term only depends on the equilibrium background, meaning that it is
+constant in time but possibly varying in space and as such that it balances out the cooling contribution to ensure thermal equilibrium. $\HH(\rho, T)$ can be user-specified, in which case its density and
+temperature derivatives should be provided as well.
+
+#### Cooling curves
+At the moment 8 tabulated cooling curves are implemented, along with 1 analytical cooling curve. The list below gives an overview of the cooling curves that are available, along with their references.
+
+| Name    		 		| Notes   | Approximate $\log_{10}(T)$ range | Reference     |
+| :---         		| :---    | :---: 		|   :---  		 |
+| `rosner`     		| Analytical cooling curve | $3.891 - 7.605$ | [Rosner et al. (1978)](https://ui.adsabs.harvard.edu/abs/1978ApJ...220..643R/abstract) |
+| `jc_corona` 	  | Cooling curve for coronal conditions | $4.000 - 7.954$ | [Colgan et al. (2008)](https://ui.adsabs.harvard.edu/abs/2008ApJ...689..585C/abstract) |
+| `dalgarno`   	  | Cooling curve for low temperatures | $2.000 - 9.000$ | [Dalgarno & McCray (1972)](https://ui.adsabs.harvard.edu/abs/1972ARA%26A..10..375D/abstract) |
+| `dalgarno2` 		| Cooling curve for very low temperatures | $1.000 - 4.000$ | [Dalgarno & McCray (1972)](https://ui.adsabs.harvard.edu/abs/1972ARA%26A..10..375D/abstract) |
+| `ml_solar`  		| Cooling curve for solar abundances | $2.000 - 9.000$ | [Mellema & Lundqvist (2002)](https://ui.adsabs.harvard.edu/abs/2002A%26A...394..901M/abstract) |
+| `spex`			 		| Cooling curve for solar abundances | $3.800 - 8.160$ | [Schure et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009A%26A...508..751S/abstract) |
+| `spex_dalgarno` | `spex` supplemented with `dalgarno` for lower temperatures | $2.000 - 8.160$ | - |
+| `colgan`     		| The original cooling curve | $4.065 - 9.065$ | [Colgan & Feldman (2008)](https://ui.adsabs.harvard.edu/abs/2008ApJ...689..585C/abstract) |
+| `colgan_dm`  		| `colgan` supplemented with `dalgarno2` for lower temperatures | $1.000 - 9.065$ | - |
+
+All cooling curves are interpolated at high resolution using a local second order polynomial and then sampled on the grid, with the exception of the analytical curves.
+Note that all tabulated cooling curves are extended to higher temperatures (i.e. outside of their tabulated range) by assuming pure Brehmsstrahlung ($\Lambda(T) \sim \sqrt{T}$). For temperatures
+below the tabulated range the cooling is set to zero.
+
 
 ### Thermal conduction
 The thermal conduction prescription relies on a tensor representation to model the anisotropy in MHD and is given by
@@ -98,6 +121,25 @@ $$
 $$
 
 Alternatively, both of these can be independently set to constant values.
+In the absence of a magnetic field we set $\kappa_\bot = \kappa_\parallel$, such that the tensor representation reduces to $\kappabf = \kappa_\bot\boldsymbol{I}$.
+
+When overriding parallel thermal conduction a function $\kappa_\parallel(T)$ can be given, as well as its temperature derivative. The derivative with respect to position (denoted with $'$) is automatically calculated as $\kappa_\parallel' = \frac{\partial \kappa_\parallel}{\partial T}T_0'$.
+
+For perpendicular thermal conduction a function $\kappa_\bot(\rho, T, B)$ can be given, as well as its derivatives
+
+$$
+\frac{\partial \kappa_\bot}{\partial \rho}, \qquad
+\frac{\partial \kappa_\bot}{\partial T}, \qquad
+\frac{\partial \kappa_\bot}{\partial B^2}.
+$$
+
+The derivative with respect to position is automatically calculated as
+
+$$ \kappa_\bot' =
+\frac{\partial \kappa_\bot}{\partial T}T_0'
++ \frac{\partial \kappa_\bot}{\partial \rho}\rho_0'
++ \frac{\partial \kappa_\bot}{\partial B^2}2B_0B_0'.
+$$
 
 ### Viscosity
 The viscosity addition to the momentum equation is usually given in a full tensor form, but in Legolas this is simplified to good approximation to

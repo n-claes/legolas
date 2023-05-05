@@ -4,7 +4,7 @@ layout: single
 classes: wide
 sidebar:
   nav: "leftcontents"
-last_modified_at: 2021-07-28
+last_modified_at: 2023-04-13
 ---
 
 ## Origins
@@ -32,10 +32,30 @@ The main goal of Legolas is to provide a new and modern user-friendly code, maki
 theoretical (linear) MHD. This allows for detailed, high-resolution studies of the full (M)HD linear spectrum through fully realistic setups
 and parametric studies, including a myriad of physical effects.
 
+## Core people involved with Legolas
+- **Dr. Niels Claes** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:niels.claes@kuleuven.be)): creator of the code and main developer.
+
+  Involved with everything & provides overall guidance. Responsible for maintenance and general development of both Legolas and Pylbo.
+
+- **Drs. Jordi De Jonghe** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:jordi.dejonghe@kuleuven.be)): development team.
+
+  Mainly involved with resistive/viscous/Hall MHD, along with source code contributions to both Legolas and Pylbo.
+
+- **Drs. Nicolas Brughmans** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:nicolas.brughmans@kuleuven.be)): development team.
+
+  Working on Pylbo extensions in the scope of accretion disk applications.
+
+- **Prof. Rony Keppens** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:rony.keppens@kuleuven.be)): guidance.
+
+- **Drs. Evert Provoost**: development team (former).
+
+  Contributions to the linear algebra solvers in the scope of a Master's thesis.
+
+
 ## Features
 Legolas is written in modern Fortran and is highly modularised. This allows for easy maintenance and makes the code ready
 to be extended with additional physics and modern algorithmic requirements. At the time of writing, Legolas currently supports
-both 3D Cartesian or cylindrical geometries with 1D variation.
+both 3D Cartesian or cylindrical geometries with nontrivial 1D variation.
 Various physical effects are implemented:
 - background flows, allowing for non-static equilibrium conditions
 - external gravity

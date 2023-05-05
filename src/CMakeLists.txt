@@ -5,21 +5,63 @@ set (sources
         mod_equilibrium_params.f08
         dataIO/mod_exceptions.f08
         dataIO/mod_logging.f08
+        dataIO/mod_console.f08
+        settings/physics/mod_flow_settings.f08
+        settings/physics/mod_cooling_settings.f08
+        settings/physics/mod_heating_settings.f08
+        settings/physics/mod_gravity_settings.f08
+        settings/physics/mod_resistivity_settings.f08
+        settings/physics/mod_viscosity_settings.f08
+        settings/physics/mod_conduction_settings.f08
+        settings/physics/mod_hall_settings.f08
+        settings/mod_settings.f08
+        settings/mod_dims.f08
+        settings/mod_io_settings.f08
+        settings/mod_solver_settings.f08
+        settings/mod_physics_settings.f08
+        settings/mod_grid_settings.f08
+        settings/mod_equilibrium_settings.f08
+        settings/mod_units.f08
         mod_physical_constants.f08
-        mod_units.f08
+        utils/mod_get_indices.f08
+        utils/mod_function_utils.f08
+        background/mod_background.f08
+        background/fields/mod_bg_density.f08
+        background/fields/mod_bg_temperature.f08
+        background/fields/mod_bg_velocity.f08
+        background/fields/mod_bg_magnetic.f08
+        matrices/datastructure/mod_matrix_node.f08
+        matrices/datastructure/mod_matrix_row.f08
+        matrices/datastructure/mod_matrix_structure.f08
+        matrices/datastructure/mod_banded_matrix.f08
+        matrices/datastructure/mod_banded_matrix_hermitian.f08
+        matrices/datastructure/mod_banded_operations.f08
+        matrices/datastructure/mod_transform_matrix.f08
         mod_grid.f08
-        mod_types.f08
         mod_check_values.f08
-        solvers/mod_matrix_operations.f08
         mod_spline_functions.f08
         mod_interpolation.f08
         mod_integration.f08
         dataIO/mod_input.f08
+        physics/cooling_curves/mod_cooling_curve_names.f08
+        physics/cooling_curves/mod_data_dalgarno.f08
+        physics/cooling_curves/mod_data_dalgarno2.f08
+        physics/cooling_curves/mod_data_jccorona.f08
+        physics/cooling_curves/mod_data_mlsolar.f08
+        physics/cooling_curves/mod_data_rosner.f08
+        physics/cooling_curves/mod_data_spex.f08
+        physics/cooling_curves/mod_data_spex_enh.f08
+        physics/cooling_curves/mod_data_colgan.f08
+        physics/cooling_curves/mod_cooling_curves.f08
+        physics/mod_physics_utils.f08
+        physics/mod_physics.f08
+        physics/mod_gravity.f08
         physics/mod_resistivity.f08
-        physics/mod_cooling_curves.f08
         physics/mod_atmosphere_curves.f08
         physics/mod_solar_atmosphere.f08
         physics/mod_radiative_cooling.f08
+        physics/mod_heating.f08
+        physics/mod_heatloss.f08
         physics/mod_thermal_conduction.f08
         physics/mod_hall.f08
         mod_inspections.f08
@@ -63,26 +105,32 @@ set (sources
         boundaries/smod_natural_bounds_conduction.f08
         boundaries/smod_natural_bounds_viscosity.f08
         boundaries/smod_natural_bounds_hall.f08
-        matrices/mod_matrix_shortcuts.f08
-        matrices/mod_make_subblock.f08
+        matrices/elements/mod_matrix_element_node.f08
+        matrices/elements/mod_matrix_elements.f08
+        matrices/mod_build_quadblock.f08
         matrices/mod_matrix_manager.f08
         matrices/smod_regular_matrix.f08
         matrices/smod_flow_matrix.f08
         matrices/smod_resistive_matrix.f08
-        matrices/smod_cooling_matrix.f08
+        matrices/smod_heatloss_matrix.f08
         matrices/smod_conduction_matrix.f08
         matrices/smod_viscosity_matrix.f08
         matrices/smod_hall_matrix.f08
+        solvers/arnoldi/mod_arpack_type.f08
+        solvers/mod_linear_systems.f08
         solvers/mod_solvers.f08
-        solvers/mod_arpack_type.f08
         solvers/smod_qr_invert.f08
+        solvers/smod_qr_cholesky.f08
         solvers/smod_qz_direct.f08
-        solvers/smod_arnoldi.f08
+        solvers/arnoldi/smod_arpack_main.f08
+        solvers/arnoldi/smod_arpack_general.f08
+        solvers/arnoldi/smod_arpack_shift_invert.f08
+        solvers/smod_inverse_iteration.f08
         eigenfunctions/mod_eigenfunctions.f08
-        eigenfunctions/smod_ef_operations.f08
-        eigenfunctions/smod_base_efs.f08
-        eigenfunctions/smod_derived_efs.f08
-        eigenfunctions/smod_derived_pp_efs.f08
+        eigenfunctions/mod_ef_assembly.f08
+        eigenfunctions/mod_base_efs.f08
+        eigenfunctions/mod_derived_ef_names.f08
+        eigenfunctions/mod_derived_efs.f08
         dataIO/mod_output.f08
         utils/mod_assert.f08
         utils/mod_timing.f08

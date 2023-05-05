@@ -7,145 +7,192 @@
 !! and Rony Keppens, at the Centre for mathematical Plasma-Astrophysics (CmPA),
 !! KU Leuven, Belgium.
 program legolas
-  use mod_global_variables, only: dp, str_len, show_results, dry_run
+  use mod_global_variables, only: dp, str_len, initialise_globals
+  use mod_matrix_structure, only: matrix_t, new_matrix
+  use mod_equilibrium, only: set_equilibrium
+  use mod_inspections, only: do_equilibrium_inspections
   use mod_matrix_manager, only: build_matrices
   use mod_solvers, only: solve_evp
-  use mod_output, only: datfile_name, create_datfile
-  use mod_logging, only: log_message, str, print_console_info, print_whitespace
-  use mod_inspections, only: handle_spurious_eigenvalues
+  use mod_output, only: datfile_path, create_datfile
+  use mod_logging, only: logger, str
+  use mod_console, only: print_console_info, print_whitespace
+  use mod_timing, only: timer_t, new_timer
+  use mod_settings, only: settings_t, new_settings
+  use mod_background, only: background_t, new_background
+  use mod_grid, only: grid_t, new_grid
+  use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
+  use mod_physics, only: physics_t, new_physics
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
-  complex(dp), allocatable  :: matrix_A(:, :)
+  type(matrix_t) :: matrix_A
   !> B matrix in eigenvalue problem wBX = AX
-  real(dp), allocatable     :: matrix_B(:, :)
+  type(matrix_t) :: matrix_B
+  !> timer used by the whole program
+  type(timer_t) :: timer
+  !> dedicated settings type
+  type(settings_t) :: settings
+  type(grid_t) :: grid
+  type(background_t) :: background
+  type(eigenfunctions_t) :: eigenfunctions
+  type(physics_t) :: physics
   !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
-  complex(dp), allocatable  :: eigenvecs_right(:, :)
+  complex(dp), allocatable  :: right_eigenvectors(:, :)
 
-  call initialisation()
-  call print_console_info()
+  call initialise_globals()
+  call logger%initialise()
 
-  call build_matrices(matrix_B, matrix_A)
+  timer = new_timer()
+  settings = new_settings()
 
-  if (.not. dry_run) then
-    call log_message("solving eigenvalue problem...", level="info")
-    call solve_evp(matrix_A, matrix_B, omega, eigenvecs_right)
-  else
-    call log_message( &
-      "running dry, overriding parfile and setting eigenvalues to zero", level="info"  &
-    )
-    omega = (0.0d0, 0.0d0)
-  end if
+  call timer%start_timer()
 
-  call handle_spurious_eigenvalues(omega)
+  call read_user_parfile()
+  call print_startup_info()
 
-  call create_eigenfunctions()
-  call create_datfile(omega, matrix_A, matrix_B)
+  grid = new_grid(settings)
+  background = new_background()
+  physics = new_physics(settings, background)
+
+  call set_equilibrium(settings, grid, background, physics)
+  timer%init_time = timer%end_timer()
+
+  call print_console_info(settings)
+  call do_equilibrium_inspections(settings, grid, background, physics)
+
+  call timer%start_timer()
+  matrix_A = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="A")
+  matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
+  call build_matrices(matrix_B, matrix_A, settings, grid, background, physics)
+  timer%matrix_time = timer%end_timer()
+
+  call logger%info("solving eigenvalue problem...")
+  call timer%start_timer()
+  call do_eigenvalue_problem_allocations()
+  call solve_evp(matrix_A, matrix_B, settings, omega, right_eigenvectors)
+  timer%evp_time = timer%end_timer()
+  call logger%info("done.")
+
+  call timer%start_timer()
+  eigenfunctions = new_eigenfunctions(settings, grid, background)
+  call get_eigenfunctions()
+  timer%eigenfunction_time = timer%end_timer()
+
+  call timer%start_timer()
+  call create_datfile( &
+    settings, &
+    grid, &
+    background, &
+    physics, &
+    omega, &
+    matrix_A, &
+    matrix_B, &
+    right_eigenvectors, &
+    eigenfunctions &
+  )
+  timer%datfile_time = timer%end_timer()
 
   call cleanup()
 
-  if (show_results) then
+  call print_timelog()
+
+  if (settings%io%show_results) then
     call print_whitespace(1)
-    call execute_command_line("python3 pylbo_wrapper.py -i " // trim(datfile_name))
+    call execute_command_line("python3 pylbo_wrapper.py -i " // trim(datfile_path))
   end if
 
 contains
 
-  !> Subroutine responsible for all initialisations.
-  !! Allocates and initialises main and global variables, then the equilibrium state
-  !! and eigenfunctions are initialised and the equilibrium is set.
-  subroutine initialisation()
-    use mod_global_variables, only: initialise_globals, matrix_gridpts, &
-      solver, number_of_eigenvalues, write_eigenfunctions, gamma, set_gamma
-    use mod_input, only: read_parfile, get_parfile
-    use mod_equilibrium, only: initialise_equilibrium, set_equilibrium
-    use mod_logging, only: print_logo
-    use mod_global_variables, only: hall_mhd
-
-    character(len=str_len)  :: parfile
-    integer   :: nb_evs
-
-    call initialise_globals()
+  subroutine read_user_parfile()
+    use mod_input, only: get_parfile, read_parfile
+    character(len=5*str_len) :: parfile
     call get_parfile(parfile)
-    call read_parfile(parfile)
-    call set_gamma(gamma)
+    call read_parfile(parfile, settings)
+  end subroutine read_user_parfile
 
+
+  subroutine print_startup_info()
+    use mod_console, only: print_logo
     call print_logo()
+    call logger%info("the physics type is " // settings%get_physics_type())
+    call logger%info("the state vector is " // str(settings%get_state_vector()))
+  end subroutine print_startup_info
 
-    allocate(matrix_A(matrix_gridpts, matrix_gridpts))
-    allocate(matrix_B(matrix_gridpts, matrix_gridpts))
 
-    if (solver == "arnoldi") then
-      nb_evs = number_of_eigenvalues
-    else
-      nb_evs = matrix_gridpts
-    end if
-    call log_message("setting #eigenvalues to " // str(nb_evs), level="debug")
+  subroutine do_eigenvalue_problem_allocations()
+    integer :: nb_evs
+
+    select case(settings%solvers%get_solver())
+    case ("arnoldi")
+      nb_evs = settings%solvers%number_of_eigenvalues
+    case ("inverse-iteration")
+      nb_evs = 1
+    case default
+      nb_evs = settings%dims%get_dim_matrix()
+    end select
+    call logger%debug("allocating eigenvalue array of size " // str(nb_evs))
     allocate(omega(nb_evs))
 
-    call initialise_equilibrium()
-    call set_equilibrium()
-
-    ! TODO: remove this warning when fully tested
-    if (hall_mhd) then
-      call log_message( &
-        "using Hall MHD, note that some features are not yet **fully** tested!", &
-        level="warning" &
-      )
-    end if
-
     ! Arnoldi solver needs this, since it always calculates an orthonormal basis
-    if (write_eigenfunctions .or. solver == "arnoldi") then
-      call log_message("allocating eigenvector arrays", level="debug")
+    if ( &
+      settings%io%should_compute_eigenvectors() &
+      .or. settings%solvers%get_solver() == "arnoldi" &
+    ) then
+      call logger%debug("allocating eigenvector arrays")
       ! we need #rows = matrix dimension, #cols = #eigenvalues
-      allocate(eigenvecs_right(matrix_gridpts, nb_evs))
+      allocate(right_eigenvectors(settings%dims%get_dim_matrix(), nb_evs))
     else
       ! @note: this is needed to prevent segfaults, since it seems that in some
       ! cases for macOS the routine zgeev references the right eigenvectors even
       ! if they are not requested.
-      call log_message("allocating eigenvector arrays as dummy", level="debug")
-      allocate(eigenvecs_right(2, 2))
+      call logger%debug("allocating eigenvector arrays as dummy")
+      allocate(right_eigenvectors(2, 2))
     end if
-  end subroutine initialisation
+  end subroutine do_eigenvalue_problem_allocations
 
 
   !> Initialises and calculates the eigenfunctions if requested.
-  subroutine create_eigenfunctions()
-    use mod_global_variables, only: write_eigenfunctions
-    use mod_eigenfunctions, only: initialise_eigenfunctions, calculate_eigenfunctions
-
-    if (write_eigenfunctions) then
-      call initialise_eigenfunctions(omega)
-      call calculate_eigenfunctions(eigenvecs_right)
-    end if
-  end subroutine create_eigenfunctions
+  subroutine get_eigenfunctions()
+    if (.not. settings%io%write_eigenfunctions) return
+    call eigenfunctions%initialise(omega)
+    call eigenfunctions%assemble(right_eigenvectors)
+  end subroutine get_eigenfunctions
 
 
   !> Deallocates all main variables, then calls the cleanup
   !! routines of all relevant subroutines to do the same thing.
   subroutine cleanup()
-    use mod_global_variables, only: radiative_cooling
-    use mod_grid, only: grid_clean
-    use mod_equilibrium, only: equilibrium_clean
-    use mod_radiative_cooling, only: radiative_cooling_clean
-    use mod_eigenfunctions, only: eigenfunctions_clean
-
-    deallocate(matrix_A)
-    deallocate(matrix_B)
     deallocate(omega)
-    if (allocated(eigenvecs_right)) then
-      deallocate(eigenvecs_right)
-    end if
+    if (allocated(right_eigenvectors)) deallocate(right_eigenvectors)
 
-    call grid_clean()
-    call equilibrium_clean()
-
-    if (radiative_cooling) then
-      call radiative_cooling_clean()
-    end if
-    call eigenfunctions_clean()
+    call matrix_A%delete_matrix()
+    call matrix_B%delete_matrix()
+    call eigenfunctions%delete()
+    call physics%delete()
+    call grid%delete()
+    call background%delete()
+    call settings%delete()
   end subroutine cleanup
+
+
+  subroutine print_timelog()
+    real(dp) :: total_time
+
+    call print_whitespace(1)
+    call logger%info("---------------------------------------------")
+    call logger%disable_prefix()
+    total_time = timer%get_total_time()
+
+    call logger%info("                << Time log >>")
+    call logger%info("Legolas finished in " // str(total_time) // " seconds")
+    call logger%info("   initialisation: " // str(timer%init_time) // " sec")
+    call logger%info("   matrix construction: " // str(timer%matrix_time) // " sec")
+    call logger%info("   eigenvalue problem: " // str(timer%evp_time) // " sec")
+    call logger%info("   eigenfunctions: " // str(timer%eigenfunction_time) // " sec")
+    call logger%info("   datfile creation: " // str(timer%datfile_time) // " sec")
+    call logger%enable_prefix()
+  end subroutine print_timelog
 
 end program legolas

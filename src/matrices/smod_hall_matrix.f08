@@ -1,283 +1,370 @@
 submodule (mod_matrix_manager) smod_hall_matrix
-  use mod_equilibrium, only: hall_field
   implicit none
 
 contains
 
   module procedure add_hall_bmatrix_terms
-    use mod_global_variables, only: elec_inertia
-
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
-    real(dp)  :: eta_e
+    real(dp)  :: eta_H, eta_e
     real(dp)  :: WVop
+    type(matrix_elements_t) :: elements
 
-    if (elec_inertia) then
-      eps = eps_grid(gauss_idx)
-      deps = d_eps_grid_dr(gauss_idx)
-      rho = rho_field % rho0(gauss_idx)
-      drho = rho_field % d_rho0_dr(gauss_idx)
-      eta_e = hall_field % inertiafactor(gauss_idx)
-      WVop = get_wv_operator(gauss_idx)
+    eps = grid%get_eps(x_gauss)
+    deps = grid%get_deps()
+    rho = background%density%rho0(x_gauss)
+    drho = background%density%drho0(x_gauss)
+    eta_H = physics%hall%hallfactor(x_gauss)
+    eta_e = physics%hall%inertiafactor(x_gauss)
+    WVop = k2**2 / eps + eps * k3**2
+    elements = new_matrix_elements(state_vector=settings%get_state_vector())
 
+    ! ==================== Quadratic * Cubic ====================
+    call elements%add(eta_H, "a1", "v1", spline1=h_quad, spline2=h_cubic)
+    ! ==================== Cubic * Quadratic ====================
+    call elements%add(eta_H * eps, "a2", "v2", spline1=h_cubic, spline2=h_quad)
+    call elements%add(eta_H, "a3", "v3", spline1=h_cubic, spline2=h_quad)
+
+    if (settings%physics%hall%has_electron_inertia()) then
       ! ==================== Quadratic * Quadratic ====================
-      call reset_factor_positions(new_size=1)
-      ! B_H(6, 6)
-      factors(1) = eta_e * WVop / rho
-      positions(1, :) = [6, 6]
-      call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
-
+      call elements%add(eta_e * WVop / rho, "a1", "a1", spline1=h_quad, spline2=h_quad)
       ! ==================== Quadratic * dCubic ====================
-      call reset_factor_positions(new_size=2)
-      ! B_H(6, 7)
-      factors(1) = -eta_e * k2 / (eps * rho)
-      positions(1, :) = [6, 7]
-      ! B_H(6, 8)
-      factors(2) = -eta_e * eps * k3 / rho
-      positions(2, :) = [6, 8]
-      call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
-
+      call elements%add( &
+        -eta_e * k2 / (eps * rho), "a1", "a2", spline1=h_quad, spline2=dh_cubic &
+      )
+      call elements%add( &
+        -eta_e * eps * k3 / rho, "a1", "a3", spline1=h_quad, spline2=dh_cubic &
+      )
       ! ==================== Cubic * Quadratic ====================
-      call reset_factor_positions(new_size=2)
-      ! B_H(7, 6)
-      factors(1) = -eta_e * k2 * (deps / (eps * rho) - drho / rho**2)
-      positions(1, :) = [7, 6]
-      ! B_H(8, 6)
-      factors(2) = eta_e * drho * eps * k3 / rho**2
-      positions(2, :) = [8, 6]
-      call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
-
+      call elements%add( &
+        -eta_e * k2 * (deps / (eps * rho) - drho / rho**2), &
+        "a2", &
+        "a1", &
+        spline1=h_cubic, &
+        spline2=h_quad &
+      )
+      call elements%add( &
+        eta_e * drho * eps * k3 / rho**2, "a3", "a1", spline1=h_cubic, spline2=h_quad &
+      )
       ! ==================== dCubic * Quadratic ====================
-      call reset_factor_positions(new_size=2)
-      ! B_H(7, 6)
-      factors(1) = -eta_e * k2 / rho
-      positions(1, :) = [7, 6]
-      ! B_H(8, 6)
-      factors(2) = -eta_e * eps * k3 / rho
-      positions(2, :) = [8, 6]
-      call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad)
-
+      call elements%add(-eta_e * k2 / rho, "a2", "a1", spline1=dh_cubic, spline2=h_quad)
+      call elements%add( &
+        -eta_e * eps * k3 / rho, "a3", "a1", spline1=dh_cubic, spline2=h_quad &
+      )
       ! ==================== Cubic * Cubic ====================
-      call reset_factor_positions(new_size=4)
-      ! B_H(7, 7)
-      factors(1) = eta_e * k3**2 / rho
-      positions(1, :) = [7, 7]
-      ! B_H(7, 8)
-      factors(2) = -eta_e * k2 * k3 / rho
-      positions(2, :) = [7, 8]
-      ! B_H(8, 7)
-      factors(3) = -eta_e * k2 * k3 / (eps * rho)
-      positions(3, :) = [8, 7]
-      ! B_H(8, 8)
-      factors(4) = eta_e * k2**2 / (eps * rho)
-      positions(4, :) = [8, 8]
-      call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
-
+      call elements%add( &
+        eta_e * k3**2 / rho, "a2", "a2", spline1=h_cubic, spline2=h_cubic &
+      )
+      call elements%add( &
+        -eta_e * k2 * k3 / rho, "a2", "a3", spline1=h_cubic, spline2=h_cubic &
+      )
+      call elements%add( &
+        -eta_e * k2 * k3 / (eps * rho), "a3", "a2", spline1=h_cubic, spline2=h_cubic &
+      )
+      call elements%add( &
+        eta_e * k2**2 / (eps * rho), "a3", "a3", spline1=h_cubic, spline2=h_cubic &
+      )
       ! ==================== Cubic * dCubic ====================
-      call reset_factor_positions(new_size=2)
-      ! B_H(7, 7)
-      factors(1) = eta_e * (deps / (eps * rho) - drho / rho**2)
-      positions(1, :) = [7, 7]
-      ! B_H(8, 8)
-      factors(2) = -eta_e * eps * drho / rho**2
-      positions(2, :) = [8, 8]
-      call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
-
+      call elements%add( &
+        eta_e * (deps / (eps * rho) - drho / rho**2), &
+        "a2", &
+        "a2", &
+        spline1=h_cubic, &
+        spline2=dh_cubic &
+      )
+      call elements%add( &
+        -eta_e * eps * drho / rho**2, "a3", "a3", spline1=h_cubic, spline2=dh_cubic &
+      )
       ! ==================== dCubic * dCubic ====================
-      call reset_factor_positions(new_size=2)
-      ! B_H(7, 7)
-      factors(1) = eta_e / rho
-      positions(1, :) = [7, 7]
-      ! B_H(8, 8)
-      factors(2) = eta_e * eps / rho
-      positions(2, :) = [8, 8]
-      call subblock(quadblock, factors, positions, current_weight, dh_cubic, dh_cubic)
-    else
-      return
+      call elements%add(eta_e / rho, "a2", "a2", spline1=dh_cubic, spline2=dh_cubic)
+      call elements%add( &
+        eta_e * eps / rho, "a3", "a3", spline1=dh_cubic, spline2=dh_cubic &
+      )
     end if
-
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
+    call elements%delete()
   end procedure add_hall_bmatrix_terms
 
 
   module procedure add_hall_matrix_terms
-    use mod_global_variables, only: elec_pressure
-
     real(dp)  :: eps, deps
-    real(dp)  :: rho, drho
-    real(dp)  :: T0, dT0
-    real(dp)  :: B01, B02, B03, dB02, dB03
-    real(dp)  :: drB02, dB02_r
-    real(dp)  :: eta_H
-    real(dp)  :: Fop_plus, Gop_plus, Gop_min, WVop
+    real(dp)  :: v01, v02, v03, dv01, dv02, dv03, ddv01, ddv02, ddv03
+    real(dp)  :: rho, drho, T0, dT0, B01, B02, B03, dB02, dB03
+    real(dp)  :: drB02, dB02_r, Fop_plus, Gop_plus, Gop_min, WVop
+    real(dp)  :: eta_H, mu, efrac
+    type(matrix_elements_t) :: elements
+    logical :: has_viscosity
 
-    eps = eps_grid(gauss_idx)
-    deps = d_eps_grid_dr(gauss_idx)
+    eps = grid%get_eps(x_gauss)
+    deps = grid%get_deps()
 
-    rho = rho_field % rho0(gauss_idx)
-    drho = rho_field % d_rho0_dr(gauss_idx)
+    v01 = background%velocity%v01(x_gauss)
+    v02 = background%velocity%v02(x_gauss)
+    v03 = background%velocity%v03(x_gauss)
+    dv01 = background%velocity%dv01(x_gauss)
+    dv02 = background%velocity%dv02(x_gauss)
+    dv03 = background%velocity%dv03(x_gauss)
+    ddv01 = background%velocity%ddv01(x_gauss)
+    ddv02 = background%velocity%ddv02(x_gauss)
+    ddv03 = background%velocity%ddv03(x_gauss)
 
-    T0 = T_field % T0(gauss_idx)
-    dT0 = T_field % d_T0_dr(gauss_idx)
+    rho = background%density%rho0(x_gauss)
+    drho = background%density%drho0(x_gauss)
+    T0 = background%temperature%T0(x_gauss)
+    dT0 = background%temperature%dT0(x_gauss)
 
-    B01 = B_field % B01
-    B02 = B_field % B02(gauss_idx)
-    dB02 = B_field % d_B02_dr(gauss_idx)
-    B03 = B_field % B03(gauss_idx)
-    dB03 = B_field % d_B03_dr(gauss_idx)
+    B01 = background%magnetic%B01(x_gauss)
+    B02 = background%magnetic%B02(x_gauss)
+    dB02 = background%magnetic%dB02(x_gauss)
+    B03 = background%magnetic%B03(x_gauss)
+    dB03 = background%magnetic%dB03(x_gauss)
 
     ! Calculate derivatives eps*B02, B02/eps
     drB02 = deps * B02 + eps * dB02
     dB02_r = dB02 / eps - B02 * deps / eps**2
 
-    eta_H = hall_field % hallfactor(gauss_idx)
+    Fop_plus = k2 * B02 / eps + k3 * B03
+    Gop_plus = k3 * B02 + k2 * B03 / eps
+    Gop_min = k3 * B02 - k2 * B03 / eps
+    WVop = k2**2 / eps + eps * k3**2
 
-    Fop_plus = get_F_operator(gauss_idx, which="plus")
-    Gop_plus = get_G_operator(gauss_idx, which="plus")
-    Gop_min = get_G_operator(gauss_idx, which="minus")
-    WVop = get_wv_operator(gauss_idx)
+    eta_H = physics%hall%hallfactor(x_gauss)
+    mu = settings%physics%viscosity%get_viscosity_value()
+    efrac = settings%physics%hall%get_electron_fraction()
 
+    elements = new_matrix_elements(state_vector=settings%get_state_vector())
+    has_viscosity = settings%physics%viscosity%is_enabled()
+
+    ! Hall by substitution of the momentum equation
+    ! ==================== Quadratic * Cubic ====================
+    call elements%add( &
+      eta_H * (k2 * v02 / eps + k3 * v03), &
+      "a1", &
+      "v1", &
+      spline1=h_quad, &
+      spline2=h_cubic &
+    )
     ! ==================== Quadratic * Quadratic ====================
-    call reset_factor_positions(new_size=1)
-    ! H(6, 6)
-    factors(1) = -eta_H * (eps * drho * Gop_min / rho + deps * Gop_plus) / rho
-    positions(1, :) = [6, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
-    if (elec_pressure) then
-      call reset_factor_positions(new_size=2)
-      ! H(6, 1)
-      factors(1) = eta_H * T0 * (deps / eps - drho / rho) / rho
-      positions(1, :) = [6, 1]
-      ! H(6, 5)
-      factors(2) = eta_H * (deps / eps - drho / rho)
-      positions(2, :) = [6, 5]
-      call subblock(quadblock, factors, positions, current_weight, h_quad, h_quad)
-    end if
+    call elements%add( &
+      -eta_H * (1.0d0 - efrac) * dT0 / rho, &
+      "a1", &
+      "rho", &
+      spline1=h_quad, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      -2.0d0 * eta_H * deps * v02, "a1", "v2", spline1=h_quad, spline2=h_quad &
+    )
+    call elements%add( &
+      eta_H * (1.0d0 - efrac) * drho / rho, &
+      "a1", &
+      "T", &
+      spline1=h_quad, &
+      spline2=h_quad &
+    )
+    ! ==================== Cubic * Cubic ====================
+    call elements%add( &
+      -eta_H * (dv02 - v02 * deps / eps), &
+      "a2", &
+      "v1", &
+      spline1=h_cubic, &
+      spline2=h_cubic &
+    )
+    call elements%add(-eta_H * dv03, "a3", "v1", spline1=h_cubic, spline2=h_cubic)
+    ! ==================== Cubic * Quadratic ====================
+    call elements%add( &
+      eta_H * (k2 * v02 + eps * k3 * v03), &
+      "a2", &
+      "v2", &
+      spline1=h_cubic, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      eta_H * (k2 * v02 / eps + k3 * v03), &
+      "a3", &
+      "v3", &
+      spline1=h_cubic, &
+      spline2=h_quad &
+    )
 
-    ! ==================== dQuadratic * Quadratic ====================
-    call reset_factor_positions(new_size=1)
-    ! H(6, 6)
-    factors(1) = eta_H * eps * Gop_min / rho
-    positions(1, :) = [6, 6]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
-    if (elec_pressure) then
-      call reset_factor_positions(new_size=2)
-      ! H(6, 1)
-      factors(1) = eta_H * T0 / rho
-      positions(1, :) = [6, 1]
-      ! H(6, 5)
-      factors(2) = eta_H
-      positions(2, :) = [6, 5]
-      call subblock(quadblock, factors, positions, current_weight, dh_quad, h_quad)
-    end if
+    ! elements below are only relevant when viscosity is included
+    if (.not. has_viscosity) return
 
     ! ==================== Quadratic * Cubic ====================
-    call reset_factor_positions(new_size=2)
-    ! H(6, 7)
-    factors(1) = eta_H * k3 * Fop_plus / rho
-    positions(1, :) = [6, 7]
-    ! H(6, 8)
-    factors(2) = -eta_H * k2 * Fop_plus / rho
-    positions(2, :) = [6, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, h_cubic)
-
+    call elements%add( &
+      -eta_H * ic * mu * ( &
+        (drho / rho + 1.0d0 / eps) * deps / eps + (k2 / eps)**2 + k3**2 &
+      ) / rho, &
+      "a1", &
+      "v1", &
+      spline1=h_quad, &
+      spline2=h_cubic &
+    )
     ! ==================== Quadratic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! H(6, 7)
-    factors(1) = eta_H * B03 * (deps / eps - drho / rho) / rho
-    positions(1, :) = [6, 7]
-    ! H(6, 8)
-    factors(2) = eta_H * eps * B02 * (deps / eps + drho / rho) / rho
-    positions(2, :) = [6, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_quad, dh_cubic)
-
+    call elements%add( &
+      eta_H * ic * mu * (4.0d0 * drho / rho - deps / eps) / (3.0d0 * rho), &
+      "a1", &
+      "v1", &
+      spline1=h_quad, &
+      spline2=dh_cubic &
+    )
+    ! ==================== dQuadratic * Cubic ====================
+    call elements%add( &
+      eta_H * ic * mu * deps / (eps * rho), &
+      "a1", &
+      "v1", &
+      spline1=dh_quad, &
+      spline2=h_cubic &
+    )
     ! ==================== dQuadratic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! H(6, 7)
-    factors(1) = eta_H * B03 / rho
-    positions(1, :) = [6, 7]
-    ! H(6, 8)
-    factors(2) = -eta_H * eps * B02 / rho
-    positions(2, :) = [6, 8]
-    call subblock(quadblock, factors, positions, current_weight, dh_quad, dh_cubic)
-
-    ! ==================== Cubic * Quadratic ====================
-    call reset_factor_positions(new_size=2)
-    ! H(7, 6)
-    factors(1) = eta_H * (WVop * B03 - ic * B01 * eps * k3 * drho / rho) / rho
-    positions(1, :) = [7, 6]
-    ! H(8, 6)
-    factors(2) = -eta_H * (WVop * B02 + ic * B01 * k2 * (deps / eps - drho / rho)) / rho
-    positions(2, :) = [8, 6]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
-    if (elec_pressure) then
-      call reset_factor_positions(new_size=4)
-      ! H(7, 1)
-      factors(1) = -eta_H * T0 * k2 / (eps * rho)
-      positions(1, :) = [7, 1]
-      ! H(7, 5)
-      factors(2) = -eta_H * k2 / eps
-      positions(2, :) = [7, 5]
-      ! H(8, 1)
-      factors(3) = -eta_H * T0 * k3 / rho
-      positions(3, :) = [8, 1]
-      ! H(8, 5)
-      factors(4) = -eta_H * k3
-      positions(4, :) = [8, 5]
-      call subblock(quadblock, factors, positions, current_weight, h_cubic, h_quad)
-    end if
-
-    ! ==================== dCubic * Quadratic ====================
-    call reset_factor_positions(new_size=2)
-    ! H(7, 6)
-    factors(1) = eta_H * ic * B01 * eps * k3 / rho
-    positions(1, :) = [7, 6]
-    ! H(8, 6)
-    factors(2) = -eta_H * ic * B01 * k2 / rho
-    positions(2, :) = [8, 6]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, h_quad)
-
+    call elements%add( &
+      -4.0d0 * eta_H * ic * mu / (3.0d0 * rho), &
+      "a1", &
+      "v1", &
+      spline1=dh_quad, &
+      spline2=dh_cubic &
+    )
+    ! ==================== Quadratic * Quadratic ====================
+    call elements%add( &
+      eta_H * mu * 4.0d0 * (ddv01 + deps * (dv01 - v01 / eps) / eps) &
+      / (3.0d0 * rho**2), &
+      "a1", &
+      "rho", &
+      spline1=h_quad, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      7.0d0 * eta_H * ic * mu * deps * k2 / (3.0d0 * eps * rho), &
+      "a1", &
+      "v2", &
+      spline1=h_quad, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      eta_H * ic * mu * k3 * deps / (3.0d0 * eps * rho), &
+      "a1", &
+      "v3", &
+      spline1=h_quad, &
+      spline2=h_quad &
+    )
+    ! ==================== Quadratic * dQuadratic ====================
+    call elements%add( &
+      -eta_H * ic * mu * k2 / (3.0d0 * rho), &
+      "a1", &
+      "v2", &
+      spline1=h_quad, &
+      spline2=dh_quad &
+    )
+    call elements%add( &
+      -eta_H * ic * mu * k3 / (3.0d0 * rho), &
+      "a1", &
+      "v3", &
+      spline1=h_quad, &
+      spline2=dh_quad &
+    )
     ! ==================== Cubic * Cubic ====================
-    call reset_factor_positions(new_size=4)
-    ! H(7, 7)
-    factors(1) = eta_H * k3 * (ic * B01 * k2 / eps - drB02 / eps) / rho
-    positions(1, :) = [7, 7]
-    ! H(7, 8)
-    factors(2) = -eta_H * k2 * (ic * B01 * k2 / eps - drB02 / eps) / rho
-    positions(2, :) = [7, 8]
-    ! H(8, 7)
-    factors(3) = eta_H * k3 * (ic * B01 * k3 - dB03) / rho
-    positions(3, :) = [8, 7]
-    ! H(8, 8)
-    factors(4) = eta_H * k2 * (dB03 - ic * B01 * k3) / rho
-    positions(4, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, h_cubic)
-
+    call elements%add( &
+      2.0d0 * eta_H * ic * mu * k2 * deps / (eps**2 * rho), &
+      "a2", &
+      "v1", &
+      spline1=h_cubic, &
+      spline2=h_cubic &
+    )
     ! ==================== Cubic * dCubic ====================
-    call reset_factor_positions(new_size=4)
-    ! H(7, 7)
-    factors(1) = -eta_H * k2 * B03 / (eps * rho)
-    positions(1, :) = [7, 7]
-    ! H(7, 8)
-    factors(2) = eta_H * eps * (ic * B01 * drho / rho - k3 * B03) / rho
-    positions(2, :) = [7, 8]
-    ! H(8, 7)
-    factors(3) = eta_H * (ic * B01 * (deps / eps - drho / rho) + k2 * B02 / eps) / rho
-    positions(3, :) = [8, 7]
-    ! H(8, 8)
-    factors(4) = eta_H * eps * k3 * B02 / rho
-    positions(4, :) = [8, 8]
-    call subblock(quadblock, factors, positions, current_weight, h_cubic, dh_cubic)
+    call elements%add( &
+      eta_H * ic * mu * k2 / (3.0d0 * eps * rho), &
+      "a2", &
+      "v1", &
+      spline1=h_cubic, &
+      spline2=dh_cubic &
+    )
+    call elements%add( &
+      eta_H * ic * mu * k3 / (3.0d0 * rho), &
+      "a3", &
+      "v1", &
+      spline1=h_cubic, &
+      spline2=dh_cubic &
+    )
+    ! ==================== Cubic * Quadratic ====================
+    call elements%add( &
+      -ic * eta_H * mu * (ddv02 + deps * (dv02 - v02 / eps) / eps) / rho**2, &
+      "a2", &
+      "rho", &
+      spline1=h_cubic, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      -eta_H * ic * mu * ( &
+        4.0d0 * k2**2 / (3.0d0 * eps) + eps * k3**2 + deps / eps &
+      ) / rho, &
+      "a2", &
+      "v2", &
+      spline1=h_cubic, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      -eta_H * ic * mu * k2 * k3 / (3.0d0 * eps * rho), &
+      "a2", &
+      "v3", &
+      spline1=h_cubic, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      -ic * eta_H * mu * (ddv03 + deps * dv03 / eps) / rho**2, &
+      "a3", &
+      "rho", &
+      spline1=h_cubic, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      -eta_H * ic * mu * k2 * k3 / (3.0d0 * rho), &
+      "a3", &
+      "v2", &
+      spline1=h_cubic, &
+      spline2=h_quad &
+    )
+    call elements%add( &
+      -eta_H * ic * mu * ( &
+        (k2 / eps)**2 + 4.0d0 * k3**2 / 3.0d0 + drho * deps / (eps * rho) &
+      ) / rho, &
+      "a3", &
+      "v3", &
+      spline1=h_cubic, &
+      spline2=h_quad &
+    )
+    ! ==================== Cubic * dQuadratic ====================
+    call elements%add( &
+      eta_H * ic * mu * eps * drho / rho**2, &
+      "a2", &
+      "v2", &
+      spline1=h_cubic, &
+      spline2=dh_quad &
+    )
+    call elements%add( &
+      eta_H * ic * mu * drho / rho**2, &
+      "a3", &
+      "v3", &
+      spline1=h_cubic, &
+      spline2=dh_quad &
+    )
+    ! ==================== dCubic * dQuadratic ====================
+    call elements%add( &
+      -eta_H * ic * mu * eps / rho, "a2", "v2", spline1=dh_cubic, spline2=dh_quad &
+    )
+    call elements%add( &
+      -eta_H * ic * mu / rho, "a3", "v3", spline1=dh_cubic, spline2=dh_quad &
+    )
+    ! ==================== dCubic * Quadratic ====================
+    call elements%add( &
+      eta_H * ic * mu * deps / (eps * rho), &
+      "a3", &
+      "v3", &
+      spline1=dh_cubic, &
+      spline2=h_quad &
+    )
 
-    ! ==================== dCubic * dCubic ====================
-    call reset_factor_positions(new_size=2)
-    ! H(7, 8)
-    factors(1) = -eta_H * ic * B01 * eps / rho
-    positions(1, :) = [7, 8]
-    ! H(8, 7)
-    factors(2) = eta_H * ic * B01 / rho
-    positions(2, :) = [8, 7]
-    call subblock(quadblock, factors, positions, current_weight, dh_cubic, dh_cubic)
-
+    call add_to_quadblock(quadblock, elements, weight, settings%dims)
+    call elements%delete()
   end procedure add_hall_matrix_terms
 
 end submodule smod_hall_matrix

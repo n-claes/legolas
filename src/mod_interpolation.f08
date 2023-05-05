@@ -6,7 +6,7 @@
 !! [MPI-AMRVAC](amrvac.org) code.
 module mod_interpolation
   use mod_global_variables, only: dp
-  use mod_logging, only: log_message
+  use mod_logging, only: logger
   implicit none
 
   private
@@ -45,9 +45,7 @@ contains
     ! check if x_table is a monotonically increasing array
     do i = 1, n_table - 1
       if (x_table(i + 1) < x_table(i)) then
-        call log_message( &
-          "interpolation: x-values are not monotonically increasing!", level="error" &
-        )
+        call logger%error("interpolation: x-values are not monotonically increasing!")
         return
       end if
     end do
@@ -133,10 +131,7 @@ contains
 
     ! x_values and y_values should be the same length
     if (size(x) /= size(y)) then
-      call log_message( &
-        "numerical derivative: x and y should have the same size!", &
-        level="error" &
-      )
+      call logger%error("numerical derivative: x and y should have the same size!")
       return
     end if
     nbprints = 0
@@ -151,24 +146,17 @@ contains
     do i = 2, nvals-1
       dxi = x(i) - x(i-1)
       if (.not. is_equal(dx, dxi, tol=tol)) then
-        call log_message( &
-          "numerical derivative: x is not equally spaced, derivative may be wrong!", &
-          level="warning" &
+        call logger%warning( &
+          "numerical derivative: x is not equally spaced, derivative may be wrong!" &
         )
-        call log_message( &
+        call logger%warning( &
           "at index " // str(i) // " expected dx=" // str(dx, fmt="e20.10") // &
-          " but got dx=" // str(dxi, fmt="e20.10"), &
-          level="warning", &
-          use_prefix=.false. &
+          " but got dx=" // str(dxi, fmt="e20.10") &
         )
-        call log_message( &
-          "---> diff = " // str(abs(dx - dxi), fmt="e20.6"), &
-          level="warning", &
-          use_prefix=.false. &
-        )
+        call logger%warning("---> diff = " // str(abs(dx - dxi), fmt="e20.6"))
         nbprints = nbprints + 1
         if (nbprints == 10) then
-          call log_message("...", level="warning", use_prefix=.false.)
+          call logger%warning("...")
           exit
         end if
       end if
@@ -254,11 +242,11 @@ contains
 
     ! check if we are outside of the table
     if (x < x_values(1)) then
-      call log_message("lookup_value: x outside x_values (too small)", level="error")
+      call logger%error("lookup_value: x outside x_values (too small)")
       y_found = NaN
       return
     else if (x > x_values(nvals)) then
-      call log_message("lookup_value: x outside x_values (too large)", level="error")
+      call logger%error("lookup_value: x outside x_values (too large)")
       y_found = NaN
       return
     end if

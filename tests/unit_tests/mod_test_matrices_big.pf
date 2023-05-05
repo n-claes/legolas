@@ -1,0 +1,167 @@
+module mod_test_matrices_big
+  use mod_suite_utils
+  use funit
+  use mod_matrix_structure, only: matrix_t, new_matrix
+  use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
+  use mod_banded_operations, only: multiply
+  use mod_transform_matrix, only: matrix_to_banded
+  implicit none
+
+  ! does various tests on huge matrices
+
+  integer, parameter :: matrix_dim = 64000
+  integer, parameter :: nb_diags = 16
+  integer, parameter :: nonzero_columns1 = 13
+  integer, parameter :: nonzero_columns2 = 8
+
+  integer :: state_size
+  integer, allocatable :: state(:)
+
+  type(matrix_t) :: matrix1
+  type(banded_matrix_t) :: bandmatrix1
+  type(matrix_t) :: matrix2
+  type(banded_matrix_t) :: bandmatrix2
+
+  type(banded_matrix_t) :: banded_result
+  type(banded_matrix_t) :: banded_expected
+
+contains
+
+  @before
+  subroutine init_test()
+    ! manually set seed for deterministic RNG
+    if (.not. allocated(state)) then
+      call random_seed(size=state_size)
+      allocate(state(state_size))
+      state = 2022051810
+      call random_seed(put=state)
+    end if
+
+    matrix1 = new_matrix(nb_rows=matrix_dim)
+    bandmatrix1 = new_banded_matrix( &
+      rows=matrix_dim, cols=matrix_dim, subdiags=nb_diags, superdiags=nb_diags &
+    )
+
+    matrix2 = new_matrix(nb_rows=matrix_dim)
+    bandmatrix2 = new_banded_matrix( &
+      rows=matrix_dim, cols=matrix_dim, subdiags=nb_diags, superdiags=nb_diags &
+    )
+
+    banded_expected = new_banded_matrix( &
+      rows=matrix_dim, cols=matrix_dim, subdiags=nb_diags, superdiags=nb_diags &
+    )
+
+    call assemble_test_matrices()
+  end subroutine init_test
+
+
+  @after
+  subroutine tear_down()
+    call matrix1%delete_matrix()
+    call bandmatrix1%destroy()
+    call matrix2%delete_matrix()
+    call bandmatrix2%destroy()
+
+    call banded_result%destroy()
+    call banded_expected%destroy()
+  end subroutine tear_down
+
+
+  subroutine generate_unique_columns(a, b, number, columns)
+    integer, intent(in) :: a
+    integer, intent(in) :: b
+    integer, intent(in) :: number
+    integer, intent(out) :: columns(number)
+    integer :: idx, icol
+    real(dp) :: rng_u
+    columns = 0
+    idx = 1
+    do while (idx <= number)
+      call random_number(rng_u)
+      ! to get random integer between [a, b] we do j = a + floor((b + 1 - a) * u)
+      ! with u real random number between 0 and 1
+      icol = a + floor((b + 1 - a) * rng_u)
+      ! add only if column not already in list
+      if (.not. any(icol == columns)) then
+        columns(idx) = icol
+        idx = idx + 1
+      end if
+    end do
+  end subroutine generate_unique_columns
+
+
+  subroutine assemble_test_matrices()
+    integer :: n, m ! left and right bound of RNG
+    integer :: i, row
+    integer :: columns1(nonzero_columns1), columns2(nonzero_columns2)
+    real(dp) :: rng_min, rng_max
+    complex(dp) :: val1, val2
+
+    ! generate random complex number between -1000 and 1000
+    rng_min = -1.0d3
+    rng_max = 1.0d3
+
+    do row = 1, matrix_dim
+      ! ensure row and column are within band
+      n = max(1, row - nb_diags)
+      m = min(matrix_dim, row + nb_diags)
+
+      call generate_unique_columns(n, m, nonzero_columns1, columns1)
+      do i = 1, size(columns1)
+        val1 = cmplx( &
+          random_uniform(rng_min, rng_max), random_uniform(rng_min, rng_max), kind=dp &
+        )
+        call matrix1%add_element(row=row, column=columns1(i), element=val1)
+        call bandmatrix1%set_element(row=row, col=columns1(i), element=val1)
+      end do
+
+      call generate_unique_columns(n, m, nonzero_columns2, columns2)
+      do i = 1, size(columns2)
+        val2 = cmplx( &
+          random_uniform(rng_min, rng_max), random_uniform(rng_min, rng_max), kind=dp &
+        )
+        call matrix2%add_element(row=row, column=columns2(i), element=val2)
+        call bandmatrix2%set_element(row=row, col=columns2(i), element=val2)
+      end do
+    end do
+  end subroutine assemble_test_matrices
+
+
+  function get_title() result(title)
+    use mod_logging, only: str
+    character(:), allocatable :: title
+
+    title = "big matrices [" // str(matrix_dim) // "x" // str(matrix_dim) // "]: "
+  end function get_title
+
+
+  @test
+  subroutine test_matrix_band_equality1()
+    call set_name(get_title() // "matrix-band equality 1")
+    @assertTrue(matrix_equals_band(matrix=matrix1, band=bandmatrix1))
+  end subroutine test_matrix_band_equality1
+
+
+  @test
+  subroutine test_matrix_band_equality2()
+    call set_name(get_title() // "matrix-band equality 2")
+    @assertTrue(matrix_equals_band(matrix=matrix2, band=bandmatrix2))
+  end subroutine test_matrix_band_equality2
+
+
+  @test
+  subroutine test_band_band_equality1()
+    call set_name(get_title() // "matrix -> band and band equality 1")
+    call matrix_to_banded(matrix1, nb_diags, nb_diags, banded_result)
+    @assertEqual(bandmatrix1%AB, banded_result%AB, tolerance=TOL)
+  end subroutine test_band_band_equality1
+
+
+  @test
+  subroutine test_band_band_equality2()
+    call set_name(get_title() // "matrix -> band and band equality 2")
+    call matrix_to_banded(matrix2, nb_diags, nb_diags, banded_result)
+    @assertEqual(bandmatrix2%AB, banded_result%AB, tolerance=TOL)
+  end subroutine test_band_band_equality2
+
+end module mod_test_matrices_big

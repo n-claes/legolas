@@ -2,7 +2,7 @@ from pylbo.automation.generator import ParfileGenerator
 from pylbo.automation.runner import LegolasRunner
 
 
-def generate_parfiles(parfile_dict, basename=None, output_dir=None):
+def generate_parfiles(parfile_dict, basename=None, output_dir=None, subdir=True):
     """
     Generates parfiles based on a given configuration dictionary.
     The separate namelists do not have to be taken into account, and a normal
@@ -23,6 +23,8 @@ def generate_parfiles(parfile_dict, basename=None, output_dir=None):
         Output directory where the parfiles are saved, defaults to the current
         working directory if not specified. A subdirectory called `parfiles` will be
         created in which the parfiles will be saved.
+    subdir : boolean
+        If `.true.` (default), creates a subdirectory `parfiles` in the output folder.
 
     Notes
     -----
@@ -74,7 +76,7 @@ def generate_parfiles(parfile_dict, basename=None, output_dir=None):
     >>> }
     >>> parfile_list = pylbo.generate_parfiles(config, output_dir="my_parfiles")
     """
-    pfgen = ParfileGenerator(parfile_dict, basename, output_dir)
+    pfgen = ParfileGenerator(parfile_dict, basename, output_dir, subdir)
     pfgen.create_namelist_from_dict()
     parfiles = pfgen.generate_parfiles()
     return parfiles

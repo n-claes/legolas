@@ -1,10 +1,11 @@
 import copy
-import f90nml
 from pathlib import Path
+
+import f90nml
 from pylbo.automation.defaults import namelist_items
-from pylbo.utilities.toolbox import transform_to_list
-from pylbo.utilities.logger import pylboLogger
 from pylbo.exceptions import ParfileGenerationError
+from pylbo.utilities.logger import pylboLogger
+from pylbo.utilities.toolbox import transform_to_list
 
 
 def _validate_basename(basename):
@@ -27,7 +28,7 @@ def _validate_basename(basename):
     return basename
 
 
-def _validate_output_dir(output_dir):
+def _validate_output_dir(output_dir, subdir):
     """
     Validates and returns the output directory for the parfiles.
 
@@ -36,6 +37,8 @@ def _validate_output_dir(output_dir):
     output_dir : str, ~os.PathLike
         The output directory to store the parfiles in. If not given, defaults to
         the current working directory.
+    subdir : boolean
+        If `.true.`, creates a subdirectory called `parfiles`.
 
     Raises
     ------
@@ -53,9 +56,10 @@ def _validate_output_dir(output_dir):
     output = Path(output_dir).resolve()
     if not output.is_dir():
         raise NotADirectoryError(output)
-    output = (output / "parfiles").resolve()
-    if not output.is_dir():
-        Path.mkdir(output)
+    if subdir:
+        output = (output / "parfiles").resolve()
+        if not output.is_dir():
+            Path.mkdir(output)
     return output
 
 
@@ -74,14 +78,16 @@ class ParfileGenerator:
         If not provided, the basename will default to `parfile`.
     output_dir : str, ~os.PathLike
         Output directory where the parfiles are saved, defaults to the current
-        working directory if not specified. A subdirectory called `parfiles` will be
-        created in which the parfiles will be saved.
+        working directory if not specified.
+    subdir : boolean
+        If `.true.` (default), creates a subdirectory under `output_dir` called
+         `parfiles` in which the parfiles will be saved.
     """
 
-    def __init__(self, parfile_dict, basename=None, output_dir=None):
+    def __init__(self, parfile_dict, basename=None, output_dir=None, subdir=True):
         self.parfile_dict = copy.deepcopy(parfile_dict)
         self.basename = _validate_basename(basename)
-        self.output_dir = _validate_output_dir(output_dir)
+        self.output_dir = _validate_output_dir(output_dir, subdir)
         self.nb_runs = self.parfile_dict.pop("number_of_runs", 1)
         self.parfiles = []
         self.container = {}
@@ -206,12 +212,6 @@ class ParfileGenerator:
                 f"{prefix}{run_dict['savelist'].get('basename_datfile', self.basename)}"
             )
             run_dict["savelist"].update({"basename_datfile": datfile_name})
-            # logfile name (no extension .log needed)
-            logfile_name = run_dict["savelist"].get("basename_logfile", None)
-            if logfile_name is not None:
-                logfile_name = f"{prefix}{logfile_name}"
-                run_dict["savelist"].update({"basename_logfile": logfile_name})
-
             # set paths and write parfile
             parfile_path = (self.output_dir / parfile_name).resolve()
             self.parfiles.append(str(parfile_path))

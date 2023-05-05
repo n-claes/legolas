@@ -1,53 +1,49 @@
-import pytest
 import numpy as np
+import pytest
 
-discrete_alfven_setup = {
-    "name": "discrete_alfven",
-    "config": {
-        "geometry": "cylindrical",
-        "x_start": 0,
-        "x_end": 1,
-        "gridpoints": 51,
-        "parameters": {"k2": 1.0, "k3": 0.05, "j0": 0.125, "delta": 0.2},
-        "equilibrium_type": "discrete_alfven",
+from .regression import RegressionTest
+
+
+class TestDiscreteAlfvenQR(RegressionTest):
+    name = "Discrete Alfven k2=1 k3=0.05"
+    filename = "discrete_alfven_QR_k2_1_k3_0.05"
+    equilibrium = "discrete_alfven"
+    geometry = "cylindrical"
+
+    parameters = {"k2": 1.0, "k3": 0.05, "j0": 0.125, "delta": 0.2}
+    physics_settings = {
         "radiative_cooling": True,
+        "heating": True,
+        "force_thermal_balance": True,
         "cooling_curve": "rosner",
-        "thermal_conduction": True,
-        "use_fixed_tc_perp": True,
-        "fixed_tc_perp_value": 0,
-        "cgs_units": True,
+        "parallel_conduction": True,
+        "perpendicular_conduction": False,
         "unit_density": 1.5e-15,
         "unit_magneticfield": 50.0,
         "unit_length": 1.0e10,
         "mean_molecular_weight": 1.0,
-        "logging_level": 0,
-        "show_results": False,
-        "write_eigenfunctions": False,
-        "write_matrices": False,
-    },
-    "image_limits": [
-        {"xlims": (-700, 700), "ylims": (-0.9, 0.4)},
-        {"xlims": (-100, 100), "ylims": (-0.9, 0.4)},
-        {"xlims": (-0.2, 0.2), "ylims": (-0.9, 0.4)},
-        {"xlims": (-0.01, 0.01), "ylims": (-0.004, 0.009), "RMS_TOLERANCE": 2.1},
-    ],
-}
-parametrisation = dict(
-    argnames="setup",
-    argvalues=[discrete_alfven_setup],
-    ids=[discrete_alfven_setup["name"]],
-)
+    }
 
+    spectrum_limits = [
+        {"xlim": (-700, 700), "ylim": (-0.9, 0.4)},
+        {"xlim": (-100, 100), "ylim": (-0.9, 0.4)},
+        {"xlim": (-0.2, 0.2), "ylim": (-0.9, 0.4)},
+        {"xlim": (-0.01, 0.01), "ylim": (-0.004, 0.009), "RMS_TOLERANCE": 2.1},
+    ]
 
-@pytest.mark.parametrize(**parametrisation)
-def test_conduction(ds_test, setup):
-    assert np.all(
-        ds_test.equilibria.get("kappa_perp") == setup["config"]["fixed_tc_perp_value"]
-    )
+    @pytest.mark.parametrize("limits", spectrum_limits)
+    def test_spectrum(self, limits, ds_test, ds_base):
+        super().run_spectrum_test(limits, ds_test, ds_base)
 
+    def test_perp_conduction(self, ds_test):
+        assert np.all(ds_test.equilibria.get("kappa_perp") == pytest.approx(0))
 
-@pytest.mark.parametrize(**parametrisation)
-def test_units(ds_test, setup):
-    assert ds_test.cgs
-    for unit in ("unit_density", "unit_magneticfield", "unit_length"):
-        assert ds_test.units.get(unit) == setup["config"][unit]
+    def test_para_conduction(self, ds_test):
+        assert np.any(ds_test.equilibria.get("kappa_para") > 0.003)
+
+    def test_units(self, ds_test):
+        assert ds_test.cgs
+        for val in ("density", "magneticfield", "length"):
+            assert ds_test.units.get(f"unit_{val}") == pytest.approx(
+                self.physics_settings[f"unit_{val}"]
+            )

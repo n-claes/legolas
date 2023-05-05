@@ -1,499 +1,425 @@
-import pytest
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.testing.compare import compare_images
+import logging
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pylbo
+import pylbo.testing
+import pytest
+from matplotlib.testing.compare import compare_images
 
-from regression_tests.suite_utils import (
-    output,
-    get_filepaths,
-    get_answer_filepaths,
-    get_image_filename,
-    ABS_TOL,
-    SAVEFIG_KWARGS,
-    RMS_TOLERANCE,
-    EF_NAMES,
+testlog = logging.getLogger("test_logger")
+
+only_for_baseline_generation = pytest.mark.skipif(
+    condition="not config.getoption('generate_baseline')",
+    reason="'--generate' option not passed",
 )
-from regression_tests.test_adiabatic_homo import adiabatic_homo_setup
-from regression_tests.test_adiabatic_homo_ef_subset import adiabatic_ef_subset_setup
-from regression_tests.test_couette_flow import couette_flow_setup
-from regression_tests.test_discrete_alfven import discrete_alfven_setup
-from regression_tests.test_fluxtube_coronal import fluxtube_coronal_setup
-from regression_tests.test_fluxtube_photospheric import fluxtube_photospheric_setup
-from regression_tests.test_gold_hoyle import gold_hoyle_setup
-from regression_tests.test_interchange_modes import interchange_modes_setup
-from regression_tests.test_internal_kink import internal_kink_setup
-from regression_tests.test_kh_cd import kh_cd_setup
-from regression_tests.test_KHI import khi_setup
-from regression_tests.test_magnetothermal import magnetothermal_setup
-from regression_tests.test_magnetothermal_arnoldi_si import magneto_arnoldi_si_setup
-from regression_tests.test_MRI import mri_setup
-from regression_tests.test_quasimodes import quasimodes_setup
-from regression_tests.test_resistive_homo import resistive_homo_setup
-from regression_tests.test_resistive_homo_arnoldi_si import (
-    resistive_homo_arnoldi_si_setup,
-)
-from regression_tests.test_resistive_homo_ef_subset import (
-    resistive_homo_ef_subset_setup,
-)
-from regression_tests.test_resistive_tearing import resistive_tearing_setup
-from regression_tests.test_resistive_tearing_flow import resistive_tearing_flow_setup
-from regression_tests.test_rotating_cylinder import rotating_cylinder_setup
-from regression_tests.test_RTI import rti_setup
-from regression_tests.test_RTI_KHI import rti_khi_setup
-from regression_tests.test_RTI_theta_pinch_HD import rti_thetapinch_hd_setup
-from regression_tests.test_RTI_theta_pinch_MHD import rti_thetapinch_mhd_setup
-from regression_tests.test_suydam import suydam_setup
-from regression_tests.test_taylor_couette import taylor_couette_setup
-from regression_tests.test_tokamak import tokamak_setup
 
-from regression_tests.test_multi_constant_current import constant_current_setup
-from regression_tests.test_multi_coronal_fluxtube import coronal_tube_setup
-from regression_tests.test_multi_gravito_HD import gravito_hd_setup
-from regression_tests.test_multi_gravito_MHD import gravito_mhd_setup
-from regression_tests.test_multi_interchange import interchange_setup
-from regression_tests.test_multi_iso_atmo import iso_atmo_beta_half_setup
-from regression_tests.test_multi_photospheric_fluxtube import photospheric_tube_setup
+SOLVERS_WITHOUT_BASELINE_GENERATION = ["QZ-direct", "QR-cholesky"]
 
 
-# retrieve test setups
-tests_to_run = [
-    adiabatic_homo_setup,
-    adiabatic_ef_subset_setup,
-    couette_flow_setup,
-    discrete_alfven_setup,
-    fluxtube_coronal_setup,
-    fluxtube_photospheric_setup,
-    gold_hoyle_setup,
-    interchange_modes_setup,
-    internal_kink_setup,
-    kh_cd_setup,
-    khi_setup,
-    magnetothermal_setup,
-    magneto_arnoldi_si_setup,
-    mri_setup,
-    quasimodes_setup,
-    resistive_homo_setup,
-    resistive_homo_arnoldi_si_setup,
-    resistive_homo_ef_subset_setup,
-    resistive_tearing_setup,
-    resistive_tearing_flow_setup,
-    rotating_cylinder_setup,
-    rti_setup,
-    rti_khi_setup,
-    rti_thetapinch_hd_setup,
-    rti_thetapinch_mhd_setup,
-    suydam_setup,
-    taylor_couette_setup,
-    tokamak_setup,
-]
-multirun_tests = [
-    constant_current_setup,
-    coronal_tube_setup,
-    gravito_hd_setup,
-    gravito_mhd_setup,
-    interchange_setup,
-    iso_atmo_beta_half_setup,
-    photospheric_tube_setup,
-]
-
-# configure test setup
-for _setup in tests_to_run:
-    # get filepaths
-    name = _setup["name"]
-    datfile, logfile = get_filepaths(name)
-    answer_datfile, answer_logfile = get_answer_filepaths(name)
-    # set filepaths
-    _setup["datfile"] = datfile
-    _setup["logfile"] = logfile
-    _setup["answer_datfile"] = answer_datfile
-    _setup["answer_logfile"] = answer_logfile
-    _setup["config"]["basename_datfile"] = datfile.stem
-    _setup["config"]["basename_logfile"] = logfile.stem
-    _setup["config"]["output_folder"] = str(output)
-    # avoid running the same test multipe times
-    _setup["test_needs_run"] = True
-# configure multirun test setup
-for _setup in multirun_tests:
-    name = _setup["name"]
-    answer_series, _ = get_answer_filepaths(name)
-    _setup["answer_series"] = answer_series.with_suffix(".pickle")
-    _setup["test_needs_run"] = True
-    _setup["config"]["basename_datfile"] = f"{name}_series"
-    _setup["config"]["output_folder"] = str(output)
-
-# set test IDs
-ids = [_setup["name"] for _setup in tests_to_run]
-multirun_ids = [_setup["name"] for _setup in multirun_tests]
+def use_existing_baseline(capturemanager, baseline):
+    use_existing = False
+    if baseline.is_file():
+        testlog.info(f"baseline file '{baseline.name}' is already present!")
+        capturemanager.suspend_global_capture(in_=True)
+        use_existing = input("Regenerate this file? ").lower() not in ("yes", "y")
+        capturemanager.resume_global_capture()
+    return use_existing
 
 
-# ===== EXISTENCE OF ANSWER FILES =====
-# single spectra
-@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
-def test_answer_datfile_exists(setup):
-    if not setup["answer_datfile"].is_file():
-        raise FileNotFoundError(f"{setup['answer_datfile']} does not exist!")
+def validate_eigenfunctions_present(ds, present, which_efs):
+    if not present:
+        pytest.fail(f"{which_efs} are not present in {ds.datfile.name}")
 
 
-# multirun spectra
-@pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
-def test_answer_multirun_file_exists(setup):
-    if not setup["answer_series"].is_file():
-        raise FileNotFoundError(f"{setup['answer_series']} does not exist!")
-
-
-# ===== GENERATION OF SINGLE FILES =====
-@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
-def test_generate_datfile(ds_test, ds_answer, setup):
-    assert ds_test.datfile == setup["datfile"]
-    assert ds_answer.datfile == setup["answer_datfile"]
-
-
-# ===== EXISTENCE OF SINGLE FILES =====
-@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
-def test_datfile_exists(setup):
-    if not setup["datfile"].is_file():
-        raise FileNotFoundError(f"{setup['datfile']} does not exist!")
-
-
-# ===== GENERATION OF MULTIRUN FILES =====
-@pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
-def test_generate_multirun_file(series_test, series_answer, setup):
-    assert len(series_test) == setup["config"]["number_of_runs"]
-    assert len(series_test) == len(series_answer)
-
-
-# ===== EXISTENCE OF MULTIRUN FILES =====
-@pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
-def test_multirun_file_exists(setup):
-    files = sorted(
-        Path(setup["config"]["output_folder"]).glob(
-            f"*{setup['config']['basename_datfile']}.dat"
+def validate_subplot_sizes(ef_names, axes):
+    nb_axs = len(axes.flatten())
+    nb_efs = len(ef_names)
+    if nb_efs > nb_axs:
+        pytest.fail(
+            f"number of eigenfunctions ({nb_efs}) is larger than "
+            f"number of axes ({nb_axs})"
         )
-    )
-    if not files:
-        raise FileNotFoundError(f"No multirun datfiles found for {setup['name']}!")
 
 
-# ===== GENERATION OF SPECTRUM IMAGES =====
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("image_limits") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("image_limits") is not None],
-)
-def test_generate_spectrum_images(ds_test, ds_answer, setup, imagedir):
-    p_test = pylbo.plot_spectrum(ds_test)
-    p_answer = pylbo.plot_spectrum(ds_answer)
-    setup["spectrum_images"] = []
-    for image_lims in setup.get("image_limits"):
-        figname = f"{get_image_filename(setup['name'], limits_dict=image_lims)}.png"
-        figname_answer = f"{figname[:-4]}-baseline.png"
-        xlims = image_lims.get("xlims")
-        ylims = image_lims.get("ylims")
-        # save test image
-        p_test.ax.set_xlim(xlims)
-        p_test.ax.set_ylim(ylims)
-        p_test.fig.savefig(imagedir / figname, **SAVEFIG_KWARGS)
-        # save baseline image
-        p_answer.ax.set_xlim(xlims)
-        p_answer.ax.set_ylim(ylims)
-        p_answer.fig.savefig(imagedir / figname_answer, **SAVEFIG_KWARGS)
-        setup["spectrum_images"].append((figname, figname_answer))
-    plt.close(p_test.fig)
-    plt.close(p_answer.fig)
+class TestCase:
+    SAVEFIG_KWARGS = {"dpi": 200, "transparent": True}
+    RMS_TOLERANCE = 2
+
+    gridpoints = 51
+    logging_level = 1
+    show_results = False
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @property
+    def filename(self):
+        raise NotImplementedError()
+
+    @property
+    def parameters(self):
+        raise NotImplementedError()
+
+    @property
+    def equilibrium(self):
+        raise NotImplementedError()
+
+    @property
+    def geometry(self):
+        raise NotImplementedError()
+
+    @property
+    def number_of_runs(self):
+        return 1
+
+    @property
+    def eigenfunction_settings(self):
+        return {"write_eigenfunctions": False}
+
+    @property
+    def physics_settings(self):
+        return {}
+
+    @property
+    def solver_settings(self):
+        return {}
+
+    @property
+    def eigenvalues_are_real(self):
+        return False
+
+    def run_settings(self, outputdir):
+        _setup = {
+            "geometry": self.geometry,
+            "x_start": getattr(self, "x_start", 0),
+            "x_end": getattr(self, "x_end", 1),
+            "gridpoints": self.gridpoints,
+            "parameters": self.parameters,
+            "equilibrium_type": self.equilibrium,
+            "logging_level": self.logging_level,
+            "show_results": self.show_results,
+            "basename_datfile": self.filename,
+            "output_folder": str(outputdir),
+        }
+        _setup.update(self.eigenfunction_settings)
+        _setup.update(self.physics_settings)
+        _setup.update(self.solver_settings)
+        _setup.update({"number_of_runs": self.number_of_runs})
+        return _setup
+
+    def get_spectrum_image_filenames(self, limits):
+        figname_test = f"{self.filename}"
+        if limits is not None:
+            xlim = limits["xlim"]
+            ylim = limits["ylim"]
+            figname_test = f"{figname_test}_Re{xlim[0]}-{xlim[1]}_Im{ylim[0]}-{ylim[1]}"
+        figname_base = f"{figname_test}-baseline"
+        return (
+            self._spectradir / f"{figname_test}.png",
+            self._spectradir / f"{figname_base}.png",
+        )
+
+    def get_eigenfunction_image_filenames(self, eigenvalue, prefix):
+        figname_test = f"{self.filename}_{prefix}efs_w_{eigenvalue:.8f}"
+        figname_base = f"{figname_test}-baseline"
+        return (
+            self._eigfuncdir / f"{figname_test}.png",
+            self._eigfuncdir / f"{figname_base}.png",
+        )
+
+    def compare_test_images(self, image_test, image_baseline, tol):
+        result = compare_images(str(image_baseline), str(image_test), tol=tol)
+        if result is not None:
+            pytest.fail(result, pytrace=False)
+        # test succeeded if result = None, check if files are kept
+        if result is None and not self._keep_files:
+            Path(image_baseline).unlink()
+            Path(image_test).unlink()
+
+    @pytest.fixture(scope="class")
+    def file_base(self, baselinedir):
+        custom_baseline = getattr(self, "use_custom_baseline", None)
+        if custom_baseline is not None:
+            return baselinedir / f"BASE_{custom_baseline}.dat"
+        return baselinedir / f"BASE_{self.filename}.dat"
+
+    @pytest.fixture(scope="class")
+    def file_test(self, datfiledir):
+        return datfiledir / f"{self.filename}.dat"
+
+    @pytest.fixture(scope="session")
+    def capturemanager(self, pytestconfig):
+        return pytestconfig.pluginmanager.getplugin("capturemanager")
 
 
-# ===== GENERATION OF EIGENFUNCTION IMAGES =====
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("eigenfunctions") is not None],
-    ids=[s["name"] for s in tests_to_run if s.get("eigenfunctions") is not None],
-)
-def test_generate_eigenfunction_images(ds_test, ds_answer, setup, imagedir):
-    setup["eigenfunction_images"] = []
-    fig_test, ax_test = plt.subplots(3, 3, figsize=(10, 10), sharex="all")
-    axes_test = ax_test.flatten()
-    fig_test.delaxes(axes_test[-1])
-    fig_answer, ax_answer = plt.subplots(3, 3, figsize=(10, 10), sharex="all")
-    axes_answer = ax_answer.flatten()
-    fig_answer.delaxes(axes_answer[-1])
-    for i, efs in enumerate(setup.get("eigenfunctions")):
-        eigenval = efs.get("eigenvalue")
-        figname = f"{setup['name']}_eigenfunctions_{i}.png"
-        figtitle = f"{setup['name']} -- eigenvalue={eigenval:.6f}"
-        # generate baseline image
-        (efs_answer,) = ds_answer.get_eigenfunctions(ev_guesses=eigenval)
-        figname_answer = f"{figname[:-4]}-baseline.png"
-        for ax, ef_name in zip(axes_answer, EF_NAMES):
-            result = efs_answer[ef_name].real + efs_answer[ef_name].imag
-            # small values to zero
-            result[np.where(abs(result) < ABS_TOL)] = 0
-            ax.plot(ds_answer.ef_grid, abs(result), lw=3)
-            ax.set_yticks([])
-            ax.set_title(ef_name)
-        fig_answer.suptitle(figtitle)
-        fig_answer.tight_layout()
-        fig_answer.savefig(imagedir / figname_answer, **SAVEFIG_KWARGS)
-        [ax.clear() for ax in axes_answer]
+class RegressionTest(TestCase):
+    @only_for_baseline_generation
+    def test_generate_baseline(self, capturemanager, file_base):
+        setup = self.run_settings(outputdir=file_base.parent)
+        setup.update({"basename_datfile": file_base.stem})
+        if setup.get("solver") in SOLVERS_WITHOUT_BASELINE_GENERATION:
+            pytest.skip(f"solver '{setup.get('solver')}' uses the QR-invert baseline")
+        if use_existing_baseline(capturemanager, file_base):
+            pytest.skip("using existing file")
+        self.generate_test_dataset(setup)
 
-        # generate test image
-        (efs_test,) = ds_test.get_eigenfunctions(ev_guesses=eigenval)
-        for ax, ef_name in zip(axes_test, EF_NAMES):
-            result = efs_test[ef_name].real + efs_test[ef_name].imag
-            # small values to zero
-            result[np.where(abs(result) < ABS_TOL)] = 0
-            ax.plot(ds_test.ef_grid, abs(result), lw=3)
-            ax.set_yticks([])
-            ax.set_title(ef_name)
-        fig_test.suptitle(figtitle)
-        fig_test.tight_layout()
-        fig_test.savefig(imagedir / figname, **SAVEFIG_KWARGS)
-        [ax.clear() for ax in axes_test]
+    @pytest.fixture(scope="class")
+    def ds_base(self, file_base):
+        return pylbo.load(file_base)
 
-        setup["eigenfunction_images"].append((figname, figname_answer))
-    plt.close(fig_answer)
-    plt.close(fig_test)
+    @pytest.fixture(scope="class")
+    def ds_test(self, file_test, datfiledir):
+        setup = self.run_settings(datfiledir)
+        self.generate_test_dataset(setup)
+        return pylbo.load(file_test)
 
+    def generate_test_dataset(self, setup):
+        testlog.info(f"generating dataset: {setup['basename_datfile']}.dat")
+        parfile = pylbo.generate_parfiles(
+            parfile_dict=setup,
+            basename=setup["basename_datfile"],
+            output_dir=self._datfiledir,
+            subdir=False,
+        )
+        pylbo.run_legolas(parfile)
 
-# ===== GENERATION OF DERIVED EIGENFUNCTION IMAGES =====
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("derived_eigenfunctions") is not None],
-    ids=[
-        s["name"] for s in tests_to_run if s.get("derived_eigenfunctions") is not None
-    ],
-)
-def test_generate_derived_eigenfunction_images(ds_test, ds_answer, setup, imagedir):
-    setup["derived_eigenfunction_images"] = []
-    fig_test, axes_test = plt.subplots(5, 4, figsize=(10, 8), sharex="all")
-    axes_test = axes_test.flatten()
-    fig_answer, axes_answer = plt.subplots(5, 4, figsize=(10, 8), sharex="all")
-    axes_answer = axes_answer.flatten()
-    for i, efs in enumerate(setup.get("derived_eigenfunctions")):
-        eigenval = efs.get("eigenvalue")
-        figname = f"{setup['name']}_derived_eigenfunctions_{i}.png"
-        figtitle = f"{setup['name']} -- eigenvalue={eigenval:.6f}"
-        # generate baseline image
-        (efs_answer,) = ds_answer.get_derived_eigenfunctions(ev_guesses=eigenval)
-        figname_answer = f"{figname[:-4]}-baseline.png"
-        for ax, ef_name in zip(axes_answer, ds_answer.derived_ef_names):
-            result = efs_answer[ef_name].real + efs_answer[ef_name].imag
-            # small values to zero
-            result[np.where(abs(result) < ABS_TOL)] = 0
-            ax.plot(ds_answer.ef_grid, abs(result), lw=3)
-            ax.set_yticks([])
-            ax.set_title(ef_name)
-        fig_answer.suptitle(figtitle)
-        fig_answer.tight_layout()
-        fig_answer.savefig(imagedir / figname_answer, **SAVEFIG_KWARGS)
-        [ax.clear() for ax in axes_answer]
+    def generate_spectrum_images(self, limits, ds_test, ds_base):
+        p_test = pylbo.plot_spectrum(ds_test)
+        p_base = pylbo.plot_spectrum(ds_base)
+        figname_test, figname_base = self.get_spectrum_image_filenames(limits)
+        xlim = limits["xlim"]
+        ylim = limits["ylim"]
+        for pp, name in [(p_test, figname_test), (p_base, figname_base)]:
+            pp.ax.set_xlim(xlim)
+            pp.ax.set_ylim(ylim)
+            pp.ax.set_title(self.name)
+            pp.draw()
+            pp.fig.savefig(name, **self.SAVEFIG_KWARGS)
+            plt.close(pp.fig)
+        return (figname_test, figname_base)
 
-        # generate test image
-        (efs_test,) = ds_test.get_derived_eigenfunctions(ev_guesses=eigenval)
-        for ax, ef_name in zip(axes_test, ds_answer.derived_ef_names):
-            result = efs_test[ef_name].real + efs_test[ef_name].imag
-            # small values to zero
-            result[np.where(abs(result) < ABS_TOL)] = 0
-            ax.plot(ds_test.ef_grid, abs(result), lw=3)
-            ax.set_yticks([])
-            ax.set_title(ef_name)
-        fig_test.suptitle(figtitle)
-        fig_test.tight_layout()
-        fig_test.savefig(imagedir / figname, **SAVEFIG_KWARGS)
-        [ax.clear() for ax in axes_test]
+    def generate_eigenfunction_images(
+        self,
+        eigenvalue,
+        ds_test,
+        ds_base,
+        names_attr,
+        get_ef_method_name,
+        figname_prefix="",
+        nb_plots=(3, 3),
+        figsize=(10, 10),
+        set_to_zero_tol=1e-10,
+    ):
+        fig_test, ax_test = plt.subplots(*nb_plots, figsize=figsize, sharex="all")
+        fig_base, ax_base = plt.subplots(*nb_plots, figsize=figsize, sharex="all")
+        figname_test, figname_base = self.get_eigenfunction_image_filenames(
+            eigenvalue, prefix=figname_prefix
+        )
 
-        setup["derived_eigenfunction_images"].append((figname, figname_answer))
-    plt.close(fig_answer)
-    plt.close(fig_test)
+        for ds, ax in [(ds_test, ax_test), (ds_base, ax_base)]:
+            (efs,) = getattr(ds, get_ef_method_name)(eigenvalue)
+            ef_names = getattr(ds, names_attr)
+            validate_subplot_sizes(ef_names, ax)
+            for panel, ef_name in zip(ax.flatten(), ef_names):
+                result = abs(efs[ef_name].real + efs[ef_name].imag)
+                # small values
+                result[np.where(result < set_to_zero_tol)] = 0
+                panel.plot(ds.ef_grid, result, lw=3)
+                panel.set_yticks([])
+                panel.set_title(ef_name)
+        for fig, name in [(fig_test, figname_test), (fig_base, figname_base)]:
+            fig.suptitle(f"eigenvalue = {eigenvalue:.9f}")
+            fig.tight_layout()
+            fig.savefig(name, **self.SAVEFIG_KWARGS)
+            plt.close(fig)
+        return (figname_test, figname_base)
 
+    @pytest.mark.required
+    def test_generate_ds(self, ds_test):
+        assert ds_test is not None
 
-# ===== GENERATION OF MULTIRUN IMAGES =====
-@pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
-def test_generate_multi_spectra_images(series_test, series_answer, setup, imagedir):
-    setup["spectrum_images"] = []
-    p_test = pylbo.plot_spectrum_multi(
-        series_test, xdata=setup["xdata"], use_squared_omega=setup["use_squared_omega"]
-    )
-    p_answer = pylbo.plot_spectrum_multi(
-        series_answer,
-        xdata=setup["xdata"],
-        use_squared_omega=setup["use_squared_omega"],
-    )
-    xlims = setup["limits"]["xlims"]
-    ylims = setup["limits"]["ylims"]
-    for p in (p_test, p_answer):
-        p.set_x_scaling(setup.get("x_scaling", 1))
-        p.set_y_scaling(setup.get("y_scaling", 1))
-        if setup.get("symlog", None) is not None:
-            p.ax.set_yscale("symlog", linthresh=setup["symlog"])
-        p.ax.set_xlim(xlims)
-        p.ax.set_ylim(ylims)
-    figname = f"{get_image_filename(setup['name'], limits_dict=setup['limits'])}.png"
-    figname_answer = f"{figname[:-4]}-baseline.png"
-    # save test image
-    p_test.fig.savefig(imagedir / figname, **SAVEFIG_KWARGS)
-    # save baseline image
-    p_answer.fig.savefig(imagedir / figname_answer, **SAVEFIG_KWARGS)
-    setup["spectrum_images"].append((figname, figname_answer))
-    plt.close(p_test.fig)
-    plt.close(p_answer.fig)
+    @pytest.mark.required
+    def test_file_base_exists(self, file_base):
+        assert file_base.is_file()
 
+    @pytest.mark.required
+    def test_ds_base_exists(self, ds_base):
+        assert ds_base is not None
 
-@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
-def test_eq_type(ds_test, setup):
-    assert ds_test.eq_type == setup["config"]["equilibrium_type"]
+    @pytest.mark.required
+    def test_geometry(self, ds_test, ds_base):
+        assert self.geometry == ds_test.geometry == ds_base.geometry
 
+    def test_resolution(self, ds_test, ds_base):
+        assert ds_test.gridpoints == ds_base.gridpoints
 
-@pytest.mark.parametrize("setup", tests_to_run, ids=ids)
-def test_parameters(ds_test, ds_answer, setup):
-    assert ds_test.parameters == ds_answer.parameters
+    def test_eigenvalue_types(self, ds_test, ds_base):
+        if not self.eigenvalues_are_real:
+            return
+        tol = getattr(self, "custom_evs_all_real_tol", None)
 
+        for ds, name in zip((ds_test, ds_base), ("test", "base")):
+            if not np.all(ds.eigenvalues.imag == pytest.approx(0, abs=tol)):
+                pytest.fail(
+                    f"{name} ds: eigenvalues are not all real, found largest non-zero "
+                    f"imaginary part abs(Im) = {np.max(np.abs(ds.eigenvalues.imag))} "
+                    f"which is not within tolerance {1e-12 if tol is None else tol:.1e}"
+                )
 
-# ===== TESTS FOR EIGENVALUES AND SPECTRUM =====
-@pytest.mark.parametrize(
-    argnames="setup,idx",
-    argvalues=[
-        (_s, _idx)
-        for _s in tests_to_run
-        if _s.get("image_limits") is not None
-        for _idx, _ in enumerate(_s["image_limits"])
-    ],
-    ids=[
-        f"{_s['name']}-[x={lims['xlims']}, y={lims['ylims']}]"
-        for _s in tests_to_run
-        if _s.get("image_limits") is not None
-        for _idx, lims in enumerate(_s["image_limits"])
-    ],
-)
-def test_eigenvalue_spectrum(imagedir, setup, idx, keep_files):
-    test_image, baseline_image = setup["spectrum_images"][idx]
-    result = compare_images(
-        str(imagedir / baseline_image),
-        str(imagedir / test_image),
-        tol=setup["image_limits"][idx].get("RMS_TOLERANCE", RMS_TOLERANCE),
-    )
-    # result will be None if test succeeds, if pass we remove the images
-    if result is not None:
-        pytest.fail(result, pytrace=False)
-    else:
-        if not keep_files:
-            Path(imagedir / baseline_image).unlink()
-            Path(imagedir / test_image).unlink()
+    def run_spectrum_test(self, limits, ds_test, ds_base):
+        image_test, image_baseline = self.generate_spectrum_images(
+            limits, ds_test, ds_base
+        )
+        super().compare_test_images(
+            image_test,
+            image_baseline,
+            tol=limits.get("RMS_TOLERANCE", self.RMS_TOLERANCE),
+        )
+
+    def run_eigenfunction_test(self, eigenfunction, ds_test, ds_base):
+        eigenvalue = eigenfunction["eigenvalue"]
+        for ds in (ds_test, ds_base):
+            validate_eigenfunctions_present(ds, ds.has_efs, "eigenfunctions")
+        image_test, image_baseline = self.generate_eigenfunction_images(
+            eigenvalue,
+            ds_test,
+            ds_base,
+            get_ef_method_name="get_eigenfunctions",
+            names_attr="ef_names",
+        )
+        super().compare_test_images(
+            image_test,
+            image_baseline,
+            tol=eigenfunction.get("RMS_TOLERANCE", self.RMS_TOLERANCE),
+        )
+
+    def run_derived_eigenfunction_test(self, derived_eigenfunction, ds_test, ds_base):
+        eigenvalue = derived_eigenfunction["eigenvalue"]
+        for ds in (ds_test, ds_base):
+            validate_eigenfunctions_present(
+                ds, ds.has_derived_efs, "derived eigenfunctions"
+            )
+        image_test, image_baseline = self.generate_eigenfunction_images(
+            eigenvalue,
+            ds_test,
+            ds_base,
+            get_ef_method_name="get_derived_eigenfunctions",
+            names_attr="derived_ef_names",
+            figname_prefix="derived_",
+            nb_plots=(5, 4),
+            figsize=(18, 10),
+            set_to_zero_tol=1e-8,
+        )
+        super().compare_test_images(
+            image_test,
+            image_baseline,
+            tol=derived_eigenfunction.get("RMS_TOLERANCE", self.RMS_TOLERANCE),
+        )
 
 
-@pytest.mark.parametrize("setup", multirun_tests, ids=multirun_ids)
-def test_multirun_spectrum(imagedir, setup, keep_files):
-    test_image, baseline_image = setup["spectrum_images"][0]
-    result = compare_images(
-        str(imagedir / baseline_image),
-        str(imagedir / test_image),
-        tol=setup.get("RMS_TOLERANCE", RMS_TOLERANCE),
-    )
-    if result is not None:
-        pytest.fail(result, pytrace=False)
-    else:
-        if not keep_files:
-            Path(imagedir / baseline_image).unlink()
-            Path(imagedir / test_image).unlink()
+class MultiRegressionTest(TestCase):
+    @property
+    def multispectrum_settings(self):
+        raise NotImplementedError()
 
+    @only_for_baseline_generation
+    def test_generate_baseline(self, capturemanager, file_base):
+        if use_existing_baseline(capturemanager, file_base.with_suffix(".pickle")):
+            pytest.skip("using existing file")
+        setup = self.run_settings(outputdir=file_base.parent)
+        setup.update({"basename_datfile": file_base.stem})
+        self.generate_test_dataseries(setup, capturemanager)
+        # get generated files
+        base_files = sorted(file_base.parent.glob(f"*{file_base.name}"))
+        series = pylbo.load_series(base_files)
+        # create pickled datadump
+        pylbo.testing.pickle_dataseries_to_file(
+            series, file_base.with_suffix(".pickle")
+        )
+        # remove tmp files
+        [file.unlink() for file in base_files]
 
-@pytest.mark.parametrize(
-    "setup",
-    [s for s in tests_to_run if s.get("all_eigenvalues_real", False)],
-    ids=[s["name"] for s in tests_to_run if s.get("all_eigenvalues_real", False)],
-)
-def test_if_eigenvalues_all_real(ds_test, setup):
-    assert np.all(ds_test.eigenvalues.imag == pytest.approx(0))
+    @pytest.fixture(scope="class")
+    def series_base(self, file_base):
+        return pylbo.testing.load_pickled_dataseries(file_base.with_suffix(".pickle"))
 
+    @pytest.fixture(scope="class")
+    def series_test(self, capturemanager, datfiledir):
+        setup = self.run_settings(datfiledir)
+        setup.update({"number_of_runs": self.number_of_runs})
+        self.generate_test_dataseries(setup, capturemanager)
+        return pylbo.load_series(sorted(datfiledir.glob(f"*{self.filename}.dat")))
 
-# ===== TESTS FOR EIGENFUNCTIONS =====
-@pytest.mark.parametrize(
-    argnames="setup,idx",
-    argvalues=[
-        (_s, _idx)
-        for _s in tests_to_run
-        if _s.get("eigenfunctions") is not None
-        for _idx, _ in enumerate(_s["eigenfunctions"])
-    ],
-    ids=[
-        f"{_s['name']}-eigenvalue={efs['eigenvalue']}"
-        for _s in tests_to_run
-        if _s.get("eigenfunctions") is not None
-        for _idx, efs in enumerate(_s["eigenfunctions"])
-    ],
-)
-def test_eigenfunction(imagedir, setup, idx, keep_files):
-    test_image, baseline_image = setup["eigenfunction_images"][idx]
-    result = compare_images(
-        str(imagedir / baseline_image),
-        str(imagedir / test_image),
-        tol=setup["eigenfunctions"][idx].get("RMS_TOLERANCE", RMS_TOLERANCE),
-    )
-    # result will be None if test succeeds, if pass we remove images
-    if result is not None:
-        pytest.fail(result, pytrace=False)
-    else:
-        if not keep_files:
-            Path(imagedir / baseline_image).unlink()
-            Path(imagedir / test_image).unlink()
+    def generate_test_dataseries(self, setup, capturemanager):
+        testlog.info(f"generating dataseries: {setup['basename_datfile']}")
+        parfiles = pylbo.generate_parfiles(
+            parfile_dict=setup,
+            basename=setup["basename_datfile"],
+            output_dir=self._datfiledir,
+            subdir=False,
+        )
+        capturemanager.suspend_global_capture()
+        pylbo.run_legolas(parfiles, nb_cpus=2)
+        capturemanager.resume_global_capture()
 
+    def generate_multispectrum_images(self, series_test, series_base):
+        settings = self.multispectrum_settings
+        p_test = pylbo.plot_spectrum_multi(
+            series_test,
+            xdata=settings["xdata"],
+            use_squared_omega=settings.get("use_squared_omega", True),
+        )
+        p_base = pylbo.plot_spectrum_multi(
+            series_base,
+            xdata=settings["xdata"],
+            use_squared_omega=settings.get("use_squared_omega", True),
+        )
+        figname_test, figname_base = self.get_spectrum_image_filenames(limits=None)
+        xlim = settings["xlim"]
+        ylim = settings["ylim"]
+        for pp, name in [(p_test, figname_test), (p_base, figname_base)]:
+            pp.set_x_scaling(settings.get("x_scaling", 1))
+            pp.set_y_scaling(settings.get("y_scaling", 1))
+            if settings.get("symlog", None) is not None:
+                pp.ax.set_yscale("symlog", linthresh=settings["symlog"])
+            if settings.get("xlog"):
+                pp.ax.set_xscale("log")
+            if settings.get("ylog"):
+                pp.ax.set_yscale("log")
+            pp.ax.set_xlim(xlim)
+            pp.ax.set_ylim(ylim)
+            pp.ax.set_title(self.name)
+            pp.draw()
+            pp.fig.savefig(name, **self.SAVEFIG_KWARGS)
+            plt.close(pp.fig)
+        return (figname_test, figname_base)
 
-@pytest.mark.parametrize(
-    argnames="setup,idx",
-    argvalues=[
-        (_s, _idx)
-        for _s in tests_to_run
-        if _s.get("eigenfunctions") is not None
-        for _idx, _ in enumerate(_s["eigenfunctions"])
-    ],
-    ids=[
-        f"{_s['name']}-eigenvalue={efs['eigenvalue']}"
-        for _s in tests_to_run
-        if _s.get("eigenfunctions") is not None
-        for _idx, efs in enumerate(_s["eigenfunctions"])
-    ],
-)
-def test_eigenfunction_edges(ds_test, ds_answer, setup, idx):
-    eigenvalue = setup.get("eigenfunctions")[idx].get("eigenvalue")
-    (efs_test,) = ds_test.get_eigenfunctions(ev_guesses=eigenvalue)
-    (efs_answer,) = ds_answer.get_eigenfunctions(ev_guesses=eigenvalue)
-    # v1, a2 and a3 must be zero on edges for wall boundary conditions
-    for ef_name in ("v1", "a2", "a3"):
-        for edge in (0, -1):
-            assert efs_test.get(ef_name).real[edge] == pytest.approx(0)
-            assert efs_test.get(ef_name).imag[edge] == pytest.approx(0)
-            assert efs_answer.get(ef_name).real[edge] == pytest.approx(0)
-            assert efs_answer.get(ef_name).imag[edge] == pytest.approx(0)
+    @pytest.mark.required
+    def test_generate_series(self, series_test):
+        assert series_test is not None
 
+    @pytest.mark.required
+    def test_file_base_exists(self, file_base):
+        assert file_base.with_suffix(".pickle").is_file()
 
-# ===== TESTS FOR DERIVED EIGENFUNCTION QUANTITIES =====
-@pytest.mark.parametrize(
-    argnames="setup,idx",
-    argvalues=[
-        (_s, _idx)
-        for _s in tests_to_run
-        if _s.get("derived_eigenfunctions") is not None
-        for _idx, _ in enumerate(_s["derived_eigenfunctions"])
-    ],
-    ids=[
-        f"{_s['name']}-eigenvalue={efs['eigenvalue']}"
-        for _s in tests_to_run
-        if _s.get("derived_eigenfunctions") is not None
-        for _idx, efs in enumerate(_s["derived_eigenfunctions"])
-    ],
-)
-def test_derived_eigenfunction(imagedir, setup, idx, keep_files):
-    test_image, baseline_image = setup["derived_eigenfunction_images"][idx]
-    result = compare_images(
-        str(imagedir / baseline_image),
-        str(imagedir / test_image),
-        tol=setup["derived_eigenfunctions"][idx].get("RMS_TOLERANCE", RMS_TOLERANCE),
-    )
-    # result will be None if test succeeds, if pass we remove images
-    if result is not None:
-        pytest.fail(result, pytrace=False)
-    else:
-        if not keep_files:
-            Path(imagedir / baseline_image).unlink()
-            Path(imagedir / test_image).unlink()
+    @pytest.mark.required
+    def test_geometry(self, series_test, series_base):
+        assert np.all(self.geometry == series_test.geometry == series_base.geometry)
+
+    @pytest.mark.required
+    def test_resolution(self, series_test, series_base):
+        for ds_test, ds_base in zip(series_test, series_base):
+            assert ds_test.gridpoints == ds_base.gridpoints
+
+    def test_multispectrum(self, series_test, series_base):
+        image_test, image_baseline = self.generate_multispectrum_images(
+            series_test, series_base
+        )
+        super().compare_test_images(
+            image_test,
+            image_baseline,
+            tol=self.multispectrum_settings.get("RMS_TOLERANCE", self.RMS_TOLERANCE),
+        )

@@ -1,77 +1,99 @@
 module mod_test_inspections
   use mod_suite_utils
   use funit
-  use mod_equilibrium
-  use mod_inspections, only: check_wavenumbers
+  use mod_inspections, only: do_equilibrium_inspections
   use mod_equilibrium_params, only: k2, k3
-  use mod_global_variables, only: NaN, geometry
+  use mod_global_variables, only: NaN
   implicit none
+
+  type(settings_t) :: settings
+  type(background_t) :: background
+  type(physics_t) :: physics
+  type(grid_t) :: grid
 
 contains
 
   @before
   subroutine init_test()
     call reset_globals()
-    call reset_fields(init_fields=.true.)
+    settings = get_settings()
+    background = get_background()
+    physics = get_physics(settings, background)
+    grid = create_test_grid(settings)
   end subroutine init_test
 
 
   @after
   subroutine teardown_test()
-    call clean_up()
+    call settings%delete()
+    call background%delete()
+    call physics%delete()
+    call grid%delete()
   end subroutine teardown_test
 
 
-  subroutine do_NaN_negative_check()
-    use mod_inspections, only: perform_NaN_and_negative_checks
+  real(dp) function uniform()
+    uniform = random_uniform(-1.0d0, 1.0d0)
+  end function uniform
 
-    call perform_NaN_and_negative_checks( &
-      rho_field, T_field, B_field, v_field, grav_field &
-    )
-  end subroutine do_NaN_negative_check
+
+  real(dp) function uniform_nan()
+    real(dp) :: x
+    x = random_uniform(-1.0d0, 1.0d0)
+    if (x < 0.0d0) then
+      uniform_nan = NaN
+    else
+      uniform_nan = x
+    end if
+  end function uniform_nan
+
+
+  subroutine do_checks()
+    call do_equilibrium_inspections(settings, grid, background, physics)
+  end subroutine do_checks
 
 
   @test
   subroutine test_density_negative()
     call set_name("negative density")
-    rho_field % rho0(10) = -1.0d0
-    call do_NaN_negative_check()
-    @assertExceptionRaised("negative density encountered!")
+    call background%set_density_funcs(rho0_func=uniform)
+    call do_checks()
+    @assertExceptionRaised("negative values encountered in rho0")
   end subroutine test_density_negative
 
 
   @test
   subroutine test_temperature_negative()
     call set_name("negative temperature")
-    T_field % T0(10) = -1.0d0
-    call do_NaN_negative_check()
-    @assertExceptionRaised("negative temperature encountered!")
+    call background%set_temperature_funcs(T0_func=uniform)
+    call do_checks()
+    @assertExceptionRaised("negative values encountered in T0")
   end subroutine test_temperature_negative
 
 
   @test
   subroutine test_density_nan()
     call set_name("density NaN")
-    rho_field % rho0(5) = NaN
-    call do_NaN_negative_check()
-    @assertExceptionRaised("NaN encountered in density")
+    call background%set_density_funcs(rho0_func=uniform_nan)
+    call do_checks()
+    @assertExceptionRaised("NaN encountered in rho0")
   end subroutine test_density_nan
 
 
   @test
   subroutine test_temperature_nan()
     call set_name("temperature NaN")
-    T_field % T0(15) = NaN
-    call do_NaN_negative_check()
-    @assertExceptionRaised("NaN encountered in temperature")
+    call background%set_temperature_funcs(T0_func=uniform_nan)
+    call do_checks()
+    @assertExceptionRaised("NaN encountered in T0")
   end subroutine test_temperature_nan
 
 
   @test
   subroutine test_b01_nan()
     call set_name("component B01 NaN")
-    B_field % B01 = NaN
-    call do_NaN_negative_check()
+    call background%set_magnetic_1_funcs(B01_func=uniform_nan)
+    call do_checks()
     @assertExceptionRaised("NaN encountered in B01")
   end subroutine test_b01_nan
 
@@ -79,8 +101,8 @@ contains
   @test
   subroutine test_b02_nan()
     call set_name("component B02 NaN")
-    B_field % B02(8:15) = NaN
-    call do_NaN_negative_check()
+    call background%set_magnetic_2_funcs(B02_func=uniform_nan)
+    call do_checks()
     @assertExceptionRaised("NaN encountered in B02")
   end subroutine test_b02_nan
 
@@ -88,8 +110,8 @@ contains
   @test
   subroutine test_b03_nan()
     call set_name("component B03 NaN")
-    B_field % B03(12) = NaN
-    call do_NaN_negative_check()
+    call background%set_magnetic_3_funcs(B03_func=uniform_nan)
+    call do_checks()
     @assertExceptionRaised("NaN encountered in B03")
   end subroutine test_b03_nan
 
@@ -97,8 +119,8 @@ contains
   @test
   subroutine test_v01_nan()
     call set_name("component v01 NaN")
-    v_field % v01(5) = NaN
-    call do_NaN_negative_check()
+    call background%set_velocity_1_funcs(v01_func=uniform_nan)
+    call do_checks()
     @assertExceptionRaised("NaN encountered in v01")
   end subroutine test_v01_nan
 
@@ -106,8 +128,8 @@ contains
   @test
   subroutine test_v02_nan()
     call set_name("component v02 NaN")
-    v_field % v02(15) = NaN
-    call do_NaN_negative_check()
+    call background%set_velocity_2_funcs(v02_func=uniform_nan)
+    call do_checks()
     @assertExceptionRaised("NaN encountered in v02")
   end subroutine test_v02_nan
 
@@ -115,8 +137,8 @@ contains
   @test
   subroutine test_v03_nan()
     call set_name("component v03 NaN")
-    v_field % v03(17:20) = NaN
-    call do_NaN_negative_check()
+    call background%set_velocity_3_funcs(v03_func=uniform_nan)
+    call do_checks()
     @assertExceptionRaised("NaN encountered in v03")
   end subroutine test_v03_nan
 
@@ -124,9 +146,16 @@ contains
   @test
   subroutine test_gravity_nan()
     call set_name("gravity NaN")
-    grav_field % grav = NaN
-    call do_NaN_negative_check()
+    call physics%set_gravity_funcs(g0_func=g0)
+    call do_checks()
     @assertExceptionRaised("NaN encountered in gravity")
+  contains
+    real(dp) function g0(x, sett, bg)
+      real(dp), intent(in) :: x
+      type(settings_t), intent(in) :: sett
+      type(background_t), intent(in) :: bg
+      g0 = uniform_nan()
+    end function
   end subroutine test_gravity_nan
 
 
@@ -134,9 +163,9 @@ contains
   subroutine test_invalid_k2()
     character(len=100) :: error_msg
     call set_name("wavenumber k2 non-int in cylindrical")
-    geometry = "cylindrical"
+    call settings%grid%set_geometry("cylindrical")
     k2 = 1.2d0
-    call check_wavenumbers()
+    call do_equilibrium_inspections(settings, grid, background, physics)
     error_msg = "cylindrical geometry but k2 is not an integer! Value: 1.20000000"
     @assertExceptionRaised(error_msg)
   end subroutine test_invalid_k2
@@ -145,9 +174,9 @@ contains
   @test
   subroutine test_integer_k2()
     call set_name("wavenumber k2 cylindrical")
-    geometry = "cylindrical"
+    call settings%grid%set_geometry("cylindrical")
     k2 = 2.0d0
-    call check_wavenumbers()
+    call do_equilibrium_inspections(settings, grid, background, physics)
     @assertEqual(2.0d0, k2, tolerance=TOL)
   end subroutine test_integer_k2
 
@@ -155,9 +184,8 @@ contains
   @test
   subroutine test_k2_cartesian()
     call set_name("wavenumber k2 Cartesian")
-    geometry = "Cartesian"
     k2 = 0.5d0
-    call check_wavenumbers()
+    call do_equilibrium_inspections(settings, grid, background, physics)
     @assertEqual(0.5d0, k2, tolerance=TOL)
   end subroutine test_k2_cartesian
 

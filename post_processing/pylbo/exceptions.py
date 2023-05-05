@@ -29,6 +29,29 @@ class InvalidLegolasFile(LegolasException):
         return f"{self.file} is not a valid Legolas file"
 
 
+class BackgroundNotPresent(LegolasException):
+    """
+    Handles trying to query for the background when this is not present in the datfile.
+
+    Parameters
+    ----------
+    file : str, ~os.PathLike
+        The path to the file.
+    unable_to_do : str
+        The thing that was unable to be done.
+    """
+
+    def __init__(self, file, unable_to_get=None):
+        self.file = file
+        self.unable_to_do = unable_to_get
+
+    def __str__(self):
+        msg = f"No background present in {self.file}"
+        if self.unable_to_do is not None:
+            msg = f"{msg}, unable to {self.unable_to_do}"
+        return msg
+
+
 class EigenfunctionsNotPresent(LegolasException):
     """
     Handles trying to query for eigenfunctions when these
@@ -63,6 +86,42 @@ class MatricesNotPresent(LegolasException):
 
     def __str__(self):
         return f"No matrices present in {self.file}"
+
+
+class EigenvectorsNotPresent(LegolasException):
+    """
+    Handles trying to query for eigenvectors when
+    these are not present in the datfile.
+
+    Parameters
+    ----------
+    file : str, ~os.PathLike
+        The path to the file.
+    """
+
+    def __init__(self, file):
+        self.file = file
+
+    def __str__(self):
+        return f"No eigenvectors present in {self.file}"
+
+
+class ResidualsNotPresent(LegolasException):
+    """
+    Handles trying to query for residuals when
+    these are not present in the datfile.
+
+    Parameters
+    ----------
+    file : str, ~os.PathLike
+        The path to the file.
+    """
+
+    def __init__(self, file):
+        self.file = file
+
+    def __str__(self):
+        return f"No residuals present in {self.file}"
 
 
 class ParfileGenerationError(LegolasException):

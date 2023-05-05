@@ -1,7 +1,9 @@
 import struct
-import numpy as np
+
 import matplotlib.pyplot as plt
-from pylbo.utilities.datfile_utils import ALIGN
+import numpy as np
+
+ALIGN = "="
 
 
 def get_debug_coolingcurves(filename):

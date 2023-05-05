@@ -1,292 +1,170 @@
-! =============================================================================
-!> Main module responsible for eigenfunction management. Contains routines
-!! and interfaces to initialise and calculate the eigenfunctions and
-!! derived quantities.
 module mod_eigenfunctions
-  use mod_global_variables, only: dp, str_len_arr, ef_gridpts
-  use mod_types, only: ef_type
+  use mod_global_variables, only: dp
+  use mod_settings, only: settings_t
+  use mod_background, only: background_t
+  use mod_grid, only: grid_t
+  use mod_base_efs, only: base_ef_t
+  use mod_derived_efs, only: derived_ef_t, deallocate_derived_ef_module_variables
+  use mod_derived_ef_names, only: create_and_set_derived_state_vector
   implicit none
 
   private
 
-  !> logical to check whether eigenfunctions are initialised
-  logical, save, protected :: efs_initialised = .false.
-  !> logical to check whether derived eigenfunctions are initialised
-  logical, save, protected :: derived_efs_initialised = .false.
-  !> grid on which the eigenfunctions are assembled
-  real(dp), protected, allocatable :: ef_grid(:)
-  !> scale factor dedicated for eigenfunctions (eigenfunction grid != gauss grid)
-  real(dp), protected, allocatable :: ef_eps(:)
-  !> derivative of scale factor
-  real(dp), protected :: ef_deps
-  !> array with the names of the basis eigenfunctions
-  character(str_len_arr), protected, allocatable :: ef_names(:)
-  !> array with the names of the derived eigenfunctions
-  character(str_len_arr), protected, allocatable :: derived_ef_names(:)
-  !> logical array containing flags for written eigenfunctions
-  logical, protected, allocatable  :: ef_written_flags(:)
-  !> integer array containing indices for written eigenfunctions
-  integer, protected, allocatable  :: ef_written_idxs(:)
+  type, public :: eigenfunctions_t
+    type(settings_t), pointer, private :: settings
+    type(grid_t), pointer, private :: grid
+    type(background_t), pointer, private :: background
+    type(base_ef_t), allocatable :: base_efs(:)
+    type(derived_ef_t), allocatable :: derived_efs(:)
+    logical, allocatable :: ef_written_flags(:)
+    integer, allocatable :: ef_written_idxs(:)
 
-  !> array with base eigenfunctions
-  type(ef_type), allocatable :: base_eigenfunctions(:)
-  !> array with derived eigenfunctions
-  type(ef_type), allocatable :: derived_eigenfunctions(:)
+  contains
 
-  interface
-    module subroutine initialise_base_eigenfunctions(nb_eigenfuncs)
-      integer, intent(in) :: nb_eigenfuncs
-    end subroutine initialise_base_eigenfunctions
+    procedure, public :: initialise
+    procedure, public :: assemble
+    procedure, public :: delete
 
-    module subroutine initialise_derived_eigenfunctions(nb_eigenfuncs)
-      integer, intent(in) :: nb_eigenfuncs
-    end subroutine initialise_derived_eigenfunctions
+    procedure, private :: select_eigenfunctions_to_save
+  end type eigenfunctions_t
 
-    module subroutine calculate_base_eigenfunctions(right_eigenvectors)
-      complex(dp), intent(in) :: right_eigenvectors(:, :)
-    end subroutine calculate_base_eigenfunctions
-
-    module subroutine calculate_derived_eigenfunctions(right_eigenvectors)
-      complex(dp), intent(in) :: right_eigenvectors(:, :)
-    end subroutine calculate_derived_eigenfunctions
-  end interface
-
-  interface
-    module function assemble_eigenfunction( &
-      base_ef, eigenvector, derivative_order &
-    ) result(assembled_ef)
-      !> the base eigenfunction at the current position in the eigenfunction array
-      type(ef_type), intent(in) :: base_ef
-      !> the eigenvector for the eigenvalue under consideration
-      complex(dp), intent(in) :: eigenvector(:)
-      !> derivative order of the eigenfunction, defaults to 0
-      integer, intent(in), optional :: derivative_order
-      !> the assembled eigenfunction (not yet transformed to "actual" values)
-      complex(dp) :: assembled_ef(ef_gridpts)
-    end function assemble_eigenfunction
-
-    module subroutine retransform_eigenfunction(name, eigenfunction)
-      !> name of the current eigenfunction
-      character(len=*), intent(in)  :: name
-      !> the current eigenfunction, transformed on exit if applicable
-      complex(dp), intent(inout)  :: eigenfunction(:)
-    end subroutine retransform_eigenfunction
-  end interface
-
-  interface
-    module subroutine clean_derived_eigenfunctions(); end subroutine
-  end interface
-
-  public :: ef_grid
-  public :: ef_names, derived_ef_names
-  public :: ef_written_flags, ef_written_idxs
-  public :: base_eigenfunctions
-  public :: derived_eigenfunctions
-  public :: initialise_eigenfunctions
-  public :: calculate_eigenfunctions
-  public :: find_name_loc_in_array
-  public :: retrieve_eigenfunctions
-  public :: retrieve_eigenfunction_from_index
-  public :: eigenfunctions_clean
+  public :: new_eigenfunctions
 
 contains
 
-  !> Initialises the eigenfunctions based on an array of eigenvalues.
-  !! Before initialising all arrays we check which subset of eigenvalues, if any,
-  !! needs its eigenfunctions saved.
-  subroutine initialise_eigenfunctions(omega)
-    use mod_global_variables, only: write_derived_eigenfunctions
+  function new_eigenfunctions(settings, grid, background) result(eigenfunctions)
+    type(settings_t), target, intent(inout) :: settings
+    type(grid_t), target, intent(in) :: grid
+    type(background_t), target, intent(in) :: background
+    type(eigenfunctions_t) :: eigenfunctions
+    eigenfunctions%settings => settings
+    eigenfunctions%grid => grid
+    eigenfunctions%background => background
+  end function new_eigenfunctions
 
-    !> the array of calculated eigenvalues
+
+  subroutine initialise(this, omega)
+    class(eigenfunctions_t), intent(inout) :: this
     complex(dp), intent(in) :: omega(:)
+    character(len=:), allocatable :: state_vector(:)
+    character(len=:), allocatable :: derived_state_vector(:)
+    integer :: i, nb_efs
 
-    call select_eigenfunctions_to_save(omega)
+    call this%select_eigenfunctions_to_save(omega)
+    state_vector = this%settings%get_state_vector()
+    nb_efs = size(this%ef_written_idxs)
 
-    call assemble_eigenfunction_grid()
-    call initialise_base_eigenfunctions(size(ef_written_idxs))
-    if (write_derived_eigenfunctions) then
-      call initialise_derived_eigenfunctions(size(ef_written_idxs))
-    end if
-  end subroutine initialise_eigenfunctions
-
-
-  !> Calculates both the base eigenfunctions and the derived quantities thereof
-  !! based on a 2D array of right eigenvectors.
-  subroutine calculate_eigenfunctions(right_eigenvectors)
-    complex(dp), intent(in) :: right_eigenvectors(:, :)
-
-    call calculate_base_eigenfunctions(right_eigenvectors)
-    if (derived_efs_initialised) then
-      call calculate_derived_eigenfunctions(right_eigenvectors)
-    end if
-  end subroutine calculate_eigenfunctions
-
-
-  !> Function to locate the index of a given name in a character array.
-  !! Iterates over the elements and returns on the first hit, if no match
-  !! was found zero is returned.
-  function find_name_loc_in_array(name, array) result(match_idx)
-    !> the name to search for
-    character(len=*), intent(in)  :: name
-    !> array with the names to search in
-    character(len=*), intent(in)  :: array(:)
-    !> index of first match
-    integer :: match_idx
-    integer :: i
-
-    match_idx = 0
-    do i = 1, size(array)
-      if (array(i) == name) then
-        match_idx = i
-        exit
-      end if
+    allocate(this%base_efs(size(state_vector)))
+    do i = 1, size(this%base_efs)
+      call this%base_efs(i)%initialise( &
+        name=state_vector(i), ef_grid_size=size(this%grid%ef_grid), nb_efs=nb_efs &
+      )
     end do
-  end function find_name_loc_in_array
+    deallocate(state_vector)
 
+    if (.not. this%settings%io%write_derived_eigenfunctions) return
 
-  !> Returns the full set of eigenfunctions corresponding to the given eigenfunction
-  !! name.
-  function retrieve_eigenfunctions(name) result(eigenfunctions)
-    use mod_logging, only: log_message
-
-    !> name of the eigenfunction to retrieve
-    character(len=*), intent(in)  :: name
-    !> the eigenfunctions corresponding to the given name
-    type(ef_type) :: eigenfunctions
-    integer :: name_idx
-
-    ! check if we want a regular eigenfunction
-    name_idx = find_name_loc_in_array(name, ef_names)
-    if (name_idx > 0) then
-      ! found, retrieve and return
-      eigenfunctions = base_eigenfunctions(name_idx)
-      return
-    end if
-    ! not found (= 0), try a derived quantity
-    if (derived_efs_initialised) then
-      name_idx = find_name_loc_in_array(name, derived_ef_names)
-      if (name_idx > 0) then
-        eigenfunctions = derived_eigenfunctions(name_idx)
-        return
-      end if
-    end if
-    ! if still not found then something went wrong
-    call log_message( &
-      "could not retrieve eigenfunction with name " // name, level="error" &
+    derived_state_vector = create_and_set_derived_state_vector( &
+      this%settings, this%background &
     )
-  end function retrieve_eigenfunctions
+    allocate(this%derived_efs(size(derived_state_vector)))
+    do i = 1, size(this%derived_efs)
+      call this%derived_efs(i)%initialise( &
+        name=derived_state_vector(i), &
+        ef_grid_size=size(this%grid%ef_grid), &
+        nb_efs=nb_efs &
+      )
+    end do
+    deallocate(derived_state_vector)
+  end subroutine initialise
 
 
-  !> Retrieves a single eigenfunction based on its index in the attribute
-  !! of the main array. For example, if name equals "rho" and ef_idx equals 2
-  !! then this routine returns the quantities attribute evaluated at index 2
-  !! for the "rho" eigenfunctions.
-  !! @note: this routine is needed apart from <tt>retrieve_eigenfunctions</tt>
-  !!        because Fortran does not allow access to a derived type's attribute
-  !!        directly through the result of a function call. @endnote
-  function retrieve_eigenfunction_from_index(name, ef_index) result(eigenfunction)
-    !> name of the eigenfunction to retrieve
-    character(len=*), intent(in)  :: name
-    !> index of the eigenfunction to retrieve
-    integer, intent(in) :: ef_index
-    !> the eigenfunction corresponding to the given name and index
-    complex(dp) :: eigenfunction(size(ef_grid))
-    !> all eigenfunctions corresponding to the given name
-    type(ef_type) :: eigenfunctions
-
-    eigenfunctions = retrieve_eigenfunctions(name=name)
-    eigenfunction = eigenfunctions%quantities(:, ef_index)
-  end function retrieve_eigenfunction_from_index
-
-
-  !> Allocates and assembles the eigenfunction grid, checks the corresponding
-  !! scale factor as well.
-  subroutine assemble_eigenfunction_grid()
-    use mod_global_variables, only: gridpts, ef_gridpts, geometry
-    use mod_grid, only: grid
-
-    integer :: grid_idx
-
-    allocate(ef_grid(ef_gridpts))
-    ef_grid = 0.0d0
-
-    ! first gridpoint, left edge
-    ef_grid(1) = grid(1)
-    ! other gridpoints
-    do grid_idx = 1, gridpts - 1
-      ! position of center point in grid interval
-      ef_grid(2 * grid_idx) = 0.5d0 * (grid(grid_idx) + grid(grid_idx + 1))
-      ! position of end point in grid interval
-      ef_grid(2 * grid_idx + 1) = grid(grid_idx + 1)
+  subroutine assemble(this, right_eigenvectors)
+    class(eigenfunctions_t), intent(inout) :: this
+    complex(dp), intent(in) :: right_eigenvectors(:, :)
+    integer :: i
+    do i = 1, size(this%base_efs)
+      call this%base_efs(i)%assemble( &
+        settings=this%settings, &
+        grid=this%grid, &
+        idxs_to_assemble=this%ef_written_idxs, &
+        right_eigenvectors=right_eigenvectors &
+      )
     end do
 
-    allocate(ef_eps(size(ef_grid)))
-    if (geometry == "Cartesian") then
-      ef_eps = 1.0d0
-      ef_deps = 0.0d0
-    else
-      ef_eps = ef_grid
-      ef_deps = 1.0d0
+    if (.not. this%settings%io%write_derived_eigenfunctions) return
+    do i = 1, size(this%derived_efs)
+      call this%derived_efs(i)%assemble( &
+        settings=this%settings, &
+        grid=this%grid, &
+        background=this%background, &
+        idxs_to_assemble=this%ef_written_idxs, &
+        right_eigenvectors=right_eigenvectors &
+      )
+    end do
+    call deallocate_derived_ef_module_variables()
+  end subroutine assemble
+
+
+  pure subroutine delete(this)
+    class(eigenfunctions_t), intent(inout) :: this
+    integer :: i
+    if (allocated(this%base_efs)) then
+      do i = 1, size(this%base_efs)
+        call this%base_efs(i)%delete()
+      end do
+      deallocate(this%base_efs)
     end if
-  end subroutine assemble_eigenfunction_grid
+    if (allocated(this%derived_efs)) then
+      do i = 1, size(this%derived_efs)
+        call this%derived_efs(i)%delete()
+      end do
+      deallocate(this%derived_efs)
+    end if
+    if (allocated(this%ef_written_flags)) deallocate(this%ef_written_flags)
+    if (allocated(this%ef_written_idxs)) deallocate(this%ef_written_idxs)
+    nullify(this%settings)
+    nullify(this%background)
+    nullify(this%grid)
+  end subroutine delete
 
 
-  !> Selects a subset of eigenfunctions to be saved.
-  subroutine select_eigenfunctions_to_save(omega)
-    use mod_global_variables, only: write_eigenfunction_subset
-
-    !> the array of calculated eigenvalues
+  pure subroutine select_eigenfunctions_to_save(this, omega)
+    class(eigenfunctions_t), intent(inout) :: this
     complex(dp), intent(in) :: omega(:)
     integer :: i
 
-    ! check which eigenvalues are inside the given radius
-    allocate(ef_written_flags(size(omega)))
-    if (write_eigenfunction_subset) then
-      ef_written_flags = eigenvalue_is_inside_subset_radius(eigenvalue=omega)
+    allocate(this%ef_written_flags(size(omega)))
+    if (this%settings%io%write_ef_subset) then
+      this%ef_written_flags = eigenvalue_is_inside_subset_radius( &
+        eigenvalue=omega, &
+        radius=this%settings%io%ef_subset_radius, &
+        center=this%settings%io%ef_subset_center &
+      )
     else
-      ef_written_flags = .true.
+      this%ef_written_flags = .true.
     end if
-    ! extract indices of those eigenvalues
-    allocate(ef_written_idxs(count(ef_written_flags)))
-    ef_written_idxs = pack([(i, i=1, size(omega))], ef_written_flags)
+    ! extract indices of those eigenvalues that have their eigenfunctions written
+    allocate(this%ef_written_idxs(count(this%ef_written_flags)))
+    this%ef_written_idxs = pack([(i, i=1, size(omega))], this%ef_written_flags)
   end subroutine select_eigenfunctions_to_save
 
 
-  !> Checks if a specific eigenvalue is within the provided subset radius.
-  elemental logical function eigenvalue_is_inside_subset_radius(eigenvalue)
-    use mod_global_variables, only: eigenfunction_subset_center, &
-      eigenfunction_subset_radius
-
-    !> complex value/array to check
+  elemental logical function eigenvalue_is_inside_subset_radius( &
+    eigenvalue, radius, center &
+  )
     complex(dp), intent(in) :: eigenvalue
-    real(dp)  :: distance_from_subset_center
+    real(dp), intent(in) :: radius
+    complex(dp), intent(in) :: center
+    real(dp) :: distance_from_subset_center
 
     distance_from_subset_center = sqrt( &
-      (aimag(eigenvalue) - aimag(eigenfunction_subset_center)) ** 2 &
-      + (real(eigenvalue) - real(eigenfunction_subset_center)) ** 2 &
+      (aimag(eigenvalue) - aimag(center)) ** 2 &
+      + (real(eigenvalue) - real(center)) ** 2 &
     )
     eigenvalue_is_inside_subset_radius = ( &
-      distance_from_subset_center <= eigenfunction_subset_radius &
+      distance_from_subset_center <= radius &
     )
   end function eigenvalue_is_inside_subset_radius
 
-
-  !> Cleaning routine.
-  subroutine eigenfunctions_clean()
-    if (efs_initialised) then
-      deallocate(base_eigenfunctions)
-      deallocate(ef_grid)
-      deallocate(ef_eps)
-      deallocate(ef_written_flags)
-      deallocate(ef_written_idxs)
-      deallocate(ef_names)
-      if (derived_efs_initialised) then
-        call clean_derived_eigenfunctions()
-        deallocate(derived_eigenfunctions)
-        deallocate(derived_ef_names)
-      end if
-    end if
-    efs_initialised = .false.
-    derived_efs_initialised = .false.
-  end subroutine eigenfunctions_clean
 end module mod_eigenfunctions

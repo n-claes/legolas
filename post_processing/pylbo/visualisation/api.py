@@ -1,54 +1,22 @@
-from pylbo.data_containers import LegolasDataSet, LegolasDataSeries
-from pylbo.visualisation.spectra import SingleSpectrumPlot
-from pylbo.visualisation.spectra import MultiSpectrumPlot
-from pylbo.visualisation.spectra import MergedSpectrumPlot
-from pylbo.visualisation.spectra import SpectrumComparisonPlot
-from pylbo.visualisation.profiles import EquilibriumProfile
-from pylbo.visualisation.profiles import EquilibriumBalance
-from pylbo.visualisation.profiles import ContinuumProfile
-from pylbo.visualisation.matrices import MatrixFigure
+from pylbo.data_containers import ensure_dataseries, ensure_dataset
 from pylbo.utilities.logger import pylboLogger
+from pylbo.visualisation.matrices import MatrixFigure
+from pylbo.visualisation.profiles import (
+    ContinuumProfile,
+    EquilibriumBalance,
+    EquilibriumProfile,
+)
+from pylbo.visualisation.spectra.spectrum_comparison import SpectrumComparisonPlot
+from pylbo.visualisation.spectra.spectrum_merged import MergedSpectrumPlot
+from pylbo.visualisation.spectra.spectrum_multi import MultiSpectrumPlot
+from pylbo.visualisation.spectra.spectrum_single import SingleSpectrumPlot
 
 forbidden_args = ["linestyle", "linewidth", "lw"]
 
 
-def _ensure_dataset(data):
-    """
-    Ensures that the data object passed is a LegolasDataSet
-
-    Parameters
-    ----------
-    data : object
-        The data object to check.
-
-    Raises
-    ------
-    ValueError
-        If data is not a :class:`LegolasDataSet`.
-    """
-    if not isinstance(data, LegolasDataSet):
-        raise ValueError(f"expected a LegolasDataSet, but got {type(data)}")
-
-
-def _ensure_dataseries(data):
-    """
-    Ensures that the data object passed is a LegolasDataSeries
-
-    Parameters
-    ----------
-    data : object
-        The data object to check.
-
-    Raises
-    ------
-    ValueError
-        If data is not a :class:`LegolasDataSeries`.
-    """
-    if not isinstance(data, LegolasDataSeries):
-        raise ValueError(f"expected a LegolasDataSeries object, but got {type(data)}")
-
-
-def plot_spectrum(data, figsize=None, custom_figure=None, **kwargs):
+def plot_spectrum(
+    data, figsize=None, custom_figure=None, use_residuals=False, **kwargs
+):
     """
     Plots the spectrum of a single dataset.
 
@@ -62,6 +30,8 @@ def plot_spectrum(data, figsize=None, custom_figure=None, **kwargs):
         Optional, in the form (fig, ax). If supplied no new figure will be created
         but this one will be used instead. `fig` refers to the matplotlib figure and
         `ax` to a (single) axes instance, meaning that you can pass a subplot as well.
+    use_residuals : bool
+        If `True`, colors the spectrum based on the residual in the datfile.
 
     Returns
     -------
@@ -69,11 +39,11 @@ def plot_spectrum(data, figsize=None, custom_figure=None, **kwargs):
         The spectrum instance which can be used further to add continua,
         eigenfunctions, etc.
     """
-    _ensure_dataset(data)
+    ensure_dataset(data)
     for arg in forbidden_args:
         if kwargs.pop(arg, None) is not None:
             pylboLogger.warning(f"plot_spectrum does not accept the '{arg}' argument.")
-    p = SingleSpectrumPlot(data, figsize, custom_figure, **kwargs)
+    p = SingleSpectrumPlot(data, figsize, custom_figure, use_residuals, **kwargs)
     return p
 
 
@@ -100,9 +70,6 @@ def plot_spectrum_multi(
         If `True`, this will square the eigenvalues when they are plotted on the
         vertical axis. If `False` (default), either the real or imaginary part of the
         eigenvalues will be plotted depending on the value of `use_real_parts`.
-    use_real_parts : bool
-        If `True` (default), this will plot the real part of the eigenvalues on the
-        vertical axis. If `False` the imaginary part will be used.
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
     custom_figure : tuple
@@ -116,7 +83,7 @@ def plot_spectrum_multi(
         The spectrum instance which can be used further to add continua,
         eigenfunctions, etc.
     """
-    _ensure_dataseries(data)
+    ensure_dataseries(data)
     for arg in forbidden_args:
         if kwargs.pop(arg, None) is not None:
             pylboLogger.warning(
@@ -162,7 +129,7 @@ def plot_merged_spectrum(
     p : ~pylbo.visualisation.spectra.MultiSpectrumPlot
         The spectrumfigure instance, containing the plot.
     """
-    _ensure_dataseries(data)
+    ensure_dataseries(data)
     p = MergedSpectrumPlot(data, figsize, custom_figure, interactive, legend, **kwargs)
     return p
 
@@ -173,6 +140,7 @@ def plot_spectrum_comparison(
     figsize=None,
     custom_figure=None,
     lock_zoom=False,
+    use_residuals=False,
     **kwargs,
 ):
     """
@@ -192,6 +160,8 @@ def plot_spectrum_comparison(
         If `True` (`False` by default), locks the zoom of both axis. When locked,
         zoomin in on one of the axis automatically scales the zoom on the other one
         as well.
+    use_residuals : bool
+        If `True`, colors the spectrum based on the residual in the datfile.
 
     Returns
     -------
@@ -199,9 +169,11 @@ def plot_spectrum_comparison(
         The figure instance containing the compared spectrum plot.
 
     """
-    _ensure_dataset(ds1)
-    _ensure_dataset(ds2)
-    p = SpectrumComparisonPlot(ds1, ds2, figsize, custom_figure, lock_zoom, **kwargs)
+    ensure_dataset(ds1)
+    ensure_dataset(ds2)
+    p = SpectrumComparisonPlot(
+        ds1, ds2, figsize, custom_figure, lock_zoom, use_residuals, **kwargs
+    )
     return p
 
 
@@ -223,7 +195,13 @@ def plot_equilibrium(data, figsize=None, interactive=True, **kwargs):
     p : ~pylbo.visualisation.profiles.EquilibriumProfile
         The profile instance containing the equilibrium plots.
     """
-    _ensure_dataset(data)
+    ensure_dataset(data)
+    if not data.has_background:
+        pylboLogger.warning(
+            "The dataset does not contain a background, equilibrium profiles "
+            "can not be plotted."
+        )
+        return
     p = EquilibriumProfile(data, figsize, interactive, **kwargs)
     return p
 
@@ -246,6 +224,13 @@ def plot_equilibrium_balance(data, figsize=None, **kwargs):
     p : ~pylbo.visualisation.profiles.EquilibriumBalance
         The profile instance containing the equilibrium balance plots.
     """
+    ensure_dataset(data)
+    if not data.has_background:
+        pylboLogger.warning(
+            "The dataset does not contain a background, equilibrium balance "
+            "can not be plotted."
+        )
+        return
     p = EquilibriumBalance(data, figsize, **kwargs)
     return p
 
@@ -268,7 +253,7 @@ def plot_continua(data, figsize=None, interactive=True, **kwargs):
     p : ~pylbo.visualisation.profiles.ContinuumProfile
         The profile instance containing the continua plots.
     """
-    _ensure_dataset(data)
+    ensure_dataset(data)
     p = ContinuumProfile(data, figsize, interactive, **kwargs)
     return p
 
@@ -289,6 +274,6 @@ def plot_matrices(data, figsize=None, **kwargs):
     p : ~pylbo.visualisation.matrices.MatrixFigure
         The instance containing the matrix plots.
     """
-    _ensure_dataset(data)
+    ensure_dataset(data)
     p = MatrixFigure(data, figsize, **kwargs)
     return p

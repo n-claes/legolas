@@ -1,15 +1,15 @@
-import pytest
-import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
 import pylbo
-from pylbo.visualisation.spectra import SingleSpectrumPlot
-from pylbo.exceptions import EigenfunctionsNotPresent
+import pytest
+from pylbo.exceptions import BackgroundNotPresent, EigenfunctionsNotPresent
 from pylbo.utilities.toolbox import get_axis_geometry
+from pylbo.visualisation.spectra.spectrum_single import SingleSpectrumPlot
 
 
 def test_spectrum_plot_invalid_data(series_v112):
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         pylbo.plot_spectrum(series_v112)
 
 
@@ -51,6 +51,7 @@ def test_spectrum_plot_eigenfunctions_notpresent(ds_v100):
 
 def test_spectrum_plot_set_x_scaling(ds_v112):
     p = pylbo.plot_spectrum(ds_v112)
+    p.draw()
     scale = 2.2
     xlims = np.array(p.ax.get_xlim(), dtype=float)
     p.set_x_scaling(scale)
@@ -59,6 +60,7 @@ def test_spectrum_plot_set_x_scaling(ds_v112):
 
 def test_spectrum_plot_set_y_scaling(ds_v112):
     p = pylbo.plot_spectrum(ds_v112)
+    p.draw()
     scale = 5.8
     ylims = np.array(p.ax.get_ylim(), dtype=float)
     p.set_y_scaling(scale)
@@ -67,6 +69,7 @@ def test_spectrum_plot_set_y_scaling(ds_v112):
 
 def test_spectrum_plot_set_scaling(ds_v112):
     p = pylbo.plot_spectrum(ds_v112)
+    p.draw()
     xscale = 3.5
     yscale = -2.1
     xlims = np.array(p.ax.get_xlim(), dtype=float)
@@ -79,6 +82,7 @@ def test_spectrum_plot_set_scaling(ds_v112):
 
 def test_spectrum_plot_set_scaling_efs_conts(ds_v112):
     p = pylbo.plot_spectrum(ds_v112)
+    p.draw()
     p.add_continua()
     p.add_eigenfunctions()
     xscale = -12.4
@@ -118,11 +122,17 @@ def test_spectrum_plot_figlabel(ds_v112):
     fig = plt.figure("testfig")
     ax = fig.add_subplot(111)
     p = pylbo.plot_spectrum(ds_v112, custom_figure=(fig, ax))
-    assert p.figure_id == "testfig-1"
+    assert p.figure_id == "testfig"
+
+
+def test_spectrum_plot_nobg_continua(ds_v200_tear_nobg):
+    p = pylbo.plot_spectrum(ds_v200_tear_nobg)
+    p.add_continua()
+    assert getattr(p, "c_handler") is None
 
 
 def test_multispectrum_plot_invalid_data(ds_v112):
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         pylbo.plot_spectrum_multi(ds_v112, xdata="k2")
 
 
@@ -148,6 +158,7 @@ def test_multispectrum_plot_xdata_str(series_v112):
 
 def test_multispectrum_plot_xdata_list(series_v112):
     p = pylbo.plot_spectrum_multi(series_v112, xdata=[1, 2, 3])
+    p.draw()
     assert np.allclose([1, 2, 3], p.xdata)
     xlims = p.ax.get_xlim()
     assert xlims[0] <= 1
@@ -178,7 +189,7 @@ def test_multispectrum_plot_ydata_squared(ds_v112, series_v112):
     p = pylbo.plot_spectrum_multi(
         series_v112, xdata="k3", use_squared_omega=True, use_real_parts=True
     )
-    evs = (ds_v112.eigenvalues ** 2).real
+    evs = (ds_v112.eigenvalues**2).real
     for data in p.ydata:
         assert not np.all(np.isnan(data))
         assert not np.all(np.isnan(evs))
@@ -193,6 +204,7 @@ def test_multispectrum_plot_set_scaling(series_v112):
         use_squared_omega=False,
         use_real_parts=True,
     )
+    p.draw()
     ylims = np.array(p.ax.get_ylim(), dtype=float)
     xscale = 5.5
     yscale = 2.4
@@ -233,14 +245,22 @@ def test_multispectrum_plot_eigenfunctions_notpresent(series_v100):
         p.add_eigenfunctions()
 
 
+def test_multispectrum_plot_nobg_continua(series_v200_nobg):
+    p = pylbo.plot_spectrum_multi(series_v200_nobg, xdata="k3")
+    p.add_continua()
+    assert getattr(p, "c_handler") is None
+
+
 def test_merged_plot(series_v112):
     p = pylbo.plot_merged_spectrum(series_v112)
+    p.draw()
     labels = p.ax.get_legend_handles_labels()[1]
     assert len(labels) == len(series_v112)
 
 
 def test_merged_plot_legend_present(series_v112):
     p = pylbo.plot_merged_spectrum(series_v112)
+    p.draw()
     legend = [
         child for child in p.ax.get_children() if isinstance(child, mpl.legend.Legend)
     ]
@@ -249,6 +269,7 @@ def test_merged_plot_legend_present(series_v112):
 
 def test_merged_plot_single_color(series_v112):
     p = pylbo.plot_merged_spectrum(series_v112, color="blue")
+    p.draw()
     legend = [
         child for child in p.ax.get_children() if isinstance(child, mpl.legend.Legend)
     ]
@@ -257,6 +278,7 @@ def test_merged_plot_single_color(series_v112):
 
 def test_merged_plot_eigenfunctions(series_v112):
     p = pylbo.plot_merged_spectrum(series_v112)
+    p.draw()
     p.add_eigenfunctions()
     assert p.ax.get_subplotspec().get_geometry()[0:2] == (1, 2)
     assert getattr(p, "ef_handler", None) is not None
@@ -265,17 +287,20 @@ def test_merged_plot_eigenfunctions(series_v112):
 
 def test_comparison_plot(ds_v100, ds_v112):
     p = pylbo.plot_spectrum_comparison(ds_v100, ds_v112)
+    p.draw()
     assert all(isinstance(panel, SingleSpectrumPlot) for panel in (p.panel1, p.panel2))
 
 
 def test_comparison_plot_geometry(ds_v100, ds_v112):
     p = pylbo.plot_spectrum_comparison(ds_v100, ds_v112)
+    p.draw()
     assert p.panel1.ax.get_subplotspec().get_geometry()[0:3] == (1, 2, 0)
     assert p.panel2.ax.get_subplotspec().get_geometry()[0:3] == (1, 2, 1)
 
 
 def test_comparison_plot_set_x_scaling(ds_v112, ds_v112_eta):
     p = pylbo.plot_spectrum_comparison(ds_v112, ds_v112_eta)
+    p.draw()
     xscale = 3.2
     xlims1 = np.array(p.panel1.ax.get_xlim(), dtype=float)
     xlims2 = np.array(p.panel2.ax.get_xlim(), dtype=float)
@@ -286,6 +311,7 @@ def test_comparison_plot_set_x_scaling(ds_v112, ds_v112_eta):
 
 def test_comparison_plot_set_y_scaling(ds_v112, ds_v112_eta):
     p = pylbo.plot_spectrum_comparison(ds_v112, ds_v112_eta)
+    p.draw()
     yscale = -7.1
     ylims1 = np.flip(np.array(p.panel1.ax.get_ylim(), dtype=float))
     ylims2 = np.flip(np.array(p.panel2.ax.get_ylim(), dtype=float))
@@ -296,6 +322,7 @@ def test_comparison_plot_set_y_scaling(ds_v112, ds_v112_eta):
 
 def test_comparison_plot_continua(ds_v100, ds_v112):
     p = pylbo.plot_spectrum_comparison(ds_v100, ds_v112)
+    p.draw()
     p.add_continua()
     for panel in (p.panel1, p.panel2):
         labels = panel.ax.get_legend_handles_labels()[1]
@@ -304,9 +331,24 @@ def test_comparison_plot_continua(ds_v100, ds_v112):
 
 def test_comparison_plot_eigenfunctions(ds_v112):
     p = pylbo.plot_spectrum_comparison(ds_v112, ds_v112)
+    p.draw()
     p.add_eigenfunctions()
     assert get_axis_geometry(p.panel1.ax) == (2, 1, 0)
     assert get_axis_geometry(p.panel1.ef_ax) == (2, 1, 1)
     assert get_axis_geometry(p.panel2.ax) == (2, 1, 0)
     assert get_axis_geometry(p.panel2.ef_ax) == (2, 1, 1)
     assert len(p.fig.get_axes()) == 4
+
+
+def test_2d_visualisation_no_bg(ds_v200_tear_nobg):
+    with pytest.raises(BackgroundNotPresent):
+        pylbo.plot_2d_slice(
+            ds_v200_tear_nobg,
+            omega=0.1,
+            ef_name="rho",
+            u2=np.linspace(0, 1, 20),
+            u3=0.5,
+            time=0,
+            slicing_axis="z",
+            add_background=True,
+        )

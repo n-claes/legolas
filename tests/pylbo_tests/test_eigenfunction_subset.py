@@ -2,12 +2,12 @@ import numpy as np
 
 SUBSET_FLAGS_KEY = "ef_written_flags"
 SUBSET_IDXS_KEY = "ef_written_idxs"
-SUBSET_CENTER_KEY = "eigenfunction_subset_center"
-SUBSET_RADIUS_KEY = "eigenfunction_subset_radius"
+SUBSET_CENTER_KEY = "ef_subset_center"
+SUBSET_RADIUS_KEY = "ef_subset_radius"
 
 
 def test_subset_present(ds_v114_subset):
-    assert ds_v114_subset.ef_subset
+    assert ds_v114_subset.has_ef_subset
 
 
 def test_subset_center(ds_v114_subset):
@@ -65,7 +65,7 @@ def test_subset_eigenfunction_retrieval_outside(ds_v114_subset):
 
 
 def test_subset_derived_efs_present(ds_v114_subset_defs):
-    assert ds_v114_subset_defs.ef_subset
+    assert ds_v114_subset_defs.has_ef_subset
     assert ds_v114_subset_defs.derived_ef_names is not None
 
 

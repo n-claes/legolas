@@ -1,17 +1,19 @@
-import pytest
 import shutil
-import matplotlib.pyplot as plt
 from pathlib import Path
+
+import matplotlib.pyplot as plt
 import pylbo
 import pylbo.testing
+import pytest
 from pylbo.visualisation.continua import ContinuaHandler
-
 
 pylbo.set_loglevel("error")
 
 KEEP_FILES_OPTION = "--keep-files"
+GENERATE_BASELINE_OPTION = "--generate"
 tmpdir_path = Path(__file__).resolve().parent / "tmp"
 utils = Path(__file__).resolve().parent / "utility_files"
+mode_baseline = Path(__file__).resolve().parent / "mode_baseline"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -36,6 +38,25 @@ def pytest_addoption(parser):
         action="store_true",
         help="if supplied, does not remove files after test completion.",
     )
+    parser.addoption(
+        GENERATE_BASELINE_OPTION,
+        action="store_true",
+        dest="generate_baseline",
+        help="if set to true, (re)generates baseline data.",
+    )
+
+
+def pytest_runtest_makereport(item, call):
+    if "required" in item.keywords:
+        if call.excinfo is not None:
+            parent = item.parent
+            parent._requiredfailed = item
+
+
+def pytest_runtest_setup(item):
+    requiredfailed = getattr(item.parent, "_requiredfailed", False)
+    if requiredfailed:
+        pytest.xfail(f"required test failed ({requiredfailed.name})")
 
 
 @pytest.fixture
@@ -43,8 +64,13 @@ def keep_files(request):
     return request.config.getoption(KEEP_FILES_OPTION)
 
 
+@pytest.fixture(scope="session")
+def modebaselinedir():
+    return mode_baseline
+
+
 @pytest.fixture
-def tmpdir(scope="session"):
+def tmpdir():
     if not tmpdir_path.is_dir():
         tmpdir_path.mkdir()
     yield tmpdir_path
@@ -151,6 +177,36 @@ def ds_v114():
 
 
 @pytest.mark.timeout(5)
+@pytest.fixture(scope="session")
+def ds_v121_rti_khi():
+    return pylbo.load(utils / "v1.2.1_rti_khi.dat")
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture(scope="session")
+def ds_v121_magth():
+    return pylbo.load(utils / "v1.2.1_magth.dat")
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture(scope="session")
+def ds_v200_mri_matrix():
+    return pylbo.load(utils / "v2.0.0_mri_matrix.dat")
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture(scope="session")
+def ds_v200_mri_efs():
+    return pylbo.load(utils / "v2.0.0_mri_subset_efs.dat")
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture(scope="session")
+def ds_v200_tear_nobg():
+    return pylbo.load(utils / "v2.0.0_tear_nobg.dat")
+
+
+@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v100():
     return pylbo.load_series([utils / "v1_datfile_matrices.dat"] * 3)
@@ -166,3 +222,9 @@ def series_v112():
 @pytest.fixture
 def series_v112_eta():
     return pylbo.load_series([utils / "v1.1.2_datfile_eta.dat"] * 5)
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture
+def series_v200_nobg():
+    return pylbo.load_series([utils / "v2.0.0_tear_nobg.dat"] * 7)

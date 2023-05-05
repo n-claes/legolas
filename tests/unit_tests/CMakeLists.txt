@@ -6,9 +6,19 @@ enable_language(Fortran)
 option(Coverage "Coverage" OFF)
 
 get_filename_component(Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
-set(CMAKE_Fortran_FLAGS "-fcheck=all -fbounds-check -Wall \
-                         -Wextra -Wconversion -pedantic -fbacktrace -cpp \
-                         -ffree-line-length-256")
+set(
+    CMAKE_Fortran_FLAGS
+    "-fcheck=all \
+    -fbounds-check \
+    -Wall \
+    -Wextra \
+    -Wconversion \
+    -pedantic \
+    -fbacktrace \
+    -cpp \
+    -ffree-line-length-256 \
+    -Wno-unused-dummy-argument"
+)
 
 find_package(PFUNIT REQUIRED)
 enable_testing()
@@ -56,6 +66,19 @@ target_link_libraries(suite ${LEGOLASLIB} ${LIBSTOLINK})
 set( test_sources
         mod_test_variables.pf
         mod_test_logging.pf
+        mod_test_banded_matrix.pf
+        mod_test_banded_matrix_hermitian.pf
+        mod_test_matrix_structure.pf
+        mod_test_matrix_elements.pf
+        mod_test_transform_matrix.pf
+        mod_test_settings.pf
+        mod_test_matrices_big.pf
+        mod_test_solvers_linear_systems.pf
+        mod_test_solvers_lapack.pf
+        mod_test_solvers_arpack_type.pf
+        mod_test_solvers_arpack_general.pf
+        mod_test_solvers_arpack_shift_invert.pf
+        mod_test_indices.pf
         mod_test_grid.pf
         mod_test_input.pf
         mod_test_valuechecks.pf
@@ -63,18 +86,14 @@ set( test_sources
         mod_test_eigenfunctions.pf
         mod_test_cooling.pf
         mod_test_cooling_tables.pf
+        mod_test_heating.pf
         mod_test_resistivity.pf
         mod_test_conduction.pf
         mod_test_boundaries.pf
         mod_test_splines.pf
-        mod_test_subblock.pf
-        mod_test_matrixoperations.pf
-        mod_test_matrix_operators.pf
+        mod_test_quadblock.pf
         mod_test_interpolation.pf
         mod_test_integration.pf
-        mod_test_lapacksolvers.pf
-        mod_test_arpacksolvers.pf
-        mod_test_geometry_override.pf
         mod_test_inspections.pf
         mod_test_solar_atmosphere.pf
 )

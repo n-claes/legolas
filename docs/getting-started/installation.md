@@ -7,20 +7,28 @@ sidebar:
 toc: true
 toc_label: "Installation Guide"
 toc_icon: "cogs"
-last_modified_at: 2021-07-26
+last_modified_at: 2023-04-13
 ---
 
 Due to the heavy use of object-oriented features (Fortran 2003) and submodules (Fortran 2008), Legolas
 requires relatively recent Fortran compilers. This page gives a detailed overview of required
 and optional dependencies to successfully build and run both Legolas and the post-processing framework
-[Pylbo](../../pylbo/about_pylbo/). Note that the compilers noted below are only recommended,
-and it is quite possible that Legolas also builds with lower versions.
+[Pylbo](../../pylbo/about_pylbo/).
 
 # Dependencies
 ## Compilation
-- gfortran v8.x+
+- gfortran v9.x+
 - CMake v3.12+
 - make
+
+{% capture note %}
+<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+**Note:** starting from Legolas 2.0 support for gfortran versions < 9.x is officially dropped.
+While the code may still comple and run with older versions, it is _highly recommended_ to use updated compilers.
+{% endcapture %}
+<div class="notice--warning">
+  {{ note | markdownify }}
+</div>
 
 ## Post-processing
 The post-processing framework Pylbo has a few standard dependencies, all of which will be automatically
@@ -73,7 +81,7 @@ CMake may not find the libraries by default. In that case it will throw a warnin
 
 
 ## ARPACK
-The [ARPACK](https://www.caam.rice.edu/software/ARPACK/) library is an **optional** dependency, so
+The [ARPACK](https://en.wikipedia.org/wiki/ARPACK) library is an **optional** dependency, so
 Legolas will compile and run just fine if you don't have this installed (related modules are
 conditionally compiled). Also here CMake will try to automatically find and link the libraries if installed.
 
@@ -145,7 +153,7 @@ clone the repository.
 
 If you configured `$LEGOLASDIR` correctly and have all of [Pylbo's dependencies](/getting-started/installation/#post-processing)
 installed, the included `pylbo_wrapper.py` (which is automatically run by Legolas when `show_results=.true.`) will find Pylbo on
-it's own. If you want to write your own scripts using Pylbo, or do not want to install the dependencies manually, you can follow
+its own. If you want to write your own scripts using Pylbo, or do not want to install the dependencies manually, you can follow
 the steps below.
 
 ## Installing as a package
@@ -159,8 +167,8 @@ beforehand in order to install Pylbo there. The `develop` argument means that th
 you update the repository.
 
 ## Sourcing the folder
-Another possibility is adding the folder to your PYTHONPATH. If the above option is not available, i.e. if you can not manage
-your python installation then this is a valid alternative. Note that in this case you will have to install all dependencies yourself.
+Another possibility is adding the folder to your PYTHONPATH. If the above option is not available -- i.e. if you can not manage
+your python installation -- then this is a valid alternative. Note that in this case you will have to install all dependencies yourself.
 - **macOS/Linux**
   Edit `.zshrc`/`.bashrc` or similar, we assume that you have already set the `$LEGOLASDIR` environment variable (see [here](/getting-started/installation/#legolas)).
   ```bash

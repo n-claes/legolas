@@ -1,9 +1,27 @@
 import numpy as np
 from pylbo.utilities.logger import pylboLogger
-from pylbo.visualisation.legend_interface import LegendHandler
+from pylbo.visualisation.legend_handler import LegendHandler
 
-CONTINUA_NAMES = ["slow-", "slow+", "alfven-", "alfven+", "thermal", "doppler"]
+SLOW_MIN = "slow-"
+SLOW_PLUS = "slow+"
+ALFVEN_MIN = "alfven-"
+ALFVEN_PLUS = "alfven+"
+THERMAL = "thermal"
+DOPPLER = "doppler"
+
+CONTINUA_NAMES = {
+    SLOW_MIN: r"$\Omega_S^-",
+    SLOW_PLUS: r"$\Omega_S^+",
+    ALFVEN_MIN: r"$\Omega_A^-",
+    ALFVEN_PLUS: r"$\Omega_A^+",
+    THERMAL: r"$\Omega_T",
+    DOPPLER: r"$\Omega_0",
+}
 CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "green", "grey"]
+
+
+def is_zero(values):
+    return np.all(np.isclose(values, 0, atol=1e-10))
 
 
 def calculate_continua(ds):
@@ -17,9 +35,13 @@ def calculate_continua(ds):
 
     Returns
     -------
-    continua : dict
-        Dictonary containing the various continua as numpy arrays.
+    continua : dict, None
+        Dictonary containing the various continua as numpy arrays. If the
+        dataset does not contain a background, `None` is returned.
     """
+    if not ds.has_background:
+        return None
+
     rho = ds.equilibria["rho0"]
     B02 = ds.equilibria["B02"]
     B03 = ds.equilibria["B03"]
@@ -35,12 +57,11 @@ def calculate_continua(ds):
 
     # Alfven and slow continuum (squared)
     alfven2 = (1 / rho) * ((k2 * B02 / ds.scale_factor) + k3 * B03) ** 2
-    slow2 = (gamma * p / (gamma * p + B0 ** 2)) * alfven2
+    slow2 = (gamma * p / (gamma * p + B0**2)) * alfven2
     # doppler shift equals dot product of k and v
     doppler = k2 * v02 / ds.scale_factor + k3 * v03
     slow_min = -np.sqrt(slow2)
     slow_plus = np.sqrt(slow2)
-    slow_is_zero = np.all(np.isclose(slow2, 0))
 
     # Thermal continuum calculation
     # wave vector parallel to magnetic field, uses vector projection and scale factor
@@ -50,7 +71,7 @@ def calculate_continua(ds):
     else:
         kpara = 0
     cs2 = gamma * p / rho  # sound speed
-    vA2 = B0 ** 2 / rho  # Alfvén speed
+    vA2 = B0**2 / rho  # Alfvén speed
     ci2 = p / rho  # isothermal sound speed
     dLdT = ds.equilibria["dLdT"]
     dLdrho = ds.equilibria["dLdrho"]
@@ -58,20 +79,20 @@ def calculate_continua(ds):
     kappa_perp = ds.equilibria["kappa_perp"]
     # if there is no conduction/cooling, there is no thermal continuum.
     if (
-        all(dLdT == 0)
-        and all(dLdrho == 0)
-        and all(kappa_para == 0)
-        and all(kappa_perp == 0)
+        is_zero(dLdT)
+        and is_zero(dLdrho)
+        and is_zero(kappa_para)
+        and is_zero(kappa_perp)
     ):
         thermal = np.zeros_like(ds.grid_gauss)
     # if temperature is zero (no pressure), set to zero and return
-    elif (T == 0).all():
+    elif is_zero(T):
         thermal = np.zeros_like(ds.grid_gauss)
     # if slow continuum vanishes, thermal continuum is analytical
-    elif slow_is_zero:
+    elif is_zero(slow2):
         thermal = 1j * (gamma - 1) * (rho * dLdrho - dLdT * (ci2 + vA2)) / (cs2 + vA2)
     else:
-        sigma_A2 = kpara ** 2 * vA2  # Alfvén frequency
+        sigma_A2 = kpara**2 * vA2  # Alfvén frequency
         sigma_c2 = cs2 * sigma_A2 / (vA2 + cs2)  # cusp frequency
         sigma_i2 = ci2 * sigma_A2 / (vA2 + ci2)  # isothermal cusp frequency
 
@@ -79,12 +100,12 @@ def calculate_continua(ds):
         # coeffi means the coefficient corresponding to the term omega^i
         coeff3 = rho * (cs2 + vA2) * 1j / (gamma - 1)
         coeff2 = (
-            -(kappa_para * kpara ** 2 + rho * dLdT) * (ci2 + vA2) + rho ** 2 * dLdrho
+            -(kappa_para * kpara**2 + rho * dLdT) * (ci2 + vA2) + rho**2 * dLdrho
         )
         coeff1 = -rho * (cs2 + vA2) * sigma_c2 * 1j / (gamma - 1)
-        coeff0 = (kappa_para * kpara ** 2 + rho * dLdT) * (
+        coeff0 = (kappa_para * kpara**2 + rho * dLdT) * (
             ci2 + vA2
-        ) * sigma_i2 - rho ** 2 * dLdrho * sigma_A2
+        ) * sigma_i2 - rho**2 * dLdrho * sigma_A2
         # we have to solve this equation "gauss_gridpts" times.
         # the thermal continuum corresponds to the (only) purely imaginary solution,
         # modified slow continuum are other two solutions
@@ -131,15 +152,20 @@ def calculate_continua(ds):
             slow_min[idx] = s_neg
             slow_plus[idx] = s_pos
 
-    # get doppler-shifted continua and return
     continua = {
-        CONTINUA_NAMES[0]: doppler + slow_min,  # minus is accounted for in slow_min
-        CONTINUA_NAMES[1]: doppler + slow_plus,
-        CONTINUA_NAMES[2]: doppler - np.sqrt(alfven2),
-        CONTINUA_NAMES[3]: doppler + np.sqrt(alfven2),
-        CONTINUA_NAMES[4]: thermal,
-        CONTINUA_NAMES[5]: doppler,
+        DOPPLER: doppler,
+        SLOW_MIN: slow_min,  # minus already accounted for
+        SLOW_PLUS: slow_plus,
+        THERMAL: thermal,
+        ALFVEN_MIN: -np.sqrt(alfven2),
+        ALFVEN_PLUS: np.sqrt(alfven2),
     }
+    # correct for doppler shift
+    for name in CONTINUA_NAMES.keys():
+        if name == DOPPLER:
+            continue
+        if not is_zero(continua[name]):
+            continua[name] += doppler
     return continua
 
 
@@ -160,7 +186,8 @@ class ContinuaHandler(LegendHandler):
 
     def __init__(self, interactive):
         super().__init__(interactive)
-        self.continua_names = CONTINUA_NAMES
+        self.continua_names = list(CONTINUA_NAMES.keys())
+        self.continua_latex = list(CONTINUA_NAMES.values())
         self._continua_colors = CONTINUA_COLORS
         self.marker = "."
         self.markersize = 6
@@ -202,39 +229,3 @@ class ContinuaHandler(LegendHandler):
                 f"continua_colors should be of length {len(CONTINUA_COLORS)}"
             )
         self._continua_colors = colors
-
-    @staticmethod
-    def check_if_collapsed(continuum):
-        """
-        Checks if a given continuum is "collapsed" to a single point.
-
-        Parameters
-        ----------
-        continuum : numpy.ndarray
-            Array with values.
-
-        Returns
-        -------
-        True if all values are the same, false otherwise.
-        """
-        if np.all(np.isclose(np.diff(continuum), 0)):
-            return True
-        return False
-
-    @staticmethod
-    def check_if_all_zero(continuum):
-        """
-        Checks if a given continuum is pure zero.
-
-        Parameters
-        ----------
-        continuum : numpy.ndarray
-            Array with values.
-
-        Returns
-        -------
-        True if all values are zero, false otherwise.
-        """
-        if all(continuum == 0):
-            return True
-        return False

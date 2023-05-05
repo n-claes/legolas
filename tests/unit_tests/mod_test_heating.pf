@@ -1,0 +1,86 @@
+module mod_test_heating
+  use mod_suite_utils
+  use funit
+  implicit none
+
+  real(dp), allocatable :: xvals(:)
+  type(settings_t) :: settings
+  type(physics_t) :: physics
+  type(background_t) :: background
+
+contains
+
+  @before
+  subroutine init_test()
+    settings = get_settings()
+    background = get_background()
+    physics = get_physics(settings, background)
+    call set_default_units(settings)
+
+    call background%set_density_funcs(rho0_func=rho0_func)
+    call background%set_temperature_funcs(T0_func=T0_func, dT0_func=dT0_func)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    if (allocated(xvals)) deallocate(xvals)
+    call settings%delete()
+    call background%delete()
+    call physics%delete()
+  end subroutine teardown_test
+
+  subroutine allocate_arrays(pts)
+    integer, intent(in) :: pts
+    allocate(xvals(pts))
+    xvals = linspace(0.0_dp, 3.0_dp, pts)
+  end subroutine allocate_arrays
+
+
+  real(dp) function rho0_func()
+    rho0_func = 1.0_dp
+  end function rho0_func
+
+  real(dp) function T0_func(x)
+    real(dp), intent(in) :: x
+    T0_func = 2.0_dp * x
+  end function T0_func
+
+  real(dp) function dT0_func()
+    dT0_func = 2.0_dp
+  end function dT0_func
+
+
+  @test
+  subroutine test_heating_set_H()
+    call set_name("heating: setting H")
+    call physics%set_heating_funcs(H_func=T0_func)
+    call allocate_arrays(pts=100)
+    @assertEqual(-2.0_dp * xvals, physics%heatloss%get_L0(xvals), tolerance=TOL)
+    @assertEqual(0.0_dp, physics%heatloss%get_dLdT(xvals), tolerance=TOL)
+    @assertEqual(0.0_dp, physics%heatloss%get_dLdrho(xvals), tolerance=TOL)
+  end subroutine test_heating_set_H
+
+
+  @test
+  subroutine test_heating_set_dHdT()
+    call set_name("heating: setting dHdT")
+    call physics%set_heating_funcs(H_func=T0_func, dHdT_func=dT0_func)
+    call allocate_arrays(pts=100)
+    @assertEqual(-2.0_dp * xvals, physics%heatloss%get_L0(xvals), tolerance=TOL)
+    @assertEqual(-2.0_dp, physics%heatloss%get_dLdT(xvals), tolerance=TOL)
+    @assertEqual(0.0_dp, physics%heatloss%get_dLdrho(xvals), tolerance=TOL)
+  end subroutine test_heating_set_dHdT
+
+
+  @test
+  subroutine test_heating_set_dHdrho()
+    call set_name("heating: setting dHdrho")
+    call physics%set_heating_funcs(H_func=rho0_func, dHdrho_func=T0_func)
+    call allocate_arrays(pts=100)
+    @assertEqual(-1.0_dp, physics%heatloss%get_L0(xvals), tolerance=TOL)
+    @assertEqual(0.0_dp, physics%heatloss%get_dLdT(xvals), tolerance=TOL)
+    @assertEqual(-2.0_dp * xvals, physics%heatloss%get_dLdrho(xvals), tolerance=TOL)
+  end subroutine test_heating_set_dHdrho
+
+end module mod_test_heating

@@ -38,3 +38,12 @@ added this in a backwards compatible way to the pylbo reader
 1) added eigenfunction subset info to datfile header
 2) added ef_written_flags and ef_written_idxs to datfile, before writing eigenfunctions
 Changes needed an update of the pylbo reader
+
+=== version 1.2.0 --> 1.2.1 ===
+1) added electron_fraction to param_list after g
+
+=== version 1.2.1 --> 1.3.0 ===
+1) added write_eigenvectors between write_matrices and write_eigenfunction_subset in header
+2) eigenvectors added after derived eigenfunctions and before matrices (optional)
+3) added write_residuals between write_eigenvectors and write_eigenfunction_subset in header
+4) residuals added after eigenvectors and before matrices (optional)
