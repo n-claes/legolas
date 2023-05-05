@@ -2,7 +2,7 @@ import matplotlib
 from packaging import version
 
 # The current pylbo version number.
-__version__ = "1.1.3"
+__version__ = "2.0.0"
 
 
 class VersionHandler:
