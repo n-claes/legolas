@@ -12,7 +12,7 @@ last_modified_at: 2023-04-13
 Using Pylbo is quite straightforward, for a detailed guide on the API we refer to the
 [Pylbo documentation](../../sphinx/autoapi/pylbo/index.html).
 This page will provide a basic guide on how to use the package . In what follows we assume that Pylbo has been installed
-(see [installing Pylbo](../installing_pylbo)) and has been imported.
+(see [installing Pylbo](../../getting-started/installation#pylbo)) and has been imported.
 
 ## Loading Legolas datfiles
 You can either load a single datfile or multiple datfiles at the same time. Both loaders accept either strings

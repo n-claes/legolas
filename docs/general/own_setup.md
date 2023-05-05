@@ -39,7 +39,7 @@ submodule (mod_equilibrium) smod_user_defined
 
 contains
 
-  module procedure user_defined_eq()
+  module procedure user_defined_eq
 
     ! ...
 
@@ -114,7 +114,7 @@ submodule (mod_equilibrium) smod_user_defined
 
 contains
 
-  module procedure user_defined_eq()
+  module procedure user_defined_eq
     if (settings%equilibrium%use_defaults) then
       k2 = 0.0_dp
       k3 = 1.0_dp
@@ -134,7 +134,7 @@ Specifying the unit normalisations can either be done through the parfile (the `
 Setting units is done by accessing the `settings%units` object, take a look at the type-bound procedures [here](../../ford/type/units_t.html)
 for an overview of the available options. All units should be in cgs, the units below are the default ones.
 ```fortran
-module procedure user_defined_eq()
+module procedure user_defined_eq
   call units%set_units_from_temperature( &
     unit_length=1.0e9_dp, &  ! cm
     unit_magneticfield=10.0_dp, &  ! Gauss
