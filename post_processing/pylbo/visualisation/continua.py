@@ -152,17 +152,20 @@ def calculate_continua(ds):
             slow_min[idx] = s_neg
             slow_plus[idx] = s_pos
 
-    # get doppler-shifted continua and return
-    continua = {THERMAL: thermal, DOPPLER: doppler}
-    # minus already in slow_min
-    continua[SLOW_MIN] = doppler + slow_min if not is_zero(slow_min) else slow_min
-    continua[SLOW_PLUS] = doppler + slow_plus if not is_zero(slow_plus) else slow_plus
-    continua[ALFVEN_MIN] = (
-        doppler - np.sqrt(alfven2) if not is_zero(alfven2) else -np.sqrt(alfven2)
-    )
-    continua[ALFVEN_PLUS] = (
-        doppler + np.sqrt(alfven2) if not is_zero(alfven2) else np.sqrt(alfven2)
-    )
+    continua = {
+        DOPPLER: doppler,
+        SLOW_MIN: slow_min,  # minus already accounted for
+        SLOW_PLUS: slow_plus,
+        THERMAL: thermal,
+        ALFVEN_MIN: -np.sqrt(alfven2),
+        ALFVEN_PLUS: np.sqrt(alfven2),
+    }
+    # correct for doppler shift
+    for name in CONTINUA_NAMES.keys():
+        if name == DOPPLER:
+            continue
+        if not is_zero(continua[name]):
+            continua[name] += doppler
     return continua
 
 
