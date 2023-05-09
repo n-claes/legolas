@@ -5,6 +5,51 @@ from typing import Any
 import matplotlib.axes
 import numpy as np
 
+_BACKGROUND_NAME_MAPPING = {
+    "rho0": r"$\rho_0$",
+    "drho0": r"$\partial \rho_0$",
+    "T0": r"$T_0$",
+    "dT0": r"$\partial T_0$",
+    "ddT0": r"$\partial^2 T_0$",
+    "B01": r"$B_{01}$",
+    "B02": r"$B_{02}$",
+    "B03": r"$B_{03}$",
+    "dB02": r"$\partial B_{02}$",
+    "dB03": r"$\partial B_{03}$",
+    "ddB02": r"$\partial^2 B_{02}$",
+    "ddB03": r"$\partial^2 B_{03}$",
+    "B0": r"$B_0$",
+    "v01": r"$v_{01}$",
+    "v02": r"$v_{02}$",
+    "v03": r"$v_{03}$",
+    "dv01": r"$\partial v_{01}$",
+    "dv02": r"$\partial v_{02}$",
+    "dv03": r"$\partial v_{03}$",
+    "ddv01": r"$\partial^2 v_{01}$",
+    "ddv02": r"$\partial^2 v_{02}$",
+    "ddv03": r"$\partial^2 v_{03}$",
+    "L0": r"$\mathcal{L}_0$",
+    "dLdT": r"$\partial_T \mathcal{L}$",
+    "dLdrho": r"$\partial_\rho \mathcal{L}$",
+    "lambdaT": r"$\Lambda(T)$",
+    "dlambdadT": r"$\partial_T \Lambda$",
+    "H0": r"$\mathcal{H}_0$",
+    "dHdT": r"$\partial_T \mathcal{H}$",
+    "dHdrho": r"$\partial_\rho \mathcal{H}$",
+    "kappa_para": r"$\kappa_\parallel$",
+    "kappa_perp": r"$\kappa_\perp$",
+    "dkappa_para_dT": r"$\partial_T \kappa_\parallel$",
+    "dkappa_para_dr": r"$\partial \kappa_\parallel$",
+    "dkappa_perp_drho": r"$\partial_\rho \kappa_\perp$",
+    "dkappa_perp_dT": r"$\partial_T \kappa_\perp$",
+    "dkappa_perp_dB2": r"$\partial_{B^2} \kappa_\perp$",
+    "dkappa_perp_dr": r"$\partial \kappa_\perp$",
+    "eta": r"$\eta$",
+    "detadT": r"$\partial_T \eta$",
+    "detadr": r"$\partial \eta$",
+    "gravity": r"$g$",
+}
+
 
 def refresh_plot(f: callable) -> callable:
     """
@@ -82,6 +127,24 @@ def ef_name_to_latex(
     if part != "":
         latex_name = rf"{part}({latex_name})"
     return latex_name
+
+
+def background_name_to_latex(bg_name: str) -> str:
+    """
+    Maps the background name to latex formatting.
+
+    Parameters
+    ----------
+    bg_name : str
+        The name of the background as given by the corresponding dictionary key.
+
+    Returns
+    -------
+    str
+        The latex formatted background name. If the background name has no mapping
+        the original name is returned.
+    """
+    return _BACKGROUND_NAME_MAPPING.get(bg_name, bg_name)
 
 
 def validate_ef_name(ds, ef_name: str) -> str:

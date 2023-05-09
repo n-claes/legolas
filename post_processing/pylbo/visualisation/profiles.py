@@ -3,6 +3,7 @@ from pylbo.utilities.logger import pylboLogger
 from pylbo.visualisation.continua import ContinuaHandler
 from pylbo.visualisation.figure_window import FigureWindow, InteractiveFigureWindow
 from pylbo.visualisation.legend_handler import LegendHandler
+from pylbo.visualisation.utils import background_name_to_latex
 
 
 class EquilibriumProfile(InteractiveFigureWindow):
@@ -31,20 +32,6 @@ class EquilibriumProfile(InteractiveFigureWindow):
             super().make_legend_interactive(self.leg_handle)
         self.fig.tight_layout()
 
-    def _name_to_latex(self, name: str) -> str:
-        """Converts an equilibrium name to latex format"""
-        for symbol in ("rho", "eta", "kappa", "mu"):
-            name = name.replace(symbol, rf"{{\{symbol}}}")
-        if name.endswith("0"):
-            name = name.replace("0", "_0")
-        name = name.replace("01", "_{01}").replace("02", "_{02}").replace("03", "_{03}")
-        name = name.replace("_para", "_{\\parallel}").replace("_perp", "_{\\perp}")
-        name = name.replace("lambdaT", r"{\Lambda(T)}")
-        name = name.replace("dlambdadT", r"d{\Lambda(T)}dT")
-        if "dL" in name:
-            name = name.replace("dL", r"d\mathcal{L}")
-        return f"${name}$"
-
     def draw(self):
         """Adds the equilibria to the figure. Also sets the legend handler items"""
         items = []
@@ -59,7 +46,7 @@ class EquilibriumProfile(InteractiveFigureWindow):
             (item,) = axis.plot(
                 self.data.grid_gauss,
                 values,
-                label=self._name_to_latex(name),
+                label=background_name_to_latex(name),
                 alpha=self.leg_handle.alpha_point,
             )
             axis.axhline(y=0, color="grey", linestyle="dotted", alpha=0.6)
