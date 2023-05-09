@@ -267,13 +267,14 @@ contains
     if (perpendicular_conduction) then
       call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value)
     end if
-    if (resistivity) call settings%physics%enable_resistivity( &
-      fixed_resistivity_value &
-    )
+    if (resistivity) call settings%physics%enable_resistivity(fixed_resistivity_value)
+    settings%physics%resistivity%use_dropoff = use_eta_dropoff
     if (viscosity) call settings%physics%enable_viscosity( &
       viscosity_value, viscous_heating &
     )
     if (hall_mhd) call settings%physics%enable_hall(elec_inertia, electron_fraction)
+    settings%physics%hall%use_dropoff = hall_dropoff
+    settings%physics%hall%use_inertia_dropoff = inertia_dropoff
     settings%physics%dropoff_edge_dist = dropoff_edge_dist
     settings%physics%dropoff_width = dropoff_width
   end subroutine read_physicslist
