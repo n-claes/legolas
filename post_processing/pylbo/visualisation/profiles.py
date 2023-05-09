@@ -1,4 +1,5 @@
 import numpy as np
+from pylbo.utilities.logger import pylboLogger
 from pylbo.visualisation.continua import ContinuaHandler
 from pylbo.visualisation.figure_window import FigureWindow, InteractiveFigureWindow
 from pylbo.visualisation.legend_handler import LegendHandler
@@ -167,45 +168,78 @@ class EquilibriumBalance(FigureWindow):
 
     def draw(self):
         """Draws the equilibrium balance equations."""
-        rho = self.data.equilibria["rho0"]
-        drho = self.data.equilibria["drho0"]
-        temp = self.data.equilibria["T0"]
-        dtemp = self.data.equilibria["dT0"]
-        b02 = self.data.equilibria["B02"]
-        db02 = self.data.equilibria["dB02"]
-        b03 = self.data.equilibria["B03"]
-        db03 = self.data.equilibria["dB03"]
-        g = self.data.equilibria["grav"]
-        v02 = self.data.equilibria["v02"]
-        kappa_perp = self.data.equilibria["kappa_perp"]
-        # L0 is only non-zero when custom heating is added
-        # (and is not saved to the datfile for now)
-        heat_loss = np.zeros_like(self.data.grid_gauss)
-        r_scale = self.data.scale_factor
-        dr_scale = self.data.d_scale_factor
-        equil_force = (
-            drho * temp
-            + rho * dtemp
-            + b02 * db02
-            + b03 * db03
-            + rho * g
-            - (dr_scale / r_scale) * (rho * v02**2 - b02**2)
-        )
-        equil_force[np.where(abs(equil_force) <= 1e-16)] = 0
-        self.ax.plot(self.data.grid_gauss, equil_force, **self.kwargs)
+        force_balance = self._get_force_balance()
+        self.ax.plot(self.data.grid_gauss, force_balance, **self.kwargs)
         self.ax.axhline(y=0, color="grey", linestyle="dotted")
-        if any(abs(equil_force) > 1e-14):
+        if any(abs(force_balance) > 1e-14):
             self.ax.set_yscale("symlog")
         self.ax.set_title("Force balance")
 
-        # ddT0 is not saved, so we do it numerically (it's a check anyway)
-        dtemp_fact = np.gradient(kappa_perp * dtemp, self.data.grid_gauss, edge_order=2)
-        equil_nadiab = (
-            dr_scale * kappa_perp * dtemp / r_scale + dtemp_fact - rho * heat_loss
-        )
-        equil_nadiab[np.where(abs(equil_nadiab) <= 1e-16)] = 0
-        self.ax2.plot(self.data.grid_gauss, equil_nadiab, **self.kwargs)
+        energy_balance = self._get_energy_balance()
+        self.ax2.plot(self.data.grid_gauss, energy_balance, **self.kwargs)
         self.ax2.axhline(y=0, color="grey", linestyle="dotted")
-        if any(abs(equil_nadiab) > 1e-14):
+        if any(abs(energy_balance) > 1e-14):
             self.ax2.set_yscale("symlog")
-        self.ax2.set_title("Nonadiabatic balance")
+        self.ax2.set_title("Energy (thermal) balance")
+
+    def _get_force_balance(self):
+        background = self.data.equilibria
+        rho0 = background["rho0"]
+        drho0 = background["drho0"]
+        T0 = background["T0"]
+        dT0 = background["dT0"]
+        B02 = background["B02"]
+        dB02 = background["dB02"]
+        B03 = background["B03"]
+        dB03 = background["dB03"]
+        g0 = background["gravity"]
+        v01 = background["v01"]
+        dv01 = background["dv01"]
+        v02 = background["v02"]
+        eps = self.data.scale_factor
+        deps = self.data.d_scale_factor
+        return (
+            drho0 * T0
+            + rho0 * dT0
+            + B02 * dB02
+            + B03 * dB03
+            + rho0 * g0
+            - (deps / eps) * (rho0 * v02**2 - B02**2)
+            + rho0 * v01 * dv01
+        )
+
+    def _get_energy_balance(self):
+        background = self.data.equilibria
+        rho0 = background["rho0"]
+        T0 = background["T0"]
+        dT0 = background["dT0"]
+        ddT0 = background["ddT0"]
+        v01 = background["v01"]
+        dv01 = background["dv01"]
+        B01 = background["B01"]
+        B0 = background["B0"]
+        L0 = background["L0"]
+        tc_para = background["kappa_para"]
+        tc_perp = background["kappa_perp"]
+
+        dtc_perp_dr = background.get("dkappa_perp_dr", None)
+        if dtc_perp_dr is None:
+            pylboLogger.warning(
+                "energy balance: dkappa_perp_dr not found in datfile. "
+                "Deriving numerically using np.gradient."
+            )
+            dtc_perp_dr = np.gradient(tc_perp, self.data.grid_gauss, edge_order=2)
+
+        is_mhd = "mhd" in self.data.header.get("physics_type", None)
+        Kp = (tc_para - tc_perp) / B0**2 if is_mhd else np.zeros_like(tc_para)
+        dKp = np.gradient(Kp, self.data.grid_gauss, edge_order=2)
+        eps = self.data.scale_factor
+        deps = self.data.d_scale_factor
+        return (
+            T0 * rho0 * (deps * v01 + eps * dv01) / eps
+            + rho0 * L0
+            - B01**2 * (Kp * dT0 + dKp * T0)
+            - (1 / eps)
+            * (deps * tc_perp * dT0 + eps * dtc_perp_dr * dT0 + eps * tc_perp * ddT0)
+            + (1 / (self.data.gamma - 1)) * dT0 * rho0 * v01
+        )
