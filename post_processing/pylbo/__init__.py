@@ -2,6 +2,7 @@ from pylbo._version import __version__
 from pylbo.automation.api import generate_parfiles, run_legolas
 from pylbo.utilities import logger
 from pylbo.utilities.datfiles.file_loader import load, load_logfile, load_series
+from pylbo.utilities.eq_balance import get_equilibrium_balance
 from pylbo.utilities.logger import disable_logging, set_loglevel
 from pylbo.visualisation.api import (
     plot_continua,
