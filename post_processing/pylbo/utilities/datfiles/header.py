@@ -223,6 +223,8 @@ class LegolasHeader:
             if self.data["has_background"]
             else []
         )
+        # due to a typo older datfiles contain 'db03' instead of 'dB03'
+        names = [name.replace("db03", "dB03") for name in names]
         return {"equilibrium_names": names}
 
     def _get_eigenfunction_offsets(self, istream: BinaryIO) -> dict:

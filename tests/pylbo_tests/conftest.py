@@ -207,6 +207,12 @@ def ds_v200_tear_nobg():
 
 
 @pytest.mark.timeout(5)
+@pytest.fixture(scope="session")
+def ds_v200_hd_khi():
+    return pylbo.load(utils / "v2.0.0_hd_khi.dat")
+
+
+@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v100():
     return pylbo.load_series([utils / "v1_datfile_matrices.dat"] * 3)

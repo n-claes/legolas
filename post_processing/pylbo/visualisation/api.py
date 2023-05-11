@@ -206,11 +206,10 @@ def plot_equilibrium(data, figsize=None, interactive=True, **kwargs):
     return p
 
 
-def plot_equilibrium_balance(data, figsize=None, **kwargs):
+def plot_equilibrium_balance(data, figsize=None, interactive=True, **kwargs):
     """
-    Creates a plot of the force balance equation and non-adiabatic equilibrium
-    equation. These should be as close to zero as possible over the entire grid.
-    All values smaller than 1e-16 are set to zero.
+    Creates a plot of the balance equations.
+    These should be as close to zero as possible over the entire grid.
 
     Parameters
     ----------
@@ -218,6 +217,8 @@ def plot_equilibrium_balance(data, figsize=None, **kwargs):
         The dataset that should be used
     figsize : tuple
         Optional figure size like the usual matplotlib (x, x) size.
+    interactive : bool
+        If `True` (default), enables an interactive legend.
 
     Returns
     -------
@@ -231,8 +232,7 @@ def plot_equilibrium_balance(data, figsize=None, **kwargs):
             "can not be plotted."
         )
         return
-    p = EquilibriumBalance(data, figsize, **kwargs)
-    return p
+    return EquilibriumBalance(data, figsize, interactive, **kwargs)
 
 
 def plot_continua(data, figsize=None, interactive=True, **kwargs):

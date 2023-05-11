@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import numpy as np
+from pylbo.utilities.eq_balance import get_equilibrium_balance
 from pylbo.visualisation.continua import ContinuaHandler
-from pylbo.visualisation.figure_window import FigureWindow, InteractiveFigureWindow
+from pylbo.visualisation.figure_window import InteractiveFigureWindow
 from pylbo.visualisation.legend_handler import LegendHandler
+from pylbo.visualisation.utils import background_name_to_latex
 
 
 class EquilibriumProfile(InteractiveFigureWindow):
@@ -30,20 +34,6 @@ class EquilibriumProfile(InteractiveFigureWindow):
             super().make_legend_interactive(self.leg_handle)
         self.fig.tight_layout()
 
-    def _name_to_latex(self, name: str) -> str:
-        """Converts an equilibrium name to latex format"""
-        for symbol in ("rho", "eta", "kappa", "mu"):
-            name = name.replace(symbol, rf"{{\{symbol}}}")
-        if name.endswith("0"):
-            name = name.replace("0", "_0")
-        name = name.replace("01", "_{01}").replace("02", "_{02}").replace("03", "_{03}")
-        name = name.replace("_para", "_{\\parallel}").replace("_perp", "_{\\perp}")
-        name = name.replace("lambdaT", r"{\Lambda(T)}")
-        name = name.replace("dlambdadT", r"d{\Lambda(T)}dT")
-        if "dL" in name:
-            name = name.replace("dL", r"d\mathcal{L}")
-        return f"${name}$"
-
     def draw(self):
         """Adds the equilibria to the figure. Also sets the legend handler items"""
         items = []
@@ -58,7 +48,7 @@ class EquilibriumProfile(InteractiveFigureWindow):
             (item,) = axis.plot(
                 self.data.grid_gauss,
                 values,
-                label=self._name_to_latex(name),
+                label=background_name_to_latex(name),
                 alpha=self.leg_handle.alpha_point,
             )
             axis.axhline(y=0, color="grey", linestyle="dotted", alpha=0.6)
@@ -151,10 +141,10 @@ class ContinuumProfile(InteractiveFigureWindow):
         self.ax.set_ylabel(r"$\omega$")
 
 
-class EquilibriumBalance(FigureWindow):
+class EquilibriumBalance(InteractiveFigureWindow):
     """Subclass responsible for plotting the equilibrium balance equations."""
 
-    def __init__(self, data, figsize, **kwargs):
+    def __init__(self, data, figsize, interactive, **kwargs):
         fig, ax = super().create_default_figure(
             figlabel="equilibrium-balance", figsize=figsize
         )
@@ -162,50 +152,20 @@ class EquilibriumBalance(FigureWindow):
         self.data = data
         self.kwargs = kwargs
         self.ax = ax
-        self.ax2 = super().add_subplot_axes(self.ax, "bottom")
+        self.eq_balance = get_equilibrium_balance(ds=data)
+        self.legend_handler = LegendHandler(interactive)
         self.draw()
+        if interactive:
+            self.make_legend_interactive(self.legend_handler)
+        self.fig.tight_layout()
 
     def draw(self):
         """Draws the equilibrium balance equations."""
-        rho = self.data.equilibria["rho0"]
-        drho = self.data.equilibria["drho0"]
-        temp = self.data.equilibria["T0"]
-        dtemp = self.data.equilibria["dT0"]
-        b02 = self.data.equilibria["B02"]
-        db02 = self.data.equilibria["dB02"]
-        b03 = self.data.equilibria["B03"]
-        db03 = self.data.equilibria["dB03"]
-        g = self.data.equilibria["grav"]
-        v02 = self.data.equilibria["v02"]
-        kappa_perp = self.data.equilibria["kappa_perp"]
-        # L0 is only non-zero when custom heating is added
-        # (and is not saved to the datfile for now)
-        heat_loss = np.zeros_like(self.data.grid_gauss)
-        r_scale = self.data.scale_factor
-        dr_scale = self.data.d_scale_factor
-        equil_force = (
-            drho * temp
-            + rho * dtemp
-            + b02 * db02
-            + b03 * db03
-            + rho * g
-            - (dr_scale / r_scale) * (rho * v02**2 - b02**2)
+        for key, values in self.eq_balance.items():
+            (item,) = self.ax.plot(self.data.grid_gauss, values, label=key)
+            self.legend_handler.add(item)
+        self.ax.axhline(y=0, color="grey", linestyle="dotted", alpha=0.8)
+        self.legend_handler.legend = self.ax.legend(
+            bbox_to_anchor=(0.0, 1, 1, 0.102), loc="lower right", ncol=7
         )
-        equil_force[np.where(abs(equil_force) <= 1e-16)] = 0
-        self.ax.plot(self.data.grid_gauss, equil_force, **self.kwargs)
-        self.ax.axhline(y=0, color="grey", linestyle="dotted")
-        if any(abs(equil_force) > 1e-14):
-            self.ax.set_yscale("symlog")
-        self.ax.set_title("Force balance")
-
-        # ddT0 is not saved, so we do it numerically (it's a check anyway)
-        dtemp_fact = np.gradient(kappa_perp * dtemp, self.data.grid_gauss, edge_order=2)
-        equil_nadiab = (
-            dr_scale * kappa_perp * dtemp / r_scale + dtemp_fact - rho * heat_loss
-        )
-        equil_nadiab[np.where(abs(equil_nadiab) <= 1e-16)] = 0
-        self.ax2.plot(self.data.grid_gauss, equil_nadiab, **self.kwargs)
-        self.ax2.axhline(y=0, color="grey", linestyle="dotted")
-        if any(abs(equil_nadiab) > 1e-14):
-            self.ax2.set_yscale("symlog")
-        self.ax2.set_title("Nonadiabatic balance")
+        self.legend_handler.autoscale = True

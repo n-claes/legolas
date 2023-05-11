@@ -133,7 +133,9 @@ class LegolasLegacyHeader(LegolasHeader):
             if self.legolas_version >= "1.0.2"
             else self._str_len_array
         )
-        return read_string_from_istream(istream, length=len_name, amount=nb_names)
+        names = read_string_from_istream(istream, length=len_name, amount=nb_names)
+        names = [name.replace("grav", "gravity") for name in names]
+        return names
 
     def _read_units(self, istream: BinaryIO) -> dict:
         units = {"cgs": read_boolean_from_istream(istream)}
