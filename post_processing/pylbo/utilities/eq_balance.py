@@ -125,14 +125,16 @@ def _induction_balance_2(ds: LegolasDataSet) -> np.ndarray:
 
 
 def _get_conduction_prefactor(ds: LegolasDataSet) -> np.ndarray:
-    if not _ds_is_mhd(ds):
-        return np.zeros_like(ds.grid_gauss)
     bg = ds.equilibria
-    return (bg["kappa_para"] - bg["kappa_perp"]) / bg["B0"] ** 2
+    return (
+        (bg["kappa_para"] - bg["kappa_perp"]) / bg["B0"] ** 2
+        if ds.is_mhd
+        else np.zeros_like(ds.grid_gauss)
+    )
 
 
 def _get_conduction_prefactor_derivative(ds: LegolasDataSet) -> np.ndarray:
-    if not _ds_is_mhd(ds):
+    if not ds.is_mhd:
         return np.zeros_like(ds.grid_gauss)
     bg = ds.equilibria
     dB0 = (bg["B02"] * bg["dB02"] + bg["B03"] * bg["dB03"]) / bg["B0"]
@@ -166,7 +168,3 @@ def _derivative_from_gradient(
         f"Deriving numerically from '{fname_prim}' using np.gradient."
     )
     return np.gradient(bg[fname_prim], with_respect_to, edge_order=2)
-
-
-def _ds_is_mhd(ds: LegolasDataSet) -> bool:
-    return "mhd" in ds.header.get("physics_type", None)

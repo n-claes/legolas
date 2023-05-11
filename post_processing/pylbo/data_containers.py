@@ -289,11 +289,20 @@ class LegolasDataSet(LegolasDataContainer):
         """Checks if residuals are present."""
         return self.header["has_residuals"]
 
+    @property
+    def is_mhd(self) -> bool:
+        """Checks if the dataset is MHD."""
+        return "mhd" in self.header.get("physics_type", None) and any(
+            self.equilibria["B0"] != 0
+        )
+
     def _ensure_compatibility(self) -> None:
         """
         Makes sure that the dataset is backwards compatible with new changes.
         Mainly used for older (<2.0.0) datasets.
         """
+        if not self.has_background:
+            return
         bg_keys_added_in_v200 = ["L0"]
         for key in bg_keys_added_in_v200:
             if self.equilibria.get(key, None) is None:
