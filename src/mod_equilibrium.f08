@@ -236,9 +236,6 @@ contains
     if (settings%physics%cooling%is_enabled()) then
       call physics%heatloss%cooling%initialise()
     end if
-    call physics%heatloss%check_if_thermal_balance_needs_enforcing( &
-      physics%conduction, grid &
-    )
     call physics%hall%validate_scale_ratio(grid%gaussian_grid)
   end subroutine set_equilibrium
 
