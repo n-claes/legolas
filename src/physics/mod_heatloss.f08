@@ -17,6 +17,11 @@ module mod_heatloss
   type(conduction_t), pointer :: conduction => null()
   type(grid_t), pointer :: grid => null()
 
+  character(len=*), parameter :: msg_heatloss_balance = ( &
+    "unable to enforce thermal balance when heating is disabled. " // &
+    "Set 'force_thermal_balance = .false.' in the parfile or enable heating." &
+  )
+
   type, public :: heatloss_t
     type(cooling_t) :: cooling
     type(heating_t) :: heating
@@ -30,6 +35,7 @@ module mod_heatloss
   end type heatloss_t
 
   public :: new_heatloss
+  public :: msg_heatloss_balance
 
 contains
 
@@ -86,9 +92,12 @@ contains
     type(conduction_t), intent(in) :: conduction_tgt
     type(grid_t), intent(in) :: grid_tgt
 
-    if (.not. settings%physics%heating%is_enabled()) return
+    if (is_adiabatic()) return
     if (.not. settings%physics%heating%force_thermal_balance) return
-
+    if (.not. settings%physics%heating%is_enabled()) then
+      call logger%error(msg_heatloss_balance)
+      return
+    end if
     if (.not. associated(this%heating%H, zero_func)) call log_usr_H_func_warning()
 
     call set_module_pointers(conduction_tgt, grid_tgt, this%cooling)
@@ -143,6 +152,15 @@ contains
     )
     call logger%enable_prefix()
   end subroutine log_usr_H_func_warning ! LCOV_EXCL_STOP
+
+
+  logical function is_adiabatic()
+    logical :: no_cooling, no_heating, no_conduction
+    no_cooling = .not. settings%physics%cooling%is_enabled()
+    no_heating = .not. settings%physics%heating%is_enabled()
+    no_conduction = .not. settings%physics%conduction%is_enabled()
+    is_adiabatic = no_cooling .and. no_heating .and. no_conduction
+  end function is_adiabatic
 
 
   subroutine delete(this)

@@ -116,11 +116,10 @@ contains
   pure subroutine enable_heating(this, force_thermal_balance)
     class(physics_settings_t), intent(inout) :: this
     logical, intent(in), optional :: force_thermal_balance
-    logical :: force_balance
 
-    force_balance = .true.
-    if (present(force_thermal_balance)) force_balance = force_thermal_balance
-    this%heating%force_thermal_balance = force_balance
+    if (present(force_thermal_balance)) then
+      this%heating%force_thermal_balance = force_thermal_balance
+    end if
     call this%heating%enable()
   end subroutine enable_heating
 

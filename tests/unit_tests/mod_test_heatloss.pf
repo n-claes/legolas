@@ -1,6 +1,7 @@
 module mod_test_heatloss
   use mod_suite_utils
   use mod_matrix_structure, only: matrix_t
+  use mod_heatloss, only: msg_heatloss_balance
   use funit
   implicit none
 
@@ -10,11 +11,6 @@ module mod_test_heatloss
   type(grid_t) :: grid
   type(matrix_t) :: matrix_A, matrix_B
   complex(dp), allocatable :: eigenvals(:)
-
-  character(len=*), parameter :: msg_heatloss_balance = ( &
-    "forced thermal balance needs cooling + heating. " // &
-    "Set 'force_thermal_balance = .false.' in the parfile or enable heating/cooling" &
-  )
 
 contains
 
@@ -183,7 +179,13 @@ contains
     call set_name("heatloss: only heating, force thermal balance")
     call enable_heating(force_balance=.true.)
     call assemble_and_solve()
-    @assertExceptionRaised(msg_heatloss_balance)
+    @assertTrue(settings%physics%heating%is_enabled())
+    @assertFalse(settings%physics%cooling%is_enabled())
+    @assertEqual(0.0_dp, get_actual_lambdaT(), tolerance=TOL)
+    ! heating overridden through forced thermal balance, rho = 1 so H0 = lambdaT = 0
+    @assertEqual(0.0_dp, get_actual_H0(), tolerance=TOL)
+    @assertTrue(settings%physics%heating%force_thermal_balance)
+    @assertTrue(eigenvals_all_real())
   end subroutine test_H_only_force_balance
 
 
