@@ -1,0 +1,202 @@
+module mod_test_heatloss
+  use mod_suite_utils
+  use mod_matrix_structure, only: matrix_t
+  use funit
+  implicit none
+
+  type(settings_t) :: settings
+  type(physics_t) :: physics
+  type(background_t) :: background
+  type(grid_t) :: grid
+  type(matrix_t) :: matrix_A, matrix_B
+  complex(dp), allocatable :: eigenvals(:)
+
+  character(len=*), parameter :: msg_heatloss_balance = ( &
+    "forced thermal balance needs cooling + heating. " // &
+    "Set 'force_thermal_balance = .false.' in the parfile or enable heating/cooling" &
+  )
+
+contains
+
+  @before
+  subroutine init_test()
+    settings = get_settings()
+    background = get_background()
+    physics = get_physics(settings, background)
+    grid = create_test_grid( &
+      settings, pts=25, geometry="Cartesian", grid_start=0.0_dp, grid_end=1.0_dp &
+    )
+    settings%io%write_eigenfunctions = .false.
+    call settings%solvers%set_solver("QR-cholesky")
+    allocate( &
+      eigenvals(settings%dims%get_dim_matrix()), source=cmplx(1.0_dp, 3.0_dp, kind=dp) &
+    )
+    call logger%set_logging_level(0)
+  end subroutine init_test
+
+
+  @after
+  subroutine teardown_test()
+    call settings%delete()
+    call background%delete()
+    call physics%delete()
+    call grid%delete()
+    call matrix_A%delete_matrix()
+    call matrix_B%delete_matrix()
+    if (allocated(eigenvals)) deallocate(eigenvals)
+    call logger%set_logging_level(TEST_LOG_LVL)
+  end subroutine teardown_test
+
+
+  subroutine set_background()
+    use mod_equilibrium_params, only: k2, k3
+
+    k2 = 0.0_dp
+    k3 = 3.0_dp
+    call background%set_density_funcs(rho0_func=one)
+    call background%set_temperature_funcs(T0_func=one)
+    call background%set_magnetic_3_funcs(B03_func=one)
+    call physics%set_cooling_funcs(lambdaT_func=lambdaT_cte)
+    call physics%set_heating_funcs(H_func=heating_cte)
+  end subroutine set_background
+
+
+  subroutine enable_cooling()
+    call settings%physics%enable_cooling()
+  end subroutine enable_cooling
+
+
+  subroutine enable_heating(force_balance)
+    logical, intent(in) :: force_balance
+    call settings%physics%enable_heating(force_thermal_balance=force_balance)
+  end subroutine enable_heating
+
+
+  subroutine assemble_and_solve()
+    use mod_solvers, only: solve_evp
+    complex(dp) :: right_eigenvecs(2, 2)
+
+    call set_background()
+    call physics%heatloss%check_if_thermal_balance_needs_enforcing( &
+      physics%conduction, grid &
+    )
+    call get_test_matrices(settings, grid, background, physics, matrix_A, matrix_B)
+    call solve_evp(matrix_A, matrix_B, settings, eigenvals, right_eigenvecs)
+  end subroutine assemble_and_solve
+
+
+  logical function eigenvals_all_real()
+    use mod_check_values, only: is_zero
+    eigenvals_all_real = all(is_zero(aimag(eigenvals), tol=TOL))
+  end function eigenvals_all_real
+
+
+  real(dp) function lambdaT_cte()
+    lambdaT_cte = 1.5_dp
+  end function lambdaT_cte
+
+
+  real(dp) function heating_cte()
+    heating_cte = 4.3_dp
+  end function heating_cte
+
+
+  function get_actual_lambdaT() result(lambdaT)
+    real(dp) :: lambdaT(size(grid%gaussian_grid))
+    lambdaT = physics%heatloss%cooling%lambdaT(grid%gaussian_grid)
+  end function get_actual_lambdaT
+
+
+  function get_actual_H0() result(H0)
+    real(dp) :: H0(size(grid%gaussian_grid))
+    H0 = physics%heatloss%heating%H(grid%gaussian_grid)
+  end function get_actual_H0
+
+
+  @test
+  subroutine test_adiabatic_reference_run()
+    call set_name("heatloss: adiabatic reference run")
+    call assemble_and_solve()
+    @assertFalse(settings%physics%heating%is_enabled())
+    @assertFalse(settings%physics%cooling%is_enabled())
+    @assertEqual(0.0_dp, get_actual_lambdaT(), tolerance=TOL)
+    @assertEqual(0.0_dp, get_actual_H0(), tolerance=TOL)
+    @assertTrue(eigenvals_all_real())
+  end subroutine test_adiabatic_reference_run
+
+
+
+  @test
+  subroutine test_Q_H_force_balance()
+    call set_name("heatloss: heating + cooling, force thermal balance")
+    call enable_cooling()
+    call enable_heating(force_balance=.true.)
+    call assemble_and_solve()
+    ! heating overridden through forced thermal balance, rho = 1 so H0 = lambdaT
+    @assertEqual(lambdaT_cte(), get_actual_lambdaT(), tolerance=TOL)
+    @assertEqual(lambdaT_cte(), get_actual_H0(), tolerance=TOL)
+    @assertTrue(settings%physics%heating%force_thermal_balance)
+    @assertFalse(eigenvals_all_real())
+  end subroutine test_Q_H_force_balance
+
+
+  @test
+  subroutine test_Q_H()
+    call set_name("heatloss: unbalanced heating + cooling")
+    call enable_cooling()
+    call enable_heating(force_balance=.false.)
+    call assemble_and_solve()
+    @assertEqual(lambdaT_cte(), get_actual_lambdaT(), tolerance=TOL)
+    @assertEqual(heating_cte(), get_actual_H0(), tolerance=TOL)
+    @assertFalse(settings%physics%heating%force_thermal_balance)
+    @assertFalse(eigenvals_all_real())
+  end subroutine test_Q_H
+
+
+
+  @test
+  subroutine test_Q_only_force_balance()
+    call set_name("heatloss: only cooling, force thermal balance")
+    call enable_cooling()
+    settings%physics%heating%force_thermal_balance = .true.
+    call assemble_and_solve()
+    @assertExceptionRaised(msg_heatloss_balance)
+  end subroutine test_Q_only_force_balance
+
+
+  @test
+  subroutine test_Q_only()
+    call set_name("heatloss: only cooling")
+    call enable_cooling()
+    settings%physics%heating%force_thermal_balance = .false.
+    call assemble_and_solve()
+    @assertFalse(settings%physics%heating%is_enabled())
+    @assertEqual(lambdaT_cte(), get_actual_lambdaT(), tolerance=TOL)
+    @assertEqual(0.0_dp, get_actual_H0(), tolerance=TOL)
+    @assertFalse(eigenvals_all_real())
+  end subroutine test_Q_only
+
+
+
+  @test
+  subroutine test_H_only_force_balance()
+    call set_name("heatloss: only heating, force thermal balance")
+    call enable_heating(force_balance=.true.)
+    call assemble_and_solve()
+    @assertExceptionRaised(msg_heatloss_balance)
+  end subroutine test_H_only_force_balance
+
+
+  @test
+  subroutine test_H_only()
+    call set_name("heatloss: only heating")
+    call enable_heating(force_balance=.false.)
+    call assemble_and_solve()
+    @assertTrue(settings%physics%heating%is_enabled())
+    @assertFalse(settings%physics%cooling%is_enabled())
+    @assertEqual(0.0_dp, get_actual_lambdaT(), tolerance=TOL)
+    @assertEqual(heating_cte(), get_actual_H0(), tolerance=TOL)
+    @assertFalse(eigenvals_all_real())
+  end subroutine test_H_only
+
+end module mod_test_heatloss
