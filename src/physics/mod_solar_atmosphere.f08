@@ -54,7 +54,7 @@ contains
   subroutine set_solar_atmosphere(settings, background, physics, n_interp)
     use mod_integration, only: integrate_ode_rk45
 
-    type(settings_t), intent(in) :: settings
+    type(settings_t), intent(inout) :: settings
     type(background_t), intent(inout) :: background
     type(physics_t), intent(inout) :: physics
     !> points used for interpolation, defaults to 4000 if not present
@@ -102,6 +102,7 @@ contains
     call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02)
     call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03)
 
+    call settings%physics%enable_gravity()
     call physics%set_gravity_funcs(g0_func=g0)
   end subroutine set_solar_atmosphere
 

@@ -9,6 +9,7 @@ module mod_suite_utils
   implicit none
 
   real(dp), parameter :: TOL = 1.0d-12
+  integer, parameter :: TEST_LOG_LVL = 1
 
 contains
 
@@ -25,7 +26,7 @@ contains
 
     call initialise_globals()
     call init_equilibrium_params()
-    call logger%set_logging_level(1)  ! also print warnings
+    call logger%set_logging_level(TEST_LOG_LVL)  ! also print warnings
     k2 = 1.0d0
     k3 = 2.5d0
   end subroutine reset_globals
@@ -56,6 +57,23 @@ contains
     type(grid_t) :: grid
     grid = new_grid(settings)
   end function get_grid
+
+
+  subroutine get_test_matrices(settings, grid, background, physics, matrix_A, matrix_B)
+    use mod_matrix_structure, only: matrix_t, new_matrix
+    use mod_matrix_manager, only: build_matrices
+
+    type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
+    type(background_t), intent(in) :: background
+    type(physics_t), intent(in) :: physics
+    type(matrix_t), intent(out) :: matrix_A
+    type(matrix_t), intent(out) :: matrix_B
+
+    matrix_A = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="A")
+    matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
+    call build_matrices(matrix_B, matrix_A, settings, grid, background, physics)
+  end subroutine get_test_matrices
 
 
   real(dp) function zero(x)

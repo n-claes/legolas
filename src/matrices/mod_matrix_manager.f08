@@ -168,6 +168,17 @@ contains
     integer :: i, j, k, l, idx1, idx2
     integer :: quadblock_idx, gauss_idx, dim_quadblock
 
+    logical :: has_flow, has_resistivity, has_cooling, has_heating, has_conduction
+    logical :: has_viscosity, has_hall
+
+    has_flow = settings%physics%flow%is_enabled()
+    has_resistivity = settings%physics%resistivity%is_enabled()
+    has_cooling = settings%physics%cooling%is_enabled()
+    has_heating = settings%physics%heating%is_enabled()
+    has_conduction = settings%physics%conduction%is_enabled()
+    has_viscosity = settings%physics%viscosity%is_enabled()
+    has_hall = settings%physics%hall%is_enabled()
+
     dim_quadblock = settings%dims%get_dim_quadblock()
     allocate(quadblock_A(dim_quadblock, dim_quadblock))
     allocate(quadblock_B, mold=quadblock_A)
@@ -203,26 +214,22 @@ contains
         call add_regular_matrix_terms( &
           x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
-        if (settings%physics%flow%is_enabled()) call add_flow_matrix_terms( &
+        if (has_flow) call add_flow_matrix_terms( &
           x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
-        if (settings%physics%resistivity%is_enabled()) then
-          call add_resistive_matrix_terms( &
-            x_gauss, weight, quadblock_A, settings, grid, background, physics &
-          )
-        end if
-        if (settings%physics%cooling%is_enabled()) call add_heatloss_matrix_terms( &
+        if (has_resistivity) call add_resistive_matrix_terms( &
           x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
-        if (settings%physics%conduction%is_enabled()) then
-          call add_conduction_matrix_terms( &
-            x_gauss, weight, quadblock_A, settings, grid, background, physics &
-          )
-        end if
-        if (settings%physics%viscosity%is_enabled()) call add_viscosity_matrix_terms( &
+        if (has_cooling .or. has_heating) call add_heatloss_matrix_terms( &
           x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
-        if (settings%physics%hall%is_enabled()) then
+        if (has_conduction) call add_conduction_matrix_terms( &
+          x_gauss, weight, quadblock_A, settings, grid, background, physics &
+        )
+        if (has_viscosity) call add_viscosity_matrix_terms( &
+          x_gauss, weight, quadblock_A, settings, grid, background, physics &
+        )
+        if (has_hall) then
           call add_hall_matrix_terms( &
             x_gauss, weight, quadblock_A, settings, grid, background, physics &
         )
@@ -245,9 +252,7 @@ contains
         do l = 1, dim_quadblock
           idx1 = k + quadblock_idx
           idx2 = l + quadblock_idx
-          call matrix_B%add_element( &
-            row=idx1, column=idx2, element=real(quadblock_B(k, l)) &
-          )
+          call matrix_B%add_element(row=idx1, column=idx2, element=quadblock_B(k, l))
           call matrix_A%add_element(row=idx1, column=idx2, element=quadblock_A(k, l))
         end do
       end do

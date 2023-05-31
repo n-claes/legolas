@@ -259,7 +259,8 @@ contains
     if (incompressible) call settings%physics%set_incompressible()
     if (flow) call settings%physics%flow%enable()
     if (radiative_cooling) call settings%physics%enable_cooling(cooling_curve, ncool)
-    if (heating) call settings%physics%enable_heating(force_thermal_balance)
+    settings%physics%heating%force_thermal_balance = force_thermal_balance
+    if (heating) call settings%physics%enable_heating()
     if (external_gravity) call settings%physics%enable_gravity()
     if (parallel_conduction) then
       call settings%physics%enable_parallel_conduction(fixed_tc_para_value)

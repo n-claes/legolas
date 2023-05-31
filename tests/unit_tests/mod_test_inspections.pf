@@ -146,6 +146,7 @@ contains
   @test
   subroutine test_gravity_nan()
     call set_name("gravity NaN")
+    call settings%physics%enable_gravity()
     call physics%set_gravity_funcs(g0_func=g0)
     call do_checks()
     @assertExceptionRaised("NaN encountered in gravity")

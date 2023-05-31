@@ -4,6 +4,7 @@ module mod_cooling_curve_names
 
   public
 
+  character(len=str_len), parameter :: NOTHING = "nothing"
   character(len=str_len), parameter :: JC_CORONA = "jc_corona"
   character(len=str_len), parameter :: DALGARNO = "dalgarno"
   character(len=str_len), parameter :: DALGARNO2 = "dalgarno2"
@@ -14,8 +15,8 @@ module mod_cooling_curve_names
   character(len=str_len), parameter :: COLGAN = "colgan"
   character(len=str_len), parameter :: COLGAN_DM = "colgan_dm"
 
-  character(len=str_len), parameter :: KNOWN_CURVES(9) = [ &
-    JC_CORONA, DALGARNO, DALGARNO2, ML_SOLAR, SPEX, &
+  character(len=str_len), parameter :: KNOWN_CURVES(10) = [ &
+    NOTHING, JC_CORONA, DALGARNO, DALGARNO2, ML_SOLAR, SPEX, &
     SPEX_DALGARNO, ROSNER, COLGAN, COLGAN_DM &
   ]
 end module mod_cooling_curve_names
