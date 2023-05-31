@@ -102,13 +102,13 @@ contains
 
   pure subroutine enable_cooling(this, cooling_curve, interpolation_points)
     class(physics_settings_t), intent(inout) :: this
-    character(len=*), intent(in) :: cooling_curve
+    character(len=*), intent(in), optional :: cooling_curve
     integer, intent(in), optional :: interpolation_points
 
     if (present(interpolation_points)) then
       call this%cooling%set_interpolation_points(interpolation_points)
     end if
-    call this%cooling%set_cooling_curve(cooling_curve)
+    if (present(cooling_curve)) call this%cooling%set_cooling_curve(cooling_curve)
     call this%cooling%enable()
   end subroutine enable_cooling
 
