@@ -252,9 +252,7 @@ contains
         do l = 1, dim_quadblock
           idx1 = k + quadblock_idx
           idx2 = l + quadblock_idx
-          call matrix_B%add_element( &
-            row=idx1, column=idx2, element=real(quadblock_B(k, l)) &
-          )
+          call matrix_B%add_element(row=idx1, column=idx2, element=quadblock_B(k, l))
           call matrix_A%add_element(row=idx1, column=idx2, element=quadblock_A(k, l))
         end do
       end do
