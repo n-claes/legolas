@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import copy
 from pathlib import Path
+from typing import Union
 
 import f90nml
 from pylbo.automation.defaults import namelist_items
@@ -8,24 +11,55 @@ from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import transform_to_list
 
 
-def _validate_basename(basename):
+def _ensure_nb_names_and_nb_runs_matches(
+    names: Union[str, list[str]], nb_runs: int
+) -> list[str]:
     """
-    Validates the basename for a given parfile.
+    Ensures that the number of names matches the number of runs.
 
     Parameters
     ----------
-    basename : str
-        The basename for a parfile. If not given, defaults to "parfile".
+    names : str, list[str]
+        The basename(s) for the parfile(s).
+    nb_runs : int
+        Number of runs for which the parfiles are generated.
 
     Returns
     -------
-    basename : str
+    names : list[str]
+        The basename(s) for the parfile(s).
+
+    """
+    names = transform_to_list(names)
+    if len(names) == 1:
+        names = names * nb_runs
+    elif len(names) != nb_runs:
+        raise ValueError(
+            f"Number of parfile names ({len(names)}) does not match number of runs "
+            f"({nb_runs})."
+        )
+    return names
+
+
+def _validate_basenames(basenames: list[str]) -> list[str]:
+    """
+    Validates the basenames for given parfiles.
+
+    Parameters
+    ----------
+    basename : list[str]
+        The basenames for the parfiles. If not given, defaults to "parfile[i]".
+
+    Returns
+    -------
+    basename : list[str]
         The basename for a parfile.
 
     """
-    if basename is None:
-        basename = "parfile"
-    return basename
+    for i, name in enumerate(basenames):
+        if name is None:
+            basenames[i] = f"parfile{i}" if i > 0 else "parfile"
+    return basenames
 
 
 def _validate_output_dir(output_dir, subdir):
@@ -71,24 +105,41 @@ class ParfileGenerator:
     ----------
     parfile_dict : dict
         Dictionary containing the keys to be placed in the parfile.
-    basename : str
+    basename : str, list[str]
         The basename for the parfile, the `.par` suffix is added automatically and is
-        not needed. If multiple parfiles are generated, these
-        will be prepended by a 4-digit number (e.g. 0003myparfile.par).
-        If not provided, the basename will default to `parfile`.
+        not needed. If not provided, the basename will default to `parfile`.
+        Can be a list of names as well if multiple parfiles are being generated.
     output_dir : str, ~os.PathLike
         Output directory where the parfiles are saved, defaults to the current
         working directory if not specified.
     subdir : boolean
-        If `.true.` (default), creates a subdirectory under `output_dir` called
+        If `True` (default), creates a subdirectory under `output_dir` called
          `parfiles` in which the parfiles will be saved.
+    prefix_numbers : boolean
+        If `True` prepends the `basename` by a n-digit number (e.g. xxxxmyparfile.par).
+        The number of digits is specified by `nb_prefix_digits`.
+    nb_prefix_digits : int
+        Number of digits to prepend to the `basename` if `prefix_numbers` is `True`.
+        Defaults to 4.
     """
 
-    def __init__(self, parfile_dict, basename=None, output_dir=None, subdir=True):
+    def __init__(
+        self,
+        parfile_dict,
+        basename=None,
+        output_dir=None,
+        subdir=True,
+        prefix_numbers=True,
+        nb_prefix_digits=4,
+    ):
         self.parfile_dict = copy.deepcopy(parfile_dict)
-        self.basename = _validate_basename(basename)
-        self.output_dir = _validate_output_dir(output_dir, subdir)
         self.nb_runs = self.parfile_dict.pop("number_of_runs", 1)
+
+        names = _ensure_nb_names_and_nb_runs_matches(basename, self.nb_runs)
+        self.basenames = _validate_basenames(transform_to_list(names))
+        self.output_dir = _validate_output_dir(output_dir, subdir)
+        self._use_prefix = prefix_numbers
+        self._nb_prefix_digits = nb_prefix_digits
         self.parfiles = []
         self.container = {}
 
@@ -198,18 +249,20 @@ class ParfileGenerator:
             run_dict.update({"savelist": {}})
 
         for current_run in range(self.nb_runs):
-            prefix = "{:04d}".format(current_run + 1)
-            if self.nb_runs == 1:
-                prefix = ""
+            prefix = (
+                f"{current_run + 1:0{self._nb_prefix_digits}d}"
+                if self._use_prefix and self.nb_runs > 1
+                else ""
+            )
             # generate dictionary for this specific run
             for namelist, items in self.container.items():
                 for key, values in items.items():
                     run_dict[namelist].update({key: values[current_run]})
-            # parfile name
-            parfile_name = f"{prefix}{self.basename}.par"
+            basename = self.basenames[current_run]
+            parfile_name = f"{prefix}{basename}.par"
             # datfile name (no extension .dat needed)
             datfile_name = (
-                f"{prefix}{run_dict['savelist'].get('basename_datfile', self.basename)}"
+                f"{prefix}{run_dict['savelist'].get('basename_datfile', basename)}"
             )
             run_dict["savelist"].update({"basename_datfile": datfile_name})
             # set paths and write parfile

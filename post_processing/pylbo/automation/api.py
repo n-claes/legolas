@@ -1,8 +1,20 @@
+from __future__ import annotations
+
+import os
+from typing import Union
+
 from pylbo.automation.generator import ParfileGenerator
 from pylbo.automation.runner import LegolasRunner
 
 
-def generate_parfiles(parfile_dict, basename=None, output_dir=None, subdir=True):
+def generate_parfiles(
+    parfile_dict: dict,
+    basename: str = None,
+    output_dir: Union[str, os.PathLike] = None,
+    subdir: bool = True,
+    prefix_numbers: bool = True,
+    nb_prefix_digits: int = 4,
+) -> list[str]:
     """
     Generates parfiles based on a given configuration dictionary.
     The separate namelists do not have to be taken into account, and a normal
@@ -24,7 +36,13 @@ def generate_parfiles(parfile_dict, basename=None, output_dir=None, subdir=True)
         working directory if not specified. A subdirectory called `parfiles` will be
         created in which the parfiles will be saved.
     subdir : boolean
-        If `.true.` (default), creates a subdirectory `parfiles` in the output folder.
+        If `True` (default), creates a subdirectory `parfiles` in the output folder.
+    prefix_numbers : boolean
+        If `True` prepends the `basename` by a n-digit number (e.g. xxxxmyparfile.par).
+        The number of digits is specified by `nb_prefix_digits`.
+    nb_prefix_digits : int
+        Number of digits to prepend to the `basename` if `prefix_numbers` is `True`.
+        Defaults to 4.
 
     Notes
     -----
@@ -76,13 +94,24 @@ def generate_parfiles(parfile_dict, basename=None, output_dir=None, subdir=True)
     >>> }
     >>> parfile_list = pylbo.generate_parfiles(config, output_dir="my_parfiles")
     """
-    pfgen = ParfileGenerator(parfile_dict, basename, output_dir, subdir)
+    pfgen = ParfileGenerator(
+        parfile_dict=parfile_dict,
+        basename=basename,
+        output_dir=output_dir,
+        subdir=subdir,
+        prefix_numbers=prefix_numbers,
+        nb_prefix_digits=nb_prefix_digits,
+    )
     pfgen.create_namelist_from_dict()
-    parfiles = pfgen.generate_parfiles()
-    return parfiles
+    return pfgen.generate_parfiles()
 
 
-def run_legolas(parfiles, remove_parfiles=False, nb_cpus=1, executable=None):
+def run_legolas(
+    parfiles: Union[str, list, os.PathLike],
+    remove_parfiles: bool = False,
+    nb_cpus: int = 1,
+    executable: Union[str, os.PathLike] = None,
+) -> None:
     """
     Runs the legolas executable for a given list of parfiles. If more than one parfile
     is passed, the runs can be performed in parallel using the multiprocessing module.
