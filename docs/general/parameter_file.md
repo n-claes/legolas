@@ -86,7 +86,7 @@ This namelist includes all solver-related variables. For more information, see [
 
 | Parameter     | Type  | Description   | Default value     |
 | :---          | :---: | :----         | :---:             |
-| solver | string | which solver to use, can be `{"none", "arnoldi", "QR-invert", "QR-cholesky", "QZ-direct", "inverse-it"}` | `"QR-invert"` |
+| solver | string | which solver to use, can be `{"none", "arnoldi", "QR-invert", "QR-cholesky", "QZ-direct", "inverse-iteration"}` | `"QR-invert"` |
 | arpack_mode | string | the mode for arpack (Arnoldi) | `"general"` |
 | which_eigenvalues | string | which eigenvalues to calculate (Arnoldi). Can be `{"LM", "SM", "LR", "SR", "LI", "SI"}` | `"LM"` |
 | number_of_eigenvalues | int | number of eigenvalues ($k$) to calculate (Arnoldi) | 10 |
@@ -127,9 +127,9 @@ The level of output is controlled through the integer `logging_level`:
 
 | Parameter    | Type | Description      | Default value     |
 | :---         | :---: |   :----        |          :---:      |
-| write_matrices | logical | whether to write the matrices to the datfile | `.false.` |
+| write_matrices | logical | whether to write the matrices to the datfile | `.false.` |
 | write_eigenvectors | logical | whether to write the eigenvectors to the datfile | `.false.` |
-| write_residuals | logial | whether to write the residuals to the datfile | `.false.` |
+| write_residuals | logical | whether to write the residuals to the datfile | `.false.` |
 | write_background | logical | whether to write the background to the datfile | `.true.` |
 | write_eigenfunctions | logical | whether to write the eigenfunctions to the datfile | `.true.` |
 | write_derived_eigenfunctions | logical | whether to write the derived eigenfunctions to the datfile | `.false.` |
@@ -143,8 +143,7 @@ The level of output is controlled through the integer `logging_level`:
 
 
 ## paramlist
-This namelist handles constant parameters which are used in the equilibrium prescriptions, This is meant to be used in parameter studies, for a comprehensive list of all
-the possible parameters we refer to [this page](../../ford/module/mod_equilibrium_params.html) in the
+This namelist handles constant parameters which are used in the equilibrium prescriptions. This is meant to be used in parameter studies, for a comprehensive list of all the possible parameters we refer to [this page](../../ford/module/mod_equilibrium_params.html) in the
 Legolas source code documentation. To see which parameters are used in which equilibria, take a look
 [here](../equilibria/).
 
