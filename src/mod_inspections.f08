@@ -155,6 +155,7 @@ contains
     type(background_t), intent(in) :: background
 
     if (settings%grid%get_geometry() == "Cartesian") return
+    if (.not. is_zero(settings%grid%get_grid_start())) return
 
     ! LCOV_EXCL_START
     if (.not. is_zero(background%magnetic%B02(0.0_dp))) then
