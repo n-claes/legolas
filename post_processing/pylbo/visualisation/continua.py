@@ -278,7 +278,7 @@ def _extract_solutions_from_roots(
     _log_slow_continuum_zero_warning(roots, i)
     # here we have multiple purely imaginary roots, so it's not clear which one
     # is the thermal continuum. We assume that it is the largest one.
-    mask = np.array(["False"] * 3, dtype=bool)
+    mask = np.array([False] * 3, dtype=bool)
     mask[roots.imag.argmax()] = True
     thermal = roots[mask]
     _log_assumed_thermal_continuum(root=thermal)
