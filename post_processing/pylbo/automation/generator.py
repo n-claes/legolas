@@ -56,9 +56,10 @@ def _validate_basenames(basenames: list[str]) -> list[str]:
         The basename for a parfile.
 
     """
+    if len(basenames) == 1:
+        return ["parfile"] if basenames[0] is None else basenames
     for i, name in enumerate(basenames):
-        if name is None:
-            basenames[i] = f"parfile{i}" if i > 0 else "parfile"
+        basenames[i] = f"parfile{i + 1:04d}" if name is None else name
     return basenames
 
 
