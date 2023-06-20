@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -16,6 +17,7 @@ only_for_baseline_generation = pytest.mark.skipif(
 )
 
 SOLVERS_WITHOUT_BASELINE_GENERATION = ["QZ-direct", "QR-cholesky"]
+DEFAULT_LEGOLAS_EXEC = Path(os.environ["LEGOLASDIR"]) / "legolas"
 
 
 def use_existing_baseline(capturemanager, baseline):
@@ -46,6 +48,7 @@ def validate_subplot_sizes(ef_names, axes):
 class TestCase:
     SAVEFIG_KWARGS = {"dpi": 200, "transparent": True}
     RMS_TOLERANCE = 2
+    executable = DEFAULT_LEGOLAS_EXEC
 
     gridpoints = 51
     logging_level = 1
@@ -184,7 +187,7 @@ class RegressionTest(TestCase):
             output_dir=self._datfiledir,
             subdir=False,
         )
-        pylbo.run_legolas(parfile)
+        pylbo.run_legolas(parfile, executable=self.executable)
 
     def generate_spectrum_images(self, limits, ds_test, ds_base):
         p_test = pylbo.plot_spectrum(ds_test)
@@ -362,7 +365,7 @@ class MultiRegressionTest(TestCase):
             subdir=False,
         )
         capturemanager.suspend_global_capture()
-        pylbo.run_legolas(parfiles, nb_cpus=2)
+        pylbo.run_legolas(parfiles, nb_cpus=2, executable=self.executable)
         capturemanager.resume_global_capture()
 
     def generate_multispectrum_images(self, series_test, series_base):
