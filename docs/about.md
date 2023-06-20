@@ -37,7 +37,7 @@ and parametric studies, including a myriad of physical effects.
 
   Involved with everything & provides overall guidance. Responsible for maintenance and general development of both Legolas and Pylbo.
 
-- **Drs. Jordi De Jonghe** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:jordi.dejonghe@kuleuven.be)): development team.
+- **Dr. Jordi De Jonghe** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:jordi.dejonghe@kuleuven.be)): development team.
 
   Mainly involved with resistive/viscous/Hall MHD, along with source code contributions to both Legolas and Pylbo.
 
