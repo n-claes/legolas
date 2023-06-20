@@ -13,7 +13,9 @@ class EigenfunctionHandler(EigenfunctionInterface):
 
     def __init__(self, data, ef_ax, spec_ax):
         super().__init__(data, ef_ax, spec_ax)
-        self._function_names = self.data.ef_names
+        # extract unique names and preserve order
+        fnames, idxs = np.unique(self.data.ef_names, return_index=True)
+        self._function_names = fnames[np.argsort(idxs)]
         self.spec_axis.set_title(f"{self.spec_axis.get_title()} -- eigenfunctions")
 
     def _check_data_is_present(self):

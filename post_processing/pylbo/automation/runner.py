@@ -1,11 +1,11 @@
-import os
-import subprocess
-import signal
 import multiprocessing
-import psutil
-import tqdm
+import os
+import signal
+import subprocess
 from pathlib import Path
 
+import psutil
+import tqdm
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import transform_to_list
 
@@ -32,8 +32,7 @@ def _validate_executable(executable):
 
     """
     if executable is None:
-        exec_dir = Path(__file__).parents[3]
-        executable = (exec_dir / "legolas").resolve()
+        raise TypeError("No executable was specified.")
     executable = Path(executable).resolve()
     if not executable.is_file():
         raise FileNotFoundError(f"Executable was not found: {executable}")
@@ -111,11 +110,10 @@ class LegolasRunner:
         parallelisation is disabled. Defaults to the maximum number of CPUs available
         if a number larger than the available number is specified.
     executable : str, ~os.PathLike
-        The path to the legolas executable. If not specified, defaults to the
-        standard one in the legolas home directory.
+        The path to the legolas executable.
     """
 
-    def __init__(self, parfiles, remove_parfiles, nb_cpus, executable):
+    def __init__(self, parfiles, remove_parfiles, nb_cpus, executable=None):
         self.parfiles = _validate_parfiles(parfiles)
         self.parfile_dir = self.parfiles[0].parent
         self.executable = _validate_executable(executable)
