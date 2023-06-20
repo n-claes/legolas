@@ -24,10 +24,11 @@ module mod_cooling_settings
 contains
 
   pure function new_cooling_settings() result(cooling)
+    use mod_cooling_curve_names, only: NOTHING
     type(cooling_settings_t) :: cooling
 
     cooling%has_cooling = .false.
-    call cooling%set_cooling_curve("jc_corona")
+    call cooling%set_cooling_curve(NOTHING)
     call cooling%set_interpolation_points(4000)
   end function new_cooling_settings
 

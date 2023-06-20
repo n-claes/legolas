@@ -346,6 +346,7 @@ class EigenfunctionInterface:
         items = self._selected_idxs.get(associated_ds, {})
         items.update({f"{idx}": marked_point})
         self._selected_idxs.update({associated_ds: items})
+        self.update_plot()
 
     def on_right_click(self, event):
         """
@@ -365,6 +366,7 @@ class EigenfunctionInterface:
             # if no items remaining for this ds, remove key
             if len(self._selected_idxs[associated_ds]) == 0:
                 self._selected_idxs.pop(associated_ds)
+            self.update_plot()
 
     def _get_clicked_point_data(self, event):
         """

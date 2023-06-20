@@ -190,6 +190,7 @@ class LegolasDataSet(LegolasDataContainer):
         self.cgs = self.units["cgs"]
         self.eq_names = self.header["equilibrium_names"]
 
+        self._ensure_compatibility()
         self._continua = calculate_continua(self)
 
     def __iter__(self):
@@ -287,6 +288,26 @@ class LegolasDataSet(LegolasDataContainer):
     def has_residuals(self) -> bool:
         """Checks if residuals are present."""
         return self.header["has_residuals"]
+
+    @property
+    def is_mhd(self) -> bool:
+        """Checks if the dataset is MHD."""
+        return "mhd" in self.header.get("physics_type", None) and any(
+            self.equilibria["B0"] != 0
+        )
+
+    def _ensure_compatibility(self) -> None:
+        """
+        Makes sure that the dataset is backwards compatible with new changes.
+        Mainly used for older (<2.0.0) datasets.
+        """
+        if not self.has_background:
+            return
+        bg_keys_added_in_v200 = ["L0"]
+        for key in bg_keys_added_in_v200:
+            if self.equilibria.get(key, None) is None:
+                pylboLogger.debug(f"added '{key}' to equilibrium of '{self.datfile}'")
+                self.equilibria[key] = np.zeros_like(self.grid_gauss)
 
     def get_sound_speed(self, which_values=None) -> Union[float, np.ndarray]:
         """

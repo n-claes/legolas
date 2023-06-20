@@ -315,19 +315,21 @@ contains
 
   subroutine write_background_names(settings)
     type(settings_t), intent(in) :: settings
-    integer, parameter :: nb_names = 38
+    integer, parameter :: nb_names = 44
     character(len=str_len_arr) :: equilibrium_names(nb_names)
 
     equilibrium_names = [ &
       character(len=str_len_arr) :: &
       "rho0", "drho0", &
       "T0", "dT0", "ddT0", &
-      "B01", "B02", "B03", "dB02", "db03", "ddB02", "ddb03", "B0", &
+      "B01", "B02", "B03", "dB02", "dB03", "ddB02", "ddB03", "B0", &
       "v01", "v02", "v03", "dv01", "dv02", "dv03", "ddv01", "ddv02", "ddv03", &
       "L0", "dLdT", "dLdrho", &
       "lambdaT", "dlambdadT", &
       "H0", "dHdT", "dHdrho", &
       "kappa_para", "kappa_perp", &
+      "dkappa_para_dT", "dkappa_para_dr", &
+      "dkappa_perp_drho", "dkappa_perp_dT", "dkappa_perp_dB2", "dkappa_perp_dr", &
       "eta", "detadT", "detadr", &
       "gravity", &
       "Hall", "inertia" &
@@ -383,6 +385,13 @@ contains
 
     write(dat_fh) from_function(physics%conduction%tcpara, grid%gaussian_grid)
     write(dat_fh) from_function(physics%conduction%tcperp, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%conduction%dtcparadT, grid%gaussian_grid)
+    write(dat_fh) physics%conduction%get_dtcparadr(grid%gaussian_grid)
+    write(dat_fh) from_function(physics%conduction%dtcperpdrho, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%conduction%dtcperpdT, grid%gaussian_grid)
+    write(dat_fh) from_function(physics%conduction%dtcperpdB2, grid%gaussian_grid)
+    write(dat_fh) physics%conduction%get_dtcperpdr(grid%gaussian_grid)
+
     write(dat_fh) from_function(physics%resistivity%eta, grid%gaussian_grid)
     write(dat_fh) from_function(physics%resistivity%detadT, grid%gaussian_grid)
     write(dat_fh) from_function(physics%resistivity%detadr, grid%gaussian_grid)

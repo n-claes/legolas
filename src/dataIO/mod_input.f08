@@ -259,7 +259,8 @@ contains
     if (incompressible) call settings%physics%set_incompressible()
     if (flow) call settings%physics%flow%enable()
     if (radiative_cooling) call settings%physics%enable_cooling(cooling_curve, ncool)
-    if (heating) call settings%physics%enable_heating(force_thermal_balance)
+    settings%physics%heating%force_thermal_balance = force_thermal_balance
+    if (heating) call settings%physics%enable_heating()
     if (external_gravity) call settings%physics%enable_gravity()
     if (parallel_conduction) then
       call settings%physics%enable_parallel_conduction(fixed_tc_para_value)
@@ -267,13 +268,14 @@ contains
     if (perpendicular_conduction) then
       call settings%physics%enable_perpendicular_conduction(fixed_tc_perp_value)
     end if
-    if (resistivity) call settings%physics%enable_resistivity( &
-      fixed_resistivity_value &
-    )
+    if (resistivity) call settings%physics%enable_resistivity(fixed_resistivity_value)
+    settings%physics%resistivity%use_dropoff = use_eta_dropoff
     if (viscosity) call settings%physics%enable_viscosity( &
       viscosity_value, viscous_heating &
     )
     if (hall_mhd) call settings%physics%enable_hall(elec_inertia, electron_fraction)
+    settings%physics%hall%use_dropoff = hall_dropoff
+    settings%physics%hall%use_inertia_dropoff = inertia_dropoff
     settings%physics%dropoff_edge_dist = dropoff_edge_dist
     settings%physics%dropoff_width = dropoff_width
   end subroutine read_physicslist

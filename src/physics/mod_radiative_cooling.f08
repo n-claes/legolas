@@ -9,7 +9,7 @@ module mod_radiative_cooling
   use mod_logging, only: logger
   use mod_settings, only: settings_t
   use mod_background, only: background_t
-  use mod_cooling_curve_names, only: ROSNER
+  use mod_cooling_curve_names, only: ROSNER, NOTHING
   implicit none
 
   private
@@ -54,6 +54,8 @@ contains
 
     curve = settings%physics%cooling%get_cooling_curve()
     if (.not. is_valid_cooling_curve(curve)) return
+    if (curve == NOTHING) return
+
     use_interpolated_curve = (curve /= ROSNER)
     deallocate(curve)
 
@@ -71,11 +73,14 @@ contains
     get_lambdaT = 0.0_dp
     if (.not. settings%physics%cooling%is_enabled()) return
 
-    if (settings%physics%cooling%get_cooling_curve() == ROSNER) then
+    select case(settings%physics%cooling%get_cooling_curve())
+    case(NOTHING)
+      return
+    case(ROSNER)
       get_lambdaT = get_rosner_lambdaT(x, settings, background)
-    else
+    case default
       get_lambdaT = get_interpolated_lambdaT(x, settings, background)
-    end if
+    end select
   end function get_lambdaT
 
 
@@ -86,11 +91,14 @@ contains
     get_dlambdadT = 0.0_dp
     if (.not. settings%physics%cooling%is_enabled()) return
 
-    if (settings%physics%cooling%get_cooling_curve() == ROSNER) then
+    select case(settings%physics%cooling%get_cooling_curve())
+    case(NOTHING)
+      return
+    case(ROSNER)
       get_dlambdadT = get_rosner_dlambdadT(x, settings, background)
-    else
+    case default
       get_dlambdadT = get_interpolated_dlambdadT(x, settings, background)
-    end if
+    end select
   end function get_dlambdadT
 
 

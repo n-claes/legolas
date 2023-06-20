@@ -58,7 +58,7 @@ This namelist includes all physics-related variables.
 | flow  | logical | inclusion of background flow effects | `.false.` |
 | radiative_cooling | logical | whether to include optically thin radiative losses | `.false.` |
 | ncool | int | number of points used when interpolating cooling curves | 4000 |
-| cooling_curve | string | which cooling curve to use, can be `{"jc_corona", "dalgarno", "dalgarno2", "ml_solar", "spex", "spex_dalgarno", "rosner", "colgan", "colgan_dm"}` | `"jc_corona"` |
+| cooling_curve | string | which cooling curve to use, can be `{"nothing", "jc_corona", "dalgarno", "dalgarno2", "ml_solar", "spex", "spex_dalgarno", "rosner", "colgan", "colgan_dm"}`. In the case of `"nothing"` you should define your own $\Lambda(T)$ cooling function and its temperature derivative. | `"nothing"` |
 | heating | logical | whether to include background heating | `.false.` |
 | force_thermal_balance | logical | whether to set the heating in such a way to enforce thermal equilibrium | `.true.` |
 | external_gravity | logical | whether to include external gravity | `.false.` |
@@ -86,7 +86,7 @@ This namelist includes all solver-related variables. For more information, see [
 
 | Parameter     | Type  | Description   | Default value     |
 | :---          | :---: | :----         | :---:             |
-| solver | string | which solver to use, can be `{"none", "arnoldi", "QR-invert", "QR-cholesky", "QZ-direct", "inverse-it"}` | `"QR-invert"` |
+| solver | string | which solver to use, can be `{"none", "arnoldi", "QR-invert", "QR-cholesky", "QZ-direct", "inverse-iteration"}` | `"QR-invert"` |
 | arpack_mode | string | the mode for arpack (Arnoldi) | `"general"` |
 | which_eigenvalues | string | which eigenvalues to calculate (Arnoldi). Can be `{"LM", "SM", "LR", "SR", "LI", "SI"}` | `"LM"` |
 | number_of_eigenvalues | int | number of eigenvalues ($k$) to calculate (Arnoldi) | 10 |
@@ -127,9 +127,9 @@ The level of output is controlled through the integer `logging_level`:
 
 | Parameter    | Type | Description      | Default value     |
 | :---         | :---: |   :----        |          :---:      |
-| write_matrices | logical | whether to write the matrices to the datfile | `.false.` |
+| write_matrices | logical | whether to write the matrices to the datfile | `.false.` |
 | write_eigenvectors | logical | whether to write the eigenvectors to the datfile | `.false.` |
-| write_residuals | logial | whether to write the residuals to the datfile | `.false.` |
+| write_residuals | logical | whether to write the residuals to the datfile | `.false.` |
 | write_background | logical | whether to write the background to the datfile | `.true.` |
 | write_eigenfunctions | logical | whether to write the eigenfunctions to the datfile | `.true.` |
 | write_derived_eigenfunctions | logical | whether to write the derived eigenfunctions to the datfile | `.false.` |
@@ -143,8 +143,7 @@ The level of output is controlled through the integer `logging_level`:
 
 
 ## paramlist
-This namelist handles constant parameters which are used in the equilibrium prescriptions, This is meant to be used in parameter studies, for a comprehensive list of all
-the possible parameters we refer to [this page](../../ford/module/mod_equilibrium_params.html) in the
+This namelist handles constant parameters which are used in the equilibrium prescriptions. This is meant to be used in parameter studies, for a comprehensive list of all the possible parameters we refer to [this page](../../ford/module/mod_equilibrium_params.html) in the
 Legolas source code documentation. To see which parameters are used in which equilibria, take a look
 [here](../equilibria/).
 

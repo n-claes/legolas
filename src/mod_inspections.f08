@@ -33,8 +33,11 @@ contains
     type(settings_t), intent(in) :: settings
     type(grid_t), intent(in) :: grid
     type(background_t), intent(in) :: background
-    type(physics_t), intent(in) :: physics
+    type(physics_t), intent(inout) :: physics
 
+    call physics%heatloss%check_if_thermal_balance_needs_enforcing( &
+      physics%conduction, grid &
+    )
     if (nan_values_present(background, physics, grid)) return
     if (negative_values_present(background, grid)) return
     if (.not. wave_numbers_are_valid(geometry=settings%grid%get_geometry())) return
@@ -152,6 +155,7 @@ contains
     type(background_t), intent(in) :: background
 
     if (settings%grid%get_geometry() == "Cartesian") return
+    if (.not. is_zero(settings%grid%get_grid_start())) return
 
     ! LCOV_EXCL_START
     if (.not. is_zero(background%magnetic%B02(0.0_dp))) then

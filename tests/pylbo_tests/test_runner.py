@@ -1,11 +1,15 @@
 import copy
 import multiprocessing
+import os
 from pathlib import Path
 
 import pylbo
 import pytest
 from pylbo.automation.api import run_legolas
 from pylbo.automation.runner import LegolasRunner
+
+# get executable from LEGOLASDIR environment variable
+DEFAULT_EXEC = Path(os.environ["LEGOLASDIR"]) / "legolas"
 
 
 def test_invalid_parfiles():
@@ -27,7 +31,7 @@ def test_cpu_count(default_parfile):
         parfiles=default_parfile,
         remove_parfiles=True,
         nb_cpus=cpus_available + 1,
-        executable=None,
+        executable=DEFAULT_EXEC,
     )
     assert run.nb_cpus == cpus_available
 
@@ -37,7 +41,9 @@ def test_multirun(default_pf_dict):
     pf_dict["number_of_runs"] = 4
     pf_dict["gridpoints"] = [10] * 4
     parfiles = pylbo.generate_parfiles(pf_dict)
-    pylbo.run_legolas(parfiles, nb_cpus=2, remove_parfiles=True)
+    pylbo.run_legolas(
+        parfiles, nb_cpus=2, remove_parfiles=True, executable=DEFAULT_EXEC
+    )
     for i in range(1, 5):
         filepath = (
             Path(pf_dict["output_folder"]) / f"{i:04d}{pf_dict['basename_datfile']}.dat"

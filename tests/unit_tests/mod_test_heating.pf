@@ -16,6 +16,7 @@ contains
     background = get_background()
     physics = get_physics(settings, background)
     call set_default_units(settings)
+    call settings%physics%enable_heating()
 
     call background%set_density_funcs(rho0_func=rho0_func)
     call background%set_temperature_funcs(T0_func=T0_func, dT0_func=dT0_func)

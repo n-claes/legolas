@@ -9,7 +9,12 @@ from pylbo.automation.generator import ParfileGenerator
 
 def test_basename_none(tmpdir):
     gen = ParfileGenerator({}, output_dir=tmpdir)
-    assert gen.basename == "parfile"
+    assert gen.basenames == ["parfile"]
+
+
+def test_basename_none_multiple(tmpdir):
+    gen = ParfileGenerator({"number_of_runs": 5}, output_dir=tmpdir)
+    assert gen.basenames == [f"parfile{i:04d}" for i in range(1, 6)]
 
 
 def test_outputdir_none():

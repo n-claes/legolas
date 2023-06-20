@@ -17,6 +17,11 @@ module mod_heatloss
   type(conduction_t), pointer :: conduction => null()
   type(grid_t), pointer :: grid => null()
 
+  character(len=*), parameter :: msg_heatloss_balance = ( &
+    "unable to enforce thermal balance when heating is disabled. " // &
+    "Set 'force_thermal_balance = .false.' in the parfile or enable heating." &
+  )
+
   type, public :: heatloss_t
     type(cooling_t) :: cooling
     type(heating_t) :: heating
@@ -30,6 +35,7 @@ module mod_heatloss
   end type heatloss_t
 
   public :: new_heatloss
+  public :: msg_heatloss_balance
 
 contains
 
@@ -80,12 +86,19 @@ contains
 
 
   subroutine check_if_thermal_balance_needs_enforcing(this, conduction_tgt, grid_tgt)
+    use mod_function_utils, only: zero_func
+
     class(heatloss_t), intent(inout) :: this
     type(conduction_t), intent(in) :: conduction_tgt
     type(grid_t), intent(in) :: grid_tgt
 
-    if (.not. settings%physics%heating%is_enabled()) return
+    if (is_adiabatic()) return
     if (.not. settings%physics%heating%force_thermal_balance) return
+    if (.not. settings%physics%heating%is_enabled()) then
+      call logger%error(msg_heatloss_balance)
+      return
+    end if
+    if (.not. associated(this%heating%H, zero_func)) call log_usr_H_func_warning()
 
     call set_module_pointers(conduction_tgt, grid_tgt, this%cooling)
     call logger%info("enforcing thermal balance by setting a constant heating term")
@@ -124,6 +137,30 @@ contains
       + (1.0_dp / settings%physics%get_gamma_1()) * dT0 * rho0 * v01 &
     )
   end function H_for_thermal_balance
+
+
+  subroutine log_usr_H_func_warning() ! LCOV_EXCL_START
+    call logger%warning( &
+      "found user-defined heating function but forced thermal balance enabled!" &
+    )
+    call logger%disable_prefix()
+    call logger%warning( &
+      "The provided function will be ignored and thermal balance will be enforced." &
+    )
+    call logger%warning( &
+      "To disable this behaviour, set force_thermal_balance = .false. in the parfile" &
+    )
+    call logger%enable_prefix()
+  end subroutine log_usr_H_func_warning ! LCOV_EXCL_STOP
+
+
+  logical function is_adiabatic()
+    logical :: no_cooling, no_heating, no_conduction
+    no_cooling = .not. settings%physics%cooling%is_enabled()
+    no_heating = .not. settings%physics%heating%is_enabled()
+    no_conduction = .not. settings%physics%conduction%is_enabled()
+    is_adiabatic = no_cooling .and. no_heating .and. no_conduction
+  end function is_adiabatic
 
 
   subroutine delete(this)
