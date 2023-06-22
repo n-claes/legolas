@@ -39,14 +39,15 @@ installed if you choose the Pylbo package install (see [below](/getting-started/
 - [f90nml](https://f90nml.readthedocs.io/en/latest/), to handle reading and writing of Fortran namelists.
 - [tqdm](https://tqdm.github.io), used for progress bars.
 - [psutil](https://psutil.readthedocs.io/en/latest/), for management of multiprocessing resources during parallel runs.
+- [packaging](https://packaging.pypa.io/en/stable/), for handling datfile version control.
 
 You can alternatively install these manually using
 ```bash
-pip install numpy matplotlib f90nml tqdm psutils
+pip install numpy matplotlib f90nml tqdm psutil packaging
 ```
 or
 ```bash
-conda install numpy matplotlib f90nml tqdm psutils
+conda install numpy matplotlib f90nml tqdm psutil packaging
 ```
 depending on your preference. On Linux it's usually best to use the versions available in your package repository.
 
