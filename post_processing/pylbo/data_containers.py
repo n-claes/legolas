@@ -587,42 +587,19 @@ class LegolasDataSet(LegolasDataContainer):
         """
         if not self.has_efs:
             raise EigenfunctionsNotPresent("eigenfunctions not written to datfile")
-        return self._get_eigenfunction_like(
+        efs = self._get_eigenfunction_like(
             ev_guesses, ev_idxs, getter_func=self.filereader.read_eigenfunction
         )
-
-    def get_derived_eigenfunctions(self, ev_guesses=None, ev_idxs=None) -> np.ndarray:
-        """
-        Returns the derived eigenfunctions based on given eigenvalue guesses or their
-        indices. An array will be returned where every item is a dictionary, containing
-        both the eigenvalue and its quantities. Either eigenvalue guesses or
-        indices can be supplied, but not both.
-
-        Parameters
-        ----------
-        ev_guesses : complex, numpy.ndarray
-            Eigenvalue guesses.
-        ev_idxs : int, numpy.ndarray
-            Indices corresponding to the eigenvalues that need to be retrieved.
-
-        Returns
-        -------
-        numpy.ndarray
-            Array containing the derived eigenfunctions and eigenvalues
-            corresponding to the supplied indices. Every index in this array
-            contains a dictionary with the derived eigenfunctions and
-            corresponding eigenvalue. The keys of each dictionary are the
-            corresponding eigenfunction names.
-        """
-        if not self.has_derived_efs:
-            raise EigenfunctionsNotPresent(
-                "derived eigenfunctions not written to datfile"
+        if self.has_derived_efs:
+            # merge derived eigenfunctions with eigenfunctions
+            derived_efs = self._get_eigenfunction_like(
+                ev_guesses,
+                ev_idxs,
+                getter_func=self.filereader.read_derived_eigenfunction,
             )
-        return self._get_eigenfunction_like(
-            ev_guesses,
-            ev_idxs,
-            getter_func=self.filereader.read_derived_eigenfunction,
-        )
+            for i, ef in enumerate(efs):
+                ef.update(derived_efs[i])
+        return efs
 
     def get_nearest_eigenvalues(self, ev_guesses) -> tuple(np.ndarray, np.ndarray):
         """

@@ -174,6 +174,24 @@ def transform_to_numpy(obj: any) -> np.ndarray:
     return np.asarray([obj])
 
 
+def reduce_to_unique_array(array: np.ndarray) -> np.ndarray:
+    """
+    Reduces a given array to its unique values, preserving the order.
+
+    Parameters
+    ----------
+    array : numpy.ndarray
+        The array to reduce.
+
+    Returns
+    -------
+    numpy.ndarray
+        The array with unique values.
+    """
+    objs, idxs = np.unique(array, return_index=True)
+    return objs[np.argsort(idxs)]
+
+
 def solve_cubic_exact(a, b, c, d):
     """
     Solves a given cubic polynomial of the form
