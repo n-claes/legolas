@@ -591,15 +591,17 @@ class LegolasDataSet(LegolasDataContainer):
         efs = self._get_eigenfunction_like(
             ev_guesses, ev_idxs, getter_func=self.filereader.read_eigenfunction
         )
-        if self.has_derived_efs:
-            # merge derived eigenfunctions with eigenfunctions
-            derived_efs = self._get_eigenfunction_like(
-                ev_guesses,
-                ev_idxs,
-                getter_func=self.filereader.read_derived_eigenfunction,
-            )
-            for i, ef in enumerate(efs):
-                ef.update(derived_efs[i])
+        if not self.has_derived_efs:
+            return efs
+
+        # merge derived eigenfunctions with eigenfunctions
+        derived_efs = self._get_eigenfunction_like(
+            ev_guesses,
+            ev_idxs,
+            getter_func=self.filereader.read_derived_eigenfunction,
+        )
+        for i, ef in enumerate(efs):
+            ef.update(derived_efs[i])
         return efs
 
     def get_derived_eigenfunctions(self, ev_guesses=None, ev_idxs=None) -> np.ndarray:
