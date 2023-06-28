@@ -23,3 +23,5 @@ exclude_lines =
     def show
     log_deprecation_warning
     raise NotImplementedError
+    class LegolasException
+    if TYPE_CHECKING:
