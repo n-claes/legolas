@@ -46,9 +46,8 @@ class LegolasFileReader:
             istream.seek(self._offset)
             if self.legolas_version < "2.0":
                 return LegolasLegacyHeader(istream, self.legolas_version)
-            elif self.legolas_version >= "2.0":
+            else:
                 return LegolasHeader(istream, self.legolas_version)
-        return None
 
     def read_grid(self, header: LegolasHeader) -> np.ndarray:
         with open(self.datfile, "rb") as istream:

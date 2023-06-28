@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from pylbo.exceptions import BackgroundNotPresent, MatricesNotPresent
+from pylbo.exceptions import BackgroundNotPresent
 
 ds_v112_ev_guess = -0.14360602 + 0.00688731j
 ds_v112_ev_idx = 158
@@ -109,10 +109,38 @@ def test_ds_k0_squared(ds_v112):
 
 
 def test_ds_no_matrices(ds_v112):
+    from pylbo.exceptions import MatricesNotPresent
+
     with pytest.raises(MatricesNotPresent):
         ds_v112.get_matrix_B()
     with pytest.raises(MatricesNotPresent):
         ds_v112.get_matrix_A()
+
+
+def test_ds_no_eigvecs(ds_v200_hd_khi):
+    from pylbo.exceptions import EigenvectorsNotPresent
+
+    with pytest.raises(EigenvectorsNotPresent):
+        ds_v200_hd_khi.get_eigenvectors()
+
+
+def test_ds_no_residuals(ds_v200_hd_khi):
+    from pylbo.exceptions import ResidualsNotPresent
+
+    with pytest.raises(ResidualsNotPresent):
+        ds_v200_hd_khi.get_residuals()
+
+
+def test_ds_get_residuals(ds_v200_mri_efs):
+    residuals = ds_v200_mri_efs.get_residuals()
+    assert isinstance(residuals, np.ndarray)
+
+
+def test_ds_no_eigenfunctions(ds_v200_hd_khi):
+    from pylbo.exceptions import EigenfunctionsNotPresent
+
+    with pytest.raises(EigenfunctionsNotPresent):
+        ds_v200_hd_khi.get_eigenfunctions()
 
 
 def test_ds_matrix_B(ds_v100):

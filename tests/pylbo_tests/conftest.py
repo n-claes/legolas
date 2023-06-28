@@ -234,3 +234,19 @@ def series_v112_eta():
 @pytest.fixture
 def series_v200_nobg():
     return pylbo.load_series([utils / "v2.0.0_tear_nobg.dat"] * 7)
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture
+def series_v200_mri_efs():
+    return pylbo.load_series([utils / "v2.0.0_mri_subset_efs.dat"] * 6)
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture
+def series_v200_mixed_efs():
+    files_with_efs = [utils / "v2.0.0_mri_subset_efs.dat"] * 3
+    files_without_efs = [utils / "v2.0.0_mri_matrix.dat"] * 3
+    # alternate between files with and without efs
+    files = [file for pair in zip(files_with_efs, files_without_efs) for file in pair]
+    return pylbo.load_series(files)
