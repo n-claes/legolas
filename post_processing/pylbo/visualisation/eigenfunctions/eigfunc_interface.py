@@ -49,7 +49,7 @@ def get_artist_data(artist: plt.Artist) -> tuple[np.ndarray, np.ndarray]:
 
 def _get_function_names(data: LegolasDataContainer) -> np.ndarray:
     names = reduce_to_unique_array(data.ef_names)
-    if data.has_derived_efs:
+    if any(transform_to_numpy(data.has_derived_efs)):
         names = np.concatenate((names, reduce_to_unique_array(data.derived_ef_names)))
     return names
 

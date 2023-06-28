@@ -601,7 +601,7 @@ class LegolasDataSet(LegolasDataContainer):
             getter_func=self.filereader.read_derived_eigenfunction,
         )
         for i, ef in enumerate(efs):
-            ef.update(derived_efs[i])
+            ef.update(derived_efs[i]) if ef is not None else None
         return efs
 
     def get_derived_eigenfunctions(self, ev_guesses=None, ev_idxs=None) -> np.ndarray:
