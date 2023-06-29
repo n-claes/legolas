@@ -186,8 +186,6 @@ class LegolasFileReader:
         state_vector: np.ndarray,
     ) -> dict:
         state_vector = transform_to_numpy(state_vector)
-        if state_vector.shape == ():
-            state_vector = np.array([state_vector])
         eigenfunctions = {}
         with open(self.datfile, "rb") as istream:
             for name_idx, name in enumerate(state_vector):

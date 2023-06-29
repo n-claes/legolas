@@ -176,7 +176,7 @@ def transform_to_numpy(obj: any) -> np.ndarray:
     elif isinstance(obj, (tuple, list)):
         return np.asarray(obj)
     elif isinstance(obj, np.ndarray):
-        return obj
+        return np.atleast_1d(obj) if obj.shape == () else obj
     return np.asarray([obj])
 
 
