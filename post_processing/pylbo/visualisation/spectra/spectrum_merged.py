@@ -92,8 +92,5 @@ class MergedSpectrumPlot(SpectrumFigure):
             self._ef_handler = EigenfunctionHandler(self.data, self._ef_ax, self.ax)
         super().add_eigenfunction_interface(efhandler=self._ef_handler)
 
-    def add_derived_eigenfunctions(self):
-        super().add_derived_eigenfunctions()
-
     def add_continua(self, interactive=True):
         raise NotImplementedError("Continua are not supported for this type of figure.")

@@ -1,9 +1,8 @@
-from copy import copy
 from functools import wraps
 from typing import Any
 
 import matplotlib.axes
-import numpy as np
+from pylbo.utilities.toolbox import get_all_eigenfunction_names
 
 _BACKGROUND_NAME_MAPPING = {
     "rho0": r"$\rho_0$",
@@ -169,10 +168,7 @@ def validate_ef_name(ds, ef_name: str) -> str:
         The validated eigenfunction name.
     """
     # copy this or we're editing the property itself
-    names = copy(ds.ef_names)
-    if ds.has_derived_efs:
-        derived_names = np.atleast_1d(copy(ds.derived_ef_names))
-        names = np.concatenate((names, derived_names))
+    names = get_all_eigenfunction_names(ds)
     if ef_name not in names:
         raise ValueError(
             f"The eigenfunction '{ef_name}' is not part of the "

@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import functools
 import time
+from typing import TYPE_CHECKING
 
 import matplotlib.lines as mpl_lines
 import numpy as np
 from pylbo._version import _mpl_version
 from pylbo.utilities.logger import pylboLogger
+
+if TYPE_CHECKING:
+    from pylbo.data_containers import LegolasDataContainer
 
 
 def timethis(func):
@@ -190,6 +196,27 @@ def reduce_to_unique_array(array: np.ndarray) -> np.ndarray:
     """
     objs, idxs = np.unique(array, return_index=True)
     return objs[np.argsort(idxs)]
+
+
+def get_all_eigenfunction_names(data: LegolasDataContainer) -> np.ndarray[str]:
+    """
+    Merges the regular and derived eigenfunction names into a unique array,
+    preserving order.
+
+    Parameters
+    ----------
+    data : LegolasDataContainer
+        The data container containing the eigenfunction names.
+
+    Returns
+    -------
+    numpy.ndarray
+        The array with unique eigenfunction names.
+    """
+    names = reduce_to_unique_array(data.ef_names)
+    if any(transform_to_numpy(data.has_derived_efs)):
+        names = np.concatenate((names, reduce_to_unique_array(data.derived_ef_names)))
+    return names
 
 
 def solve_cubic_exact(a, b, c, d):

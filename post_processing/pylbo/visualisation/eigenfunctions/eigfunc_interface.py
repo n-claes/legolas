@@ -6,18 +6,14 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import PathCollection
-from pylbo.data_containers import (
-    LegolasDataContainer,
-    LegolasDataSeries,
-    LegolasDataSet,
-)
+from pylbo.data_containers import LegolasDataSeries, LegolasDataSet
 from pylbo.exceptions import EigenfunctionsNotPresent
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import (
     add_pickradius_to_item,
     count_zeroes,
+    get_all_eigenfunction_names,
     invert_continuum_array,
-    reduce_to_unique_array,
     transform_to_numpy,
 )
 
@@ -47,13 +43,6 @@ def get_artist_data(artist: plt.Artist) -> tuple[np.ndarray, np.ndarray]:
     return xdata, ydata
 
 
-def _get_function_names(data: LegolasDataContainer) -> np.ndarray:
-    names = reduce_to_unique_array(data.ef_names)
-    if any(transform_to_numpy(data.has_derived_efs)):
-        names = np.concatenate((names, reduce_to_unique_array(data.derived_ef_names)))
-    return names
-
-
 class EigenfunctionInterface:
     __metaclass__ = abc.ABCMeta
 
@@ -67,7 +56,7 @@ class EigenfunctionInterface:
         self._selected_idxs = {}
         self._use_real_part = True
         self._selected_name_idx = 0
-        self._function_names = _get_function_names(self.data)
+        self._function_names = get_all_eigenfunction_names(self.data)
         self._retransform = False
 
         self._condition_to_make_transparent = None

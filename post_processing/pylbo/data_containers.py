@@ -6,7 +6,6 @@ from typing import Callable, Union
 
 import numpy as np
 from pylbo._version import VersionHandler
-from pylbo.deprecations import log_deprecation_warning
 from pylbo.exceptions import (
     BackgroundNotPresent,
     EigenfunctionsNotPresent,
@@ -603,14 +602,6 @@ class LegolasDataSet(LegolasDataContainer):
         for i, ef in enumerate(efs):
             ef.update(derived_efs[i]) if ef is not None else None
         return efs
-
-    def get_derived_eigenfunctions(self, ev_guesses=None, ev_idxs=None) -> np.ndarray:
-        log_deprecation_warning(
-            msg="get_derived_eigenfunctions is deprecated, "
-            "use get_eigenfunctions instead.",
-            since_version="2.1",
-        )
-        return self.get_eigenfunctions(ev_guesses, ev_idxs)
 
     def get_nearest_eigenvalues(self, ev_guesses) -> tuple(np.ndarray, np.ndarray):
         """

@@ -225,6 +225,3 @@ class MultiSpectrumPlot(SpectrumFigure):
                 self.dataseries, self._ef_ax, self.ax
             )
         super().add_eigenfunction_interface(efhandler=self._ef_handler)
-
-    def add_derived_eigenfunctions(self):
-        super().add_derived_eigenfunctions()

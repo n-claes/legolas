@@ -121,9 +121,6 @@ class SingleSpectrumPlot(SpectrumFigure):
             self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax, self.ax)
         super().add_eigenfunction_interface(efhandler=self._ef_handler)
 
-    def add_derived_eigenfunctions(self):
-        super().add_derived_eigenfunctions()
-
     def draw_resonances(self):
         """
         In case the (derived) eigenfunctions are added to the plot, the locations

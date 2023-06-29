@@ -5,7 +5,6 @@ from copy import copy
 import numpy as np
 from matplotlib.axes import Axes as mpl_axes
 from matplotlib.figure import Figure as mpl_fig
-from pylbo.deprecations import log_deprecation_warning
 from pylbo.visualisation.figure_window import InteractiveFigureWindow
 from pylbo.visualisation.utils import refresh_plot
 
@@ -123,11 +122,6 @@ class SpectrumFigure(InteractiveFigureWindow):
 
     def add_eigenfunctions(self):
         raise NotImplementedError()
-
-    def add_derived_eigenfunctions(self):
-        msg = "add_derived_eigenfunctions is deprecated, use add_eigenfunctions instead"
-        log_deprecation_warning(msg, "2.1")
-        self.add_eigenfunctions()
 
     def has_valid_continua(self, data):
         continua = getattr(data, "continua", None)
