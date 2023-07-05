@@ -217,6 +217,20 @@ def test_ds_get_parameters(ds_v112):
         assert np.isscalar(value)
 
 
+def test_ds_v130_eigvecs(ds_v130_suydam_efs_vecs_res):
+    assert ds_v130_suydam_efs_vecs_res.has_eigenvectors
+    eigvecs = ds_v130_suydam_efs_vecs_res.get_eigenvectors()
+    assert eigvecs is not None
+    assert isinstance(eigvecs, np.ndarray)
+
+
+def test_ds_v130_residuals(ds_v130_suydam_efs_vecs_res):
+    assert ds_v130_suydam_efs_vecs_res.has_residuals
+    residuals = ds_v130_suydam_efs_vecs_res.get_residuals()
+    assert residuals is not None
+    assert isinstance(residuals, np.ndarray)
+
+
 def test_ds_nobg_empty_equilibria_dict(ds_v200_tear_nobg):
     bg = ds_v200_tear_nobg.equilibria
     assert not ds_v200_tear_nobg.has_background
