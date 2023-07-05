@@ -272,3 +272,16 @@ def test_ds_max_eigenvalue(ds_v200_mri_efs):
     assert np.isclose(11.184804375, ev)
     ev = ds_v200_mri_efs.get_omega_max(real=False)
     assert np.isclose(-0.001919987625 + 0.6214319226j, ev)
+
+
+def test_ds_eq_balance_no_dkappaperpdr_check(ds_v114_subset):
+    with pytest.raises(KeyError):
+        ds_v114_subset.equilibria["dkappa_perp_dr"]
+
+
+def test_ds_eq_balance_no_dkappaperp(ds_v114_subset):
+    from pylbo.utilities.eq_balance import get_equilibrium_balance
+
+    eq = get_equilibrium_balance(ds_v114_subset)
+    assert "force" in eq.keys()
+    assert "energy" in eq.keys()
