@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from pylbo.utilities import toolbox
-from pylbo.utilities.toolbox import get_all_eigenfunction_names, reduce_to_unique_array
 
 
 def test_geometry_single_figure():
@@ -143,30 +142,54 @@ def test_none_tonumpy():
 
 def test_unique_array_simple():
     expected = np.array([1, 2, 3, 4, 5, 6, 7, 8])
-    result = reduce_to_unique_array(expected)
+    result = toolbox.reduce_to_unique_array(expected)
     assert isinstance(result, np.ndarray)
     assert np.all(result == expected)
 
 
 def test_unique_array_duplicates():
     expected = np.array([1, 2, 3, 4, 5, 6, 7, 8])
-    result = reduce_to_unique_array(np.concatenate((expected, expected)))
+    result = toolbox.reduce_to_unique_array(np.concatenate((expected, expected)))
     assert isinstance(result, np.ndarray)
     assert np.all(result == expected)
 
 
 def test_get_all_eigenfunction_names_no_derived_efs(ds_v114_subset):
     expected = ["rho", "v1", "v2", "v3", "T", "a1", "a2", "a3"]
-    result = get_all_eigenfunction_names(ds_v114_subset)
+    result = toolbox.get_all_eigenfunction_names(ds_v114_subset)
     assert len(result) == len(expected)
     assert np.all(result == expected)
 
 
 def test_get_all_eigenfunction_names_with_derived_efs(ds_v200_mri_efs):
     expected = [*ds_v200_mri_efs.ef_names, *ds_v200_mri_efs.derived_ef_names]
-    result = get_all_eigenfunction_names(ds_v200_mri_efs)
+    result = toolbox.get_all_eigenfunction_names(ds_v200_mri_efs)
     assert len(result) == len(expected)
     assert np.all(result == expected)
+
+
+def test_get_maximum_eigenvalue_norange():
+    eigenvalues = np.array([1 + 4j, 2 + 5j, 3 + 1j, 4 + 6j, 5 + 2j], dtype=complex)
+    assert toolbox.get_maximum_eigenvalue(eigenvalues, real=True) == 5 + 2j
+    assert toolbox.get_maximum_eigenvalue(eigenvalues, real=False) == 4 + 6j
+
+
+def test_get_maximum_eigenvalue_range():
+    eigenvalues = np.array([1 + 4j, 2 + 5j, 3 + 1j, 4 + 6j, 5 + 2j], dtype=complex)
+    assert (
+        toolbox.get_maximum_eigenvalue(eigenvalues, real=True, re_range=(2, 4))
+        == 4 + 6j
+    )
+    assert (
+        toolbox.get_maximum_eigenvalue(eigenvalues, real=False, re_range=(3.5, 6))
+        == 4 + 6j
+    )
+
+
+def test_get_maximum_eigenvalue_invalid_range():
+    eigenvalues = np.array([1 + 4j, 2 + 5j, 3 + 1j, 4 + 6j, 5 + 2j], dtype=complex)
+    with pytest.raises(ValueError):
+        toolbox.get_maximum_eigenvalue(eigenvalues, real=True, re_range=(6, 7))
 
 
 def test_cubic_solver_a_zero():

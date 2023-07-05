@@ -251,3 +251,10 @@ def test_ds_nobg_reynolds(ds_v200_tear_nobg):
 def test_ds_nobg_magnetic_reynolds(ds_v200_tear_nobg):
     with pytest.raises(BackgroundNotPresent):
         ds_v200_tear_nobg.get_magnetic_reynolds_nb()
+
+
+def test_ds_max_eigenvalue(ds_v200_mri_efs):
+    ev = ds_v200_mri_efs.get_omega_max(real=True)
+    assert np.isclose(11.184804375, ev)
+    ev = ds_v200_mri_efs.get_omega_max(real=False)
+    assert np.isclose(-0.001919987625 + 0.6214319226j, ev)

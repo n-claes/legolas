@@ -171,3 +171,12 @@ def test_series_has_residuals(series_v200_mixed_efs):
     has_residuals = series_v200_mixed_efs.has_residuals
     assert isinstance(has_residuals, np.ndarray)
     assert np.all(has_residuals == [True, False, True, False, True, False])
+
+
+def test_series_max_eigenvalue(series_v200_mri_efs):
+    evs = series_v200_mri_efs.get_omega_max(real=True)
+    expected = np.array([11.184804375] * len(series_v200_mri_efs), dtype=complex)
+    assert np.all(np.isclose(expected, evs))
+    ev = series_v200_mri_efs.get_omega_max(real=False)
+    expected = np.array([-0.001919987625 + 0.6214319226j] * len(series_v200_mri_efs))
+    assert np.all(np.isclose(expected, ev))

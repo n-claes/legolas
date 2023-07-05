@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
 
 import matplotlib.lines as mpl_lines
 import numpy as np
@@ -208,6 +208,42 @@ def get_all_eigenfunction_names(data: LegolasDataContainer) -> np.ndarray[str]:
     if any(transform_to_numpy(data.has_derived_efs)):
         names = np.concatenate((names, reduce_to_unique_array(data.derived_ef_names)))
     return names
+
+
+def get_maximum_eigenvalue(
+    eigenvalues: np.ndarray[complex],
+    real: bool = True,
+    re_range: Tuple[float, float] = None,
+) -> complex:
+    """
+    Calculates the maximum eigenvalue of a given array of eigenvalues.
+    The real or imaginary part is used, depending on the `real` argument.
+    If a range is specified, the maximum eigenvalue is calculated within
+    that range on the real axis.
+
+    Parameters
+    ----------
+    eigenvalues : numpy.ndarray(dtype=complex)
+        The array of eigenvalues.
+    real : bool
+        If `True`, the real part of the eigenvalues is used. Imaginary part otherwise.
+    re_range : tuple(float, float)
+        The range on the real axis to calculate the maximum eigenvalue.
+        Defaults to None, which means all eigenvalues are considered.
+
+    Returns
+    -------
+    complex
+        The maximum eigenvalue.
+    """
+    func = np.real if real else np.imag
+    evs = eigenvalues.copy()
+    if re_range is not None:
+        # set eigenvalues outside of range to NaN
+        evs[np.logical_or(func(evs) < re_range[0], func(evs) > re_range[1])] = np.nan
+    if np.all(np.isnan(func(evs))):
+        raise ValueError("get_maximum_eigenvalue: no eigenvalues found within range")
+    return eigenvalues[np.nanargmax(func(evs))]
 
 
 def solve_cubic_exact(a, b, c, d):

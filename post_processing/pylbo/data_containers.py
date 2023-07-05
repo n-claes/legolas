@@ -15,7 +15,11 @@ from pylbo.exceptions import (
 )
 from pylbo.utilities.datfiles.file_reader import LegolasFileReader
 from pylbo.utilities.logger import pylboLogger
-from pylbo.utilities.toolbox import get_values, transform_to_numpy
+from pylbo.utilities.toolbox import (
+    get_maximum_eigenvalue,
+    get_values,
+    transform_to_numpy,
+)
 from pylbo.visualisation.continua import calculate_continua
 
 
@@ -665,43 +669,29 @@ class LegolasDataSet(LegolasDataContainer):
             eigenvals[i] = self.eigenvalues[idx]
         return idxs, eigenvals
 
-    def get_omega_max(self, real=True, strip=False, range_omega=(0.0, 1e24)):
+    def get_omega_max(self, real=True, re_range=None):
         """
-        Calculates the maximum of the real or imaginary part of a spectrum.
+        Calculates the maximum eigenvalue.
+        The real or imaginary part is used, depending on the `real` argument.
+        If a range is specified, the maximum eigenvalue is calculated within
+        that range on the real axis.
 
         Parameters
         ----------
+        eigenvalues : numpy.ndarray(dtype=complex)
+            The array of eigenvalues.
         real : bool
-            Returns the largest real part if True (default option),
-            returns the largest imaginary part if False.
-        strip : bool
-            Look for maximum in a horizontal half-plane if True. Default False.
-        range_omega : tuple of floats
-            The horizontal range of the strip if strip=True.
+            If `True`, the real part of the eigenvalues is used.
+        re_range : tuple(float, float)
+            The range on the real axis to calculate the maximum eigenvalue.
+            Defaults to None, which means all eigenvalues are considered.
 
         Returns
         -------
-        omega_max : complex
-            The eigenvalue that has the largest real or imaginary part in
-            the chosen strip. Default: in the whole complex plane.
+        complex
+            The maximum eigenvalue.
         """
-
-        eigvals = np.copy(self.eigenvalues)
-
-        if strip:
-            omega_min, omega_max = range_omega
-            # all eigvals outside of strip locally get replaced by NaN
-            mask = (np.real(self.eigenvalues) - omega_min) * (
-                np.real(self.eigenvalues) - omega_max
-            ) > 0
-            eigvals[mask] = np.nan
-
-        if real:
-            idx = np.nanargmax(np.real(eigvals))
-        else:
-            idx = np.nanargmax(np.imag(eigvals))
-
-        return self.eigenvalues[idx]
+        return get_maximum_eigenvalue(self.eigenvalues, real, re_range)
 
 
 class LegolasDataSeries(LegolasDataContainer):
