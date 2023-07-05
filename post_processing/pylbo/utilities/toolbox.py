@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 import matplotlib.lines as mpl_lines
 import numpy as np
-from pylbo._version import _mpl_version
 from pylbo.utilities.logger import pylboLogger
 
 if TYPE_CHECKING:
@@ -41,15 +40,7 @@ def get_axis_geometry(ax):
     tuple
         The geometry of the given matplotlib axis.
     """
-    if _mpl_version >= "3.4":
-        axis_geometry = ax.get_subplotspec().get_geometry()[0:3]
-    else:
-        # this is 1-based indexing by default, use 0-based here for consistency
-        # with subplotspec in matplotlib 3.4+
-        axis_geometry = transform_to_numpy(ax.get_geometry())
-        axis_geometry[-1] -= 1
-        axis_geometry = tuple(axis_geometry)
-    return axis_geometry
+    return ax.get_subplotspec().get_geometry()[0:3]
 
 
 def get_values(array, which_values):
@@ -100,7 +91,7 @@ def add_pickradius_to_item(item, pickradius):
         Sets the pickradius, which determines if something is "on" the picked point.
     """
     # set_picker is deprecated for line2D from matplotlib 3.3 onwards
-    if isinstance(item, mpl_lines.Line2D) and _mpl_version >= "3.3":
+    if isinstance(item, mpl_lines.Line2D):
         item.set_picker(True)
         item.pickradius = pickradius
     else:
@@ -272,91 +263,70 @@ def solve_cubic_exact(a, b, c, d):
     return np.array([x1, x2, x3], dtype=complex)
 
 
-def count_zeroes(eigfuncs):
+def count_zeroes(eigfuncs, real=True):
     """
     Counts the number of zeroes of an array of complex eigenfunctions by looking at
-    sign changes of the real and imaginary part of the eigenfunctions.
-    Doesn't include the grid endpoints in the count, since the boundary conditions are
-    automatically satisfied. This only becomes accurate for eigenfunctions with enough
-    oscillations and is resolution dependent. Therefore, we take the minimum
-    of the number of zeroes of the real and imaginary part.
+    sign changes of the real and imaginary part of the eigenfunctions. Excludes
+    the eigenfunction boundaries.
 
     Parameters
     ----------
-    eigfuncs : numpy.ndarray
+    eigfuncs : numpy.ndarray(dtype=complex)
         Array of eigenfunction arrays of complex numbers.
+    real : bool
+        If `True`, counts the number of zeroes of the real part of the eigenfunctions.
+        If `False`, counts the number of zeroes of the imaginary part.
 
     Returns
     -------
-    nzeroes : np.ndarray(dtype=int)
-        Counter array containing the number of zeroes of the real or imaginary part
-        of each input eigenfunction array.
+    np.ndarray(dtype=int)
+        The number of zeroes of each eigenfunction.
     """
-
-    nzeroes = np.array([], dtype=int)
-
-    for eigfunc in eigfuncs:
-        counter_real = 0
-        counter_imag = 0
-        sign_real_eigfunc = np.sign(np.real(eigfunc))
-        sign_imag_eigfunc = np.sign(np.imag(eigfunc))
-
-        for i in range(1, len(sign_real_eigfunc) - 1):
-            if sign_real_eigfunc[i - 1] * sign_real_eigfunc[i] == -1:
-                counter_real += 1
-            if sign_real_eigfunc[i - 1] * sign_real_eigfunc[i] == 0:
-                if sign_real_eigfunc[i - 2] * sign_real_eigfunc[i - 1] == 0:
-                    counter_real += 1
-
-            if sign_imag_eigfunc[i - 1] * sign_imag_eigfunc[i] == -1:
-                counter_imag += 1
-            if sign_imag_eigfunc[i - 1] * sign_imag_eigfunc[i] == 0:
-                if sign_imag_eigfunc[i - 2] * sign_imag_eigfunc[i - 1] == 0:
-                    counter_imag += 1
-
-        counter = min(counter_real, counter_imag)
-        nzeroes = np.append(nzeroes, counter)
-
-    return nzeroes
+    eigfuncs = np.array([ef[1:-1] for ef in eigfuncs], dtype=complex)
+    func = np.real if real else np.imag
+    return np.sum(np.diff(np.sign(func(eigfuncs)), axis=1) != 0, axis=1)
 
 
-def invert_continuum_array(cont, r_gauss, sigma):
+def find_resonance_location(continuum, grid, sigma):
     """
-    Finds the location of resonance for eigenmode solutions having a real part that
-    might overlap with a continuum range.
+    Finds the resonance location between sigma and the continuum. For example, if
+    the continuum is given by [5, 6, 7, 8, 9, 10] and the grid is equal to
+    [0, 1, 2, 3, 4, 5], then for a sigma = 9 the resonance location is 4. For a sigma
+    equal to 8.5 the resonance location is 3.5. For a sigma outside of the continuum
+    the resonance location is None. If the continuum array is not monotone, then
+    the resonance location is interpolated between the first matched interval.
 
     Parameters
     ----------
-    cont : numpy.ndarray
-        Array containing the range of a specific continuum. Automatically has the same
-        length as r_gauss, since it has the same shape as the equilibrium fields used
-        to calculate the continua. Can be complex, but only the resonance with the real
-        part is calculated.
-    r_gauss : numpy.ndarray
-        Array containing the grid on which equilibrium fields are defined.
+    continuum : numpy.ndarray(dtype=complex)
+        Array containing the range of a specific continuum. Can be complex, but only
+        the resonance with the real part is calculated.
+    grid : numpy.ndarray
+        The grid on which the continuum is defined.
     sigma : complex
-        An eigenvalue solution of the generalized eigenvalue problem.
+        A given eigenvalue.
 
     Returns
     -------
-    r_inv : None, float
-        The location where there is resonance between the eigenmode and the continuum.
+    None, np.ndarray(float)
+        The position where there is resonance between the eigenmode and the continuum.
         Returns None if there is no resonance with the specified continuum.
     """
-
-    diff = np.sign(np.real(cont) - np.real(sigma))
-
-    if len(np.unique(diff)) < 2:
-        # There is no sign change, value is not contained in array.
+    if np.min(continuum.real) > sigma or np.max(continuum.real) < sigma:
         return None
-
-    for i in range(1, len(diff) - 1):
-        if diff[i] * diff[i - 1] < 0:
-            # Linear interpolation between the points where the sign change occurs.
-            r_inv = (np.real(sigma) - np.real(cont[i - 1])) / (
-                np.real(cont[i]) - np.real(cont[i - 1])
-            ) * (r_gauss[i] - r_gauss[i - 1]) + r_gauss[i - 1]
-            return r_inv
-        elif diff[i] * diff[i - 1] == 0:
-            # The exact same value is in the continuum array, return it.
-            return r_gauss[i]
+    # if continuum is monotone then do simple interpolation
+    if np.all(np.diff(continuum.real) > 0):
+        return np.array([np.interp(sigma, continuum.real, grid)], dtype=float)
+    # otherwise find intervals and handle multiple matches
+    locs = []
+    c = continuum.real
+    for idx in range(len(continuum) - 1):
+        if c[idx] <= sigma <= c[idx + 1]:
+            locs.append(
+                np.interp(sigma, [c[idx], c[idx + 1]], [grid[idx], grid[idx + 1]])
+            )
+        elif c[idx + 1] <= sigma <= c[idx]:
+            locs.append(
+                np.interp(sigma, [c[idx + 1], c[idx]], [grid[idx + 1], grid[idx]])
+            )
+    return np.array(list(set(locs)), dtype=float)

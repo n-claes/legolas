@@ -1,6 +1,6 @@
-import pytest
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 from pylbo.utilities import toolbox
 
 
@@ -110,3 +110,63 @@ def test_cubic_solver():
         )
     )
     assert all(np.isclose(sols, np.sort_complex(np.roots([2.5, -2, 1, 7.5]))))
+
+
+def test_nzeroes_real(ds_v114_subset):
+    evs = np.array([6.7, 11, 16, 21, 26, 31], dtype=complex)
+    all_efs = ds_v114_subset.get_eigenfunctions(ev_guesses=evs)
+    rho_efs = np.array([efs["rho"] for efs in all_efs], dtype=complex)
+    expected_zeroes = np.arange(1, 7)
+    result = toolbox.count_zeroes(rho_efs, real=True)
+    assert len(result) == len(expected_zeroes)
+    assert np.all(result == expected_zeroes)
+
+
+def test_nzeroes_imag(ds_v114_subset):
+    evs = np.array([6.7, 11, 16, 21, 26, 31], dtype=complex)
+    all_efs = ds_v114_subset.get_eigenfunctions(ev_guesses=evs)
+    vx_efs = np.array([efs["v1"] for efs in all_efs], dtype=complex)
+    expected_zeroes = np.arange(0, 6)
+    result = toolbox.count_zeroes(vx_efs, real=False)
+    assert len(result) == len(expected_zeroes)
+    assert np.all(result == expected_zeroes)
+
+
+def test_nzeroes_allzero():
+    efs = np.zeros((3, 10), dtype=complex)
+    result = toolbox.count_zeroes(efs, real=True)
+    expected_zeros = np.zeros(3, dtype=int)
+    assert np.all(result == expected_zeros)
+
+
+def test_resonance_location_exact():
+    grid = np.linspace(0, 1, 100)
+    continuum = np.linspace(4, 8, 100)
+    sigma = continuum[47]
+    result = toolbox.find_resonance_location(continuum, grid, sigma)
+    assert np.isclose(grid[47], result)
+
+
+def test_resonance_location_interp():
+    grid = np.linspace(0, 1, 11)
+    continuum = np.linspace(-5, 5, 11)
+    sigma = -1.5
+    result = toolbox.find_resonance_location(continuum, grid, sigma)
+    assert np.isclose(0.35, result)
+
+
+def test_resonance_location_none():
+    grid = np.linspace(0, 1, 11)
+    continuum = np.linspace(-3, 3, 11)
+    result = toolbox.find_resonance_location(continuum, grid, sigma=5)
+    assert result is None
+    result = toolbox.find_resonance_location(continuum, grid, sigma=-4.5)
+    assert result is None
+
+
+def test_resonance_location_continuum_not_monotone():
+    continuum = np.array([0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0])
+    grid = np.linspace(0, 1, len(continuum))
+    sigma = 3.5
+    result = toolbox.find_resonance_location(continuum, grid, sigma)
+    assert np.isclose(0.35, result)

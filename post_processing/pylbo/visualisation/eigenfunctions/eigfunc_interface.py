@@ -12,8 +12,8 @@ from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import (
     add_pickradius_to_item,
     count_zeroes,
+    find_resonance_location,
     get_all_eigenfunction_names,
-    invert_continuum_array,
     transform_to_numpy,
 )
 
@@ -570,7 +570,7 @@ class EigenfunctionInterface:
             # removes duplicates
             continuum = np.array(continuum, dtype=complex)
 
-            r_inv_temp = invert_continuum_array(continuum, ds.grid_gauss, sigma)
+            r_inv_temp = find_resonance_location(continuum, ds.grid_gauss, sigma)
 
             r_inv[continuum_key] = r_inv_temp
             labels[continuum_key] = CONTINUUM_LABELS[continuum_key]
