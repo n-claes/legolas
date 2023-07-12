@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import abc
+from pathlib import Path
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import PathCollection
-from pylbo.data_containers import LegolasDataSeries, LegolasDataSet
+from pylbo.data_containers import (
+    LegolasDataContainer,
+    LegolasDataSeries,
+    LegolasDataSet,
+)
 from pylbo.exceptions import EigenfunctionsNotPresent
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import (
@@ -67,6 +72,7 @@ class EigenfunctionInterface:
         self._display_tooltip()
 
         self._draw_resonances = False
+        self.savedir = None
 
     def _check_data_is_present(self):
         """
@@ -150,10 +156,10 @@ class EigenfunctionInterface:
         """
         if not self._selected_idxs:
             return
-        print("Currently selected eigenvalues:")
+        pylboLogger.info("Currently selected eigenvalues:")
         for ds, points in self._selected_idxs.items():
             idxs = np.array([idx for idx in points.keys()], dtype=int)
-            print(f"{ds.datfile.stem} | {ds.eigenvalues[idxs]}")
+            pylboLogger.info(f"{ds.datfile.stem} | {ds.eigenvalues[idxs]}")
 
     def _save_eigenvalue_selection(self):
         """
@@ -164,15 +170,19 @@ class EigenfunctionInterface:
             return
         count = 1
         for ds in self._selected_idxs:
-            print(f"Saving selected eigenvalues for dataset {count}...")
+            pylboLogger.info(f"Saving selected eigenvalues for dataset {count}...")
             to_store = [ds.ef_grid]
             for point in self._selected_idxs[ds]:
                 point_to_store = ds.get_eigenfunctions(ev_idxs=int(point))[0]
                 to_store.append(point_to_store)
-            filename = ds.datfile.name
-            filename = filename.replace(".dat", "")
+            to_store = np.asarray(to_store, dtype=object)
+            filename = ds.datfile.name.replace(".dat", "")
+            if self.savedir is not None:
+                filename = Path(self.savedir) / filename
             np.save(filename, to_store)
-            print(f"{len(to_store)-1} mode(s) saved to " + filename + ".npy")
+            pylboLogger.info(
+                f"{len(to_store)-1} mode(s) saved to " + str(filename) + ".npy"
+            )
             count += 1
 
     def _save_selection_indices(self):
@@ -184,15 +194,21 @@ class EigenfunctionInterface:
             return
         count = 1
         for ds in self._selected_idxs:
-            print(f"Saving indices of selected eigenvalues for dataset {count}...")
+            pylboLogger.info(
+                f"Saving indices of selected eigenvalues for dataset {count}..."
+            )
             to_store = []
             for point in self._selected_idxs[ds]:
                 to_store.append(int(point))
-            filename = ds.datfile.name
-            filename = filename.replace(".dat", "")
+            to_store = np.asarray(to_store, dtype=int)
+            filename = ds.datfile.name.replace(".dat", "")
+            if self.savedir is not None:
+                filename = Path(self.savedir) / filename
             np.save(filename, to_store)
-            print(
-                f"{len(self._selected_idxs[ds])} indices saved to " + filename + ".npy"
+            pylboLogger.info(
+                f"{len(self._selected_idxs[ds])} indices saved to "
+                + str(filename)
+                + ".npy"
             )
             count += 1
 
@@ -253,6 +269,12 @@ class EigenfunctionInterface:
         Creates the title of a given plot, has to be overridden in a subclass.
         """
         pass
+
+    def get_selected_idxs(self) -> dict[LegolasDataContainer, dict[int, plt.Artist]]:
+        return self._selected_idxs
+
+    def get_name_of_drawn_eigenfunction(self) -> str:
+        return self._function_names[self._selected_name_idx]
 
     @abc.abstractmethod
     def update_plot(self):
