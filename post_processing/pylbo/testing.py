@@ -86,7 +86,11 @@ class MockPickEvent(PickEvent):
             "pick_event", figure.canvas, mouseevent=mouseevent, artist=artist
         )
         # ind contains the indices of the selected eigenvalues
-        idxs, _ = ds.get_nearest_eigenvalues(mouse_x + mouse_y * 1j)
+        idxs, _ = (
+            ds.get_nearest_eigenvalues(mouse_x + mouse_y * 1j)
+            if mouse_x is not None and mouse_y is not None
+            else (None, None)
+        )
         self.ind = ind if ind is not None else idxs
 
 

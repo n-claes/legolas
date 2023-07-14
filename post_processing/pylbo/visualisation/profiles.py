@@ -30,6 +30,7 @@ class EquilibriumProfile(InteractiveFigureWindow):
                     break
         self.leg_handle = LegendHandler(interactive)
         self.draw()
+        self._figure_drawn = True
         if interactive:
             super().make_legend_interactive(self.leg_handle)
         self.fig.tight_layout()
@@ -94,6 +95,7 @@ class ContinuumProfile(InteractiveFigureWindow):
         self.kwargs = kwargs
         self.handler = ContinuaHandler(interactive)
         self.draw()
+        self._figure_drawn = True
         if interactive:
             self.make_legend_interactive(self.handler)
         self.fig.tight_layout()
@@ -155,6 +157,7 @@ class EquilibriumBalance(InteractiveFigureWindow):
         self.eq_balance = get_equilibrium_balance(ds=data)
         self.legend_handler = LegendHandler(interactive)
         self.draw()
+        self._figure_drawn = True
         if interactive:
             self.make_legend_interactive(self.legend_handler)
         self.fig.tight_layout()
