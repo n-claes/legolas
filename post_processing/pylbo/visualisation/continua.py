@@ -274,13 +274,14 @@ def _extract_solutions_from_roots(
     if np.count_nonzero(mask) == 1:
         # if mask only has one True, it is the thermal continuum and others are slow
         ws_neg, ws_pos = np.sort_complex(roots[np.invert(mask)])
-        return ws_neg, ws_pos, roots[mask]
+        (thermal,) = roots[mask]
+        return ws_neg, ws_pos, thermal
     _log_slow_continuum_zero_warning(roots, i)
     # here we have multiple purely imaginary roots, so it's not clear which one
     # is the thermal continuum. We assume that it is the largest one.
     mask = np.array([False] * 3, dtype=bool)
     mask[roots.imag.argmax()] = True
-    thermal = roots[mask]
+    (thermal,) = roots[mask]
     _log_assumed_thermal_continuum(root=thermal)
     ws_neg, ws_pos = np.sort_complex(roots[np.invert(mask)])
     return ws_neg, ws_pos, thermal
