@@ -6,7 +6,7 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2023-04-13
+last_modified_at: 2023-07-14
 ---
 
 Using Pylbo is quite straightforward, for a detailed guide on the API we refer to the
@@ -77,14 +77,7 @@ This is interactive by default, to toggle the continua on or off you can click o
 When you attach the eigenfunctions through `p.add_eigenfunctions()` Pylbo will modify the geometry of the currently supplied
 axis and split it in two. The spectrum will be drawn on the left, the eigenfunctions on the right; simply click on a spectrum point (or multiple)
 for which you want to see eigenfunctions. Selected points will be annotated on the plot, clicking left will deselect them.
-Pressing Enter draws the eigenfunctions for the selected points, you can cycle through the various eigenfunctions as well.
-
-If derived eigenfunction quantities were saved as well, you can create an additional spectrum plot and attach those instead:
-```python
-p2 = pylbo.plot_spectrum(ds)
-p2.add_derived_eigenfunctions()
-```
-Usage and interactivity is exactly the same as for the regular eigenfunctions.
+Use the arrow keys to cycle through the various eigenfunctions.
 
 Note that every point you select will have a different color, the colors between the eigenfunctions and the selected spectrum points are consistent.
 The legend on the eigenfunction panel will contain the index of the selected point in the `ds.eigenvalues` array, with the value printed as well.
@@ -127,9 +120,8 @@ rho_ef2 = eigenfuncs[1].get("rho")
 print(eigenfuncs[0].keys())
 >> "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3", "eigenvalue"
 ```
-The names of the keys are self-explanatory.
-
-To retrieve derived eigenfunction quantities use `ds.get_derived_eigenfunctions` instead.
+The names of the keys are self-explanatory. If the derived eigenfunctions were saved to the datfile these will automatically
+be contained within the corresponding dictionaries with appropriate keys.
 
 You can also retrieve eigenvalues near guesses, this will return both the indices and corresponding eigenvalues:
 ```python
@@ -176,9 +168,7 @@ p = pylbo.plot_equilibrium_balance(ds)
 p.show()
 ```
 See the API [here](../../sphinx/autoapi/pylbo/index.html#pylbo.plot_equilibrium_balance) for more information.
-The resulting curves should be as close to zero as possible. Note that for the non-adiabatic equilibrium
-equation Pylbo does a crude 2nd order numerical differentation (Numpy's gradient method), so the results
-may be off by about 1e-7 - 1e-8.
+The resulting curves should be as close to zero as possible, though keep in mind that results may be _numerically_ zero (e.g. $\sim10^{-15}$ or similar.)
 
 ## Analysing multiple files
 In what follows we assume that all datfiles have been loaded in `series` as explained above.
