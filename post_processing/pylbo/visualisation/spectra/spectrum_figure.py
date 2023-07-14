@@ -123,9 +123,6 @@ class SpectrumFigure(InteractiveFigureWindow):
     def add_eigenfunctions(self):
         raise NotImplementedError()
 
-    def add_derived_eigenfunctions(self):
-        raise NotImplementedError()
-
     def has_valid_continua(self, data):
         continua = getattr(data, "continua", None)
         if isinstance(continua, (list, np.ndarray)):

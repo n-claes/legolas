@@ -103,15 +103,6 @@ class SpectrumComparisonPlot(SpectrumFigure):
         for panel in [self.panel1, self.panel2]:
             panel.add_eigenfunctions()
 
-    def add_derived_eigenfunctions(self):
-        """
-        Adds the derived eigenfunctions for both datasets and merges the mpl
-        callbacks.
-        """
-        self._use_custom_axes()
-        for panel in [self.panel1, self.panel2]:
-            panel.add_derived_eigenfunctions()
-
     def add_continua(self, interactive=True):
         """Adds the continua for both datasets and merges the mpl callbacks."""
         for panel in (self.panel1, self.panel2):

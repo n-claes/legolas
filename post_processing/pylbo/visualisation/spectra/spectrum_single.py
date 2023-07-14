@@ -2,9 +2,6 @@ import matplotlib.colors as mpl_colors
 import numpy as np
 from pylbo.utilities.toolbox import add_pickradius_to_item
 from pylbo.visualisation.continua import ContinuaHandler
-from pylbo.visualisation.eigenfunctions.derived_eigfunc_handler import (
-    DerivedEigenfunctionHandler,
-)
 from pylbo.visualisation.eigenfunctions.eigfunc_handler import EigenfunctionHandler
 from pylbo.visualisation.spectra.spectrum_figure import SpectrumFigure
 
@@ -124,18 +121,6 @@ class SingleSpectrumPlot(SpectrumFigure):
             self._ef_handler = EigenfunctionHandler(self.dataset, self._ef_ax, self.ax)
         super().add_eigenfunction_interface(efhandler=self._ef_handler)
 
-    def add_derived_eigenfunctions(self):
-        """
-        Adds the derived eigenfunctions to the plot, sets the eigenfunction handler.
-        """
-        if self._def_ax is None:
-            self._def_ax = super().add_subplot_axes(self.ax, loc="right")
-        if self._def_handler is None:
-            self._def_handler = DerivedEigenfunctionHandler(
-                self.dataset, self._def_ax, self.ax
-            )
-        super().add_eigenfunction_interface(efhandler=self._def_handler)
-
     def draw_resonances(self):
         """
         In case the (derived) eigenfunctions are added to the plot, the locations
@@ -145,9 +130,6 @@ class SingleSpectrumPlot(SpectrumFigure):
         if self._ef_handler is not None:
             self._ef_handler._draw_resonances = True
             self._ef_handler.update_plot()
-        if self._def_handler is not None:
-            self._def_handler._draw_resonances = True
-            self._def_handler.update_plot()
 
     def _get_colors(self) -> np.ndarray:
         """Returns the colors for the spectrum points."""
