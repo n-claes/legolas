@@ -46,9 +46,8 @@ class LegolasFileReader:
             istream.seek(self._offset)
             if self.legolas_version < "2.0":
                 return LegolasLegacyHeader(istream, self.legolas_version)
-            elif self.legolas_version >= "2.0":
+            else:
                 return LegolasHeader(istream, self.legolas_version)
-        return None
 
     def read_grid(self, header: LegolasHeader) -> np.ndarray:
         with open(self.datfile, "rb") as istream:
@@ -187,8 +186,6 @@ class LegolasFileReader:
         state_vector: np.ndarray,
     ) -> dict:
         state_vector = transform_to_numpy(state_vector)
-        if state_vector.shape == ():
-            state_vector = np.array([state_vector])
         eigenfunctions = {}
         with open(self.datfile, "rb") as istream:
             for name_idx, name in enumerate(state_vector):

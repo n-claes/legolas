@@ -58,7 +58,6 @@ class SpectrumComparisonPlot(SpectrumFigure):
             use_residuals=use_residuals,
         )
         self.panel2.ax.set_title(ds2.datfile.stem)
-        self._axes_set = False
 
     def set_x_scaling(self, x_scaling):
         """
@@ -86,11 +85,8 @@ class SpectrumComparisonPlot(SpectrumFigure):
 
     def _use_custom_axes(self):
         """Splits the original 1x2 plot into a 2x2 plot."""
-        if self._axes_set:
-            return
         self.panel1._ef_ax = self.panel1.add_subplot_axes(self.panel1.ax, loc="bottom")
         self.panel2._ef_ax = self.panel2.add_subplot_axes(self.panel2.ax, loc="bottom")
-        self._axes_set = True
 
     def add_spectrum(self) -> None:
         """Adds the spectra for both datasets"""

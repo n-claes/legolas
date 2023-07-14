@@ -33,9 +33,9 @@ While the code may still comple and run with older versions, it is _highly recom
 ## Post-processing
 The post-processing framework Pylbo has a few standard dependencies, all of which will be automatically
 installed if you choose the Pylbo package install (see [below](/getting-started/installation/#installing-as-a-package)).
-- Python v3.6+
+- Python v3.7+
 - [Numpy](https://numpy.org), for obvious reasons.
-- [Matplotlib](https://matplotlib.org), for plotting.
+- [Matplotlib](https://matplotlib.org) v3.4+, for plotting.
 - [f90nml](https://f90nml.readthedocs.io/en/latest/), to handle reading and writing of Fortran namelists.
 - [tqdm](https://tqdm.github.io), used for progress bars.
 - [psutil](https://psutil.readthedocs.io/en/latest/), for management of multiprocessing resources during parallel runs.

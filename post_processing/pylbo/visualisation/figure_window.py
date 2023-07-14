@@ -206,6 +206,7 @@ class InteractiveFigureWindow(FigureWindow):
     def redraw(self) -> None:
         self.disconnect_callbacks()
         super().redraw()
+        self.connect_callbacks()
 
     def connect_callbacks(self) -> None:
         """Connects all callbacks to the canvas"""
