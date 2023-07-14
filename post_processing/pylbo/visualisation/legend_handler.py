@@ -2,7 +2,27 @@ import matplotlib.collections as mpl_collections
 import matplotlib.lines as mpl_lines
 import matplotlib.patches as mpl_patches
 import numpy as np
+from pylbo._version import _mpl_version
 from pylbo.utilities.toolbox import add_pickradius_to_item
+
+
+def _get_legend_handles(legend):
+    """
+    Returns the legend handles.
+
+    Parameters
+    ----------
+    legend : ~matplotlib.legend.Legend
+        The matplotlib legend to use.
+
+    Returns
+    -------
+    handles : list
+        A list of handles.
+    """
+    if _mpl_version >= "3.7":
+        return legend.legend_handles
+    return legend.legendHandles
 
 
 class LegendHandler:
@@ -76,22 +96,21 @@ class LegendHandler:
         else:
             artist.set_alpha(self.alpha_hidden)
         self._check_autoscaling()
-        artist.figure.tight_layout()
         artist.figure.canvas.draw()
 
     def make_legend_pickable(self):
         """Makes the legend pickable, only used if interactive."""
-        legend_handles = self.legend.legendHandles
+        legend_handles = _get_legend_handles(self.legend)
         handle_labels = [handle.get_label() for handle in legend_handles]
         # we need a mapping of the legend item to the actual item that was drawn
         for i, drawn_item in enumerate(self._drawn_items):
             # try-except needed for fill_between, which returns empty handles
             try:
                 idx = handle_labels.index(drawn_item.get_label())
-                legend_item = self.legend.legendHandles[idx]
+                legend_item = _get_legend_handles(self.legend)[idx]
             except ValueError:
                 idx = i
-                legend_item = self.legend.legendHandles[idx]
+                legend_item = _get_legend_handles(self.legend)[idx]
                 # fix empty label
                 legend_item.set_label(drawn_item.get_label())
             add_pickradius_to_item(item=legend_item, pickradius=self.pickradius)

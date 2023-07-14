@@ -1,6 +1,7 @@
 import matplotlib as mpl
 import pylbo
 from pylbo.testing import MockPickEvent
+from pylbo.visualisation.legend_handler import _get_legend_handles
 
 
 def _create_profile_plot(ds):
@@ -8,7 +9,7 @@ def _create_profile_plot(ds):
 
 
 def get_legend_artists(ax):
-    return ax.get_legend().legendHandles
+    return _get_legend_handles(ax.get_legend())
 
 
 def get_children(ax, artists=None):
