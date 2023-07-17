@@ -33,7 +33,7 @@ class EquilibriumProfile(InteractiveFigureWindow):
         self._figure_drawn = True
         if interactive:
             super().make_legend_interactive(self.leg_handle)
-        self.fig.tight_layout()
+        self.make_layout_tight()
 
     def draw(self):
         """Adds the equilibria to the figure. Also sets the legend handler items"""
@@ -98,7 +98,7 @@ class ContinuumProfile(InteractiveFigureWindow):
         self._figure_drawn = True
         if interactive:
             self.make_legend_interactive(self.handler)
-        self.fig.tight_layout()
+        self.make_layout_tight()
 
     def draw(self):
         """Adds the continua to the plot, also sets the legend handlers."""
@@ -160,7 +160,7 @@ class EquilibriumBalance(InteractiveFigureWindow):
         self._figure_drawn = True
         if interactive:
             self.make_legend_interactive(self.legend_handler)
-        self.fig.tight_layout()
+        self.make_layout_tight()
 
     def draw(self):
         """Draws the equilibrium balance equations."""

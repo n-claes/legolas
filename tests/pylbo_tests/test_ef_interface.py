@@ -7,6 +7,7 @@ import numpy as np
 import pylbo
 from pylbo.testing import MockKeyEvent, MockPickEvent
 from pylbo.utilities.logger import pylboLogger
+from pylbo.visualisation.legend_handler import _get_legend_handles
 
 MODE1 = 0.1 + 0.62j
 MODE2 = 0.1 + 0.58j
@@ -180,7 +181,7 @@ def test_ef_click_on_legend_item(ds_v200_mri_efs):
     p.add_continua()
     event = _create_mockpickevent(p, x=0.1, y=0.62, button=1)
     # set artist equal to clickable first legend item instead of datapoints
-    event.artist = p.ef_handler.spec_axis.get_legend().legendHandles[0]
+    event.artist = _get_legend_handles(p.ef_handler.spec_axis.get_legend())[0]
     p.ef_handler.on_point_pick(event)
     # should do nothing
     assert p.ef_handler.get_selected_idxs() == {}
@@ -203,7 +204,7 @@ def test_ef_get_artist_data(ds_v200_mri_efs):
 
     p = _create_ef_spectrum_plot(ds_v200_mri_efs)
     p.add_continua()
-    artist = p.ef_handler.spec_axis.get_legend().legendHandles[0]
+    artist = _get_legend_handles(p.ef_handler.spec_axis.get_legend())[0]
     xdata, ydata = get_artist_data(artist)
     assert isinstance(xdata, np.ndarray)
     assert xdata.ndim == 1
