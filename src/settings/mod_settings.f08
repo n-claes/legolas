@@ -54,7 +54,7 @@ contains
   function new_settings() result(settings)
     type(settings_t) :: settings
 
-    call settings%set_state_vector(physics_type="mhd")
+    settings%physics_type = "mhd"
     settings%dims = new_block_dims()
     settings%io = new_io_settings()
     settings%solvers = new_solver_settings()
@@ -62,7 +62,6 @@ contains
     settings%grid = new_grid_settings()
     settings%equilibrium = new_equilibrium_settings()
     settings%units = new_unit_system()
-    call settings%update_block_dimensions()
   end function new_settings
 
 
