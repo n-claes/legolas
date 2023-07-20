@@ -15,7 +15,7 @@ module mod_settings
     ! note: weird gfortran 8 bug here when using (len=:) for state_vector.
     ! This sometimes leads to wrong array allocation where every entry equals the
     ! one at the last index? Unable to reproduce with compiler versions >8.
-    character(len=str_len_arr), private, allocatable :: state_vector(:)
+    character(len=str_len_arr), private, allocatable :: old_state_vector(:)
     character(len=str_len_arr), private, allocatable :: derived_state_vector(:)
     character(len=:), private, allocatable :: physics_type
     logical, private :: state_vector_has_bfield
@@ -72,29 +72,29 @@ contains
     this%physics_type = physics_type
     select case(physics_type)
       case("hd")
-        this%state_vector = [character(3) :: "rho", "v1", "v2", "v3", "T"]
+        this%old_state_vector = [character(3) :: "rho", "v1", "v2", "v3", "T"]
       case("hd-1d")
-        this%state_vector = [character(3) :: "rho", "v1", "T"]
+        this%old_state_vector = [character(3) :: "rho", "v1", "T"]
       case default
-        this%state_vector = [ &
+        this%old_state_vector = [ &
           character(3) :: "rho", "v1", "v2", "v3", "T", "a1", "a2", "a3" &
         ]
       end select
     call this%check_bfield()
-    call this%set_nb_eqs(size(this%state_vector))
+    call this%set_nb_eqs(size(this%old_state_vector))
   end subroutine set_state_vector
 
 
   pure function get_state_vector(this) result(state_vector)
     class(settings_t), intent(in) :: this
     character(len=:), allocatable :: state_vector(:)
-    state_vector = this%state_vector
+    state_vector = this%old_state_vector
   end function get_state_vector
 
 
   pure logical function state_vector_is_set(this)
     class(settings_t), intent(in) :: this
-    state_vector_is_set = allocated(this%state_vector)
+    state_vector_is_set = allocated(this%old_state_vector)
   end function state_vector_is_set
 
 
@@ -151,7 +151,7 @@ contains
     class(settings_t), intent(inout) :: this
 
     this%state_vector_has_bfield = ( &
-      any(get_index(names=["a1", "a2", "a3"], array=this%state_vector) /= 0) &
+      any(get_index(names=["a1", "a2", "a3"], array=this%old_state_vector) /= 0) &
     )
   end subroutine check_bfield
 
@@ -165,7 +165,7 @@ contains
   pure subroutine delete(this)
     class(settings_t), intent(inout) :: this
 
-    if (allocated(this%state_vector)) deallocate(this%state_vector)
+    if (allocated(this%old_state_vector)) deallocate(this%old_state_vector)
     if (allocated(this%derived_state_vector)) deallocate(this%derived_state_vector)
     if (allocated(this%physics_type)) deallocate(this%physics_type)
     call this%io%delete()
