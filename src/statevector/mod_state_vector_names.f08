@@ -4,13 +4,13 @@ module mod_state_vector_names
 
   public
 
-  character(len=str_len_arr), parameter, public :: sv_RHO_name = "rho"
-  character(len=str_len_arr), parameter, public :: sv_V1_name = "v1"
-  character(len=str_len_arr), parameter, public :: sv_V2_name = "v2"
-  character(len=str_len_arr), parameter, public :: sv_V3_name = "v3"
-  character(len=str_len_arr), parameter, public :: sv_T_name = "T"
-  character(len=str_len_arr), parameter, public :: sv_A1_name = "a1"
-  character(len=str_len_arr), parameter, public :: sv_A2_name = "a2"
-  character(len=str_len_arr), parameter, public :: sv_A3_name = "a3"
+  character(len=str_len_arr), parameter, public :: sv_rho1_name = "rho"
+  character(len=str_len_arr), parameter, public :: sv_v1_name = "v1"
+  character(len=str_len_arr), parameter, public :: sv_v2_name = "v2"
+  character(len=str_len_arr), parameter, public :: sv_v3_name = "v3"
+  character(len=str_len_arr), parameter, public :: sv_T1_name = "T"
+  character(len=str_len_arr), parameter, public :: sv_a1_name = "a1"
+  character(len=str_len_arr), parameter, public :: sv_a2_name = "a2"
+  character(len=str_len_arr), parameter, public :: sv_a3_name = "a3"
 
 end module mod_state_vector_names

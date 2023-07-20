@@ -7,11 +7,13 @@ module mod_settings
   use mod_grid_settings, only: grid_settings_t, new_grid_settings
   use mod_equilibrium_settings, only: equilibrium_settings_t, new_equilibrium_settings
   use mod_units, only: units_t, new_unit_system
+  use mod_state_vector, only: state_vector_t
   implicit none
 
   private
 
   type, public :: settings_t
+    type(state_vector_t), private :: state_vector
     ! note: weird gfortran 8 bug here when using (len=:) for state_vector.
     ! This sometimes leads to wrong array allocation where every entry equals the
     ! one at the last index? Unable to reproduce with compiler versions >8.
@@ -65,11 +67,12 @@ contains
   end function new_settings
 
 
-  pure subroutine set_state_vector(this, physics_type)
+  subroutine set_state_vector(this, physics_type)
     class(settings_t), intent(inout) :: this
     character(len=*), intent(in) :: physics_type
 
     this%physics_type = physics_type
+    call this%state_vector%assemble(physics_type)
     select case(physics_type)
       case("hd")
         this%old_state_vector = [character(3) :: "rho", "v1", "v2", "v3", "T"]
@@ -162,9 +165,10 @@ contains
   end function has_bfield
 
 
-  pure subroutine delete(this)
+  subroutine delete(this)
     class(settings_t), intent(inout) :: this
 
+    call this%state_vector%delete()
     if (allocated(this%old_state_vector)) deallocate(this%old_state_vector)
     if (allocated(this%derived_state_vector)) deallocate(this%derived_state_vector)
     if (allocated(this%physics_type)) deallocate(this%physics_type)

@@ -11,23 +11,26 @@ module mod_state_vector_component
     procedure(basis_function), pointer, nopass :: spline => null()
     character(len=str_len_arr), private :: spline_name
     character(len=str_len_arr), private :: name
+    logical, private :: is_initialised = .false.
   contains
-      procedure, public :: dspline
-      procedure, public :: ddspline
-      procedure, public :: delete
+    procedure, public :: get_default_basis_function
+    procedure, public :: dspline
+    procedure, public :: ddspline
+    procedure, public :: delete
 
-      procedure, private :: set_basis_function
+    procedure, private :: set_basis_function
   end type sv_component_t
+
+  public :: new_sv_component
 
 contains
 
-  function new_sv_component(name, default_spline) result(sv_comp)
+  function new_sv_component(name) result(sv_comp)
     character(len=*), intent(in) :: name
-    character(len=*), intent(in) :: default_spline
     type(sv_component_t) :: sv_comp
 
     sv_comp%name = name
-    call sv_comp%set_basis_function(default_spline)
+    sv_comp%is_initialised = .true.
   end function new_sv_component
 
 
@@ -56,6 +59,7 @@ contains
     class(sv_component_t), intent(in) :: this
     procedure(basis_function), pointer :: spline
 
+    spline => null()
     select case(this%spline_name)
       case(QUADRATIC)
         spline => dhquad
@@ -77,6 +81,7 @@ contains
     class(sv_component_t), intent(in) :: this
     procedure(basis_function), pointer :: spline
 
+    spline => null()
     select case(this%spline_name)
       case(CUBIC)
         spline => ddhcubic
@@ -88,6 +93,26 @@ contains
         return
     end select
   end function ddspline
+
+
+  function get_default_basis_function(this) result(name)
+    use mod_state_vector_names
+
+    class(sv_component_t), intent(in) :: this
+    character(len=str_len_arr) :: name
+
+    select case(this%name)
+    case(sv_rho1_name, sv_v2_name, sv_v3_name, sv_T1_name, sv_a1_name)
+      name = QUADRATIC
+    case(sv_v1_name, sv_a2_name, sv_a3_name)
+      name = CUBIC
+    case default
+      call logger%error( &
+        "default basis function not defined for state vector component " &
+        // trim(adjustl(this%name)) &
+      )
+    end select
+  end function get_default_basis_function
 
 
   pure subroutine delete(this)
