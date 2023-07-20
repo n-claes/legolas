@@ -22,6 +22,7 @@ set (sources
         settings/mod_grid_settings.f08
         settings/mod_equilibrium_settings.f08
         settings/mod_units.f08
+        statevector/mod_basis_functions.f08
         mod_physical_constants.f08
         utils/mod_get_indices.f08
         utils/mod_function_utils.f08
