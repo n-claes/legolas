@@ -3,7 +3,7 @@
 !! Contains subroutines to retrieve the parfile based on the commandline arguments
 !! and to read the parfile, setting the global variables.
 module mod_input
-  use mod_global_variables, only: dp, str_len, NaN
+  use mod_global_variables, only: dp, str_len, str_len_arr, NaN
   use mod_logging, only: logger
   use mod_settings, only: settings_t
   implicit none
@@ -193,6 +193,7 @@ contains
     character(str_len) :: iomsg
 
     character(len=str_len) :: physics_type
+    character(len=str_len_arr), allocatable :: basis_functions(:)
     logical :: flow, incompressible, radiative_cooling, heating, &
       force_thermal_balance, external_gravity, &
       parallel_conduction, perpendicular_conduction, resistivity, use_eta_dropoff, &
@@ -207,8 +208,8 @@ contains
     real(dp) :: dropoff_edge_dist, dropoff_width
 
     namelist /physicslist/ &
-      physics_type, mhd_gamma, flow, incompressible, radiative_cooling, &
-      heating, force_thermal_balance, &
+      physics_type, basis_functions, mhd_gamma, flow, incompressible, &
+      radiative_cooling, heating, force_thermal_balance, &
       external_gravity, parallel_conduction, perpendicular_conduction, &
       resistivity, use_eta_dropoff, viscosity, viscous_heating, hall_mhd, &
       hall_dropoff, elec_inertia, inertia_dropoff, ncool, &
@@ -218,6 +219,8 @@ contains
 
     ! get defaults
     physics_type = settings%get_physics_type()
+    allocate(basis_functions(16))
+    basis_functions = ""
     mhd_gamma = settings%physics%get_gamma()
     incompressible = settings%physics%is_incompressible
     dropoff_edge_dist = settings%physics%dropoff_edge_dist
@@ -257,7 +260,10 @@ contains
     read(unit, nml=physicslist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
 
+
     call settings%set_state_vector(physics_type)
+    basis_functions = pack(basis_functions, basis_functions /= "")
+    call settings%state_vector%set_basis_functions(basis_functions)
     call settings%physics%set_gamma(mhd_gamma)
     if (incompressible) call settings%physics%set_incompressible()
     if (flow) call settings%physics%flow%enable()

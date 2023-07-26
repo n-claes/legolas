@@ -13,7 +13,7 @@ module mod_settings
   private
 
   type, public :: settings_t
-    type(state_vector_t), private :: state_vector
+    type(state_vector_t), public :: state_vector
     ! note: weird gfortran 8 bug here when using (len=:) for state_vector.
     ! This sometimes leads to wrong array allocation where every entry equals the
     ! one at the last index? Unable to reproduce with compiler versions >8.

@@ -1,5 +1,6 @@
 module mod_state_vector
   use mod_state_vector_component, only: sv_component_t
+  use mod_logging, only: logger, str
   implicit none
 
   private
@@ -9,10 +10,16 @@ module mod_state_vector
 
   contains
     procedure, public :: assemble
+    procedure, public :: set_basis_functions
+    procedure, public :: get_names
+    procedure, public :: get_basis_functions
     procedure, public :: delete
+
+    procedure, private :: set_default_basis_functions
+    procedure, private :: is_compatible_with
   end type state_vector_t
 
-  logical, save :: sv_components_initialised = .false.
+  logical, save, private :: sv_components_initialised = .false.
   type(sv_component_t), public, protected :: sv_rho1
   type(sv_component_t), public, protected :: sv_v1
   type(sv_component_t), public, protected :: sv_v2
@@ -38,6 +45,76 @@ contains
         this%components = [sv_rho1, sv_v1, sv_v2, sv_v3, sv_T1, sv_a1, sv_a2, sv_a3]
     end select
   end subroutine assemble
+
+
+  subroutine set_basis_functions(this, splines)
+    class(state_vector_t), intent(inout) :: this
+    character(len=*), intent(in) :: splines(:)
+    integer :: i
+
+    if (size(splines) == 0) then
+      call this%set_default_basis_functions()
+      return
+    end if
+    if (.not. this%is_compatible_with(splines)) return
+    do i = 1, size(this%components)
+      call this%components(i)%set_basis_function(splines(i))
+    end do
+  end subroutine set_basis_functions
+
+
+  subroutine set_default_basis_functions(this)
+    class(state_vector_t), intent(inout) :: this
+    character(:), allocatable :: default_name
+    integer :: i
+
+    do i = 1, size(this%components)
+      default_name = this%components(i)%get_default_basis_function()
+      call this%components(i)%set_basis_function(default_name)
+    end do
+  end subroutine set_default_basis_functions
+
+
+  function get_names(this) result(names)
+    class(state_vector_t), intent(in) :: this
+    character(len=:), allocatable :: names(:)
+    integer :: i
+
+    allocate(names(size(this%components)), mold=this%components(1)%get_name())
+    do i = 1, size(this%components)
+      names(i) = this%components(i)%get_name()
+    end do
+  end function get_names
+
+
+  function get_basis_functions(this) result(names)
+    class(state_vector_t), intent(in) :: this
+    character(len=:), allocatable :: names(:)
+    integer :: i
+
+    allocate(names(size(this%components)), mold=this%components(1)%get_name())
+    do i = 1, size(this%components)
+      names(i) = this%components(i)%get_basis_function_name()
+    end do
+  end function get_basis_functions
+
+
+  logical function is_compatible_with(this, splines)
+    class(state_vector_t), intent(in) :: this
+    character(len=*), intent(in) :: splines(:)
+    integer :: size_sv, size_splines
+
+    size_sv = size(this%components)
+    size_splines = size(splines)
+    is_compatible_with = .true.
+    if (size_sv == size_splines) return
+
+    is_compatible_with = .false.
+    call logger%error( &
+      "state vector size (" // str(size_sv) // ") is not compatible with " &
+      // "given number of basis functions (" // str(size_splines) // ")" &
+    )
+  end function is_compatible_with
 
 
   subroutine delete(this)
