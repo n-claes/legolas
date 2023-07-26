@@ -13,12 +13,14 @@ module mod_state_vector_component
     character(len=str_len_arr), private :: name
     logical, private :: is_initialised = .false.
   contains
-    procedure, public :: get_default_basis_function
     procedure, public :: dspline
     procedure, public :: ddspline
-    procedure, public :: delete
 
-    procedure, private :: set_basis_function
+    procedure, public :: get_name
+    procedure, public :: get_basis_function_name
+    procedure, public :: get_default_basis_function
+    procedure, public :: set_basis_function
+    procedure, public :: delete
   end type sv_component_t
 
   public :: new_sv_component
@@ -30,8 +32,43 @@ contains
     type(sv_component_t) :: sv_comp
 
     sv_comp%name = name
+    sv_comp%spline_name = ""
     sv_comp%is_initialised = .true.
   end function new_sv_component
+
+
+  function get_name(this) result(name)
+    class(sv_component_t), intent(in) :: this
+    character(:), allocatable :: name
+    name = this%name
+  end function get_name
+
+
+  function get_basis_function_name(this) result(name)
+    class(sv_component_t), intent(in) :: this
+    character(:), allocatable :: name
+    name = this%spline_name
+  end function get_basis_function_name
+
+
+  function get_default_basis_function(this) result(name)
+    use mod_state_vector_names
+
+    class(sv_component_t), intent(in) :: this
+    character(:), allocatable :: name
+
+    select case(this%name)
+    case(sv_rho1_name, sv_v2_name, sv_v3_name, sv_T1_name, sv_a1_name)
+      name = QUADRATIC
+    case(sv_v1_name, sv_a2_name, sv_a3_name)
+      name = CUBIC
+    case default
+      call logger%error( &
+        "default basis function not defined for state vector component " &
+        // trim(adjustl(this%name)) &
+      )
+    end select
+  end function get_default_basis_function
 
 
   subroutine set_basis_function(this, spline_name)
@@ -93,26 +130,6 @@ contains
         return
     end select
   end function ddspline
-
-
-  function get_default_basis_function(this) result(name)
-    use mod_state_vector_names
-
-    class(sv_component_t), intent(in) :: this
-    character(len=str_len_arr) :: name
-
-    select case(this%name)
-    case(sv_rho1_name, sv_v2_name, sv_v3_name, sv_T1_name, sv_a1_name)
-      name = QUADRATIC
-    case(sv_v1_name, sv_a2_name, sv_a3_name)
-      name = CUBIC
-    case default
-      call logger%error( &
-        "default basis function not defined for state vector component " &
-        // trim(adjustl(this%name)) &
-      )
-    end select
-  end function get_default_basis_function
 
 
   pure subroutine delete(this)
