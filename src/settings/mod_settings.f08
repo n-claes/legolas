@@ -85,6 +85,7 @@ contains
       end select
     call this%check_bfield()
     call this%set_nb_eqs(size(this%old_state_vector))
+    call this%update_block_dimensions()
   end subroutine set_state_vector
 
 
