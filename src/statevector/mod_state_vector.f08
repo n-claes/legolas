@@ -15,8 +15,12 @@ module mod_state_vector
     procedure, public :: get_basis_functions
     procedure, public :: delete
 
+    generic, public :: contains => contains_on_component, contains_on_name
+
     procedure, private :: set_default_basis_functions
     procedure, private :: is_compatible_with
+    procedure, private :: contains_on_component
+    procedure, private :: contains_on_name
   end type state_vector_t
 
   logical, save, private :: sv_components_initialised = .false.
@@ -97,6 +101,28 @@ contains
       names(i) = this%components(i)%get_basis_function_name()
     end do
   end function get_basis_functions
+
+
+  logical function contains_on_component(this, component)
+    class(state_vector_t), intent(in) :: this
+    type(sv_component_t), intent(in) :: component
+    contains_on_component = this%contains_on_name(component%get_name())
+  end function contains_on_component
+
+
+  logical function contains_on_name(this, name)
+    class(state_vector_t), intent(in) :: this
+    character(len=*), intent(in) :: name
+    integer :: i
+
+    contains_on_name = .false.
+    do i = 1, size(this%components)
+      if (this%components(i)%get_name() == name) then
+        contains_on_name = .true.
+        return
+      end if
+    end do
+  end function contains_on_name
 
 
   logical function is_compatible_with(this, splines)
