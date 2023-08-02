@@ -123,18 +123,22 @@ contains
   subroutine write_physics_type_info(settings)
     type(settings_t), intent(in) :: settings
     character(len=:), allocatable :: state_vector(:)
+    character(len=:), allocatable :: basis_functions(:)
 
     allocate(state_vector, source=settings%get_state_vector())
+    allocate(basis_functions, source=settings%state_vector%get_basis_functions())
 
     write(dat_fh) settings%get_nb_eqs()
     write(dat_fh) len(settings%get_physics_type()), settings%get_physics_type()
     write(dat_fh) len(state_vector(1)), size(state_vector), state_vector
+    write(dat_fh) len(basis_functions(1)), size(basis_functions), basis_functions
     write(dat_fh) settings%dims%get_dim_integralblock()
     write(dat_fh) settings%dims%get_dim_subblock()
     write(dat_fh) settings%dims%get_dim_quadblock()
     write(dat_fh) settings%dims%get_dim_matrix()
 
     if (allocated(state_vector)) deallocate(state_vector)
+    if (allocated(basis_functions)) deallocate(basis_functions)
   end subroutine write_physics_type_info
 
 
