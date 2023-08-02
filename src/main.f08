@@ -15,7 +15,8 @@ program legolas
   use mod_solvers, only: solve_evp
   use mod_output, only: datfile_path, create_datfile
   use mod_logging, only: logger, str
-  use mod_console, only: print_console_info, print_whitespace
+  use mod_console, only: print_logo, print_startup_info, print_console_info, &
+    print_whitespace
   use mod_timing, only: timer_t, new_timer
   use mod_settings, only: settings_t, new_settings
   use mod_background, only: background_t, new_background
@@ -44,13 +45,15 @@ program legolas
   call initialise_globals()
   call logger%initialise()
 
+  call print_logo()
+
   timer = new_timer()
   settings = new_settings()
 
   call timer%start_timer()
 
   call read_user_parfile()
-  call print_startup_info()
+  call print_startup_info(settings)
 
   grid = new_grid(settings)
   background = new_background()
@@ -111,14 +114,6 @@ contains
     call get_parfile(parfile)
     call read_parfile(parfile, settings)
   end subroutine read_user_parfile
-
-
-  subroutine print_startup_info()
-    use mod_console, only: print_logo
-    call print_logo()
-    call logger%info("the physics type is " // settings%get_physics_type())
-    call logger%info("the state vector is " // str(settings%get_state_vector()))
-  end subroutine print_startup_info
 
 
   subroutine do_eigenvalue_problem_allocations()
