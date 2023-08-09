@@ -16,9 +16,12 @@ contains
   !! For a 2x2 block at index \((i, j)\) in the top-left block we have
   !! \((2i, 2j)\) as index of the bottom-right corner of the 2x2 block. The other
   !! corners are then filled by subtracting one from an index.
-  subroutine add_to_quadblock(quadblock, elements, weight, dims)
+  subroutine add_to_quadblock(quadblock, elements, x, x0, x1, weight, dims)
     complex(dp), intent(inout) :: quadblock(:, :)
     type(matrix_elements_t), intent(in) :: elements
+    real(dp), intent(in) :: x
+    real(dp), intent(in) :: x0
+    real(dp), intent(in) :: x1
     real(dp), intent(in) :: weight
     type(dims_t), intent(in) :: dims
 
@@ -34,8 +37,8 @@ contains
 
     do inode = 1, elements%get_nb_elements()
       node => elements%get_node(inode)
-      allocate(spline1, source=node%get_spline1())
-      allocate(spline2, source=node%get_spline2())
+      allocate(spline1, source=node%spline1(x, x0, x1))
+      allocate(spline2, source=node%spline2(x, x0, x1))
 
       new_quadblock = (0.0_dp, 0.0_dp)
       idxs = 0
