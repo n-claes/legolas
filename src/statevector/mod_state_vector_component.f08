@@ -2,25 +2,26 @@ module mod_state_vector_component
   use mod_global_variables, only: str_len_arr
   use mod_basis_function_names, only: QUADRATIC, CUBIC
   use mod_basis_functions, only: basis_function
-  use mod_logging, only: logger
+  use mod_logging, only: logger, str
   implicit none
 
   private
 
   type, public :: sv_component_t
-    procedure(basis_function), pointer, nopass :: spline => null()
     character(len=str_len_arr), private :: spline_name
     character(len=str_len_arr), private :: name
     logical, private :: is_initialised = .false.
   contains
-    procedure, public :: dspline
-    procedure, public :: ddspline
-
     procedure, public :: get_name
+    procedure, public :: get_spline_function
     procedure, public :: get_basis_function_name
     procedure, public :: get_default_basis_function
     procedure, public :: set_basis_function
     procedure, public :: delete
+
+    procedure, private :: spline
+    procedure, private :: dspline
+    procedure, private :: ddspline
   end type sv_component_t
 
   public :: new_sv_component
@@ -72,36 +73,78 @@ contains
 
 
   subroutine set_basis_function(this, spline_name)
-    use mod_basis_functions, only: hquad, hcubic
-
     class(sv_component_t), intent(inout) :: this
     character(len=*), intent(in) :: spline_name
 
-    this%spline_name = spline_name
     select case(this%spline_name)
-      case(QUADRATIC)
-        this%spline => hquad
-      case(CUBIC)
-        this%spline => hcubic
+      case(QUADRATIC, CUBIC)
+        this%spline_name = spline_name
       case default
         call logger%error("unknown basis function name: " // trim(adjustl(spline_name)))
-        return
     end select
   end subroutine set_basis_function
 
 
-  function dspline(this) result(spline)
+  subroutine get_spline_function(this, spline_order, spline_func)
+    use mod_basis_functions, only: hquad
+
+    class(sv_component_t), intent(in) :: this
+    integer, intent(in), optional :: spline_order
+    procedure(basis_function), pointer, intent(out) :: spline_func
+    integer :: order
+
+    order = 0
+    if (present(spline_order)) order = spline_order
+
+    spline_func => null()
+    select case(order)
+    case(0)
+      call this%spline(spline_func)
+    case(1)
+      call this%dspline(spline_func)
+    case(2)
+      call this%ddspline(spline_func)
+    case default
+      call logger%error("spline order = " // str(order) // " not implemented")
+      return
+    end select
+  end subroutine get_spline_function
+
+
+  subroutine spline(this, func)
+    use mod_basis_functions, only: hquad, hcubic
+
+    class(sv_component_t), intent(in) :: this
+    procedure(basis_function), pointer, intent(out) :: func
+
+    func => null()
+    select case(this%spline_name)
+      case(QUADRATIC)
+        func => hquad
+      case(CUBIC)
+        func => hcubic
+      case default
+        call logger%error( &
+          trim(adjustl(this%spline_name)) &
+          // " has no implemented basis function" &
+        )
+        return
+    end select
+  end subroutine spline
+
+
+  subroutine dspline(this, func)
     use mod_basis_functions, only: dhquad, dhcubic
 
     class(sv_component_t), intent(in) :: this
-    procedure(basis_function), pointer :: spline
+    procedure(basis_function), pointer, intent(out) :: func
 
-    spline => null()
+    func => null()
     select case(this%spline_name)
       case(QUADRATIC)
-        spline => dhquad
+        func => dhquad
       case(CUBIC)
-        spline => dhcubic
+        func => dhcubic
       case default
         call logger%error( &
           trim(adjustl(this%spline_name)) &
@@ -109,19 +152,19 @@ contains
         )
         return
     end select
-  end function dspline
+  end subroutine dspline
 
 
-  function ddspline(this) result(spline)
+  subroutine ddspline(this, func)
     use mod_basis_functions, only: ddhcubic
 
     class(sv_component_t), intent(in) :: this
-    procedure(basis_function), pointer :: spline
+    procedure(basis_function), pointer, intent(out) :: func
 
-    spline => null()
+    func => null()
     select case(this%spline_name)
       case(CUBIC)
-        spline => ddhcubic
+        func => ddhcubic
       case default
         call logger%error( &
           trim(adjustl(this%spline_name)) &
@@ -129,12 +172,14 @@ contains
         )
         return
     end select
-  end function ddspline
+  end subroutine ddspline
 
 
   pure subroutine delete(this)
     class(sv_component_t), intent(inout) :: this
-    this%spline => null()
+    this%name = ""
+    this%spline_name = ""
+    this%is_initialised = .false.
   end subroutine delete
 
 end module mod_state_vector_component
