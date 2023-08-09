@@ -1,49 +1,37 @@
 submodule (mod_boundary_manager) smod_natural_boundaries
   use mod_global_variables, only: ic, NaN
-  use mod_build_quadblock, only: add_to_quadblock
   use mod_equilibrium_params, only: k2, k3
-  use mod_matrix_structure, only: matrix_t
   use mod_settings, only: settings_t
+  use mod_matrix_elements, only: matrix_elements_t
+  use mod_state_vector, only: sv_rho1, sv_v1, sv_v2, sv_v3, sv_T1, sv_a1, sv_a2, sv_a3
   implicit none
-
-  !> quadratic basis functions
-  real(dp)  :: h_quad(4)
-  !> derivative of quadratic basis functions
-  real(dp)  :: dh_quad(4)
-  !> cubic basis functions
-  real(dp)  :: h_cubic(4)
-  !> derivative of cubic basis functions
-  real(dp)  :: dh_cubic(4)
 
   interface
     module subroutine add_natural_regular_terms( &
-      x, weight, quadblock, settings, grid, background &
+      x, elements, settings, grid, background &
     )
       real(dp), intent(in) :: x
-      real(dp), intent(in) :: weight
-      complex(dp), intent(inout)  :: quadblock(:, :)
+      type(matrix_elements_t), intent(inout) :: elements
       type(settings_t), intent(in) :: settings
       type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
     end subroutine add_natural_regular_terms
 
     module subroutine add_natural_flow_terms( &
-      x, weight, quadblock, settings, grid, background &
+      x, elements, settings, grid, background &
     )
       real(dp), intent(in) :: x
-      real(dp), intent(in) :: weight
-      complex(dp), intent(inout)  :: quadblock(:, :)
+      type(matrix_elements_t), intent(inout) :: elements
       type(settings_t), intent(in) :: settings
       type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
     end subroutine add_natural_flow_terms
 
     module subroutine add_natural_resistive_terms( &
-      x, weight, quadblock, settings, grid, background, physics &
+      x, elements, settings, grid, background, physics &
     )
       real(dp), intent(in) :: x
-      real(dp), intent(in) :: weight
-      complex(dp), intent(inout)  :: quadblock(:, :)
+      type(matrix_elements_t), intent(inout) :: elements
       type(settings_t), intent(in) :: settings
       type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
@@ -51,11 +39,10 @@ submodule (mod_boundary_manager) smod_natural_boundaries
     end subroutine add_natural_resistive_terms
 
     module subroutine add_natural_conduction_terms( &
-      x, weight, quadblock, settings, grid, background, physics &
+      x, elements, settings, grid, background, physics &
     )
       real(dp), intent(in) :: x
-      real(dp), intent(in) :: weight
-      complex(dp), intent(inout)  :: quadblock(:, :)
+      type(matrix_elements_t), intent(inout) :: elements
       type(settings_t), intent(in) :: settings
       type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
@@ -63,22 +50,20 @@ submodule (mod_boundary_manager) smod_natural_boundaries
     end subroutine add_natural_conduction_terms
 
     module subroutine add_natural_viscosity_terms( &
-      x, weight, quadblock, settings, grid, background &
+      x, elements, settings, grid, background &
     )
       real(dp), intent(in) :: x
-      real(dp), intent(in) :: weight
-      complex(dp), intent(inout)  :: quadblock(:, :)
+      type(matrix_elements_t), intent(inout) :: elements
       type(settings_t), intent(in) :: settings
       type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
     end subroutine add_natural_viscosity_terms
 
     module subroutine add_natural_hall_terms( &
-      x, weight, quadblock, settings, grid, background, physics &
+      x, elements, settings, grid, background, physics &
     )
       real(dp), intent(in) :: x
-      real(dp), intent(in) :: weight
-      complex(dp), intent(inout)  :: quadblock(:, :)
+      type(matrix_elements_t), intent(inout) :: elements
       type(settings_t), intent(in) :: settings
       type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
@@ -86,11 +71,10 @@ submodule (mod_boundary_manager) smod_natural_boundaries
     end subroutine add_natural_hall_terms
 
     module subroutine add_natural_hall_Bterms( &
-      x, weight, quadblock, settings, grid, background, physics &
+      x, elements, settings, grid, background, physics &
     )
       real(dp), intent(in) :: x
-      real(dp), intent(in) :: weight
-      complex(dp), intent(inout)  :: quadblock(:, :)
+      type(matrix_elements_t), intent(inout) :: elements
       type(settings_t), intent(in) :: settings
       type(grid_t), intent(in) :: grid
       type(background_t), intent(in) :: background
@@ -101,37 +85,45 @@ submodule (mod_boundary_manager) smod_natural_boundaries
 contains
 
   module procedure apply_natural_boundaries_left
+    use mod_build_quadblock, only: add_to_quadblock
+    use mod_matrix_elements, only: new_matrix_elements
+
     complex(dp), allocatable :: quadblock(:, :)
     integer :: i, j, dim_quadblock
     real(dp) :: x, weight
+    type(matrix_elements_t) :: elements
 
     dim_quadblock = settings%dims%get_dim_quadblock()
     allocate(quadblock(dim_quadblock, dim_quadblock))
     quadblock = (0.0d0, 0.0d0)
-    call set_basis_functions(settings=settings, grid=grid, edge="left")
 
+    elements = new_matrix_elements(settings%state_vector)
     x = grid%gaussian_grid(1)
     ! minus one here, since we evaluate boundaries as Bounds[x1] - Bounds[x0]
     weight = -1.0d0
 
     if (matrix%get_label() == "A") then
-      call add_natural_regular_terms(x, weight, quadblock, settings, grid, background)
-      call add_natural_flow_terms(x, weight, quadblock, settings, grid, background)
-      call add_natural_resistive_terms( &
-        x, weight, quadblock, settings, grid, background, physics &
-      )
+      call add_natural_regular_terms(x, elements, settings, grid, background)
+      call add_natural_flow_terms(x, elements, settings, grid, background)
+      call add_natural_resistive_terms(x, elements, settings, grid, background, physics)
       call add_natural_conduction_terms( &
-        x, weight, quadblock, settings, grid, background, physics &
+        x, elements, settings, grid, background, physics &
       )
-      call add_natural_viscosity_terms(x, weight, quadblock, settings, grid, background)
-      call add_natural_hall_terms( &
-        x, weight, quadblock, settings, grid, background, physics &
-      )
+      call add_natural_viscosity_terms(x, elements, settings, grid, background)
+      call add_natural_hall_terms(x, elements, settings, grid, background, physics)
     else if (matrix%get_label() == "B") then
-      call add_natural_hall_Bterms( &
-        x, weight, quadblock, settings, grid, background, physics &
-      )
+      call add_natural_hall_Bterms(x, elements, settings, grid, background, physics)
     end if
+    call add_to_quadblock( &
+      quadblock, &
+      elements, &
+      x, &
+      grid%base_grid(1), &
+      grid%base_grid(2), &
+      weight, &
+      settings%dims &
+    )
+
     ! add quadblock elements to left edge
     do j = 1, dim_quadblock
       do i = 1, dim_quadblock
@@ -139,19 +131,24 @@ contains
       end do
     end do
     deallocate(quadblock)
+    call elements%delete()
   end procedure apply_natural_boundaries_left
 
 
   module procedure apply_natural_boundaries_right
+    use mod_build_quadblock, only: add_to_quadblock
+    use mod_matrix_elements, only: new_matrix_elements
+
     complex(dp), allocatable :: quadblock(:, :)
     integer :: i, j, ishift, dim_quadblock
     real(dp) :: x, weight
+    type(matrix_elements_t) :: elements
 
     dim_quadblock = settings%dims%get_dim_quadblock()
     allocate(quadblock(dim_quadblock, dim_quadblock))
     quadblock = (0.0d0, 0.0d0)
-    call set_basis_functions(settings=settings, grid=grid, edge="right")
 
+    elements = new_matrix_elements(settings%state_vector)
     x = grid%gaussian_grid(settings%grid%get_gauss_gridpts())
     weight = 1.0d0
 
@@ -162,23 +159,33 @@ contains
     ishift = matrix%matrix_dim - dim_quadblock
 
     if (matrix%get_label() == "A") then
-      call add_natural_regular_terms(x, weight, quadblock, settings, grid, background)
-      call add_natural_flow_terms(x, weight, quadblock, settings, grid, background)
+      call add_natural_regular_terms(x, elements, settings, grid, background)
+      call add_natural_flow_terms(x, elements, settings, grid, background)
       call add_natural_resistive_terms( &
-        x, weight, quadblock, settings, grid, background, physics &
+        x, elements, settings, grid, background, physics &
       )
       call add_natural_conduction_terms( &
-        x, weight, quadblock, settings, grid, background, physics &
+        x, elements, settings, grid, background, physics &
       )
-      call add_natural_viscosity_terms(x, weight, quadblock, settings, grid, background)
+      call add_natural_viscosity_terms(x, elements, settings, grid, background)
       call add_natural_hall_terms( &
-        x, weight, quadblock, settings, grid, background, physics &
+        x, elements, settings, grid, background, physics &
       )
     else if (matrix%get_label() == "B") then
       call add_natural_hall_Bterms( &
-        x, weight, quadblock, settings, grid, background, physics &
+        x, elements, settings, grid, background, physics &
       )
     end if
+    call add_to_quadblock( &
+      quadblock, &
+      elements, &
+      x, &
+      grid%base_grid(settings%grid%get_gridpts() - 1), &
+      grid%base_grid(settings%grid%get_gridpts()), &
+      weight, &
+      settings%dims &
+    )
+
     ! add quadblock elements to right edge
     do j = 1, dim_quadblock
       do i = 1, dim_quadblock
@@ -188,37 +195,7 @@ contains
       end do
     end do
     deallocate(quadblock)
+    call elements%delete()
   end procedure apply_natural_boundaries_right
-
-
-  subroutine set_basis_functions(settings, grid, edge)
-    use mod_spline_functions, only: quadratic_factors, quadratic_factors_deriv, &
-      cubic_factors, cubic_factors_deriv
-
-    type(settings_t), intent(in) :: settings
-    type(grid_t), intent(in) :: grid
-    character(len=*), intent(in)  :: edge
-    real(dp) :: x_pos, x_left, x_right
-    integer :: gridpts
-
-    gridpts = settings%grid%get_gridpts()
-    if (edge == "left") then
-      x_left = grid%base_grid(1)
-      x_right = grid%base_grid(2)
-      x_pos = x_left
-    else if (edge == "right") then
-      x_left = grid%base_grid(gridpts - 1)
-      x_right = grid%base_grid(gridpts)
-      x_pos = x_right
-    else
-      call logger%error("natural bounds: invalid edge argument " // edge)
-    end if
-
-    ! set the basis functions
-    call quadratic_factors(x_pos, x_left, x_right, h_quad)
-    call quadratic_factors_deriv(x_pos, x_left, x_right, dh_quad)
-    call cubic_factors(x_pos, x_left, x_right, h_cubic)
-    call cubic_factors_deriv(x_pos, x_left, x_right, dh_cubic)
-  end subroutine
 
 end submodule smod_natural_boundaries

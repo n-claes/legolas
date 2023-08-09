@@ -76,12 +76,15 @@ contains
     class(sv_component_t), intent(inout) :: this
     character(len=*), intent(in) :: spline_name
 
-    select case(this%spline_name)
+    select case(spline_name)
       case(QUADRATIC, CUBIC)
         this%spline_name = spline_name
       case default
         call logger%error("unknown basis function name: " // trim(adjustl(spline_name)))
     end select
+    call logger%debug( &
+      "component " // trim(this%name) // " set to " // trim(this%spline_name) &
+    )
   end subroutine set_basis_function
 
 
