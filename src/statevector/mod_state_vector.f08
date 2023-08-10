@@ -5,8 +5,12 @@ module mod_state_vector
 
   private
 
+  type, private :: sv_comp_ptr_t
+    type(sv_component_t), pointer :: ptr
+  end type sv_comp_ptr_t
+
   type, public :: state_vector_t
-    type(sv_component_t), allocatable :: components(:)
+    type(sv_comp_ptr_t), allocatable :: components(:)
 
   contains
     procedure, public :: assemble
@@ -24,14 +28,14 @@ module mod_state_vector
   end type state_vector_t
 
   logical, save, private :: sv_components_initialised = .false.
-  type(sv_component_t), public, protected :: sv_rho1
-  type(sv_component_t), public, protected :: sv_v1
-  type(sv_component_t), public, protected :: sv_v2
-  type(sv_component_t), public, protected :: sv_v3
-  type(sv_component_t), public, protected :: sv_T1
-  type(sv_component_t), public, protected :: sv_a1
-  type(sv_component_t), public, protected :: sv_a2
-  type(sv_component_t), public, protected :: sv_a3
+  type(sv_component_t), public, protected, target :: sv_rho1
+  type(sv_component_t), public, protected, target :: sv_v1
+  type(sv_component_t), public, protected, target :: sv_v2
+  type(sv_component_t), public, protected, target :: sv_v3
+  type(sv_component_t), public, protected, target :: sv_T1
+  type(sv_component_t), public, protected, target :: sv_a1
+  type(sv_component_t), public, protected, target :: sv_a2
+  type(sv_component_t), public, protected, target :: sv_a3
 
 contains
 
@@ -40,13 +44,30 @@ contains
     character(len=*), intent(in) :: physics_type
 
     if (.not. sv_components_initialised) call initialise_sv_components()
+
     select case(physics_type)
       case("hd")
-        this%components = [sv_rho1, sv_v1, sv_v2, sv_v3, sv_T1]
+        allocate(this%components(5))
+        this%components(1)%ptr => sv_rho1
+        this%components(2)%ptr => sv_v1
+        this%components(3)%ptr => sv_v2
+        this%components(4)%ptr => sv_v3
+        this%components(5)%ptr => sv_T1
       case("hd-1d")
-        this%components = [sv_rho1, sv_v1, sv_T1]
+        allocate(this%components(3))
+        this%components(1)%ptr => sv_rho1
+        this%components(2)%ptr => sv_v1
+        this%components(3)%ptr => sv_T1
       case default
-        this%components = [sv_rho1, sv_v1, sv_v2, sv_v3, sv_T1, sv_a1, sv_a2, sv_a3]
+        allocate(this%components(8))
+        this%components(1)%ptr => sv_rho1
+        this%components(2)%ptr => sv_v1
+        this%components(3)%ptr => sv_v2
+        this%components(4)%ptr => sv_v3
+        this%components(5)%ptr => sv_T1
+        this%components(6)%ptr => sv_a1
+        this%components(7)%ptr => sv_a2
+        this%components(8)%ptr => sv_a3
     end select
   end subroutine assemble
 
@@ -62,7 +83,7 @@ contains
     end if
     if (.not. this%is_compatible_with(splines)) return
     do i = 1, size(this%components)
-      call this%components(i)%set_basis_function(splines(i))
+      call this%components(i)%ptr%set_basis_function(splines(i))
     end do
   end subroutine set_basis_functions
 
@@ -73,8 +94,8 @@ contains
     integer :: i
 
     do i = 1, size(this%components)
-      default_name = this%components(i)%get_default_basis_function()
-      call this%components(i)%set_basis_function(default_name)
+      default_name = this%components(i)%ptr%get_default_basis_function()
+      call this%components(i)%ptr%set_basis_function(default_name)
     end do
   end subroutine set_default_basis_functions
 
@@ -84,9 +105,9 @@ contains
     character(len=:), allocatable :: names(:)
     integer :: i
 
-    allocate(names(size(this%components)), mold=this%components(1)%get_name())
+    allocate(names(size(this%components)), mold=this%components(1)%ptr%get_name())
     do i = 1, size(this%components)
-      names(i) = this%components(i)%get_name()
+      names(i) = this%components(i)%ptr%get_name()
     end do
   end function get_names
 
@@ -96,9 +117,9 @@ contains
     character(len=:), allocatable :: names(:)
     integer :: i
 
-    allocate(names(size(this%components)), mold=this%components(1)%get_name())
+    allocate(names(size(this%components)), mold=this%components(1)%ptr%get_name())
     do i = 1, size(this%components)
-      names(i) = this%components(i)%get_basis_function_name()
+      names(i) = this%components(i)%ptr%get_basis_function_name()
     end do
   end function get_basis_functions
 
@@ -117,7 +138,7 @@ contains
 
     contains_on_name = .false.
     do i = 1, size(this%components)
-      if (this%components(i)%get_name() == name) then
+      if (this%components(i)%ptr%get_name() == name) then
         contains_on_name = .true.
         return
       end if
@@ -145,8 +166,8 @@ contains
 
   subroutine delete(this)
     class(state_vector_t), intent(inout) :: this
+    integer :: i
 
-    if (allocated(this%components)) deallocate(this%components)
     call sv_rho1%delete()
     call sv_v1%delete()
     call sv_v2%delete()
@@ -156,6 +177,12 @@ contains
     call sv_a2%delete()
     call sv_a3%delete()
     sv_components_initialised = .false.
+    if (allocated(this%components)) then
+      do i = 1, size(this%components)
+        nullify(this%components(i)%ptr)
+      end do
+      deallocate(this%components)
+    end if
   end subroutine delete
 
 
@@ -172,6 +199,7 @@ contains
     sv_a2 = new_sv_component(sv_a2_name)
     sv_a3 = new_sv_component(sv_a3_name)
     sv_components_initialised = .true.
+    call logger%debug("initialised state vector module components")
   end subroutine initialise_sv_components
 
 
