@@ -103,7 +103,7 @@ set (sources
         ${USR_SMOD_LOC}/smod_user_defined.f08
         boundaries/mod_boundary_manager.f08
         boundaries/smod_essential_boundaries.f08
-        boundaries/smod_natural_boundaries.f08
+        boundaries/mod_natural_boundaries.f08
         boundaries/smod_natural_bounds_regular.f08
         boundaries/smod_natural_bounds_flow.f08
         boundaries/smod_natural_bounds_resistive.f08

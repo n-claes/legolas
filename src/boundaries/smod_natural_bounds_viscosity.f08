@@ -1,4 +1,4 @@
-submodule (mod_boundary_manager:smod_natural_boundaries) smod_natural_bounds_viscosity
+submodule (mod_natural_boundaries) smod_natural_bounds_viscosity
   implicit none
 
 contains

@@ -27,26 +27,6 @@ module mod_boundary_manager
       type(matrix_t), intent(inout) :: matrix
       type(settings_t), intent(in) :: settings
     end subroutine apply_essential_boundaries_right
-
-    module subroutine apply_natural_boundaries_left( &
-      matrix, settings, grid, background, physics &
-    )
-      type(matrix_t), intent(inout) :: matrix
-      type(settings_t), intent(in) :: settings
-      type(grid_t), intent(in) :: grid
-      type(background_t), intent(in) :: background
-      type(physics_t), intent(in) :: physics
-    end subroutine apply_natural_boundaries_left
-
-    module subroutine apply_natural_boundaries_right( &
-      matrix, settings, grid, background, physics &
-    )
-      type(matrix_t), intent(inout) :: matrix
-      type(settings_t), intent(in) :: settings
-      type(grid_t), intent(in) :: grid
-      type(background_t), intent(in) :: background
-      type(physics_t), intent(in) :: physics
-    end subroutine apply_natural_boundaries_right
   end interface
 
   public :: apply_boundary_conditions
@@ -56,6 +36,9 @@ contains
   subroutine apply_boundary_conditions( &
     matrix_A, matrix_B, settings, grid, background, physics &
   )
+    use mod_natural_boundaries, only: apply_natural_boundaries_left, &
+      apply_natural_boundaries_right
+
     !> the A-matrix with boundary conditions imposed on exit
     type(matrix_t), intent(inout) :: matrix_A
     !> the B-matrix with boundary conditions imposed on exit
