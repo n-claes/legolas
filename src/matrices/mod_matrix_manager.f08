@@ -178,15 +178,15 @@ contains
       x_left = grid%base_grid(i)
       x_right = grid%base_grid(i + 1)
 
-      elements_A = new_matrix_elements(settings%state_vector)
-      elements_B = new_matrix_elements(settings%state_vector)
-
       ! loop over Gaussian points to calculate integral
       do j = 1, n_gauss
         ! current grid index of Gaussian grid
         gauss_idx = (i - 1) * n_gauss + j
         x_gauss = grid%gaussian_grid(gauss_idx)
         weight = gaussian_weights(j)
+
+        elements_A = new_matrix_elements(settings%state_vector)
+        elements_B = new_matrix_elements(settings%state_vector)
 
         ! get matrix elements
         call add_bmatrix_terms( &
@@ -222,13 +222,12 @@ contains
         call add_to_quadblock( &
           quadblock_A, elements_A, x_gauss, x_left, x_right, weight, settings%dims &
         )
+        call elements_A%delete()
         call add_to_quadblock( &
           quadblock_B, elements_B, x_gauss, x_left, x_right, weight, settings%dims &
         )
+        call elements_B%delete()
       end do
-
-      call elements_A%delete()
-      call elements_B%delete()
 
       ! dx from integral
       quadblock_B = quadblock_B * (x_right - x_left)
