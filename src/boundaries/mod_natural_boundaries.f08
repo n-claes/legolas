@@ -99,7 +99,7 @@ contains
     integer :: i, j, dim_quadblock
 
     call fetch_boundary_quadblock( &
-      x=grid%gaussian_grid(1), &
+      x=grid%base_grid(1), &
       x0=grid%base_grid(1), &
       x1=grid%base_grid(2), &
       weight=-1.0_dp, &  ! -1 since we evaluate boundaries as Bounds[x1] - Bounds[x0]
@@ -132,7 +132,7 @@ contains
     integer :: i, j, dim_quadblock, ishift
 
     call fetch_boundary_quadblock( &
-      x=grid%gaussian_grid(settings%grid%get_gauss_gridpts()), &
+      x=grid%base_grid(settings%grid%get_gridpts()), &
       x0=grid%base_grid(settings%grid%get_gridpts() - 1), &
       x1=grid%base_grid(settings%grid%get_gridpts()), &
       weight=1.0_dp, &
