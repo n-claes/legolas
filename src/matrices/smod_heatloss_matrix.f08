@@ -16,6 +16,7 @@ contains
     LT = physics%heatloss%get_dLdT(x)
     L0 = physics%heatloss%get_L0(x)
 
+    ! ==================== Quadratic * Quadratic ====================
     call elements%add(-ic * gamma_1 * (L0 + rho * Lrho), sv_T1, sv_rho1)
     call elements%add(-ic * gamma_1 * rho * LT, sv_T1, sv_T1)
   end procedure add_heatloss_matrix_terms

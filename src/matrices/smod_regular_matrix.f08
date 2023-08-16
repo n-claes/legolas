@@ -9,12 +9,14 @@ contains
     rho = background%density%rho0(x)
     eps = grid%get_eps(x)
 
+    ! ==================== Quadratic * Quadratic ====================
     call elements%add(1.0_dp, sv_rho1, sv_rho1)
-    call elements%add(rho, sv_v1, sv_v1)
     call elements%add(eps * rho, sv_v2, sv_v2)
     call elements%add(rho, sv_v3, sv_v3)
     call elements%add(rho, sv_T1, sv_T1)
     call elements%add(eps, sv_a1, sv_a1)
+    ! ==================== Cubic * Cubic ====================
+    call elements%add(rho, sv_v1, sv_v1)
     call elements%add(1.0_dp, sv_a2, sv_a2)
     call elements%add(eps, sv_a3, sv_a3)
   end procedure add_bmatrix_terms
@@ -54,6 +56,7 @@ contains
     Gop_min = k3 * B02 - k2 * B03 / eps
     WVop = k2**2 / eps + eps * k3**2
 
+    ! ==================== Quadratic * Cubic ====================
     call elements%add(-drho, sv_rho1, sv_v1)
     call elements%add(k3 * (drB02 - ic * k2 * B01) / eps, sv_v2, sv_a2)
     call elements%add(k2 * (ic * k2 * B01 - drB02) / eps, sv_v2, sv_a3)
@@ -63,6 +66,7 @@ contains
       -dT0 * rho, sv_T1, sv_v1 &
     )
 
+    ! ==================== Quadratic * dCubic ====================
     call elements%add(-rho, sv_rho1, sv_v1, s2do=1)
     call elements%add(k2 * B03 / eps, sv_v2, sv_a2, s2do=1)
     call elements%add(eps * k3 * B03, sv_v2, sv_a3, s2do=1)
@@ -70,6 +74,7 @@ contains
     call elements%add(-eps * k3 * B02, sv_v3, sv_a3, s2do=1)
     call elements%add(-gamma_1 * T0 * rho, sv_T1, sv_v1, s2do=1)
 
+    ! ==================== Quadratic * Quadratic ====================
     call elements%add(rho * k2, sv_rho1, sv_v2)
     call elements%add(rho * k3, sv_rho1, sv_v3)
     call elements%add(k2 * T0 / eps, sv_v2, sv_rho1)
@@ -83,6 +88,7 @@ contains
     call elements%add(-eps * B03, sv_a1, sv_v2)
     call elements%add(B02, sv_a1, sv_v3)
 
+    ! ==================== Cubic * Quadratic ====================
     call elements%add(-deps * T0 / eps, sv_v1, sv_rho1)
     if (settings%physics%gravity%is_enabled()) call elements%add(g0, sv_v1, sv_rho1)
     call elements%add(-deps * rho / eps, sv_v1, sv_T1)
@@ -90,24 +96,30 @@ contains
     call elements%add(ic * B01, sv_a2, sv_v3)
     call elements%add(-ic * eps * B01, sv_a3, sv_v2)
 
+    ! ==================== dCubic * Quadratic ====================
     call elements%add(-T0, sv_v1, sv_rho1, s1do=1)
     call elements%add(-rho, sv_v1, sv_T1, s1do=1)
     call elements%add(-eps * Gop_min, sv_v1, sv_a1, s1do=1)
 
+    ! ==================== Cubic * Cubic ====================
     call elements%add(-k3 * Fop_plus, sv_v1, sv_a2)
     call elements%add(k2 * Fop_plus, sv_v1, sv_a3)
     call elements%add(-B03, sv_a2, sv_v1)
     call elements%add(B02, sv_a3, sv_v1)
 
+    ! ==================== Cubic * dCubic ====================
     call elements%add(-deps * B03 / eps, sv_v1, sv_a2, s2do=1)
     call elements%add(-deps * B02, sv_v1, sv_a3, s2do=1)
 
+    ! ==================== dCubic * dCubic ====================
     call elements%add(-B03, sv_v1, sv_a2, s1do=1, s2do=1)
     call elements%add(eps * B02, sv_v1, sv_a3, s1do=1, s2do=1)
 
+    ! ==================== dQuadratic * Quadratic ====================
     call elements%add(-ic * eps * k3 * B01, sv_v2, sv_a1, s1do=1)
     call elements%add(ic * k2 * B01, sv_v3, sv_a1, s1do=1)
 
+    ! ==================== dQuadratic * dCubic ====================
     call elements%add(ic * eps * B01, sv_v2, sv_a3, s1do=1, s2do=1)
     call elements%add(-ic * B01, sv_v3, sv_a2, s1do=1, s2do=1)
   end procedure add_regular_matrix_terms

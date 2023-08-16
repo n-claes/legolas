@@ -37,27 +37,34 @@ contains
     Rop_pos = deps * eta / eps + deta
     Rop_neg = deps * eta / eps - deta
 
+    ! ==================== Quadratic * Quadratic ====================
     call elements%add(-ic * eta * WVop, sv_a1, sv_a1)
 
+    ! ==================== Quadratic * dCubic ====================
     call elements%add(ic * eta * k2 / eps, sv_a1, sv_a2, s2do=1)
     call elements%add(ic * eta * eps * k3, sv_a1, sv_a3, s2do=1)
 
+    ! ==================== Cubic * Quadratic ====================
     call elements%add(ic * dB03 * detadT, sv_a2, sv_T1)
     call elements%add(ic * k2 * Rop_pos, sv_a2, sv_a1)
     call elements%add(-ic * drB02 * detadT / eps, sv_a3, sv_T1)
     call elements%add(ic * deta * eps * k3, sv_a3, sv_a1)
 
+    ! ==================== dCubic * Quadratic ====================
     call elements%add(ic * eta * k2, sv_a2, sv_a1, s1do=1)
     call elements%add(ic * eta * eps * k3, sv_a3, sv_a1, s1do=1)
 
+    ! ==================== Cubic * Cubic ====================
     call elements%add(-ic * eta * k3**2, sv_a2, sv_a2)
     call elements%add(ic * eta * k2 * k3, sv_a2, sv_a3)
     call elements%add(ic * eta * k2 * k3 / eps, sv_a3, sv_a2)
     call elements%add(-ic * eta * k2**2 / eps, sv_a3, sv_a3)
 
+    ! ==================== Cubic * dCubic ====================
     call elements%add(-ic * Rop_pos, sv_a2, sv_a2, s2do=1)
     call elements%add(-ic * deta * eps, sv_a3, sv_a3, s2do=1)
 
+    ! ==================== dCubic * dCubic ====================
     call elements%add(-ic * eta, sv_a2, sv_a2, s1do=1, s2do=1)
     call elements%add(-ic * eta * eps, sv_a3, sv_a3, s1do=1, s2do=1)
 
@@ -67,7 +74,7 @@ contains
   contains
 
     subroutine add_compressible_resistive_terms()
-
+      ! ==================== Quadratic * Quadratic ====================
       call elements%add( &
         ic * gamma_1 * detadT * ((drB02 / eps)**2 + dB03**2), sv_T1, sv_T1 &
       )
@@ -79,14 +86,14 @@ contains
         sv_T1, &
         sv_a1 &
       )
-
+      ! ==================== dQuadratic * Quadratic ====================
       call elements%add( &
         -2.0d0 * ic * gamma_1 * eta * (k3 * drB02 - k2 * dB03), &
         sv_T1, &
         sv_a1, &
         s1do=1 &
       )
-
+      ! ==================== Quadratic * Cubic ====================
       call elements%add( &
         -2.0d0 * ic * gamma_1 * eta * (drB02 * k2 * k3 / eps**2 + k3**2 * dB03), &
         sv_T1, &
@@ -97,7 +104,7 @@ contains
         sv_T1, &
         sv_a3 &
       )
-
+      ! ==================== Quadratic * dCubic ====================
       call elements%add( &
         -2.0d0 * ic * gamma_1 * (dB03 * Rop_pos + ddB03 * eta), sv_T1, sv_a2, s2do=1 &
       )
@@ -109,7 +116,7 @@ contains
         sv_a3, &
         s2do=1 &
       )
-
+      ! ==================== dQuadratic * dCubic ====================
       call elements%add( &
         -2.0d0 * ic * gamma_1 * eta * dB03, sv_T1, sv_a2, s1do=1, s2do=1 &
       )

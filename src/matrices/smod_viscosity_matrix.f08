@@ -89,7 +89,7 @@ contains
       ! ==================== dQuadratic * Quadratic ====================
       call elements%add(-2.0d0 * ic * gamma_1 * mu * dv03, sv_T1, sv_v3, s1do=1)
       ! ==================== dQuadratic * Cubic ====================
-      call elements%add(-2.0d0 * gamma_1 * mu * dv01, sv_T1, sv_v1, s1do=1, s2do=1)
+      call elements%add(-2.0d0 * gamma_1 * mu * dv01, sv_T1, sv_v1, s1do=1)
       ! ==================== Quadratic * dQuadratic ====================
       call elements%add(2.0d0 * ic * gamma_1 * mu * eps * dv02, sv_T1, sv_v2, s2do=1)
     end if
