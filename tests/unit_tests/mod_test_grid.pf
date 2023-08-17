@@ -243,5 +243,34 @@ contains
       end if
     end function negative_dx
   end subroutine test_spacing_function_custom_negative_dx
+ 
+
+  @test
+  subroutine test_custom_symmetric_grid()
+    integer, parameter :: pts = 100
+    integer :: gridpts
+    call set_name("grid: symmetric grid with custom spacing function, gaussian")
+    call settings%grid%set_grid_boundaries(-10.0_dp, 10.0_dp)
+    call settings%grid%set_gridpts(pts)
+    settings%grid%symmetric_grid = .true.
+    grid = new_grid(settings)
+    call grid%set_spacing_function(gaussian_dx)
+    call grid%initialise()
+    gridpts = settings%grid%get_gridpts()
+
+    @assertEqual(-10.0_dp, grid%base_grid(1))
+    @assertEqual(10.0_dp, grid%base_grid(gridpts))
+    @assertTrue(is_monotonic(grid%base_grid))
+    do i = 1, (gridpts - 1) / 2
+      @assertEqual(0, grid%base_grid(i) + grid%base_grid(gridpts - i + 1), tolerance=TOL)
+    end do
+
+  contains
+
+    real(dp) function gaussian_dx(x)
+      real(dp), intent(in) :: x
+      gaussian_dx = 0.75_dp - 0.74_dp * exp(-x**2 / 5.0_dp)
+    end function gaussian_dx
+  end subroutine test_custom_symmetric_grid
 
 end module mod_test_grid
