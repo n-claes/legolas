@@ -61,9 +61,10 @@ contains
     real(dp) :: x_start, x_end
     logical :: coaxial
     logical :: force_r0
+    logical :: symmetric_grid
 
     namelist /gridlist/ &
-      geometry, gridpoints, x_start, x_end, coaxial, force_r0
+      geometry, gridpoints, x_start, x_end, coaxial, force_r0, symmetric_grid
 
     ! defaults
     geometry = settings%grid%get_geometry()
@@ -72,6 +73,7 @@ contains
     x_end = settings%grid%get_grid_end()
     coaxial = settings%grid%coaxial
     force_r0 = settings%grid%force_r0
+    symmetric_grid = settings%grid%symmetric_grid
 
     read(unit, nml=gridlist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
@@ -81,6 +83,7 @@ contains
     call settings%grid%set_grid_boundaries(grid_start=x_start, grid_end=x_end)
     settings%grid%coaxial = coaxial
     settings%grid%force_r0 = force_r0
+    settings%grid%symmetric_grid = symmetric_grid
   end subroutine read_gridlist
 
 

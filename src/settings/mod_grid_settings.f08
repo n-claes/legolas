@@ -13,6 +13,7 @@ module mod_grid_settings
     real(dp), private :: grid_end
     logical :: coaxial
     logical :: force_r0
+    logical :: symmetric_grid
 
   contains
 
@@ -42,6 +43,7 @@ contains
     call grid_settings%set_grid_boundaries(0.0_dp, 1.0_dp)
     grid_settings%coaxial = .false.
     grid_settings%force_r0 = .false.
+    grid_settings%symmetric_grid = .false.
   end function new_grid_settings
 
 
