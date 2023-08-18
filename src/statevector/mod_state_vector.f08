@@ -100,7 +100,7 @@ contains
   end subroutine set_default_basis_functions
 
 
-  function get_names(this) result(names)
+  pure function get_names(this) result(names)
     class(state_vector_t), intent(in) :: this
     character(len=:), allocatable :: names(:)
     integer :: i

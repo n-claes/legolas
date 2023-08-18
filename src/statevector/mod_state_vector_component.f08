@@ -38,7 +38,7 @@ contains
   end function new_sv_component
 
 
-  function get_name(this) result(name)
+  pure function get_name(this) result(name)
     class(sv_component_t), intent(in) :: this
     character(:), allocatable :: name
     name = this%name
@@ -89,8 +89,6 @@ contains
 
 
   subroutine get_spline_function(this, spline_order, spline_func)
-    use mod_basis_functions, only: hquad
-
     class(sv_component_t), intent(in) :: this
     integer, intent(in), optional :: spline_order
     procedure(basis_function), pointer, intent(out) :: spline_func
@@ -108,7 +106,10 @@ contains
     case(2)
       call this%ddspline(spline_func)
     case default
-      call logger%error("spline order = " // str(order) // " not implemented")
+      call logger%error( &
+        "spline order = " // str(order) // " not implemented for spline " &
+        // trim(adjustl(this%spline_name)) &
+      )
       return
     end select
   end subroutine get_spline_function
