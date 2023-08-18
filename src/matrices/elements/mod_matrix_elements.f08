@@ -67,6 +67,9 @@ contains
     if (.not. is_valid_position(position)) return
 
     node_element = cast_node_element_to_complex(element)
+    if (is_NaN_element(node_element, sv_comp1, sv_comp2)) return
+    if (is_inf_element(node_element, sv_comp1, sv_comp2)) return
+
     call sv_comp1%get_spline_function(spline_order=s1do, spline_func=spline1)
     call sv_comp2%get_spline_function(spline_order=s2do, spline_func=spline2)
     ! if head is not associated, then the list is empty and we create the first node
@@ -165,6 +168,36 @@ contains
     integer, intent(in) :: position(:)
     is_valid_position = all(position > 0)
   end function is_valid_position
+
+
+  logical function is_NaN_element(element, sv_comp1, sv_comp2)
+    use mod_check_values, only: is_NaN
+
+    complex(dp), intent(in) :: element
+    type(sv_component_t), intent(in) :: sv_comp1
+    type(sv_component_t), intent(in) :: sv_comp2
+
+    is_NaN_element = is_NaN(element)
+    if (is_NaN_element) call logger%error( &
+      "NaN matrix element encountered for [" &
+      // trim(sv_comp1%get_name()) // ", " // trim(sv_comp2%get_name()) // "]" &
+    )
+  end function is_NaN_element
+
+
+  logical function is_inf_element(element, sv_comp1, sv_comp2)
+    use mod_check_values, only: is_infinite
+
+    complex(dp), intent(in) :: element
+    type(sv_component_t), intent(in) :: sv_comp1
+    type(sv_component_t), intent(in) :: sv_comp2
+
+    is_inf_element = is_infinite(element)
+    if (is_inf_element) call logger%error( &
+      "Infinity encountered in matrix element for [" &
+      // trim(sv_comp1%get_name()) // ", " // trim(sv_comp2%get_name()) // "]" &
+    )
+  end function is_inf_element
 
 
   pure subroutine increment_nb_elements(this)

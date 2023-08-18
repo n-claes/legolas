@@ -8,6 +8,7 @@ module mod_natural_boundaries
   use mod_physics, only: physics_t
   use mod_state_vector, only: sv_rho1, sv_v1, sv_v2, sv_v3, sv_T1, sv_a1, sv_a2, sv_a3
   use mod_equilibrium_params, only: k2, k3
+  use mod_logging, only: logger
   implicit none
   private
 
@@ -98,6 +99,10 @@ contains
     complex(dp), allocatable :: quadblock(:, :)
     integer :: i, j, dim_quadblock
 
+    call logger%debug( &
+      "applying left natural boundary conditions for " &
+      // matrix%get_label() // " matrix" &
+    )
     call fetch_boundary_quadblock( &
       x=grid%base_grid(1), &
       x0=grid%base_grid(1), &
@@ -131,6 +136,10 @@ contains
     complex(dp), allocatable :: quadblock(:, :)
     integer :: i, j, dim_quadblock, ishift
 
+    call logger%debug( &
+      "applying right natural boundary conditions for " &
+      // matrix%get_label() // " matrix" &
+    )
     call fetch_boundary_quadblock( &
       x=grid%base_grid(settings%grid%get_gridpts()), &
       x0=grid%base_grid(settings%grid%get_gridpts() - 1), &
