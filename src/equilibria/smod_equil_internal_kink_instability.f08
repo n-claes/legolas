@@ -26,10 +26,10 @@ contains
 
   module procedure internal_kink_eq
     call settings%grid%set_geometry("cylindrical")
-    call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
 
-    a0 = settings%grid%get_grid_end()
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
+      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+
       call settings%physics%enable_flow()
       cte_rho0 = 1.0_dp
       cte_v03  = 1.0_dp
@@ -39,6 +39,8 @@ contains
       k2 = 1.0_dp
       k3 = 0.16_dp * alpha
     end if ! LCOV_EXCL_STOP
+
+    a0 = settings%grid%get_grid_end()
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_velocity_3_funcs(v03_func=v03, dv03_func=dv03)
