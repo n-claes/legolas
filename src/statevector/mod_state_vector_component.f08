@@ -7,16 +7,21 @@ module mod_state_vector_component
 
   private
 
+  character(str_len_arr), parameter, private :: CUSTOM = "custom"
+
   type, public :: sv_component_t
     character(len=str_len_arr), private :: spline_name
     character(len=str_len_arr), private :: name
     logical, private :: is_initialised = .false.
+
+    procedure(basis_function), pointer, private, nopass :: custom_spline
   contains
     procedure, public :: get_name
     procedure, public :: get_spline_function
     procedure, public :: get_basis_function_name
     procedure, public :: get_default_basis_function
     procedure, public :: set_basis_function
+    procedure, public :: set_custom_spline
     procedure, public :: delete
 
     procedure, private :: spline
@@ -88,11 +93,25 @@ contains
   end subroutine set_basis_function
 
 
+  subroutine set_custom_spline(this, func)
+    class(sv_component_t), intent(inout) :: this
+    procedure(basis_function) :: func
+
+    this%spline_name = CUSTOM
+    this%custom_spline => func
+  end subroutine set_custom_spline
+
+
   subroutine get_spline_function(this, spline_order, spline_func)
     class(sv_component_t), intent(in) :: this
     integer, intent(in), optional :: spline_order
     procedure(basis_function), pointer, intent(out) :: spline_func
     integer :: order
+
+    if (this%spline_name == CUSTOM) then
+      spline_func => this%custom_spline
+      return
+    end if
 
     order = 0
     if (present(spline_order)) order = spline_order
@@ -184,6 +203,7 @@ contains
     this%name = ""
     this%spline_name = ""
     this%is_initialised = .false.
+    nullify(this%custom_spline)
   end subroutine delete
 
 end module mod_state_vector_component
