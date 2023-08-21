@@ -1,6 +1,7 @@
 module mod_build_quadblock
   use mod_global_variables, only: dp
   use mod_dims, only: dims_t
+  use mod_logging, only: logger, str
   use mod_matrix_element_node, only: matrix_element_node_t
   use mod_matrix_elements, only: matrix_elements_t
   implicit none
@@ -37,6 +38,7 @@ contains
 
     do inode = 1, elements%get_nb_elements()
       node => elements%get_node(inode)
+      if (.not. node_has_spline(node)) return
       allocate(spline1, source=node%spline1(x, x0, x1))
       allocate(spline2, source=node%spline2(x, x0, x1))
 
@@ -79,5 +81,15 @@ contains
     nullify(node)
     deallocate(new_quadblock)
   end subroutine add_to_quadblock
+
+
+  logical function node_has_spline(node)
+    type(matrix_element_node_t), intent(in) :: node
+
+    node_has_spline = associated(node%spline1) .and. associated(node%spline2)
+    if (.not. node_has_spline) call logger%error( &
+      "matrix element node has no spline procedure linked! Are basis function set?" &
+    )
+  end function node_has_spline
 
 end module mod_build_quadblock
