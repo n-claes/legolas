@@ -115,8 +115,8 @@ contains
     MHD_SPLINES(7) = QUADRATIC
     call sv_test%set_basis_functions(splines=MHD_SPLINES)
     @assertTrue(all(sv_test%get_basis_functions() == MHD_SPLINES))
-    @assertEqual(CUBIC, sv_test%components(1)%get_basis_function_name())
-    @assertEqual(QUADRATIC, sv_test%components(7)%get_basis_function_name())
+    @assertEqual(CUBIC, sv_test%components(1)%ptr%get_basis_function_name())
+    @assertEqual(QUADRATIC, sv_test%components(7)%ptr%get_basis_function_name())
   end subroutine test_sv_set_splines_mhd
 
 

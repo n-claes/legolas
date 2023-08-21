@@ -41,9 +41,10 @@ include(${setup_tools}/findLAPACK.cmake)
 include(${setup_tools}/findARPACK.cmake)
 
 # add default modules to library
-add_library(suite
-        mod_suite_utils.f90
+set( aux_modules
+    mod_suite_utils.f90
 )
+add_library(suite ${aux_modules})
 set_target_properties (suite
         PROPERTIES
         Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
