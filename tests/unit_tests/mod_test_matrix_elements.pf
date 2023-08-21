@@ -4,7 +4,8 @@ module mod_test_matrix_elements
   use mod_state_vector, only: state_vector_t, sv_rho1, sv_v1, sv_v2, sv_v3, sv_T1, sv_a1
   use mod_matrix_elements, only: matrix_elements_t, new_matrix_elements
   use mod_matrix_element_node, only: matrix_element_node_t
-  use mod_basis_functions, only: hquad, hcubic, dhquad, dhcubic, ddhcubic
+  use mod_basis_functions, only: basis_function, hquad, hcubic, dhquad, dhcubic, &
+    ddhcubic
   implicit none
 
   type(state_vector_t) :: state_vector
@@ -159,31 +160,42 @@ contains
 
   @test
   subroutine test_add_element_get_splines()
+    procedure(basis_function), pointer :: spline1
     call set_name("elements: add element and retrieve splines")
     call elements%add(1.0d0, sv_rho1, sv_rho1)
     node => elements%get_node(1)
-    @assertTrue(associated(node%spline1, hquad))
-    @assertTrue(associated(node%spline2, hquad))
+    spline1 => hquad
+    ! Need intermediate variable + swapped target order to prevent an
+    ! ICE (internal compiler error) using `associate` in GCC-9 through GCC-11.
+    ! GCC-12 is fine, see also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98565
+    @assertTrue(associated(spline1, target=node%spline1))
+    @assertTrue(associated(spline1, target=node%spline2))
   end subroutine test_add_element_get_splines
 
 
   @test
   subroutine test_add_element_get_dsplines()
+    procedure(basis_function), pointer :: spline1, spline2
     call set_name("elements: add element and retrieve dsplines")
     call elements%add(2.0_dp, sv_rho1, sv_v1, s1do=1)
     node => elements%get_node(1)
-    @assertTrue(associated(node%spline1, dhquad))
-    @assertTrue(associated(node%spline2, hcubic))
+    spline1 => dhquad
+    spline2 => hcubic
+    @assertTrue(associated(spline1, target=node%spline1))
+    @assertTrue(associated(spline2, target=node%spline2))
   end subroutine test_add_element_get_dsplines
 
 
   @test
   subroutine test_add_element_get_ddsplines()
+    procedure(basis_function), pointer :: spline1, spline2
     call set_name("elements: add element and retrieve ddsplines")
     call elements%add(2.0_dp, sv_rho1, sv_v1, s1do=1, s2do=2)
     node => elements%get_node(1)
-    @assertTrue(associated(node%spline1, dhquad))
-    @assertTrue(associated(node%spline2, ddhcubic))
+    spline1 => dhquad
+    spline2 => ddhcubic
+    @assertTrue(associated(spline1, target=node%spline1))
+    @assertTrue(associated(spline2, target=node%spline2))
   end subroutine test_add_element_get_ddsplines
 
 
