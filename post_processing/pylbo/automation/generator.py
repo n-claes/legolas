@@ -10,6 +10,8 @@ from pylbo.exceptions import ParfileGenerationError
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import transform_to_list
 
+KEYS_EXPECTED_AS_LIST = ["basis_functions"]
+
 
 def _ensure_nb_names_and_nb_runs_matches(
     names: Union[str, list[str]], nb_runs: int
@@ -98,6 +100,16 @@ def _validate_output_dir(output_dir, subdir):
     return output
 
 
+def _handle_expected_item_list(item):
+    # check that item is a list containing additional lists
+    if not isinstance(item, list):
+        raise TypeError(f"Expected item {item} to be a list of lists.")
+    for obj in item:
+        if not isinstance(obj, list):
+            raise TypeError(f"Expected item '{obj}' in {item} to be a list itself.")
+    return item
+
+
 class ParfileGenerator:
     """
     Handles parfile generation.
@@ -171,7 +183,11 @@ class ParfileGenerator:
         """
         item = self.parfile_dict.pop(name, None)
         if item is not None:
-            item_aslist = transform_to_list(item)
+            item_aslist = (
+                transform_to_list(item)
+                if name not in KEYS_EXPECTED_AS_LIST
+                else _handle_expected_item_list(item)
+            )
             for obj in item_aslist:
                 if not isinstance(obj, allowed_dtypes):
                     raise TypeError(

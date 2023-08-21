@@ -54,6 +54,7 @@ This namelist includes all physics-related variables.
 | Parameter             | Type    | Description      | Default value     |
 | :---                  |  :---:  |  :----        |          :---:      |
 | physics_type          | string  | physics type to use, can be `{"mhd", "hd", "hd-1d"}` | `"mhd"` |
+| basis_functions       | list    | basis functions corresponding to the state vector components, options are `{"quadratic", "cubic"}`. By default ($\rho_1$, $v_2$, $v_3$, $T_1$, $a_1$) are `"quadratic"`, ($v_1$, $a_2$ and $a_3$) are `"cubic"`. | - |
 | mhd_gamma             | real    | ratio of specific heats $\gamma$ | $\frac{5}{3}$ |
 | incompressible | logical | whether to use the incompressible approximation, this sets $\gamma = 10^{12}$ and eliminates some matrix elements | `.false.` |
 | flow  | logical | inclusion of background flow effects | `.false.` |
