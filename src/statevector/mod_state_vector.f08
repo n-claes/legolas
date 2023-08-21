@@ -44,6 +44,7 @@ contains
     character(len=*), intent(in) :: physics_type
 
     if (.not. sv_components_initialised) call initialise_sv_components()
+    if (allocated(this%components)) deallocate(this%components)
 
     select case(physics_type)
       case("hd")
