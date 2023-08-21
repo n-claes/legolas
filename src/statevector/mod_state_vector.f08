@@ -70,6 +70,7 @@ contains
         this%components(7)%ptr => sv_a2
         this%components(8)%ptr => sv_a3
     end select
+    call this%set_default_basis_functions()
   end subroutine assemble
 
 
