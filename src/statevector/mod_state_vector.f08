@@ -1,4 +1,5 @@
 module mod_state_vector
+  use mod_global_variables, only: str_len_arr
   use mod_state_vector_component, only: sv_component_t
   use mod_logging, only: logger, str
   implicit none
@@ -17,6 +18,7 @@ module mod_state_vector
     procedure, public :: set_basis_functions
     procedure, public :: get_names
     procedure, public :: get_basis_functions
+    procedure, public :: get_components_from_basis_function
     procedure, public :: delete
 
     generic, public :: contains => contains_on_component, contains_on_name
@@ -124,6 +126,24 @@ contains
       names(i) = this%components(i)%ptr%get_basis_function_name()
     end do
   end function get_basis_functions
+
+
+  function get_components_from_basis_function(this, basis_function_name) result(comps)
+    class(state_vector_t), intent(in) :: this
+    character(len=*), intent(in) :: basis_function_name
+    type(sv_component_t), allocatable :: comps(:)
+    integer :: i
+    logical, allocatable :: mask(:)
+
+    allocate(comps(size(this%components)))
+    allocate(mask(size(this%components)))
+    do i = 1, size(comps)
+      comps(i) = this%components(i)%ptr
+      mask(i) = this%components(i)%ptr%get_basis_function_name() == basis_function_name
+    end do
+    comps = pack(comps, mask)
+    deallocate(mask)
+  end function get_components_from_basis_function
 
 
   logical function contains_on_component(this, component)

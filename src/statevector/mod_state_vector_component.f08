@@ -87,9 +87,6 @@ contains
       case default
         call logger%error("unknown basis function name: " // trim(adjustl(spline_name)))
     end select
-    call logger%debug( &
-      "component " // trim(this%name) // " set to " // trim(this%spline_name) &
-    )
   end subroutine set_basis_function
 
 
