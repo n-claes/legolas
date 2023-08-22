@@ -19,6 +19,7 @@ module mod_essential_boundaries
 
   public :: apply_essential_boundaries_left
   public :: apply_essential_boundaries_right
+  public :: get_block_indices
 
 contains
 
