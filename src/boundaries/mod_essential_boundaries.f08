@@ -132,6 +132,8 @@ contains
     character(len=str_len_arr) :: comp_names(size(sv_components))
     integer :: i
 
+    if (size(sv_components) == 0) return
+
     allocate(idxs(size(sv_components)))
     do i = 1, size(sv_components)
       idxs(i) = get_block_index_for_single_component( &
@@ -152,7 +154,6 @@ contains
       )
       return
     end if
-    call logger%debug("zeroing out indices " // str(idxs))
   end function get_block_indices
 
 
@@ -195,6 +196,7 @@ contains
     integer, intent(in) :: limits(2)
     integer :: i, k, idx
 
+    call logger%debug("zeroing out indices " // str(idxs))
     do i = 1, size(idxs)
       idx = idxs(i)
       do k = limits(1), limits(2)
