@@ -5,6 +5,7 @@ module mod_test_indices
   use mod_essential_boundaries, only: get_block_indices
   use mod_state_vector_component, only: sv_component_t, new_sv_component
   use mod_state_vector, only: sv_rho1, sv_v1, sv_v2, sv_v3, sv_T1, sv_a1, sv_a2, sv_a3
+  use mod_basis_function_names, only: CUBIC, QUADRATIC
   implicit none
 
   integer, allocatable :: idxs(:)
@@ -209,5 +210,109 @@ contains
     )
     @assertEqual([20, 22], idxs)
   end subroutine test_subblock_indices_even_right_mhd_zero
+
+
+  @test
+  subroutine test_subblock_indices_left_mhd_based_on_default_splines()
+    call set_name("get subblock indices (MHD, left, based on default splines)")
+    idxs = get_block_indices( &
+      sv_components=[sv_v1, sv_T1, sv_a1, sv_a3], settings=settings, edge="left" &
+    )
+    @assertEqual([3, 10, 12, 15], idxs)
+  end subroutine test_subblock_indices_left_mhd_based_on_default_splines
+
+
+  @test
+  subroutine test_subblock_indices_right_mhd_based_on_default_splines()
+    call set_name("get subblock indices (MHD, right, based on default splines)")
+    idxs = get_block_indices( &
+      sv_components=[sv_v1, sv_T1, sv_a1, sv_a3], settings=settings, edge="right" &
+    )
+    @assertEqual([19, 26, 28, 31], idxs)
+  end subroutine test_subblock_indices_right_mhd_based_on_default_splines
+
+
+  @test
+  subroutine test_subblock_indices_left_mhd_based_on_splines()
+    call set_name("get subblock indices (MHD, left, based on splines)")
+    call settings%state_vector%set_basis_functions( &
+      [CUBIC, QUADRATIC, QUADRATIC, QUADRATIC, CUBIC, QUADRATIC, QUADRATIC, CUBIC] &
+    )
+    idxs = get_block_indices( &
+      sv_components=[sv_rho1, sv_v1, sv_v2, sv_T1, sv_a2], &
+      settings=settings, &
+      edge="left" &
+    )
+    @assertEqual([1, 4, 6, 9, 14], idxs)
+  end subroutine test_subblock_indices_left_mhd_based_on_splines
+
+
+  @test
+  subroutine test_subblock_indices_right_mhd_based_on_splines()
+    call set_name("get subblock indices (MHD, right, based on splines)")
+    call settings%state_vector%set_basis_functions( &
+      [CUBIC, QUADRATIC, QUADRATIC, QUADRATIC, CUBIC, QUADRATIC, QUADRATIC, CUBIC] &
+    )
+    idxs = get_block_indices( &
+      sv_components=[sv_rho1, sv_v1, sv_v2, sv_T1, sv_a2], &
+      settings=settings, &
+      edge="right" &
+    )
+    @assertEqual([17, 20, 22, 25, 30], idxs)
+  end subroutine test_subblock_indices_right_mhd_based_on_splines
+
+
+  @test
+  subroutine test_subblock_indices_left_hd_based_on_default_splines()
+    call set_name("get subblock indices (HD, left, based on default splines)")
+    call settings%set_state_vector(physics_type="hd")
+    idxs = get_block_indices( &
+      sv_components=[sv_rho1, sv_v3, sv_v1, sv_v2, sv_T1], &
+      settings=settings, &
+      edge="left" &
+    )
+    @assertEqual([2, 8, 3, 6, 10], idxs)
+  end subroutine test_subblock_indices_left_hd_based_on_default_splines
+
+
+  @test
+  subroutine test_subblock_indices_right_hd_based_on_default_splines()
+    call set_name("get subblock indices (HD, right, based on default splines)")
+    call settings%set_state_vector(physics_type="hd")
+    idxs = get_block_indices( &
+      sv_components=[sv_rho1, sv_v3, sv_v1, sv_v2, sv_T1], &
+      settings=settings, &
+      edge="right" &
+    )
+    @assertEqual([12, 18, 13, 16, 20], idxs)
+  end subroutine test_subblock_indices_right_hd_based_on_default_splines
+
+
+  @test
+  subroutine test_subblock_indices_left_hd_based_on_splines()
+    call set_name("get subblock indices (HD, left, based on splines)")
+    call settings%set_state_vector(physics_type="hd")
+    call settings%state_vector%set_basis_functions( &
+      [CUBIC, QUADRATIC, QUADRATIC, CUBIC, CUBIC] &
+    )
+    idxs = get_block_indices( &
+      sv_components=[sv_rho1, sv_v2, sv_T1], settings=settings, edge="left" &
+    )
+    @assertEqual([1, 6, 9], idxs)
+  end subroutine test_subblock_indices_left_hd_based_on_splines
+
+
+  @test
+  subroutine test_subblock_indices_right_hd_based_on_splines()
+    call set_name("get subblock indices (HD, right, based on splines)")
+    call settings%set_state_vector(physics_type="hd")
+    call settings%state_vector%set_basis_functions( &
+      [CUBIC, QUADRATIC, QUADRATIC, CUBIC, CUBIC] &
+    )
+    idxs = get_block_indices( &
+      sv_components=[sv_rho1, sv_v2, sv_T1], settings=settings, edge="right" &
+    )
+    @assertEqual([11, 16, 19], idxs)
+  end subroutine test_subblock_indices_right_hd_based_on_splines
 
 end module mod_test_indices
