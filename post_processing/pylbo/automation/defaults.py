@@ -58,6 +58,7 @@ namelist_items = {
         ("elec_inertia", bool),
         ("inertia_dropoff", bool),
         ("electron_fraction", (int, np.integer, float)),
+        ("basis_functions", list),
     ],
     "unitslist": [
         ("unit_numberdensity", (int, np.integer, float)),

@@ -35,6 +35,7 @@ contains
   function get_settings() result(settings)
     type(settings_t) :: settings
     settings = new_settings()
+    call settings%set_state_vector("mhd")
   end function get_settings
 
 

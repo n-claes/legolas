@@ -238,6 +238,18 @@ def ds_v130_suydam_efs_vecs_res():
 
 @pytest.mark.timeout(5)
 @pytest.fixture
+def ds_v210_rotcyl_efs_default_basis():
+    return pylbo.load(utils / "v2.1.0_rot_cyl_efs_default_basis.dat")
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture
+def ds_v210_rotcyl_efs_custom_basis():
+    return pylbo.load(utils / "v2.1.0_rot_cyl_efs_custom_basis.dat")
+
+
+@pytest.mark.timeout(5)
+@pytest.fixture
 def series_v200_nobg():
     return pylbo.load_series([utils / "v2.0.0_tear_nobg.dat"] * 7)
 

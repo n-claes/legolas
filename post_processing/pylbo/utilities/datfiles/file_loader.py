@@ -63,6 +63,9 @@ def load(datfile):
     pylboLogger.info(f"geometry    : {ds.geometry} in {ds.x_start, ds.x_end}")
     pylboLogger.info(f"equilibrium : {ds.eq_type}")
     pylboLogger.info(f"state vector: {ds.header.get('state_vector', 'not present')}")
+    pylboLogger.info(
+        f"basis functions: {ds.header.get('basis_functions', 'not present')}"
+    )
     if ds.has_matrices:
         pylboLogger.info("matrices present in datfile")
     if ds.has_eigenvectors:

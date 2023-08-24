@@ -22,6 +22,11 @@ set (sources
         settings/mod_grid_settings.f08
         settings/mod_equilibrium_settings.f08
         settings/mod_units.f08
+        statevector/mod_basis_function_names.f08
+        statevector/mod_basis_functions.f08
+        statevector/mod_state_vector_component.f08
+        statevector/mod_state_vector_names.f08
+        statevector/mod_state_vector.f08
         mod_physical_constants.f08
         utils/mod_get_indices.f08
         utils/mod_function_utils.f08
@@ -97,8 +102,8 @@ set (sources
         equilibria/smod_equil_tc_pinch.f08
         ${USR_SMOD_LOC}/smod_user_defined.f08
         boundaries/mod_boundary_manager.f08
-        boundaries/smod_essential_boundaries.f08
-        boundaries/smod_natural_boundaries.f08
+        boundaries/mod_essential_boundaries.f08
+        boundaries/mod_natural_boundaries.f08
         boundaries/smod_natural_bounds_regular.f08
         boundaries/smod_natural_bounds_flow.f08
         boundaries/smod_natural_bounds_resistive.f08
