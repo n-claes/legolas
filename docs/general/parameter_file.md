@@ -28,14 +28,15 @@ Note that the matrix elements and equilibria are evaluated in the _Gaussian_ gri
 Setting `force_r0 = .true.` in the gridlist forces the `r = 0` condition, but this is not recommended.
 {: .notice--warning}
 
-| Parameter    | Type     | Description | Default value     |
-| :---         | :---:    |    :----  |          :---:      |
-| geometry     | string   | geometry of the setup   | `"Cartesian"` |
-| gridpoints   | int      | number of gridpoints in the base grid  |  50 |
-| x_start      | real     | starting point of the base grid  | 0 |
-| x_end        | real     | end point of the base grid  | 1 |
-| coaxial      | logical  | use a coaxial inner boundary in cylindrical geometry | `.false.` |
-| force_r0     | logical  | forces `r=0` in cylindrical geometry | `.false.` |
+| Parameter       | Type     | Description | Default value     |
+| :---            | :---:    |    :----  |          :---:      |
+| geometry        | string   | geometry of the setup   | `"Cartesian"` |
+| gridpoints      | int      | number of gridpoints in the base grid  |  50 |
+| x_start         | real     | starting point of the base grid  | 0 |
+| x_end           | real     | end point of the base grid  | 1 |
+| coaxial         | logical  | use a coaxial inner boundary in cylindrical geometry | `.false.` |
+| force_r0        | logical  | forces `r=0` in cylindrical geometry | `.false.` |
+| symmetric_grid  | logical  | enforces grid symmetry around the centre of the interval (for use with a symmetric spacing function) | `.false.` |
 
 ## equilibriumlist
 This namelist includes all equilibrium-related variables.

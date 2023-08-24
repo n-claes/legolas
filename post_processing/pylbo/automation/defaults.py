@@ -8,6 +8,7 @@ namelist_items = {
         ("gridpoints", (int, np.integer)),
         ("force_r0", bool),
         ("coaxial", bool),
+        ("symmetric_grid", bool),
     ],
     "equilibriumlist": [
         ("equilibrium_type", str),
