@@ -51,7 +51,7 @@ contains
 
   real(dp) function T0(x)
     real(dp), intent(in) :: x
-    T0 = beta * B0(x) / 2.0_dp
+    T0 = beta * (B0(x))**2 / (2.0_dp * cte_rho0)
   end function T0
 
   real(dp) function v02(x)
