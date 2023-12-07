@@ -30,7 +30,7 @@ contains
     character(len=57)      :: spaces_v = ""
     integer :: i
 
-    if (logger%get_logging_level() <= 1) return
+    if (logger%get_logging_level() >= 1) return
 
     logo(1) = " __       ________  ________   _______   __          ___     __________ "
     logo(2) = "|  |     |   ____ \|   ____ \ /   _   \ |  |        /   \   |   ______ \"
