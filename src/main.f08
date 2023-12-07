@@ -45,14 +45,13 @@ program legolas
   call initialise_globals()
   call logger%initialise()
 
-  call print_logo()
-
   timer = new_timer()
   settings = new_settings()
 
   call timer%start_timer()
 
   call read_user_parfile()
+  call print_logo()
   call print_startup_info(settings)
 
   grid = new_grid(settings)
