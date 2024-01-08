@@ -309,8 +309,8 @@ class RegressionTest(TestCase):
             ds_base,
             names_attr="derived_ef_names",
             figname_prefix="derived_",
-            nb_plots=(5, 4),
-            figsize=(18, 10),
+            nb_plots=(5, 5),
+            figsize=(23, 10),
             set_to_zero_tol=1e-8,
         )
         super().compare_test_images(
