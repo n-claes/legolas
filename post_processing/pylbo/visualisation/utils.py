@@ -122,6 +122,7 @@ def ef_name_to_latex(
     ef_name = ef_name.replace("curl", "\\nabla\\times")
     ef_name = ef_name.replace("para", "\\parallel")
     ef_name = ef_name.replace("perp", "\\perp")
+    ef_name = ef_name.replace("dB", "B^\\prime")
     latex_name = rf"${ef_name}$"
     if part != "":
         latex_name = rf"{part}({latex_name})"
