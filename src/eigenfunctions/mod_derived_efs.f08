@@ -137,6 +137,8 @@ contains
       this%get_derived_ef => get_curl_v_para
     case(curl_v_perp_name)
       this%get_derived_ef => get_curl_v_perp
+    case(dB1_name)
+      this%get_derived_ef => get_dB1
     case default
       call logger%error( &
         "derived ef assembly -- unknown eigenfunction name: "// trim(this%name) &
@@ -506,6 +508,26 @@ contains
       / sqrt(B02_on_ef_grid**2 + B03_on_ef_grid**2) &
     )
   end function get_curl_v_perp
+
+
+  function get_dB1(settings, grid, eigenvector) result(dB1)
+    type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
+    complex(dp), intent(in) :: eigenvector(:)
+    complex(dp) :: dB1(size(grid%ef_grid))
+    complex(dp) :: da2(size(grid%ef_grid))
+    complex(dp) :: a3(size(grid%ef_grid))
+    complex(dp) :: da3(size(grid%ef_grid))
+    real(dp) :: ef_eps(size(grid%ef_grid)), ef_deps
+
+    da2 = get_base_eigenfunction(sv_a2, settings, grid, eigenvector, diff_order=1)
+    a3 = get_base_eigenfunction(sv_a3, settings, grid, eigenvector)
+    da3 = get_base_eigenfunction(sv_a3, settings, grid, eigenvector, diff_order=1)
+    ef_eps = grid%get_eps(grid%ef_grid)
+    ef_deps = grid%get_deps()
+
+    dB1 = ic * (k2 * da3 / ef_eps - k3 * da2) - ic * k2 * ef_deps * a3 / ef_eps**2
+  end function get_dB1
 
 
   function get_base_eigenfunction( &
