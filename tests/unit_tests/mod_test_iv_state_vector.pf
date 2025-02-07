@@ -205,7 +205,7 @@ contains
         13._dp, 23._dp, 33._dp, 43._dp ]
 
     @assertEqual(16, size(state_vec%x0), "size(x0) mismatch")
-    @assertEqual(state_vec%x0, expected, tolerance=tol)
+    @assertEqual(real(state_vec%x0), expected, tolerance=tol)
 
     deallocate(nodes)
   end subroutine test_assemble_iv_array
@@ -215,7 +215,7 @@ contains
   !! into the c1 and c2 arrays for each component.
   @test
   subroutine test_disassemble_iv_array()
-    integer, parameter :: N = 2
+    integer, parameter :: N = 4
     integer, parameter :: num_components = 2
     integer :: stride, i
 
@@ -230,7 +230,11 @@ contains
     stride = 2 * num_components  ! 2 coeffs each
     allocate(x0(stride*N))
 
-    x0 = [1d0, 2d0, 3d0, 4d0, 5d0, 6d0, 7d0, 8d0]
+    x0 = [ &
+    10._dp, 20._dp, 30._dp, 40._dp,  &
+    11._dp, 21._dp, 31._dp, 41._dp,  &
+    12._dp, 22._dp, 32._dp, 42._dp,  &
+    13._dp, 23._dp, 33._dp, 43._dp ]
 
     ! Create the state vec
     state_vec%num_components = num_components
@@ -251,11 +255,11 @@ contains
     ! (i,j) = component i, node j
     allocate(c1_expected(num_components, N), c2_expected(num_components, N))
 
-    c1_expected(1,:) = [1d0, 5d0]
-    c2_expected(1,:) = [2d0, 6d0]
+    c1_expected(1,:) = [10._dp, 11._dp, 12._dp, 13._dp]
+    c2_expected(1,:) = [20._dp, 21._dp, 22._dp, 23._dp]
 
-    c1_expected(2,:) = [3d0, 7d0]
-    c2_expected(2,:) = [4d0, 8d0]
+    c1_expected(2,:) = [30._dp, 31._dp, 32._dp, 33._dp]
+    c2_expected(2,:) = [40._dp, 41._dp, 42._dp, 43._dp]
 
     ! Check against hardcoded values. Equality should be exact
     do i = 1, num_components
