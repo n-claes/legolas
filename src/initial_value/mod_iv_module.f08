@@ -81,18 +81,9 @@ contains
     class(iv_module_t), intent(inout) :: self
     integer, intent(in) :: i_snap
 
-    integer :: N_fine
-    real(dp), allocatable :: iv_grid(:)
-
     if (i_snap > self%settings%iv%get_n_snapshots()) then
       call logger%error("requested snapshot is out of bounds")
     end if
-
-    ! Build fine grid for plotting
-    N_fine = self%settings%iv%get_output_res()
-    allocate(iv_grid(N_fine))
-
-    iv_grid = linspace(self%settings%grid%get_grid_start(), self%settings%grid%get_grid_end(), N_fine)
 
     ! 1. Update the state vector
     self%state_vec%x0 = self%snapshots(:, i_snap)
@@ -102,11 +93,7 @@ contains
 
     ! 3. Reconstruct
     call self%state_vec%reassemble_from_block( &
-        N_fine, iv_grid, &
-        self%settings%grid%get_gridpts(), &
-        self%grid%base_grid )
-
-    deallocate(iv_grid)
+        self%settings, self%grid)
 
   end subroutine postprocess_snapshot
 

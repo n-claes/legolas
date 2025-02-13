@@ -2,6 +2,7 @@ module mod_iv_state_vector
   use mod_global_variables, only: dp, ic
   use mod_logging, only: logger, str
   use mod_settings, only: settings_t
+  use mod_grid, only: grid_t
   use mod_state_vector, only: state_vector_t
   use mod_state_vector_names
   use mod_iv_globals, only: profile_fcn, iv_prof_fcn_ptr_t
@@ -191,22 +192,16 @@ module mod_iv_state_vector
   end subroutine assemble_iv_array
 
 
-  subroutine reassemble_from_block(self, N_fine, x_fine, N, nodes)
+  subroutine reassemble_from_block(self, settings, grid)
     class(iv_state_vector_t), intent(inout) :: self
-    !> Number of grid points for reassembly
-    integer, intent(in) :: N_fine
-    !> Array of grid points for reassembly
-    real(dp), intent(in) :: x_fine(N_fine)
-    !> Number of grid points in block structure
-    integer, intent(in) :: N
-    !> Array of grid points in block structure
-    real(dp), intent(in) :: nodes(N)
+    type(settings_t), intent(in) :: settings
+    type(grid_t), intent(in) :: grid
 
     integer :: i
 
     ! Get each component to compute its profile
     do i = 1, self%num_components
-      call self%components(i)%ptr%reconstruct_profile(N_fine, x_fine, N, nodes)
+      call self%components(i)%ptr%reconstruct_profile(settings, grid)
     end do
 
   end subroutine reassemble_from_block
