@@ -400,11 +400,10 @@ contains
 
     logical    :: enabled
     real(dp)   :: alpha, t_start, t_end
-    integer    :: n_steps, n_snapshots, snapshot_stride, output_res
+    integer    :: n_steps, n_snapshots, snapshot_stride
 
     namelist /ivplist/ &
-      enabled, alpha, t_start, t_end, n_steps, n_snapshots, snapshot_stride, &
-      output_res
+      enabled, alpha, t_start, t_end, n_steps, n_snapshots, snapshot_stride
   
     ! Defaults:
     enabled         = settings%iv%enabled
@@ -412,7 +411,6 @@ contains
     t_start         = settings%iv%t_start
     t_end           = settings%iv%t_end
     n_steps         = settings%iv%n_steps
-    output_res      = settings%iv%output_res
     snapshot_stride = settings%iv%snapshot_stride
     n_snapshots     = settings%iv%get_n_snapshots()
   
@@ -425,7 +423,6 @@ contains
     settings%iv%t_start         = t_start
     settings%iv%t_end           = t_end
     settings%iv%n_steps         = n_steps
-    settings%iv%output_res      = output_res
     settings%iv%snapshot_stride = snapshot_stride
     call settings%iv%set_n_snapshots(n_snapshots)
   

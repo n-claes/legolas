@@ -49,6 +49,10 @@ contains
     if (allocated(this%components)) deallocate(this%components)
 
     select case(physics_type)
+      case("isothermal-1d")
+        allocate(this%components(2))
+        this%components(1)%ptr => sv_rho1
+        this%components(2)%ptr => sv_v1
       case("hd")
         allocate(this%components(5))
         this%components(1)%ptr => sv_rho1

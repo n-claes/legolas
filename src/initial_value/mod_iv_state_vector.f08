@@ -83,6 +83,16 @@ module mod_iv_state_vector
 
     ! Store pointers to the active components
     select case(physics_type)
+    case("isothermal-1d")
+      self%num_components = 2
+      allocate(self%components(self%num_components), &
+               f_list(self%num_components), &
+               df_list(self%num_components))
+
+      self%components(1)%ptr => iv_rho1
+      self%components(2)%ptr => iv_v1
+
+      call get_f_lists(f_list, df_list)
     case("hd")
       self%num_components = 5
       allocate(self%components(self%num_components), &

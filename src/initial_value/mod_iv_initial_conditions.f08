@@ -12,23 +12,19 @@ contains
     integer :: num_profiles
 
     ! FIXME: set this automatically
-    num_profiles = 3  ! Change this manually for now
+    num_profiles = 2  ! Change this manually for now
     if ((size(f_list) /= num_profiles) .or. size(df_list) /= num_profiles) then
       call logger%error("Number of function profiles does not match provided list size")
     end if
 
     ! Add the profiles here
     f_list(1)%ptr => rho
-    f_list(2)%ptr => v1
+    f_list(2)%ptr => zeros
     ! f_list(3)%ptr => zeros
-    ! f_list(4)%ptr => zeros
-    f_list(3)%ptr => T
 
     df_list(1)%ptr => drho
-    df_list(2)%ptr => dv1
+    df_list(2)%ptr => zeros
     ! df_list(3)%ptr => zeros
-    ! df_list(4)%ptr => zeros
-    df_list(3)%ptr => dT
   end subroutine get_f_lists
 
   ! -----------------------------------------------------------------
@@ -43,7 +39,7 @@ contains
     !   res = sin(5 * dpi * (x - 0.4))
     ! end where
 
-    res = 0.1* gaussian(x, 0.5d0, 0.05d0)
+    res = 0.1 * gaussian(x, 0.5d0, 0.05d0)
   end function rho
 
   function drho(x) result(res)

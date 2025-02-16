@@ -564,7 +564,7 @@ contains
     
     call logger%info("writing IV snapshots")
     n_snap   = settings%iv%get_n_snapshots()
-    n_points = settings%iv%get_output_res()
+    n_points = settings%grid%get_ef_gridpts()
 
     ! Metadata
     write(dat_fh) n_snap
@@ -576,7 +576,7 @@ contains
       call iv_module%postprocess_snapshot(i_snap)
 
       do i_comp = 1, iv_module%state_vec%num_components
-        write(dat_fh) iv_module%state_vec%components(i_comp)%ptr%profile
+        write(dat_fh) real(iv_module%state_vec%components(i_comp)%ptr%profile, kind = dp)
       end do
     end do
 
