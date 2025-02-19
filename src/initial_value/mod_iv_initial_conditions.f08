@@ -58,13 +58,13 @@ contains
   function T(x) result(res)
     real(dp), intent(in) :: x(:)
     real(dp) :: res(size(x))
-    res = 0.0d0
+    res = sin(dpi * (x))
   end function T
 
   function dT(x) result(res)
     real(dp), intent(in) :: x(:)
     real(dp) :: res(size(x))
-    res = 0.0d0
+    res = dpi * cos(dpi * (x))
   end function dT
 
 

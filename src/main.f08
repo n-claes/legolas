@@ -72,7 +72,6 @@ program legolas
   call build_matrices(matrix_B, matrix_A, settings, grid, background, physics)
   timer%matrix_time = timer%end_timer()
 
-  ! Solve initial value problem
   iv_module = new_iv_module(settings, grid)
 
   if (settings%iv%enabled) then

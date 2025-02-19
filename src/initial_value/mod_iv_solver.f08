@@ -5,7 +5,7 @@
 module mod_iv_solver
   use mod_logging, only: logger, str
   use mod_matrix_structure, only: matrix_t
-  use mod_global_variables, only: dp
+  use mod_global_variables, only: dp, ic
   use mod_settings, only: settings_t
 
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
@@ -71,6 +71,9 @@ contains
     ! We will only work with banded matrices
     call matrix_to_banded(matrix_A, A_kl, A_ku, A)
     call matrix_to_banded(matrix_B, B_kl, B_ku, B)
+
+    ! We need to restore the explicit time derivative by multiplying B by i
+    call multiply_banded_matrix_by_i(B)
 
     allocate(rhs, mold = x)
     allocate(z, mold = x)
@@ -142,6 +145,20 @@ contains
     deallocate(z)
 
   end subroutine solve
+
+
+  subroutine multiply_banded_matrix_by_i(bmat)
+    type(banded_matrix_t), intent(inout) :: bmat
+    integer                              :: col, row, rowInAB
+  
+    do col = 1, bmat%n
+      ! The band goes roughly from row=col - bmat%ku to row=col + bmat%kl
+      do row = max(1, col - bmat%ku), min(bmat%m, col + bmat%kl)
+        rowInAB = bmat%ku + 1 + row - col
+        bmat%AB(rowInAB, col) = ic * bmat%AB(rowInAB, col)
+      end do
+    end do
+  end subroutine multiply_banded_matrix_by_i
 
 
 end module mod_iv_solver

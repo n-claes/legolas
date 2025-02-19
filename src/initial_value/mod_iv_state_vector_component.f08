@@ -55,7 +55,7 @@ contains
       self%p_dfcn => dfcn
 
       if (self%base%get_name() == 'v1' .or. self%base%get_name() == 'a1') then
-        self%cplx_trans = .false.
+        self%cplx_trans = .true.
       end if
 
       self%is_bound = .true.
