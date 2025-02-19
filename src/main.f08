@@ -76,8 +76,10 @@ program legolas
 
   if (settings%iv%enabled) then
     call logger%info("solving initial value problem...")
+    call timer%start_timer()
     call iv_module%initialise()
     call iv_module%solve_ivp(matrix_A, matrix_B)
+    timer%ivp_time = timer%end_timer()
     call logger%info("done.")
   end if
 
@@ -195,6 +197,9 @@ contains
     call logger%info("Legolas finished in " // str(total_time) // " seconds")
     call logger%info("   initialisation: " // str(timer%init_time) // " sec")
     call logger%info("   matrix construction: " // str(timer%matrix_time) // " sec")
+    if (settings%iv%enabled) then
+      call logger%info("   initial value problem: " // str(timer%ivp_time) // " sec")
+    end if
     call logger%info("   eigenvalue problem: " // str(timer%evp_time) // " sec")
     call logger%info("   eigenfunctions: " // str(timer%eigenfunction_time) // " sec")
     call logger%info("   datfile creation: " // str(timer%datfile_time) // " sec")
