@@ -3,9 +3,7 @@ module mod_iv_module
   use mod_logging, only: logger, str
   use mod_matrix_structure, only: matrix_t
   use mod_settings, only: settings_t
-  use mod_state_vector_component, only: sv_component_t
   use mod_grid, only: grid_t
-  use mod_iv_globals, only: linspace
   use mod_iv_state_vector, only: iv_state_vector_t, init_and_bind
   use mod_iv_solver, only: solve
   implicit none
@@ -59,7 +57,8 @@ contains
     call self%state_vec%assemble_iv_array(self%settings%grid%get_gridpts(), self%grid%base_grid)
 
     ! Setup snapshots array
-    allocate(self%snapshots(self%state_vec%stride * self%settings%grid%get_gridpts(), self%settings%iv%get_n_snapshots()))
+    allocate(self%snapshots(self%state_vec%stride * self%settings%grid%get_gridpts(), &
+     self%settings%iv%get_n_snapshots()))
 
     self%is_initialised = .true.
   end subroutine initialise
@@ -70,7 +69,6 @@ contains
     type(matrix_t), intent(in) :: matrix_A
     type(matrix_t), intent(in) :: matrix_B
 
-    ! Now call the solver
     call solve(matrix_A, matrix_B, self%state_vec%x0, self%settings, self%snapshots)
     
   end subroutine solve_ivp
