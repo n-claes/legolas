@@ -12,7 +12,7 @@ contains
     integer :: num_profiles
 
     ! FIXME: set this automatically
-    num_profiles = 2  ! Change this manually for now
+    num_profiles = 3  ! Change this manually for now
     if ((size(f_list) /= num_profiles) .or. size(df_list) /= num_profiles) then
       call logger%error("Number of function profiles does not match provided list size")
     end if
@@ -20,11 +20,11 @@ contains
     ! Add the profiles here
     f_list(1)%ptr => rho
     f_list(2)%ptr => zeros
-    ! f_list(3)%ptr => zeros
+    f_list(3)%ptr => zeros
 
     df_list(1)%ptr => drho
     df_list(2)%ptr => zeros
-    ! df_list(3)%ptr => zeros
+    df_list(3)%ptr => zeros
   end subroutine get_f_lists
 
   ! -----------------------------------------------------------------

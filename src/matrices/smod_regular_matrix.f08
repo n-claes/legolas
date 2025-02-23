@@ -60,12 +60,6 @@ contains
     Gop_min = k3 * B02 - k2 * B03 / eps
     WVop = k2**2 / eps + eps * k3**2
 
-    ! TODO: A matrix elements for isothermal -- B is real! Move these somewhere
-    ! call elements%add(-drho, sv_rho1, sv_v1)         ! Quadratic * Cubic
-    ! call elements%add(-rho, sv_rho1, sv_v1, s2do=1)  ! Quadratic * dCubic
-    ! call elements%add(0.0d0, sv_v1, sv_rho1)         ! Cubic * Quadratic
-    ! call elements%add(c_sq, sv_v1, sv_rho1, s1do=1)  ! dCubic * Quadratic
-
 
     ! ==================== Quadratic * Cubic ====================
     call elements%add(-drho, sv_rho1, sv_v1)

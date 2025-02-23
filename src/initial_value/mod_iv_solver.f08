@@ -19,9 +19,9 @@ contains
   !> Solve the initial value problem
   subroutine solve(matrix_A, matrix_B, x, settings, snapshots)
     !> FEM matrix A
-    type(matrix_t)                           :: matrix_A
+    type(matrix_t) :: matrix_A
     !> FEM matrix B
-    type(matrix_t)                           :: matrix_B
+    type(matrix_t) :: matrix_B
     !> initial condition, gets updated with final result
     complex(dp), dimension(:), intent(inout) :: x
     !> settings
@@ -42,7 +42,7 @@ contains
     integer :: i_save                   ! snapshot counter
     integer :: num_save                 ! number of snapshots to store in hist
     integer :: save_stride              ! save every save_stride-th step
-    real(dp) :: alpha                       ! solver implicitness
+    real(dp) :: alpha                   ! solver implicitness
     real(dp) :: dt
     real(dp) :: t_end
     integer :: num_steps
