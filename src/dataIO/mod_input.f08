@@ -399,16 +399,15 @@ contains
     character(str_len)             :: iomsg
 
     logical    :: enabled
-    real(dp)   :: alpha, t_start, t_end
+    real(dp)   :: alpha, t_end
     integer    :: n_steps, n_snapshots, snapshot_stride
 
     namelist /ivplist/ &
-      enabled, alpha, t_start, t_end, n_steps, n_snapshots, snapshot_stride
+      enabled, alpha, t_end, n_steps, n_snapshots, snapshot_stride
   
     ! Defaults:
     enabled         = settings%iv%enabled
     alpha           = settings%iv%alpha
-    t_start         = settings%iv%t_start
     t_end           = settings%iv%t_end
     n_steps         = settings%iv%n_steps
     snapshot_stride = settings%iv%snapshot_stride
@@ -420,7 +419,6 @@ contains
     ! Update the settings
     settings%iv%enabled          = enabled
     settings%iv%alpha           = alpha
-    settings%iv%t_start         = t_start
     settings%iv%t_end           = t_end
     settings%iv%n_steps         = n_steps
     settings%iv%snapshot_stride = snapshot_stride

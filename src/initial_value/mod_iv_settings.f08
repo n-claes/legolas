@@ -11,7 +11,6 @@ module mod_iv_settings
     integer :: snapshot_stride  ! save every n-th snapshot
 
     ! Solver params
-    real(dp) :: t_start
     real(dp) :: t_end
     integer :: n_steps
     real(dp) :: alpha
@@ -34,7 +33,6 @@ contains
 
     iv_settings%alpha = 0.52  ! 0.0/0.5/1.0 for FW Euler / Trapezoidal method / BW Euler
 
-    iv_settings%t_start = 0.0
     iv_settings%t_end = 0.1
     iv_settings%n_steps = 500
 
@@ -45,7 +43,7 @@ contains
   
   pure real(dp) function get_step_size(self)
     class(iv_settings_t), intent(in) :: self
-    get_step_size = (self%t_end - self%t_start) / real(self%n_steps)
+    get_step_size = (self%t_end) / real(self%n_steps)
   end function get_step_size
 
 
