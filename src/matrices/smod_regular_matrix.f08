@@ -30,10 +30,6 @@ contains
     real(dp) :: B01, B02, dB02, drB02, B03, dB03
     real(dp) :: Fop_plus, Gop_plus, Gop_min, WVop
     real(dp) :: gamma_1
-    real(dp) :: c_sq
-
-    ! sound speed squared
-    c_sq = (1.0d0)**2
 
     gamma_1 = settings%physics%get_gamma_1()
 
@@ -104,11 +100,7 @@ contains
     call elements%add(-ic * eps * B01, sv_a3, sv_v2)
 
     ! ==================== dCubic * Quadratic ====================
-    if (settings%get_physics_type() == "isothermal-1d") then
-      call elements%add(-c_sq, sv_v1, sv_rho1, s1do=1)
-    else
-      call elements%add(-T0, sv_v1, sv_rho1, s1do=1)
-    end if
+    call elements%add(-T0, sv_v1, sv_rho1, s1do=1)
     call elements%add(-rho, sv_v1, sv_T1, s1do=1)
     call elements%add(-eps * Gop_min, sv_v1, sv_a1, s1do=1)
 
