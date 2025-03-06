@@ -24,6 +24,7 @@ program legolas
   use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
   use mod_physics, only: physics_t, new_physics
   use mod_iv_module, only: iv_module_t, new_iv_module
+  use mod_iv_initial_conditions, only: initial_conditions_t, new_initial_conditions
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -39,6 +40,7 @@ program legolas
   type(eigenfunctions_t) :: eigenfunctions
   type(physics_t) :: physics
   type(iv_module_t) :: iv_module
+  type(initial_conditions_t) :: iv_initial_conditions
   !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
@@ -59,8 +61,9 @@ program legolas
   grid = new_grid(settings)
   background = new_background()
   physics = new_physics(settings, background)
+  iv_initial_conditions = new_initial_conditions()
 
-  call set_equilibrium(settings, grid, background, physics)
+  call set_equilibrium(settings, grid, background, physics, iv_initial_conditions)
   timer%init_time = timer%end_timer()
 
   call print_console_info(settings)
@@ -77,7 +80,7 @@ program legolas
   if (settings%iv%enabled) then
     call logger%info("solving initial value problem...")
     call timer%start_timer()
-    call iv_module%initialise()
+    call iv_module%initialise(iv_initial_conditions)
     call iv_module%solve_ivp(matrix_A, matrix_B)
     timer%ivp_time = timer%end_timer()
     call logger%info("done.")

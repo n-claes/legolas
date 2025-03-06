@@ -6,6 +6,7 @@ module mod_iv_module
   use mod_grid, only: grid_t
   use mod_iv_state_vector, only: iv_state_vector_t, init_and_bind
   use mod_iv_solver, only: solve
+  use mod_iv_initial_conditions, only: initial_conditions_t
   implicit none
 
   private
@@ -15,6 +16,7 @@ module mod_iv_module
     type(settings_t), pointer, private :: settings
     type(grid_t), pointer, private :: grid
     type(iv_state_vector_t), public :: state_vec
+    type(initial_conditions_t), pointer, private :: iv_initial_conditions
 
     real, allocatable :: iv_grid(:) 
 
@@ -44,14 +46,15 @@ contains
   end function new_iv_module
 
 
-  subroutine initialise(self)
+  subroutine initialise(self, initial_conditions)
     class(iv_module_t), intent(inout) :: self
+    class(initial_conditions_t), intent(inout) :: initial_conditions
 
     if (self%is_initialised) return
 
     ! Initialise and setup the state vector
     self%state_vec = init_and_bind(self%settings%state_vector)
-    call self%state_vec%initialise_components(self%settings%get_physics_type())
+    call self%state_vec%initialise_components(self%settings%get_physics_type(), initial_conditions)
 
     ! Assemble the initial value array in block format
     call self%state_vec%assemble_iv_array(self%settings%grid%get_gridpts(), self%grid%base_grid)

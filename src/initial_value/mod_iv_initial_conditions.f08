@@ -1,114 +1,77 @@
 module mod_iv_initial_conditions
-  use mod_global_variables, only: dp
-  use mod_physical_constants, only: dpi
-  use mod_logging, only: logger
-  use mod_iv_globals, only: iv_prof_fcn_ptr_t, profile_fcn
-  implicit none
+    use mod_global_variables, only: dp
+    use mod_logging,          only: logger
+    use mod_iv_globals,       only: iv_fcn_ptr_t, profile_fcn, zero_fcn
+    implicit none
+  
+    private
+  
+    type, public :: ic_density_t
+      procedure(profile_fcn), pointer, nopass :: rho   => null()
+      procedure(profile_fcn), pointer, nopass :: drho  => null()
+    end type ic_density_t
+  
+    type, public :: ic_velocity_t
+      procedure(profile_fcn), pointer, nopass :: v01   => null()
+      procedure(profile_fcn), pointer, nopass :: dv01  => null()
+      ! v02, etc.
+    end type ic_velocity_t
+  
+    type, public :: initial_conditions_t
+      type(ic_density_t)   :: density
+      type(ic_velocity_t)  :: velocity_1
+      ! also temperature, etc.
+    contains
+      procedure :: set_ic_density_funcs
+      procedure :: set_ic_velocity_1_funcs
+    end type initial_conditions_t
 
-contains
+    public :: new_initial_conditions
+  
+  contains
+  
+    !=====================================================
+    ! Constructor
+    !=====================================================
+    function new_initial_conditions() result(ic)
+      type(initial_conditions_t) :: ic
+      
+      ! Default everything to zero
+      ic%density%rho   => zero_fcn
+      ic%density%drho  => zero_fcn
+  
+      ic%velocity_1%v01  => zero_fcn
+      ic%velocity_1%dv01 => zero_fcn
+  
+      ! TODO: add the rest
 
-  subroutine get_f_lists(f_list, df_list)
-    type(iv_prof_fcn_ptr_t), intent(out) :: f_list(:), df_list(:)
-    integer :: num_profiles
+    end function new_initial_conditions
+  
+    !=====================================================
+    ! Setter routines
+    !=====================================================
+    subroutine set_ic_density_funcs(self, rho_func, drho_func)
+      class(initial_conditions_t), intent(inout) :: self
+      procedure(profile_fcn) :: rho_func
+      procedure(profile_fcn), optional :: drho_func
+  
+      call logger%debug("Setting ICs for component rho.")
+      self%density%rho => rho_func
+      if (present(drho_func)) self%density%drho => drho_func
+    end subroutine set_ic_density_funcs
 
-    ! FIXME: set this automatically
-    num_profiles = 2  ! Change this manually for now
-    if ((size(f_list) /= num_profiles) .or. size(df_list) /= num_profiles) then
-      call logger%error("Number of function profiles does not match provided list size")
-    end if
-
-    ! Add the profiles here
-    f_list(1)%ptr => rho
-    f_list(2)%ptr => zeros
-    ! f_list(3)%ptr => zeros
-
-    df_list(1)%ptr => drho
-    df_list(2)%ptr => zeros
-    ! df_list(3)%ptr => zeros
-  end subroutine get_f_lists
-
-  ! -----------------------------------------------------------------
-  ! Initial profiles
-  ! -----------------------------------------------------------------
-  function rho(x) result(res)
-    real(dp), intent(in) :: x(:)
-    real(dp) :: res(size(x))
-
-    ! res = 0.0d0
-    ! where (x > 0.4 .and. x < 0.6)
-    !   res = sin(5 * dpi * (x - 0.4))
-    ! end where
-
-    res = 0.1 * gaussian(x, 0.5d0, 0.05d0)
-  end function rho
-
-  function drho(x) result(res)
-    real(dp), intent(in) :: x(:)
-    real(dp) :: res(size(x))
-
-    ! res = 0.0d0
-    ! where (x > 0.4 .and. x < 0.6)
-    !   res = 5 * dpi * cos(5 * dpi * (x - 0.4))
-    ! end where
-    
-    res = 0.1 * dgaussian(x, 0.5d0, 0.05d0)
-  end function drho
-
-
-  function T(x) result(res)
-    real(dp), intent(in) :: x(:)
-    real(dp) :: res(size(x))
-    res = sin(dpi * (x))
-  end function T
-
-  function dT(x) result(res)
-    real(dp), intent(in) :: x(:)
-    real(dp) :: res(size(x))
-    res = dpi * cos(dpi * (x))
-  end function dT
-
-
-  function v1(x) result(res)
-    real(dp), intent(in) :: x(:)
-    real(dp) :: res(size(x))
-    res = 0.1* gaussian(x, 0.5d0, 0.05d0)
-  end function v1
-
-  function dv1(x) result(res)
-    real(dp), intent(in) :: x(:)
-    real(dp) :: res(size(x))
-    res = 0.1 * dgaussian(x, 0.5d0, 0.05d0)
-  end function dv1
-
-  function zeros(x) result(res)
-    real(dp), intent(in) :: x(:)
-    real(dp) :: res(size(x))
-    res = 0.0d0
-  end function zeros
-
-  function ones(x) result(res)
-    real(dp), intent(in) :: x(:)
-    real(dp) :: res(size(x))
-    res = 1.0d0
-  end function ones
-
-
-  real(dp) elemental function gaussian(x, mean, std_dev)
-    real(dp), intent(in) :: x
-    real(dp), intent(in) :: mean
-    real(dp), intent(in) :: std_dev
-
-    gaussian = (1.0d0 / (std_dev * sqrt(2.0d0*dpi))) * exp(-0.5d0 * ((x - mean)/std_dev)**2)
-
-  end function gaussian
-
-  real(dp) elemental function dgaussian(x, mean, std_dev)
-    real(dp), intent(in) :: x
-    real(dp), intent(in) :: mean
-    real(dp), intent(in) :: std_dev
-
-    dgaussian = -((x - mean) / (std_dev**2)) * gaussian(x, mean, std_dev)
-
-  end function dgaussian
-
-end module mod_iv_initial_conditions
+  
+    subroutine set_ic_velocity_1_funcs(self, v01_func, dv01_func)
+      class(initial_conditions_t), intent(inout) :: self
+      procedure(profile_fcn) :: v01_func
+      procedure(profile_fcn), optional :: dv01_func
+  
+      call logger%debug("Setting ICs for component v1.")
+      self%velocity_1%v01 => v01_func
+      if (present(dv01_func)) self%velocity_1%dv01 => dv01_func
+    end subroutine set_ic_velocity_1_funcs
+  
+    ! TODO: Add as needed
+  
+  end module mod_iv_initial_conditions
+  

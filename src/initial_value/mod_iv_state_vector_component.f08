@@ -10,8 +10,9 @@ module mod_iv_state_vector_component
 
   type, public :: iv_sv_component_t
     type(sv_component_t), pointer :: base => null()  ! pointer to existing sv_component_t instance
-    logical :: is_bound = .false.
+    character(len=:), allocatable :: name
 
+    logical :: is_bound = .false.
     logical :: cplx_trans = .false.
 
     real(dp), allocatable :: c1(:), c2(:)   ! coefficients
@@ -35,8 +36,12 @@ contains
   ! -----------------------------------------------------------------
   ! Constructor
   ! -----------------------------------------------------------------
-  function new_iv_component() result(comp)
+  function new_iv_component(name) result(comp)
     type(iv_sv_component_t) :: comp
+    character(len=*), intent(in) :: name
+
+    allocate(character(len=len_trim(name)) :: comp%name)
+    comp%name = trim(name)
   end function new_iv_component
 
 
@@ -130,7 +135,6 @@ contains
   end subroutine compute_cubic_coeffs
 
 
-  ! TODO: Test this
   ! -----------------------------------------------------------------
   ! Reconstruct the profiles from coefficients
   ! -----------------------------------------------------------------

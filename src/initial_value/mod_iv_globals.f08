@@ -13,9 +13,9 @@ module mod_iv_globals
   end interface
 
   ! Type to hold the profile function pointers
-  type :: iv_prof_fcn_ptr_t
+  type :: iv_fcn_ptr_t
     procedure(profile_fcn), pointer, nopass :: ptr
-  end type iv_prof_fcn_ptr_t
+  end type iv_fcn_ptr_t
 
 contains
   pure function linspace(x0, x1, xvals) result(xarray)
@@ -30,6 +30,13 @@ contains
       xarray(i) = x0 + (i - 1) * dx
     end do
   end function linspace
+
+  function zero_fcn(x) result(res)
+    real(dp), intent(in) :: x(:)
+    real(dp) :: res(size(x))
+
+    res = 0.0d0
+  end function zero_fcn
 
 
 end module mod_iv_globals

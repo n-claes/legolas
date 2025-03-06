@@ -5,9 +5,9 @@ module mod_iv_state_vector
   use mod_grid, only: grid_t
   use mod_state_vector, only: state_vector_t
   use mod_state_vector_names
-  use mod_iv_globals, only: profile_fcn, iv_prof_fcn_ptr_t
+  use mod_iv_globals, only: profile_fcn, iv_fcn_ptr_t, zero_fcn
   use mod_iv_state_vector_component, only: iv_sv_component_t, new_iv_component
-  use mod_iv_initial_conditions, only: get_f_lists
+  use mod_iv_initial_conditions, only: initial_conditions_t
   
   implicit none
 
@@ -59,97 +59,86 @@ module mod_iv_state_vector
   end function init_and_bind
 
 
-  ! TODO: Test this
-  subroutine initialise_components(self, physics_type)
+  subroutine initialise_components(self, physics_type, initial_conditions)
     class(iv_state_vector_t), intent(inout) :: self
     character(len=*), intent(in) :: physics_type
+    class(initial_conditions_t), intent(inout) :: initial_conditions
 
-    type(iv_prof_fcn_ptr_t), allocatable :: f_list(:), df_list(:)
+    procedure(profile_fcn), pointer :: fcn  => null()
+    procedure(profile_fcn), pointer :: dfcn => null()
+    character(len=:), allocatable :: name
     integer :: i
-
+      
     if (self%is_initialised) then
       call logger%error("IV state vector is already initialised.")
     end if
 
     ! Initialise all of the components
-    iv_rho1 = new_iv_component()
-    iv_v1 = new_iv_component()
-    iv_v2 = new_iv_component()
-    iv_v3 = new_iv_component()
-    iv_T1 = new_iv_component()
-    iv_a1 = new_iv_component()
-    iv_a2 = new_iv_component()
-    iv_a3 = new_iv_component()
+    iv_rho1 = new_iv_component("rho")
+    iv_v1 = new_iv_component("v1")
+    iv_v2 = new_iv_component("v2")
+    iv_v3 = new_iv_component("v3")
+    iv_T1 = new_iv_component("T")
+    iv_a1 = new_iv_component("a1")
+    iv_a2 = new_iv_component("a2")
+    iv_a3 = new_iv_component("a3")
 
     ! Store pointers to the active components
+    ! TODO: Add the rest
     select case(physics_type)
     case("isothermal-1d")
       self%num_components = 2
-      allocate(self%components(self%num_components), &
-               f_list(self%num_components), &
-               df_list(self%num_components))
-
+      allocate(self%components(self%num_components))
       self%components(1)%ptr => iv_rho1
       self%components(2)%ptr => iv_v1
-
-      call get_f_lists(f_list, df_list)
+  
     case("hd")
       self%num_components = 5
-      allocate(self%components(self%num_components), &
-               f_list(self%num_components), &
-               df_list(self%num_components))
-
+      allocate(self%components(self%num_components))
       self%components(1)%ptr => iv_rho1
       self%components(2)%ptr => iv_v1
       self%components(3)%ptr => iv_v2
       self%components(4)%ptr => iv_v3
       self%components(5)%ptr => iv_T1
-
-      call get_f_lists(f_list, df_list)
-    case("hd-1d")
-      self%num_components = 3
-      allocate(self%components(self%num_components), &
-               f_list(self%num_components), &
-               df_list(self%num_components))
-
-      self%components(1)%ptr => iv_rho1
-      self%components(2)%ptr => iv_v1
-      self%components(3)%ptr => iv_T1
-
-      call get_f_lists(f_list, df_list)
+  
     case default
-      self%num_components = 8
-      allocate(self%components(self%num_components), &
-               f_list(self%num_components), &
-               df_list(self%num_components))
-
-      self%components(1)%ptr => iv_rho1
-      self%components(2)%ptr => iv_v1
-      self%components(3)%ptr => iv_v2
-      self%components(4)%ptr => iv_v3
-      self%components(5)%ptr => iv_T1
-      self%components(6)%ptr => iv_a1
-      self%components(7)%ptr => iv_a2
-      self%components(8)%ptr => iv_a3
-
-      call get_f_lists(f_list, df_list)
+      call logger%error("Physics type not implemented for IVP mode.")
     end select
-
+  
     self%stride = 2 * self%num_components
-
+  
     if (self%num_components /= size(self%base%components)) then
-      call logger%error("Mismatch in number of state components used by IV module and main Legolas program.")
+      call logger%error("Mismatch in number of state components.")
     end if
-
+  
+    ! Bind initial conditions to the components
     do i = 1, self%num_components
-      ! TODO: Add a 'name' attribute to the iv_components as well and check that iv_comp%name == sv_comp%name
-      call self%components(i)%ptr%bind_iv_component(self%base%components(i)%ptr, &
-                                                    fcn = f_list(i)%ptr, &
-                                                    dfcn = df_list(i)%ptr)
+      ! Retrieve the name of this component
+      name = self%components(i)%ptr%name
+      ! TODO: Add the rest
+      select case(name)
+      case("rho")
+         fcn  => initial_conditions%density%rho
+         dfcn => initial_conditions%density%drho
+  
+      case("v1")
+         fcn  => initial_conditions%velocity_1%v01
+         dfcn => initial_conditions%velocity_1%dv01
+  
+      case default
+         ! If no match, assume 0
+         fcn  => zero_fcn
+         dfcn => zero_fcn
+         call logger%warning("No match for component "//name//", set to zero")
+  
+      end select
+  
+      ! Now actually bind the pointers
+      call self%components(i)%ptr%bind_iv_component( &
+           self%base%components(i)%ptr, fcn, dfcn)
     end do
-
+  
     self%is_initialised = .true.
-
   end subroutine initialise_components
 
 
