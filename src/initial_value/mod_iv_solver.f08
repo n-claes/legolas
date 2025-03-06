@@ -17,7 +17,7 @@ module mod_iv_solver
 contains
 
   !> Solve the initial value problem
-  subroutine solve(matrix_A, matrix_B, x, settings, snapshots)
+  subroutine solve(matrix_A, matrix_B, x, settings, snapshots, snap_times)
     !> FEM matrix A
     type(matrix_t) :: matrix_A
     !> FEM matrix B
@@ -27,7 +27,9 @@ contains
     !> settings
     type(settings_t), intent(in) :: settings
     !> optionally save every n-th step in this 2D array
-    complex(dp), dimension(:,:), optional, intent(out) :: snapshots
+    complex(dp), dimension(:,:), optional, intent(out) :: snapshots  ! TODO: Make this a required arg
+    !> snapshot times
+    real(dp), dimension(:), optional, intent(out) :: snap_times  ! TODO: Make this a required arg
 
     type(banded_matrix_t) :: A, B, M
     integer :: A_ku, A_kl               ! # upper diagonals, # lower diagonals
@@ -86,9 +88,14 @@ contains
         return
       end if
   
+      if (size(snap_times) /= num_save) then
+        call logger%error("snap_times is the wrong shape.")
+      end if
+
       ! Save the initial condition as the first snapshot
       i_save = 1
       snapshots(:, i_save) = x
+      snap_times(i_save) = 0.0d0
       i_save = i_save + 1
     end if
 
@@ -130,12 +137,14 @@ contains
         ! Save every n-th snapshot
         if (mod(i, save_stride) == 0 .and. i < num_steps) then
           snapshots(:, i_save) = x
+          snap_times(i_save) = i * dt
           i_save = i_save + 1
         end if
   
         ! Save at final step
         if (i == num_steps) then
           snapshots(:, i_save) = x
+          snap_times(i_save) = i * dt
           i_save = i_save + 1
         end if
       end if

@@ -571,6 +571,9 @@ contains
     write(dat_fh) n_points
     write(dat_fh) iv_module%state_vec%num_components
   
+    ! Write snapshot times
+    write(dat_fh) iv_module%snap_times
+
     ! Reassemble on the fly
     do i_snap = 1, n_snap
       call iv_module%postprocess_snapshot(i_snap)

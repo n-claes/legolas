@@ -21,6 +21,7 @@ module mod_iv_module
     real, allocatable :: iv_grid(:) 
 
     complex(dp), allocatable :: snapshots(:,:)
+    real(dp), allocatable :: snap_times(:)
   contains
 
   procedure, public :: initialise
@@ -63,6 +64,8 @@ contains
     allocate(self%snapshots(self%state_vec%stride * self%settings%grid%get_gridpts(), &
      self%settings%iv%get_n_snapshots()))
 
+    allocate(self%snap_times(self%settings%iv%get_n_snapshots()))
+
     self%is_initialised = .true.
   end subroutine initialise
 
@@ -72,7 +75,7 @@ contains
     type(matrix_t), intent(in) :: matrix_A
     type(matrix_t), intent(in) :: matrix_B
 
-    call solve(matrix_A, matrix_B, self%state_vec%x0, self%settings, self%snapshots)
+    call solve(matrix_A, matrix_B, self%state_vec%x0, self%settings, self%snapshots, self%snap_times)
     
   end subroutine solve_ivp
 

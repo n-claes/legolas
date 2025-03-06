@@ -223,10 +223,11 @@ class LegolasFileReader:
         with open(self.datfile, "rb") as istream:
             istream.seek(offset)
             # Read as double precision
+            time_data = read_float_from_istream(istream, amount=nsnap)
             snapshot_data = read_float_from_istream(istream, amount=total_values)
 
         # Convert to a NumPy array, shape = (nsnap, ncomp, npts)
         data = np.array(snapshot_data, dtype=float)
         data = data.reshape((nsnap, ncomp, npts), order="C")
 
-        return data
+        return data, time_data
