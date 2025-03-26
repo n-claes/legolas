@@ -71,7 +71,7 @@ class IVPSolution:
     # PLOTTING METHODS
     # -------------------------------------------------------------------------
 
-    def plot_space_time_heatmap(self, component, ax=None, cmap='plasma', **imshow_kwargs):
+    def plot_space_time_heatmap(self, component, ax=None, cmap='plasma', time_range=None, **imshow_kwargs):
         """
         Plot a 2D heatmap (time vs. space) for the given component.
 
@@ -86,21 +86,32 @@ class IVPSolution:
             If provided, uses that axes; else creates a new figure.
         cmap : str
             Colormap to use for imshow.
+        time_range : tuple (t_min, t_max), optional
+            Time window to plot. If None, plots the full time span.
         imshow_kwargs : dict
             Additional arguments to pass to imshow (e.g. vmin, vmax, etc.).
         """
         comp_array = self.get_component(component)  # shape (n_snap, n_points)
+        times = np.array(self.times)
+
+        # Apply time slicing if a time range is specified
+        if time_range is not None:
+            t_min, t_max = time_range
+            time_mask = (times >= t_min) & (times <= t_max)
+            comp_array = comp_array[time_mask, :]
+            times = times[time_mask]
+        else:
+            t_min, t_max = times[0], times[-1]
 
         if ax is None:
             fig, ax = plt.subplots()
 
         n_points = comp_array.shape[1]
 
-        t_min, t_max = self.times[0], self.times[-1]
         if self.x_domain is not None and len(self.x_domain) == n_points:
             x_min, x_max = self.x_domain[0], self.x_domain[-1]
         else:
-            x_min, x_max = 0, n_points-1
+            x_min, x_max = 0, n_points - 1
 
         im = ax.imshow(
             comp_array,

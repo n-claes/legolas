@@ -91,6 +91,13 @@ module mod_iv_state_vector
       allocate(self%components(self%num_components))
       self%components(1)%ptr => iv_rho1
       self%components(2)%ptr => iv_v1
+
+    case("hd-1d")
+      self%num_components = 3
+      allocate(self%components(self%num_components))
+      self%components(1)%ptr => iv_rho1
+      self%components(2)%ptr => iv_v1
+      self%components(3)%ptr => iv_T1
   
     case("hd")
       self%num_components = 5
@@ -129,7 +136,7 @@ module mod_iv_state_vector
          ! If no match, assume 0
          fcn  => zero_fcn
          dfcn => zero_fcn
-         call logger%warning("No match for component "//name//", set to zero")
+         call logger%info("No perturbation found for component "//name//", set to zero")
   
       end select
   

@@ -152,9 +152,17 @@ contains
 
     call self%base%get_spline_function(0, f)
 
+    ! first gridpoint contribution
+    h = f(x=grid%ef_grid(1), x0=grid%base_grid(1), x1=grid%base_grid(2))
+    self%profile(1) =         &
+          self%c1(2) * h(1) + &
+          self%c1(1) * h(2) + &
+          self%c2(2) * h(3) + &
+          self%c2(1) * h(4)
+
     do grid_idx = 1, settings%grid%get_gridpts() - 1
       do ef_grid_idx = 2 * grid_idx, 2 * grid_idx + 1
-        h = f(grid%ef_grid(ef_grid_idx), grid%base_grid(grid_idx), grid%base_grid(grid_idx + 1))
+        h = f(x=grid%ef_grid(ef_grid_idx), x0=grid%base_grid(grid_idx), x1=grid%base_grid(grid_idx + 1))
     
         self%profile(ef_grid_idx) =   &
               self%c1(grid_idx + 1) * h(1) + &
