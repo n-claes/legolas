@@ -131,6 +131,10 @@ module mod_iv_state_vector
       case("v1")
          fcn  => initial_conditions%velocity_1%v01
          dfcn => initial_conditions%velocity_1%dv01
+
+      case("T")
+        fcn  => initial_conditions%temperature%T
+        dfcn => initial_conditions%temperature%dT
   
       case default
          ! If no match, assume 0

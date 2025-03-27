@@ -16,14 +16,21 @@ module mod_iv_initial_conditions
       procedure(profile_fcn), pointer, nopass :: dv01  => null()
       ! v02, etc.
     end type ic_velocity_t
+
+    type, public :: ic_temperature_t
+      procedure(profile_fcn), pointer, nopass :: T   => null()
+      procedure(profile_fcn), pointer, nopass :: dT  => null()
+    end type ic_temperature_t
   
     type, public :: initial_conditions_t
-      type(ic_density_t)   :: density
-      type(ic_velocity_t)  :: velocity_1
-      ! also temperature, etc.
+      type(ic_density_t)     :: density
+      type(ic_velocity_t)    :: velocity_1
+      type(ic_temperature_t) :: temperature
+      ! add more here
     contains
       procedure :: set_ic_density_funcs
       procedure :: set_ic_velocity_1_funcs
+      procedure :: set_ic_temperature_funcs
     end type initial_conditions_t
 
     public :: new_initial_conditions
@@ -42,6 +49,9 @@ module mod_iv_initial_conditions
   
       ic%velocity_1%v01  => zero_fcn
       ic%velocity_1%dv01 => zero_fcn
+
+      ic%temperature%T  => zero_fcn
+      ic%temperature%dT => zero_fcn
   
       ! TODO: add the rest
 
@@ -64,12 +74,22 @@ module mod_iv_initial_conditions
     subroutine set_ic_velocity_1_funcs(self, v01_func, dv01_func)
       class(initial_conditions_t), intent(inout) :: self
       procedure(profile_fcn) :: v01_func
-      procedure(profile_fcn), optional :: dv01_func
+      procedure(profile_fcn) :: dv01_func
   
       call logger%debug("Setting ICs for component v1.")
       self%velocity_1%v01 => v01_func
-      if (present(dv01_func)) self%velocity_1%dv01 => dv01_func
+      self%velocity_1%dv01 => dv01_func
     end subroutine set_ic_velocity_1_funcs
+
+    subroutine set_ic_temperature_funcs(self, T_func, dT_func)
+      class(initial_conditions_t), intent(inout) :: self
+      procedure(profile_fcn) :: T_func
+      procedure(profile_fcn), optional :: dT_func
+
+      call logger%debug("Setting ICs for component T.")
+      self%temperature%T => T_func
+      if (present(dT_func)) self%temperature%dT => dT_func
+    end subroutine set_ic_temperature_funcs
   
     ! TODO: Add as needed
   
