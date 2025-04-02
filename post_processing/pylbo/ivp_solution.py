@@ -1,5 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
+def fmt(x, pos):
+    a, b = '{:.2e}'.format(x).split('e')
+    b = int(b)
+    return r'${} \times 10^{{{}}}$'.format(a, b)
 
 class IVPSolution:
     """
@@ -19,7 +25,7 @@ class IVPSolution:
         Or store x_start / x_end if you prefer a continuous domain.
     """
 
-    def __init__(self, times, data, component_names=None, x_domain=None):
+    def __init__(self, times, data, component_names=None, x_domain=None, units=None):
         """
         Parameters
         ----------
@@ -36,6 +42,45 @@ class IVPSolution:
         self.data = data                    # shape: (n_snap, n_comp, n_points)
         self.component_names = component_names or {}
         self.x_domain = x_domain            # shape: (n_points,) or None
+        self.units = units
+
+    def _scale_component_array(self, component, comp_array):
+        """
+        Returns comp_array scaled into physical (cgs) units,
+        based on the component name and the self.units dict.
+        """
+        if self.units is None:
+            return comp_array  # no scaling if no units
+        
+        # Identify which scale factor to use
+        comp_name = str(component).lower()
+        if "rho" in comp_name:
+            factor = self.units["unit_density"]             # g cm^-3
+            label = r"[g cm$^{-3}$]"
+        elif "v" in comp_name:
+            factor = self.units["unit_velocity"]            # cm s^-1
+            label = r"[cm s$^{-1}$]"
+        elif "temp" in comp_name or "t" in comp_name:
+            factor = self.units["unit_temperature"]  # K
+            label = r"[K]"
+        elif "p" in comp_name:
+            factor = self.units["unit_pressure"]            # dyn cm^-2
+        else:
+            factor = 1.0  # fallback/no scaling
+        
+        return comp_array * factor, label
+
+    def _scale_time_array(self, times):
+        if self.units is None:
+            return times
+        # dimensionless * unit_time => seconds
+        return times * self.units["unit_time"]
+
+    def _scale_x_domain(self, x_vals):
+        if self.units is None:
+            return x_vals
+        # dimensionless * unit_length => cm => * 10^8 => Mm
+        return x_vals * self.units["unit_length"] * 1e-8
 
     def _get_component_index(self, component):
         """
@@ -94,37 +139,52 @@ class IVPSolution:
         comp_array = self.get_component(component)  # shape (n_snap, n_points)
         times = np.array(self.times)
 
-        # Apply time slicing if a time range is specified
+        # 1) Scale times -> physical units
+        times_phys = self._scale_time_array(times)
+
+        # 2) Clip times if time_range is given
         if time_range is not None:
             t_min, t_max = time_range
-            time_mask = (times >= t_min) & (times <= t_max)
-            comp_array = comp_array[time_mask, :]
-            times = times[time_mask]
+            mask = (times_phys >= t_min) & (times_phys <= t_max)
+            comp_array = comp_array[mask, :]
+            times_phys = times_phys[mask]
+            t_min, t_max = times_phys[0], times_phys[-1]
         else:
-            t_min, t_max = times[0], times[-1]
+            t_min, t_max = times_phys[0], times_phys[-1]
 
+        # 3) Scale the solution array for the chosen component
+        comp_array_phys, label = self._scale_component_array(component, comp_array)
+
+        # 4) Prepare axes
         if ax is None:
             fig, ax = plt.subplots()
 
-        n_points = comp_array.shape[1]
-
+        # 5) Scale spatial domain
+        n_points = comp_array_phys.shape[1]
         if self.x_domain is not None and len(self.x_domain) == n_points:
-            x_min, x_max = self.x_domain[0], self.x_domain[-1]
+            x_vals_phys = self._scale_x_domain(self.x_domain)
+            x_min, x_max = x_vals_phys[0], x_vals_phys[-1]
         else:
             x_min, x_max = 0, n_points - 1
+            x_vals_phys = None
 
         im = ax.imshow(
-            comp_array,
+            comp_array_phys,
             origin='lower',
             aspect='auto',
             cmap=cmap,
             extent=[x_min, x_max, t_min, t_max],
             **imshow_kwargs
         )
-        plt.colorbar(im, ax=ax, label=str(component))
+        cbar = plt.colorbar(im, ax=ax, format=ticker.FuncFormatter(fmt))
+        cbar.set_label(f"{component} {label}")
 
-        ax.set_xlabel("x coordinate" if self.x_domain is not None else "x index")
-        ax.set_ylabel("Time")
+        # 6) Axis labels with units
+        if x_vals_phys is not None:
+            ax.set_xlabel("x [Mm]")
+        else:
+            ax.set_xlabel("x index")
+        ax.set_ylabel("Time [s]")
         ax.set_title(f"Space-Time Heatmap of {component}")
         return ax
     
@@ -151,15 +211,20 @@ class IVPSolution:
         => This draws 3 lines (time=times[0], time=times[5], time=times[10]),
            each line is x vs. rho.
         """
-        comp_array = self.get_component(component)   # shape (n_snap, n_points)
-        n_snap, n_points = comp_array.shape
 
-        # pick the x axis
+        comp_array = self.get_component(component)   # shape (n_snap, n_points)
+        comp_array_phys, label = self._scale_component_array(component, comp_array)
+
+        times_phys = self._scale_time_array(np.array(self.times))
+
+        n_snap, n_points = comp_array_phys.shape
+
+        # Scale x-axis
         if self.x_domain is not None and len(self.x_domain) == n_points:
-            x_vals = self.x_domain
-            xlabel = "x coordinate"
+            x_vals_phys = self._scale_x_domain(self.x_domain)
+            xlabel = "x [Mm]"
         else:
-            x_vals = np.arange(n_points)
+            x_vals_phys = np.arange(n_points)
             xlabel = "x index"
 
         if ax is None:
@@ -168,14 +233,15 @@ class IVPSolution:
         for snap_idx in snap_indices:
             if snap_idx < 0 or snap_idx >= n_snap:
                 raise IndexError(f"Snapshot index {snap_idx} out of range (0..{n_snap-1}).")
+            
+            y_vals = comp_array_phys[snap_idx, :]
+            t_val = times_phys[snap_idx]
 
-            # data at this time step -> shape (n_points,)
-            y_vals = comp_array[snap_idx, :]
-            t_str = f"{self.times[snap_idx]:.3f}"
-            ax.plot(x_vals, y_vals, label=f"time={t_str}", **plot_kwargs)
+            ax.plot(x_vals_phys, y_vals, label=f"t={t_val:.3f} s", **plot_kwargs)
 
         ax.set_xlabel(xlabel)
-        ax.set_ylabel(str(component))
+        ax.set_ylabel(f"{component} {label}")
         ax.set_title(f"{component} vs. x for selected time steps")
         ax.legend()
         return ax
+

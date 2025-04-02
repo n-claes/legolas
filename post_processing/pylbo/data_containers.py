@@ -724,7 +724,8 @@ class LegolasDataSet(LegolasDataContainer):
         x_domain = np.linspace(self.header.data["x_start"], self.header.data["x_end"], raw_data.shape[2])
 
         self._ivp_solution = IVPSolution(times=times, data=raw_data,
-                                        component_names=component_names, x_domain=x_domain)
+                                        component_names=component_names, x_domain=x_domain,
+                                        units=self.units)
         return self._ivp_solution
 
 

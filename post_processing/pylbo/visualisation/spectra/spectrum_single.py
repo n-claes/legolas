@@ -37,11 +37,12 @@ class SingleSpectrumPlot(SpectrumFigure):
         Alpha value of the points.
     """
 
-    def __init__(self, dataset, figsize, custom_figure, use_residuals, **kwargs):
+    def __init__(self, dataset, figsize, custom_figure, use_residuals, title=None, **kwargs):
         super().__init__(
             custom_figure=custom_figure, figlabel="single-spectrum", figsize=figsize
         )
         self.dataset = dataset
+        self.custom_title = title
         super()._set_plot_properties(kwargs)
 
         self._use_residuals = use_residuals
@@ -70,7 +71,7 @@ class SingleSpectrumPlot(SpectrumFigure):
         self.ax.axvline(x=0, linestyle="dotted", color="grey", alpha=0.3)
         self.ax.set_xlabel(r"Re($\omega$)")
         self.ax.set_ylabel(r"Im($\omega$)")
-        self.ax.set_title(self.dataset.eq_type)
+        self.ax.set_title(self.custom_title or self.dataset.eq_type)
 
     def add_continua(self, interactive=True):
         """
