@@ -15,6 +15,7 @@ ALFVEN_MIN = "alfven-"
 ALFVEN_PLUS = "alfven+"
 THERMAL = "thermal"
 DOPPLER = "doppler"
+D_CONTINUUM = "d"
 
 CONTINUA_NAMES = {
     SLOW_MIN: r"$\Omega_S^-",
@@ -23,8 +24,9 @@ CONTINUA_NAMES = {
     ALFVEN_PLUS: r"$\Omega_A^+",
     THERMAL: r"$\Omega_T",
     DOPPLER: r"$\Omega_0",
+    D_CONTINUUM: r"$D$",
 }
-CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "green", "grey"]
+CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "green", "grey", "orange"]
 
 _DEFAULT_ZERO_TOL = 1e-12
 
@@ -89,11 +91,13 @@ def calculate_continua(ds: LegolasDataSet) -> dict:
     doppler = get_doppler_shift(ds)
     alfven2 = get_squared_alfven_continuum(ds)
     slowneg, slowpos, thermal = _get_thermal_and_slow_continua(ds)
+    D_cont = get_D(ds)
     continua = {
         DOPPLER: doppler,
         SLOW_MIN: slowneg,
         SLOW_PLUS: slowpos,
         THERMAL: thermal,
+        D_CONTINUUM: D_cont,
         ALFVEN_MIN: -np.sqrt(alfven2),
         ALFVEN_PLUS: np.sqrt(alfven2),
     }
@@ -238,6 +242,42 @@ def _get_thermal_continuum_analytical(ds: LegolasDataSet) -> np.ndarray:
     ci2 = _get_squared_isothermal_sound_speed(ds)
     gamma_1 = ds.gamma - 1
     return 1j * gamma_1 * (L0 + rho0 * dLdrho - (ca2 + ci2) * dLdT) / (cs2 + ca2)
+
+
+def get_D(ds: LegolasDataSet) -> np.ndarray:
+    """
+    \omega when D=0
+
+    Returns
+    -------
+    np.ndarray
+        ...
+    """
+    zeroes = np.zeros_like(ds.grid_gauss)
+    bg = ds.equilibria
+    dLdT = bg.get("dLdT", zeroes)
+    gamma_1 = ds.gamma - 1
+    return 1j * gamma_1 * dLdT
+
+
+def get_Q(ds: LegolasDataSet) -> np.ndarray:
+    """
+    Q(s)  =  i (gamma-1) [ L0 + rho0 * dLdrho ]
+             ---------------------------------
+             (per-unit-mass heat-loss convention)
+
+    Returns
+    -------
+    np.ndarray
+        Complex frequency Q along the Gauss grid.
+    """
+    zeroes   = np.zeros_like(ds.grid_gauss)
+    bg       = ds.equilibria
+    L0       = bg.get("L0",       zeroes)
+    dLdrho   = bg.get("dLdrho",   zeroes)
+    rho0     = bg["rho0"]
+    gamma_1  = ds.gamma - 1
+    return 1j * gamma_1 * (L0 + rho0 * dLdrho)
 
 
 def _get_slow_and_thermal_continuum_coupled(

@@ -46,7 +46,7 @@ class SingleSpectrumPlot(SpectrumFigure):
         super()._set_plot_properties(kwargs)
 
         self._use_residuals = use_residuals
-        (self._nonzero_w_idxs,) = np.where(abs(dataset.eigenvalues) > 1e-12)
+        (self._nonzero_w_idxs,) = np.where(abs(dataset.eigenvalues) >= 0.0)
 
     def add_spectrum(self):
         """Adds the spectrum to the plot, makes the points pickable."""
