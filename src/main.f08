@@ -25,6 +25,7 @@ program legolas
   use mod_physics, only: physics_t, new_physics
   use mod_iv_module, only: iv_module_t, new_iv_module
   use mod_iv_initial_conditions, only: initial_conditions_t, new_initial_conditions
+  use mod_arrays, only: deallocate_input
   implicit none
 
   !> A matrix in eigenvalue problem wBX = AX
@@ -185,6 +186,7 @@ contains
     call grid%delete()
     call background%delete()
     call settings%delete()
+    call deallocate_input()
   end subroutine cleanup
 
 
