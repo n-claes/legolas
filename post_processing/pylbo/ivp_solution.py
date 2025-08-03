@@ -50,7 +50,7 @@ class IVPSolution:
         based on the component name and the self.units dict.
         """
         if self.units is None:
-            return comp_array  # no scaling if no units
+            return comp_array, ""  # no scaling if no units
         
         # Identify which scale factor to use
         comp_name = str(component).lower()
@@ -65,9 +65,11 @@ class IVPSolution:
             label = r"[K]"
         elif "p" in comp_name:
             factor = self.units["unit_pressure"]            # dyn cm^-2
+            label  = r"[dyn cm$^{-2}$]"
         else:
-            factor = 1.0  # fallback/no scaling
-        
+            factor = 1.0
+            label  = ""
+
         return comp_array * factor, label
 
     def _scale_time_array(self, times):
@@ -245,3 +247,308 @@ class IVPSolution:
         ax.legend()
         return ax
 
+    # -----------------------------------------------------------------
+    # NEW METHOD:  growth curve with optional analytic e-fold overlay
+    # -----------------------------------------------------------------
+    def plot_growth_vs_time(
+        self,
+        component,
+        mode="centre",          # "centre" | "max" | "integral"
+        centre_idx=None,        # if None, use n_points//2
+        region=None,            # (i_min, i_max) for "integral" or "max"
+        logy=True,
+        tau=None,               # analytic e-folding time in *seconds* (float)
+        ax=None,
+        data_kw=None,           # kwargs for data curve
+        fit_kw=None,            # kwargs for analytic curve
+    ):
+        """
+        Plot amplitude of a perturbation vs. time. If `tau` is provided,
+        overlay an analytic ±exp(t/tau) curve for comparison.
+
+        Parameters
+        ----------
+        component : str | int
+            Primitive variable ("rho", "T", "v1", ...).
+        mode : {"centre","max","integral"}
+            How to reduce spatial data to a scalar amplitude.
+        centre_idx : int
+            Spatial index for mode="centre" (default midpoint).
+        region : tuple (i_min, i_max)
+            Slice for mode="max" or "integral". Default: whole domain.
+        logy : bool
+            Use semilog-y axis.
+        tau : float, optional
+            Analytic e-folding time [s]. Positive => growth; negative => decay.
+        ax : matplotlib Axes, optional
+            Supply your own axes.
+        data_kw / fit_kw : dict
+            Extra kwargs forwarded to `plot` / `semilog` for data and fit.
+        """
+        data_kw = {} if data_kw is None else data_kw
+        fit_kw  = {} if fit_kw  is None else fit_kw
+
+        comp_arr = self.get_component(component)             # (n_snap,n_pts)
+        times_phys = self._scale_time_array(np.asarray(self.times))
+
+        # --- spatial reduction -------------------------------------------------
+        if region is not None:
+            i_min, i_max = region
+            sl = slice(i_min, i_max)
+        else:
+            sl = slice(None)
+
+        if mode == "centre":
+            if centre_idx is None:
+                centre_idx = comp_arr.shape[1] // 2
+            amp = comp_arr[:, centre_idx]
+        elif mode == "max":
+            amp = np.max(np.abs(comp_arr[:, sl]), axis=1)
+        elif mode == "integral":
+            amp = np.sqrt(np.sum(comp_arr[:, sl] ** 2, axis=1))
+        else:
+            raise ValueError("mode must be 'centre', 'max' or 'integral'.")
+
+        amp_phys, label = self._scale_component_array(component, amp)
+
+        # --- plotting ----------------------------------------------------------
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        plot_fn = ax.semilogy if logy else ax.plot
+        plot_fn(
+            times_phys,
+            amp_phys,
+            label=f"{component}",
+            **data_kw
+        )
+
+        # --- analytic overlay ---------------------------------------------------
+        if tau is not None and tau != 0.0:
+            a0 = amp_phys[0]
+            t0 = times_phys[0]
+            fit = a0 * np.exp((times_phys - t0) / tau)
+            plot_fn(
+                times_phys,
+                fit,
+                linestyle="--",
+                label=f"analytic  exp($t/{tau:.0f}$ s)",
+                **fit_kw,
+            )
+
+        # --- cosmetics ----------------------------------------------------------
+        ax.set_xlabel("Time [s]")
+        ax.set_ylabel(f"Amplitude {label}")
+        ax.set_title(f"{component} amplitude vs. time")
+
+        if mode == "centre":
+            ax.annotate(
+                f"centre idx = {centre_idx}",
+                xy=(0.02, 0.95), xycoords="axes fraction",
+                fontsize=8, va="top"
+            )
+        elif region is not None:
+            ax.annotate(
+                f"region = [{sl.start}:{sl.stop}]",
+                xy=(0.02, 0.95), xycoords="axes fraction",
+                fontsize=8, va="top"
+            )
+
+        ax.legend()
+        return ax
+
+    # ------------------------------------------------------------------
+    #   ENERGY diagnostic :  E_kin , E_int , E_tot  vs time
+    # ------------------------------------------------------------------
+    def plot_energy_timeseries(
+            self,
+            rho0, T0,                       # 1-D background arrays
+            p0=None, gamma=5/3,
+            v_comp="v1", rho_comp="rho", T_comp="T",
+            region=None,
+            logy=True,
+            energies=("kin", "int", "tot"),
+            ax=None,
+            plot_kw=None,
+            return_data=False,
+            to_physical=False,              # ← NEW
+            energy_unit=None):              # ← NEW
+        """
+        Plot (or return) kinetic, internal, and/or total perturbed energies.
+
+        Parameters
+        ----------
+        to_physical : bool, optional
+            If True, convert energies to cgs ergs using `energy_unit`
+            or the units stored in `self.units`.
+        energy_unit : float, optional
+            Conversion factor (erg per code-unit energy).  Overrides auto-derivation.
+        """
+        # ------------------------------------------------------------------
+        # 0. sanity
+        valid = {"kin", "int", "tot"}
+        energies = tuple(e for e in energies if e in valid)
+        if not energies:
+            raise ValueError(f"`energies` must contain at least one of {valid}")
+        plot_kw = {} if plot_kw is None else dict(plot_kw)
+        sl = slice(*region) if region else slice(None)
+
+        # ------------------------------------------------------------------
+        # 1. primitive perturbations
+        v1   = self.get_component(v_comp)[:, sl]
+        rho1 = self.get_component(rho_comp)[:, sl]
+        T1   = self.get_component(T_comp)[:, sl]
+
+        rho0_sl, T0_sl = rho0[sl][None, :], T0[sl][None, :]
+
+        # ------------------------------------------------------------------
+        # 2. specific heat
+        c_v = 1.0 / (gamma - 1.0)
+
+        # ------------------------------------------------------------------
+        # 3. metric ds  (physical cm)
+        if self.x_domain is not None:                 # non-uniform grid
+            x_cm = self._scale_x_domain(self.x_domain)[sl] * 1e8
+            ds   = np.gradient(x_cm)
+        else:                                         # uniform grid
+            ds   = np.ones_like(rho0_sl[0])
+        ds = ds[None, :]                              # broadcast
+
+        # ------------------------------------------------------------------
+        # 4. energies  (still code-unit values for now)
+        Ekin = 0.5 * np.sum(rho0_sl * v1**2                 * ds, axis=1)
+        Eint =       np.sum(c_v * (rho0_sl*T1 + T0_sl*rho1) * ds, axis=1)
+        Etot = Ekin + Eint
+
+        # ------------------------------------------------------------------
+        # 5. unit conversion (optional)
+        if to_physical:
+            if energy_unit is None:
+                # --- try to derive from self.units ------------------------
+                try:
+                    rho_ref = self.units["unit_density"]          # g cm⁻³
+                    T_ref   = self.units["unit_temperature"]      # K
+                    L_ref   = self.units["unit_length"]           # cm
+                    mu      = self.units.get("mean_molecular_weight", 1.0)
+                    # physical gas constant per gram
+                    k_B   = 1.380649e-16    # erg K⁻¹
+                    m_H   = 1.6735575e-24   # g
+                    R_phys = k_B / (mu * m_H)
+                    v_ref = (R_phys * T_ref) ** 0.5               # cm s⁻¹
+                    energy_unit = rho_ref * v_ref**2 * L_ref      # erg
+                except Exception as exc:
+                    raise RuntimeError(
+                        "Cannot auto-derive `energy_unit`; "
+                        "provide it explicitly."
+                    ) from exc
+            # apply conversion
+            Ekin *= energy_unit
+            Eint *= energy_unit
+            Etot *= energy_unit
+            y_label = "Energy [erg]"
+        else:
+            y_label = "Energy [code units]"
+
+        # ------------------------------------------------------------------
+        # 6. time array (physical seconds)
+        t_phys = self._scale_time_array(np.asarray(self.times))
+
+        # ------------------------------------------------------------------
+        # 7. plotting
+        if ax is None:
+            _, ax = plt.subplots()
+
+        if logy:
+            pos_vals = np.concatenate([arr[arr > 0] for arr in (Ekin, Eint, Etot)])
+            if pos_vals.size > 0:
+                linth = 0.01 * pos_vals.min()
+                ax.set_yscale("symlog", linthresh=linth, linscale=1.0)
+                from matplotlib.ticker import NullFormatter
+                ax.yaxis.set_minor_formatter(NullFormatter())
+
+        _style = dict(
+            kin=dict(color="tab:blue",  ls="--", label=r"$E_{\mathrm{kin}}$"),
+            int=dict(color="tab:red",   ls="-.", label=r"$E_{\mathrm{int}}$"),
+            tot=dict(color="tab:green", ls="-",  label=r"$E_{\mathrm{tot}}$"),
+        )
+
+        for key in energies:
+            ax.plot(t_phys, {"kin": Ekin, "int": Eint, "tot": Etot}[key],
+                    **{**_style[key], **plot_kw})
+
+        ax.set_xlabel("Time [s]")
+        ax.set_ylabel(y_label)
+        if ax.get_title() == "":
+            ax.set_title("Perturbed energy vs. time")
+        if any(line.get_label() for line in ax.lines):
+            ax.legend()
+
+        if return_data:
+            return ax, {"t": t_phys, "Ekin": Ekin, "Eint": Eint, "Etot": Etot}
+        return ax
+
+
+    def plot_derived_heatmap(
+        self,
+        kind,                          # "pressure" | "entropy"
+        rho0, T0, p0=None,             # 1-D background (code units)
+        gamma=5.0/3.0,
+        cmap="plasma",
+        ax=None,
+        time_range=None,
+        **imshow_kw,
+    ):
+        """
+        Draw a space-time heat-map for a derived perturbation field.
+        """
+        # primitive perturbations
+        rho1 = self.get_component("rho")
+        T1   = self.get_component("T")
+
+        rho0_b, T0_b = rho0.reshape(1, -1), T0.reshape(1, -1)
+
+        if kind.lower() == "pressure":
+            field   = rho0_b * T1 + T0_b * rho1          # p1
+            label   = r"[code-pressure]" if self.units is None else r"[dyn cm$^{-2}$]"
+
+        elif kind.lower() == "entropy":
+            if p0 is None:
+                p0 = rho0 * T0
+            p0_b  = p0.reshape(1, -1)
+            p1    = rho0_b * T1 + T0_b * rho1
+            field = p1 / p0_b - gamma * rho1 / rho0_b    # S1 (dimensionless)
+            label = ""
+        else:
+            raise ValueError("kind must be 'pressure' or 'entropy'")
+
+        # unit scaling only if a unit dict is present
+        if self.units is not None and kind.lower() == "pressure":
+            field, _ = self._scale_component_array("p", field)
+
+        # ------------------------------------------------------------------
+        # put the derived field temporarily at the end of self.data
+        idx_tmp = self.data.shape[1]
+        self.data = np.concatenate([self.data, field[:, None, :]], axis=1)
+        self.component_names[idx_tmp] = f"derived_{kind}"
+
+        vmin = imshow_kw.pop("vmin", field.min())
+        vmax = imshow_kw.pop("vmax", field.max())
+
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        try:
+            self.plot_space_time_heatmap(
+                idx_tmp, ax=ax, cmap=cmap, time_range=time_range,
+                vmin=vmin, vmax=vmax,
+                **imshow_kw
+            )
+            ax.set_title(f"{kind.capitalize()} perturbation")
+            # replace auto colour-bar label
+            ax.images[0].colorbar.set_label(f"{kind} {label}")
+        finally:
+            # clean-up: remove temporary column
+            self.data = self.data[:, :-1, :]
+            del self.component_names[idx_tmp]
+
+        return ax

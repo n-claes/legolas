@@ -23,10 +23,10 @@ CONTINUA_NAMES = {
     ALFVEN_MIN: r"$\Omega_A^-",
     ALFVEN_PLUS: r"$\Omega_A^+",
     THERMAL: r"$\Omega_T",
-    DOPPLER: r"$\Omega_0",
-    D_CONTINUUM: r"$D$",
+    DOPPLER: r"$\Omega_0"# ,
+    # D_CONTINUUM: r"$D$",
 }
-CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "green", "grey", "orange"]
+CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "tab:green", "grey", "tab:orange"]
 
 _DEFAULT_ZERO_TOL = 1e-12
 
@@ -396,7 +396,7 @@ class ContinuaHandler(LegendHandler):
         self.continua_latex = list(CONTINUA_NAMES.values())
         self._continua_colors = CONTINUA_COLORS
         self.marker = "."
-        self.markersize = 6
+        self.markersize = 4
 
     @property
     def continua_colors(self):
