@@ -168,10 +168,7 @@ class Amrvac:
         if "datfile" not in self.config.keys():
             raise KeyError("No datfile specified.")
         else:
-            try:
-                self.ds = load(self.config["datfile"])
-            except Exception:
-                pylboLogger.error("Invalid datfile specified.")
+            self.ds = load(self.config["datfile"])
 
         if "ev_guess" not in self.config.keys():
             raise KeyError("Initial guess for eigenvalue not specified.")
