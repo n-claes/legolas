@@ -873,20 +873,19 @@ class Amrvac:
         write_pad(file, "real(dp), intent(in)    :: x(ixI^S, ndim)", 2)
         write_pad(
             file,
-            "complex(dp) :: amplitude, exp_factor, quantity, values(ef_gridpts)",
+            "complex(dp) :: amplitude, exp_factor(ixI^S), quantity, values(ef_gridpts)",
             2,
         )
-        write_pad(file, "integer  :: ix^D, ib^D", 2)
+        write_pad(file, "integer  :: idx^D", 2)
         write_pad(file, "real(dp) :: k1 = 0.0d0", 2)
         file.write("\n")
         write_pad(file, "call w_index_to_array(w_index, values)", 2)
+        write_pad(file, "exp_factor = {exp(ic * k^D * x(ixI^S, ^D))|*}", 2)
         file.write("\n")
-        write_pad(file, "{ib^D = ixImax^D - ixImin^D + 1|\\}", 2)
-        write_pad(file, "{do ix^D = 1, ib^D|\\}", 2)
-        write_pad(file, "exp_factor = {exp(ic * k^D * x({ix^D}, ^D))|*}", 3)
-        write_pad(file, "call ef_amplitude(x(ix^D, 1), ef_grid, values, amplitude)", 3)
-        write_pad(file, "quantity = amplitude * exp_factor", 3)
-        write_pad(file, "w(ix^D, w_index) = w(ix^D, w_index) + realpart(quantity)", 3)
+        write_pad(file, "{do idx^D = ixImin^D, ixImax^D|\\}", 2)
+        write_pad(file, "call ef_amplitude(x(idx^D, 1), ef_grid, values, amplitude)", 3)
+        write_pad(file, "quantity = amplitude * exp_factor(idx^D)", 3)
+        write_pad(file, "w(idx^D, w_index) = w(idx^D, w_index) + realpart(quantity)", 3)
         write_pad(file, "{end do|\\}", 2)
         write_pad(file, "end subroutine add_perturbation_to_w_array", 1)
         file.write("\n")
