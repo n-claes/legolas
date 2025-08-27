@@ -22,7 +22,8 @@ from pylbo.gimli.equilibrium import Equilibrium
 
 def write_equilibrium_functions(file, eq, to_fetch):
     """
-    Iterates over all equilibrium quantities and writes them to the MPI-AMRVAC user module.
+    Iterates over all equilibrium quantities and writes them to the MPI-AMRVAC user
+    module.
 
     Parameters
     ----------
@@ -71,7 +72,8 @@ class Amrvac:
     Parameters
     ----------
     config : dict
-        The configuration dictionary detailing everything needed for the desired functionalities.
+        The configuration dictionary detailing everything needed for the desired
+        functionalities.
     """
 
     def __init__(self, config):
@@ -408,7 +410,8 @@ class Amrvac:
 
         if "typeboundary_min1" not in self.config["parfile"].keys():  # Cartesian only
             pylboLogger.info(
-                "'typeboundary_min1' not provided. Adding default wall boundary conditions."
+                "'typeboundary_min1' not provided. Adding default wall boundary "
+                "conditions."
             )
             bc = ["symm", "asymm", "symm", "symm"]
             if self.config["dim"] > 2:
@@ -421,7 +424,8 @@ class Amrvac:
 
         if "typeboundary_max1" not in self.config["parfile"].keys():  # Cartesian only
             pylboLogger.info(
-                "'typeboundary_max1' not provided. Adding default wall boundary conditions."
+                "'typeboundary_max1' not provided. Adding default wall boundary "
+                "conditions."
             )
             bc = ["symm", "asymm", "symm", "symm"]
             if self.config["dim"] > 2:
@@ -745,7 +749,9 @@ class Amrvac:
         file.write("\n")
         write_pad(
             file,
-            f"character(len=100), parameter :: legolas_file = '{self.config["ldatfile"]+".ldat"}'",
+            "character(len=100), parameter :: legolas_file = '"
+            + self.config["ldatfile"]
+            + ".ldat'",
             1,
         )
         file.write("\n")
@@ -770,7 +776,11 @@ class Amrvac:
         write_pad(file, "subroutine usr_init()", 1)
         write_pad(
             file,
-            f"call set_coordinate_system('{self.config["geometry"]}_{self.config["dim"]}D')",
+            "call set_coordinate_system('"
+            + self.config["geometry"]
+            + "_"
+            + str(self.config["dim"])
+            + "D')",
             2,
         )
         file.write("\n")
@@ -837,7 +847,8 @@ class Amrvac:
         if self.config["physics_type"] == "mhd":
             write_pad(
                 file,
-                "unit_density, unit_pressure, unit_velocity, unit_magneticfield, unit_time",
+                "unit_density, unit_pressure, unit_velocity, unit_magneticfield, "
+                "unit_time",
                 3,
             )
         else:
@@ -941,8 +952,8 @@ class Amrvac:
         Parameters
         ----------
         basename : str
-            The basename for the parfile, the `.par` suffix is added automatically and is
-            not needed. If multiple parfiles are generated, these
+            The basename for the parfile, the `.par` suffix is added automatically and
+            is not needed. If multiple parfiles are generated, these
             will be prepended by a 4-digit number (e.g. 0003myparfile.par).
             If not provided, the basename will default to `amrvac_config`.
         output_dir : str, ~os.PathLike
@@ -952,8 +963,8 @@ class Amrvac:
         subdir : boolean
             If `True` (default), creates a subdirectory `parfiles` in the output folder.
         prefix_numbers : boolean
-            If `True` prepends the `basename` by a n-digit number (e.g. xxxxmyparfile.par).
-            The number of digits is specified by `nb_prefix_digits`.
+            If `True` prepends the `basename` by a n-digit number (e.g.
+            xxxxmyparfile.par). The number of digits is specified by `nb_prefix_digits`.
         nb_prefix_digits : int
             Number of digits to prepend to the `basename` if `prefix_numbers` is `True`.
             Defaults to 4.
