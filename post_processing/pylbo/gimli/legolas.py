@@ -77,6 +77,27 @@ def fortran_function(file, expr, varname, translation, constant=False, level=0):
     return
 
 
+def write_grid_functions(file, equilibrium):
+    """
+    Writes the Legolas grid spacing function, if present, to the user module.
+
+    Parameters
+    ----------
+    file : file
+        The file object to write to.
+    equilibrium : Equilibrium
+        The equilibrium object containing the user-defined grid function.
+    """
+    x = equilibrium.variables.x
+    expr = equilibrium.grid_spacing
+    if expr is not None:
+        cst = not is_symbol_dependent([x], expr)
+        fortran_function(
+            file, expr, "spacing_func", equilibrium.variables.fkey, constant=cst, level=1
+        )
+    return
+
+
 def write_equilibrium_functions(file, equilibrium):
     """
     Iterates over all Legolas equilibrium quantities and writes them to the user module.
@@ -263,6 +284,8 @@ class Legolas:
         write_pad(file, 'call logger%error("No default values specified.")', 3)
         write_pad(file, "end if", 2)
         file.write("\n")
+        if self.equilibrium.grid_spacing is not None:
+            write_pad(file, "call grid%set_spacing_function(spacing_func)", 2)
         write_pad(
             file,
             "call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)",
@@ -303,6 +326,7 @@ class Legolas:
         write_physics_calls(file, self.equilibrium)
         write_pad(file, "end procedure user_defined_eq", 1)
         file.write("\n")
+        write_grid_functions(file, self.equilibrium)
         write_equilibrium_functions(file, self.equilibrium)
         write_physics_functions(file, self.equilibrium)
         write_pad(file, "end submodule", 0)

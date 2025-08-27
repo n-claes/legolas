@@ -150,12 +150,15 @@ class Equilibrium:
         condperp=None,
         cooling=None,
         heating=None,
+        legolas_grid_spacing=None,
     ):
         self.variables = var
         self.rho0 = sp.sympify(rho0)
         self.v02, self.v03 = sp.sympify(v02), sp.sympify(v03)
         self.T0 = sp.sympify(T0)
         self.B02, self.B03 = sp.sympify(B02), sp.sympify(B03)
+
+        self.grid_spacing = sp.sympify(legolas_grid_spacing)
 
         self._dict_phys = {
             "resistivity": [
