@@ -93,7 +93,12 @@ def write_grid_functions(file, equilibrium):
     if expr is not None:
         cst = not is_symbol_dependent([x], expr)
         fortran_function(
-            file, expr, "spacing_func", equilibrium.variables.fkey, constant=cst, level=1
+            file,
+            expr,
+            "spacing_func",
+            equilibrium.variables.fkey,
+            constant=cst,
+            level=1,
         )
     return
 
