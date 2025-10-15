@@ -204,7 +204,7 @@ class Equilibrium:
         dep_rho = "x" if is_symbol_dependent([self.variables.x], self.rho0) else ""
 
         dep_T = "x" if is_symbol_dependent([self.variables.x], self.T0) else ""
-        
+
         dep_B2 = "x" if is_symbol_dependent([self.variables.x], self.B02) else ""
         dep_B3 = "x" if is_symbol_dependent([self.variables.x], self.B03) else ""
 
