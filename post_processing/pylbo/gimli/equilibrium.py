@@ -27,7 +27,7 @@ class Variables:
     alpha, beta, delta, theta, tau, lamda, nu : sympy symbols
         Additional free-use constants.
     r0, rc, rj, Bth0, V, j0, g : sympy symbols
-        Additional constants, originally use in cylindrical coordinates.
+        Additional constants, originally used in cylindrical coordinates.
     fkey : dict
         Dictionary translating LaTeX notation to Legolas variable names.
 
@@ -201,29 +201,17 @@ class Equilibrium:
         Checks for dependencies on other equilibrium quantities.
         Returns a dictionary with the replacement expressions for use in Fortran files.
         """
-        if is_symbol_dependent([self.variables.x], self.rho0):
-            rho_replace = "(rho0(x))"
-        else:
-            rho_replace = "(rho0())"
-        if is_symbol_dependent([self.variables.x], self.T0):
-            T_replace = "(T0(x))"
-        else:
-            T_replace = "(T0())"
-        if is_symbol_dependent([self.variables.x], self.B02) and is_symbol_dependent(
-            [self.variables.x], self.B03
-        ):
-            B2_replace = "(B02(x)**2+B03(x)**2)"
-        elif is_symbol_dependent([self.variables.x], self.B02):
-            B2_replace = "(B02(x)**2+B03()**2)"
-        elif is_symbol_dependent([self.variables.x], self.B03):
-            B2_replace = "(B02()**2+B03(x)**2)"
-        else:
-            B2_replace = "(B02()**2+B03()**2)"
+        dep_rho = "x" if is_symbol_dependent([self.variables.x], self.rho0) else ""
+
+        dep_T = "x" if is_symbol_dependent([self.variables.x], self.T0) else ""
+        
+        dep_B2 = "x" if is_symbol_dependent([self.variables.x], self.B02) else ""
+        dep_B3 = "x" if is_symbol_dependent([self.variables.x], self.B03) else ""
 
         dict_dependencies = {
-            "rho_0": rho_replace,
-            "T_0": T_replace,
-            "B_0^2": B2_replace,
+            "rho_0": f"(rho0({dep_rho}))",
+            "T_0": f"(T0({dep_T}))",
+            "B_0^2": f"(B02({dep_B2})**2+B03({dep_B3})**2)",
         }
         return dict_dependencies
 
@@ -272,24 +260,20 @@ class NumericalEquilibrium:
         if not ("rho0" in keyring and "T0" in keyring):
             raise KeyError("Must include rho0 and T0 arrays.")
 
-        count = 0
-        for key in ["u1", "x", "r"]:
-            if key in keyring:
-                count += 1
+        count = len({"u1", "x", "r"} & set(keyring))
         if count == 0:
             raise KeyError("No u1, x, or r array specified.")
         elif count > 1:
             raise RuntimeError("Combination of u1, x, and r encountered. Keep only 1.")
 
-        assert isinstance(self.arrays["rho0"], list) or isinstance(
-            self.arrays["rho0"], np.ndarray
-        )
+        if not isinstance(self.arrays["rho0"], (list, np.ndarray)):
+            raise TypeError("rho0 must be a list or np.ndarray.")
         length = len(self.arrays["rho0"])
         for key in keyring:
-            assert isinstance(self.arrays[key], list) or isinstance(
-                self.arrays[key], np.ndarray
-            )
-            assert len(self.arrays[key]) == length
+            if not isinstance(self.arrays[key], (list, np.ndarray)):
+                raise TypeError(f"{key} must be a list of np.ndarray.")
+            if not len(self.arrays[key]) == length:
+                raise ValueError(f"Resolution of {key} does not match rho0.")
 
     def to_legolas_arrays(self, filename="arrays", loc="./"):
         """
