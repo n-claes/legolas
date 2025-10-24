@@ -29,7 +29,7 @@ def write_equilibrium_functions(file, eq, to_fetch):
     ----------
     file : file
         The file object to write to.
-    equilibrium : Equilibrium
+    eq : Equilibrium
         The equilibrium object containing the user-defined equilibrium functions.
     """
     translation = eq.variables.fkey
@@ -131,12 +131,12 @@ class Amrvac:
         else:
             raise ValueError("Unknown physics type.")
 
-        if "u1_bounds" in self.config.keys():
-            assert self.config["u1_bounds"][0] < self.config["u1_bounds"][1]
-        if "u2_bounds" in self.config.keys():
-            assert self.config["u2_bounds"][0] < self.config["u2_bounds"][1]
-        if "u3_bounds" in self.config.keys():
-            assert self.config["u3_bounds"][0] < self.config["u3_bounds"][1]
+        for bounds in ["u1_bounds", "u2_bounds", "u3_bounds"]:
+            if (
+                bounds in self.config_keys()
+                and self.config[bounds][0] >= self.config[bounds][1]
+                ):
+                raise AssertionError(f"{bounds} should be a positive domain")
 
         return
 
