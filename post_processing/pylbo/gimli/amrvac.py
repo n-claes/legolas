@@ -135,7 +135,7 @@ class Amrvac:
             if (
                 bounds in self.config_keys()
                 and self.config[bounds][0] >= self.config[bounds][1]
-                ):
+            ):
                 raise AssertionError(f"{bounds} should be a positive domain")
 
         return
