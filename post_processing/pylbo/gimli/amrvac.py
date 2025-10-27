@@ -133,7 +133,7 @@ class Amrvac:
 
         for bounds in ["u1_bounds", "u2_bounds", "u3_bounds"]:
             if (
-                bounds in self.config_keys()
+                bounds in self.config.keys()
                 and self.config[bounds][0] >= self.config[bounds][1]
             ):
                 raise AssertionError(f"{bounds} should be a positive domain")
