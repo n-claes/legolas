@@ -310,10 +310,13 @@ class ModeVisualisationData:
             If the eigenfunction name is a magnetic vector potential component or
             derived eigenfunction that is not the magnetic field.
         """
-        if self._ef_name in ("a1", "a2", "a3") + tuple(
-            self.ds_bg.derived_ef_names
-        ) and self._ef_name not in ("B1", "B2", "B3"):
+        if self._ef_name in ("a1", "a2", "a3"):
             raise ValueError("Unable to add a background to this field.")
+        if self.ds_bg.has_derived_efs:
+            if self._ef_name in tuple(
+                self.ds_bg.derived_ef_names
+            ) and self._ef_name not in ("B1", "B2", "B3"):
+                raise ValueError("Unable to add a background to this field.")
         if self._ef_name[-1].isdigit():
             name = self._ef_name[:-1] + "0" + self._ef_name[-1]
         else:
