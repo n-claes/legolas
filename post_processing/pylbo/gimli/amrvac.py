@@ -743,7 +743,7 @@ class Amrvac:
         write_pad(file, "!! Generated with GIMLI.", 0)
         write_pad(file, "module mod_usr", 0)
         write_pad(file, "use, intrinsic :: iso_fortran_env", 1)
-        write_pad(file, f"use mod_{self.config["physics_type"]}", 1)
+        write_pad(file, f"use mod_{self.config['physics_type']}", 1)
         write_pad(file, "use mod_global_parameters", 1)
         write_pad(file, "implicit none", 1)
         file.write("\n")
@@ -787,14 +787,14 @@ class Amrvac:
         write_pad(file, "usr_set_parameters => initglobaldata_usr", 2)
         write_pad(file, "usr_init_one_grid  => initialise_grid", 2)
         file.write("\n")
-        write_pad(file, f"call {self.config["physics_type"]}_activate()", 2)
+        write_pad(file, f"call {self.config['physics_type']}_activate()", 2)
         write_pad(file, "end subroutine usr_init", 1)
         file.write("\n")
 
         write_pad(file, "subroutine initglobaldata_usr()", 1)
         write_pad(file, "call read_legolas_data()", 2)
         for key in eqparam.split(", "):
-            write_pad(file, f"{key} = {self.config["parameters"][key]}", 2)
+            write_pad(file, f"{key} = {self.config['parameters'][key]}", 2)
         write_pad(file, "end subroutine initglobaldata_usr", 1)
         file.write("\n")
 
@@ -815,7 +815,7 @@ class Amrvac:
 
         write_pad(
             file,
-            f"call {self.config["physics_type"]}_to_conserved(ixI^L, ixO^L, w, x)",
+            f"call {self.config['physics_type']}_to_conserved(ixI^L, ixO^L, w, x)",
             2,
         )
         write_pad(file, "end subroutine initialise_grid", 1)
@@ -865,7 +865,7 @@ class Amrvac:
         write_pad(file, "allocate(ef_grid(gridpts))", 2)
         write_pad(file, f"allocate({self.ef_list[0]}(gridpts))", 2)
         write_pad(
-            file, f"allocate({", ".join(self.ef_list[1:])}, mold={self.ef_list[0]})", 2
+            file, f"allocate({', '.join(self.ef_list[1:])}, mold={self.ef_list[0]})", 2
         )
         write_pad(file, "end subroutine allocate_arrays", 1)
         file.write("\n")
