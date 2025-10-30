@@ -52,11 +52,17 @@ def write_equilibrium_functions(file, eq, to_fetch):
         elif is_sympy_number(expr):
             write_pad(
                 file,
-                fcode(sp.sympify(float(expr)), assign_to=f"w(ixI^S, {key})").lstrip(),
+                fcode(
+                    sp.sympify(float(expr)),
+                    assign_to=f"w(ixI^S, {key})",
+                    source_format="free",
+                ).lstrip(),
                 2,
             )
         else:
-            func = fcode(expr, assign_to=f"w(ixI^S, {key})").lstrip()
+            func = fcode(
+                expr, assign_to=f"w(ixI^S, {key})", source_format="free"
+            ).lstrip()
             for key in list(translation.keys()):
                 func = func.replace(key, translation[key])
             func = func.replace("\n", " &\n")
@@ -765,6 +771,7 @@ class Amrvac:
         file.write("\n")
         write_pad(file, "integer :: ef_gridpts", 1)
         write_pad(file, "real(dp) :: k2, k3", 1)
+        write_pad(file, "real(dp) :: gamma", 1)
         write_pad(file, "real(dp), allocatable :: ef_grid(:)", 1)
         for ii in range(len(self.ef_list)):
             write_pad(file, f"complex(dp), allocatable :: {self.ef_list[ii]}(:)", 1)

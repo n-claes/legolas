@@ -65,15 +65,15 @@ def fortran_function(file, expr, varname, translation, constant=False, level=0):
     if is_sympy_number(expr):
         write_pad(
             file,
-            fcode(sp.sympify(float(expr)), assign_to=varname).lstrip(),
+            fcode(
+                sp.sympify(float(expr)), assign_to=varname, source_format="free"
+            ).lstrip(),
             level + 1,
         )
     else:
-        func = fcode(expr, assign_to=varname).lstrip()
+        func = fcode(expr, assign_to=varname, source_format="free").lstrip()
         for key in list(translation.keys()):
             func = func.replace(key, translation[key])
-        func = func.replace("\n", " &\n")
-        func = func.replace("@", "")
         write_pad(file, func, level + 1)
     write_pad(file, f"end function {varname}\n", level)
     return
@@ -284,10 +284,11 @@ class Legolas:
         write_pad(file, "use mod_equilibrium_params, only: " + eqparam, 1)
         write_pad(file, "implicit none", 1)
         file.write("\n")
+        write_pad(file, "real(dp) :: gamma", 1)
+        file.write("\n")
         write_pad(file, "contains", 0)
         file.write("\n")
         write_pad(file, "module procedure user_defined_eq", 1)
-        write_pad(file, "real(dp) :: gamma", 2)
         write_pad(file, "if(settings%equilibrium%use_defaults) then", 2)
         write_pad(file, 'call logger%error("No default values specified.")', 3)
         write_pad(file, "end if", 2)
