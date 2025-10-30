@@ -64,7 +64,9 @@ def fortran_function(file, expr, varname, translation, constant=False, level=0):
 
     if is_sympy_number(expr):
         write_pad(
-            file, fcode(sp.sympify(float(expr)), assign_to=varname).lstrip(), level + 1
+            file,
+            fcode(sp.sympify(float(expr)), assign_to=varname).lstrip(),
+            level + 1,
         )
     else:
         func = fcode(expr, assign_to=varname).lstrip()
@@ -285,9 +287,12 @@ class Legolas:
         write_pad(file, "contains", 0)
         file.write("\n")
         write_pad(file, "module procedure user_defined_eq", 1)
+        write_pad(file, "real(dp) :: gamma", 2)
         write_pad(file, "if(settings%equilibrium%use_defaults) then", 2)
         write_pad(file, 'call logger%error("No default values specified.")', 3)
         write_pad(file, "end if", 2)
+        file.write("\n")
+        write_pad(file, "gamma = settings%physics%get_gamma()", 2)
         file.write("\n")
         if self.equilibrium.grid_spacing is not None:
             write_pad(file, "call grid%set_spacing_function(spacing_func)", 2)

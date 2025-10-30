@@ -19,12 +19,14 @@ class Variables:
         depending on these quantities.
     k2, k3 : sympy symbols
         Wavenumbers.
+    gamma : sympy symbol
+        Adiabatic index.
     rhoc, Tc, B2c, B3c, v2c, v3c, pc : sympy symbols
         Constants typically used for amplitudes or uniform terms in their corresponding
         equilibrium quantities.
     p1, p2, p3, p4, p5, p6, p7, p8 : sympy symbols
         Additional free-use constants.
-    alpha, beta, delta, theta, tau, lamda, nu : sympy symbols
+    alpha, beta, delta, theta, tau, lambda, nu : sympy symbols
         Additional free-use constants.
     r0, rc, rj, Bth0, V, j0, g : sympy symbols
         Additional constants, originally used in cylindrical coordinates.
@@ -42,6 +44,7 @@ class Variables:
         self.rho0, self.T0, self.B0sq = sp.symbols("rho_0,T_0,B_0^2")
 
         self.k2, self.k3 = sp.symbols("k_2,k_3")
+        self.gamma = sp.symbols("gamma")
         self.rhoc, self.Tc, self.B2c, self.B3c, self.v2c, self.v3c, self.pc = (
             sp.symbols("rho_c,T_c,B_2,B_3,v_2,v_3,p_c")
         )
