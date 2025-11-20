@@ -15,6 +15,7 @@ from pylbo.gimli.utils import (
     write_pad,
     get_equilibrium_parameters,
     is_sympy_number,
+    # is_symbol_dependent,
     validate_output_dir,
 )
 from pylbo.gimli.equilibrium import Equilibrium
@@ -71,6 +72,69 @@ def write_equilibrium_functions(file, eq, to_fetch):
     return
 
 
+def write_physics_pointers(file, eq):
+    vac_names = {
+        "gravity": "gravity",
+        "parallel_conduction": "",
+        "perpendicular_conduction": "",
+        "cooling": "",
+        "heating": "source"
+    }
+
+    ### can eta be a function in amrvac?
+    # if (eq._dict_phys["resistivity"][0] is not None 
+    #     and not is_symbol_dependent(eq._dict_phys["resistivity"][2], eq._dict_phys["resistivity"][0])):
+    #     vac_names["resistivity"] = ""
+
+    for key in vac_names.keys():
+        if eq._dict_phys[key][0] is not None:
+            write_pad(file, f"usr_{vac_names[key]} => set_{key}", 2)
+
+    return
+
+
+def write_physics_subroutines(file, eq):
+    translation = eq.variables.fkey
+    translation["x_v"] = "x(ixI^S, 1)"
+    xv = sp.Symbol("x_v")
+    expr = eq._dict_phys["gravity"][0].subs(eq.variables.x, xv)
+
+    if expr is not None:
+        write_pad(file, f"subroutine set_gravity(ixI^L, ixO^L, wCT, x, gravity_field)", 1)
+        write_pad(file, "use mod_global_parameters", 2)
+        write_pad(file, "integer, intent(in)             :: ixI^L, ixO^L", 2)
+        write_pad(file, "double precision, intent(in)    :: x(ixI^S,1:ndim)", 2)
+        write_pad(file, "double precision, intent(in)    :: wCT(ixI^S,1:nw)", 2)
+        write_pad(file, "double precision, intent(out)   :: gravity_field(ixI^S,ndim)", 2)
+        file.write("\n")
+        write_pad(file, "gravity_field           = 0.d0", 2)
+
+        if is_sympy_number(expr):
+            write_pad(
+                file,
+                fcode(
+                    sp.sympify(-float(expr)),
+                    assign_to=f"gravity_field(ixI^S, 1)",
+                    source_format="free",
+                ).lstrip(),
+                2,
+            )
+        else:
+            func = fcode(
+                -expr, assign_to=f"gravity_field(ixI^S, 1)", source_format="free"
+            ).lstrip()
+            for key in list(translation.keys()):
+                func = func.replace(key, translation[key])
+            func = func.replace("\n", " &\n")
+            func = func.replace("@", "")
+            write_pad(file, func, 2)
+
+        write_pad(file, f"end subroutine set_gravity", 1)
+        file.write("\n")
+
+    ### TODO: add other non-ideal effects
+
+
 class Amrvac:
     """
     Class to prepare Legolas data for use in MPI-AMRVAC (https://amrvac.org).
@@ -83,7 +147,7 @@ class Amrvac:
     """
 
     def __init__(self, config):
-        self.config = config
+        self.config = copy.deepcopy(config)
         self._validate_config()
 
     def _validate_config(self):
@@ -793,6 +857,7 @@ class Amrvac:
         file.write("\n")
         write_pad(file, "usr_set_parameters => initglobaldata_usr", 2)
         write_pad(file, "usr_init_one_grid  => initialise_grid", 2)
+        write_physics_pointers(file, self.config["equilibrium"])
         file.write("\n")
         write_pad(file, f"call {self.config['physics_type']}_activate()", 2)
         write_pad(file, "end subroutine usr_init", 1)
@@ -935,6 +1000,9 @@ class Amrvac:
         write_pad(file, "(array(idu) - array(idl)) / (grid(idu) - grid(idl))", 4)
         write_pad(file, "end if", 2)
         write_pad(file, "end subroutine ef_amplitude", 1)
+        file.write("\n")
+
+        write_physics_subroutines(file, self.config["equilibrium"])
 
         write_pad(file, "end module", 0)
         file.write("!")

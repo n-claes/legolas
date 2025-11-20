@@ -1,3 +1,4 @@
+import copy
 from pylbo.automation.api import generate_parfiles
 import sympy as sp
 from sympy.printing.fortran import fcode
@@ -211,7 +212,7 @@ class Legolas:
 
     def __init__(self, equilibrium, config):
         self.equilibrium = equilibrium
-        self.config = config
+        self.config = copy.deepcopy(config)
         self._validate_config()
 
     def _validate_config(self):
