@@ -88,7 +88,10 @@ def write_physics_pointers(file, eq):
 
     for key in vac_names.keys():
         if eq._dict_phys[key][0] is not None:
-            write_pad(file, f"usr_{vac_names[key]} => set_{key}", 2)
+            if len(vac_names[key]) > 0:
+                write_pad(file, f"usr_{vac_names[key]} => set_{key}", 2)
+            else:
+                pylboLogger.warning(f"Automated definition of {key} is not yet implemented.")
 
     return
 
