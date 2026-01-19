@@ -66,7 +66,6 @@ def write_equilibrium_functions(file, eq, to_fetch):
             ).lstrip()
             for key in list(translation.keys()):
                 func = func.replace(key, translation[key])
-            func = func.replace("\n", " &\n")
             func = func.replace("@", "")
             write_pad(file, func, 2)
     return
