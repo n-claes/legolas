@@ -78,11 +78,11 @@ def write_physics_pointers(file, eq):
         "parallel_conduction": "",
         "perpendicular_conduction": "",
         "cooling": "",
-        "heating": "source"
+        "heating": "source",
     }
 
     ### can eta be a function in amrvac?
-    # if (eq._dict_phys["resistivity"][0] is not None 
+    # if (eq._dict_phys["resistivity"][0] is not None
     #     and not is_symbol_dependent(eq._dict_phys["resistivity"][2], eq._dict_phys["resistivity"][0])):
     #     vac_names["resistivity"] = ""
 
@@ -91,7 +91,9 @@ def write_physics_pointers(file, eq):
             if len(vac_names[key]) > 0:
                 write_pad(file, f"usr_{vac_names[key]} => set_{key}", 2)
             else:
-                pylboLogger.warning(f"Automated definition of {key} is not yet implemented.")
+                pylboLogger.warning(
+                    f"Automated definition of {key} is not yet implemented."
+                )
 
     return
 
@@ -100,15 +102,19 @@ def write_physics_subroutines(file, eq):
     translation = eq.variables.fkey
     translation["x_v"] = "x(ixI^S, 1)"
     xv = sp.Symbol("x_v")
-    expr = eq._dict_phys["gravity"][0].subs(eq.variables.x, xv)
 
-    if expr is not None:
-        write_pad(file, f"subroutine set_gravity(ixI^L, ixO^L, wCT, x, gravity_field)", 1)
+    if eq._dict_phys["gravity"][0] is not None:
+        expr = eq._dict_phys["gravity"][0].subs(eq.variables.x, xv)
+        write_pad(
+            file, f"subroutine set_gravity(ixI^L, ixO^L, wCT, x, gravity_field)", 1
+        )
         write_pad(file, "use mod_global_parameters", 2)
         write_pad(file, "integer, intent(in)             :: ixI^L, ixO^L", 2)
         write_pad(file, "double precision, intent(in)    :: x(ixI^S,1:ndim)", 2)
         write_pad(file, "double precision, intent(in)    :: wCT(ixI^S,1:nw)", 2)
-        write_pad(file, "double precision, intent(out)   :: gravity_field(ixI^S,ndim)", 2)
+        write_pad(
+            file, "double precision, intent(out)   :: gravity_field(ixI^S,ndim)", 2
+        )
         file.write("\n")
         write_pad(file, "gravity_field           = 0.d0", 2)
 
