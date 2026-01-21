@@ -41,7 +41,7 @@ and parametric studies, including a myriad of physical effects.
 
   Mainly involved with resistive/viscous/Hall MHD, along with source code contributions to both Legolas and Pylbo.
 
-- **Drs. Nicolas Brughmans** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:nicolas.brughmans@kuleuven.be)): development team.
+- **Dr. Nicolas Brughmans** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:nicolas.brughmans@kuleuven.be)): development team.
 
   Working on Pylbo extensions in the scope of accretion disk applications.
 
