@@ -34,7 +34,7 @@ jobs:
     - name: Install cmake
       uses: jwlawson/actions-setup-cmake@v2
       with:
-        cmake-version: "3.24.x"
+        cmake-version: "4.2.x"
 
     - name: Install Legolas dependencies
       run: |
