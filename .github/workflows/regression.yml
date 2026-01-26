@@ -15,7 +15,7 @@ jobs:
       matrix:
         name: [regression]
         os: [ubuntu-latest]
-        compiler: [gfortran-15]
+        compiler: [gfortran-14]
         coverage: [true]
 
     env:

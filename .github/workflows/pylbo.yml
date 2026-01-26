@@ -7,8 +7,8 @@ on:
     branches: [master, develop]
 
 env:
-  CC: /usr/bin/gcc-15
-  FC: /usr/bin/gfortran-15
+  CC: /usr/bin/gcc-14
+  FC: /usr/bin/gfortran-14
   LEGOLASDIR: /home/runner/work/legolas/legolas
 
 jobs:
@@ -64,11 +64,11 @@ jobs:
     - name: Install Legolas dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install gfortran-15
+        sudo apt-get install gfortran-14
         sudo apt-get install libblas-dev
         sudo apt-get install liblapack-dev
         sudo apt-get install lcov
-        gfortran-15 --version
+        gfortran-14 --version
         cmake --version
 
     - name: Compile Legolas
