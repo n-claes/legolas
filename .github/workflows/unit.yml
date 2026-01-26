@@ -25,6 +25,10 @@ jobs:
           - os: ubuntu-latest
             compiler: gfortran-14
             gcc: gcc-14
+            coverage: false
+          - os: ubuntu-latest
+            compiler: gfortran-15
+            gcc: gcc-15
             coverage: true
 
     env:
