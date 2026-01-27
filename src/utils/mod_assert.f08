@@ -1,7 +1,8 @@
 !=================================================================
 !> Module defining the assertion routine used by [[assert.fpp]].
-!! @note See [[assert.fpp]] for usage of the `assert` macro. The
-!! subroutine in this module should not be used directly. @endnote
+!! !!! note
+!!     See [[assert.fpp]] for usage of the `assert` macro. The
+!!     subroutine in this module should not be used directly.
 module mod_assert
   use mod_logging, only: logger, str
 
@@ -13,8 +14,9 @@ contains
   !!
   !! If **cond** is false, log an error described by **cond_str**,
   !! **file** and **line**, terminating the program.
-  !! @note Do not use this subroutine directly, rather use
-  !! the `assert` macro from [[assert.fpp]] @endnote
+  !! !!! note
+  !!     Do not use this subroutine directly, rather use
+  !!     the `assert` macro from [[assert.fpp]].
   subroutine assert(cond, cond_str, file, line)
     !> The assertion result.
     logical,       intent(in) :: cond

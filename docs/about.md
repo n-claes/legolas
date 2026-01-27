@@ -33,19 +33,24 @@ theoretical (linear) MHD. This allows for detailed, high-resolution studies of t
 and parametric studies, including a myriad of physical effects.
 
 ## Core people involved with Legolas
-- **Dr. Niels Claes** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:niels.claes@kuleuven.be)): creator of the code and main developer.
-
-  Involved with everything & provides overall guidance. Responsible for maintenance and general development of both Legolas and Pylbo.
-
 - **Dr. Jordi De Jonghe** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:jordi.dejonghe@kuleuven.be)): development team.
 
   Mainly involved with resistive/viscous/Hall MHD, along with source code contributions to both Legolas and Pylbo.
 
-- **Drs. Nicolas Brughmans** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:nicolas.brughmans@kuleuven.be)): development team.
+- **Dr. Nicolas Brughmans** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:nicolas.brughmans@kuleuven.be)): development team.
 
   Working on Pylbo extensions in the scope of accretion disk applications.
 
+- **Drs. Adrian Kelly**  ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:adrian.kelly@kuleuven.be)): development team.
+
+  Working on the time-dependent initial-value solver.
+
 - **Prof. Rony Keppens** ([<i class="fas fa-envelope" aria-hidden="true"></i>](mailto:rony.keppens@kuleuven.be)): guidance.
+
+- **Dr. Niels Claes**: creator of the code and main developer (former).
+
+  <!-- Involved with everything & provides overall guidance. Responsible for maintenance and general development of both Legolas and Pylbo. -->
+  General development of both Legolas and Pylbo.
 
 - **Drs. Evert Provoost**: development team (former).
 

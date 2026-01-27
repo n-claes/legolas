@@ -7,23 +7,24 @@
 !! This equilibrium is taken from section 13.2, p. 487 (case b) in
 !! _Goedbloed, H., Keppens, R., & Poedts, S. (2019). Magnetohydrodynamics of Laboratory
 !!  and Astrophysical Plasmas. Cambridge University Press._ [DOI](http://doi.org/10.1017/9781316403679).
-!! @note Default values are given by
-!!
-!! - <tt>k2</tt> = 0
-!! - <tt>k3</tt> = 1
-!! - <tt>cte_rho0</tt> = 1 : used in the density profile.
-!! - <tt>cte_p0</tt> = 10 : used in the pressure profile.
-!! - <tt>delta</tt> = 0 : used in the density profile.
-!! - <tt>g</tt> = 0 : gravitational constant.
-!! - <tt>alpha</tt> = 0 : magnetic shear.
-!! - <tt>theta</tt> = 0 : angle used in the velocity profile.
-!! - <tt>p1</tt> = 0 : \(v_0\), used in the velocity profile.
-!! - <tt>p2</tt> = 0 : \(v_1\), used in the velocity profile.
-!! - <tt>p3</tt> = 1 : \(v_2\), used in the velocity profile.
-!! - <tt>p4</tt> = 0 : \(\phi_0\), used in the magnetic field profile.
-!! - <tt>tau</tt> = 11 : used in the velocity profile.
-!!
-!! and can all be changed in the parfile. @endnote
+!! !!! note
+!!     Default values are given by
+!!     
+!!     - <tt>k2</tt> = 0
+!!     - <tt>k3</tt> = 1
+!!     - <tt>cte_rho0</tt> = 1 : used in the density profile.
+!!     - <tt>cte_p0</tt> = 10 : used in the pressure profile.
+!!     - <tt>delta</tt> = 0 : used in the density profile.
+!!     - <tt>g</tt> = 0 : gravitational constant.
+!!     - <tt>alpha</tt> = 0 : magnetic shear.
+!!     - <tt>theta</tt> = 0 : angle used in the velocity profile.
+!!     - <tt>p1</tt> = 0 : \(v_0\), used in the velocity profile.
+!!     - <tt>p2</tt> = 0 : \(v_1\), used in the velocity profile.
+!!     - <tt>p3</tt> = 1 : \(v_2\), used in the velocity profile.
+!!     - <tt>p4</tt> = 0 : \(\phi_0\), used in the magnetic field profile.
+!!     - <tt>tau</tt> = 11 : used in the velocity profile.
+!!     
+!!     and can all be changed in the parfile.
 submodule (mod_equilibrium) smod_equil_KHI
   use mod_function_utils, only: zero_func
   implicit none

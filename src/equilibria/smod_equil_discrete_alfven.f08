@@ -8,22 +8,23 @@
 !! "Non-adiabatic discrete Alfven waves in coronal loops and prominences.",
 !! Solar physics 144.2 (1993): 267-281_.
 !!
-!! @note Default values are given by
-!!
-!! - <tt>k2</tt> = 1
-!! - <tt>k3</tt> = 0.05
-!! - <tt>j0</tt> = 0.125 : used to set the current.
-!! - <tt>delta</tt> = 0.2 : used in the density profile.
-!! - cooling_curve = 'rosner'
-!! - parallel thermal conduction, no perpendicular conduction
-!!
-!! and normalisations given by
-!!
-!! - <tt>unit_density</tt> = 1.5e-15 gcm-3
-!! - <tt>unit_magneticfield</tt> = 50 Gauss
-!! - <tt>unit_length</tt> = 1e10 cm
-!!
-!! and can all be changed in the parfile. @endnote
+!! !!! note
+!!     Default values are given by
+!!     
+!!     - <tt>k2</tt> = 1
+!!     - <tt>k3</tt> = 0.05
+!!     - <tt>j0</tt> = 0.125 : used to set the current.
+!!     - <tt>delta</tt> = 0.2 : used in the density profile.
+!!     - cooling_curve = 'rosner'
+!!     - parallel thermal conduction, no perpendicular conduction
+!!     
+!!     and normalisations given by
+!!     
+!!     - <tt>unit_density</tt> = 1.5e-15 gcm-3
+!!     - <tt>unit_magneticfield</tt> = 50 Gauss
+!!     - <tt>unit_length</tt> = 1e10 cm
+!!     
+!!     and can all be changed in the parfile.
 submodule (mod_equilibrium) smod_equil_discrete_alfven
   use mod_equilibrium_params, only: j0, delta
   implicit none

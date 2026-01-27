@@ -45,10 +45,11 @@ contains
     unit_lambdaT = settings%units%get_unit_lambdaT()
     unit_dlambdadT = unit_lambdaT / unit_temperature
 
-    !> @note The cooling tables contain dimensionfull values on a logarithmic scale.
-    !! To avoid resampling the table on an unequally spaced temperature grid by doing
-    !! 10**T, we interpolate the logarithmic table values on an equally spaced
-    !! T grid in log scale, so we get log10(lambda(T)) and log10(T) values. @endnote
+    !> !!! note
+    !!     The cooling tables contain dimensionfull values on a logarithmic scale.
+    !!     To avoid resampling the table on an unequally spaced temperature grid by doing
+    !!     10**T, we interpolate the logarithmic table values on an equally spaced
+    !!     T grid in log scale, so we get log10(lambda(T)) and log10(T) values.
     ncool = settings%physics%cooling%get_interpolation_points()
     allocate(curve_T(ncool), curve_lambda(ncool), curve_dlambdadT(ncool))
     call interpolate_table( &
