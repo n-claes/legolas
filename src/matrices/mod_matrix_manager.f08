@@ -234,10 +234,11 @@ contains
       quadblock_A = quadblock_A * (x_right - x_left)
 
       ! fill matrices
-      !> @note  The quadblock is shifted along the main (tri)diagonal.
-      !!        We add `dim_subblock` instead of `dim_quadblock` to the indices,
-      !!        due to overlapping of the bottom-right part of the quadblock with the
-      !!        top-left part of the next grid interval. @endnote
+      !> !!! note
+      !!     The quadblock is shifted along the main (tri)diagonal.
+      !!     We add `dim_subblock` instead of `dim_quadblock` to the indices,
+      !!     due to overlapping of the bottom-right part of the quadblock with the
+      !!     top-left part of the next grid interval.
       do k = 1, dim_quadblock
         do l = 1, dim_quadblock
           idx1 = k + quadblock_idx

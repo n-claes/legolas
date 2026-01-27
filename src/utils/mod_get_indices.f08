@@ -6,7 +6,8 @@ module mod_get_indices
   private
 
   !> interface to retrieve the index of an element in an array.
-   !! @note: replace get_index by `findloc` once we drop support for gfortran<9 @endnote
+  !! !!! note
+  !!     Replace get_index by `findloc` once we drop support for gfortran<9
   interface get_index
     module procedure find_index_in_character_array
     module procedure find_indices_in_character_array

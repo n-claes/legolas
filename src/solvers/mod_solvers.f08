@@ -88,7 +88,8 @@ contains
 
   !> Main subroutine to solve the eigenvalue problem. Depending on the solvelist
   !! passed in the parfile, different solvers are called.
-  !! @warning Throws an error if an unknown solver is passed. @endwarning
+  !! !!! warning
+  !!     Throws an error if an unknown solver is passed.
   subroutine solve_evp(matrix_A, matrix_B, settings, omega, vr)
     !> A-matrix
     type(matrix_t), intent(in) :: matrix_A

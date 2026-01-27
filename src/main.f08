@@ -139,7 +139,7 @@ contains
       ! we need #rows = matrix dimension, #cols = #eigenvalues
       allocate(right_eigenvectors(settings%dims%get_dim_matrix(), nb_evs))
     else
-      ! @note: this is needed to prevent segfaults, since it seems that in some
+      ! note: this is needed to prevent segfaults, since it seems that in some
       ! cases for macOS the routine zgeev references the right eigenvectors even
       ! if they are not requested.
       call logger%debug("allocating eigenvector arrays as dummy")
