@@ -4,9 +4,10 @@
 !! for convenience, including the wave numbers \(k_2\) and \(k_3\).
 !! All of these values are NaN initially, such that variables that are
 !! not properly set propagate their value and are easy to spot in follow-up checks.
-!! @note  Variables that are not used remain equal to NaN throughout program execution.
-!!        We define all of these in one module so they allow for easy setting through
-!!        the parfile, and hence allow for more flexible control in the submodules.
+!! !!! note 
+!!     Variables that are not used remain equal to NaN throughout program execution.
+!!     We define all of these in one module so they allow for easy setting through
+!!     the parfile, and hence allow for more flexible control in the submodules.
 module mod_equilibrium_params
   use mod_global_variables, only: dp, str_len
   implicit none

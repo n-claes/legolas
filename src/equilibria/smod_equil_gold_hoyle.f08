@@ -8,32 +8,34 @@
 !! _Van der Linden, R. A. M., Goossens, M. (1991).
 !! "The thermal continuum in coronal loops: instability criteria and the influence of
 !!  perpendicular thermal conduction." Solar physics, 134.2, 247-273._
-!! @note Default values are given by
-!!
-!! - <tt>k2</tt> = 1
-!! - <tt>k3</tt> = 1
-!! - <tt>cte_T0</tt> = 1 : used to set the temperature.
-!! - <tt>cte_rho0</tt> = 1 : used to set the density
-!! - <tt>alpha</tt> = 20 : used in the magnetic field components
-!! - cooling_curve = 'rosner'
-!! - parallel thermal conduction, no perpendicular conduction
-!!
-!! and can all be changed in the parfile. @endnote
-!! @note To reproduce the three profiles of the original paper you can supply
-!!       one of the following normalisations:
-!!
-!! - cold plasma: <tt>unit_magneticfield</tt> = 10 Gauss,
-!!                <tt>unit_density</tt> = 1.6726e-15 g/cm3,
-!!                <tt>unit_length</tt> = 1.0e10 cm,
-!!                corresponding to a temperature of 5.7e4 K.
-!! - cool plasma: <tt>unit_magneticfield</tt> = 22.5 Gauss,
-!!                <tt>unit_density</tt> = 1.6726e-15 g/cm3,
-!!                <tt>unit_length</tt> = 1.0e10 cm,
-!!                corresponding to a temperature of 2.9e5 K (default).
-!! - hot plasma:  <tt>unit_magneticfield</tt> = 67 Gauss,
-!!                <tt>unit_density</tt> = 1.6726e-15 g/cm3,
-!!                <tt>unit_length</tt> = 1.0e11 cm,
-!!                corresponding to a temperature of 2.6e6 K. @endnote
+!! !!! note
+!!     Default values are given by
+!!     
+!!     - <tt>k2</tt> = 1
+!!     - <tt>k3</tt> = 1
+!!     - <tt>cte_T0</tt> = 1 : used to set the temperature.
+!!     - <tt>cte_rho0</tt> = 1 : used to set the density
+!!     - <tt>alpha</tt> = 20 : used in the magnetic field components
+!!     - cooling_curve = 'rosner'
+!!     - parallel thermal conduction, no perpendicular conduction
+!!     
+!!     and can all be changed in the parfile.
+!! !!! note
+!!     To reproduce the three profiles of the original paper you can supply
+!!     one of the following normalisations:
+!!     
+!!     - cold plasma: <tt>unit_magneticfield</tt> = 10 Gauss,
+!!                    <tt>unit_density</tt> = 1.6726e-15 g/cm3,
+!!                    <tt>unit_length</tt> = 1.0e10 cm,
+!!                    corresponding to a temperature of 5.7e4 K.
+!!     - cool plasma: <tt>unit_magneticfield</tt> = 22.5 Gauss,
+!!                    <tt>unit_density</tt> = 1.6726e-15 g/cm3,
+!!                    <tt>unit_length</tt> = 1.0e10 cm,
+!!                    corresponding to a temperature of 2.9e5 K (default).
+!!     - hot plasma:  <tt>unit_magneticfield</tt> = 67 Gauss,
+!!                    <tt>unit_density</tt> = 1.6726e-15 g/cm3,
+!!                    <tt>unit_length</tt> = 1.0e11 cm,
+!!                    corresponding to a temperature of 2.6e6 K.
 submodule (mod_equilibrium) smod_equil_gold_hoyle
   use mod_equilibrium_params, only: cte_T0, cte_rho0, alpha
   implicit none

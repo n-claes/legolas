@@ -146,14 +146,14 @@ contains
     call logger%debug( &
       "performing eigenvalue backtransformation to original problem (nu -> omega)" &
     )
-    !> @note In applying shift-invert we made the transformation \(C = inv[B]*A\) and
-    !! solved the standard eigenvalue problem \(CX = \nu X\) instead since B isn't
-    !! always Hermitian (e.g. if we include Hall).
-    !! According to the ARPACK documentation, section 3.2.2, this
-    !! implies that we must manually transform the eigenvalues \(\nu_j\) from \(C\)
-    !! to the eigenvalues \(\omega_j\) from the original system. This uses the relation
-    !! $$ \omega_j = \sigma + \frac{1}{\nu_j} $$
-    !! @endnote
+    !> !!! note
+    !!     In applying shift-invert we made the transformation \(C = inv[B]*A\) and
+    !!     solved the standard eigenvalue problem \(CX = \nu X\) instead since B isn't
+    !!     always Hermitian (e.g. if we include Hall).
+    !!     According to the ARPACK documentation, section 3.2.2, this
+    !!     implies that we must manually transform the eigenvalues \(\nu_j\) from \(C\)
+    !!     to the eigenvalues \(\omega_j\) from the original system. This uses the relation
+    !!     $$ \omega_j = \sigma + \frac{1}{\nu_j} $$
     omega = sigma + (1.0d0 / omega)
 
     call arpack_cfg%parse_zneupd_info()
