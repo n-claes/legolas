@@ -2,7 +2,7 @@
 title: Publications using Legolas
 layout: single
 classes: wide
-last_modified_at: 2023-07-24
+last_modified_at: 2025-01-27
 ---
 
 Below is an overview of publications using Legolas. If you have used the code in your research and would like to be listed here, please contact us.
