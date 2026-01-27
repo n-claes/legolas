@@ -24,7 +24,6 @@ submodule (mod_equilibrium) smod_equil_suydam_cluster
 
 contains
 
-  !> Sets the equilibrium
   module procedure suydam_cluster_eq
     if (settings%equilibrium%use_defaults) then  ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
