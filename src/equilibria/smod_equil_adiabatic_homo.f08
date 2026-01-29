@@ -1,7 +1,7 @@
 ! =============================================================================
 !> This submodule defines a simple, adiabatic homogeneous medium in Cartesian
 !! geometry. The geometry can be overridden using the parfile.
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 0
@@ -12,6 +12,7 @@
 !!     - <tt>cte_B03</tt> = 1 : used to set the Bz value.
 !!     
 !!     and can all be changed in the parfile.
+!! @endnote
 submodule (mod_equilibrium) smod_equil_adiabatic_homo
   use mod_equilibrium_params, only: cte_rho0, cte_T0, cte_B02, cte_B03
   implicit none

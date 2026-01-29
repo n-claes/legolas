@@ -8,7 +8,7 @@
 !! _Van der Linden, R. A. M., Goossens, M. (1991).
 !! "The thermal continuum in coronal loops: instability criteria and the influence of
 !!  perpendicular thermal conduction." Solar physics, 134.2, 247-273._
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 1
@@ -20,7 +20,9 @@
 !!     - parallel thermal conduction, no perpendicular conduction
 !!     
 !!     and can all be changed in the parfile.
-!! !!! note
+!! @endnote
+!!
+!! @note
 !!     To reproduce the three profiles of the original paper you can supply
 !!     one of the following normalisations:
 !!     
@@ -36,6 +38,7 @@
 !!                    <tt>unit_density</tt> = 1.6726e-15 g/cm3,
 !!                    <tt>unit_length</tt> = 1.0e11 cm,
 !!                    corresponding to a temperature of 2.6e6 K.
+!! @endnote
 submodule (mod_equilibrium) smod_equil_gold_hoyle
   use mod_equilibrium_params, only: cte_T0, cte_rho0, alpha
   implicit none

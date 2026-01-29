@@ -8,7 +8,7 @@
 !! "Non-adiabatic discrete Alfven waves in coronal loops and prominences.",
 !! Solar physics 144.2 (1993): 267-281_.
 !!
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 1
@@ -25,6 +25,7 @@
 !!     - <tt>unit_length</tt> = 1e10 cm
 !!     
 !!     and can all be changed in the parfile.
+!! @endnote
 submodule (mod_equilibrium) smod_equil_discrete_alfven
   use mod_equilibrium_params, only: j0, delta
   implicit none

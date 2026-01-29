@@ -10,10 +10,11 @@
 !! unit and `implicit none`. Also note that `#include <assert.fpp>`
 !! cannot have any whitespace before it.
 !!
-!! !!! warning
+!! @warning
 !!     Unfortunately the compilation error when
 !!     `#include <assert.fpp>` is in the wrong location is not very
 !!     helpful, so please double check.
+!! @endwarning
 !!
 !! After which one can assert a condition &lt;cond&gt; with
 !! `assert(<cond>)`.

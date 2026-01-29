@@ -6,7 +6,7 @@
 !! _Kerner, W. (1989). Large-scale complex eigenvalue problems.
 !!  Journal of Computational Physics, 85(1), 1-85_.
 !!
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = -2
@@ -16,6 +16,7 @@
 !!     - <tt>cte_B03</tt> = 1 : used to set the Bz value.
 !!    
 !!     and can all be changed in the parfile.
+!! @endnote
 submodule (mod_equilibrium) smod_equil_constant_current
   use mod_equilibrium_params, only: j0, cte_rho0, cte_B03
   implicit none

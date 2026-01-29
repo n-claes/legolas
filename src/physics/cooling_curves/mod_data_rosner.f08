@@ -4,15 +4,17 @@ module mod_data_rosner
 
   public
 
-  !> !!! note
+  !> @note
   !!     data for the piecewise analytical cooling curve by Rosner, Tucker and Vaiana
   !!     (1978), extended by Priest (1982).
+  !! @endnote
 
-  !> !!! note
+  !> @note
   !!     Original values for xi in the rosner curve are given in SI,
   !!     these here are scaled to cgs.
   !!     \( 1 Wm^{-3} = 10^{-13} erg/(s*cm^3) \), and since these are in a log10 scale
   !!     that means a -13 difference.
+  !! @endnote
 
   real(dp), protected :: logT_rosner(8)
   real(dp), protected :: logxi_rosner(9)

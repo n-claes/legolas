@@ -15,7 +15,7 @@
 !! _Goedbloed, H., Keppens, R., & Poedts, S. (2019). Magnetohydrodynamics of Laboratory
 !! and Astrophysical Plasmas. Cambridge University Press._
 !! [DOI](http://doi.org/10.1017/9781316403679).
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 0
@@ -26,6 +26,7 @@
 !!     - <tt>x_end</tt> = 2 : fixes the parameter \(\delta = x_{end}/x_{start}\)
 !!     
 !!     and can all be changed in the parfile.
+!! @endnote
 submodule (mod_equilibrium) smod_equil_MRI
   use mod_equilibrium_params, only: beta, tau, nu
   implicit none

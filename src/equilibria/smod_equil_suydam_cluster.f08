@@ -6,7 +6,7 @@
 !! This equilibrium is taken from
 !! _Nijboer, R. J., Holst, B., Poedts, S., & Goedbloed, J. P. (1997).
 !!  Calculating magnetohydrodynamic flow spectra. Computer physics communications, 106(1-2), 39-52_.
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 1
@@ -19,6 +19,7 @@
 !!     - <tt>alpha</tt> = 2 : used in the Bessel functions.
 !!     
 !!     and can all be changed in the parfile.
+!! @endnote
 submodule (mod_equilibrium) smod_equil_suydam_cluster
   use mod_equilibrium_params, only: cte_rho0, cte_v02, cte_v03, cte_p0, p1, alpha
   implicit none

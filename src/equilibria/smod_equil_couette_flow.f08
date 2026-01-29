@@ -1,7 +1,7 @@
 ! =============================================================================
 !> This submodule defines a steady plane Couette flow in a Cartesian geometry
 !! with flow and viscosity.
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 0
@@ -14,6 +14,7 @@
 !!     - <tt>viscosity_value</tt> = 1e-3
 !!     
 !!     and can all be changed in the parfile.
+!! @endnote
 submodule (mod_equilibrium) smod_equil_couette_flow
   use mod_equilibrium_params, only: cte_rho0, cte_v02, cte_v03, cte_T0
   implicit none
