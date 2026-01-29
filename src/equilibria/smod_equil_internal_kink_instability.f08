@@ -28,7 +28,8 @@ contains
     call settings%grid%set_geometry("cylindrical")
 
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
-      call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
+      call settings%grid%set_grid_boundaries(0.0_dp, 0.99_dp)
+      a0 = settings%grid%get_grid_end() * 1.05_dp
 
       call settings%physics%enable_flow()
       cte_rho0 = 1.0_dp
@@ -40,7 +41,7 @@ contains
       k3 = 0.16_dp * alpha
     end if ! LCOV_EXCL_STOP
 
-    a0 = settings%grid%get_grid_end()
+    a0 = settings%grid%get_grid_end() * 1.05_dp
 
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_velocity_3_funcs(v03_func=v03, dv03_func=dv03)
@@ -54,7 +55,7 @@ contains
     real(dp), intent(in) :: r
     real(dp) :: x
     x = r / a0
-    rho0 = cte_rho0 * (1.0_dp - x**2 / a0**2)
+    rho0 = cte_rho0 * (1.0_dp - x**2)
   end function rho0
 
   real(dp) function drho0(r)
@@ -80,7 +81,7 @@ contains
     real(dp), intent(in) :: r
     real(dp) :: x
     x = r / a0
-    v03 = cte_v03 * (1.0_dp - x**2 / a0**2)
+    v03 = cte_v03 * (1.0_dp - x**2)
   end function v03
 
   real(dp) function dv03(r)
