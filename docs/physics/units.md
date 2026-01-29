@@ -4,7 +4,7 @@ layout: single
 classes: wide
 sidebar:
   nav: "leftcontents"
-last_modified_at: 2025-01-28
+last_modified_at: 2026-01-28
 ---
 
 All equations in Legolas are in dimensionless form, as is common practice when dealing with (M)HD.

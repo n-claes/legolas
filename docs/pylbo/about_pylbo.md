@@ -4,7 +4,7 @@ layout: single
 classes: wide
 sidebar:
   nav: "leftcontents"
-last_modified_at: 2025-01-28
+last_modified_at: 2026-01-28
 ---
 When Legolas finishes solving the eigenvalue problem it writes all information to a specially
 tailored datfile. First a header is written, containing information such as the geometry, chosen equilibrium,
