@@ -6,11 +6,11 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2021-07-27
+last_modified_at: 2025-01-28
 ---
 
 On this page we give a small overview of the system of equations solved by Legolas. We use the
-full set of MHD equations, linearised around a dynamic background (that is, including flow).
+full set of MHD equations, linearised around a stationary background.
 Physical effects include flow, (external) gravity, resistivity, optically thin radiative losses,
 anisotropic thermal conduction, viscosity and Hall effects.
 
@@ -116,7 +116,7 @@ with $\boldsymbol{I}$ the unit tensor and $\unit{B} = \bbf / B$ a unit vector al
 $$
 \begin{align}
 \kappa_\parallel &\approx 8 \times 10^{-7}T^{5/2}~\text{erg cm$^{-1}$s$^{-1}$K$^{-1}$},	\\
-\kappa_\bot &\approx 4 \times 10^{-10} n^2B^{-2}T^{-3}\kappa_\parallel,
+\kappa_\bot &\approx 4 \times 10^{-10} n^2B^{-2}T^{-3}\kappa_\parallel.
 \end{align}
 $$
 
