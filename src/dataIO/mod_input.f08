@@ -415,13 +415,16 @@ contains
 
   ! LCOV_EXCL_START <this routine is excluded from coverage>
   !> Parses the command line arguments and retrieves the parfile passed.
-  !! !!! warning
+  !! @warning
   !!     Throws an error if
   !!     
   !!     - command line arguments can not be parsed.
   !!     - the parfile is not found.
-  !! !!! note
+  !! @endwarning
+  !!
+  !! @note
   !!     If no parfile is passed, the code uses a default configuration.
+  !! @endnote
   subroutine get_parfile(filename_par)
     !> the name of the parfile
     character(len=*), intent(out) :: filename_par

@@ -7,7 +7,7 @@
 !! This equilibrium is taken from section 13.2, p. 487 (case b) in
 !! _Goedbloed, H., Keppens, R., & Poedts, S. (2019). Magnetohydrodynamics of Laboratory
 !!  and Astrophysical Plasmas. Cambridge University Press._ [DOI](http://doi.org/10.1017/9781316403679).
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 0
@@ -25,6 +25,7 @@
 !!     - <tt>tau</tt> = 11 : used in the velocity profile.
 !!     
 !!     and can all be changed in the parfile.
+!! @endnote
 submodule (mod_equilibrium) smod_equil_KHI
   use mod_function_utils, only: zero_func
   implicit none

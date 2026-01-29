@@ -6,7 +6,7 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2023-04-13
+last_modified_at: 2025-01-28
 ---
 
 This page gives a detailed overview on the various Legolas testing suites, how to run them and what they are testing.
@@ -44,8 +44,9 @@ formatting standards, which automatically take care of trailing whitespaces, imp
 We also run [flake8](https://flake8.pycqa.org/en/latest/) as style enforcement.
 
 We explicitly check for both Black and flake8 formatting and style during the automated tests and strictly enforce this.
-Many IDE's support Black/flake8 plugins which can automatically format the file on save, so it may be useful to set this up
+Many IDEs support Black/flake8 plugins which can automatically format the file on save, so it may be useful to set this up
 if you are making edits to the source code.
+
 ## The Legolas unit tests
 ### Running the tests
 To run the unit tests you will need to have pFUnit installed, which has some
@@ -125,6 +126,14 @@ You can add as many filenames as you want, separated by a whitespace.
 **Note**: tests that are passing will clean up after themselves by deleting the generated datfile and images.
 You can ask the test suite to keep the images instead (for visual inspections, for example) by simply adding the `--keep-files` flag when running the tests.
 {: .notice--info}
+
+{% capture note %}
+<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+**Note:** since some tests rely on data saved with `pickle`, tight control of the environment is necessary for these tests to pass. Before running the regression tests, it is recommended to set up the testing environment specified in the repository in `.github/workflows/regression.yml`.
+{% endcapture %}
+<div class="notice--warning">
+  {{ note | markdownify }}
+</div>
 
 
 ### Adding new tests

@@ -6,14 +6,14 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2023-04-13
+last_modified_at: 2025-01-28
 ---
 
 This page explains how to configure the custom user submodule to your needs. We assume that you are already familiar with
-how to set up a legolas directory and how to run legolas in a separate directory. If this is not the case see [how to run your first problem](../../getting-started/running).
+how to set up a Legolas directory and how to run Legolas in a separate directory. If this is not the case see [how to run your first problem](../../getting-started/running).
 In what follows we also assume that both a `smod_user_defined.f08` file and parfile are present in the current working directory. You can copy both of these over when running
-the setup script. Alternatively, you can use Python to define an analytic (SymPy) or numerical configuration, and use `Pylbo`'s submodule `Gimli` to generate your Legolas files.
-More information can be found [here](../../sphinx/autoapi/pylbo/index.html#pylbo.gimli).
+the `setuplegolas.py` script. Alternatively, you can use Python to define an analytic (SymPy) or numerical configuration, and use `pylbo`'s submodule `gimli` to generate your Legolas files.
+<!-- More information can be found [here](../../sphinx/autoapi/pylbo/index.html#pylbo.gimli). -->
 
 ## Read before proceeding
 When implementing your own setup it is useful to know how Legolas treats the user submodule. The program state at a given time is governed by the following objects (click the links for a full overview of accessible attributes and type-bound procedures):
@@ -51,7 +51,7 @@ The `mod_equilibrium` statement between brackets refers to the [parent module](.
 
 ## Defining the grid
 ### Using the default grid
-To use a default, uniformely spaced base grid, Legolas needs the geometry, gridpoints and grid edges.
+To use the default, uniformly spaced base grid, Legolas needs the geometry, gridpoints and grid edges.
 This can be done in the submodule itself by accessing the `settings%grid` object as shown below, or through the parfile.
 ```fortran
 module procedure user_defined_eq
@@ -85,6 +85,7 @@ gridpoints will vary to accomodate the specified spacing function.
 <div class="notice--info">
   {{ note | markdownify }}
 </div>
+
 ```fortran
 module procedure user_defined_eq
   call settings%grid%set_grid_boundaries(-1.0_dp, 2.0_dp)
@@ -102,6 +103,14 @@ real(dp) function gaussian_dx(x)
 end function gaussian_dx
 ```
 Note that the function is placed outside the `user_defined_eq` procedure.
+
+{% capture note %}
+<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+**Note:** A spacing function that is symmetric around the domain center does not yield a symmetric grid. To obtain a symmetric grid, set `symmetric_grid = .true.` in the parfile. The spacing function is then used in the first half of the domain and the constructed grid is subsequently mirrored to the other half.
+{% endcapture %}
+<div class="notice--warning">
+  {{ note | markdownify }}
+</div>
 
 ## Using variables
 Legolas uses a dedicated module which contains a multitude of variables that you can use in your setups.
@@ -214,6 +223,14 @@ Note that you can specify variables in module scope (like `alpha` in the example
 You can then plot the equilibrium profiles using Pylbo.
 {: .notice--info}
 
+{% capture note %}
+<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+**Note:** all derivatives of equilibrium profiles have to be defined explicitly. However, this is not enforced because some higher-order derivatives are only used when certain non-ideal effects are included. Hence, ensure that all derivatives used in your setup are defined.
+{% endcapture %}
+<div class="notice--warning">
+  {{ note | markdownify }}
+</div>
+
 
 ## Including additional physics
 Enabling physics can be done either through the parfile, or in the submodule directly.
@@ -296,6 +313,7 @@ call settings%physics%enable_heating(force_thermal_balance=.true.)
 Both cooling and heating can be user-specified using [these](../../ford/type/physics_t.html#boundprocedure-set_cooling_funcs) type-bound procedures.
 
 ### Flow
+Enable flow when nonzero velocity profiles are defined.
 ```fortran
 call settings%physics%enable_flow()
 ```
@@ -325,6 +343,9 @@ end submodule smod_user_defined
 call settings%physics%enable_viscosity(viscosity_value=0.0001_dp, viscous_heating=.false.)
 ```
 Viscosity uses a constant value and does not accept a user-defined function.
+
+**Note:** Legolas uses dynamic viscosity (as opposed to kinematic viscosity).
+{: .notice--info}
 
 ### Hall MHD
 ```fortran

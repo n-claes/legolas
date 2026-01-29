@@ -14,7 +14,7 @@
 !! _Goedbloed, H., Keppens, R., & Poedts, S. (2019). Magnetohydrodynamics of Laboratory
 !! and Astrophysical Plasmas. Cambridge University Press._
 !! [DOI](http://doi.org/10.1017/9781316403679).
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 1
@@ -25,6 +25,7 @@
 !!     - <tt>r0</tt> = 0 : represents the normalised radius \(x_0\) at maximum density.
 !!     
 !!     and can all be changed in the parfile.
+!! @endnote
 ! SUBMODULE: smod_equil_rotating_theta_pinch
 !
 ! DESCRIPTION:
