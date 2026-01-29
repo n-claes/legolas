@@ -208,9 +208,10 @@ contains
   !> Dedicated function to copy a matrix structure into a new matrix structure.
   !! The datastructure contains pointers, such that simply setting
   !! matrix1 = matrix2 may result in pointer target losses (and wrong results).
-  !! !!! note
+  !! @note
   !!     We should not overload the generic assignment(=) with this function,
   !!     as it may clash with the constructor.
+  !! @endnote
   function copy(matrix_in) result(matrix_out)
     !> the original matrix
     class(matrix_t), intent(in) :: matrix_in

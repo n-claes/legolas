@@ -23,8 +23,9 @@ contains
   !! Assumes that x_table is an array with a monotone increase in values.
   !! Interpolation is done using <tt>n_interp</tt> points, in general a second
   !! order polynomial approximation is used except near sharp jumps.
-  !! !!! warning
+  !! @warning
   !!     Throws an error if <tt>x_table</tt> is not monotone.
+  !! @endwarning
   subroutine interpolate_table(n_interp, x_table, y_table, x_interp, y_interp)
     !> number of points used for interpolation
     integer, intent(in)   :: n_interp
@@ -113,9 +114,10 @@ contains
   !!   $$ dy_i = \frac{10y_{i-6} - 72y_{i-5} + 225y_{i-4} - 400y_{i-3}
   !!                + 450y_{i-2} - 360y_{i-1} + 147y_i}{60dx} $$
   !!
-  !! !!! warning
+  !! @warning
   !!     Throws an error if <tt>x_values</tt> and <tt>y_values</tt> differ
   !!     in size.
+  !! @endwarning
   subroutine get_numerical_derivative(x, y, dy, dxtol)
     use mod_check_values, only: is_equal
     use mod_logging, only: str
@@ -212,9 +214,10 @@ contains
   !! a polynomial interpolation on a uniform grid can be done and that one can be
   !! differentiated instead.
   !!
-  !! !!! warning
+  !! @warning
   !!     Throws an error if <tt>x_values</tt> and <tt>y_values</tt> differ
   !!     in size.
+  !! @endwarning
   subroutine get_second_numerical_derivative(x, y, dy, dxtol)
     use mod_check_values, only: is_equal
     use mod_logging, only: str

@@ -6,7 +6,7 @@
 !! This equilibrium is taken from section III.B in
 !! _Goedbloed, J. P. "The Spectral Web of stationary plasma equilibria.
 !! II. Internal modes." Physics of Plasmas 25.3 (2018): 032110_.
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 1
@@ -17,6 +17,7 @@
 !!     - <tt>alpha</tt> = 5 / x_end : used in the Bessel functions.
 !!     
 !!     and can all be changed in the parfile.
+!! @endnote
 submodule (mod_equilibrium) smod_equil_internal_kink_instability
   use mod_equilibrium_params, only: cte_rho0, cte_v03, cte_p0, alpha
   implicit none

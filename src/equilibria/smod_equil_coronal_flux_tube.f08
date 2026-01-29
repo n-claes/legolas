@@ -9,9 +9,11 @@
 !! This equilibrium is taken from chapter 6, fig. 6.7 in
 !! _Roberts, Bernard (2019). MHD Waves in the Solar Atmosphere.
 !! Cambridge University Press._ [DOI](https://doi.org/10.1017/9781108613774).
-!! !!! note
+!! @note
 !!     For best results, it is recommended to enable mesh accumulation.
-!! !!! note
+!! @endnote
+!!
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 0
@@ -21,6 +23,7 @@
 !!     - <tt>r0</tt> = 1 : radius of the inner tube.
 !!     
 !!     and can all be changed in the parfile.
+!! @endnote
 ! SUBMODULE: smod_equil_coronal_flux_tube
 submodule(mod_equilibrium) smod_equil_coronal_flux_tube
   use mod_equilibrium_params, only: cte_rho0, cte_p0, r0

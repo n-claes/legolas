@@ -106,9 +106,10 @@ contains
   !! time at execution of this command. Use `toc(message)` to log the elapsed time
   !! since the last call of `tic()`.
   !!
-  !! !!! warning
+  !! @warning
   !!     As `tic()` and `toc(message)` rely on a module variable, they are
   !!     not thread safe.
+  !! @endwarning
   !!
   !! `tic(start_time)` writes the value of the wall clock time at execution
   !! of this command to **start_time**. Calling this command, shall not
@@ -130,13 +131,15 @@ contains
   !! `toc(message)` logs the elapsed wall clock time in seconds since the
   !! most recent call to `tic()` along with **message** as a debug message.
   !!
-  !! !!! warning
+  !! @warning
   !!     As `tic()` and `toc(message)` rely on a module variable, they are
   !!     not thread safe.
+  !! @endwarning
   !!
-  !! !!! warning
+  !! @warning
   !!     If `toc(message)` is called without first calling `tic()` the result
   !!     will be meaningless.
+  !! @endwarning
   !!
   !! `toc(message, start_time)` logs the elapsed wall clock time in seconds since
   !! the call of `tic(start_time)`, along with **message**.
@@ -179,9 +182,10 @@ contains
   !! at execution of this command. Use `cputoc(message)` to log the elapsed time
   !! since the last call of `cputic()`.
   !!
-  !! !!! warning
+  !! @warning
   !!     As `cputic()` and `cputoc(message)` rely on a module variable, they
   !!     are not thread safe.
+  !! @endwarning
   !!
   !! `cputic(start_time)` writes the value of the processor time at execution
   !! of this command to **start_time**. Calling this command, shall not change
@@ -203,13 +207,15 @@ contains
   !! `cputoc(message)` logs the elapsed CPU time in seconds since the most recent
   !! call to `cputic()` along with **message** as a debug message.
   !!
-  !! !!! warning
+  !! @warning
   !!     As `cputic()` and `cputoc(message)` rely on a module variable, they
   !!     are not thread safe.
+  !! @endwarning
   !!
-  !! !!! warning
+  !! @warning
   !!     If `cputoc(message)` is called without first calling `cputic()` the
   !!     result will be meaningless.
+  !! @endwarning
   !!
   !! `cputoc(message, start_time)` logs the elapsed CPU time in seconds since the
   !! call of `cputic(start_time)`, along with **message**.

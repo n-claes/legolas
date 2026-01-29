@@ -6,7 +6,7 @@
 !! This equilibrium is taken from section 14.3, p. 553 in
 !! _Goedbloed, H., Keppens, R., & Poedts, S. (2019). Magnetohydrodynamics of Laboratory
 !!  and Astrophysical Plasmas. Cambridge University Press._ [DOI](http://doi.org/10.1017/9781316403679).
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 1.5
@@ -17,6 +17,7 @@
 !!     - fixed resistivity value of 0.0001
 !!     
 !!     and can all be changed in the parfile.
+!! @endnote
 submodule (mod_equilibrium) smod_equil_resistive_tearing_flow
   use mod_equilibrium_params, only: alpha, beta, cte_rho0
   implicit none

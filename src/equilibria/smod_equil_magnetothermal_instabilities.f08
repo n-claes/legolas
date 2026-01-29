@@ -6,7 +6,7 @@
 !! _Van der Linden, R. A. M., Goossens, M., & Hood, A. W. (1992).
 !!  The relevance of the ballooning approximation for magnetic, thermal,
 !!  and coalesced magnetothermal instabilities. Solar physics, 140(2), 317-342_.
-!! !!! note
+!! @note
 !!     Default values are given by
 !!     
 !!     - <tt>k2</tt> = 0
@@ -22,10 +22,13 @@
 !!     - <tt>unit_length</tt> = 1e8 cm
 !!     
 !!     and can all be changed in the parfile.
-!! !!! note
+!! @endnote
+!!
+!! @note
 !!     The default setup handles _CASE I_ in the original paper. For _CASE II_,
 !!     you can set k2 = 10. To reproduce the thermal continuum plot,
 !!     set <tt>unit_length</tt> = 2.44e9 cm in _CASE I_.
+!! @endnote
 submodule(mod_equilibrium) smod_equil_magnetothermal_instabilities
   use mod_equilibrium_params, only: cte_T0
   implicit none
