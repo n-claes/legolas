@@ -80,9 +80,10 @@ def write_physics_pointers(file, eq):
         "heating": "source",
     }
 
-    ### can eta be a function in amrvac?
+    # can eta be a function in amrvac?
     # if (eq._dict_phys["resistivity"][0] is not None
-    #     and not is_symbol_dependent(eq._dict_phys["resistivity"][2], eq._dict_phys["resistivity"][0])):
+    #     and not is_symbol_dependent(eq._dict_phys["resistivity"][2], &
+    #       eq._dict_phys["resistivity"][0])):
     #     vac_names["resistivity"] = ""
 
     for key in vac_names.keys():
@@ -105,7 +106,7 @@ def write_physics_subroutines(file, eq):
     if eq._dict_phys["gravity"][0] is not None:
         expr = eq._dict_phys["gravity"][0].subs(eq.variables.x, xv)
         write_pad(
-            file, f"subroutine set_gravity(ixI^L, ixO^L, wCT, x, gravity_field)", 1
+            file, "subroutine set_gravity(ixI^L, ixO^L, wCT, x, gravity_field)", 1
         )
         write_pad(file, "use mod_global_parameters", 2)
         write_pad(file, "integer, intent(in)             :: ixI^L, ixO^L", 2)
@@ -122,14 +123,14 @@ def write_physics_subroutines(file, eq):
                 file,
                 fcode(
                     sp.sympify(-float(expr)),
-                    assign_to=f"gravity_field(ixI^S, 1)",
+                    assign_to="gravity_field(ixI^S, 1)",
                     source_format="free",
                 ).lstrip(),
                 2,
             )
         else:
             func = fcode(
-                -expr, assign_to=f"gravity_field(ixI^S, 1)", source_format="free"
+                -expr, assign_to="gravity_field(ixI^S, 1)", source_format="free"
             ).lstrip()
             for key in list(translation.keys()):
                 func = func.replace(key, translation[key])
@@ -137,10 +138,10 @@ def write_physics_subroutines(file, eq):
             func = func.replace("@", "")
             write_pad(file, func, 2)
 
-        write_pad(file, f"end subroutine set_gravity", 1)
+        write_pad(file, "end subroutine set_gravity", 1)
         file.write("\n")
 
-    ### TODO: add other non-ideal effects
+    # TODO: add other non-ideal effects
 
 
 class Amrvac:
