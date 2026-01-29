@@ -6,7 +6,7 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2025-01-28
+last_modified_at: 2026-01-28
 ---
 
 This page explains how to configure the custom user submodule to your needs. We assume that you are already familiar with

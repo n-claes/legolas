@@ -6,7 +6,7 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2025-01-28
+last_modified_at: 2026-01-28
 ---
 
 Using Pylbo is quite straightforward, for a detailed guide on the API we refer to the

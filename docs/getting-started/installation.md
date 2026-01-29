@@ -7,7 +7,7 @@ sidebar:
 toc: true
 toc_label: "Installation Guide"
 toc_icon: "cogs"
-last_modified_at: 2025-01-28
+last_modified_at: 2026-01-28
 ---
 
 Due to the heavy use of object-oriented features (Fortran 2003) and submodules (Fortran 2008), Legolas

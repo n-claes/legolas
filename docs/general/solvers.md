@@ -6,7 +6,7 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2025-01-28
+last_modified_at: 2026-01-28
 ---
 
 Legolas has interfaces implemented to various BLAS, LAPACK and ARPACK routines.
