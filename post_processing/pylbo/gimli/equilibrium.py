@@ -23,12 +23,15 @@ class Variables:
         Adiabatic index.
     rhoc, Tc, B2c, B3c, v2c, v3c, pc : sympy symbols
         Constants typically used for amplitudes or uniform terms in their corresponding
-        equilibrium quantities.
+        equilibrium quantities. The corresponding Legolas variable names are cte_rho0,
+        cte_T0, cte_B02, cte_B03, cte_v02, cte_v03, and cte_p0.
     p1, p2, p3, p4, p5, p6, p7, p8 : sympy symbols
         Additional free-use constants.
-    alpha, beta, delta, theta, tau, lambda, nu : sympy symbols
-        Additional free-use constants.
-    r0, rc, rj, Bth0, V, j0, g : sympy symbols
+    alpha, beta, delta, theta, tau, lam, nu : sympy symbols
+        Additional free-use constants. (Note that 'lam' is used instead of 'lambda' to
+        avoid conflict with the reserved keyword. The corresponding Legolas variable
+        name is 'lambda'.)
+    r0, rc, rj, Bth0, Bz0, V, j0, g : sympy symbols
         Additional constants, originally used in cylindrical coordinates.
     fkey : dict
         Dictionary translating LaTeX notation to Legolas variable names.
@@ -51,7 +54,7 @@ class Variables:
         self.p1, self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8 = (
             sp.symbols("p_1,p_2,p_3,p_4,p_5,p_6,p_7,p_8")
         )
-        self.alpha, self.beta, self.delta, self.theta, self.tau, self.lamda, self.nu = (
+        self.alpha, self.beta, self.delta, self.theta, self.tau, self.lam, self.nu = (
             sp.symbols("alpha,beta,delta,theta,tau,lambda,nu")
         )
         self.r0, self.rc, self.rj, self.Bth0, self.Bz0, self.V, self.j0, self.g = (
