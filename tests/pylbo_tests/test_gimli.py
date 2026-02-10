@@ -36,7 +36,7 @@ def test_variables():
         "delta",
         "theta",
         "tau",
-        "lamda",
+        "lam",
         "nu",
         "r0",
         "rc",
