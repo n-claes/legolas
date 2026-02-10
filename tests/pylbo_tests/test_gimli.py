@@ -63,7 +63,7 @@ def test_equilibrium():
     assert isinstance(obj.get_dependencies(), dict)
 
 
-def test_legolas_userfile(tmpdir, mod_usr):
+def test_legolas_userfile_hd(tmpdir, mod_usr_hd):
     config = {
         "geometry": "Cartesian",
         "x_start": -1,
@@ -76,15 +76,41 @@ def test_legolas_userfile(tmpdir, mod_usr):
             "cte_T0": 0.5,
         },
         "equilibrium_type": "user_defined",
-        "physics_type": "mhd",
+        "physics_type": "hd",
         "logging_level": 1,
     }
     var = gimli.Variables()
     eq = gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc)
     obj = gimli.Legolas(eq, config)
-    obj.user_module(loc=tmpdir)
+    obj.user_module(filename='smod_user_hd', loc=tmpdir)
     assert filecmp.cmp(
-        str((tmpdir / "smod_user_defined.f08").resolve()), str(mod_usr), shallow=False
+        str((tmpdir / "smod_user_hd.f08").resolve()), str(mod_usr_hd), shallow=False
+    )
+
+
+def test_legolas_userfile_mhd(tmpdir, mod_usr_mhd):
+    config = {
+        "geometry": "Cartesian",
+        "x_start": -1,
+        "x_end": 1,
+        "gridpoints": 51,
+        "parameters": {
+            "k2": 1,
+            "k3": 0,
+            "cte_rho0": 1,
+            "cte_T0": 0.5,
+            "cte_B02": 0.25,
+        },
+        "equilibrium_type": "user_defined",
+        "physics_type": "mhd",
+        "logging_level": 1,
+    }
+    var = gimli.Variables()
+    eq = gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc, B02=var.B2c, B03=0)
+    obj = gimli.Legolas(eq, config)
+    obj.user_module(filename='smod_user_mhd', loc=tmpdir)
+    assert filecmp.cmp(
+        str((tmpdir / "smod_user_mhd.f08").resolve()), str(mod_usr_mhd), shallow=False
     )
 
 

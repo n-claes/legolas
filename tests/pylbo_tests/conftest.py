@@ -136,8 +136,13 @@ def datv112_eta():
 
 
 @pytest.fixture
-def mod_usr():
-    return utils / "v2.1.1_mod_usr.f08"
+def mod_usr_hd():
+    return utils / "v2+_mod_usr_hd.f08"
+
+
+@pytest.fixture
+def mod_usr_mhd():
+    return utils / "v2+_mod_usr_mhd.f08"
 
 
 @pytest.fixture
