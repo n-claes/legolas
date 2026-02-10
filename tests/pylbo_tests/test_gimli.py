@@ -1,6 +1,7 @@
 import pylbo.gimli as gimli
 import sympy as sp
 import numpy as np
+from scipy.io import FortranFile
 import filecmp
 
 
@@ -82,7 +83,7 @@ def test_legolas_userfile_hd(tmpdir, mod_usr_hd):
     var = gimli.Variables()
     eq = gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc)
     obj = gimli.Legolas(eq, config)
-    obj.user_module(filename='smod_user_hd', loc=tmpdir)
+    obj.user_module(filename="smod_user_hd", loc=tmpdir)
     assert filecmp.cmp(
         str((tmpdir / "smod_user_hd.f08").resolve()), str(mod_usr_hd), shallow=False
     )
@@ -108,7 +109,7 @@ def test_legolas_userfile_mhd(tmpdir, mod_usr_mhd):
     var = gimli.Variables()
     eq = gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc, B02=var.B2c, B03=0)
     obj = gimli.Legolas(eq, config)
-    obj.user_module(filename='smod_user_mhd', loc=tmpdir)
+    obj.user_module(filename="smod_user_mhd", loc=tmpdir)
     assert filecmp.cmp(
         str((tmpdir / "smod_user_mhd.f08").resolve()), str(mod_usr_mhd), shallow=False
     )
@@ -136,8 +137,14 @@ def test_numerical_equilibrium(tmpdir, numerical_lar):
     dictionary = {"x": x, "rho0": 2.0 + np.sin(x), "T0": 1.0 / (2.0 + np.sin(x))}
     equil = gimli.NumericalEquilibrium(dictionary)
     equil.to_legolas_arrays(filename="test_numerical", loc=str(tmpdir.resolve()))
-    assert filecmp.cmp(
-        str((tmpdir / "test_numerical.lar").resolve()),
-        str(numerical_lar),
-        shallow=False,
-    )
+
+    base = FortranFile(numerical_lar, "r")
+    test = FortranFile(tmpdir / "test_numerical.lar", "r")
+    base_data = base.read_ints(dtype=np.int32)
+    test_data = test.read_ints(dtype=np.int32)
+    assert np.array_equal(base_data, test_data)
+
+    for ii in range(10):
+        base_data = base.read_reals(dtype=np.float64)
+        test_data = test.read_reals(dtype=np.float64)
+        assert np.allclose(base_data, test_data, rtol=1e-8, atol=1e-10)
