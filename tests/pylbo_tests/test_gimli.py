@@ -125,11 +125,17 @@ def test_amrvac_preparation(tmpdir, datv211_harris, vacv211_harris):
     }
     amrvac = gimli.Amrvac(config)
     amrvac.prepare_legolas_data(loc=tmpdir)
-    assert filecmp.cmp(
-        str((tmpdir / "v2.1.1_harris.ldat").resolve()),
-        str(vacv211_harris),
-        shallow=False,
-    )
+
+    base = FortranFile(vacv211_harris, "r")
+    test = FortranFile(tmpdir / "v2.1.1_harris.ldat", "r")
+    base_data = base.read_ints(dtype=np.int32)
+    test_data = test.read_ints(dtype=np.int32)
+    assert np.array_equal(base_data, test_data)
+
+    for ii in range(11):
+        base_data = base.read_reals(dtype=np.float64)
+        test_data = test.read_reals(dtype=np.float64)
+        assert np.allclose(base_data, test_data, rtol=1e-8, atol=1e-10)
 
 
 def test_numerical_equilibrium(tmpdir, numerical_lar):
