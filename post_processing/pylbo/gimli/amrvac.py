@@ -576,6 +576,7 @@ class Amrvac:
 
         interp_r = CubicSpline(self.ds.ef_grid, array.real)
         interp_i = CubicSpline(self.ds.ef_grid, array.imag)
+        eps = 1 if np.allclose(self.ds.scale_factor, self.ds.grid_gauss) else 0
 
         if self.config["dim"] == 3:
 
@@ -583,7 +584,7 @@ class Amrvac:
                 value = (
                     (interp_r(u1) + 1j * interp_i(u1))
                     * np.exp(1j * order * (k2 * u2 + k3 * u3))
-                ).real
+                ).real * (u1**eps)
                 return value
 
             integral = tplquad(
@@ -599,8 +600,8 @@ class Amrvac:
             def integrand(u2, u1):
                 value = (
                     (interp_r(u1) + 1j * interp_i(u1))
-                    * np.exp(1j * order * (kvec[arg] * u2))
-                ).real
+                    * np.exp(1j * order * (kvec[arg] * u2) * self.ds.scale_factor)
+                ).real * (u1**eps)
                 return value
 
             integral = dblquad(
