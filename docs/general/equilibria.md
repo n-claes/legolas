@@ -53,7 +53,7 @@ physical effects, and links to the source docs.
   ```fortran
   equilibrium_type = "photospheric_flux_tube"
   ```
-- [Interchange modes](../../ford/module/smod_equil_interchange_modes.html): cylindrical, external gravity
+- [Interchange modes](../../ford/module/smod_equil_interchange_modes.html): Cartesian, external gravity
   ```fortran
   equilibrium_type = "interchange_modes"
   ```
@@ -77,7 +77,7 @@ physical effects, and links to the source docs.
   ```fortran
   equilibrium_type = "magnetothermal_instabilities"
   ```
-- [Numerical setup](../../ford/module/smod_equil_numerical.html): imports user data from a file generated with pylbo. See [here](../../sphinx/autoapi/pylbo/index.html#pylbo.gimli.NumericalEquilibrium)
+- [Numerical setup](../../ford/module/smod_equil_numerical.html): imports user data from a file generated with pylbo. See [here](../../sphinx/autoapi/pylbo/gimli/equilibrium/index.html)
   ```fortran
   equilibrium_type = "numerical"
   ```

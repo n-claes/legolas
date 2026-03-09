@@ -4,7 +4,7 @@ layout: single
 classes: wide
 sidebar:
   nav: "leftcontents"
-last_modified_at: 2023-04-23
+last_modified_at: 2025-01-28
 ---
 
 All equations in Legolas are in dimensionless form, as is common practice when dealing with (M)HD.
@@ -17,13 +17,13 @@ Unit normalisations depend on the molecular weight $\bar{\mu}$, and in Legolas w
 
     $$
     \bar{\mu} = \dfrac{m_e n_e + m_i n_i}{n_e + n_i} \simeq \dfrac{m_i n_i}{n_e + n_i}
-              = \dfrac{1}{2}m_i \rightarrow \bar{\mu} = \dfrac{1}{2}
+              = \dfrac{1}{2}m_i \rightarrow \dfrac{1}{2}
     $$
 
 - **Pure proton plasma**: $\bar{\mu} = 1$, in this case the molecular weight should be explicitly set.
 
     $$
-    \bar{\mu} = \dfrac{m_i n_i}{n_i} = m_i \rightarrow \bar{\mu} = 1
+    \bar{\mu} = \dfrac{m_i n_i}{n_i} = m_i \rightarrow 1
     $$
 
 ## Normalisations

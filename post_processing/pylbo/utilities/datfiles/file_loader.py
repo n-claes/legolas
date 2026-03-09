@@ -86,7 +86,7 @@ def load(datfile):
     return ds
 
 
-def load_series(datfiles):
+def load_series(datfiles, sorting_par=None):
     """
     Loads multiple Legolas datfiles.
 
@@ -95,6 +95,8 @@ def load_series(datfiles):
     datfiles : list, numpy.ndarray
         Paths to the datfiles that should be loaded, in list/array form. Every element
         should be a string or a ~os.PathLike object.
+    sorting_par : str, optional
+        The parameter to sort the datfiles by.
 
     Raises
     ------
@@ -112,6 +114,16 @@ def load_series(datfiles):
     for datfile in datfiles:
         _validate_file(datfile)
     series = LegolasDataSeries(datfiles)
+
+    # sorting based on parameter
+    if sorting_par is not None:
+        datfiles_sorted = np.array(
+            [
+                datfile
+                for _, datfile in sorted(zip(series.parameters[sorting_par], datfiles))
+            ]
+        )
+        series = LegolasDataSeries(datfiles_sorted)
 
     # handle version printing
     versions = [ds.legolas_version.parse() for ds in series.datasets]

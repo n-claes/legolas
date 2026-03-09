@@ -6,8 +6,10 @@
 !! All "main" equilibrium configurations are set in the submodules. The ones that
 !! depend on "main" arrays, like radiative cooling, are set here through calls to their
 !! respective modules.
-!! @note    All use statements specified here at the main module scope
-!!          are automatically accessible in every submodule that extends this one.
+!! @note
+!!     All use statements specified here at the main module scope
+!!     are automatically accessible in every submodule that extends this one.
+!! @endnote
 module mod_equilibrium
   use mod_global_variables, only: dp
   use mod_physical_constants, only: dpi
@@ -256,9 +258,11 @@ contains
   !> Calls the routine to set the equilibrium pointer, then calls the correct
   !! submodule. Performs some sanity checks (negative values, NaNs etc.) when
   !! the equilibrium is set, then calls additional physics modules if needed.
-  !! @warning Throws appropriate errors if the equilibrium configuration is
-  !!          not balanced, contains NaN or if density/temperature contains
-  !!          negative values.
+  !! @warning
+  !!     Throws appropriate errors if the equilibrium configuration is
+  !!     not balanced, contains NaN or if density/temperature contains
+  !!     negative values.
+  !! @endwarning
   subroutine set_equilibrium(settings, grid, background, physics, iv_initial_conditions)
     type(settings_t), intent(inout) :: settings
     type(grid_t), intent(inout) :: grid
@@ -281,7 +285,9 @@ contains
 
   !> Selects the submodule based on the specified equilibrium
   !! in the parfile. Works on a case-select basis.
-  !! @warning   Throws an error if the equilibrium type is not recognised.
+  !! @warning
+  !!     Throws an error if the equilibrium type is not recognised.
+  !! @endwarning
   subroutine set_equilibrium_pointer(settings)
     type(settings_t), intent(in) :: settings
 
