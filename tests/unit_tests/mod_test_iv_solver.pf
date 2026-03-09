@@ -1,6 +1,7 @@
 module mod_test_iv_solver
   use mod_suite_utils
   use funit
+  use mod_global_variables, only: ic
   use mod_matrix_structure, only: matrix_t, new_matrix
   use mod_iv_solver, only: solve
   use mod_iv_settings, only: iv_settings_t, new_iv_settings
@@ -24,9 +25,13 @@ contains
     call reset_globals()
     call logger%set_logging_level(3)
 
+    ! The solver internally multiplies A by -ic (to convert from eigenvalue form
+    ! wBX=AX to the time-evolution equation B*dx/dt = -iAx). To test the real
+    ! decaying system B*dx/dt = diag(-2,-3)*x we therefore pass A = ic*diag(-2,-3),
+    ! so that the solver's -ic transform recovers diag(-2,-3).
     matrix_A = new_matrix(2, label="A")
-    call matrix_A%add_element(row=1, column=1, element=-2)
-    call matrix_A%add_element(row=2, column=2, element=-3)
+    call matrix_A%add_element(row=1, column=1, element=ic * (-2.0_dp))
+    call matrix_A%add_element(row=2, column=2, element=ic * (-3.0_dp))
 
     matrix_B = new_matrix(2, label="B")
     call matrix_B%add_element(row=1, column=1, element=1)

@@ -214,9 +214,9 @@ class LegolasFileReader:
 
     def read_iv_snapshots(self, header: LegolasHeader) -> np.ndarray | None:
         offset = header["offsets"]["iv_snapshots"]
-        nsnap  = header["iv_snapshots_count"]
-        npts   = header["iv_snapshots_npoints"]
-        ncomp  = header["iv_snapshots_ncomp"]
+        nsnap = header["iv_snapshots_count"]
+        npts = header["iv_snapshots_npoints"]
+        ncomp = header["iv_snapshots_ncomp"]
 
         total_values = nsnap * ncomp * npts
 
