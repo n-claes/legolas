@@ -84,7 +84,6 @@ module mod_iv_state_vector
     iv_a3 = new_iv_component("a3")
 
     ! Store pointers to the active components
-    ! TODO: Add the rest
     select case(physics_type)
     case("isothermal-1d")
       self%num_components = 2
@@ -122,7 +121,6 @@ module mod_iv_state_vector
     do i = 1, self%num_components
       ! Retrieve the name of this component
       name = self%components(i)%ptr%name
-      ! TODO: Add the rest
       select case(name)
       case("rho")
          fcn  => initial_conditions%density%rho
@@ -131,6 +129,14 @@ module mod_iv_state_vector
       case("v1")
          fcn  => initial_conditions%velocity_1%v01
          dfcn => initial_conditions%velocity_1%dv01
+
+      case("v2")
+         fcn  => initial_conditions%velocity_2%v01
+         dfcn => initial_conditions%velocity_2%dv01
+
+      case("v3")
+         fcn  => initial_conditions%velocity_3%v01
+         dfcn => initial_conditions%velocity_3%dv01
 
       case("T")
         fcn  => initial_conditions%temperature%T

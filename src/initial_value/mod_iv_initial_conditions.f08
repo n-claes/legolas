@@ -25,11 +25,14 @@ module mod_iv_initial_conditions
     type, public :: initial_conditions_t
       type(ic_density_t)     :: density
       type(ic_velocity_t)    :: velocity_1
+      type(ic_velocity_t)    :: velocity_2
+      type(ic_velocity_t)    :: velocity_3
       type(ic_temperature_t) :: temperature
-      ! add more here
     contains
       procedure :: set_ic_density_funcs
       procedure :: set_ic_velocity_1_funcs
+      procedure :: set_ic_velocity_2_funcs
+      procedure :: set_ic_velocity_3_funcs
       procedure :: set_ic_temperature_funcs
     end type initial_conditions_t
 
@@ -50,10 +53,14 @@ module mod_iv_initial_conditions
       ic%velocity_1%v01  => zero_fcn
       ic%velocity_1%dv01 => zero_fcn
 
+      ic%velocity_2%v01  => zero_fcn
+      ic%velocity_2%dv01 => zero_fcn
+
+      ic%velocity_3%v01  => zero_fcn
+      ic%velocity_3%dv01 => zero_fcn
+
       ic%temperature%T  => zero_fcn
       ic%temperature%dT => zero_fcn
-  
-      ! TODO: add the rest
 
     end function new_initial_conditions
   
@@ -81,6 +88,26 @@ module mod_iv_initial_conditions
       self%velocity_1%dv01 => dv01_func
     end subroutine set_ic_velocity_1_funcs
 
+    subroutine set_ic_velocity_2_funcs(self, v02_func, dv02_func)
+      class(initial_conditions_t), intent(inout) :: self
+      procedure(profile_fcn) :: v02_func
+      procedure(profile_fcn) :: dv02_func
+
+      call logger%debug("Setting ICs for component v2.")
+      self%velocity_2%v01 => v02_func
+      self%velocity_2%dv01 => dv02_func
+    end subroutine set_ic_velocity_2_funcs
+
+    subroutine set_ic_velocity_3_funcs(self, v03_func, dv03_func)
+      class(initial_conditions_t), intent(inout) :: self
+      procedure(profile_fcn) :: v03_func
+      procedure(profile_fcn) :: dv03_func
+
+      call logger%debug("Setting ICs for component v3.")
+      self%velocity_3%v01 => v03_func
+      self%velocity_3%dv01 => dv03_func
+    end subroutine set_ic_velocity_3_funcs
+
     subroutine set_ic_temperature_funcs(self, T_func, dT_func)
       class(initial_conditions_t), intent(inout) :: self
       procedure(profile_fcn) :: T_func
@@ -90,8 +117,6 @@ module mod_iv_initial_conditions
       self%temperature%T => T_func
       if (present(dT_func)) self%temperature%dT => dT_func
     end subroutine set_ic_temperature_funcs
-  
-    ! TODO: Add as needed
   
   end module mod_iv_initial_conditions
   

@@ -320,7 +320,7 @@ class LegolasDataSet(LegolasDataContainer):
         return "mhd" in self.header.get("physics_type", None) and any(
             self.equilibria["B0"] != 0
         )
-    
+
     @property
     def has_iv_snapshots(self) -> bool:
         return self.header.get("has_iv_snapshots", False)
@@ -720,7 +720,7 @@ class LegolasDataSet(LegolasDataContainer):
 
     def get_iv_snapshots(self) -> IVPSolution:
         """
-        Return a structured IVPSolution object containing the times and 
+        Return a structured IVPSolution object containing the times and
         the snapshot data for each component.
         """
         if not self.has_iv_snapshots:
@@ -740,11 +740,17 @@ class LegolasDataSet(LegolasDataContainer):
         else:
             component_names = {i: f"comp_{i}" for i in range(n_comp)}
 
-        x_domain = np.linspace(self.header.data["x_start"], self.header.data["x_end"], raw_data.shape[2])
+        x_domain = np.linspace(
+            self.header.data["x_start"], self.header.data["x_end"], raw_data.shape[2]
+        )
 
-        self._ivp_solution = IVPSolution(times=times, data=raw_data,
-                                        component_names=component_names, x_domain=x_domain,
-                                        units=self.units)
+        self._ivp_solution = IVPSolution(
+            times=times,
+            data=raw_data,
+            component_names=component_names,
+            x_domain=x_domain,
+            units=self.units,
+        )
         return self._ivp_solution
 
 

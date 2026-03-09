@@ -37,7 +37,9 @@ class SingleSpectrumPlot(SpectrumFigure):
         Alpha value of the points.
     """
 
-    def __init__(self, dataset, figsize, custom_figure, use_residuals, title=None, **kwargs):
+    def __init__(
+        self, dataset, figsize, custom_figure, use_residuals, title=None, **kwargs
+    ):
         super().__init__(
             custom_figure=custom_figure, figlabel="single-spectrum", figsize=figsize
         )
@@ -46,7 +48,7 @@ class SingleSpectrumPlot(SpectrumFigure):
         super()._set_plot_properties(kwargs)
 
         self._use_residuals = use_residuals
-        (self._nonzero_w_idxs,) = np.where(abs(dataset.eigenvalues) >= 0.0)
+        (self._nonzero_w_idxs,) = np.where(abs(dataset.eigenvalues) > 1e-12)
 
     def add_spectrum(self):
         """Adds the spectrum to the plot, makes the points pickable."""
