@@ -47,6 +47,8 @@ class VectorplotHandler:
 
         if self.polar:
             self.xvec = self._solutions[1]
+            if self.slicing_axis == self._u3axis:
+                self.xvec = self.xvec / self.u1_data
             self.yvec = self._solutions[0]
 
         self._clear_streamlines()
