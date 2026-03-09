@@ -164,7 +164,10 @@ class LegolasHeader:
         data["ef_subset_used"] = read_boolean_from_istream(istream)
         data["ef_subset_radius"] = read_float_from_istream(istream)
         data["ef_subset_center"] = read_complex_from_istream(istream)
-        data["has_iv_snapshots"] = read_boolean_from_istream(istream)
+        if self.legolas_version >= "2.3.0":
+            data["has_iv_snapshots"] = read_boolean_from_istream(istream)
+        else:
+            data["has_iv_snapshots"] = False
         return data
 
     def _read_solver_info(self, istream: BinaryIO) -> dict:
@@ -360,7 +363,9 @@ class LegolasHeader:
         istream.seek(istream.tell() + byte_size)
         self.data["nonzero_B_elements"] = nonzero_B_elements
         # A matrix is written as (row, column, complex value)
-        byte_size = (2 * SIZE_INT + 2 * SIZE_DOUBLE) * nonzero_A_elements  # complex = 2 * SIZE_DOUBLE
+        byte_size = (
+            2 * SIZE_INT + 2 * SIZE_DOUBLE
+        ) * nonzero_A_elements  # complex = 2 * SIZE_DOUBLE
         offsets["matrix_A"] = istream.tell()
         self.data["nonzero_A_elements"] = nonzero_A_elements
         istream.seek(istream.tell() + byte_size)
@@ -384,10 +389,10 @@ class LegolasHeader:
         # Data block start
         offset_iv_data = istream.tell()
 
-        # Compute how many bytes total: nsnap * ncomp * npts * SIZE_DOUBLE for double-precision reals
+        # Compute total bytes: nsnap * ncomp * npts * SIZE_DOUBLE
         total_values = nsnap * ncomp * npts
         bytes_to_skip = total_values * SIZE_DOUBLE
-        
+
         # skip ahead
         istream.seek(offset_iv_data + bytes_to_skip)
 
