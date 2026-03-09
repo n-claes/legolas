@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from matplotlib.colors import SymLogNorm, TwoSlopeNorm
 
 def fmt(x, pos):
     a, b = '{:.2e}'.format(x).split('e')
@@ -550,5 +551,116 @@ class IVPSolution:
             # clean-up: remove temporary column
             self.data = self.data[:, :-1, :]
             del self.component_names[idx_tmp]
+
+        return ax
+
+    def plot_heat_loss_function(
+            self,
+            rho0, T0,
+            Lambda_func,
+            H_func=None,
+            cmap="coolwarm",
+            ax=None,
+            time_range=None,
+            logscale=False,
+            **imshow_kw
+        ):
+        r"""
+        Plot a space–time heatmap of the volumetric net heat-loss term
+            ρ L(ρ, T) = ρ² Λ(T) − H(ρ, T).
+
+        Parameters
+        ----------
+        rho0, T0 : 1-D arrays
+            Background profiles (code units).
+        Lambda_func : callable
+            Cooling curve Λ(T) [erg cm³ s⁻¹] (or in code units).
+            For tabulated Colgan_DM data, pass an interpolator created
+            with scipy.interpolate.interp1d.
+        H_func : callable, optional
+            Heating function H(ρ, T) with the same units as ρ² Λ(T).
+            If None, assumes static equilibrium
+            (H = ρ0² Λ(T0)), so that ρ L = 0 initially.
+        cmap : str, default "coolwarm"
+            Colormap to use for deviations (e.g. blue = net heating,
+            red = net cooling, depending on sign convention).
+        ax : matplotlib.axes.Axes, optional
+            Plot onto existing axes.
+        time_range : (t_min, t_max), optional
+            Restrict the plotted time interval.
+        logscale : bool, default False
+            If True, use a symmetric logarithmic colour normalization
+            around zero (SymLogNorm). Otherwise, linear scaling with
+            midpoint at zero (TwoSlopeNorm).
+        **imshow_kw :
+            Additional arguments passed to imshow (e.g. vmin/vmax, alpha).
+        """
+
+        # --- Reconstruct total fields --------------------------------------------
+        rho1 = self.get_component("rho")
+        T1   = self.get_component("T")
+
+        rho0_b = rho0.reshape(1, -1)
+        T0_b   = T0.reshape(1, -1)
+        rho = rho0_b + rho1
+        T   = T0_b + T1
+
+        # --- Heating & Cooling ---------------------------------------------------
+        if H_func is None:
+            # equilibrium heating → balances initial cooling
+            H = (rho0_b**2) * Lambda_func(T0_b)
+        else:
+            H = H_func(rho, T)
+
+        # Volumetric net heat-loss term: ρ L = ρ² Λ(T) − H
+        rhoL = (rho**2) * Lambda_func(T) - H     # shape (n_snap, n_points)
+
+        # --- Optional unit scaling ----------------------------------------------
+        if self.units is not None:
+            t_unit = self.units.get("unit_time", 1.0)
+            e_unit = self.units.get("unit_energy_density", 1.0)
+            rhoL *= e_unit / t_unit
+
+        # --- Axes setup ----------------------------------------------------------
+        times_phys = self._scale_time_array(np.asarray(self.times))
+        if self.x_domain is not None:
+            x_phys = self._scale_x_domain(self.x_domain)
+        else:
+            x_phys = np.arange(rhoL.shape[1])
+
+        if time_range is not None:
+            tmin, tmax = time_range
+            mask = (times_phys >= tmin) & (times_phys <= tmax)
+            rhoL = rhoL[mask, :]
+            times_phys = times_phys[mask]
+
+        # --- Determine symmetric colour limits ----------------------------------
+        vabs = np.nanmax(np.abs(rhoL))
+        if logscale:
+            linth = imshow_kw.pop("linthresh", 1e-6)
+            norm = SymLogNorm(linthresh=linth, vmin=-vabs, vmax=vabs)
+        else:
+            norm = TwoSlopeNorm(vmin=-vabs, vcenter=0.0, vmax=vabs)
+
+        # --- Plot ----------------------------------------------------------------
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        im = ax.imshow(
+            rhoL,
+            origin="lower",
+            aspect="auto",
+            cmap=cmap,
+            norm=norm,
+            extent=[x_phys[0], x_phys[-1], times_phys[0], times_phys[-1]],
+            **imshow_kw,
+        )
+
+        cbar = plt.colorbar(im, ax=ax, format=ticker.FuncFormatter(fmt))
+        cbar.set_label(r"$\rho\mathcal{L}$ [erg cm$^{-3}$ s$^{-1}$]")
+
+        ax.set_xlabel(r"$s$ [Mm]")
+        ax.set_ylabel("Time [s]")
+        # ax.set_title(r"$\rho \mathcal{L}(\rho,T)$")
 
         return ax
