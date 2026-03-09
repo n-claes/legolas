@@ -241,6 +241,13 @@ module mod_equilibrium
       type(physics_t), intent(inout) :: physics
       type(initial_conditions_t), intent(inout) :: iv_initial_conditions
     end subroutine numerical_eq
+    module subroutine ivp_demo_eq(settings, grid, background, physics, iv_initial_conditions)
+      type(settings_t), intent(inout) :: settings
+      type(grid_t), intent(inout) :: grid
+      type(background_t), intent(inout) :: background
+      type(physics_t), intent(inout) :: physics
+      type(initial_conditions_t), intent(inout) :: iv_initial_conditions
+    end subroutine ivp_demo_eq
     module subroutine user_defined_eq(settings, grid, background, physics, iv_initial_conditions)
       type(settings_t), intent(inout) :: settings
       type(grid_t), intent(inout) :: grid
@@ -350,6 +357,8 @@ contains
       set_equilibrium_values => tc_pinch_eq
     case("numerical")
       set_equilibrium_values => numerical_eq
+    case("ivp_demo")
+      set_equilibrium_values => ivp_demo_eq
     case("user_defined")
       set_equilibrium_values => user_defined_eq
     case default

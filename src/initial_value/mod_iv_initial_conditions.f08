@@ -14,7 +14,6 @@ module mod_iv_initial_conditions
     type, public :: ic_velocity_t
       procedure(profile_fcn), pointer, nopass :: v01   => null()
       procedure(profile_fcn), pointer, nopass :: dv01  => null()
-      ! v02, etc.
     end type ic_velocity_t
 
     type, public :: ic_temperature_t

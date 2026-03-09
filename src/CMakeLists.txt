@@ -101,6 +101,7 @@ set (sources
         equilibria/smod_equil_harris_sheet.f08
         equilibria/smod_equil_tc_pinch.f08
         equilibria/smod_equil_numerical.f08
+        equilibria/smod_equil_ivp_demo.f08
         ${USR_SMOD_LOC}/smod_user_defined.f08
         boundaries/mod_boundary_manager.f08
         boundaries/mod_essential_boundaries.f08
