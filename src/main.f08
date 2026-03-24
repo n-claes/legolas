@@ -23,6 +23,8 @@ program legolas
   use mod_grid, only: grid_t, new_grid
   use mod_eigenfunctions, only: eigenfunctions_t, new_eigenfunctions
   use mod_physics, only: physics_t, new_physics
+  use mod_iv_module, only: iv_module_t, new_iv_module
+  use mod_iv_initial_conditions, only: initial_conditions_t, new_initial_conditions
   use mod_arrays, only: deallocate_input
   implicit none
 
@@ -38,6 +40,8 @@ program legolas
   type(background_t) :: background
   type(eigenfunctions_t) :: eigenfunctions
   type(physics_t) :: physics
+  type(iv_module_t) :: iv_module
+  type(initial_conditions_t) :: iv_initial_conditions
   !> array with eigenvalues
   complex(dp), allocatable  :: omega(:)
   !> matrix with right eigenvectors, column indices correspond to omega indices
@@ -58,8 +62,9 @@ program legolas
   grid = new_grid(settings)
   background = new_background()
   physics = new_physics(settings, background)
+  iv_initial_conditions = new_initial_conditions()
 
-  call set_equilibrium(settings, grid, background, physics)
+  call set_equilibrium(settings, grid, background, physics, iv_initial_conditions)
   timer%init_time = timer%end_timer()
 
   call print_console_info(settings)
@@ -70,6 +75,17 @@ program legolas
   matrix_B = new_matrix(nb_rows=settings%dims%get_dim_matrix(), label="B")
   call build_matrices(matrix_B, matrix_A, settings, grid, background, physics)
   timer%matrix_time = timer%end_timer()
+
+  iv_module = new_iv_module(settings, grid)
+
+  if (settings%iv%enabled) then
+    call logger%info("solving initial value problem...")
+    call timer%start_timer()
+    call iv_module%initialise(iv_initial_conditions)
+    call iv_module%solve_ivp(matrix_A, matrix_B)
+    timer%ivp_time = timer%end_timer()
+    call logger%info("done.")
+  end if
 
   call logger%info("solving eigenvalue problem...")
   call timer%start_timer()
@@ -93,7 +109,8 @@ program legolas
     matrix_A, &
     matrix_B, &
     right_eigenvectors, &
-    eigenfunctions &
+    eigenfunctions, &
+    iv_module &
   )
   timer%datfile_time = timer%end_timer()
 
@@ -185,6 +202,9 @@ contains
     call logger%info("Legolas finished in " // str(total_time) // " seconds")
     call logger%info("   initialisation: " // str(timer%init_time) // " sec")
     call logger%info("   matrix construction: " // str(timer%matrix_time) // " sec")
+    if (settings%iv%enabled) then
+      call logger%info("   initial value problem: " // str(timer%ivp_time) // " sec")
+    end if
     call logger%info("   eigenvalue problem: " // str(timer%evp_time) // " sec")
     call logger%info("   eigenfunctions: " // str(timer%eigenfunction_time) // " sec")
     call logger%info("   datfile creation: " // str(timer%datfile_time) // " sec")

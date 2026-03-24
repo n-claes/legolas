@@ -42,6 +42,8 @@ contains
       call read_paramlist(unit_par)
       rewind(unit_par)
       call read_unitlist(unit_par, settings)
+      rewind(unit_par)
+      call read_ivplist(unit_par, settings)
     close(unit_par)
 
     ! make sure to update dimensions after reading in the parfile
@@ -96,6 +98,7 @@ contains
     logical :: write_matrices, write_eigenvectors, write_residuals, write_background
     logical :: write_eigenfunctions, write_derived_eigenfunctions
     logical :: write_eigenfunction_subset
+    logical :: write_iv_snapshots
     logical :: show_results
     integer :: logging_level
     real(dp) :: eigenfunction_subset_radius
@@ -106,7 +109,7 @@ contains
       write_matrices, write_eigenvectors, write_residuals, write_background, &
       write_eigenfunctions, write_derived_eigenfunctions, write_eigenfunction_subset, &
       show_results, basename_datfile, output_folder, logging_level, &
-      eigenfunction_subset_radius, eigenfunction_subset_center
+      eigenfunction_subset_radius, eigenfunction_subset_center, write_iv_snapshots
 
     ! get defaults
     write_matrices = settings%io%write_matrices
@@ -116,6 +119,7 @@ contains
     write_eigenfunctions = settings%io%write_eigenfunctions
     write_derived_eigenfunctions = settings%io%write_derived_eigenfunctions
     write_eigenfunction_subset = settings%io%write_ef_subset
+    write_iv_snapshots = settings%io%write_iv_snapshots
     show_results = settings%io%show_results
     basename_datfile = settings%io%get_basename_datfile()
     output_folder = settings%io%get_output_folder()
@@ -140,6 +144,7 @@ contains
     )
     settings%io%ef_subset_radius = eigenfunction_subset_radius
     settings%io%ef_subset_center = eigenfunction_subset_center
+    settings%io%write_iv_snapshots = write_iv_snapshots
     settings%io%show_results = show_results
     call settings%io%set_basename_datfile(basename_datfile)
     call settings%io%set_output_folder(output_folder)
@@ -384,6 +389,42 @@ contains
       )
     end if
   end subroutine read_unitlist
+
+
+  subroutine read_ivplist(unit, settings)
+    integer, intent(in)            :: unit
+    type(settings_t), intent(inout):: settings
+
+    integer                        :: iostat
+    character(str_len)             :: iomsg
+
+    logical    :: enabled
+    real(dp)   :: alpha, t_end
+    integer    :: n_steps, n_snapshots, snapshot_stride
+
+    namelist /ivplist/ &
+      enabled, alpha, t_end, n_steps, n_snapshots, snapshot_stride
+  
+    ! Defaults:
+    enabled         = settings%iv%enabled
+    alpha           = settings%iv%alpha
+    t_end           = settings%iv%t_end
+    n_steps         = settings%iv%n_steps
+    snapshot_stride = settings%iv%snapshot_stride
+    n_snapshots     = settings%iv%get_n_snapshots()
+  
+    read(unit, nml=ivplist, iostat=iostat, iomsg=iomsg)
+    call parse_io_info(iostat, iomsg)
+  
+    ! Update the settings
+    settings%iv%enabled          = enabled
+    settings%iv%alpha           = alpha
+    settings%iv%t_end           = t_end
+    settings%iv%n_steps         = n_steps
+    settings%iv%snapshot_stride = snapshot_stride
+    call settings%iv%set_n_snapshots(n_snapshots)
+  
+  end subroutine read_ivplist
 
 
   !> Called when the eigenfunction subset selection is enabled, this checks if the

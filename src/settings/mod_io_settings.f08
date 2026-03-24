@@ -9,6 +9,7 @@ module mod_io_settings
     logical, public :: write_eigenvectors
     logical, public :: write_residuals
     logical, public :: write_background
+    logical, public :: write_iv_snapshots
     logical, public :: write_eigenfunctions
     logical, public :: write_derived_eigenfunctions
     logical, public :: write_ef_subset
@@ -44,6 +45,7 @@ contains
     io_settings%write_eigenvectors = .false.
     io_settings%write_residuals = .false.
     io_settings%write_background = .true.
+    io_settings%write_iv_snapshots = .false.
     io_settings%write_eigenfunctions = .true.
     io_settings%write_derived_eigenfunctions = .false.
     io_settings%write_ef_subset = .false.
@@ -99,6 +101,7 @@ contains
     this%write_residuals = .false.
     this%write_eigenfunctions = .false.
     this%write_derived_eigenfunctions = .false.
+    this%write_iv_snapshots = .false.
   end subroutine set_all_io_to_false
 
 

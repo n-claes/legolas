@@ -8,6 +8,7 @@ module mod_settings
   use mod_equilibrium_settings, only: equilibrium_settings_t, new_equilibrium_settings
   use mod_units, only: units_t, new_unit_system
   use mod_state_vector, only: state_vector_t
+  use mod_iv_settings, only: iv_settings_t, new_iv_settings
   implicit none
 
   private
@@ -29,6 +30,7 @@ module mod_settings
     type(grid_settings_t), public :: grid
     type(equilibrium_settings_t), public :: equilibrium
     type(units_t), public :: units
+    type(iv_settings_t), public :: iv
 
   contains
 
@@ -63,6 +65,7 @@ contains
     settings%grid = new_grid_settings()
     settings%equilibrium = new_equilibrium_settings()
     settings%units = new_unit_system()
+    settings%iv = new_iv_settings()
   end function new_settings
 
 

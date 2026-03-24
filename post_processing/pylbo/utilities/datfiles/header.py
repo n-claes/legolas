@@ -93,6 +93,8 @@ class LegolasHeader:
         offsets.update(self._get_eigenvector_offsets(istream))
         offsets.update(self._get_residual_offsets(istream))
         offsets.update(self._get_matrices_offsets(istream))
+        offsets.update(self._get_iv_snapshots_offsets(istream))
+
         self.data["offsets"] = offsets
 
     def _read_physics_type_info(self, istream: BinaryIO) -> dict:
@@ -162,6 +164,10 @@ class LegolasHeader:
         data["ef_subset_used"] = read_boolean_from_istream(istream)
         data["ef_subset_radius"] = read_float_from_istream(istream)
         data["ef_subset_center"] = read_complex_from_istream(istream)
+        if self.legolas_version >= "2.3.0":
+            data["has_iv_snapshots"] = read_boolean_from_istream(istream)
+        else:
+            data["has_iv_snapshots"] = False
         return data
 
     def _read_solver_info(self, istream: BinaryIO) -> dict:
@@ -357,6 +363,37 @@ class LegolasHeader:
         istream.seek(istream.tell() + byte_size)
         self.data["nonzero_B_elements"] = nonzero_B_elements
         # A matrix is written as (row, column, complex value)
+        byte_size = (
+            2 * SIZE_INT + 2 * SIZE_DOUBLE
+        ) * nonzero_A_elements  # complex = 2 * SIZE_DOUBLE
         offsets["matrix_A"] = istream.tell()
         self.data["nonzero_A_elements"] = nonzero_A_elements
+        istream.seek(istream.tell() + byte_size)
         return offsets
+
+    def _get_iv_snapshots_offsets(self, istream: BinaryIO) -> dict:
+        """
+        Attempt to read the IV snapshot metadata (if present).
+        Return dict of offsets and metadata. If not present, return empty dict.
+        """
+        if not self.data["has_iv_snapshots"]:
+            return {}
+
+        # Read 3 integers: number of snapshots / points / components
+        nsnap, npts, ncomp = read_int_from_istream(istream, amount=3)
+
+        self.data["iv_snapshots_count"] = nsnap
+        self.data["iv_snapshots_npoints"] = npts
+        self.data["iv_snapshots_ncomp"] = ncomp
+
+        # Data block start
+        offset_iv_data = istream.tell()
+
+        # Compute total bytes: nsnap * ncomp * npts * SIZE_DOUBLE
+        total_values = nsnap * ncomp * npts
+        bytes_to_skip = total_values * SIZE_DOUBLE
+
+        # skip ahead
+        istream.seek(offset_iv_data + bytes_to_skip)
+
+        return {"iv_snapshots": offset_iv_data}

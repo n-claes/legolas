@@ -427,7 +427,12 @@ class EigenfunctionInterface:
             mouse_y = event.mouseevent.ydata
             distances = (mouse_x - xdata[idxs]) ** 2 + (mouse_y - ydata[idxs]) ** 2
             idx = idxs[distances.argmin()]
-        return idx, xdata[idx], ydata[idx]
+
+        # turn the artist index into the real dataset index
+        associated_ds = event.artist.dataset
+        sigma_clicked = xdata[idx] + 1j * ydata[idx]
+        ev_idx = np.argmin(np.abs(associated_ds.eigenvalues - sigma_clicked))
+        return ev_idx, np.real(sigma_clicked), np.imag(sigma_clicked)
 
     def _selected_point_has_eigenfunctions(self, ds, idx):
         """

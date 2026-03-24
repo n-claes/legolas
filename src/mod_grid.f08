@@ -71,7 +71,7 @@ contains
 
     if (.not. this%uses_custom_base_grid) call this%set_base_grid()
     call this%set_gaussian_grid()
-    if (this%settings%io%write_eigenfunctions) call this%set_ef_grid()
+    if (this%settings%io%write_eigenfunctions .or. this%settings%iv%enabled) call this%set_ef_grid()
     this%is_initialised = .true.
   end subroutine initialise
 

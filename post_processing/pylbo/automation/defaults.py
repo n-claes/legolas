@@ -29,6 +29,7 @@ legolas_namelist_items = {
         ("write_eigenfunction_subset", bool),
         ("eigenfunction_subset_center", complex),
         ("eigenfunction_subset_radius", (int, np.integer, float)),
+        ("write_iv_snapshots", bool),
     ],
     "physicslist": [
         ("physics_type", str),
@@ -77,6 +78,14 @@ legolas_namelist_items = {
         ("sigma", (int, np.integer, float, complex)),
         ("ncv", (int, np.integer)),
         ("tolerance", (int, np.integer, float)),
+    ],
+    "ivplist": [
+        ("enabled", bool),
+        ("alpha", (int, np.integer, float)),
+        ("t_end", (int, np.integer, float)),
+        ("n_steps", (int, np.integer)),
+        ("n_snapshots", (int, np.integer)),
+        ("snapshot_stride", (int, np.integer)),
     ],
 }
 

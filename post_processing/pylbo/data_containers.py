@@ -12,6 +12,7 @@ from pylbo.exceptions import (
     EigenvectorsNotPresent,
     MatricesNotPresent,
     ResidualsNotPresent,
+    IVSnapshotsNotPresent,
 )
 from pylbo.utilities.datfiles.file_reader import LegolasFileReader
 from pylbo.utilities.logger import pylboLogger
@@ -21,6 +22,7 @@ from pylbo.utilities.toolbox import (
     transform_to_numpy,
 )
 from pylbo.visualisation.continua import calculate_continua
+from pylbo.ivp_solution import IVPSolution
 
 
 def ensure_dataset(data: any) -> None:
@@ -318,6 +320,10 @@ class LegolasDataSet(LegolasDataContainer):
         return "mhd" in self.header.get("physics_type", None) and any(
             self.equilibria["B0"] != 0
         )
+
+    @property
+    def has_iv_snapshots(self) -> bool:
+        return self.header.get("has_iv_snapshots", False)
 
     def _ensure_compatibility(self) -> None:
         """
@@ -711,6 +717,41 @@ class LegolasDataSet(LegolasDataContainer):
             The maximum eigenvalue.
         """
         return get_maximum_eigenvalue(self.eigenvalues, real, re_range)
+
+    def get_iv_snapshots(self) -> IVPSolution:
+        """
+        Return a structured IVPSolution object containing the times and
+        the snapshot data for each component.
+        """
+        if not self.has_iv_snapshots:
+            raise IVSnapshotsNotPresent(self.datfile)
+
+        # Check if we already loaded
+        if hasattr(self, "_ivp_solution") and self._ivp_solution is not None:
+            return self._ivp_solution
+
+        # (n_snap, n_comp, n_points), (times)
+        raw_data, times = self.filereader.read_iv_snapshots(self.header)
+
+        # Build dictionary of component names; e.g. "isothermal-1d" => {0:"rho", 1:"v1"}
+        n_comp = raw_data.shape[1]
+        if len(self.header.data["state_vector"]) == n_comp:
+            component_names = dict(zip(range(n_comp), self.header.data["state_vector"]))
+        else:
+            component_names = {i: f"comp_{i}" for i in range(n_comp)}
+
+        x_domain = np.linspace(
+            self.header.data["x_start"], self.header.data["x_end"], raw_data.shape[2]
+        )
+
+        self._ivp_solution = IVPSolution(
+            times=times,
+            data=raw_data,
+            component_names=component_names,
+            x_domain=x_domain,
+            units=self.units,
+        )
+        return self._ivp_solution
 
 
 class LegolasDataSeries(LegolasDataContainer):
