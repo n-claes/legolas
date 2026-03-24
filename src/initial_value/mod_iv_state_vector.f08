@@ -127,16 +127,16 @@ module mod_iv_state_vector
          dfcn => initial_conditions%density%drho
   
       case("v1")
-         fcn  => initial_conditions%velocity_1%v01
-         dfcn => initial_conditions%velocity_1%dv01
+         fcn  => initial_conditions%velocity_1%v
+         dfcn => initial_conditions%velocity_1%dv
 
       case("v2")
-         fcn  => initial_conditions%velocity_2%v01
-         dfcn => initial_conditions%velocity_2%dv01
+         fcn  => initial_conditions%velocity_2%v
+         dfcn => initial_conditions%velocity_2%dv
 
       case("v3")
-         fcn  => initial_conditions%velocity_3%v01
-         dfcn => initial_conditions%velocity_3%dv01
+         fcn  => initial_conditions%velocity_3%v
+         dfcn => initial_conditions%velocity_3%dv
 
       case("T")
         fcn  => initial_conditions%temperature%T

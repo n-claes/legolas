@@ -24,7 +24,7 @@ CONTINUA_NAMES = {
     THERMAL: r"$\Omega_T",
     DOPPLER: r"$\Omega_0",
 }
-CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "tab:green", "grey"]
+CONTINUA_COLORS = ["red", "red", "cyan", "cyan", "green", "grey"]
 
 _DEFAULT_ZERO_TOL = 1e-12
 

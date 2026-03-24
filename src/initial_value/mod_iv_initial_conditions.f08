@@ -12,8 +12,8 @@ module mod_iv_initial_conditions
     end type ic_density_t
   
     type, public :: ic_velocity_t
-      procedure(profile_fcn), pointer, nopass :: v01   => null()
-      procedure(profile_fcn), pointer, nopass :: dv01  => null()
+      procedure(profile_fcn), pointer, nopass :: v   => null()
+      procedure(profile_fcn), pointer, nopass :: dv  => null()
     end type ic_velocity_t
 
     type, public :: ic_temperature_t
@@ -49,14 +49,14 @@ module mod_iv_initial_conditions
       ic%density%rho   => zero_fcn
       ic%density%drho  => zero_fcn
   
-      ic%velocity_1%v01  => zero_fcn
-      ic%velocity_1%dv01 => zero_fcn
+      ic%velocity_1%v  => zero_fcn
+      ic%velocity_1%dv => zero_fcn
 
-      ic%velocity_2%v01  => zero_fcn
-      ic%velocity_2%dv01 => zero_fcn
+      ic%velocity_2%v  => zero_fcn
+      ic%velocity_2%dv => zero_fcn
 
-      ic%velocity_3%v01  => zero_fcn
-      ic%velocity_3%dv01 => zero_fcn
+      ic%velocity_3%v  => zero_fcn
+      ic%velocity_3%dv => zero_fcn
 
       ic%temperature%T  => zero_fcn
       ic%temperature%dT => zero_fcn
@@ -83,8 +83,8 @@ module mod_iv_initial_conditions
       procedure(profile_fcn) :: dv01_func
   
       call logger%debug("Setting ICs for component v1.")
-      self%velocity_1%v01 => v01_func
-      self%velocity_1%dv01 => dv01_func
+      self%velocity_1%v => v01_func
+      self%velocity_1%dv => dv01_func
     end subroutine set_ic_velocity_1_funcs
 
     subroutine set_ic_velocity_2_funcs(self, v02_func, dv02_func)
@@ -93,8 +93,8 @@ module mod_iv_initial_conditions
       procedure(profile_fcn) :: dv02_func
 
       call logger%debug("Setting ICs for component v2.")
-      self%velocity_2%v01 => v02_func
-      self%velocity_2%dv01 => dv02_func
+      self%velocity_2%v => v02_func
+      self%velocity_2%dv => dv02_func
     end subroutine set_ic_velocity_2_funcs
 
     subroutine set_ic_velocity_3_funcs(self, v03_func, dv03_func)
@@ -103,8 +103,8 @@ module mod_iv_initial_conditions
       procedure(profile_fcn) :: dv03_func
 
       call logger%debug("Setting ICs for component v3.")
-      self%velocity_3%v01 => v03_func
-      self%velocity_3%dv01 => dv03_func
+      self%velocity_3%v => v03_func
+      self%velocity_3%dv => dv03_func
     end subroutine set_ic_velocity_3_funcs
 
     subroutine set_ic_temperature_funcs(self, T_func, dT_func)
