@@ -80,6 +80,8 @@ def load(datfile):
         pylboLogger.info(
             f"subset saved: {saved_efs}/{total_efs} eigenvalues have eigenfunctions"
         )
+    if ds.has_iv_snapshots:
+        pylboLogger.info("initial value problem snapshots present in datfile")
     pylboLogger.info("-" * 75)
     return ds
 

@@ -5,8 +5,9 @@ module mod_output
   use mod_background, only: background_t
   use mod_physics, only: physics_t
   use mod_matrix_structure, only: matrix_t
-  use mod_logging, only: logger
+  use mod_logging, only: logger, str
   use mod_eigenfunctions, only: eigenfunctions_t
+  use mod_iv_module, only: iv_module_t
   implicit none
 
   private
@@ -62,7 +63,8 @@ contains
     matrix_A, &
     matrix_B, &
     eigenvectors, &
-    eigenfunctions &
+    eigenfunctions, &
+    iv_module &
   )
     use mod_version, only: LEGOLAS_VERSION
 
@@ -75,6 +77,7 @@ contains
     type(matrix_t), intent(in) :: matrix_B
     complex(dp), intent(in) :: eigenvectors(:, :)
     type(eigenfunctions_t), intent(in) :: eigenfunctions
+    type(iv_module_t), intent(inout) :: iv_module
 
     datfile_path = get_datfile_path(settings=settings, extension=".dat")
     call open_file(file_unit=dat_fh, filename=datfile_path)
@@ -100,6 +103,9 @@ contains
       call write_residual_data(eigenvalues, matrix_A, matrix_B, eigenvectors)
     end if
     if (settings%io%write_matrices) call write_matrix_data(matrix_A, matrix_B)
+    if (settings%io%write_iv_snapshots .and. settings%iv%enabled) then
+      call write_iv_snapshots(settings, iv_module)
+    end if
 
     close(dat_fh)
   end subroutine create_datfile
@@ -172,6 +178,7 @@ contains
     write(dat_fh) settings%io%write_ef_subset
     write(dat_fh) settings%io%ef_subset_radius
     write(dat_fh) settings%io%ef_subset_center
+    write(dat_fh) settings%io%write_iv_snapshots .and. settings%iv%enabled
   end subroutine write_io_info
 
 
@@ -547,5 +554,36 @@ contains
       / dznrm2(N, eigenvalue * eigenvector, 1) &
     )
   end function get_residual
+
+
+  subroutine write_iv_snapshots(settings, iv_module)
+    type(settings_t), intent(in) :: settings
+    type(iv_module_t), intent(inout) :: iv_module
+    integer :: i_snap, i_comp
+    integer :: n_snap, n_points
+    
+    call logger%info("writing IV snapshots")
+    n_snap   = settings%iv%get_n_snapshots()
+    n_points = settings%grid%get_ef_gridpts()
+
+    ! Metadata
+    write(dat_fh) n_snap
+    write(dat_fh) n_points
+    write(dat_fh) iv_module%state_vec%num_components
+  
+    ! Write snapshot times
+    write(dat_fh) iv_module%snap_times
+
+    ! Reassemble on the fly
+    do i_snap = 1, n_snap
+      call iv_module%postprocess_snapshot(i_snap)
+
+      do i_comp = 1, iv_module%state_vec%num_components
+        write(dat_fh) real(iv_module%state_vec%components(i_comp)%ptr%profile, kind = dp)
+      end do
+    end do
+
+  end subroutine write_iv_snapshots
+  
 
 end module mod_output

@@ -52,7 +52,7 @@ contains
       tau = 4.0_dp
     end if ! LCOV_EXCL_STOP
 
-    call flow_driven_instabilities_eq(settings, grid, background, physics)
+    call flow_driven_instabilities_eq(settings, grid, background, physics, iv_initial_conditions)
   end procedure RTI_KHI_eq
 
 end submodule smod_equil_RTI_KHI

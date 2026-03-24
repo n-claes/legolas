@@ -50,6 +50,7 @@ module mod_timing
     integer, private :: program_start_time
     real(dp) :: init_time
     real(dp) :: matrix_time
+    real(dp) :: ivp_time
     real(dp) :: evp_time
     real(dp) :: eigenfunction_time
     real(dp) :: datfile_time

@@ -101,6 +101,7 @@ set (sources
         equilibria/smod_equil_harris_sheet.f08
         equilibria/smod_equil_tc_pinch.f08
         equilibria/smod_equil_numerical.f08
+        equilibria/smod_equil_ivp_demo.f08
         ${USR_SMOD_LOC}/smod_user_defined.f08
         boundaries/mod_boundary_manager.f08
         boundaries/mod_essential_boundaries.f08
@@ -132,6 +133,13 @@ set (sources
         solvers/arnoldi/smod_arpack_general.f08
         solvers/arnoldi/smod_arpack_shift_invert.f08
         solvers/smod_inverse_iteration.f08
+        initial_value/mod_iv_globals.f08
+        initial_value/mod_iv_settings.f08
+        initial_value/mod_iv_initial_conditions.f08
+        initial_value/mod_iv_state_vector_component.f08
+        initial_value/mod_iv_state_vector.f08
+        initial_value/mod_iv_solver.f08
+        initial_value/mod_iv_module.f08
         eigenfunctions/mod_eigenfunctions.f08
         eigenfunctions/mod_ef_assembly.f08
         eigenfunctions/mod_base_efs.f08

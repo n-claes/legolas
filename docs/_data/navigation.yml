@@ -27,6 +27,8 @@ leftcontents:
         url: /general/own_setup/
       - title: "Pre-implemented setups"
         url: /general/equilibria/
+      - title: "Initial-value solver"
+        url: /general/initial_value/
   - title: Physics
     children:
       - title: "Equations"

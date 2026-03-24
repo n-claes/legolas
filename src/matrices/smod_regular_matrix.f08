@@ -56,6 +56,7 @@ contains
     Gop_min = k3 * B02 - k2 * B03 / eps
     WVop = k2**2 / eps + eps * k3**2
 
+
     ! ==================== Quadratic * Cubic ====================
     call elements%add(-drho, sv_rho1, sv_v1)
     call elements%add(k3 * (drB02 - ic * k2 * B01) / eps, sv_v2, sv_a2)
@@ -89,7 +90,9 @@ contains
     call elements%add(B02, sv_a1, sv_v3)
 
     ! ==================== Cubic * Quadratic ====================
-    call elements%add(-deps * T0 / eps, sv_v1, sv_rho1)
+    if (.not. settings%get_physics_type() == "isothermal-1d") call elements%add( &
+      -deps * T0 / eps, sv_v1, sv_rho1 &
+    )
     if (settings%physics%gravity%is_enabled()) call elements%add(g0, sv_v1, sv_rho1)
     call elements%add(-deps * rho / eps, sv_v1, sv_T1)
     call elements%add(deps * Gop_plus, sv_v1, sv_a1)

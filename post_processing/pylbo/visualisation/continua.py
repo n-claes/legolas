@@ -363,7 +363,7 @@ class ContinuaHandler(LegendHandler):
         self.continua_latex = list(CONTINUA_NAMES.values())
         self._continua_colors = CONTINUA_COLORS
         self.marker = "."
-        self.markersize = 6
+        self.markersize = 5
 
     @property
     def continua_colors(self):
