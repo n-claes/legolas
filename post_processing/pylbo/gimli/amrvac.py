@@ -576,7 +576,7 @@ class Amrvac:
 
         interp_r = CubicSpline(self.ds.ef_grid, array.real)
         interp_i = CubicSpline(self.ds.ef_grid, array.imag)
-        eps = 1 if np.allclose(self.ds.scale_factor, self.ds.grid_gauss) else 0
+        deps = 1 if np.allclose(self.ds.scale_factor, self.ds.grid_gauss) else 0
 
         if self.config["dim"] == 3:
 
@@ -584,7 +584,7 @@ class Amrvac:
                 value = (
                     (interp_r(u1) + 1j * interp_i(u1))
                     * np.exp(1j * order * (k2 * u2 + k3 * u3))
-                ).real * (u1**eps)
+                ).real * (u1**deps)
                 return value
 
             integral = tplquad(
@@ -594,20 +594,22 @@ class Amrvac:
                 *self.config["u3_bounds"],
             )
         elif self.config["dim"] >= 2:
-            kvec = np.array([k2, k3])
+            kvec = np.array([k3, k2])  # order needed below
             arg = np.argmax(abs(kvec))
 
             def integrand(u2, u1):
                 value = (
                     (interp_r(u1) + 1j * interp_i(u1))
-                    * np.exp(1j * order * (kvec[arg] * u2) * self.ds.scale_factor)
-                ).real * (u1**eps)
+                    * np.exp(1j * order * (kvec[arg] * u2))
+                ).real * (
+                    u1**deps
+                ) ** arg  # needed for cylindrical
                 return value
 
             integral = dblquad(
                 integrand,
                 *self.config["u1_bounds"],
-                *self.config[f"u{int(arg+2)}_bounds"],
+                *self.config[f"u{int(3-arg)}_bounds"],
             )
         elif self.config["dim"] >= 1:
 
