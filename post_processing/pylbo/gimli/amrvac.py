@@ -19,6 +19,7 @@ from pylbo.gimli.utils import (
     validate_output_dir,
 )
 from pylbo.gimli.equilibrium import Equilibrium
+from pylbo.automation.defaults import amrvac_namelist_items
 
 
 def write_equilibrium_functions(file, eq, to_fetch):
@@ -860,12 +861,13 @@ class Amrvac:
         write_pad(
             file,
             "call set_coordinate_system('"
-            + self.config["geometry"]
+            + amrvac_namelist_items["geometries"][self.config["geometry"]]
             + "_"
             + str(self.config["dim"])
             + "D')",
             2,
         )
+        write_pad(file, "call read_legolas_data()", 2)
         file.write("\n")
         write_pad(file, "usr_set_parameters => initglobaldata_usr", 2)
         write_pad(file, "usr_init_one_grid  => initialise_grid", 2)
@@ -876,7 +878,6 @@ class Amrvac:
         file.write("\n")
 
         write_pad(file, "subroutine initglobaldata_usr()", 1)
-        write_pad(file, "call read_legolas_data()", 2)
         for key in eqparam.split(", "):
             write_pad(file, f"{key} = {self.config['parameters'][key]}", 2)
         write_pad(file, "end subroutine initglobaldata_usr", 1)

@@ -306,4 +306,5 @@ amrvac_namelist_items = {
     "grav_list": [
         ("grav_split", bool),
     ],
+    "geometries": {"Cartesian": "Cartesian", "cylindrical": "polar"},
 }
