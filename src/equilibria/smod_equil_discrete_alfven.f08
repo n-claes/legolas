@@ -23,6 +23,7 @@
 !!     - <tt>unit_density</tt> = 1.5e-15 gcm-3
 !!     - <tt>unit_magneticfield</tt> = 50 Gauss
 !!     - <tt>unit_length</tt> = 1e10 cm
+!!     - pure proton plasma (a=1, b=1)
 !!     
 !!     and can all be changed in the parfile.
 !! @endnote

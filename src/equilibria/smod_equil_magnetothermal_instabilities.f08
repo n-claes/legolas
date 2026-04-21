@@ -20,6 +20,7 @@
 !!     - <tt>unit_temperature</tt> = 2.6e6 K
 !!     - <tt>unit_magneticfield</tt> = 10 Gauss
 !!     - <tt>unit_length</tt> = 1e8 cm
+!!     - pure proton plasma (a=1, b=1)
 !!     
 !!     and can all be changed in the parfile.
 !! @endnote

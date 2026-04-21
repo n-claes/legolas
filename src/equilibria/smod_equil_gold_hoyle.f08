@@ -38,6 +38,7 @@
 !!                    <tt>unit_density</tt> = 1.6726e-15 g/cm3,
 !!                    <tt>unit_length</tt> = 1.0e11 cm,
 !!                    corresponding to a temperature of 2.6e6 K.
+!!     for a pure proton plasma (a=1, b=1).
 !! @endnote
 submodule (mod_equilibrium) smod_equil_gold_hoyle
   use mod_equilibrium_params, only: cte_T0, cte_rho0, alpha, eq_bool
