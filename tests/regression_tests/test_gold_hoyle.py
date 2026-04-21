@@ -10,7 +10,14 @@ class TestGoldHoyleQR(RegressionTest):
     equilibrium = "gold_hoyle"
     geometry = "cylindrical"
 
-    parameters = {"k2": 1.0, "k3": 1.0, "cte_rho0": 1.0, "cte_T0": 0.001, "alpha": 20.0, "eq_bool": True}
+    parameters = {
+        "k2": 1.0,
+        "k3": 1.0,
+        "cte_rho0": 1.0,
+        "cte_T0": 0.001,
+        "alpha": 20.0,
+        "eq_bool": True,
+    }
     physics_settings = {
         "radiative_cooling": True,
         "heating": True,
