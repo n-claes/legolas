@@ -221,7 +221,7 @@ contains
   subroutine write_units_info(settings)
     type(settings_t), intent(in) :: settings
     ! number of units written to the datfile
-    integer, parameter :: n_units = 13
+    integer, parameter :: n_units = 15
 
     write(dat_fh) n_units
     write(dat_fh) settings%units%in_cgs()
