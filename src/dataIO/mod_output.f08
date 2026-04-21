@@ -241,6 +241,10 @@ contains
     write(dat_fh) len("unit_mass"), "unit_mass", settings%units%get_unit_mass()
     write(dat_fh) len("He_abundance"), "He_abundance", &
       settings%units%get_He_abundance()
+    write(dat_fh) len("units_a"), "units_a", &
+      settings%units%get_units_parameter_a()
+    write(dat_fh) len("units_b"), "units_b", &
+      settings%units%get_units_parameter_b()
     write(dat_fh) len("unit_resistivity"), "unit_resistivity", &
       settings%units%get_unit_resistivity()
     write(dat_fh) len("unit_lambdaT"), "unit_lambdaT", &

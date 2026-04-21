@@ -1,5 +1,5 @@
 module mod_units
-  use mod_global_variables, only: dp
+  use mod_global_variables, only: dp, NaN
   implicit none
 
   private
@@ -24,6 +24,8 @@ module mod_units
     real(dp), private :: unit_resistivity
     real(dp), private :: unit_lambdaT
     real(dp), private :: unit_conduction
+    real(dp), private :: a
+    real(dp), private :: b
 
   contains
 
@@ -33,6 +35,7 @@ module mod_units
     procedure, public :: set_units_from_temperature
     procedure, public :: set_units_from_numberdensity
     procedure, public :: set_He_abundance
+    procedure, public :: set_units_parameters_ab
     procedure, public :: get_unit_length
     procedure, public :: get_unit_time
     procedure, public :: get_unit_density
@@ -43,6 +46,8 @@ module mod_units
     procedure, public :: get_unit_numberdensity
     procedure, public :: get_unit_mass
     procedure, public :: get_He_abundance
+    procedure, public :: get_units_parameter_a
+    procedure, public :: get_units_parameter_b
     procedure, public :: get_unit_resistivity
     procedure, public :: get_unit_lambdaT
     procedure, public :: get_unit_conduction
@@ -66,6 +71,8 @@ contains
     units%based_on_temperature = .false.
     units%based_on_numberdensity = .false.
     units%He_abundance = 0.0_dp
+    units%a = NaN
+    units%b = NaN
 
     call units%set_units_from_temperature( &
       unit_length=1.0e9_dp, &
@@ -96,13 +103,13 @@ contains
 
 
   pure subroutine set_units_from_density( &
-    this, unit_length, unit_magneticfield, unit_density, He_abundance &
+    this, unit_length, unit_magneticfield, unit_density, He_abundance, a, b &
   )
     class(units_t), intent(inout) :: this
     real(dp), intent(in) :: unit_length
     real(dp), intent(in) :: unit_magneticfield
     real(dp), intent(in) :: unit_density
-    real(dp), intent(in), optional :: He_abundance
+    real(dp), intent(in), optional :: He_abundance, a, b
 
     call this%set_based_on_to_false()
     this%unit_length = unit_length
@@ -112,18 +119,25 @@ contains
     if (present(He_abundance)) then
       this%He_abundance = He_abundance
     end if
+    if (present(a) .and. present(b)) then
+      this%a = a
+      this%b = b
+    else
+      this%a = 1.0_dp + 4.0_dp * this%He_abundance
+      this%b = 2.0_dp + 3.0_dp * this%He_abundance
+    end if
     call this%update_dependent_units()
   end subroutine set_units_from_density
 
 
   pure subroutine set_units_from_temperature( &
-    this, unit_length, unit_magneticfield, unit_temperature, He_abundance &
+    this, unit_length, unit_magneticfield, unit_temperature, He_abundance, a, b &
   )
     class(units_t), intent(inout) :: this
     real(dp), intent(in) :: unit_length
     real(dp), intent(in) :: unit_magneticfield
     real(dp), intent(in) :: unit_temperature
-    real(dp), intent(in), optional :: He_abundance
+    real(dp), intent(in), optional :: He_abundance, a, b
 
     call this%set_based_on_to_false()
     this%unit_length = unit_length
@@ -133,18 +147,25 @@ contains
     if (present(He_abundance)) then
       this%He_abundance = He_abundance
     end if
+    if (present(a) .and. present(b)) then
+      this%a = a
+      this%b = b
+    else
+      this%a = 1.0_dp + 4.0_dp * this%He_abundance
+      this%b = 2.0_dp + 3.0_dp * this%He_abundance
+    end if
     call this%update_dependent_units()
   end subroutine set_units_from_temperature
 
 
   pure subroutine set_units_from_numberdensity( &
-    this, unit_length, unit_temperature, unit_numberdensity, He_abundance &
+    this, unit_length, unit_temperature, unit_numberdensity, He_abundance, a, b &
   )
     class(units_t), intent(inout) :: this
     real(dp), intent(in) :: unit_length
     real(dp), intent(in) :: unit_temperature
     real(dp), intent(in) :: unit_numberdensity
-    real(dp), intent(in), optional :: He_abundance
+    real(dp), intent(in), optional :: He_abundance, a, b
 
     call this%set_based_on_to_false()
     this%unit_length = unit_length
@@ -154,6 +175,13 @@ contains
     if (present(He_abundance)) then
       this%He_abundance = He_abundance
     end if
+    if (present(a) .and. present(b)) then
+      this%a = a
+      this%b = b
+    else
+      this%a = 1.0_dp + 4.0_dp * this%He_abundance
+      this%b = 2.0_dp + 3.0_dp * this%He_abundance
+    end if
     call this%update_dependent_units()
   end subroutine set_units_from_numberdensity
 
@@ -162,15 +190,11 @@ contains
     use mod_physical_constants, only: mu0_cgs, mp_cgs, kB_cgs
 
     class(units_t), intent(inout) :: this
-    real(dp) :: a, b
-
-    a = 1.0_dp + 4.0_dp * this%He_abundance
-    b = 2.0_dp + 3.0_dp * this%He_abundance
 
     if (this%based_on_numberdensity) then
-      this%unit_density = a * mp_cgs * this%unit_numberdensity
+      this%unit_density = this%a * mp_cgs * this%unit_numberdensity
       this%unit_pressure = ( &
-        b &
+        this%b &
         * this%unit_numberdensity &
         * kB_cgs &
         * this%unit_temperature &
@@ -178,18 +202,18 @@ contains
       this%unit_magneticfield = sqrt(mu0_cgs * this%unit_pressure)
     else if (this%based_on_density) then
       this%unit_pressure = this%unit_magneticfield**2 / mu0_cgs
-      this%unit_numberdensity = this%unit_density / (a * mp_cgs)
+      this%unit_numberdensity = this%unit_density / (this%a * mp_cgs)
       this%unit_temperature = ( &
         this%unit_pressure &
-        / (b * kB_cgs * this%unit_numberdensity) &
+        / (this%b * kB_cgs * this%unit_numberdensity) &
       )
     else if (this%based_on_temperature) then
       this%unit_pressure = this%unit_magneticfield**2 / mu0_cgs
       this%unit_numberdensity = ( &
         this%unit_pressure &
-        / (b * kB_cgs * this%unit_temperature) &
+        / (this%b * kB_cgs * this%unit_temperature) &
       )
-      this%unit_density = a * mp_cgs * this%unit_numberdensity
+      this%unit_density = this%a * mp_cgs * this%unit_numberdensity
     end if
     this%unit_velocity = sqrt(this%unit_pressure / this%unit_density)
     this%unit_mass = this%unit_density * this%unit_length**3
@@ -215,6 +239,15 @@ contains
     this%He_abundance = He_abundance
     if (this%units_set) call this%update_dependent_units()
   end subroutine set_He_abundance
+
+
+  pure subroutine set_units_parameters_ab(this, a, b)
+    class(units_t), intent(inout) :: this
+    real(dp), intent(in) :: a, b
+    this%a = a
+    this%b = b
+    if (this%units_set) call this%update_dependent_units()
+  end subroutine set_units_parameters_ab
 
 
   pure real(dp) function get_unit_length(this)
@@ -275,6 +308,18 @@ contains
     class(units_t), intent(in) :: this
     get_He_abundance = this%He_abundance
   end function get_He_abundance
+
+
+  pure real(dp) function get_units_parameter_a(this)
+    class(units_t), intent(in) :: this
+    get_units_parameter_a = this%a
+  end function get_units_parameter_a
+
+
+  pure real(dp) function get_units_parameter_b(this)
+    class(units_t), intent(in) :: this
+    get_units_parameter_b = this%b
+  end function get_units_parameter_b
 
 
   pure real(dp) function get_unit_resistivity(this)
