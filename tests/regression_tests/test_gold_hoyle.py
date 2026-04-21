@@ -10,7 +10,7 @@ class TestGoldHoyleQR(RegressionTest):
     equilibrium = "gold_hoyle"
     geometry = "cylindrical"
 
-    parameters = {"k2": 1.0, "k3": 1.0, "cte_rho0": 1.0, "cte_T0": 0.001, "alpha": 20.0}
+    parameters = {"k2": 1.0, "k3": 1.0, "cte_rho0": 1.0, "cte_T0": 0.001, "alpha": 20.0, "eq_bool": True}
     physics_settings = {
         "radiative_cooling": True,
         "heating": True,
@@ -21,7 +21,6 @@ class TestGoldHoyleQR(RegressionTest):
         "unit_density": 1.6727e-15,
         "unit_magneticfield": 22.5,
         "unit_length": 1.0e10,
-        "mean_molecular_weight": 1.0,
     }
 
     spectrum_limits = [
