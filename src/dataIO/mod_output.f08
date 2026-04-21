@@ -239,8 +239,8 @@ contains
     write(dat_fh) len("unit_numberdensity"), "unit_numberdensity", &
       settings%units%get_unit_numberdensity()
     write(dat_fh) len("unit_mass"), "unit_mass", settings%units%get_unit_mass()
-    write(dat_fh) len("mean_molecular_weight"), "mean_molecular_weight", &
-      settings%units%get_mean_molecular_weight()
+    write(dat_fh) len("He_abundance"), "He_abundance", &
+      settings%units%get_He_abundance()
     write(dat_fh) len("unit_resistivity"), "unit_resistivity", &
       settings%units%get_unit_resistivity()
     write(dat_fh) len("unit_lambdaT"), "unit_lambdaT", &
