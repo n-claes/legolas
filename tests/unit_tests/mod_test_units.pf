@@ -91,7 +91,7 @@ contains
     @assertEqual(8.325295853938192d0, unit_dlambdaT_dT * 1.0d29, tolerance=TOL)
     @assertEqual(164250881478.14496d0, unit_conduction, tolerance=TOL)
     @assertEqual(1.1645084295622542d17, unit_resistivity, tolerance=TOL)
-  end subroutine test_units_molecular_weight_half
+  end subroutine test_units_He_abundance
 
 
   @test
