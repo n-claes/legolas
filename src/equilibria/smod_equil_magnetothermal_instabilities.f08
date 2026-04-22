@@ -57,8 +57,8 @@ contains
     end if ! LCOV_EXCL_STOP
 
     if (eq_bool) then
-      call settings%units%set_units_from_density( &
-        unit_density=settings%units%get_unit_density(), &
+      call settings%units%set_units_from_temperature( &
+        unit_temperature=settings%units%get_unit_temperature(), &
         unit_magneticfield=settings%units%get_unit_magneticfield(), &
         unit_length=settings%units%get_unit_length(), &
         a=1.0_dp, b=1.0_dp & ! pure proton plasma
