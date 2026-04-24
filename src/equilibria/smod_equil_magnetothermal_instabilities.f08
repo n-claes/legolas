@@ -56,6 +56,8 @@ contains
       k3 = 1.0_dp
     end if ! LCOV_EXCL_STOP
 
+    ! When eq_bool is true, override the default definitions of a and b that are based
+    ! on He abundance. This is needed to reproduce the results of the original paper.
     if (eq_bool) then
       call settings%units%set_units_from_temperature( &
         unit_temperature=settings%units%get_unit_temperature(), &
