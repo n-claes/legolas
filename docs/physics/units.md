@@ -13,11 +13,18 @@ As usual we have **three** degrees of freedom.
 ## Normalisations
 Legolas has three options to specify units, all in cgs. In what follows $m_p$ denotes the proton mass,
 $k_B$ the Boltzmann constant, and $\mu_0 = 4\pi$ the magnetic constant. $a$ and $b$ are constants
-relating to the He abundance $f_\mathrm{He}$ as
+determined by the plasma composition. By default they depend only on the He abundance $f_\mathrm{He}$ as
 $$
 a = 1 + 4 f_\mathrm{He}, \quad
-b = 2 + 3 f_\mathrm{He}.
+b = 2 + 3 f_\mathrm{He},
 $$
+such that $f_\mathrm{He} = 0$ corresponds to a fully ionised hydrogen plasma.
+
+<i class="fas fa-lightbulb" aria-hidden="true"></i>
+**Note:** for alternative plasma compositions, users can define $a$ and $b$ in the user module
+and update the units from there, see e.g. the pre-implemented equilibrium
+`smod_equil_magnetothermal_instabilities.f08`.
+{: .notice--info}
 
 1. Reference unit density, unit magnetic field and unit length $(\rho_u, B_u, L_u)$, then
 
