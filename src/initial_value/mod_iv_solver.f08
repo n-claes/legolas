@@ -10,7 +10,8 @@ module mod_iv_solver
 
   use mod_banded_matrix, only: banded_matrix_t, new_banded_matrix
   use mod_banded_operations, only: banded_copy, constant_times_banded_plus_banded
-  use mod_linear_systems, only: solve_linear_system_complex_banded
+  use mod_linear_systems, only: solve_linear_system_complex_banded_LU, &
+    get_LU_factorisation_banded
   use mod_transform_matrix, only: matrix_to_banded
   implicit none
 
@@ -38,6 +39,8 @@ contains
     complex(dp) :: beta, gamma
     complex(dp), allocatable :: z(:)    ! intermediate result
     complex(dp), allocatable :: rhs(:)
+    complex(dp), allocatable :: M_LU(:, :)  ! pre-factorised M (reused each step)
+    integer, allocatable :: M_ipiv(:)
     integer :: n                        ! dimension of matrices and x
     integer :: i
 
@@ -115,6 +118,9 @@ contains
     gamma = -dt * alpha
     call constant_times_banded_plus_banded(M, A, gamma)
 
+    ! 3. Pre-factorise M once
+    call get_LU_factorisation_banded(M, M_LU, M_ipiv)
+
     do i = 1, num_steps
       ! rhs = (B + beta * A)x = Bx + beta * Ax
       ! compute as 3 banded level 2 BLAS operations
@@ -129,8 +135,8 @@ contains
       ! 3. compute rhs = rhs + beta*z
       call zaxpy(n, beta, z, 1, rhs, 1)
 
-      ! Solve resulting banded system with zgbsv
-      x = solve_linear_system_complex_banded(M, rhs)
+      ! Solve using pre-factorised LU (avoids re-factorising the constant M each step)
+      x = solve_linear_system_complex_banded_LU(M, rhs, M_LU, M_ipiv)
 
       ! Save in history
       if (present(snapshots)) then
@@ -152,6 +158,8 @@ contains
 
     deallocate(rhs)
     deallocate(z)
+    deallocate(M_LU)
+    deallocate(M_ipiv)
 
   end subroutine solve
 
