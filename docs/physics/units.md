@@ -18,7 +18,8 @@ $$
 a = 1 + 4 f_\mathrm{He}, \quad
 b = 2 + 3 f_\mathrm{He},
 $$
-such that $f_\mathrm{He} = 0$ corresponds to a fully ionised hydrogen plasma.
+such that $f_\mathrm{He} = 0$ corresponds to a fully ionised hydrogen plasma. The He abundance is set to
+$f_\mathrm{He} = 0$ if not specified.
 
 <i class="fas fa-lightbulb" aria-hidden="true"></i>
 **Note:** for alternative plasma compositions, users can define $a$ and $b$ in the user module
