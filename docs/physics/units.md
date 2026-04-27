@@ -14,10 +14,12 @@ As usual we have **three** degrees of freedom.
 Legolas has three options to specify units, all in cgs. In what follows $m_p$ denotes the proton mass,
 $k_B$ the Boltzmann constant, and $\mu_0 = 4\pi$ the magnetic constant. $a$ and $b$ are constants
 determined by the plasma composition. By default they depend only on the He abundance $f_\mathrm{He}$ as
+
 $$
 a = 1 + 4 f_\mathrm{He}, \quad
 b = 2 + 3 f_\mathrm{He},
 $$
+
 such that $f_\mathrm{He} = 0$ corresponds to a fully ionised hydrogen plasma. The He abundance is set to
 $f_\mathrm{He} = 0$ if not specified.
 
