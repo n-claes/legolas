@@ -149,7 +149,7 @@ module procedure user_defined_eq
     unit_length=1.0e9_dp, &  ! cm
     unit_magneticfield=10.0_dp, &  ! Gauss
     unit_temperature=1.0e6_dp, &  ! K
-    mean_molecular_weight=0.5_dp &  ! optional
+    He_abundance=0.0_dp &  ! optional
   )
 end procedure user_defined_eq
 ```

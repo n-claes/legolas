@@ -135,7 +135,7 @@ contains
       unit_temperature=1.0d6, &
       unit_magneticfield=5.0d0, &
       unit_length=1.0d10, &
-      mean_molecular_weight=1.0d0 &
+      He_abundance=0.0d0 &
     )
   end subroutine set_default_units
 
