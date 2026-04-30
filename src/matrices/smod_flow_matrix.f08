@@ -6,7 +6,7 @@ contains
   module procedure add_flow_matrix_terms
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
-    real(dp)  :: T0
+    real(dp)  :: T0, dT0
     real(dp)  :: v01, dv01, drv01
     real(dp)  :: v02, dv02, drv02
     real(dp)  :: v03, dv03
@@ -22,6 +22,7 @@ contains
     drho = background%density%drho0(x)
     ! temperature variables
     T0 = background%temperature%T0(x)
+    dT0 = background%temperature%dT0(x)
     ! flow variables
     v01 = background%velocity%v01(x)
     dv01 = background%velocity%dv01(x)
@@ -43,6 +44,7 @@ contains
     call elements%add( &
       rho * (Vop + ic * dv01) + (deps * rho / eps + drho) * ic * v01, sv_v3, sv_v3 &
     )
+    call elements%add(-ic * v01 * dT0, sv_T1, sv_rho1)
     call elements%add(eps * Vop, sv_a1, sv_a1)
 
     ! ==================== Quadratic * dQuadratic ====================
