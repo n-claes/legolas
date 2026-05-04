@@ -44,7 +44,6 @@ contains
     call elements%add( &
       rho * (Vop + ic * dv01) + (deps * rho / eps + drho) * ic * v01, sv_v3, sv_v3 &
     )
-    call elements%add(-ic * v01 * dT0, sv_T1, sv_rho1)
     call elements%add(eps * Vop, sv_a1, sv_a1)
 
     ! ==================== Quadratic * dQuadratic ====================
@@ -84,7 +83,7 @@ contains
 
     if (.not. settings%physics%is_incompressible) then
       ! ==================== Quadratic * Quadratic ====================
-      call elements%add(-ic * gamma_1 * drv01 * T0 / eps, sv_T1, sv_rho1)
+      call elements%add(-ic * (v01 * dT0 + gamma_1 * drv01 * T0 / eps), sv_T1, sv_rho1)
       call elements%add( &
         rho * (Vop + ic * dv01 - ic * gamma_1 * drv01 / eps) &
         + ic * v01 * (deps * rho / eps + drho), &
