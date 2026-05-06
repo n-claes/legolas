@@ -23,11 +23,12 @@
 !!     - <tt>unit_density</tt> = 1.5e-15 gcm-3
 !!     - <tt>unit_magneticfield</tt> = 50 Gauss
 !!     - <tt>unit_length</tt> = 1e10 cm
+!!     - pure proton plasma (a=1, b=1)
 !!     
 !!     and can all be changed in the parfile.
 !! @endnote
 submodule (mod_equilibrium) smod_equil_discrete_alfven
-  use mod_equilibrium_params, only: j0, delta
+  use mod_equilibrium_params, only: j0, delta, eq_bool
   implicit none
 
   real(dp) :: x_end
@@ -45,7 +46,7 @@ contains
         unit_density=1.5e-15_dp, &
         unit_magneticfield=50.0_dp, &
         unit_length=1.0e10_dp, &
-        mean_molecular_weight=1.0_dp & ! pure proton plasma
+        a=1.0_dp, b=1.0_dp & ! pure proton plasma
       )
 
       j0 = 0.125_dp
@@ -53,6 +54,17 @@ contains
       k2 = 1.0_dp
       k3 = 0.05_dp
     end if ! LCOV_EXCL_STOP
+
+    ! When eq_bool is true, override the default definitions of a and b that are based
+    ! on He abundance. This is needed to reproduce the results of the original paper.
+    if (eq_bool) then
+      call settings%units%set_units_from_density( &
+        unit_density=settings%units%get_unit_density(), &
+        unit_magneticfield=settings%units%get_unit_magneticfield(), &
+        unit_length=settings%units%get_unit_length(), &
+        a=1.0_dp, b=1.0_dp & ! pure proton plasma
+      )
+    end if
 
     x_end = settings%grid%get_grid_end()
 

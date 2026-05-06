@@ -38,9 +38,10 @@
 !!                    <tt>unit_density</tt> = 1.6726e-15 g/cm3,
 !!                    <tt>unit_length</tt> = 1.0e11 cm,
 !!                    corresponding to a temperature of 2.6e6 K.
+!!     for a pure proton plasma (a=1, b=1).
 !! @endnote
 submodule (mod_equilibrium) smod_equil_gold_hoyle
-  use mod_equilibrium_params, only: cte_T0, cte_rho0, alpha
+  use mod_equilibrium_params, only: cte_T0, cte_rho0, alpha, eq_bool
   implicit none
 
 contains
@@ -64,23 +65,34 @@ contains
         unit_density=1.6727e-15_dp, &
         unit_magneticfield=22.5_dp, &
         unit_length=1.0e10_dp, &
-        mean_molecular_weight=1.0_dp & ! pure proton plasma
+        a=1.0_dp, b=1.0_dp & ! pure proton plasma
       )
       ! hot plasma: B = 67.0 G, rho = 1.6726e-12 kg/m3, R = 1e9 m, T = 2.6e6 K
       ! call settings%units%set_units_from_density( &
       !   unit_density=1.6727e-15_dp, &
       !   unit_magneticfield=67.0_dp, &
       !   unit_length=1.0e11_dp, &
-      !   mean_molecular_weight=1.0_dp & ! pure proton plasma
+      !   He_abundance=0.0_dp &
       ! )
       ! cold plasma: B = 10.0 G, rho = 1.6726e-12 kg/m3, R = 1e8 m, T = 5.7e4 K
       ! call settings%units%set_units_from_density( &
       !   unit_density=1.6727e-15_dp, &
       !   unit_magneticfield=10.0_dp, &
       !   unit_length=1.0e10_dp, &
-      !   mean_molecular_weight=1.0_dp & ! pure proton plasma
+      !   He_abundance=0.0_dp &
       ! )
     end if ! LCOV_EXCL_STOP
+
+    ! When eq_bool is true, override the default definitions of a and b that are based
+    ! on He abundance. This is needed to reproduce the results of the original paper.
+    if (eq_bool) then
+      call settings%units%set_units_from_density( &
+        unit_density=settings%units%get_unit_density(), &
+        unit_magneticfield=settings%units%get_unit_magneticfield(), &
+        unit_length=settings%units%get_unit_length(), &
+        a=1.0_dp, b=1.0_dp & ! pure proton plasma
+      )
+    end if
 
     call background%set_density_funcs(rho0_func=rho0)
     call background%set_temperature_funcs(T0_func=T0)

@@ -109,7 +109,7 @@ set from a unit temperature, unit magnetic field and unit length.
 | unit_temperature  | real | sets the unit temperature in K | $10^6$ |
 | unit_magneticfield |  real | sets the unit magnetic field in Gauss   | $10$    |
 | unit_length   | real | sets the unit length in cm | $ 10^9$ |
-| mean_molecular_weight | real | the mean molecular weight to use | 0.5 |
+| He_abundance | real | the He abundance fraction (between 0 and 1) | 0 |
 
 
 ## savelist
