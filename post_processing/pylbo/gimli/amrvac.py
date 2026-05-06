@@ -19,20 +19,22 @@ from pylbo.gimli.utils import (
     validate_output_dir,
 )
 from pylbo.gimli.equilibrium import Equilibrium
-from pylbo.automation.defaults import amrvac_namelist_items
+from pylbo.automation.defaults import legolas_to_amrvac_translation
 
 
 def write_equilibrium_functions(file, eq, to_fetch):
     """
-    Iterates over all equilibrium quantities and writes them to the MPI-AMRVAC user
-    module.
+    Writes a subroutine where all equilibrium functions are defined to the
+    MPI-AMRVAC user module.
 
     Parameters
     ----------
     file : file
         The file object to write to.
     eq : Equilibrium
-        The equilibrium object containing the user-defined equilibrium functions.
+        The equilibrium object containing the user-defined equilibria.
+    to_fetch : list
+        The list of equilibrium functions to write to the file.
     """
     translation = eq.variables.fkey
     translation["x_v"] = "x(ixI^S, 1)"
@@ -47,28 +49,37 @@ def write_equilibrium_functions(file, eq, to_fetch):
         "mag(2)": (eq.B02).subs(eq.variables.x, xv),
         "mag(3)": (eq.B03).subs(eq.variables.x, xv),
     }
+    write_pad(file,"subroutine equilibrium(ixI^S, ixO^S, w, x, equil)", 1)
+    write_pad(file, "integer, intent(in)     :: ixI^L, ixO^L", 2)
+    write_pad(file, "real(dp), intent(inout) :: equil(ixI^S, nw)", 2)
+    write_pad(file, "real(dp), intent(in)    :: x(ixI^S, ndim), w(ixI^S, nw)", 2)
+    file.write("\n")
+    write_pad(file, "equil(ixI^S, :) = 0.0d0", 2)
+    file.write("\n")
     for key in to_fetch:
         expr = varlist[key]
         if expr is None:
-            write_pad(file, f"w(ixI^S, {key}) = 0.0d0", 2)
+            write_pad(file, f"equil(ixI^S, {key}) = 0.0d0", 2)
         elif is_sympy_number(expr):
             write_pad(
                 file,
                 fcode(
                     sp.sympify(float(expr)),
-                    assign_to=f"w(ixI^S, {key})",
+                    assign_to=f"equil(ixI^S, {key})",
                     source_format="free",
                 ).lstrip(),
                 2,
             )
         else:
             func = fcode(
-                expr, assign_to=f"w(ixI^S, {key})", source_format="free"
+                expr, assign_to=f"equil(ixI^S, {key})", source_format="free"
             ).lstrip()
             for key in list(translation.keys()):
                 func = func.replace(key, translation[key])
             func = func.replace("@", "")
             write_pad(file, func, 2)
+    write_pad(file, "end subroutine equilibrium", 1)
+    file.write("\n")
     return
 
 
@@ -861,7 +872,7 @@ class Amrvac:
         write_pad(
             file,
             "call set_coordinate_system('"
-            + amrvac_namelist_items["geometries"][self.config["geometry"]]
+            + legolas_to_amrvac_translation["geometries"][self.config["geometry"]]
             + "_"
             + str(self.config["dim"])
             + "D')",
@@ -887,9 +898,11 @@ class Amrvac:
         write_pad(file, "integer, intent(in)     :: ixI^L, ixO^L", 2)
         write_pad(file, "real(dp), intent(in)    :: x(ixI^S, ndim)", 2)
         write_pad(file, "real(dp), intent(inout) :: w(ixI^S, nw)", 2)
+        write_pad(file, "real(dp), intent(in)    :: equil(ixI^S, nw)", 2)
         file.write("\n")
 
-        write_equilibrium_functions(file, self.config["equilibrium"], keyring)
+        write_pad(file, f"call equilibrium(ixI^S, ixO^S, w, x, equil)", 2)
+        write_pad(file, f"w(ixI^S, :) = equil(ixI^S, :)", 2)
         file.write("\n")
 
         for key in keyring:
@@ -905,6 +918,7 @@ class Amrvac:
         )
         write_pad(file, "end subroutine initialise_grid", 1)
         file.write("\n")
+        write_equilibrium_functions(file, self.config["equilibrium"], keyring)
 
         write_pad(file, "subroutine read_legolas_data()", 1)
         write_pad(file, "open( &", 2)
