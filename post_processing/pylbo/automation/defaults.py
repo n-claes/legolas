@@ -306,5 +306,8 @@ amrvac_namelist_items = {
     "grav_list": [
         ("grav_split", bool),
     ],
+}
+
+legolas_to_amrvac_translation = {
     "geometries": {"Cartesian": "Cartesian", "cylindrical": "polar"},
 }
