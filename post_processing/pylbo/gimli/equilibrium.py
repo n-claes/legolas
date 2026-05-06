@@ -220,7 +220,7 @@ class Equilibrium:
             "B_0^2": f"(B02({dep_B2})**2+B03({dep_B3})**2)",
         }
         return dict_dependencies
-    
+
     def get_current(self, geometry, dim=3):
         """
         Determines the current density of the equilibrium magnetic field.
@@ -242,7 +242,7 @@ class Equilibrium:
         if dim == 2:
             return 0, sp.simplify(J02), 0
         return 0, sp.simplify(J02), sp.simplify(J03)
-    
+
     def add_current(self, geometry, dim=3):
         """
         Adds the current density of the equilibrium magnetic field to the Equilibrium
@@ -257,7 +257,7 @@ class Equilibrium:
         _, J02, J03 = self.get_current(geometry, dim=dim)
         self.J02 = J02
         self.J03 = J03
-    
+
     def Bfield_forcefree(self, geometry, dim=3):
         """
         Determines whether the equilibrium magnetic field is force-free.

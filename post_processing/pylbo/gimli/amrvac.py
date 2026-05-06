@@ -24,7 +24,7 @@ from pylbo.automation.defaults import legolas_to_amrvac_translation
 
 def write_equilibrium_functions(file, eq, to_fetch_total, to_fetch_split):
     """
-    Writes a subroutine where all equilibrium functions are defined for reuse 
+    Writes a subroutine where all equilibrium functions are defined for reuse
     in other routines. `get_equilibrium' then returns the total equilibrium functions
     plus the current if needed (if not, this part of the array is zero).
 
@@ -59,7 +59,7 @@ def write_equilibrium_functions(file, eq, to_fetch_total, to_fetch_split):
         varlist["j3"] = (eq.J03).subs(eq.variables.x, xv)
         jlist = [idx for idx in to_fetch_split if idx[0] == "j"]
 
-    write_pad(file,"subroutine get_equilibrium(ixI^L, ixO^L, x, equil)", 1)
+    write_pad(file, "subroutine get_equilibrium(ixI^L, ixO^L, x, equil)", 1)
     write_pad(file, "integer, intent(in)     :: ixI^L, ixO^L", 2)
     write_pad(file, "real(dp), intent(in)    :: x(ixI^S, ndim)", 2)
     write_pad(file, "real(dp)                :: equil(ixI^S, nw+3)", 2)
@@ -70,7 +70,7 @@ def write_equilibrium_functions(file, eq, to_fetch_total, to_fetch_split):
     file.write("\n")
     write_pad(file, "equil(ixI^S, :) = 0.0d0", 2)
     file.write("\n")
-    for key in to_fetch_total+jlist:
+    for key in to_fetch_total + jlist:
         expr = varlist[key]
         if expr is None:
             write_pad(file, f"equil(ixI^S, {key}) = 0.0d0", 2)
@@ -113,6 +113,7 @@ def write_equilibrium_functions(file, eq, to_fetch_total, to_fetch_split):
             write_split_equilibrium_functions(file, keys, field)
     return
 
+
 def write_split_equilibrium_functions(file, to_fetch, field):
     translation = {
         "mag(1)": 1,
@@ -123,7 +124,7 @@ def write_split_equilibrium_functions(file, to_fetch, field):
         "j3": 3,
         "rho_": "equi_rho0_",
         "p_": "equi_pe0_",
-        }
+    }
 
     write_pad(file, f"subroutine special_set_{field}(ixI^L, ixO^L, x, w0)", 1)
     write_pad(file, "integer, intent(in) :: ixI^L, ixO^L", 2)
@@ -897,11 +898,11 @@ class Amrvac:
             self.config["equilibrium"].add_current(geometry, self.config["dim"])
             forcefree = self.config["equilibrium"].Bfield_forcefree(
                 geometry, self.config["dim"]
-                )
+            )
             if forcefree != self.config["parfile"].get("B0field_forcefree", False):
                 pylboLogger.warning(
-                    "Specified B0field_forcefree does not match the actual force-freeness"
-                    " of the equilibrium. Check your configuration."
+                    "Specified B0field_forcefree does not match the actual "
+                    + "force-freeness of the equilibrium. Check your configuration."
                 )
             self.config["parfile"]["B0field_forcefree"] = forcefree
 
@@ -987,7 +988,7 @@ class Amrvac:
         write_pad(file, "real(dp)                :: equil(ixI^S, nw+3)", 2)
         file.write("\n")
 
-        write_pad(file, f"call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
+        write_pad(file, "call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
         for key in keyring_unsplit:
             write_pad(file, f"w(ixI^S, {key}) = equil(ixI^S, {key})", 2)
         file.write("\n")
@@ -1004,7 +1005,9 @@ class Amrvac:
         )
         write_pad(file, "end subroutine initialise_grid", 1)
         file.write("\n")
-        write_equilibrium_functions(file, self.config["equilibrium"], keyring_total, keyring_split)
+        write_equilibrium_functions(
+            file, self.config["equilibrium"], keyring_total, keyring_split
+        )
 
         write_pad(file, "subroutine read_legolas_data()", 1)
         write_pad(file, "open( &", 2)
