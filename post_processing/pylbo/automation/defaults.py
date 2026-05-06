@@ -310,5 +310,6 @@ amrvac_namelist_items = {
 }
 
 legolas_to_amrvac_translation = {
-    "geometries": {"Cartesian": "Cartesian", "cylindrical": "polar"},
+    "Cartesian": "Cartesian",
+    "cylindrical": "polar",
 }

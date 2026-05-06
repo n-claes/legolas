@@ -220,6 +220,61 @@ class Equilibrium:
             "B_0^2": f"(B02({dep_B2})**2+B03({dep_B3})**2)",
         }
         return dict_dependencies
+    
+    def get_current(self, geometry, dim=3):
+        """
+        Determines the current density of the equilibrium magnetic field.
+        Parameters
+        ----------
+        geometry : str
+            Either 'Cartesian' or 'cylindrical'.
+        dim : int
+            Dimension of the desired setup (currently 2 or 3).
+        """
+        scale_factor = 1 if geometry == "Cartesian" else self.variables.x
+
+        B02 = self.B02 if self.B02 is not None else 0
+        B03 = self.B03 if self.B03 is not None else 0
+
+        J02 = -B03.diff(self.variables.x)
+        J03 = B02 * sp.diff(scale_factor * B02, self.variables.x) / scale_factor
+
+        if dim == 2:
+            return 0, sp.simplify(J02), 0
+        return 0, sp.simplify(J02), sp.simplify(J03)
+    
+    def add_current(self, geometry, dim=3):
+        """
+        Adds the current density of the equilibrium magnetic field to the Equilibrium
+        object as attributes J02 and J03.
+        Parameters
+        ----------
+        geometry : str
+            Either 'Cartesian' or 'cylindrical'.
+        dim : int
+            Dimension of the desired setup (currently 2 or 3).
+        """
+        _, J02, J03 = self.get_current(geometry, dim=dim)
+        self.J02 = J02
+        self.J03 = J03
+    
+    def Bfield_forcefree(self, geometry, dim=3):
+        """
+        Determines whether the equilibrium magnetic field is force-free.
+        Parameters
+        ----------
+        geometry : str
+            Either 'Cartesian' or 'cylindrical'.
+        dim : int
+            Dimension of the desired setup (currently 2 or 3).
+        """
+        _, J02, J03 = self.get_current(geometry, dim=dim)
+
+        B02 = self.B02 if self.B02 is not None else 0
+        B03 = self.B03 if self.B03 is not None else 0
+
+        JxB1 = J03 * B03 - J02 * B02
+        return sp.simplify(JxB1) == 0
 
 
 class NumericalEquilibrium:

@@ -22,10 +22,11 @@ from pylbo.gimli.equilibrium import Equilibrium
 from pylbo.automation.defaults import legolas_to_amrvac_translation
 
 
-def write_equilibrium_functions(file, eq, to_fetch):
+def write_equilibrium_functions(file, eq, to_fetch_total, to_fetch_split):
     """
-    Writes a subroutine where all equilibrium functions are defined to the
-    MPI-AMRVAC user module.
+    Writes a subroutine where all equilibrium functions are defined for reuse 
+    in other routines. `get_equilibrium' then returns the total equilibrium functions
+    plus the current if needed (if not, this part of the array is zero).
 
     Parameters
     ----------
@@ -33,8 +34,10 @@ def write_equilibrium_functions(file, eq, to_fetch):
         The file object to write to.
     eq : Equilibrium
         The equilibrium object containing the user-defined equilibria.
-    to_fetch : list
+    to_fetch_total : list
         The list of equilibrium functions to write to the file.
+    to_fetch_split : list
+        The list of split equilibrium functions to write to the file.
     """
     translation = eq.variables.fkey
     translation["x_v"] = "x(ixI^S, 1)"
@@ -49,14 +52,25 @@ def write_equilibrium_functions(file, eq, to_fetch):
         "mag(2)": (eq.B02).subs(eq.variables.x, xv),
         "mag(3)": (eq.B03).subs(eq.variables.x, xv),
     }
-    write_pad(file,"subroutine equilibrium(ixI^S, ixO^S, w, x, equil)", 1)
+    jlist = []
+    if any(idx in to_fetch_split for idx in ["j2", "j3"]):
+        varlist["j1"] = None
+        varlist["j2"] = (eq.J02).subs(eq.variables.x, xv)
+        varlist["j3"] = (eq.J03).subs(eq.variables.x, xv)
+        jlist = [idx for idx in to_fetch_split if idx[0] == "j"]
+
+    write_pad(file,"subroutine get_equilibrium(ixI^L, ixO^L, x, equil)", 1)
     write_pad(file, "integer, intent(in)     :: ixI^L, ixO^L", 2)
-    write_pad(file, "real(dp), intent(inout) :: equil(ixI^S, nw)", 2)
-    write_pad(file, "real(dp), intent(in)    :: x(ixI^S, ndim), w(ixI^S, nw)", 2)
+    write_pad(file, "real(dp), intent(in)    :: x(ixI^S, ndim)", 2)
+    write_pad(file, "real(dp)                :: equil(ixI^S, nw+3)", 2)
+    if any(idx in to_fetch_split for idx in ["j2", "j3"]):
+        write_pad(file, "j1 = nw+1", 2)
+        write_pad(file, "j2 = nw+2", 2)
+        write_pad(file, "j3 = nw+3", 2)
     file.write("\n")
     write_pad(file, "equil(ixI^S, :) = 0.0d0", 2)
     file.write("\n")
-    for key in to_fetch:
+    for key in to_fetch_total+jlist:
         expr = varlist[key]
         if expr is None:
             write_pad(file, f"equil(ixI^S, {key}) = 0.0d0", 2)
@@ -78,9 +92,51 @@ def write_equilibrium_functions(file, eq, to_fetch):
                 func = func.replace(key, translation[key])
             func = func.replace("@", "")
             write_pad(file, func, 2)
-    write_pad(file, "end subroutine equilibrium", 1)
+    write_pad(file, "end subroutine get_equilibrium", 1)
     file.write("\n")
+
+    # writing the split functions
+    if len(to_fetch_split) > 0:
+        fields = []
+        if any(idx in to_fetch_split for idx in ["mag(2)", "mag(3)"]):
+            fields = fields + ["B0", "J0"]
+        if any(idx in to_fetch_split for idx in ["rho_", "p_"]):
+            fields.append("equi_vars")
+        for field in fields:
+            if field == "equi_vars":
+                keys_temp = ["rho_", "p_"]
+            elif field == "B0":
+                keys_temp = ["mag(1)", "mag(2)", "mag(3)"]
+            elif field == "J0":
+                keys_temp = ["j1", "j2", "j3"]
+            keys = [key for key in keys_temp if key in to_fetch_split]
+            write_split_equilibrium_functions(file, keys, field)
     return
+
+def write_split_equilibrium_functions(file, to_fetch, field):
+    translation = {
+        "mag(1)": 1,
+        "mag(2)": 2,
+        "mag(3)": 3,
+        "j1": 1,
+        "j2": 2,
+        "j3": 3,
+        "rho_": "equi_rho0_",
+        "p_": "equi_pe0_",
+        }
+
+    write_pad(file, f"subroutine special_set_{field}(ixI^L, ixO^L, x, w0)", 1)
+    write_pad(file, "integer, intent(in) :: ixI^L, ixO^L", 2)
+    write_pad(file, "double precision, intent(in) :: x(ixI^S, 1:ndim)", 2)
+    len_w0 = "number_equi_vars" if field == "equi_vars" else "ndir"
+    write_pad(file, f"double precision, intent(inout) :: w0(ixI^S, 1:{len_w0})", 2)
+    write_pad(file, "double precision                :: equil(ixI^S, nw+3)", 2)
+    file.write("\n")
+    write_pad(file, "call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
+    for key in to_fetch:
+        write_pad(file, f"w0(ixI^S, {translation[key]}) = equil(ixI^S, {key})", 2)
+    write_pad(file, f"end subroutine special_set_{field}", 1)
+    file.write("\n")
 
 
 def write_physics_pointers(file, eq):
@@ -819,14 +875,37 @@ class Amrvac:
             if "B3" in quantities:
                 quantities.remove("B3")
 
-        keyring = ["rho_", "mom(1)", "mom(2)"]
+        keyring_total = ["rho_", "mom(1)", "mom(2)"]
         if self.config["dim"] > 2:
-            keyring.append("mom(3)")
-        keyring.append("p_")
+            keyring_total.append("mom(3)")
+        keyring_total.append("p_")
         if self.config["physics_type"] == "mhd":
-            keyring = keyring + ["mag(1)", "mag(2)"]
+            keyring_total = keyring_total + ["mag(1)", "mag(2)"]
             if self.config["dim"] > 2:
-                keyring.append("mag(3)")
+                keyring_total.append("mag(3)")
+
+        keyring_split = []
+        if self.config["parfile"].get("has_equi_rho_and_p", False):
+            keyring_split = keyring_split + ["rho_", "p_"]
+        if self.config["parfile"].get("B0field", False):
+            keyring_split = keyring_split + ["mag(1)", "mag(2)", "j1", "j2"]
+            if self.config["dim"] > 2:
+                keyring_split.insert(-2, "mag(3)")
+                keyring_split.append("j3")
+
+            geometry = legolas_to_amrvac_translation[self.config["geometry"]]
+            self.config["equilibrium"].add_current(geometry, self.config["dim"])
+            forcefree = self.config["equilibrium"].Bfield_forcefree(
+                geometry, self.config["dim"]
+                )
+            if forcefree != self.config["parfile"].get("B0field_forcefree", False):
+                pylboLogger.warning(
+                    "Specified B0field_forcefree does not match the actual force-freeness"
+                    " of the equilibrium. Check your configuration."
+                )
+            self.config["parfile"]["B0field_forcefree"] = forcefree
+
+        keyring_unsplit = [key for key in keyring_total if key not in keyring_split]
 
         loc = validate_output_dir(loc)
         path = loc + "/" + filename + ".t"
@@ -854,6 +933,7 @@ class Amrvac:
         file.write("\n")
         eqparam = get_equilibrium_parameters(self.config)
         write_pad(file, f"real(dp) :: {eqparam}", 1)
+        write_pad(file, "integer :: j1, j2, j3", 1)
         file.write("\n")
         write_pad(file, "complex(dp), parameter :: ic = (0.0d0, 1.0d0)", 1)
         file.write("\n")
@@ -872,7 +952,7 @@ class Amrvac:
         write_pad(
             file,
             "call set_coordinate_system('"
-            + legolas_to_amrvac_translation["geometries"][self.config["geometry"]]
+            + legolas_to_amrvac_translation[self.config["geometry"]]
             + "_"
             + str(self.config["dim"])
             + "D')",
@@ -883,6 +963,11 @@ class Amrvac:
         write_pad(file, "usr_set_parameters => initglobaldata_usr", 2)
         write_pad(file, "usr_init_one_grid  => initialise_grid", 2)
         write_physics_pointers(file, self.config["equilibrium"])
+        if self.config["parfile"].get("B0field", False):
+            write_pad(file, "usr_set_B0 => special_set_B0", 2)
+            write_pad(file, "usr_set_J0 => special_set_J0", 2)
+        if self.config["parfile"].get("has_equi_rho_and_p", False):
+            write_pad(file, "usr_set_equi_vars => special_set_equi_vars", 2)
         file.write("\n")
         write_pad(file, f"call {self.config['physics_type']}_activate()", 2)
         write_pad(file, "end subroutine usr_init", 1)
@@ -898,17 +983,18 @@ class Amrvac:
         write_pad(file, "integer, intent(in)     :: ixI^L, ixO^L", 2)
         write_pad(file, "real(dp), intent(in)    :: x(ixI^S, ndim)", 2)
         write_pad(file, "real(dp), intent(inout) :: w(ixI^S, nw)", 2)
-        write_pad(file, "real(dp), intent(in)    :: equil(ixI^S, nw)", 2)
+        write_pad(file, "integer                 :: idx", 2)
+        write_pad(file, "real(dp)                :: equil(ixI^S, nw+3)", 2)
         file.write("\n")
 
-        write_pad(file, f"call equilibrium(ixI^S, ixO^S, w, x, equil)", 2)
-        write_pad(file, f"w(ixI^S, :) = equil(ixI^S, :)", 2)
+        write_pad(file, f"call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
+        for key in keyring_unsplit:
+            write_pad(file, f"w(ixI^S, {key}) = equil(ixI^S, {key})", 2)
         file.write("\n")
 
-        for key in keyring:
-            write_pad(
-                file, f"call add_perturbation_to_w_array(ixI^L, ixO^L, w, {key}, x)", 2
-            )
+        write_pad(file, "do idx = 1,nw", 2)
+        write_pad(file, "call add_perturbation_to_w_array(ixI^L, ixO^L, w, idx, x)", 3)
+        write_pad(file, "end do", 2)
         file.write("\n")
 
         write_pad(
@@ -918,7 +1004,7 @@ class Amrvac:
         )
         write_pad(file, "end subroutine initialise_grid", 1)
         file.write("\n")
-        write_equilibrium_functions(file, self.config["equilibrium"], keyring)
+        write_equilibrium_functions(file, self.config["equilibrium"], keyring_total, keyring_split)
 
         write_pad(file, "subroutine read_legolas_data()", 1)
         write_pad(file, "open( &", 2)
@@ -1001,10 +1087,10 @@ class Amrvac:
         write_pad(file, "integer, intent(in) :: w_index", 2)
         write_pad(file, "complex(dp), intent(inout) :: array(ef_gridpts)", 2)
         file.write("\n")
-        write_pad(file, f"if (w_index == {keyring[0]}) then", 2)
+        write_pad(file, f"if (w_index == {keyring_total[0]}) then", 2)
         write_pad(file, f"array = {quantities[0]}", 3)
-        for ii in range(1, len(keyring)):
-            write_pad(file, f"else if (w_index == {keyring[ii]}) then", 2)
+        for ii in range(1, len(keyring_total)):
+            write_pad(file, f"else if (w_index == {keyring_total[ii]}) then", 2)
             write_pad(file, f"array = {quantities[ii]}", 3)
         write_pad(file, "end if", 2)
         write_pad(file, "end subroutine w_index_to_array", 1)
