@@ -349,11 +349,11 @@ contains
 
     real(dp) :: unit_numberdensity
     real(dp) :: unit_density, unit_temperature, unit_magneticfield, unit_length
-    real(dp) :: mean_molecular_weight
+    real(dp) :: He_abundance
 
     namelist /unitslist/ &
       unit_density, unit_numberdensity, unit_temperature, unit_magneticfield, &
-      unit_length, mean_molecular_weight
+      unit_length, He_abundance
 
     ! defaults
     unit_numberdensity = NaN
@@ -361,7 +361,7 @@ contains
     unit_temperature = settings%units%get_unit_temperature()
     unit_magneticfield = settings%units%get_unit_magneticfield()
     unit_length = settings%units%get_unit_length()
-    mean_molecular_weight = settings%units%get_mean_molecular_weight()
+    He_abundance = settings%units%get_He_abundance()
 
     read(unit, nml=unitslist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
@@ -371,21 +371,21 @@ contains
         unit_length=unit_length, &
         unit_temperature=unit_temperature, &
         unit_numberdensity=unit_numberdensity, &
-        mean_molecular_weight=mean_molecular_weight &
+        He_abundance=He_abundance &
       )
     else if (.not. is_NaN(unit_density)) then
       call settings%units%set_units_from_density( &
         unit_length=unit_length, &
         unit_magneticfield=unit_magneticfield, &
         unit_density=unit_density, &
-        mean_molecular_weight=mean_molecular_weight &
+        He_abundance=He_abundance &
       )
     else
       call settings%units%set_units_from_temperature( &
         unit_length=unit_length, &
         unit_magneticfield=unit_magneticfield, &
         unit_temperature=unit_temperature, &
-        mean_molecular_weight=mean_molecular_weight &
+        He_abundance=He_abundance &
       )
     end if
   end subroutine read_unitlist
