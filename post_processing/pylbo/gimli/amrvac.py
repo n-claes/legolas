@@ -583,6 +583,12 @@ class Amrvac:
                     bc.append("symm")
             self.config["parfile"]["typeboundary_max1"] = [bc]
 
+        if self.config["physics_type"] == "hd":
+            if self.config["parfile"].get("has_equi_rho_and_p", False):
+                raise AssertionError(
+                    "Split rho and p not supported for physics type 'hd'."
+                )
+
     def _get_combined_perturbation(self, ef):
         """
         Takes Legolas's perturbations of different eigenvalues and adds them up to a
