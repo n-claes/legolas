@@ -19,7 +19,6 @@ from pylbo.gimli.utils import (
     validate_output_dir,
 )
 from pylbo.gimli.equilibrium import Equilibrium
-from pylbo.automation.defaults import legolas_to_amrvac_translation
 
 
 def write_equilibrium_functions(file, eq, to_fetch_total, to_fetch_split):
@@ -442,7 +441,7 @@ class Amrvac:
         elif self.config["geometry"].lower() == "cartesian":
             self.config["geometry"] = "Cartesian"
         elif self.config["geometry"].lower() == "cylindrical":
-            self.config["geometry"] = "cylindrical"
+            self.config["geometry"] = "polar"
         else:
             raise ValueError("'geometry' must be 'Cartesian' or 'cylindrical'.")
 
@@ -894,7 +893,7 @@ class Amrvac:
                 keyring_split.insert(-2, "mag(3)")
                 keyring_split.append("j3")
 
-            geometry = legolas_to_amrvac_translation[self.config["geometry"]]
+            geometry = self.config["geometry"]
             self.config["equilibrium"].add_current(geometry, self.config["dim"])
             forcefree = self.config["equilibrium"].Bfield_forcefree(
                 geometry, self.config["dim"]
@@ -953,7 +952,7 @@ class Amrvac:
         write_pad(
             file,
             "call set_coordinate_system('"
-            + legolas_to_amrvac_translation[self.config["geometry"]]
+            + self.config["geometry"]
             + "_"
             + str(self.config["dim"])
             + "D')",
