@@ -61,9 +61,6 @@ contains
             call settings%grid%set_grid_boundaries( &
                 grid_start=input(1, 1), grid_end=input(lpts, 1) &
             )
-        else if (settings%grid%get_grid_start() < input(1, 1) .or. &
-            settings%grid%get_grid_end() > input(lpts, 1)) then
-            call logger%error("Grid boundaries outside of imported data range")
         end if
 
         call interpolate_and_derive()
