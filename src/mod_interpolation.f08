@@ -314,7 +314,9 @@ contains
   !! If the <tt>allow_outside</tt> flag is given as <tt>.true.</tt> then values
   !! on the edge of the table are returned when the lookup value is outside the array.
   !! Uses simple linear interpolation.
-  function lookup_table_value(x, x_values, y_values, allow_outside) result(y_found)
+  function lookup_table_value( &
+    x, x_values, y_values, allow_outside, zero_if_outside &
+    ) result(y_found)
     use mod_global_variables, only: NaN
 
     !> value to look up
@@ -325,20 +327,29 @@ contains
     real(dp), intent(in)  :: y_values(:)
     !> flag to allow for lookups outside of the array
     logical, optional :: allow_outside
+    !> flag to set value to zero for lookups outside of the array
+    !! (ignored if allow_outside = .true.)
+    logical, optional :: zero_if_outside
     !> interpolated y-value based on \(x0\)
     real(dp)  :: y_found
 
     integer   :: idx, nvals
     real(dp)  :: x0, x1, y0, y1
-    logical   :: return_edge_value_if_outside
+    logical   :: return_edge_value_if_outside, return_zero_if_outside
 
     nvals = size(x_values)
     return_edge_value_if_outside = .false.
+    return_zero_if_outside = .false.
     if (present(allow_outside)) then
       return_edge_value_if_outside = allow_outside
+    else if (present(zero_if_outside)) then
+      return_zero_if_outside = zero_if_outside
     end if
 
-    if (return_edge_value_if_outside) then
+    if (return_zero_if_outside) then
+      y_found = 0.0_dp
+      return
+    else if (return_edge_value_if_outside) then
       if (x < x_values(1)) then
         y_found = y_values(1)
         return

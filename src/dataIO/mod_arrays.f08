@@ -110,11 +110,11 @@ contains
 
         select case(derivative)
             case(0)
-                out = lookup_table_value(x, interp(:, 1), interp(:, idx))
+                out = lookup_table_value(x, interp(:, 1), interp(:, idx), allow_outside=.true.)
             case(1)
-                out = lookup_table_value(x, d_interp(:, 1), d_interp(:, idx))
+                out = lookup_table_value(x, d_interp(:, 1), d_interp(:, idx), zero_if_outside=.true.)
             case(2)
-                out = lookup_table_value(x, dd_interp(:, 1), dd_interp(:, idx))
+                out = lookup_table_value(x, dd_interp(:, 1), dd_interp(:, idx), zero_if_outside=.true.)
             case default
                 call logger%error("Specified derivative not available")
         end select 
