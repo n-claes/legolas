@@ -3,7 +3,7 @@
 !! Contains subroutines to retrieve the equilibrium arrays from a file specified in the parfile.
 module mod_arrays
     use, intrinsic :: iso_fortran_env, only: iostat_end
-    use mod_equilibrium_params, only: input_file, eq_bool, n_input
+    use mod_equilibrium_params, only: input_file, n_input
     use mod_global_variables, only: dp, str_len, dp_LIMIT
     use mod_interpolation
     use mod_logging, only: logger
@@ -57,7 +57,7 @@ contains
             call logger%error("Coordinate array in imported data is absent or zero")
         end if
 
-        if (eq_bool) then
+        if (settings%grid%grid_edge_from_data) then
             call settings%grid%set_grid_boundaries( &
                 grid_start=input(1, 1), grid_end=input(lpts, 1) &
             )

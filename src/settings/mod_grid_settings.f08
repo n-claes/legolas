@@ -14,6 +14,7 @@ module mod_grid_settings
     logical :: coaxial
     logical :: force_r0
     logical :: symmetric_grid
+    logical :: grid_edge_from_data
 
   contains
 
@@ -44,6 +45,7 @@ contains
     grid_settings%coaxial = .false.
     grid_settings%force_r0 = .false.
     grid_settings%symmetric_grid = .false.
+    grid_settings%grid_edge_from_data = .false.
   end function new_grid_settings
 
 

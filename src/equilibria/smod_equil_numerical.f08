@@ -1,6 +1,6 @@
 !> Example submodule for numerically-defined equilibria.
 submodule (mod_equilibrium) smod_numerical
-  use mod_equilibrium_params, only: eq_bool
+  use mod_equilibrium_params, only: grid_edge_from_data
   use mod_arrays, only: import_equilibrium_data, lookup_equilibrium_value
   implicit none
 
@@ -10,8 +10,8 @@ contains
   module procedure numerical_eq
     if (settings%equilibrium%use_defaults) then
       call settings%grid%set_geometry("Cartesian")
-      ! To use the edges of the imported data as x_start/x_end, set eq_bool = .true.
-      eq_bool = .true.
+      ! To use the edges of the imported data as x_start/x_end, set grid_edge_from_data = .true.
+      settings%grid%grid_edge_from_data = .true.
 
       k2 = 1.0_dp
       k3 = 0.0_dp
