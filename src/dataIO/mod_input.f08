@@ -64,6 +64,7 @@ contains
     logical :: coaxial
     logical :: force_r0
     logical :: symmetric_grid
+    logical :: grid_edge_from_data
 
     namelist /gridlist/ &
       geometry, gridpoints, x_start, x_end, coaxial, force_r0, &

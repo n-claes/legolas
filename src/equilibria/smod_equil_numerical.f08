@@ -1,6 +1,5 @@
 !> Example submodule for numerically-defined equilibria.
 submodule (mod_equilibrium) smod_numerical
-  use mod_equilibrium_params, only: grid_edge_from_data
   use mod_arrays, only: import_equilibrium_data, lookup_equilibrium_value
   implicit none
 
