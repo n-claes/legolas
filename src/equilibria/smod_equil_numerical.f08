@@ -10,12 +10,13 @@ contains
   module procedure numerical_eq
     if (settings%equilibrium%use_defaults) then
       call settings%grid%set_geometry("Cartesian")
-      ! To use the edges of the imported data as x_start/x_end, set grid_edge_from_data = .true.
-      settings%grid%grid_edge_from_data = .true.
 
       k2 = 1.0_dp
       k3 = 0.0_dp
     end if
+
+    ! To use the edges of the imported data as x_start/x_end, set grid_edge_from_data = .true.
+    settings%grid%grid_edge_from_data = .true.
 
     ! All Legolas grid settings should be set before importing the equilibrium data.
     ! Note that non-equally spaced grids are not supported at this time due to the
