@@ -841,6 +841,7 @@ class Amrvac:
             name = file[:-4]
         self.config["ldatfile"] = name
         f = FortranFile(loc + "/" + name + ".ldat", "w")
+        f.write_record(np.array([int(self.config["physics_type"]=='mhd')], dtype=np.int32))
         f.write_record(np.array([self.ds.ef_gridpoints], dtype=np.int32))
         f.write_record(
             np.array(
@@ -924,6 +925,7 @@ class Amrvac:
         write_pad(file, "use, intrinsic :: iso_fortran_env", 1)
         write_pad(file, f"use mod_{self.config['physics_type']}", 1)
         write_pad(file, "use mod_global_parameters", 1)
+        write_pad(file, "use mod_gimli", 1)
         write_pad(file, "implicit none", 1)
         file.write("\n")
         write_pad(
@@ -934,21 +936,13 @@ class Amrvac:
             1,
         )
         file.write("\n")
-        write_pad(file, "integer, parameter :: dp = real64", 1)
         write_pad(file, "integer, parameter :: file_id = 123", 1)
         file.write("\n")
         eqparam = get_equilibrium_parameters(self.config)
         write_pad(file, f"real(dp) :: {eqparam}", 1)
-        write_pad(file, "integer :: j1, j2, j3", 1)
-        file.write("\n")
-        write_pad(file, "complex(dp), parameter :: ic = (0.0d0, 1.0d0)", 1)
-        file.write("\n")
-        write_pad(file, "integer :: ef_gridpts", 1)
-        write_pad(file, "real(dp) :: k2, k3", 1)
+        if self.config["parfile"].get("B0field", False):
+            write_pad(file, "integer :: j1, j2, j3", 1)
         write_pad(file, "real(dp) :: gamma", 1)
-        write_pad(file, "real(dp), allocatable :: ef_grid(:)", 1)
-        for ii in range(len(self.ef_list)):
-            write_pad(file, f"complex(dp), allocatable :: {self.ef_list[ii]}(:)", 1)
         file.write("\n")
 
         write_pad(file, "contains", 0)
@@ -964,7 +958,7 @@ class Amrvac:
             + "D')",
             2,
         )
-        write_pad(file, "call read_legolas_data()", 2)
+        write_pad(file, "call read_legolas_data(legolas_file, file_id)", 2)
         file.write("\n")
         write_pad(file, "usr_set_parameters => initglobaldata_usr", 2)
         write_pad(file, "usr_init_one_grid  => initialise_grid", 2)
@@ -1013,115 +1007,6 @@ class Amrvac:
         write_equilibrium_functions(
             file, self.config["equilibrium"], keyring_total, keyring_split
         )
-
-        write_pad(file, "subroutine read_legolas_data()", 1)
-        write_pad(file, "open( &", 2)
-        write_pad(file, "unit=file_id+mype, &", 3)
-        write_pad(file, "file=legolas_file, &", 3)
-        write_pad(file, "form='unformatted' &", 3)
-        write_pad(file, ")", 2)
-        file.write("\n")
-
-        write_pad(file, "read(file_id+mype) ef_gridpts", 2)
-        write_pad(file, "read(file_id+mype) k2, k3", 2)
-        file.write("\n")
-
-        write_pad(file, "call allocate_arrays(ef_gridpts)", 2)
-        write_pad(file, "read(file_id+mype) ef_grid", 2)
-        for ii in range(len(self.ef_list)):
-            write_pad(file, f"read(file_id+mype) {self.ef_list[ii]}", 2)
-        file.write("\n")
-
-        write_pad(
-            file,
-            "read(file_id+mype) unit_length, unit_numberdensity, unit_temperature, &",
-            2,
-        )
-        if self.config["physics_type"] == "mhd":
-            write_pad(
-                file,
-                "unit_density, unit_pressure, unit_velocity, unit_magneticfield, "
-                "unit_time",
-                3,
-            )
-        else:
-            write_pad(file, "unit_density, unit_pressure, unit_velocity, unit_time", 3)
-        file.write("\n")
-
-        write_pad(file, "close(file_id+mype)", 2)
-        write_pad(file, "end subroutine read_legolas_data", 1)
-        file.write("\n")
-
-        write_pad(file, "subroutine allocate_arrays(gridpts)", 1)
-        write_pad(file, "integer, intent(in) :: gridpts", 2)
-        file.write("\n")
-        write_pad(file, "allocate(ef_grid(gridpts))", 2)
-        write_pad(file, f"allocate({self.ef_list[0]}(gridpts))", 2)
-        write_pad(
-            file, f"allocate({', '.join(self.ef_list[1:])}, mold={self.ef_list[0]})", 2
-        )
-        write_pad(file, "end subroutine allocate_arrays", 1)
-        file.write("\n")
-
-        write_pad(
-            file,
-            "subroutine add_perturbation_to_w_array(ixI^L, ixO^L, w, w_index, x)",
-            1,
-        )
-        write_pad(file, "integer, intent(in)     :: ixI^L, ixO^L", 2)
-        write_pad(file, "real(dp), intent(inout) :: w(ixI^S, nw)", 2)
-        write_pad(file, "integer, intent(in)     :: w_index", 2)
-        write_pad(file, "real(dp), intent(in)    :: x(ixI^S, ndim)", 2)
-        write_pad(
-            file,
-            "complex(dp) :: amplitude, exp_factor(ixI^S), quantity, values(ef_gridpts)",
-            2,
-        )
-        write_pad(file, "integer  :: idx^D", 2)
-        write_pad(file, "real(dp) :: k1 = 0.0d0", 2)
-        file.write("\n")
-        write_pad(file, "call w_index_to_array(w_index, values)", 2)
-        write_pad(file, "exp_factor = {exp(ic * k^D * x(ixI^S, ^D))|*}", 2)
-        file.write("\n")
-        write_pad(file, "{do idx^D = ixImin^D, ixImax^D|\\}", 2)
-        write_pad(file, "call ef_amplitude(x(idx^D, 1), ef_grid, values, amplitude)", 3)
-        write_pad(file, "quantity = amplitude * exp_factor(idx^D)", 3)
-        write_pad(file, "w(idx^D, w_index) = w(idx^D, w_index) + realpart(quantity)", 3)
-        write_pad(file, "{end do|\\}", 2)
-        write_pad(file, "end subroutine add_perturbation_to_w_array", 1)
-        file.write("\n")
-
-        write_pad(file, "subroutine w_index_to_array(w_index, array)", 1)
-        write_pad(file, "integer, intent(in) :: w_index", 2)
-        write_pad(file, "complex(dp), intent(inout) :: array(ef_gridpts)", 2)
-        file.write("\n")
-        write_pad(file, f"if (w_index == {keyring_total[0]}) then", 2)
-        write_pad(file, f"array = {quantities[0]}", 3)
-        for ii in range(1, len(keyring_total)):
-            write_pad(file, f"else if (w_index == {keyring_total[ii]}) then", 2)
-            write_pad(file, f"array = {quantities[ii]}", 3)
-        write_pad(file, "end if", 2)
-        write_pad(file, "end subroutine w_index_to_array", 1)
-        file.write("\n")
-
-        write_pad(file, "subroutine ef_amplitude(x, grid, array, amplitude)", 1)
-        write_pad(file, "real(dp), intent(in) :: x, grid(ef_gridpts)", 2)
-        write_pad(file, "complex(dp), intent(in) :: array(ef_gridpts)", 2)
-        write_pad(file, "complex(dp), intent(out) :: amplitude", 2)
-        write_pad(file, "integer :: idl, idu", 2)
-        file.write("\n")
-        write_pad(file, "if (x <= grid(1)) then", 2)
-        write_pad(file, "amplitude = array(1)", 3)
-        write_pad(file, "else if (x >= grid(size(grid))) then", 2)
-        write_pad(file, "amplitude = array(size(grid))", 3)
-        write_pad(file, "else", 2)
-        write_pad(file, "idl = maxloc(grid, mask=(grid < x), dim=1)", 3)
-        write_pad(file, "idu = minloc(grid, mask=(grid > x), dim=1)", 3)
-        write_pad(file, "amplitude = array(idl) + (x - grid(idl)) * &", 3)
-        write_pad(file, "(array(idu) - array(idl)) / (grid(idu) - grid(idl))", 4)
-        write_pad(file, "end if", 2)
-        write_pad(file, "end subroutine ef_amplitude", 1)
-        file.write("\n")
 
         write_physics_subroutines(file, self.config["equilibrium"])
 

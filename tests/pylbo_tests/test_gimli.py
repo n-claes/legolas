@@ -128,9 +128,10 @@ def test_amrvac_preparation(tmpdir, datv211_harris, vacv211_harris):
 
     base = FortranFile(vacv211_harris, "r")
     test = FortranFile(tmpdir / "v2.1.1_harris.ldat", "r")
-    base_data = base.read_ints(dtype=np.int32)
-    test_data = test.read_ints(dtype=np.int32)
-    assert np.array_equal(base_data, test_data)
+    for ii in range(2):
+        base_data = base.read_ints(dtype=np.int32)
+        test_data = test.read_ints(dtype=np.int32)
+        assert np.array_equal(base_data, test_data)
 
     for ii in range(11):
         base_data = base.read_reals(dtype=np.float64)
