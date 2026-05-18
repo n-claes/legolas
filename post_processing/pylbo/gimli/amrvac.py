@@ -841,7 +841,9 @@ class Amrvac:
             name = file[:-4]
         self.config["ldatfile"] = name
         f = FortranFile(loc + "/" + name + ".ldat", "w")
-        f.write_record(np.array([int(self.config["physics_type"]=='mhd')], dtype=np.int32))
+        f.write_record(
+            np.array([int(self.config["physics_type"] == "mhd")], dtype=np.int32)
+        )
         f.write_record(np.array([self.ds.ef_gridpoints], dtype=np.int32))
         f.write_record(
             np.array(
