@@ -424,6 +424,13 @@ class Amrvac:
                         or "u3_bounds" in self.config.keys()
                     ):
                         raise KeyError("Must specify bounds matching largest k-value.")
+                    
+        if "save_analytics" not in self.config.keys():
+            self.config["save_analytics"] = False
+        else:
+            assert isinstance(self.config["save_analytics"], bool)
+            if self.config["save_analytics"]:
+                self.config["parfile"]["typefilelog"] = "special"
 
         return
 
@@ -588,6 +595,16 @@ class Amrvac:
                 raise AssertionError(
                     "Split rho and p not supported for physics type 'hd'."
                 )
+
+        if self.config["parfile"].get("has_equi_rho_and_p", False) or self.config["parfile"].get("B0field", False):
+            self.config["parfile"]["mhd_dump_full_vars"] = True
+            self.config["parfile"]["autoconvert"] = True
+            if "convert_type" in self.config["parfile"].keys():
+                pylboLogger.warning(
+                    "Overriding 'convert_type' to 'dat_generic_mpi' to enable full variable saving. Use the 'aiconvert' option to convert to another format after the simulation."
+            )
+            self.config["parfile"]["convert_type"] = "dat_generic_mpi"
+            
 
     def _get_combined_perturbation(self, ef):
         """
@@ -970,6 +987,8 @@ class Amrvac:
             write_pad(file, "usr_set_J0 => special_set_J0", 2)
         if self.config["parfile"].get("has_equi_rho_and_p", False):
             write_pad(file, "usr_set_equi_vars => special_set_equi_vars", 2)
+        if self.config["save_analytics"]:
+            write_pad(file, "usr_print_log => analytics_log", 2)
         file.write("\n")
         write_pad(file, f"call {self.config['physics_type']}_activate()", 2)
         write_pad(file, "end subroutine usr_init", 1)
