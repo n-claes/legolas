@@ -347,8 +347,10 @@ contains
     end if
 
     if (return_zero_if_outside) then
-      y_found = 0.0_dp
-      return
+      if (x < x_values(1) .or. x > x_values(nvals)) then
+        y_found = 0.0_dp
+        return
+      end if
     else if (return_edge_value_if_outside) then
       if (x < x_values(1)) then
         y_found = y_values(1)
