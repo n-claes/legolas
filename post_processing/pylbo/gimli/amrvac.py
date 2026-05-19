@@ -424,7 +424,7 @@ class Amrvac:
                         or "u3_bounds" in self.config.keys()
                     ):
                         raise KeyError("Must specify bounds matching largest k-value.")
-                    
+
         if "save_analytics" not in self.config.keys():
             self.config["save_analytics"] = False
         else:
@@ -596,15 +596,18 @@ class Amrvac:
                     "Split rho and p not supported for physics type 'hd'."
                 )
 
-        if self.config["parfile"].get("has_equi_rho_and_p", False) or self.config["parfile"].get("B0field", False):
+        if self.config["parfile"].get("has_equi_rho_and_p", False) or self.config[
+            "parfile"
+        ].get("B0field", False):
             self.config["parfile"]["mhd_dump_full_vars"] = True
             self.config["parfile"]["autoconvert"] = True
             if "convert_type" in self.config["parfile"].keys():
                 pylboLogger.warning(
-                    "Overriding 'convert_type' to 'dat_generic_mpi' to enable full variable saving. Use the 'aiconvert' option to convert to another format after the simulation."
-            )
+                    "Overriding 'convert_type' to 'dat_generic_mpi' to enable " +
+                    "full variable saving. Use the 'aiconvert' option to convert" +
+                    " to another format after the simulation."
+                )
             self.config["parfile"]["convert_type"] = "dat_generic_mpi"
-            
 
     def _get_combined_perturbation(self, ef):
         """
@@ -628,6 +631,30 @@ class Amrvac:
             w = self.config["weights"][ii]
             raw = ef_data[ii][ef]
             scaling = ef_data[ii][self.config["quantity"].replace("0", "")]
+            # rotate the eigenfunction so that at the grid point where the real
+            # part is largest the value becomes purely real to remove
+            # arbitrary phase rotations (e.g. from shift-invert)
+            idx_max = np.argmax(np.abs(np.real(raw)))
+            phase = np.angle(raw[idx_max])
+            raw = raw * np.exp(-1j * phase)
+            # absolute check for efs that are almost zero
+            if np.allclose(np.imag(raw), 0, atol=1e-10) and np.allclose(
+                np.real(raw), 0, atol=1e-10
+            ):
+                raw = 0.0
+                pylboLogger.warning(
+                    f"Perturbation of {ef} is almost zero."
+                    " Setting perturbation to zero to avoid numerical issues."
+                )
+            # relative check between real/imag parts
+            rel_tol = 1e4
+            if np.max(np.abs(np.real(raw))) > rel_tol * np.max(np.abs(np.imag(raw))):
+                raw = np.real(raw)
+                pylboLogger.warning(
+                    f"Perturbation of {ef} is almost purely real."
+                    " Taking real part to avoid numerical issues."
+                )
+            raw = raw * np.exp(1j * phase)  # reapply the phase
             perturbation += w * fac * (raw / np.nanmax(np.abs(scaling)))
         return perturbation
 
