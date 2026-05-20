@@ -342,21 +342,22 @@ contains
     return_zero_if_outside = .false.
     if (present(allow_outside)) then
       return_edge_value_if_outside = allow_outside
-    else if (present(zero_if_outside)) then
+    end if
+    if (present(zero_if_outside)) then
       return_zero_if_outside = zero_if_outside
     end if
 
-    if (return_zero_if_outside) then
-      if (x < x_values(1) .or. x > x_values(nvals)) then
-        y_found = 0.0_dp
-        return
-      end if
-    else if (return_edge_value_if_outside) then
+    if (return_edge_value_if_outside) then
       if (x < x_values(1)) then
         y_found = y_values(1)
         return
       else if (x > x_values(nvals)) then
         y_found = y_values(nvals)
+        return
+      end if
+    else if (return_zero_if_outside) then
+      if (x < x_values(1) .or. x > x_values(nvals)) then
+        y_found = 0.0_dp
         return
       end if
     end if
