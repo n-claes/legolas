@@ -571,7 +571,10 @@ class Amrvac:
                 bc = bc + ["asymm", "symm"]
                 if self.config["dim"] > 2:
                     bc.append("symm")
-            if self.config["geometry"] == "polar" and self.config["u1_bounds"][0] == 0.0:
+            if (
+                self.config["geometry"] == "polar"
+                and self.config["u1_bounds"][0] == 0.0
+            ):
                 bc = ["pole" for _ in bc]
                 logger_msg = "pole"
             pylboLogger.info(
@@ -607,9 +610,9 @@ class Amrvac:
             self.config["parfile"]["autoconvert"] = True
             if "convert_type" in self.config["parfile"].keys():
                 pylboLogger.warning(
-                    "Overriding 'convert_type' to 'dat_generic_mpi' to enable " +
-                    "full variable saving. Use the 'aiconvert' option to convert" +
-                    " to another format after the simulation."
+                    "Overriding 'convert_type' to 'dat_generic_mpi' to enable "
+                    + "full variable saving. Use the 'aiconvert' option to convert"
+                    + " to another format after the simulation."
                 )
             self.config["parfile"]["convert_type"] = "dat_generic_mpi"
 
