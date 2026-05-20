@@ -109,9 +109,13 @@ contains
             case(0)
                 out = lookup_table_value(x, interp(:, 1), interp(:, idx), allow_outside=.true.)
             case(1)
-                out = lookup_table_value(x, d_interp(:, 1), d_interp(:, idx), zero_if_outside=.true.)
+                out = lookup_table_value( &
+                    x, d_interp(:, 1), d_interp(:, idx), allow_outside=.true., outside_value=0.0_dp &
+                    )
             case(2)
-                out = lookup_table_value(x, dd_interp(:, 1), dd_interp(:, idx), zero_if_outside=.true.)
+                out = lookup_table_value( &
+                    x, dd_interp(:, 1), dd_interp(:, idx), allow_outside=.true., outside_value=0.0_dp &
+                    )
             case default
                 call logger%error("Specified derivative not available")
         end select 
