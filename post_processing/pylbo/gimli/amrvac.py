@@ -638,9 +638,7 @@ class Amrvac:
             phase = np.angle(raw[idx_max])
             raw = raw * np.exp(-1j * phase)
             # absolute check for efs that are almost zero
-            if np.allclose(np.imag(raw), 0, atol=1e-10) and np.allclose(
-                np.real(raw), 0, atol=1e-10
-            ):
+            if np.allclose(np.abs(raw), 0, atol=1e-9):
                 raw = 0.0
                 pylboLogger.warning(
                     f"Perturbation of {ef} is almost zero."
