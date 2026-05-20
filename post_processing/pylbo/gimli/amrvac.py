@@ -563,10 +563,7 @@ class Amrvac:
                 self.config["parfile"]["xprobmax3"] = self.config["u3_bounds"][1]
 
         if "typeboundary_min1" not in self.config["parfile"].keys():  # Cartesian only
-            pylboLogger.info(
-                "'typeboundary_min1' not provided. Adding default wall boundary "
-                "conditions."
-            )
+            logger_msg = "default wall"
             bc = ["symm", "asymm", "symm", "symm"]
             if self.config["dim"] > 2:
                 bc.append("symm")
@@ -574,6 +571,13 @@ class Amrvac:
                 bc = bc + ["asymm", "symm"]
                 if self.config["dim"] > 2:
                     bc.append("symm")
+            if self.config["geometry"] == "polar" and self.config["u1_bounds"][0] == 0.0:
+                bc = ["pole" for _ in bc]
+                logger_msg = "pole"
+            pylboLogger.info(
+                f"'typeboundary_min1' not provided. Adding {logger_msg} boundary "
+                "conditions."
+            )
             self.config["parfile"]["typeboundary_min1"] = [bc]
 
         if "typeboundary_max1" not in self.config["parfile"].keys():  # Cartesian only
