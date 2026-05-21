@@ -37,6 +37,7 @@ Setting `force_r0 = .true.` in the gridlist forces the `r = 0` condition, but th
 | coaxial         | logical  | use a coaxial inner boundary in cylindrical geometry | `.false.` |
 | force_r0        | logical  | forces `r=0` in cylindrical geometry | `.false.` |
 | symmetric_grid  | logical  | enforces grid symmetry around the centre of the interval (for use with a symmetric spacing function) | `.false.` |
+| grid_edge_from_data | logical | sets x_start/x_end based on data imported with `import_equilibrium_data` | `.false.` |
 
 ## equilibriumlist
 This namelist includes all equilibrium-related variables.
