@@ -79,7 +79,7 @@ contains
 
     ! ==================== Cubic * dCubic ====================
     call elements%add(-ic * v01, sv_a2, sv_a2, s2do=1)
-    call elements%add(-ic * v01, sv_a3, sv_a3, s2do=1)
+    call elements%add(-ic * eps * v01, sv_a3, sv_a3, s2do=1)
 
     if (.not. settings%physics%is_incompressible) then
       ! ==================== Quadratic * Quadratic ====================
