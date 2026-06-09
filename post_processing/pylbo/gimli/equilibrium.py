@@ -118,7 +118,7 @@ class Equilibrium:
     heating : sympy expression
         The heating prescription.
     heatcool : dict
-        Parameters for cooling and heating, including force_thermal_balance.
+        Parameters for cooling and heating, including 'force_thermal_balance'.
 
     Attributes
     ----------

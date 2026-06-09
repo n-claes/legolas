@@ -264,7 +264,7 @@ class Legolas:
                     )
                 }
 
-        if "heating" in self.equilibrium._dict_phys.keys() and not self.config.get(
+        if self.equilibrium._dict_phys["heating"][0] is not None and not self.config.get(
             "heating", False
         ):
             pylboLogger.warning(
