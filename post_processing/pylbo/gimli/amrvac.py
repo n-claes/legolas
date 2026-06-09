@@ -60,8 +60,8 @@ def write_equilibrium_functions(file, eq, to_fetch_total, to_fetch_split):
 
     write_pad(file, "subroutine get_equilibrium(ixI^L, ixO^L, x, equil)", 1)
     write_pad(file, "integer, intent(in)     :: ixI^L, ixO^L", 2)
-    write_pad(file, "real(dp), intent(in)    :: x(ixI^S, ndim)", 2)
-    write_pad(file, "real(dp)                :: equil(ixI^S, nw+3)", 2)
+    write_pad(file, "double precision, intent(in)    :: x(ixI^S, ndim)", 2)
+    write_pad(file, "double precision                :: equil(ixI^S, nw+3)", 2)
     if any(idx in to_fetch_split for idx in ["j2", "j3"]):
         write_pad(file, "j1 = nw+1", 2)
         write_pad(file, "j2 = nw+2", 2)
@@ -258,13 +258,13 @@ def write_physics_subroutines(file, eq):
             file, "double precision, intent(in) :: x(ixI^S,1:ndim), w(ixI^S,1:nw)", 2
         )
         write_pad(file, "double precision, intent (inout) :: bQgrid(ixI^S)", 2)
+        write_pad(file, "double precision :: equil(ixI^S, nw+3)", 2)
 
         if eq.heatcool is not None:
             if eq.heatcool.get("force_thermal_balance", False):
                 # assume force_thermal_balance
                 write_pad(file, "integer :: idx^D", 2)
-                write_pad(file, "real(dp) :: equil(ixI^S, nw+3), T0(ixI^S)", 2)
-                write_pad(file, "double precision :: l_temp, l_tot(ixI^S)", 2)
+                write_pad(file, "double precision :: T0(ixI^S), l_temp, l_tot(ixI^S)", 2)
                 file.write("\n")
 
                 write_pad(file, "call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
@@ -301,20 +301,16 @@ def write_physics_subroutines(file, eq):
                 )
 
         elif eq._dict_phys.get("heating")[0] is not None:
-            # sympify heating function
             expr = eq._dict_phys["heating"][0].subs(eq.variables.x, xv)
             file.write("\n")
+            write_pad(file, "call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
 
             if is_sympy_number(expr):
-                write_pad(
-                    file,
-                    fcode(
+                func = fcode(
                         sp.sympify(float(expr)),
                         assign_to="bQgrid(ixI^S)",
                         source_format="free",
-                    ).lstrip(),
-                    2,
-                )
+                    ).lstrip()
             else:
                 func = fcode(
                     expr, assign_to="bQgrid(ixI^S)", source_format="free"
@@ -323,7 +319,8 @@ def write_physics_subroutines(file, eq):
                     func = func.replace(key, translation[key])
                 func = func.replace("\n", " &\n")
                 func = func.replace("@", "")
-                write_pad(file, func, 2)
+            func = func + " * equil(ixI^S, rho_)"
+            write_pad(file, func, 2)
 
         write_pad(file, "end subroutine getbQ", 1)
         file.write("\n")
@@ -1149,10 +1146,10 @@ class Amrvac:
         write_pad(file, "integer, parameter :: file_id = 123", 1)
         file.write("\n")
         eqparam = get_equilibrium_parameters(self.config)
-        write_pad(file, f"real(dp) :: {eqparam}", 1)
+        write_pad(file, f"double precision :: {eqparam}", 1)
         if self.config["parfile"].get("B0field", False):
             write_pad(file, "integer :: j1, j2, j3", 1)
-        write_pad(file, "real(dp) :: gamma", 1)
+        write_pad(file, "double precision :: gamma", 1)
         file.write("\n")
 
         write_pad(file, "contains", 0)
@@ -1192,11 +1189,11 @@ class Amrvac:
         file.write("\n")
 
         write_pad(file, "subroutine initialise_grid(ixI^L, ixO^L, w, x)", 1)
-        write_pad(file, "integer, intent(in)     :: ixI^L, ixO^L", 2)
-        write_pad(file, "real(dp), intent(in)    :: x(ixI^S, ndim)", 2)
-        write_pad(file, "real(dp), intent(inout) :: w(ixI^S, nw)", 2)
-        write_pad(file, "integer                 :: idx", 2)
-        write_pad(file, "real(dp)                :: equil(ixI^S, nw+3)", 2)
+        write_pad(file, "integer, intent(in)             :: ixI^L, ixO^L", 2)
+        write_pad(file, "double precision, intent(in)    :: x(ixI^S, ndim)", 2)
+        write_pad(file, "double precision, intent(inout) :: w(ixI^S, nw)", 2)
+        write_pad(file, "integer                         :: idx", 2)
+        write_pad(file, "double precision                :: equil(ixI^S, nw+3)", 2)
         file.write("\n")
 
         write_pad(file, "call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
