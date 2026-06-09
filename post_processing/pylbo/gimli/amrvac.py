@@ -162,6 +162,11 @@ def write_physics_pointers(file, eq):
                 pylboLogger.warning(
                     f"Automated definition of {key} is not yet implemented."
                 )
+    if eq.heatcool is not None:
+        if eq.heatcool["force_thermal_balance"] and not eq.heatcool.get(
+            "mhd_equi_thermal", False
+        ):
+            write_pad(file, "usr_source => set_heating", 2)
 
     return
 
@@ -209,7 +214,119 @@ def write_physics_subroutines(file, eq):
         write_pad(file, "end subroutine set_gravity", 1)
         file.write("\n")
 
-    # TODO: add other non-ideal effects
+    add_heating = False
+    if eq.heatcool is None:
+        pass
+    elif eq.heatcool.get("mhd_equi_thermal", False):
+        pass
+    else:
+        add_heating = True
+    if eq._dict_phys["heating"][0] is None:
+        pass
+    else:
+        add_heating = True
+
+    if add_heating:
+        write_pad(
+            file, "subroutine set_heating(qdt,ixI^L,ixO^L,iw^LIM,qtC,wCT,qt,w,x)", 1
+        )
+        write_pad(file, "integer, intent(in)             :: ixI^L, ixO^L, iw^LIM", 2)
+        write_pad(file, "double precision, intent(in)    :: qdt, qtC, qt", 2)
+        write_pad(file, "double precision, intent(in)    :: x(ixI^S,1:ndim)", 2)
+        write_pad(file, "double precision, intent(in)    :: wCT(ixI^S,1:nw)", 2)
+        write_pad(file, "double precision, intent(inout) :: w(ixI^S,1:nw)", 2)
+        write_pad(file, "double precision                :: bQgrid(ixI^S)", 2)
+        file.write("\n")
+        write_pad(file, "call getbQ(bQgrid,ixI^L,ixO^L,qtC,wCT,x)", 2)
+        write_pad(file, "w(ixO^S,e_)=w(ixO^S,e_)+(qdt*bQgrid(ixO^S))", 2)
+
+        write_pad(file, "end subroutine set_heating", 1)
+        file.write("\n")
+
+        write_pad(file, "subroutine getbQ(bQgrid,ixI^L,ixO^L,qt,w,x)", 1)
+        if eq.heatcool is not None:
+            if eq.heatcool.get("force_thermal_balance", False):
+                write_pad(
+                    file,
+                    "use mod_radiative_cooling, only: getvar_cooling, findL, "
+                    "calc_l_extended",
+                    2,
+                )
+        write_pad(file, "integer, intent(in) :: ixI^L, ixO^L", 2)
+        write_pad(file, "double precision, intent(in) :: qt", 2)
+        write_pad(
+            file, "double precision, intent(in) :: x(ixI^S,1:ndim), w(ixI^S,1:nw)", 2
+        )
+        write_pad(file, "double precision, intent (inout) :: bQgrid(ixI^S)", 2)
+
+        if eq.heatcool is not None:
+            if eq.heatcool.get("force_thermal_balance", False):
+                # assume force_thermal_balance
+                write_pad(file, "integer :: idx^D", 2)
+                write_pad(file, "real(dp) :: equil(ixI^S, nw+3), T0(ixI^S)", 2)
+                write_pad(file, "double precision :: l_temp, l_tot(ixI^S)", 2)
+                file.write("\n")
+
+                write_pad(file, "call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
+                write_pad(file, "T0(ixI^S) = equil(ixI^S, p_) / equil(ixI^S, rho_)", 2)
+                file.write("\n")
+
+                write_pad(
+                    file, "do idx1 = ixOmin1, ixOmax1 ! because of axisymmetry", 2
+                )
+                write_pad(
+                    file, "if(T0(idx1, ixOmin2, ixOmin3) <= rc_fl%tcoolmin) then", 3
+                )
+                write_pad(file, "l_temp = zero", 4)
+                write_pad(
+                    file, "else if(T0(idx1, ixOmin2, ixOmin3) >= rc_fl%tcoolmax)then", 3
+                )
+                write_pad(
+                    file,
+                    "call calc_l_extended(T0(idx1, ixOmin2, ixOmin3),l_temp,rc_fl)",
+                    4,
+                )
+                write_pad(file, "else", 3)
+                write_pad(
+                    file, "call findL(T0(idx1, ixOmin2, ixOmin3),l_temp,rc_fl)", 4
+                )
+                write_pad(file, "end if", 3)
+                write_pad(
+                    file, "l_tot(idx1, ixOmin2:ixOmax2, ixOmin3:ixOmax3) = l_temp", 3
+                )
+                write_pad(file, "end do", 2)
+                file.write("\n")
+                write_pad(
+                    file, "bQgrid(ixO^S) = equil(ixO^S, rho_)**2 * l_tot(ixO^S)", 2
+                )
+
+        elif eq._dict_phys.get("heating")[0] is not None:
+            # sympify heating function
+            expr = eq._dict_phys["heating"][0].subs(eq.variables.x, xv)
+            file.write("\n")
+
+            if is_sympy_number(expr):
+                write_pad(
+                    file,
+                    fcode(
+                        sp.sympify(float(expr)),
+                        assign_to="bQgrid(ixI^S)",
+                        source_format="free",
+                    ).lstrip(),
+                    2,
+                )
+            else:
+                func = fcode(
+                    expr, assign_to="bQgrid(ixI^S)", source_format="free"
+                ).lstrip()
+                for key in list(translation.keys()):
+                    func = func.replace(key, translation[key])
+                func = func.replace("\n", " &\n")
+                func = func.replace("@", "")
+                write_pad(file, func, 2)
+
+        write_pad(file, "end subroutine getbQ", 1)
+        file.write("\n")
 
 
 class Amrvac:
@@ -616,6 +733,47 @@ class Amrvac:
                 )
             self.config["parfile"]["convert_type"] = "dat_generic_mpi"
 
+        if self.config["parfile"].get("has_equi_rho_and_p", False):
+            if self.config["parfile"].get("mhd_equi_thermal", False):
+                if not self.config["equilibrium"].heatcool.get(
+                    "force_thermal_balance", False
+                ):
+                    raise AssertionError(
+                        "Keyword 'mhd_equi_thermal' present, "
+                        "but equilibrium is not in thermal balance."
+                    )
+            elif self.config["equilibrium"].heatcool is not None:
+                if self.config["equilibrium"].heatcool.get(
+                    "force_thermal_balance", False
+                ):
+                    self.config["parfile"][
+                        "mhd_equi_thermal"
+                    ] = True  # split rho and p implies mhd
+                    self.config["equilibrium"].heatcool["mhd_equi_thermal"] = True
+                    print("Changing things in function, but will it propagate?")
+                    pylboLogger.warning(
+                        "Equilibrium is in thermal balance. "
+                        "Adding 'mhd_equi_thermal=.true.' to parfile."
+                    )
+
+        if (
+            self.config.get("tc_perpendicular", False)
+            and self.config["equilibrium"].heatcool is not None
+        ):
+            if self.config["equilibrium"].heatcool["force_thermal_balance"]:
+                raise NotImplementedError(
+                    "Exact thermal balance with perpendicular thermal conduction "
+                    "not implemented. "
+                    "Provide a custom heating function in the equilibrium."
+                )
+
+        for key in self.config["equilibrium"]._dict_phys.keys():
+            if self.config["equilibrium"]._dict_phys[key][0] is not None:
+                if key not in ["gravity", "heating"]:
+                    raise NotImplementedError(
+                        f"MPI-AMRVAC does not support user-implemented {key}."
+                    )
+
     def _get_combined_perturbation(self, ef):
         """
         Takes Legolas's perturbations of different eigenvalues and adds them up to a
@@ -926,6 +1084,7 @@ class Amrvac:
             Path to the directory where the user module will be stored. Default is the
             current directory.
         """
+        self._validate_simulation_dict()
         self._validate_config_for_mod_usr()
         quantities = copy.deepcopy(self.ef_list)
         if self.config["dim"] <= 2:

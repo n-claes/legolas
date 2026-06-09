@@ -3,6 +3,7 @@ import numpy as np
 from scipy.io import FortranFile
 
 from pylbo.gimli.utils import is_symbol_dependent
+from pylbo.utilities.logger import pylboLogger
 
 
 class Variables:
@@ -116,6 +117,8 @@ class Equilibrium:
         The cooling prescription.
     heating : sympy expression
         The heating prescription.
+    heatcool : dict
+        Parameters for cooling and heating, including force_thermal_balance.
 
     Attributes
     ----------
@@ -157,12 +160,15 @@ class Equilibrium:
         cooling=None,
         heating=None,
         legolas_grid_spacing=None,
+        heatcool=None,
     ):
         self.variables = var
         self.rho0 = sp.sympify(rho0)
         self.v02, self.v03 = sp.sympify(v02), sp.sympify(v03)
         self.T0 = sp.sympify(T0)
         self.B02, self.B03 = sp.sympify(B02), sp.sympify(B03)
+
+        self.heatcool = heatcool
 
         self.grid_spacing = sp.sympify(legolas_grid_spacing)
 
@@ -194,6 +200,27 @@ class Equilibrium:
                 [self.variables.T0, self.variables.rho0],
             ],
         }
+        self._validate_equil()
+
+    def _validate_equil(self):
+        if self.heatcool is not None and not isinstance(self.heatcool, dict):
+            raise TypeError("heatcool must be a dictionary.")
+        elif self.heatcool is not None:
+            if "force_thermal_balance" not in self.heatcool.keys():
+                self.heatcool["force_thermal_balance"] = False
+            if (
+                self.heatcool["force_thermal_balance"]
+                and "heating" not in self.heatcool.keys()
+            ):
+                self.heatcool["heating"] = True
+
+        for key in self._dict_phys.keys():
+            if self._dict_phys[key][0] is not None:
+                if key not in ["gravity", "heating"]:
+                    pylboLogger.warning(
+                        f"MPI-AMRVAC does not support user-implemented {key} "
+                        "but Legolas does."
+                    )
 
     def get_physics(self):
         """

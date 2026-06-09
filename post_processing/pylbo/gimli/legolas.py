@@ -2,6 +2,7 @@ import copy
 from pylbo.automation.api import generate_parfiles
 import sympy as sp
 from sympy.printing.fortran import fcode
+from pylbo.utilities.logger import pylboLogger
 
 from pylbo.gimli.utils import (
     create_file,
@@ -232,7 +233,44 @@ class Legolas:
             self.config["physics_type"] != "hd" and self.config["physics_type"] != "mhd"
         ):
             raise ValueError("Unknown physics type.")
+        self._compare_heatcool()
         return
+
+    def _compare_heatcool(self):
+        """
+        Compares the presence of 'heatcool' in the equilibrium with the radiative
+        cooling settings in the config. 'heatcool' overrides config settings, but if
+        'heatcool' is not present, config settings are added to the equilibrium.
+        """
+        if self.equilibrium.heatcool is not None:
+            if self.config.get("radiative_cooling", None) is None:
+                self.config["radiative_cooling"] = True
+                pylboLogger.warning(
+                    "Setting 'radiative_cooling' to True based on presence of heatcool."
+                )
+            for key in self.equilibrium.heatcool.keys():
+                if self.config.get(key, "") != self.equilibrium.heatcool[key]:
+                    pylboLogger.warning(
+                        f"Key '{key}' in heatcool overrides value in config. "
+                        "Using value from heatcool."
+                    )
+                self.config[key] = self.equilibrium.heatcool[key]
+
+        else:
+            if self.config.get("radiative_cooling", None) is not None:
+                self.equilibrium.heatcool = {
+                    "force_thermal_balance": self.config.get(
+                        "force_thermal_balance", False
+                    )
+                }
+
+        if "heating" in self.equilibrium._dict_phys.keys() and not self.config.get(
+            "heating", False
+        ):
+            pylboLogger.warning(
+                "Heating function specified in equilibrium, setting, 'heating' to True."
+            )
+            self.config["heating"] = True
 
     def user_module(self, filename="smod_user_defined", loc=None):
         """
