@@ -730,6 +730,16 @@ class Amrvac:
                 )
             self.config["parfile"]["convert_type"] = "dat_generic_mpi"
 
+        if self.config["equilibrium"].heatcool is not None:
+            if self.config["equilibrium"].heatcool.get(
+                "force_thermal_balance", False
+            ) and self.config["equilibrium"]._dict_phys["heating"][0] is not None:
+                pylboLogger.warning(
+                    "Custom heating is overridden by 'force_thermal_balance'."
+                    "The thermal-balance heating source will be "
+                    "used instead."
+                )
+
         if self.config["parfile"].get("has_equi_rho_and_p", False):
             if self.config["parfile"].get("mhd_equi_thermal", False):
                 if not self.config["equilibrium"].heatcool.get(
@@ -747,7 +757,6 @@ class Amrvac:
                         "mhd_equi_thermal"
                     ] = True  # split rho and p implies mhd
                     self.config["equilibrium"].heatcool["mhd_equi_thermal"] = True
-                    print("Changing things in function, but will it propagate?")
                     pylboLogger.warning(
                         "Equilibrium is in thermal balance. "
                         "Adding 'mhd_equi_thermal=.true.' to parfile."
@@ -1175,7 +1184,7 @@ class Amrvac:
             write_pad(file, "usr_set_J0 => special_set_J0", 2)
         if self.config["parfile"].get("has_equi_rho_and_p", False):
             write_pad(file, "usr_set_equi_vars => special_set_equi_vars", 2)
-        if self.config["save_analytics"]:
+        if self.config.get("save_analytics", False):
             write_pad(file, "usr_print_log => analytics_log", 2)
         file.write("\n")
         write_pad(file, f"call {self.config['physics_type']}_activate()", 2)

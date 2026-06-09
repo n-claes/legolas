@@ -1,8 +1,10 @@
+
+import filecmp
+import pytest
 import pylbo.gimli as gimli
 import sympy as sp
 import numpy as np
 from scipy.io import FortranFile
-import filecmp
 
 
 def test_variables():
@@ -113,6 +115,123 @@ def test_legolas_userfile_mhd(tmpdir, mod_usr_mhd):
     assert filecmp.cmp(
         str((tmpdir / "smod_user_mhd.f08").resolve()), str(mod_usr_mhd), shallow=False
     )
+
+
+def test_amrvac_userfile_mhd(tmpdir):
+    var = gimli.Variables()
+    base_config = {
+        "physics_type": "mhd",
+        "geometry": "Cartesian",
+        "dim": 2,
+        "ldatfile": "",
+        "parameters": {"k2": 1.0, "k3": 0.0},
+        "parfile": {},
+    }
+
+    with pytest.raises(
+        NotImplementedError,
+        match="Exact thermal balance with perpendicular thermal conduction",
+    ):
+        gimli.Amrvac(
+            {
+                **base_config,
+                "tc_perpendicular": True,
+                "equilibrium": gimli.Equilibrium(
+                    var,
+                    var.rhoc,
+                    0,
+                    0,
+                    var.Tc,
+                    B02=var.B2c,
+                    B03=0,
+                    heatcool={"force_thermal_balance": True},
+                ),
+            }
+        ).user_module(filename="", loc=tmpdir)
+
+    with pytest.raises(
+        NotImplementedError,
+        match="MPI-AMRVAC does not support user-implemented parallel_conduction",
+    ):
+        gimli.Amrvac(
+            {
+                **base_config,
+                "equilibrium": gimli.Equilibrium(
+                    var,
+                    var.rhoc,
+                    0,
+                    0,
+                    var.Tc,
+                    B02=var.B2c,
+                    B03=0,
+                    condpara=1.0,
+                ),
+            }
+        ).user_module(filename="", loc=tmpdir)
+
+
+def test_amrvac_validation_errors(tmpdir):
+    var = gimli.Variables()
+
+    with pytest.raises(
+        KeyError, match=r'"physics_type" \("hd" / "mhd"\) not specified'
+    ):
+        gimli.Amrvac(
+            {
+                "geometry": "Cartesian",
+                "dim": 2,
+                "ldatfile": "",
+                "parameters": {"k2": 1.0, "k3": 0.0},
+                "parfile": {},
+                "equilibrium": gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc),
+            }
+        )
+
+    with pytest.raises(ValueError, match="Specified dimenisionality not supported"):
+        gimli.Amrvac(
+            {
+                "physics_type": "mhd",
+                "geometry": "Cartesian",
+                "dim": 4,
+                "ldatfile": "",
+                "parameters": {"k2": 1.0, "k3": 0.0},
+                "parfile": {},
+                "equilibrium": gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc),
+            }
+        ).user_module(filename="", loc=tmpdir)
+
+    with pytest.raises(TypeError, match="'parfile' must be a dictionary"):
+        gimli.Amrvac(
+            {
+                "physics_type": "mhd",
+                "geometry": "Cartesian",
+                "dim": 2,
+                "ldatfile": "",
+                "parameters": {"k2": 1.0, "k3": 0.0},
+                "parfile": [],
+                "equilibrium": gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc),
+            }
+        ).user_module(filename="", loc=tmpdir)
+
+
+def test_amrvac_userfile_hd_split_fields(tmpdir):
+    var = gimli.Variables()
+
+    with pytest.raises(
+        AssertionError,
+        match="Split rho and p not supported for physics type 'hd'.",
+    ):
+        gimli.Amrvac(
+            {
+                "physics_type": "hd",
+                "geometry": "Cartesian",
+                "dim": 2,
+                "ldatfile": "",
+                "parameters": {"k2": 1.0, "k3": 0.0},
+                "parfile": {"has_equi_rho_and_p": True},
+                "equilibrium": gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc),
+            }
+        ).user_module(filename="", loc=tmpdir)
 
 
 def test_amrvac_preparation(tmpdir, datv211_harris, vacv211_harris):
