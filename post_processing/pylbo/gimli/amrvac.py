@@ -174,6 +174,8 @@ def write_physics_pointers(file, eq):
 def write_physics_subroutines(file, eq):
     translation = eq.variables.fkey
     translation["x_v"] = "x(ixI^S, 1)"
+    translation["rho_0"] = "equil(ixI^S, rho_)"
+    translation["T_0"] = "equil(ixI^S, p_)/equil(ixI^S, rho_)"
     xv = sp.Symbol("x_v")
 
     if eq._dict_phys["gravity"][0] is not None:
@@ -321,6 +323,7 @@ def write_physics_subroutines(file, eq):
                 func = func.replace("@", "")
             func = func + " * equil(ixI^S, rho_)"
             write_pad(file, func, 2)
+            write_pad(file, "! MPI-AMRVAC adds rho\mathcal{L} to the energy equation", 2)
 
         write_pad(file, "end subroutine getbQ", 1)
         file.write("\n")
