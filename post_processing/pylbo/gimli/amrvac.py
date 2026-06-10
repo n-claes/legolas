@@ -840,7 +840,9 @@ class Amrvac:
                     )
                 # relative check between real/imag parts
                 rel_tol = 1e4
-                if np.max(np.abs(np.real(raw))) > rel_tol * np.max(np.abs(np.imag(raw))):
+                if np.max(np.abs(np.real(raw))) > rel_tol * np.max(
+                    np.abs(np.imag(raw))
+                ):
                     raw = np.real(raw)
                     pylboLogger.warning(
                         f"Perturbation of {ef} is almost purely real."
