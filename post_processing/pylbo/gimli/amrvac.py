@@ -802,7 +802,7 @@ class Amrvac:
                         f"MPI-AMRVAC does not support user-implemented {key}."
                     )
 
-    def _get_combined_perturbation(self, ef):
+    def _get_combined_perturbation(self, ef, clean=True):
         """
         Takes Legolas's perturbations of different eigenvalues and adds them up to a
         single perturbation.
@@ -824,32 +824,33 @@ class Amrvac:
             w = self.config["weights"][ii]
             raw = ef_data[ii][ef]
             scaling = ef_data[ii][self.config["quantity"].replace("0", "")]
-            # rotate the eigenfunction so that at the grid point where the real
-            # part is largest the value becomes purely real to remove
-            # arbitrary phase rotations (e.g. from shift-invert)
-            idx_max = np.argmax(np.abs(np.real(raw)))
-            phase = np.angle(raw[idx_max])
-            raw = raw * np.exp(-1j * phase)
-            # absolute check for efs that are almost zero
-            if np.allclose(np.abs(raw), 0, atol=1e-9):
-                raw = 0.0
-                pylboLogger.warning(
-                    f"Perturbation of {ef} is almost zero."
-                    " Setting perturbation to zero to avoid numerical issues."
-                )
-            # relative check between real/imag parts
-            rel_tol = 1e4
-            if np.max(np.abs(np.real(raw))) > rel_tol * np.max(np.abs(np.imag(raw))):
-                raw = np.real(raw)
-                pylboLogger.warning(
-                    f"Perturbation of {ef} is almost purely real."
-                    " Taking real part to avoid numerical issues."
-                )
+            if clean:
+                # rotate the eigenfunction so that at the grid point where the real
+                # part is largest the value becomes purely real to remove
+                # arbitrary phase rotations (e.g. from shift-invert)
+                idx_max = np.argmax(np.abs(np.real(raw)))
+                phase = np.angle(raw[idx_max])
+                raw = raw * np.exp(-1j * phase)
+                # absolute check for efs that are almost zero
+                if np.allclose(np.abs(raw), 0, atol=1e-9):
+                    raw = 0.0
+                    pylboLogger.warning(
+                        f"Perturbation of {ef} is almost zero."
+                        " Setting perturbation to zero to avoid numerical issues."
+                    )
+                # relative check between real/imag parts
+                rel_tol = 1e4
+                if np.max(np.abs(np.real(raw))) > rel_tol * np.max(np.abs(np.imag(raw))):
+                    raw = np.real(raw)
+                    pylboLogger.warning(
+                        f"Perturbation of {ef} is almost purely real."
+                        " Taking real part to avoid numerical issues."
+                    )
             raw = raw * np.exp(1j * phase)  # reapply the phase
             perturbation += w * fac * (raw / np.nanmax(np.abs(scaling)))
         return perturbation
 
-    def _get_total_perturbation(self, ef_type):
+    def _get_total_perturbation(self, ef_type, clean=True):
         """
         Combines the perturbations of different eigenvalues into a single perturbation.
         Derives the pressure perturbation from the density and temperature
@@ -876,7 +877,7 @@ class Amrvac:
             )
             perturbation = rho1 * T0 + rho0 * T1
         else:
-            perturbation = self._get_combined_perturbation(ef_type)
+            perturbation = self._get_combined_perturbation(ef_type, clean=clean)
         return perturbation
 
     def _integrate_energy_term(self, array, order):
@@ -929,7 +930,7 @@ class Amrvac:
 
         return integral[0]
 
-    def _get_ef_normalisation(self):
+    def _get_ef_normalisation(self, clean=True):
         """
         Normalises the perturbation of the specified quantity by the maximum background
         value.
@@ -941,7 +942,7 @@ class Amrvac:
         """
         ef_match = self.config["quantity"].replace("0", "")
         max_bg = np.nanmax(np.abs(self.ds.equilibria[self.config["quantity"]]))
-        perturbation = self._get_total_perturbation(ef_match)
+        perturbation = self._get_total_perturbation(ef_match, clean=clean)
         if np.nanmax(np.abs(perturbation)) < 1e-10:
             raise AssertionError(
                 f"{self.config['quantity']} is not perturbed by the specified mode(s)."
@@ -955,7 +956,7 @@ class Amrvac:
             norm = self.config["percentage"] * max_bg / np.nanmax(np.abs(perturbation))
         return norm
 
-    def _get_energy_normalisation(self):
+    def _get_energy_normalisation(self, clean=True):
         """
         Normalises the perturbation eigenfunctions by the energy.
 
@@ -980,7 +981,7 @@ class Amrvac:
             eq[key] = np.interp(u1, u1_gauss, self.ds.equilibria[key])
         efs = {}
         for key in ef_list:
-            efs[key] = self._get_total_perturbation(key)
+            efs[key] = self._get_total_perturbation(key, clean=clean)
 
         e0 = (
             eq["rho0"] * (eq["v01"] ** 2 + eq["v02"] ** 2 + eq["v03"] ** 2) / 2
@@ -1023,7 +1024,7 @@ class Amrvac:
             pylboLogger.info(f"Normalization factor = {norm}")
         return norm
 
-    def _get_normalisation(self):
+    def _get_normalisation(self, clean=True):
         """
         Selects which procedure to follow for the normalisation.
 
@@ -1033,12 +1034,12 @@ class Amrvac:
             The normalisation factor.
         """
         if self.config["energy_norm"]:
-            norm = self._get_energy_normalisation()
+            norm = self._get_energy_normalisation(clean=clean)
         else:
-            norm = self._get_ef_normalisation()
+            norm = self._get_ef_normalisation(clean=clean)
         return norm
 
-    def prepare_legolas_data(self, name=None, loc=None):
+    def prepare_legolas_data(self, name=None, loc=None, clean=True):
         """
         Prepares a file (.ldat) from the Legolas data for use with MPI-AMRVAC.
 
@@ -1087,9 +1088,9 @@ class Amrvac:
         )
         f.write_record(self.ds.ef_grid)
 
-        norm = self._get_normalisation()
+        norm = self._get_normalisation(clean=clean)
         for ix in range(len(self.ef_list)):
-            pert = self._get_total_perturbation(self.ef_list[ix]) * norm
+            pert = self._get_total_perturbation(self.ef_list[ix], clean=clean) * norm
             f.write_record(pert)
 
         u = []
