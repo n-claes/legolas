@@ -1,11 +1,8 @@
 import filecmp
-import logging
-
 import pytest
 import pylbo.gimli as gimli
 import sympy as sp
 import numpy as np
-from pylbo.utilities.logger import pylboLogger
 from scipy.io import FortranFile
 
 
