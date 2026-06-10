@@ -216,7 +216,7 @@ class Equilibrium:
 
         for key in self._dict_phys.keys():
             if self._dict_phys[key][0] is not None:
-                if key not in ["gravity", "heating"]:
+                if key not in ["gravity", "heating", "resistivity"]:
                     pylboLogger.warning(
                         f"MPI-AMRVAC does not support user-implemented {key} "
                         "but Legolas does."

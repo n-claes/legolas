@@ -1,9 +1,11 @@
-
 import filecmp
+import logging
+
 import pytest
 import pylbo.gimli as gimli
 import sympy as sp
 import numpy as np
+from pylbo.utilities.logger import pylboLogger
 from scipy.io import FortranFile
 
 
@@ -117,6 +119,104 @@ def test_legolas_userfile_mhd(tmpdir, mod_usr_mhd):
     )
 
 
+def test_legolas_resistivity_enables_setting():
+    var = gimli.Variables()
+    config = {
+        "geometry": "Cartesian",
+        "x_start": -1,
+        "x_end": 1,
+        "gridpoints": 11,
+        "parameters": {"cte_rho0": 1.0, "cte_T0": 1.0, "k2": 1.0, "k3": 0.0},
+        "equilibrium_type": "user_defined",
+        "physics_type": "mhd",
+        "logging_level": 1,
+        "resistivity": False,
+    }
+
+    obj = gimli.Legolas(
+        gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc, resistivity=var.x),
+        config,
+    )
+
+    assert obj.config["resistivity"] is True
+
+
+def test_amrvac_resistivity_overrides_mhd_eta(tmpdir, caplog):
+    var = gimli.Variables()
+    config = {
+        "physics_type": "mhd",
+        "geometry": "Cartesian",
+        "dim": 2,
+        "ldatfile": "",
+        "parameters": {
+            "cte_rho0": 1.0,
+            "cte_T0": 1.0,
+            "cte_B02": 1.0,
+            "k2": 1.0,
+            "k3": 0.0,
+        },
+        "parfile": {"mhd_eta": 1.0},
+        "equilibrium": gimli.Equilibrium(
+            var,
+            var.rhoc,
+            0,
+            0,
+            var.Tc,
+            B02=var.B2c,
+            B03=0,
+            resistivity=var.x,
+        ),
+    }
+
+    amrvac = gimli.Amrvac(config)
+    amrvac.user_module(filename="mod_usr_resistivity", loc=tmpdir)
+
+    assert amrvac.config["parfile"]["mhd_eta"] == -1.0
+
+
+def test_amrvac_userfile_only_wavenumbers(tmpdir):
+    var = gimli.Variables()
+    config = {
+        "physics_type": "mhd",
+        "geometry": "Cartesian",
+        "dim": 2,
+        "ldatfile": "test_only_wavenumbers",
+        "parameters": {"k2": 1.0, "k3": 0.0},
+        "parfile": {},
+        "equilibrium": gimli.Equilibrium(
+            var, var.rhoc, 0, 0, var.Tc, B02=var.B2c, B03=0
+        ),
+    }
+
+    gimli.Amrvac(config).user_module(filename="mod_usr_only_wavenumbers", loc=tmpdir)
+
+    contents = (tmpdir / "mod_usr_only_wavenumbers.t").read_text()
+    assert "usr_set_parameters => initglobaldata_usr" not in contents
+    assert "subroutine initglobaldata_usr" not in contents
+
+
+def test_legolas_userfile_only_wavenumbers(tmpdir):
+    var = gimli.Variables()
+    config = {
+        "geometry": "Cartesian",
+        "x_start": -1,
+        "x_end": 1,
+        "gridpoints": 11,
+        "parameters": {"k2": 1.0, "k3": 0.0},
+        "equilibrium_type": "user_defined",
+        "physics_type": "mhd",
+        "logging_level": 1,
+    }
+
+    gimli.Legolas(gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc), config).user_module(
+        filename="smod_only_wavenumbers", loc=tmpdir
+    )
+
+    contents = (tmpdir / "smod_only_wavenumbers.f08").read_text()
+    assert "usr_set_parameters => initglobaldata_usr" not in contents
+    assert "use mod_equilibrium_params" not in contents
+
+
 def test_amrvac_userfile_mhd(tmpdir):
     var = gimli.Variables()
     base_config = {
@@ -124,7 +224,13 @@ def test_amrvac_userfile_mhd(tmpdir):
         "geometry": "Cartesian",
         "dim": 2,
         "ldatfile": "",
-        "parameters": {"k2": 1.0, "k3": 0.0},
+        "parameters": {
+            "cte_rho0": 1.0,
+            "cte_T0": 1.0,
+            "cte_B02": 1.0,
+            "k2": 1.0,
+            "k3": 0.0,
+        },
         "parfile": {},
     }
 
@@ -181,7 +287,7 @@ def test_amrvac_validation_errors(tmpdir):
                 "geometry": "Cartesian",
                 "dim": 2,
                 "ldatfile": "",
-                "parameters": {"k2": 1.0, "k3": 0.0},
+                "parameters": {"cte_rho0": 1.0, "cte_T0": 1.0, "k2": 1.0, "k3": 0.0},
                 "parfile": {},
                 "equilibrium": gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc),
             }
@@ -194,7 +300,7 @@ def test_amrvac_validation_errors(tmpdir):
                 "geometry": "Cartesian",
                 "dim": 4,
                 "ldatfile": "",
-                "parameters": {"k2": 1.0, "k3": 0.0},
+                "parameters": {"cte_rho0": 1.0, "cte_T0": 1.0, "k2": 1.0, "k3": 0.0},
                 "parfile": {},
                 "equilibrium": gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc),
             }
@@ -207,7 +313,7 @@ def test_amrvac_validation_errors(tmpdir):
                 "geometry": "Cartesian",
                 "dim": 2,
                 "ldatfile": "",
-                "parameters": {"k2": 1.0, "k3": 0.0},
+                "parameters": {"cte_rho0": 1.0, "cte_T0": 1.0, "k2": 1.0, "k3": 0.0},
                 "parfile": [],
                 "equilibrium": gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc),
             }
@@ -227,7 +333,7 @@ def test_amrvac_userfile_hd_split_fields(tmpdir):
                 "geometry": "Cartesian",
                 "dim": 2,
                 "ldatfile": "",
-                "parameters": {"k2": 1.0, "k3": 0.0},
+                "parameters": {"cte_rho0": 1.0, "cte_T0": 1.0, "k2": 1.0, "k3": 0.0},
                 "parfile": {"has_equi_rho_and_p": True},
                 "equilibrium": gimli.Equilibrium(var, var.rhoc, 0, 0, var.Tc),
             }

@@ -146,13 +146,8 @@ def write_physics_pointers(file, eq):
         "perpendicular_conduction": "",
         "cooling": "",
         "heating": "source",
+        "resistivity": "special_resistivity",
     }
-
-    # can eta be a function in amrvac?
-    # if (eq._dict_phys["resistivity"][0] is not None
-    #     and not is_symbol_dependent(eq._dict_phys["resistivity"][2], &
-    #       eq._dict_phys["resistivity"][0])):
-    #     vac_names["resistivity"] = ""
 
     for key in vac_names.keys():
         if eq._dict_phys[key][0] is not None:
@@ -175,7 +170,7 @@ def write_physics_subroutines(file, eq):
     translation = eq.variables.fkey
     translation["x_v"] = "x(ixI^S, 1)"
     translation["rho_0"] = "equil(ixI^S, rho_)"
-    translation["T_0"] = "equil(ixI^S, p_)/equil(ixI^S, rho_)"
+    translation["T_0"] = "(equil(ixI^S, p_)/equil(ixI^S, rho_))"
     xv = sp.Symbol("x_v")
 
     if eq._dict_phys["gravity"][0] is not None:
@@ -193,25 +188,8 @@ def write_physics_subroutines(file, eq):
         file.write("\n")
         write_pad(file, "gravity_field           = 0.d0", 2)
 
-        if is_sympy_number(expr):
-            write_pad(
-                file,
-                fcode(
-                    sp.sympify(-float(expr)),
-                    assign_to="gravity_field(ixI^S, 1)",
-                    source_format="free",
-                ).lstrip(),
-                2,
-            )
-        else:
-            func = fcode(
-                -expr, assign_to="gravity_field(ixI^S, 1)", source_format="free"
-            ).lstrip()
-            for key in list(translation.keys()):
-                func = func.replace(key, translation[key])
-            func = func.replace("\n", " &\n")
-            func = func.replace("@", "")
-            write_pad(file, func, 2)
+        func = get_code_expression(-expr, translation, "gravity_field(ixI^S, 1)")
+        write_pad(file, func, 2)
 
         write_pad(file, "end subroutine set_gravity", 1)
         file.write("\n")
@@ -266,16 +244,16 @@ def write_physics_subroutines(file, eq):
             if eq.heatcool.get("force_thermal_balance", False):
                 # assume force_thermal_balance
                 write_pad(file, "integer :: idx^D", 2)
-                write_pad(file, "double precision :: T0(ixI^S), l_temp, l_tot(ixI^S)", 2)
+                write_pad(
+                    file, "double precision :: T0(ixI^S), l_temp, l_tot(ixI^S)", 2
+                )
                 file.write("\n")
 
                 write_pad(file, "call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
                 write_pad(file, "T0(ixI^S) = equil(ixI^S, p_) / equil(ixI^S, rho_)", 2)
                 file.write("\n")
 
-                write_pad(
-                    file, "do idx1 = ixOmin1, ixOmax1 ! because of axisymmetry", 2
-                )
+                write_pad(file, "do idx1 = ixOmin1, ixOmax1", 2)
                 write_pad(
                     file, "if(T0(idx1, ixOmin2, ixOmin3) <= rc_fl%tcoolmin) then", 3
                 )
@@ -307,26 +285,59 @@ def write_physics_subroutines(file, eq):
             file.write("\n")
             write_pad(file, "call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
 
-            if is_sympy_number(expr):
-                func = fcode(
-                        sp.sympify(float(expr)),
-                        assign_to="bQgrid(ixI^S)",
-                        source_format="free",
-                    ).lstrip()
-            else:
-                func = fcode(
-                    expr, assign_to="bQgrid(ixI^S)", source_format="free"
-                ).lstrip()
-                for key in list(translation.keys()):
-                    func = func.replace(key, translation[key])
-                func = func.replace("\n", " &\n")
-                func = func.replace("@", "")
+            func = get_code_expression(expr, translation, "bQgrid(ixI^S)")
             func = func + " * equil(ixI^S, rho_)"
             write_pad(file, func, 2)
-            write_pad(file, "! MPI-AMRVAC adds rho\mathcal{L} to the energy equation", 2)
+            write_pad(
+                file, "! MPI-AMRVAC adds rho mathcal{L} to the energy equation", 2
+            )
 
         write_pad(file, "end subroutine getbQ", 1)
         file.write("\n")
+
+    if eq._dict_phys["resistivity"][0] is not None:
+        write_pad(
+            file, "subroutine set_resistivity(w,ixI^L,ixO^L,idirmin,x,current,eta)", 1
+        )
+        write_pad(file, "use mod_global_parameters", 2)
+        write_pad(file, "integer, intent(in)              :: ixI^L, ixO^L, idirmin", 2)
+        write_pad(
+            file, "double precision, intent(in)     :: w(ixI^S,nw), x(ixI^S,1:ndim)", 2
+        )
+        write_pad(
+            file,
+            "double precision                 :: current(ixI^S,7-2*ndir:3), eta(ixI^S)",
+            2,
+        )
+        write_pad(file, "double precision                 :: equil(ixI^S, nw+3)", 2)
+        file.write("\n")
+        write_pad(file, "call get_equilibrium(ixI^L, ixO^L, x, equil)", 2)
+
+        expr = eq._dict_phys["resistivity"][0].subs(eq.variables.x, xv)
+
+        func = get_code_expression(expr, translation, "eta(ixI^S)")
+        write_pad(file, func, 2)
+
+        write_pad(file, "end subroutine set_resistivity", 1)
+        file.write("\n")
+
+
+def get_code_expression(expr, translation, assign):
+
+    if is_sympy_number(expr):
+        func = fcode(
+            sp.sympify(float(expr)),
+            assign_to=assign,
+            source_format="free",
+        ).lstrip()
+    else:
+        func = fcode(expr, assign_to=assign, source_format="free").lstrip()
+        for key in list(translation.keys()):
+            func = func.replace(key, translation[key])
+        func = func.replace("\n", " &\n")
+        func = func.replace("@", "")
+
+    return func
 
 
 class Amrvac:
@@ -734,9 +745,10 @@ class Amrvac:
             self.config["parfile"]["convert_type"] = "dat_generic_mpi"
 
         if self.config["equilibrium"].heatcool is not None:
-            if self.config["equilibrium"].heatcool.get(
-                "force_thermal_balance", False
-            ) and self.config["equilibrium"]._dict_phys["heating"][0] is not None:
+            if (
+                self.config["equilibrium"].heatcool.get("force_thermal_balance", False)
+                and self.config["equilibrium"]._dict_phys["heating"][0] is not None
+            ):
                 pylboLogger.warning(
                     "Custom heating is overridden by 'force_thermal_balance'."
                     "The thermal-balance heating source will be "
@@ -776,9 +788,16 @@ class Amrvac:
                     "Provide a custom heating function in the equilibrium."
                 )
 
+        if (
+            self.config["equilibrium"]._dict_phys["resistivity"][0] is not None
+            and self.config["parfile"].get("mhd_eta", 10) > 0
+        ):
+            pylboLogger.warning("Overriding 'mhd_eta' to use custom resistivity.")
+            self.config["parfile"]["mhd_eta"] = -1.0
+
         for key in self.config["equilibrium"]._dict_phys.keys():
             if self.config["equilibrium"]._dict_phys[key][0] is not None:
-                if key not in ["gravity", "heating"]:
+                if key not in ["gravity", "heating", "resistivity"]:
                     raise NotImplementedError(
                         f"MPI-AMRVAC does not support user-implemented {key}."
                     )
@@ -1158,7 +1177,8 @@ class Amrvac:
         write_pad(file, "integer, parameter :: file_id = 123", 1)
         file.write("\n")
         eqparam = get_equilibrium_parameters(self.config)
-        write_pad(file, f"double precision :: {eqparam}", 1)
+        if eqparam:
+            write_pad(file, f"double precision :: {eqparam}", 1)
         if self.config["parfile"].get("B0field", False):
             write_pad(file, "integer :: j1, j2, j3", 1)
         write_pad(file, "double precision :: gamma", 1)
@@ -1179,7 +1199,8 @@ class Amrvac:
         )
         write_pad(file, "call read_legolas_data(legolas_file, file_id)", 2)
         file.write("\n")
-        write_pad(file, "usr_set_parameters => initglobaldata_usr", 2)
+        if eqparam:
+            write_pad(file, "usr_set_parameters => initglobaldata_usr", 2)
         write_pad(file, "usr_init_one_grid  => initialise_grid", 2)
         write_physics_pointers(file, self.config["equilibrium"])
         if self.config["parfile"].get("B0field", False):
@@ -1194,11 +1215,12 @@ class Amrvac:
         write_pad(file, "end subroutine usr_init", 1)
         file.write("\n")
 
-        write_pad(file, "subroutine initglobaldata_usr()", 1)
-        for key in eqparam.split(", "):
-            write_pad(file, f"{key} = {self.config['parameters'][key]}", 2)
-        write_pad(file, "end subroutine initglobaldata_usr", 1)
-        file.write("\n")
+        if eqparam:
+            write_pad(file, "subroutine initglobaldata_usr()", 1)
+            for key in eqparam.split(", "):
+                write_pad(file, f"{key} = {self.config['parameters'][key]}", 2)
+            write_pad(file, "end subroutine initglobaldata_usr", 1)
+            file.write("\n")
 
         write_pad(file, "subroutine initialise_grid(ixI^L, ixO^L, w, x)", 1)
         write_pad(file, "integer, intent(in)             :: ixI^L, ixO^L", 2)

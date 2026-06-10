@@ -234,6 +234,7 @@ class Legolas:
         ):
             raise ValueError("Unknown physics type.")
         self._compare_heatcool()
+        self._check_resistivity()
         return
 
     def _compare_heatcool(self):
@@ -264,13 +265,42 @@ class Legolas:
                     )
                 }
 
-        if self.equilibrium._dict_phys["heating"][0] is not None and not self.config.get(
-            "heating", False
-        ):
+        if self.equilibrium._dict_phys["heating"][
+            0
+        ] is not None and not self.config.get("heating", False):
             pylboLogger.warning(
                 "Heating function specified in equilibrium, setting, 'heating' to True."
             )
             self.config["heating"] = True
+
+    def _check_resistivity(self):
+        """
+        Makes sure that resistivity is enabled if needed.
+        """
+        if (
+            self.equilibrium._dict_phys["resistivity"][0] is not None
+            or "fixed_resistivity_value" in self.config.keys()
+        ):
+            if not self.config.get("resistivity", False):
+                pylboLogger.warning(
+                    "Resistivity enabled, setting 'resistivity' to True."
+                )
+                self.config["resistivity"] = True
+
+        if (
+            self.config.get("resistivity", False)
+            and self.config.get("fixed_resistivity_value", -1) < 0
+        ):
+            if self.equilibrium._dict_phys["resistivity"][0] is None:
+                pylboLogger.warning(
+                    "Spitzer resistivity not implemented in MPI-AMRVAC."
+                )
+
+        if self.config.get("use_eta_dropoff", False):
+            pylboLogger.warning(
+                "Eta dropoff not implemented in MPI-AMRVAC, "
+                "ignoring 'use_eta_dropoff' setting."
+            )
 
     def user_module(self, filename="smod_user_defined", loc=None):
         """
@@ -320,7 +350,8 @@ class Legolas:
         write_pad(file, "submodule (mod_equilibrium) smod_user_defined", 0)
         write_pad(file, "use mod_logging, only: logger", 1)
         eqparam = get_equilibrium_parameters(self.config)
-        write_pad(file, "use mod_equilibrium_params, only: " + eqparam, 1)
+        if eqparam:
+            write_pad(file, "use mod_equilibrium_params, only: " + eqparam, 1)
         write_pad(file, "implicit none", 1)
         file.write("\n")
         write_pad(file, "real(dp) :: gamma", 1)
