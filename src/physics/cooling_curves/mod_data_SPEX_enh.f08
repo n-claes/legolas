@@ -1,19 +1,21 @@
-module mod_data_spex_enh
+module mod_data_SPEX_enh
   use mod_global_variables, only: dp
-  use mod_data_spex, only: n_spex
+  use mod_data_SPEX, only: n_SPEX
   implicit none
 
   public
 
-  integer, parameter :: n_spex_enh_dalgarno = 76
+  integer, parameter :: n_SPEX_enh_DM = 76
   !> log10 temperature values to enhance the SPEX curve with Dalgarno and McCray (1978)
-  real(dp), protected :: logT_spex_enh_dalgarno(n_spex_enh_dalgarno)
+  real(dp), protected :: logT_SPEX_enh_DM(n_SPEX_enh_DM)
   !> log10 luminosity values to enhance the SPEX curve with Dalgarno and McCray (1978)
-  real(dp), protected :: logL_spex_enh_dalgarno(n_spex_enh_dalgarno)
+  real(dp), protected :: logL_SPEX_enh_DM(n_SPEX_enh_DM)
   !> luminosity values to enhance the SPEX curve
-  real(dp), protected :: L_spex_enh(n_spex)
+  real(dp), protected :: L_SPEX_enh(n_SPEX)
 
-  data logT_spex_enh_dalgarno / &
+  ! values identical to those in MPI-AMRVAC
+
+  data logT_SPEX_enh_DM / &
     1.00_dp, 1.04_dp, 1.08_dp, 1.12_dp, 1.16_dp, 1.20_dp, 1.24_dp, 1.28_dp, 1.32_dp, &
     1.36_dp, 1.40_dp, 1.44_dp, 1.48_dp, 1.52_dp, 1.56_dp, 1.60_dp, 1.64_dp, 1.68_dp, &
     1.72_dp, 1.76_dp, 1.80_dp, 1.84_dp, 1.88_dp, 1.92_dp, 1.96_dp, 2.00_dp, 2.04_dp, &
@@ -24,7 +26,7 @@ module mod_data_spex_enh
     3.52_dp, 3.56_dp, 3.60_dp, 3.64_dp, 3.68_dp, 3.72_dp, 3.76_dp, 3.80_dp, 3.84_dp, &
     3.88_dp, 3.92_dp, 3.96_dp, 4.00_dp &
   /
-  data logL_spex_enh_dalgarno / &
+  data logL_SPEX_enh_DM / &
     -30.0377_dp, -29.7062_dp, -29.4055_dp, -29.1331_dp, -28.8864_dp, -28.6631_dp, &
     -28.4614_dp, -28.2791_dp, -28.1146_dp, -27.9662_dp, -27.8330_dp, -27.7129_dp, &
     -27.6052_dp, -27.5088_dp, -27.4225_dp, -27.3454_dp, -27.2767_dp, -27.2153_dp, &
@@ -39,7 +41,7 @@ module mod_data_spex_enh
     -25.6942_dp, -25.6878_dp, -25.6811_dp, -25.6733_dp, -25.6641_dp, -25.6525_dp, &
     -25.6325_dp, -25.6080_dp, -25.5367_dp, -25.4806_dp &
   /
-  data L_spex_enh / &
+  data L_SPEX_enh / &
     0.000013264_dp, 0.000042428_dp, 0.000088276_dp, 0.00017967_dp, &
     0.00084362_dp, 0.0034295_dp, 0.013283_dp, 0.042008_dp, &
     0.12138_dp, 0.30481_dp, 0.53386_dp, 0.76622_dp, &
@@ -60,4 +62,4 @@ module mod_data_spex_enh
     1.2090_dp, 1.2090_dp, 1.2090_dp, 1.2090_dp &
   /
 
-end module mod_data_spex_enh
+end module mod_data_SPEX_enh

@@ -15,7 +15,7 @@ class TestGoldHoyleQR(RegressionTest):
         "radiative_cooling": True,
         "heating": True,
         "force_thermal_balance": True,
-        "cooling_curve": "rosner",
+        "cooling_curve": "Rosner",
         "parallel_conduction": True,
         "perpendicular_conduction": False,
         "unit_density": 1.6727e-15,

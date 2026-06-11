@@ -1,16 +1,18 @@
-module mod_data_spex
+module mod_data_SPEX
   use mod_global_variables, only: dp
   implicit none
 
   public
 
-  integer, parameter :: n_spex = 110
+  integer, parameter :: n_SPEX = 110
   !> log10 temperature values from Schure et al. (2009)
-  real(dp), protected :: logT_spex(n_spex)
+  real(dp), protected :: logT_SPEX(n_SPEX)
   !> log10 luminosity values from Schure et al. (2009)
-  real(dp), protected :: logL_spex(n_spex)
+  real(dp), protected :: logL_SPEX(n_SPEX)
 
-  data logT_spex / &
+  ! values identical to those in MPI-AMRVAC
+
+  data logT_SPEX / &
     3.80_dp, 3.84_dp, 3.88_dp, 3.92_dp, 3.96_dp, 4.00_dp, 4.04_dp, 4.08_dp, 4.12_dp, &
     4.16_dp, 4.20_dp, 4.24_dp, 4.28_dp, 4.32_dp, 4.36_dp, 4.40_dp, 4.44_dp, 4.48_dp, &
     4.52_dp, 4.56_dp, 4.60_dp, 4.64_dp, 4.68_dp, 4.72_dp, 4.76_dp, 4.80_dp, 4.84_dp, &
@@ -26,7 +28,7 @@ module mod_data_spex
     8.12_dp, 8.16_dp &
   /
 
-  data logL_spex / &
+  data logL_SPEX / &
     -25.7331_dp, -25.0383_dp, -24.4059_dp, -23.8288_dp, -23.3027_dp, -22.8242_dp, &
     -22.3917_dp, -22.0067_dp, -21.6818_dp, -21.4529_dp, -21.3246_dp, -21.3459_dp, &
     -21.4305_dp, -21.5293_dp, -21.6138_dp, -21.6615_dp, -21.6551_dp, -21.5919_dp, &
@@ -48,4 +50,4 @@ module mod_data_spex
     -22.4912_dp, -22.4753_dp &
   /
 
-end module mod_data_spex
+end module mod_data_SPEX

@@ -1,16 +1,18 @@
-module mod_data_dalgarno2
+module mod_data_DM2
   use mod_global_variables, only: dp
   implicit none
 
   public
 
-  integer, parameter :: n_dalgarno2 = 76
+  integer, parameter :: n_DM2 = 76
   !> log10 temperature values from Dalgarno and McCray (1978) for low temperatures (DM2)
-  real(dp), protected :: logT_dalgarno2(n_dalgarno2)
+  real(dp), protected :: logT_DM2(n_DM2)
   !> log10 luminosity values from Dalgarno and McCray (1978) for low temperatures (DM2)
-  real(dp), protected :: logL_dalgarno2(n_dalgarno2)
+  real(dp), protected :: logL_DM2(n_DM2)
 
-  data logT_dalgarno2 / &
+  ! values identical to those in MPI-AMRVAC
+
+  data logT_DM2 / &
     1.00_dp, 1.04_dp, 1.08_dp, 1.12_dp, 1.16_dp, 1.20_dp, &
     1.24_dp, 1.28_dp, 1.32_dp, 1.36_dp, 1.40_dp, &
     1.44_dp, 1.48_dp, 1.52_dp, 1.56_dp, 1.60_dp, &
@@ -27,7 +29,7 @@ module mod_data_dalgarno2
     3.64_dp, 3.68_dp, 3.72_dp, 3.76_dp, 3.80_dp, &
     3.84_dp, 3.88_dp, 3.92_dp, 3.96_dp, 4.00_dp &
   /
-  data logL_dalgarno2 / &
+  data logL_DM2 / &
     -30.0377_dp, -29.7062_dp, -29.4055_dp, -29.1331_dp, -28.8864_dp, -28.6631_dp, &
     -28.4614_dp, -28.2791_dp, -28.1146_dp, -27.9662_dp, -27.8330_dp, &
     -27.7129_dp, -27.6052_dp, -27.5088_dp, -27.4225_dp, -27.3454_dp, &
@@ -45,4 +47,4 @@ module mod_data_dalgarno2
     -25.6525_dp, -25.6325_dp, -25.6080_dp, -25.5367_dp, -25.4806_dp &
   /
 
-end module mod_data_dalgarno2
+end module mod_data_DM2

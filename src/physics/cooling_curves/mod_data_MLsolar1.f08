@@ -1,15 +1,17 @@
-module mod_data_mlsolar
+module mod_data_MLsolar1
   use mod_global_variables, only: dp
   implicit none
 
   public
 
-  integer, parameter :: n_mlsolar = 71
-  real(dp), protected :: logT_mlsolar(n_mlsolar)
-  real(dp), protected :: logL_mlsolar(n_mlsolar)
+  integer, parameter :: n_MLsolar1 = 71
+  real(dp), protected :: logT_MLsolar1(n_MLsolar1)
+  real(dp), protected :: logL_MLsolar1(n_MLsolar1)
+
+  ! values identical to those in MPI-AMRVAC
 
   !> log10 temperature values from Melemma and Lundqvist (2002), solar metallicity
-  data logT_mlsolar / &
+  data logT_MLsolar1 / &
     2.0_dp, 2.1_dp, 2.2_dp, 2.3_dp, 2.4_dp, 2.5_dp, 2.6_dp, 2.7_dp, 2.8_dp, 2.9_dp, &
     3.0_dp, 3.1_dp, 3.2_dp, 3.3_dp, 3.4_dp, 3.5_dp, 3.6_dp, 3.7_dp, 3.8_dp, 3.9_dp, &
     4.0_dp, 4.1_dp, 4.2_dp, 4.3_dp, 4.4_dp, 4.5_dp, 4.6_dp, 4.7_dp, 4.8_dp, 4.9_dp, &
@@ -21,7 +23,7 @@ module mod_data_mlsolar
   /
 
   !> log10 luminosity values from Melemma and Lundqvist (2002), solar metallicity
-  data logL_mlsolar / &
+  data logL_MLsolar1 / &
     -26.983_dp, -26.951_dp, -26.941_dp, -26.940_dp, -26.956_dp, -26.980_dp, &
     -27.011_dp, -27.052_dp, -27.097_dp, -27.145_dp, -27.195_dp, -27.235_dp, &
     -27.279_dp, -27.327_dp, -27.368_dp, -27.415_dp, -27.456_dp, -27.485_dp, &
@@ -36,4 +38,4 @@ module mod_data_mlsolar
     -22.320_dp, -22.270_dp, -22.220_dp, -22.170_dp, -22.120_dp &
   /
 
-end module mod_data_mlsolar
+end module mod_data_MLsolar1

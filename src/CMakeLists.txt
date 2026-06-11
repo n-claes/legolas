@@ -49,14 +49,14 @@ set (sources
         dataIO/mod_input.f08
         dataIO/mod_arrays.f08
         physics/cooling_curves/mod_cooling_curve_names.f08
-        physics/cooling_curves/mod_data_dalgarno.f08
-        physics/cooling_curves/mod_data_dalgarno2.f08
-        physics/cooling_curves/mod_data_jccorona.f08
-        physics/cooling_curves/mod_data_mlsolar.f08
-        physics/cooling_curves/mod_data_rosner.f08
-        physics/cooling_curves/mod_data_spex.f08
-        physics/cooling_curves/mod_data_spex_enh.f08
-        physics/cooling_curves/mod_data_colgan.f08
+        physics/cooling_curves/mod_data_DM.f08
+        physics/cooling_curves/mod_data_DM2.f08
+        physics/cooling_curves/mod_data_JCcorona.f08
+        physics/cooling_curves/mod_data_MLsolar1.f08
+        physics/cooling_curves/mod_data_Rosner.f08
+        physics/cooling_curves/mod_data_SPEX.f08
+        physics/cooling_curves/mod_data_SPEX_enh.f08
+        physics/cooling_curves/mod_data_Colgan.f08
         physics/cooling_curves/mod_cooling_curves.f08
         physics/mod_physics_utils.f08
         physics/mod_physics.f08

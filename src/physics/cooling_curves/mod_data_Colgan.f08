@@ -1,16 +1,18 @@
-module mod_data_colgan
+module mod_data_Colgan
     use mod_global_variables, only: dp
     implicit none
   
     public
   
-    integer, parameter :: n_colgan = 55
+    integer, parameter :: n_Colgan = 55
     !> log10 temperature values from Colgan (2008)
-    real(dp), protected :: logT_colgan(n_colgan)
+    real(dp), protected :: logT_Colgan(n_Colgan)
     !> log10 luminosity values from Colgan (2008)
-    real(dp), protected :: logL_colgan(n_colgan)
+    real(dp), protected :: logL_Colgan(n_Colgan)
+
+    ! values identical to those in MPI-AMRVAC
   
-    data logT_colgan / &
+    data logT_Colgan / &
       4.06460772_dp, 4.14229559_dp, 4.21995109_dp, 4.29760733_dp, 4.37527944_dp, 4.45293587_dp, &
       4.53060946_dp, 4.60826923_dp, 4.68592974_dp, 4.76359269_dp, 4.79704583_dp, 4.83049243_dp, &
       4.86394114_dp, 4.89738514_dp, 4.93083701_dp, 4.96428321_dp, 4.99773141_dp, 5.03116600_dp, &
@@ -22,7 +24,7 @@ module mod_data_colgan
       8.39795738_dp, 8.50906805_dp, 8.62017771_dp, 8.73129054_dp, 8.84240328_dp, 8.95351325_dp, & 
       9.06460772_dp &
     /
-    data logL_colgan / &
+    data logL_Colgan / &
       -22.18883401_dp, -21.78629635_dp, -21.60383554_dp, -21.68480662_dp, -21.76444630_dp, &
       -21.67935529_dp, -21.54217864_dp, -21.37958284_dp, -21.25171892_dp, -21.17584161_dp, &
       -21.15783402_dp, -21.14491111_dp, -21.13526945_dp, -21.12837453_dp, -21.12485189_dp, &
@@ -36,4 +38,4 @@ module mod_data_colgan
       -22.31261375_dp, -22.26827428_dp, -22.22203698_dp, -22.17422996_dp, -22.12514145_dp &
     /
   
-  end module mod_data_colgan
+  end module mod_data_Colgan
