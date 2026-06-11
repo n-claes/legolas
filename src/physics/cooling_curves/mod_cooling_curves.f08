@@ -250,7 +250,7 @@ contains
     case(SPEX)
       table_n = n_SPEX
       table_T = logT_SPEX
-      table_lambda = logL_SPEX
+      table_lambda = logL_SPEX + log10(L_SPEX_enh)
     case(SPEX_DALGARNO)
       table_n = n_SPEX + n_SPEX_enh_DM - 6
       allocate(table_T(table_n))
