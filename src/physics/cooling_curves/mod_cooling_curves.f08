@@ -125,7 +125,7 @@ contains
     real(dp), intent(in) :: x
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
-    real(dp) :: logT0, logxi, alpha
+    real(dp) :: logT0, logxi, alpha, logTmax
     real(dp) :: unit_temperature, unit_lambdaT
     integer :: idx
 
@@ -135,9 +135,9 @@ contains
 
     if (logT0 < logT_Rosner(1)) then
       get_Rosner_lambdaT = 0.0_dp
-    elif (logT0 > logT_Rosner(n_Rosner)) then
-      logxi = logxi_Rosner(n_Rosner+1)
-      alpha = alpha_Rosner(n_Rosner+1)
+    else if (logT0 > logT_Rosner(n_Rosner)) then
+      logxi = logxi_Rosner(n_Rosner)
+      alpha = alpha_Rosner(n_Rosner)
       logTmax = logT_Rosner(n_Rosner+1)
       ! lambdaT = xi * T**alpha, so log10(lambdaT) = log10(xi) + alpha * log10(T)
       get_Rosner_lambdaT = 10.0_dp**(logxi + alpha * logTmax) / unit_lambdaT
@@ -157,7 +157,7 @@ contains
     real(dp), intent(in) :: x
     type(settings_t), intent(in) :: settings
     type(background_t), intent(in) :: background
-    real(dp) :: logT0, logxi, alpha
+    real(dp) :: logT0, logxi, alpha, logTmax
     real(dp) :: unit_temperature, unit_lambdaT
     integer :: idx
 
@@ -167,9 +167,9 @@ contains
 
     if (logT0 < logT_Rosner(1)) then
       get_Rosner_dlambdadT = 0.0_dp
-    elif (logT0 > logT_Rosner(n_Rosner)) then
-      logxi = logxi_Rosner(n_Rosner+1)
-      alpha = alpha_Rosner(n_Rosner+1)
+    else if (logT0 > logT_Rosner(n_Rosner)) then
+      logxi = logxi_Rosner(n_Rosner)
+      alpha = alpha_Rosner(n_Rosner)
       logTmax = logT_Rosner(n_Rosner+1)
       ! dlambdadT = alpha * xi * T**(alpha - 1), and so
       !           = alpha * 10**(logxi + (alpha - 1) * logT0)
