@@ -4,12 +4,7 @@ module mod_test_cooling_tables
   use mod_cooling_curves
   use mod_function_utils, only: from_function
 
-  use mod_data_JCcorona
-  use mod_data_DM
-  use mod_data_DM_2
-  use mod_data_MLsolar1
-  use mod_data_SPEX
-  use mod_data_Colgan
+  use mod_radloss_tables
 
   implicit none
 
