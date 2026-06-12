@@ -7,7 +7,7 @@ module mod_cooling_curve_names
   character(len=str_len), parameter :: NOTHING = "nothing"
   character(len=str_len), parameter :: JC_CORONA = "JCcorona"
   character(len=str_len), parameter :: DALGARNO = "DM"
-  character(len=str_len), parameter :: DALGARNO2 = "DM2"
+  character(len=str_len), parameter :: DALGARNO2 = "DM_2"
   character(len=str_len), parameter :: ML_SOLAR = "MLsolar1"
   character(len=str_len), parameter :: SPEX = "SPEX"
   character(len=str_len), parameter :: SPEX_DALGARNO = "SPEX_DM"

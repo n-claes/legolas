@@ -92,12 +92,12 @@ At the moment 8 tabulated cooling curves are implemented, along with 1 analytica
 | `Rosner`     		| Analytical cooling curve | $3.891 - 7.605$ | [Rosner et al. (1978)](https://ui.adsabs.harvard.edu/abs/1978ApJ...220..643R/abstract) |
 | `JCcorona` 	  | Cooling curve for coronal conditions | $4.000 - 7.954$ | [Colgan et al. (2008)](https://ui.adsabs.harvard.edu/abs/2008ApJ...689..585C/abstract) |
 | `DM`   	  | Cooling curve for low temperatures | $2.000 - 9.000$ | [Dalgarno & McCray (1972)](https://ui.adsabs.harvard.edu/abs/1972ARA%26A..10..375D/abstract) |
-| `DM2` 		| Cooling curve for very low temperatures | $1.000 - 4.000$ | [Dalgarno & McCray (1972)](https://ui.adsabs.harvard.edu/abs/1972ARA%26A..10..375D/abstract) |
+| `DM_2` 		| Cooling curve for very low temperatures | $1.000 - 4.000$ | [Dalgarno & McCray (1972)](https://ui.adsabs.harvard.edu/abs/1972ARA%26A..10..375D/abstract) |
 | `MLsolar1`  		| Cooling curve for solar abundances | $2.000 - 9.000$ | [Mellema & Lundqvist (2002)](https://ui.adsabs.harvard.edu/abs/2002A%26A...394..901M/abstract) |
 | `SPEX`			 		| Cooling curve for solar abundances | $3.800 - 8.160$ | [Schure et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009A%26A...508..751S/abstract) |
 | `SPEX_DM` | `SPEX` supplemented with `DM` for lower temperatures | $2.000 - 8.160$ | - |
 | `Colgan`     		| The original cooling curve | $4.065 - 9.065$ | [Colgan & Feldman (2008)](https://ui.adsabs.harvard.edu/abs/2008ApJ...689..585C/abstract) |
-| `Colgan_DM`  		| `Colgan` supplemented with `DM2` for lower temperatures | $1.000 - 9.065$ | - |
+| `Colgan_DM`  		| `Colgan` supplemented with `DM_2` for lower temperatures | $1.000 - 9.065$ | - |
 
 All cooling curves are interpolated at high resolution using a local second order polynomial and then sampled on the grid, with the exception of the analytical curves.
 Note that all tabulated cooling curves are extended to higher temperatures (i.e. outside of their tabulated range) by assuming pure Brehmsstrahlung ($\Lambda(T) \sim \sqrt{T}$). For temperatures

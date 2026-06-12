@@ -6,7 +6,7 @@ module mod_cooling_curves
   use mod_interpolation, only: lookup_table_value, get_numerical_derivative
 
   use mod_cooling_curve_names
-  use mod_data_Rosner
+  use mod_radloss_tables
 
   implicit none
 
@@ -216,14 +216,7 @@ contains
 
   subroutine get_cooling_table(name, table_T, table_lambda)
     use mod_cooling_curve_names
-    use mod_data_DM
-    use mod_data_DM2
-    use mod_data_JCcorona
-    use mod_data_MLsolar1
-    use mod_data_Rosner
-    use mod_data_SPEX
-    use mod_data_SPEX_enh
-    use mod_data_Colgan
+    use mod_radloss_tables
 
     character(len=*), intent(in) :: name
     real(dp), intent(out), allocatable :: table_T(:)
@@ -240,9 +233,9 @@ contains
       table_T = logT_DM
       table_lambda = logL_DM
     case(DALGARNO2)
-      table_n = n_DM2
-      table_T = logT_DM2
-      table_lambda = logL_DM2
+      table_n = n_DM_2
+      table_T = logT_DM_2
+      table_lambda = logL_DM_2
     case(ML_SOLAR)
       table_n = n_MLsolar1
       table_T = logT_MLsolar1
@@ -270,13 +263,13 @@ contains
       table_T = logT_Colgan
       table_lambda = logL_Colgan
     case(COLGAN_DM)
-      table_n = n_Colgan + n_DM2
+      table_n = n_Colgan + n_DM_2
       allocate(table_T(table_n))
       allocate(table_lambda(table_n))
-      table_T(1:n_DM2) = logT_DM2(1:n_DM2)
-      table_T(n_DM2+1:) = logT_Colgan(1:n_Colgan)
-      table_lambda(1:n_DM2) = logL_DM2(1:n_DM2)
-      table_lambda(n_DM2+1:) = logL_Colgan(1:n_Colgan)
+      table_T(1:n_DM_2) = logT_DM_2(1:n_DM_2)
+      table_T(n_DM_2+1:) = logT_Colgan(1:n_Colgan)
+      table_lambda(1:n_DM_2) = logL_DM_2(1:n_DM_2)
+      table_lambda(n_DM_2+1:) = logL_Colgan(1:n_Colgan)
     end select
   end subroutine get_cooling_table
 

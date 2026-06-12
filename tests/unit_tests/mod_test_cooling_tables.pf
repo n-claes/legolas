@@ -6,7 +6,7 @@ module mod_test_cooling_tables
 
   use mod_data_JCcorona
   use mod_data_DM
-  use mod_data_DM2
+  use mod_data_DM_2
   use mod_data_MLsolar1
   use mod_data_SPEX
   use mod_data_Colgan
@@ -253,9 +253,9 @@ contains
 
 
   @test
-  subroutine test_cooling_curve_DM2_below()
-    call set_name("cooling curve: DM2 (below Tmin)")
-    call set_cooling_curve("DM2")
+  subroutine test_cooling_curve_DM_2_below()
+    call set_name("cooling curve: DM_2 (below Tmin)")
+    call set_cooling_curve("DM_2")
     call allocate_arrays(pts=100)
     T0vals = linspace(1.0d0, 9.5d0, 100) / unit_temperature
     expected = 0.0_dp
@@ -263,34 +263,34 @@ contains
     @assertEqual(expected, actual, tolerance=TOL)
     actual = get_dLdrho()
     @assertEqual(expected, actual, tolerance=TOL)
-  end subroutine test_cooling_curve_DM2_below
+  end subroutine test_cooling_curve_DM_2_below
 
 
   @test
-  subroutine test_cooling_curve_DM2_above()
-    call set_name("cooling curve: DM2 (above Tmax)")
-    call set_cooling_curve("DM2")
+  subroutine test_cooling_curve_DM_2_above()
+    call set_name("cooling curve: DM_2 (above Tmax)")
+    call set_cooling_curve("DM_2")
     call allocate_arrays(pts=100)
     T0vals = linspace(1.1d9, 1.0d10, 100) / unit_temperature
-    expected = get_brehmstrahlung_lambda(T0vals, logT_DM2, logL_DM2)
+    expected = get_brehmstrahlung_lambda(T0vals, logT_DM_2, logL_DM_2)
     actual = get_dLdrho()
     @assertEqual(expected, actual, tolerance=TOL)
-    expected = get_brehmstrahlung_dlambda(T0vals, logT_DM2, logL_DM2)
+    expected = get_brehmstrahlung_dlambda(T0vals, logT_DM_2, logL_DM_2)
     actual = get_dLdT()
     @assertEqual(expected, actual, tolerance=TOL)
-  end subroutine test_cooling_curve_DM2_above
+  end subroutine test_cooling_curve_DM_2_above
 
 
   @test
-  subroutine test_cooling_curve_DM2()
-    call set_name("cooling curve: DM2")
-    call set_cooling_curve("DM2")
+  subroutine test_cooling_curve_DM_2()
+    call set_name("cooling curve: DM_2")
+    call set_cooling_curve("DM_2")
     call allocate_arrays(pts=41)
-    T0vals = 10.0d0 ** logT_DM2(20:60) / unit_temperature
-    expected = 10.0d0 ** logL_DM2(20:60) / unit_lambdaT
+    T0vals = 10.0d0 ** logT_DM_2(20:60) / unit_temperature
+    expected = 10.0d0 ** logL_DM_2(20:60) / unit_lambdaT
     actual = get_actual(physics%heatloss%cooling%lambdaT)
     @assertEqual(expected, actual, tolerance=2.0d-1)
-  end subroutine test_cooling_curve_DM2
+  end subroutine test_cooling_curve_DM_2
 
 
   @test

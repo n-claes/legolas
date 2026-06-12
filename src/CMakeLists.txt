@@ -50,7 +50,7 @@ set (sources
         dataIO/mod_arrays.f08
         physics/cooling_curves/mod_cooling_curve_names.f08
         physics/cooling_curves/mod_data_DM.f08
-        physics/cooling_curves/mod_data_DM2.f08
+        physics/cooling_curves/mod_data_DM_2.f08
         physics/cooling_curves/mod_data_JCcorona.f08
         physics/cooling_curves/mod_data_MLsolar1.f08
         physics/cooling_curves/mod_data_Rosner.f08

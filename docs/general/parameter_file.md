@@ -60,7 +60,7 @@ This namelist includes all physics-related variables.
 | flow  | logical | inclusion of background flow effects | `.false.` |
 | radiative_cooling | logical | whether to include optically thin radiative losses | `.false.` |
 | ncool | int | number of points used when interpolating cooling curves | 4000 |
-| cooling_curve | string | which cooling curve to use, can be `{"nothing", "JCcorona", "DM", "DM2", "MLsolar1", "SPEX", "SPEX_DM", "Rosner", "Colgan", "Colgan_DM"}`. In the case of `"nothing"` you should define your own $\Lambda(T)$ cooling function and its temperature derivative. | `"nothing"` |
+| cooling_curve | string | which cooling curve to use, can be `{"nothing", "JCcorona", "DM", "DM_2", "MLsolar1", "SPEX", "SPEX_DM", "Rosner", "Colgan", "Colgan_DM"}`. In the case of `"nothing"` you should define your own $\Lambda(T)$ cooling function and its temperature derivative. | `"nothing"` |
 | heating | logical | whether to include background heating | `.false.` |
 | force_thermal_balance | logical | whether to set the heating in such a way to enforce thermal equilibrium | `.true.` |
 | external_gravity | logical | whether to include external gravity | `.false.` |
