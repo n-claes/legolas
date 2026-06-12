@@ -132,12 +132,24 @@ contains
     unit_temperature = settings%units%get_unit_temperature()
     unit_lambdaT = settings%units%get_unit_lambdaT()
     logT0 = log10(background%temperature%T0(x) * unit_temperature)
-    idx = get_Rosner_index(logT0)
 
-    logxi = logxi_Rosner(idx)
-    alpha = alpha_Rosner(idx)
-    ! lambdaT = xi * T**alpha, so log10(lambdaT) = log10(xi) + alpha * log10(T)
-    get_Rosner_lambdaT = 10.0_dp**(logxi + alpha * logT0) / unit_lambdaT
+    if (logT0 < logT_Rosner(1)) then
+      get_Rosner_lambdaT = 0.0_dp
+    elif (logT0 > logT_Rosner(n_Rosner)) then
+      logxi = logxi_Rosner(n_Rosner+1)
+      alpha = alpha_Rosner(n_Rosner+1)
+      logTmax = logT_Rosner(n_Rosner+1)
+      ! lambdaT = xi * T**alpha, so log10(lambdaT) = log10(xi) + alpha * log10(T)
+      get_Rosner_lambdaT = 10.0_dp**(logxi + alpha * logTmax) / unit_lambdaT
+      get_Rosner_lambdaT = get_Rosner_lambdaT * sqrt(10**(logT0-logTmax))
+    else
+      idx = get_Rosner_index(logT0)
+
+      logxi = logxi_Rosner(idx)
+      alpha = alpha_Rosner(idx)
+      ! lambdaT = xi * T**alpha, so log10(lambdaT) = log10(xi) + alpha * log10(T)
+      get_Rosner_lambdaT = 10.0_dp**(logxi + alpha * logT0) / unit_lambdaT
+    end if
   end function get_Rosner_lambdaT
 
 
@@ -152,15 +164,30 @@ contains
     unit_temperature = settings%units%get_unit_temperature()
     unit_lambdaT = settings%units%get_unit_lambdaT()
     logT0 = log10(background%temperature%T0(x) * unit_temperature)
-    idx = get_Rosner_index(logT0)
 
-    logxi = logxi_Rosner(idx)
-    alpha = alpha_Rosner(idx)
-    ! dlambdadT = alpha * xi * T**(alpha - 1), and so
-    !           = alpha * 10**(logxi + (alpha - 1) * logT0)
-    get_Rosner_dlambdadT = ( &
-      alpha * 10.0_dp**(logxi + (alpha - 1.0_dp) * logT0) &
-    ) / (unit_lambdaT / unit_temperature)
+    if (logT0 < logT_Rosner(1)) then
+      get_Rosner_dlambdadT = 0.0_dp
+    elif (logT0 > logT_Rosner(n_Rosner)) then
+      logxi = logxi_Rosner(n_Rosner+1)
+      alpha = alpha_Rosner(n_Rosner+1)
+      logTmax = logT_Rosner(n_Rosner+1)
+      ! dlambdadT = alpha * xi * T**(alpha - 1), and so
+      !           = alpha * 10**(logxi + (alpha - 1) * logT0)
+      get_Rosner_dlambdadT = ( &
+        alpha * 10.0_dp**(logxi + (alpha - 1.0_dp) * logTmax) &
+      ) / (unit_lambdaT / unit_temperature)
+      get_Rosner_dlambdadT = 0.5_dp * get_Rosner_dlambdadT / sqrt(10**(logT0-logTmax))
+    else
+      idx = get_Rosner_index(logT0)
+
+      logxi = logxi_Rosner(idx)
+      alpha = alpha_Rosner(idx)
+      ! dlambdadT = alpha * xi * T**(alpha - 1), and so
+      !           = alpha * 10**(logxi + (alpha - 1) * logT0)
+      get_Rosner_dlambdadT = ( &
+        alpha * 10.0_dp**(logxi + (alpha - 1.0_dp) * logT0) &
+      ) / (unit_lambdaT / unit_temperature)
+    end if
   end function get_Rosner_dlambdadT
 
 

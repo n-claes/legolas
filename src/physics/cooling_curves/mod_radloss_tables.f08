@@ -27,8 +27,8 @@ module mod_radloss_tables
     !!     that means a -13 difference.
     !! @endnote
 
-    data logT_Rosner / 3.89063_dp, 4.30195_dp, 4.575_dp, 4.9_dp, 5.4_dp &
-                       5.77_dp, 6.315_dp, 7.60457_dp &
+    data logT_Rosner / 3.00000_dp, 3.89063_dp, 4.30195_dp, 4.575_dp, 4.9_dp, &
+                       5.4_dp, 5.77_dp, 6.315_dp, 7.60457_dp, 10.00000_dp &
     /
     data logxi_Rosner / -69.900_dp, -48.307_dp, -21.850_dp, -31.000_dp, -21.200_dp &
                        -10.400_dp, -21.940_dp, -17.730_dp, -26.602_dp &
