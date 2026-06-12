@@ -4,9 +4,9 @@ module mod_radloss_tables
 
     public
 
-    !> All values in these tables are identical to those in MPI-AMRVAC version 3.3, 
-    !> except for the Rosner piecewise power law, which is calculated differently
-    !> in Legolas but gives the same cooling values.
+    !> All values in these tables are identical to those in MPI-AMRVAC version 3.3.
+    !> Differences with the MPI-AMRVAC cooling table can be checked by running
+    !> 'python check_curves_amrvac.py' in the 'src/physics/cooling_curves' directory.
 
     !> Piecewise analytical curve:
 
