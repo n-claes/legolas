@@ -108,16 +108,12 @@ contains
     integer :: j
 
     get_Rosner_index = 1
-    if (logT0 > logT_Rosner(8)) then
-      get_Rosner_index = 9
-    else
-      do j = 1, size(logT_Rosner)
-        if (logT0 < logT_Rosner(j)) then
-          get_Rosner_index = j
-          exit
-        end if
-      end do
-    end if
+    do j = 1, size(logT_Rosner)
+      if (logT0 < logT_Rosner(j)) then
+        get_Rosner_index = j - 1
+        exit
+      end if
+    end do
   end function get_Rosner_index
 
 
@@ -135,7 +131,7 @@ contains
 
     if (logT0 < logT_Rosner(1)) then
       get_Rosner_lambdaT = 0.0_dp
-    else if (logT0 > logT_Rosner(n_Rosner)) then
+    else if (logT0 > logT_Rosner(n_Rosner+1)) then
       logxi = logxi_Rosner(n_Rosner)
       alpha = alpha_Rosner(n_Rosner)
       logTmax = logT_Rosner(n_Rosner+1)
