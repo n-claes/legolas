@@ -170,9 +170,11 @@ contains
       ! dlambdadT = alpha * xi * T**(alpha - 1), and so
       !           = alpha * 10**(logxi + (alpha - 1) * logT0)
       get_Rosner_dlambdadT = ( &
-        alpha * 10.0_dp**(logxi + (alpha - 1.0_dp) * logTmax) &
+        10.0_dp**(logxi + alpha * logTmax) &
       ) / (unit_lambdaT / unit_temperature)
-      get_Rosner_dlambdadT = 0.5_dp * get_Rosner_dlambdadT / sqrt(10**(logT0-logTmax))
+      get_Rosner_dlambdadT = ( &
+        0.5_dp * get_Rosner_dlambdadT &
+      ) / sqrt(10**(logT0+logTmax))
     else
       idx = get_Rosner_index(logT0)
 

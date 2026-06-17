@@ -349,10 +349,10 @@ contains
     call set_cooling_curve("SPEX")
     call allocate_arrays(pts=100)
     T0vals = linspace(5.0d8, 1.0d10, 100) / unit_temperature
-    expected = get_brehmstrahlung_lambda(T0vals, logT_SPEX, logL_SPEX)
+    expected = get_brehmstrahlung_lambda(T0vals, logT_SPEX, (logL_SPEX+log10(L_SPEX_enh)))
     actual = get_dLdrho()
     @assertEqual(expected, actual, tolerance=TOL)
-    expected = get_brehmstrahlung_dlambda(T0vals, logT_SPEX, logL_SPEX)
+    expected = get_brehmstrahlung_dlambda(T0vals, logT_SPEX, (logL_SPEX+log10(L_SPEX_enh)))
     actual = get_dLdT()
     @assertEqual(expected, actual, tolerance=TOL)
   end subroutine test_cooling_curve_SPEX_above
@@ -364,7 +364,7 @@ contains
     call set_cooling_curve("SPEX")
     call allocate_arrays(pts=76)
     T0vals = 10.0d0 ** logT_SPEX(25:100) / unit_temperature
-    expected = 10.0_dp ** logL_SPEX(25:100) / unit_lambdaT
+    expected = 10.0_dp ** (logL_SPEX(25:100) + log10(L_SPEX_enh(25:100))) / unit_lambdaT
     actual = get_actual(physics%heatloss%cooling%lambdaT)
     @assertEqual(expected, actual, tolerance=1.0d-1)
   end subroutine test_cooling_curve_SPEX
