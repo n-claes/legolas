@@ -21,7 +21,7 @@ class MagnetoThermalModes(RegressionTest):
         "radiative_cooling": True,
         "heating": True,
         "force_thermal_balance": True,
-        "cooling_curve": "rosner",
+        "cooling_curve": "Rosner",
         "parallel_conduction": True,
         "perpendicular_conduction": False,
         "unit_temperature": 2.6e6,

@@ -256,6 +256,18 @@ contains
     @assertEqual(yval, 1.0d0, tolerance=TOL)
   end subroutine test_lookup_xtoosmall_allow_outside
 
+  @test
+  subroutine test_lookup_xtoosmall_outside_value()
+    real(dp)  :: yval
+
+    call set_name("table lookup (small x0 specified value)")
+    call reset_arrays(100, 100)
+    xvalues = linspace(1.0d0, 10.0d0, 100)
+    yvalues = xvalues
+    yval = lookup_table_value(0.5d0, xvalues, yvalues, allow_outside=.true., outside_value=1.0d0)
+    @assertEqual(yval, 1.0d0, tolerance=TOL)
+  end subroutine test_lookup_xtoosmall_outside_value
+
 
   @test
   subroutine test_lookup_xtoolarge()
@@ -281,6 +293,19 @@ contains
     yval = lookup_table_value(5.2d0, xvalues, yvalues, allow_outside=.true.)
     @assertEqual(yval, 5.0d0, tolerance=TOL)
   end subroutine test_lookup_xtoolarge_allow_outside
+
+
+  @test
+  subroutine test_lookup_xtoolarge_outside_value()
+    real(dp)  :: yval
+
+    call set_name("table lookup (large x0 specified value)")
+    call reset_arrays(100, 100)
+    xvalues = linspace(2.0d0, 5.0d0, 100)
+    yvalues = xvalues
+    yval = lookup_table_value(5.2d0, xvalues, yvalues, allow_outside=.true., outside_value=0.0d0)
+    @assertEqual(yval, 0.0d0, tolerance=TOL)
+  end subroutine test_lookup_xtoolarge_outside_value
 
 
   @test

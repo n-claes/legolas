@@ -6,7 +6,7 @@ contains
   module procedure add_flow_matrix_terms
     real(dp)  :: eps, deps
     real(dp)  :: rho, drho
-    real(dp)  :: T0
+    real(dp)  :: T0, dT0
     real(dp)  :: v01, dv01, drv01
     real(dp)  :: v02, dv02, drv02
     real(dp)  :: v03, dv03
@@ -22,6 +22,7 @@ contains
     drho = background%density%drho0(x)
     ! temperature variables
     T0 = background%temperature%T0(x)
+    dT0 = background%temperature%dT0(x)
     ! flow variables
     v01 = background%velocity%v01(x)
     dv01 = background%velocity%dv01(x)
@@ -78,11 +79,11 @@ contains
 
     ! ==================== Cubic * dCubic ====================
     call elements%add(-ic * v01, sv_a2, sv_a2, s2do=1)
-    call elements%add(-ic * v01, sv_a3, sv_a3, s2do=1)
+    call elements%add(-ic * eps * v01, sv_a3, sv_a3, s2do=1)
 
     if (.not. settings%physics%is_incompressible) then
       ! ==================== Quadratic * Quadratic ====================
-      call elements%add(-ic * gamma_1 * drv01 * T0 / eps, sv_T1, sv_rho1)
+      call elements%add(-ic * (v01 * dT0 + gamma_1 * drv01 * T0 / eps), sv_T1, sv_rho1)
       call elements%add( &
         rho * (Vop + ic * dv01 - ic * gamma_1 * drv01 / eps) &
         + ic * v01 * (deps * rho / eps + drho), &

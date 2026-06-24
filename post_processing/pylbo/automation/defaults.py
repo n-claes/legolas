@@ -9,6 +9,7 @@ legolas_namelist_items = {
         ("force_r0", bool),
         ("coaxial", bool),
         ("symmetric_grid", bool),
+        ("grid_edge_from_data", bool),
     ],
     "equilibriumlist": [
         ("equilibrium_type", str),

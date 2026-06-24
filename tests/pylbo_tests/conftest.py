@@ -175,13 +175,11 @@ def numerical_lar():
     return utils / "test_numerical.lar"
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def ds_v090():
     return pylbo.load(utils / "v0.9.0_datfile.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def ds_v100():
     return pylbo.load(utils / "v1_datfile_matrices.dat")
@@ -192,115 +190,96 @@ def ds_v112():
     return pylbo.load(utils / "v1.1.2_datfile_efs.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def ds_v112_eta():
     return pylbo.load(utils / "v1.1.2_datfile_eta.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def ds_v114_subset():
     return pylbo.load(utils / "v1.1.4_datfile_subset.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def ds_v114_subset_defs():
     return pylbo.load(utils / "v1.1.4_datfile_subset_defs.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def ds_v114():
     return pylbo.load(utils / "v1.1.4_datfile.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture(scope="session")
 def ds_v121_rti_khi():
     return pylbo.load(utils / "v1.2.1_rti_khi.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture(scope="session")
 def ds_v121_magth():
     return pylbo.load(utils / "v1.2.1_magth.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture(scope="session")
 def ds_v200_mri_matrix():
     return pylbo.load(utils / "v2.0.0_mri_matrix.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture(scope="session")
 def ds_v200_mri_efs():
     return pylbo.load(utils / "v2.0.0_mri_subset_efs.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture(scope="session")
 def ds_v200_tear_nobg():
     return pylbo.load(utils / "v2.0.0_tear_nobg.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture(scope="session")
 def ds_v200_hd_khi():
     return pylbo.load(utils / "v2.0.0_hd_khi.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v100():
     return pylbo.load_series([utils / "v1_datfile_matrices.dat"] * 3)
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v112():
     return pylbo.load_series([utils / "v1.1.2_datfile_efs.dat"] * 3)
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v112_eta():
     return pylbo.load_series([utils / "v1.1.2_datfile_eta.dat"] * 5)
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def ds_v130_suydam_efs_vecs_res():
     return pylbo.load(utils / "v1.3.0_suydam_efs_vecs_res.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def ds_v210_rotcyl_efs_default_basis():
     return pylbo.load(utils / "v2.1.0_rot_cyl_efs_default_basis.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def ds_v210_rotcyl_efs_custom_basis():
     return pylbo.load(utils / "v2.1.0_rot_cyl_efs_custom_basis.dat")
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v200_nobg():
     return pylbo.load_series([utils / "v2.0.0_tear_nobg.dat"] * 7)
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v200_mri_efs():
     return pylbo.load_series([utils / "v2.0.0_mri_subset_efs.dat"] * 6)
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v200_mixed_efs():
     files_with_efs = [utils / "v2.0.0_mri_subset_efs.dat"] * 3
@@ -310,7 +289,6 @@ def series_v200_mixed_efs():
     return pylbo.load_series(files)
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v211_mixed_res():
     files_n500 = [utils / "v2.1.1_mri_k80_n50.dat"] * 2
@@ -320,7 +298,6 @@ def series_v211_mixed_res():
     return pylbo.load_series(files)
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v211_mixed_derived_efs():
     files_with_der_efs = [utils / "v2.1.1_mri_k80_n50_no_derived.dat"] * 3
@@ -332,7 +309,6 @@ def series_v211_mixed_derived_efs():
     return pylbo.load_series(files)
 
 
-@pytest.mark.timeout(5)
 @pytest.fixture
 def series_v211_mri_parameter():
     files_k80 = [utils / "v2.1.1_mri_k80_n50.dat"] * 3

@@ -19,7 +19,6 @@ class TestNumericalQR(RegressionTest):
     parameters = {
         "k2": 1.0,
         "k3": 0,
-        "eq_bool": True,
         "input_file": get_filepath(),
         "n_input": 2000,
     }

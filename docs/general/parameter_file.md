@@ -37,6 +37,7 @@ Setting `force_r0 = .true.` in the gridlist forces the `r = 0` condition, but th
 | coaxial         | logical  | use a coaxial inner boundary in cylindrical geometry | `.false.` |
 | force_r0        | logical  | forces `r=0` in cylindrical geometry | `.false.` |
 | symmetric_grid  | logical  | enforces grid symmetry around the centre of the interval (for use with a symmetric spacing function) | `.false.` |
+| grid_edge_from_data | logical | sets x_start/x_end based on data imported with `import_equilibrium_data` | `.false.` |
 
 ## equilibriumlist
 This namelist includes all equilibrium-related variables.
@@ -60,7 +61,7 @@ This namelist includes all physics-related variables.
 | flow  | logical | inclusion of background flow effects | `.false.` |
 | radiative_cooling | logical | whether to include optically thin radiative losses | `.false.` |
 | ncool | int | number of points used when interpolating cooling curves | 4000 |
-| cooling_curve | string | which cooling curve to use, can be `{"nothing", "jc_corona", "dalgarno", "dalgarno2", "ml_solar", "spex", "spex_dalgarno", "rosner", "colgan", "colgan_dm"}`. In the case of `"nothing"` you should define your own $\Lambda(T)$ cooling function and its temperature derivative. | `"nothing"` |
+| cooling_curve | string | which cooling curve to use, can be `{"nothing", "JCcorona", "DM", "DM_2", "MLsolar1", "SPEX", "SPEX_DM", "Rosner", "Colgan", "Colgan_DM"}`. In the case of `"nothing"` you should define your own $\Lambda(T)$ cooling function and its temperature derivative. | `"nothing"` |
 | heating | logical | whether to include background heating | `.false.` |
 | force_thermal_balance | logical | whether to set the heating in such a way to enforce thermal equilibrium | `.true.` |
 | external_gravity | logical | whether to include external gravity | `.false.` |
