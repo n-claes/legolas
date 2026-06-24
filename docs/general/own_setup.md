@@ -306,7 +306,7 @@ To have an equilibrium in thermal balance you should enable heating and leave th
 This will automatically set the heating in such a way that the thermal balance equation is satisfied.
 To run the code outside of thermal balance you can set this flag to false.
 ```fortran
-call settings%physics%enable_cooling(cooling_curve="jc_corona")
+call settings%physics%enable_cooling(cooling_curve="JCcorona")
 ! to achieve thermal balance, enable heating
 call settings%physics%enable_heating(force_thermal_balance=.true.)
 ```

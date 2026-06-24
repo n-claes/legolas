@@ -12,7 +12,7 @@
 !!     - <tt>k2</tt> = 0
 !!     - <tt>k3</tt> = 1
 !!     - <tt>cte_T0</tt> = 1 : used to set the temperature.
-!!     - cooling_curve = 'rosner'
+!!     - cooling_curve = 'Rosner'
 !!     - parallel thermal conduction, no perpendicular conduction
 !!     
 !!     and normalisations given by
@@ -41,7 +41,7 @@ contains
     if (settings%equilibrium%use_defaults) then ! LCOV_EXCL_START
       call settings%grid%set_geometry("cylindrical")
       call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
-      call settings%physics%enable_cooling(cooling_curve="rosner")
+      call settings%physics%enable_cooling(cooling_curve="Rosner")
       call settings%physics%enable_heating(force_thermal_balance=.true.)
       call settings%physics%enable_parallel_conduction()
       call settings%units%set_units_from_temperature( &
