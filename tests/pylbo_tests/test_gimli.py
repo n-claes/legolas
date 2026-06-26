@@ -247,7 +247,7 @@ def test_amrvac_userfile_mhd(tmpdir):
                     var.Tc,
                     B02=var.B2c,
                     B03=0,
-                    heatcool={"force_thermal_balance": True},
+                    heatcool={"force_thermal_balance": True, "ncool": 4000},
                 ),
             }
         ).user_module(filename="", loc=tmpdir)
