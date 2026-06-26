@@ -344,6 +344,8 @@ def test_amrvac_preparation(tmpdir, datv211_harris, vacv211_harris):
         "ev_guess": [0.01636j, 1.397e-2 - 2.843e-4 * 1j, -1.397e-2 - 2.843e-4 * 1j],
         "percentage": 0.01,
         "quantity": "B02",
+        "u2_bounds": [-0.1, 0.1],
+        "u3_bounds": [-0.1, 0.1],
     }
     amrvac = gimli.Amrvac(config)
     amrvac.prepare_legolas_data(loc=tmpdir)
@@ -359,6 +361,14 @@ def test_amrvac_preparation(tmpdir, datv211_harris, vacv211_harris):
         base_data = base.read_reals(dtype=np.float64)
         test_data = test.read_reals(dtype=np.float64)
         assert np.allclose(base_data, test_data, rtol=1e-8, atol=1e-10)
+
+    config["percentage"] = 1.1
+    with pytest.raises(
+        ValueError,
+        match="Perturbation of 'rho' is bigger than background.",
+    ):
+        amrvac = gimli.Amrvac(config)
+        amrvac.prepare_legolas_data(loc=tmpdir)
 
 
 def test_numerical_equilibrium(tmpdir, numerical_lar):

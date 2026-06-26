@@ -1105,7 +1105,7 @@ class Amrvac:
 
                     if np.real(pert_total) >= bg[i]:
                         raise ValueError(
-                            f"Perturbation of {ef_name} is bigger than background."
+                            f"Perturbation of '{ef_name}' is bigger than background."
                         )
 
     def prepare_legolas_data(self, name=None, loc=None, clean=True):
