@@ -376,7 +376,7 @@ class Amrvac:
                 "v01",
                 "v02",
                 "v03",
-                "rho0 * T0",
+                "p0",
                 "B01",
                 "B02",
                 "B03",
@@ -823,7 +823,18 @@ class Amrvac:
             fac = self.config["ef_factor"][ii]
             w = self.config["weights"][ii]
             raw = ef_data[ii][ef]
-            scaling = ef_data[ii][self.config["quantity"].replace("0", "")]
+            if self.config["quantity"] == "p0":
+                rho1 = ef_data[ii]["rho"]
+                T1 = ef_data[ii]["T"]
+                rho0 = np.interp(
+                    self.ds.ef_grid, self.ds.grid_gauss, self.ds.equilibria["rho0"]
+                )
+                T0 = np.interp(
+                    self.ds.ef_grid, self.ds.grid_gauss, self.ds.equilibria["T0"]
+                )
+                scaling = rho1 * T0 + rho0 * T1
+            else:
+                scaling = ef_data[ii][self.config["quantity"].replace("0", "")]
             if clean:
                 # rotate the eigenfunction so that at the grid point where the real
                 # part is largest the value becomes purely real to remove
@@ -943,7 +954,11 @@ class Amrvac:
             The normalisation factor.
         """
         ef_match = self.config["quantity"].replace("0", "")
-        max_bg = np.nanmax(np.abs(self.ds.equilibria[self.config["quantity"]]))
+        if self.config["quantity"] == "p0":
+            max_bg = np.nanmax(np.abs(
+                self.ds.equilibria["rho0"] * self.ds.equilibria["T0"]))
+        else:
+            max_bg = np.nanmax(np.abs(self.ds.equilibria[self.config["quantity"]]))
         perturbation = self._get_total_perturbation(ef_match, clean=clean)
         if np.nanmax(np.abs(perturbation)) < 1e-10:
             raise AssertionError(
