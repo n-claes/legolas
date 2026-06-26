@@ -151,6 +151,8 @@ To run Legolas on the numerical configuration, set the equilibrium in the parfil
 ## Non-ideal physics
 The example `notebooks` page in the [Legolas repository](https://github.com/legolas-project/legolas) contains setups where constant resistivity and heating/cooling with parallel thermal conduction are used in MPI-AMRVAC setups created with GIMLI. 
 
+For background heating and optically thin radiative losses, an optional keyword `heatcool` can be added to the `Equilibrium`object. It is a dictionary containing the following keys: `force_thermal_equilibrium`, `cooling_curve`, and `ncool`. When `heatcool` is included in the equilibrium, the relevant parameters will be automatically added to the Legolas and MPI-AMRVAC parameter files. If not, the Legolas heating/cooling parameters will be added to `Equilibrium` during parfile generation.
+
 Note that some features of Legolas are not present in MPI-AMRVAC:
 - User-specified thermal conduction.
 - Thermal balance when including perpendicular thermal conduction.

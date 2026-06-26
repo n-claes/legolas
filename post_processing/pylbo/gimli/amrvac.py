@@ -755,6 +755,29 @@ class Amrvac:
                     "used instead."
                 )
 
+            if self.config["equilibrium"].heatcool is not None:
+                if self.config["equilibrium"].heatcool["cooling_curve"] != self.config[
+                    "parfile"
+                ].get("coolcurve", None):
+                    pylboLogger.warning(
+                        "'coolcurve' is overridden by value in 'heatcool'."
+                    )
+                self.config["parfile"]["coolcurve"] = self.config[
+                    "equilibrium"
+                ].heatcool["cooling_curve"]
+
+                if "ncool" in self.config["parfile"].keys():
+                    if (
+                        self.config["equilibrium"].heatcool["ncool"]
+                        != self.config["parfile"]["ncool"]
+                    ):
+                        pylboLogger.warning(
+                            "'ncool' is overridden by value in 'heatcool'."
+                        )
+                self.config["parfile"]["ncool"] = self.config["equilibrium"].heatcool[
+                    "ncool"
+                ]
+
         if self.config["parfile"].get("has_equi_rho_and_p", False):
             if self.config["parfile"].get("mhd_equi_thermal", False):
                 if not self.config["equilibrium"].heatcool.get(

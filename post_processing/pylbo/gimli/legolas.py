@@ -250,20 +250,22 @@ class Legolas:
                     "Setting 'radiative_cooling' to True based on presence of heatcool."
                 )
             for key in self.equilibrium.heatcool.keys():
-                if self.config.get(key, "") != self.equilibrium.heatcool[key]:
-                    pylboLogger.warning(
-                        f"Key '{key}' in heatcool overrides value in config. "
-                        "Using value from heatcool."
-                    )
+                if key in self.config.keys():
+                    if self.config[key] != self.equilibrium.heatcool[key]:
+                        pylboLogger.warning(
+                            f"Key '{key}' in heatcool overrides value in config. "
+                            "Using value from heatcool."
+                        )
                 self.config[key] = self.equilibrium.heatcool[key]
 
-        else:
-            if self.config.get("radiative_cooling", None) is not None:
-                self.equilibrium.heatcool = {
-                    "force_thermal_balance": self.config.get(
-                        "force_thermal_balance", False
-                    )
-                }
+        elif self.config.get("radiative_cooling", None) is not None:
+            self.equilibrium.heatcool = {
+                "force_thermal_balance": self.config.get("force_thermal_balance", False)
+            }
+            self.equilibrium.heatcool["cooling_curve"] = self.config.get(
+                "cooling_curve", None
+            )
+            self.equilibrium.heatcool["ncool"] = self.config.get("ncool", 4000)
 
         if self.equilibrium._dict_phys["heating"][
             0
