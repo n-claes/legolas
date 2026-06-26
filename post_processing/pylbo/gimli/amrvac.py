@@ -978,8 +978,9 @@ class Amrvac:
         """
         ef_match = self.config["quantity"].replace("0", "")
         if self.config["quantity"] == "p0":
-            max_bg = np.nanmax(np.abs(
-                self.ds.equilibria["rho0"] * self.ds.equilibria["T0"]))
+            max_bg = np.nanmax(
+                np.abs(self.ds.equilibria["rho0"] * self.ds.equilibria["T0"])
+            )
         else:
             max_bg = np.nanmax(np.abs(self.ds.equilibria[self.config["quantity"]]))
         perturbation = self._get_total_perturbation(ef_match, clean=clean)
