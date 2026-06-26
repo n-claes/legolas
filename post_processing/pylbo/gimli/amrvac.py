@@ -701,7 +701,7 @@ class Amrvac:
                     bc.append("symm")
             if (
                 self.config["geometry"] == "polar"
-                and self.config["u1_bounds"][0] == 0.0
+                and self.config["u1_bounds"][0] < 1e-12
             ):
                 bc = ["pole" for _ in bc]
                 logger_msg = "pole"
