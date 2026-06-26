@@ -393,7 +393,7 @@ class Amrvac:
             ]
         elif self.config["physics_type"] == "hd":
             self.ef_list = ["rho", "v1", "v2", "v3", "p"]
-            self.eq_list = ["rho0", "v01", "v02", "v03", "rho0 * T0"]
+            self.eq_list = ["rho0", "v01", "v02", "v03", "p0"]
             self.units = [
                 "unit_length",
                 "unit_numberdensity",
@@ -1011,7 +1011,7 @@ class Amrvac:
         gamma_1 = self.ds.gamma - 1
 
         eq_list = self.eq_list
-        idx = eq_list.index("rho0 * T0")
+        idx = eq_list.index("p0")
         eq_list[idx] = "T0"
         ef_list = copy.deepcopy(self.ef_list)
         idx = ef_list.index("p")
@@ -1080,6 +1080,34 @@ class Amrvac:
             norm = self._get_ef_normalisation(clean=clean)
         return norm
 
+    def _check_physical_perturbation(self, ef_name, pert):
+        if ef_name not in ["rho", "p"]:
+            return
+        bg = np.interp(self.ds.ef_grid, self.ds.grid_gauss, self.ds.equilibria["rho0"])
+        if ef_name == "p":
+            bg = bg * np.interp(
+                self.ds.ef_grid, self.ds.grid_gauss, self.ds.equilibria["T0"]
+            )
+        x2_test = np.linspace(
+            self.config["u2_bounds"][0], self.config["u2_bounds"][1], 50
+        )
+        x3_test = np.linspace(
+            self.config["u3_bounds"][0], self.config["u3_bounds"][1], 50
+        )
+
+        for i in range(len(pert)):
+            for x2 in x2_test:
+                for x3 in x3_test:
+                    pert_total = pert[i] * np.exp(
+                        1j * self.ds.parameters["k2"] * x2
+                        + 1j * self.ds.parameters["k3"] * x3
+                    )
+
+                    if np.real(pert_total) >= bg[i]:
+                        raise ValueError(
+                            f"Perturbation of {ef_name} is bigger than background."
+                        )
+
     def prepare_legolas_data(self, name=None, loc=None, clean=True):
         """
         Prepares a file (.ldat) from the Legolas data for use with MPI-AMRVAC.
@@ -1132,6 +1160,7 @@ class Amrvac:
         norm = self._get_normalisation(clean=clean)
         for ix in range(len(self.ef_list)):
             pert = self._get_total_perturbation(self.ef_list[ix], clean=clean) * norm
+            self._check_physical_perturbation(self.ef_list[ix], pert)
             f.write_record(pert)
 
         u = []
