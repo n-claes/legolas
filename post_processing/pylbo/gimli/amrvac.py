@@ -1252,7 +1252,6 @@ class Amrvac:
             write_pad(file, f"double precision :: {eqparam}", 1)
         if self.config["parfile"].get("B0field", False):
             write_pad(file, "integer :: j1, j2, j3", 1)
-        write_pad(file, "double precision :: gamma", 1)
         file.write("\n")
 
         write_pad(file, "contains", 0)
