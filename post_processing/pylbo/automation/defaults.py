@@ -34,7 +34,6 @@ legolas_namelist_items = {
     ],
     "physicslist": [
         ("physics_type", str),
-        ("mhd_gamma", float),
         ("incompressible", bool),
         ("dropoff_edge_dist", (int, np.integer, float)),
         ("dropoff_width", (int, np.integer, float)),
@@ -232,13 +231,11 @@ amrvac_namelist_items = {
         ("hd_gravity", bool),
         ("hd_viscosity", bool),
         ("hd_particles", bool),
-        ("He_abundance", (int, np.integer, float)),
         ("SI_unit", bool),
     ],
     "mhd_list": [
         ("mhd_energy", bool),
         ("mhd_n_tracer", (int, np.integer)),
-        ("mhd_gamma", (int, np.integer, float)),
         ("mhd_adiab", (int, np.integer, float)),
         ("mhd_eta", (int, np.integer, float)),
         ("mhd_eta_hyper", (int, np.integer, float)),
@@ -276,7 +273,6 @@ amrvac_namelist_items = {
         ("Bquad", (int, np.integer, float)),
         ("Boct", (int, np.integer, float)),
         ("Busr", (int, np.integer, float)),
-        ("He_abundance", (int, np.integer, float)),
         ("SI_unit", bool),
         ("has_equi_rho_and_p", bool),
         ("mhd_equi_thermal", bool),
@@ -308,4 +304,14 @@ amrvac_namelist_items = {
     "grav_list": [
         ("grav_split", bool),
     ],
+    "eos_list": [
+        ("eos_type", str),
+        ("eos_method", str),
+        ("pi_table", str),
+        ("gamma1_method", str),
+        ("p2eint_method", str),
+        ("ionE", bool),
+        ("He_abundance", (int, np.integer, float))
+        ("gamma", (int, np.integer, float))
+    ]
 }

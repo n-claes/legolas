@@ -825,6 +825,12 @@ class Amrvac:
                         f"MPI-AMRVAC does not support user-implemented {key}."
                     )
 
+        if "He_abundance" not in self.config["parfile"].keys():
+            self.config["parfile"]["He_abundance"] = 0.0
+            pylboLogger.warning(
+                "'He_abundance' set to 0. Overriding MPI-AMRVAC default of 0.1."
+            )
+
     def _get_combined_perturbation(self, ef, clean=True):
         """
         Takes Legolas's perturbations of different eigenvalues and adds them up to a
