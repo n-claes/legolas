@@ -767,10 +767,9 @@ class Amrvac:
                 ].heatcool["cooling_curve"]
 
                 if "ncool" in self.config["parfile"].keys():
-                    if (
-                        self.config["equilibrium"].heatcool["ncool"]
-                        != self.config["parfile"].get("ncool", 4000)
-                    ):
+                    if self.config["equilibrium"].heatcool["ncool"] != self.config[
+                        "parfile"
+                    ].get("ncool", 4000):
                         pylboLogger.warning(
                             "'ncool' is overridden by value in 'heatcool'."
                         )
