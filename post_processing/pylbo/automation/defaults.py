@@ -311,6 +311,7 @@ amrvac_namelist_items = {
         ("gamma1_method", str),
         ("p2eint_method", str),
         ("ionE", bool),
-        ("He_abundance", (int, np.integer, float))("gamma", (int, np.integer, float)),
+        ("He_abundance", (int, np.integer, float)),
+        ("gamma", (int, np.integer, float)),
     ],
 }
