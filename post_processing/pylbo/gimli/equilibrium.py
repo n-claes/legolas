@@ -215,6 +215,8 @@ class Equilibrium:
                 self.heatcool["heating"] = True
             if "cooling_curve" not in self.heatcool.keys():
                 self.heatcool["cooling_curve"] = None
+            if "ncool" not in self.heatcool.keys():
+                self.heatcool["ncool"] = 4000
 
         for key in self._dict_phys.keys():
             if self._dict_phys[key][0] is not None:
