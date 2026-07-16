@@ -83,11 +83,11 @@ contains
     read(unit, nml=gridlist, iostat=iostat, iomsg=iomsg)
     call parse_io_info(iostat, iomsg)
 
+    settings%grid%force_r0 = force_r0
     call settings%grid%set_geometry(geometry)
     call settings%grid%set_gridpts(gridpoints)
     call settings%grid%set_grid_boundaries(grid_start=x_start, grid_end=x_end)
     settings%grid%coaxial = coaxial
-    settings%grid%force_r0 = force_r0
     settings%grid%symmetric_grid = symmetric_grid
     settings%grid%grid_edge_from_data = grid_edge_from_data
   end subroutine read_gridlist

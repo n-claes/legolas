@@ -515,18 +515,21 @@ contains
     type(grid_t), intent(in) :: grid
     complex(dp), intent(in) :: eigenvector(:)
     complex(dp) :: dB1(size(grid%ef_grid))
+    complex(dp) :: a2(size(grid%ef_grid))
     complex(dp) :: da2(size(grid%ef_grid))
     complex(dp) :: a3(size(grid%ef_grid))
     complex(dp) :: da3(size(grid%ef_grid))
     real(dp) :: ef_eps(size(grid%ef_grid)), ef_deps
 
+    a2 = get_base_eigenfunction(sv_a2, settings, grid, eigenvector)
     da2 = get_base_eigenfunction(sv_a2, settings, grid, eigenvector, diff_order=1)
     a3 = get_base_eigenfunction(sv_a3, settings, grid, eigenvector)
     da3 = get_base_eigenfunction(sv_a3, settings, grid, eigenvector, diff_order=1)
     ef_eps = grid%get_eps(grid%ef_grid)
     ef_deps = grid%get_deps()
 
-    dB1 = ic * (k2 * da3 / ef_eps - k3 * da2) - ic * k2 * ef_deps * a3 / ef_eps**2
+    dB1 = ic * (k2 * da3 / ef_eps - k3 * da2 / ef_eps + k3 * &
+     ef_deps * a2 / ef_eps) - ic * k2 * ef_deps * a3 / ef_eps**2
   end function get_dB1
 
 

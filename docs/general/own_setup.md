@@ -6,14 +6,13 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2025-01-28
+last_modified_at: 2026-02-03
 ---
 
 This page explains how to configure the custom user submodule to your needs. We assume that you are already familiar with
 how to set up a Legolas directory and how to run Legolas in a separate directory. If this is not the case see [how to run your first problem](../../getting-started/running).
 In what follows we also assume that both a `smod_user_defined.f08` file and parfile are present in the current working directory. You can copy both of these over when running
-the `setuplegolas.py` script. Alternatively, you can use Python to define an analytic (SymPy) or numerical configuration, and use `pylbo`'s submodule `gimli` to generate your Legolas files.
-<!-- More information can be found [here](../../sphinx/autoapi/pylbo/index.html#pylbo.gimli). -->
+the `setuplegolas.py` script. Alternatively, you can use Python to define an analytic (SymPy) or numerical configuration, and use `pylbo`'s submodule `gimli` to generate your Legolas files. More information on how to do this can be found [here](../../gimli/about_gimli/).
 
 ## Read before proceeding
 When implementing your own setup it is useful to know how Legolas treats the user submodule. The program state at a given time is governed by the following objects (click the links for a full overview of accessible attributes and type-bound procedures):

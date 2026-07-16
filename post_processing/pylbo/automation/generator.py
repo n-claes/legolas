@@ -5,12 +5,36 @@ from pathlib import Path
 from typing import Union
 
 import f90nml
-from pylbo.automation.defaults import namelist_items
+from pylbo.automation.defaults import legolas_namelist_items, amrvac_namelist_items
 from pylbo.exceptions import ParfileGenerationError
 from pylbo.utilities.logger import pylboLogger
 from pylbo.utilities.toolbox import transform_to_list
 
-KEYS_EXPECTED_AS_LIST = ["basis_functions"]
+KEYS_EXPECTED_AS_LIST = [
+    "basis_functions",
+    "w_convert_factor",
+    "w_write",
+    "writelevel",
+    "writespshift",
+    "flux_scheme",
+    "limiter",
+    "loglimit",
+    "entropycoef",
+    "small_values_fix_iw",
+    "typeboundary_min1",
+    "typeboundary_max1",
+    "typeboundary_min2",
+    "typeboundary_max2",
+    "typeboundary_min3",
+    "typeboundary_max3",
+    "amr_wavefilter",
+    "refine_threshold",
+    "derefine_ratio",
+    "w_refine_weight",
+    "logflag",
+    "stretch_dim",
+    "boundary_divbfix",
+]
 
 
 def _ensure_nb_names_and_nb_runs_matches(
@@ -134,6 +158,8 @@ class ParfileGenerator:
     nb_prefix_digits : int
         Number of digits to prepend to the `basename` if `prefix_numbers` is `True`.
         Defaults to 4.
+    code : str
+        Code for which to generate a parfile. Defaults to 'legolas'.
     """
 
     def __init__(
@@ -144,6 +170,7 @@ class ParfileGenerator:
         subdir=True,
         prefix_numbers=True,
         nb_prefix_digits=4,
+        code="legolas",
     ):
         self.parfile_dict = copy.deepcopy(parfile_dict)
         self.nb_runs = self.parfile_dict.pop("number_of_runs", 1)
@@ -155,6 +182,7 @@ class ParfileGenerator:
         self._nb_prefix_digits = nb_prefix_digits
         self.parfiles = []
         self.container = {}
+        self.code = code.lower()
 
     def _get_and_check_item(self, namelist, name, allowed_dtypes):
         """
@@ -207,6 +235,13 @@ class ParfileGenerator:
             - If the original dictionary is not empty after everything should be popped
             - If there is an inconsistency between array sizes of dictionary items
         """
+        if self.code == "legolas":
+            namelist_items = legolas_namelist_items
+        elif self.code == "amrvac":
+            namelist_items = amrvac_namelist_items
+        else:
+            raise ValueError("Code for parfile generation not recognized.")
+
         for namelist, items in namelist_items.items():
             # update container
             self.container.update({namelist: {}})
@@ -278,10 +313,14 @@ class ParfileGenerator:
             basename = self.basenames[current_run]
             parfile_name = f"{prefix}{basename}.par"
             # datfile name (no extension .dat needed)
-            datfile_name = (
-                f"{prefix}{run_dict['savelist'].get('basename_datfile', basename)}"
-            )
-            run_dict["savelist"].update({"basename_datfile": datfile_name})
+            if self.code == "legolas":
+                datfile_name = (
+                    f"{prefix}{run_dict['savelist'].get('basename_datfile', basename)}"
+                )
+                run_dict["savelist"].update({"basename_datfile": datfile_name})
+            elif self.code == "amrvac":
+                run_dict["savelist"].update({"itsave(1,1)": 0})
+                run_dict["savelist"].update({"itsave(1,2)": 0})
             # set paths and write parfile
             parfile_path = (self.output_dir / parfile_name).resolve()
             self.parfiles.append(str(parfile_path))

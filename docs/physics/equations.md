@@ -6,7 +6,7 @@ sidebar:
   nav: "leftcontents"
 toc: true
 toc_icon: "chevron-circle-down"
-last_modified_at: 2025-01-28
+last_modified_at: 2026-01-28
 ---
 
 On this page we give a small overview of the system of equations solved by Legolas. We use the
@@ -22,7 +22,7 @@ $$
 \newcommand{\gbf}{\mathbf{g}}
 \newcommand{\bbf}{\mathbf{B}}
 \newcommand{\HL}{\mathscr{L}}
-\newcommand{\HH}{\mathcal{H}}
+\newcommand{\fancyH}{\mathcal{H}}
 \newcommand{\kappabf}{\boldsymbol{\kappa}}
 \newcommand{\unit}[1]{\mathbf{e}_{#1}}
 
@@ -72,7 +72,7 @@ If the resistivity profile explicitly depends on position as well, providing the
 Radiative cooling is governed by the heat-loss function, specified as the difference between energy gains and energy losses
 
 $$
-\HL = \rho\Lambda(T) - \HH(\rho, T),
+\HL = \rho\Lambda(T) - \fancyH(\rho, T),
 $$
 
 The function $\Lambda(T)$ here is called the _cooling curve_, which is a tabulated set of values resulting from detailed molecular calculations.
@@ -80,8 +80,8 @@ Legolas has multiple cooling curves from existing literature implemented which a
 We have also included analytical, piecewise prescriptions (e.g. the `Rosner` curve). See the [physicslist](../../general/parameter_file/#physicslist) for an overview of the different options.
 The function $\Lambda(T)$ can be user-specified, in which case its temperature derivative should be provided as well.
 
-The function $\HH(\rho, T)$ specifies the heating function. If thermal balance is forced we assume that this term only depends on the equilibrium background, meaning that it is
-constant in time but possibly varying in space and as such that it balances out the cooling contribution to ensure thermal equilibrium. $\HH(\rho, T)$ can be user-specified, in which case its density and
+The function $\fancyH(\rho, T)$ specifies the heating function. If thermal balance is forced we assume that this term only depends on the equilibrium background, meaning that it is
+constant in time but possibly varying in space and as such that it balances out the cooling contribution to ensure thermal equilibrium. $\fancyH(\rho, T)$ can be user-specified, in which case its density and
 temperature derivatives should be provided as well.
 
 #### Cooling curves

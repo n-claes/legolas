@@ -5,7 +5,8 @@ module mod_arrays
     use, intrinsic :: iso_fortran_env, only: iostat_end
     use mod_equilibrium_params, only: input_file, n_input
     use mod_global_variables, only: dp, str_len, dp_LIMIT
-    use mod_interpolation
+    use mod_interpolation, only: interpolate_table, get_numerical_derivative, &
+        get_second_numerical_derivative, lookup_table_value
     use mod_logging, only: logger
     use mod_settings, only: settings_t
     use mod_grid, only: grid_t

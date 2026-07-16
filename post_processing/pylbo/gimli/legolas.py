@@ -1,6 +1,8 @@
+import copy
 from pylbo.automation.api import generate_parfiles
 import sympy as sp
 from sympy.printing.fortran import fcode
+from pylbo.utilities.logger import pylboLogger
 
 from pylbo.gimli.utils import (
     create_file,
@@ -64,16 +66,44 @@ def fortran_function(file, expr, varname, translation, constant=False, level=0):
 
     if is_sympy_number(expr):
         write_pad(
-            file, fcode(sp.sympify(float(expr)), assign_to=varname).lstrip(), level + 1
+            file,
+            fcode(
+                sp.sympify(float(expr)), assign_to=varname, source_format="free"
+            ).lstrip(),
+            level + 1,
         )
     else:
-        func = fcode(expr, assign_to=varname).lstrip()
+        func = fcode(expr, assign_to=varname, source_format="free").lstrip()
         for key in list(translation.keys()):
             func = func.replace(key, translation[key])
-        func = func.replace("\n", " &\n")
-        func = func.replace("@", "")
         write_pad(file, func, level + 1)
     write_pad(file, f"end function {varname}\n", level)
+    return
+
+
+def write_grid_functions(file, equilibrium):
+    """
+    Writes the Legolas grid spacing function, if present, to the user module.
+
+    Parameters
+    ----------
+    file : file
+        The file object to write to.
+    equilibrium : Equilibrium
+        The equilibrium object containing the user-defined grid function.
+    """
+    x = equilibrium.variables.x
+    expr = equilibrium.grid_spacing
+    if expr is not None:
+        cst = not is_symbol_dependent([x], expr)
+        fortran_function(
+            file,
+            expr,
+            "spacing_func",
+            equilibrium.variables.fkey,
+            constant=cst,
+            level=1,
+        )
     return
 
 
@@ -183,7 +213,7 @@ class Legolas:
 
     def __init__(self, equilibrium, config):
         self.equilibrium = equilibrium
-        self.config = config
+        self.config = copy.deepcopy(config)
         self._validate_config()
 
     def _validate_config(self):
@@ -203,7 +233,76 @@ class Legolas:
             self.config["physics_type"] != "hd" and self.config["physics_type"] != "mhd"
         ):
             raise ValueError("Unknown physics type.")
+        self._compare_heatcool()
+        self._check_resistivity()
         return
+
+    def _compare_heatcool(self):
+        """
+        Compares the presence of 'heatcool' in the equilibrium with the radiative
+        cooling settings in the config. 'heatcool' overrides config settings, but if
+        'heatcool' is not present, config settings are added to the equilibrium.
+        """
+        if self.equilibrium.heatcool is not None:
+            if self.config.get("radiative_cooling", None) is None:
+                self.config["radiative_cooling"] = True
+                pylboLogger.warning(
+                    "Setting 'radiative_cooling' to True based on presence of heatcool."
+                )
+            for key in self.equilibrium.heatcool.keys():
+                if key in self.config.keys():
+                    if self.config[key] != self.equilibrium.heatcool[key]:
+                        pylboLogger.warning(
+                            f"Key '{key}' in heatcool overrides value in config. "
+                            "Using value from heatcool."
+                        )
+                self.config[key] = self.equilibrium.heatcool[key]
+
+        elif self.config.get("radiative_cooling", None) is not None:
+            self.equilibrium.heatcool = {
+                "force_thermal_balance": self.config.get("force_thermal_balance", True)
+            }
+            self.equilibrium.heatcool["cooling_curve"] = self.config.get(
+                "cooling_curve", None
+            )
+            self.equilibrium.heatcool["ncool"] = self.config.get("ncool", 4000)
+
+        if self.equilibrium._dict_phys["heating"][
+            0
+        ] is not None and not self.config.get("heating", False):
+            pylboLogger.warning(
+                "Heating function specified in equilibrium, setting, 'heating' to True."
+            )
+            self.config["heating"] = True
+
+    def _check_resistivity(self):
+        """
+        Makes sure that resistivity is enabled if needed.
+        """
+        if (
+            self.equilibrium._dict_phys["resistivity"][0] is not None
+            or "fixed_resistivity_value" in self.config.keys()
+        ):
+            if not self.config.get("resistivity", False):
+                pylboLogger.warning(
+                    "Resistivity enabled, setting 'resistivity' to True."
+                )
+                self.config["resistivity"] = True
+
+        if (
+            self.config.get("resistivity", False)
+            and self.config.get("fixed_resistivity_value", -1) < 0
+        ):
+            if self.equilibrium._dict_phys["resistivity"][0] is None:
+                pylboLogger.warning(
+                    "Spitzer resistivity not implemented in MPI-AMRVAC."
+                )
+
+        if self.config.get("use_eta_dropoff", False):
+            pylboLogger.warning(
+                "Eta dropoff not implemented in MPI-AMRVAC, "
+                "ignoring 'use_eta_dropoff' setting."
+            )
 
     def user_module(self, filename="smod_user_defined", loc=None):
         """
@@ -253,8 +352,11 @@ class Legolas:
         write_pad(file, "submodule (mod_equilibrium) smod_user_defined", 0)
         write_pad(file, "use mod_logging, only: logger", 1)
         eqparam = get_equilibrium_parameters(self.config)
-        write_pad(file, "use mod_equilibrium_params, only: " + eqparam, 1)
+        if eqparam:
+            write_pad(file, "use mod_equilibrium_params, only: " + eqparam, 1)
         write_pad(file, "implicit none", 1)
+        file.write("\n")
+        write_pad(file, "real(dp) :: gamma", 1)
         file.write("\n")
         write_pad(file, "contains", 0)
         file.write("\n")
@@ -263,6 +365,10 @@ class Legolas:
         write_pad(file, 'call logger%error("No default values specified.")', 3)
         write_pad(file, "end if", 2)
         file.write("\n")
+        write_pad(file, "gamma = settings%physics%get_gamma()", 2)
+        file.write("\n")
+        if self.equilibrium.grid_spacing is not None:
+            write_pad(file, "call grid%set_spacing_function(spacing_func)", 2)
         write_pad(
             file,
             "call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)",
@@ -303,13 +409,14 @@ class Legolas:
         write_physics_calls(file, self.equilibrium)
         write_pad(file, "end procedure user_defined_eq", 1)
         file.write("\n")
+        write_grid_functions(file, self.equilibrium)
         write_equilibrium_functions(file, self.equilibrium)
         write_physics_functions(file, self.equilibrium)
         write_pad(file, "end submodule", 0)
         file.close()
         return
 
-    def parfile(self, filename="legolas_config", make_dir=False):
+    def parfile(self, filename="legolas_config", loc=None):
         """
         Writes the parameter file for the Legolas run.
 
@@ -352,5 +459,5 @@ class Legolas:
         >>> legolas = Legolas(eq, config)
         >>> legolas.parfile()
         """
-        parfiles = generate_parfiles(self.config, basename=filename, subdir=make_dir)
+        parfiles = generate_parfiles(self.config, basename=filename, output_dir=loc)
         return parfiles

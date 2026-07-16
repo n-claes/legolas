@@ -153,6 +153,8 @@ class LegendHandler:
         # check scaling for visible items. This explicitly implements the equilibria,
         # but works for general cases as well. If needed we can simply subclass
         # and override.
+        if len(visible_items) == 0:
+            return
         ydata = visible_items[0].get_ydata()
         ymin1 = np.min(ydata)
         ymax1 = np.max(ydata)

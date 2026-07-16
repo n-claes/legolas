@@ -5,7 +5,7 @@ classes: wide
 sidebar:
   nav: "leftcontents"
 toc: false
-last_modified_at: 2025-01-28
+last_modified_at: 2026-01-28
 ---
 
 Once you cloned the repository and installed both Legolas and the Pylbo framework you are set to run your first problem.

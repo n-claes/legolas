@@ -760,6 +760,9 @@ class LegolasDataSeries(LegolasDataContainer):
         self.geometry = set([ds.geometry for ds in self.datasets])
         if len(self.geometry) == 1:
             self.geometry = self.geometry.pop()
+        self.units = {}
+        for key in self.datasets[0].units.keys():
+            self.units[key] = [ds.units[key] for ds in self.datasets]
 
     def __iter__(self):
         for ds in self.datasets:
@@ -962,7 +965,7 @@ class LegolasDataSeries(LegolasDataContainer):
         """
         return np.array([ds.get_k0_squared() for ds in self.datasets], dtype=float)
 
-    def get_omega_max(self, real=True):
+    def get_omega_max(self, real=True, re_range=None):
         """
         Calculates the maximum of the real or imaginary part of the spectrum for
         the various datasets.
@@ -972,6 +975,9 @@ class LegolasDataSeries(LegolasDataContainer):
         real : bool
             Returns the largest real part if True (default option),
             returns the largest imaginary part if False.
+        re_range : tuple(float, float)
+            The range on the real axis to calculate the maximum eigenvalue.
+            Defaults to None, which means all eigenvalues are considered.
 
         Returns
         -------
@@ -980,4 +986,6 @@ class LegolasDataSeries(LegolasDataContainer):
             of the eigenvalue that has the largest real or imaginary part.
         """
 
-        return np.array([ds.get_omega_max(real) for ds in self.datasets])
+        return np.array(
+            [ds.get_omega_max(real, re_range=re_range) for ds in self.datasets]
+        )

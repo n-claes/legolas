@@ -5,6 +5,8 @@ submodule (mod_equilibrium) smod_user_defined
   use mod_equilibrium_params, only: cte_rho0, cte_T0
   implicit none
 
+  real(dp) :: gamma
+
 contains
 
   module procedure user_defined_eq
@@ -12,12 +14,12 @@ contains
       call logger%error("No default values specified.")
     end if
 
+    gamma = settings%physics%get_gamma()
+
     call background%set_density_funcs(rho0_func=rho0, drho0_func=drho0)
     call background%set_velocity_2_funcs(v02_func=v02, dv02_func=dv02, ddv02_func=ddv02)
     call background%set_velocity_3_funcs(v03_func=v03, dv03_func=dv03, ddv03_func=ddv03)
     call background%set_temperature_funcs(T0_func=T0, dT0_func=dT0, ddT0_func=ddT0)
-    call background%set_magnetic_2_funcs(B02_func=B02, dB02_func=dB02, ddB02_func=ddB02)
-    call background%set_magnetic_3_funcs(B03_func=B03, dB03_func=dB03, ddB03_func=ddB03)
 
   end procedure user_defined_eq
 
