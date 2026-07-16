@@ -225,7 +225,7 @@ def write_physics_subroutines(file, eq):
 
         write_pad(file, "subroutine getbQ(bQgrid,ixI^L,ixO^L,qt,w,x)", 1)
         if eq.heatcool is not None:
-            if eq.heatcool.get("force_thermal_balance", False):
+            if eq.heatcool.get("force_thermal_balance", True):
                 write_pad(
                     file,
                     "use mod_radiative_cooling, only: getvar_cooling, findL, "
@@ -241,7 +241,7 @@ def write_physics_subroutines(file, eq):
         write_pad(file, "double precision :: equil(ixI^S, nw+3)", 2)
 
         if eq.heatcool is not None:
-            if eq.heatcool.get("force_thermal_balance", False):
+            if eq.heatcool.get("force_thermal_balance", True):
                 # assume force_thermal_balance
                 write_pad(file, "integer :: idx^D", 2)
                 write_pad(
@@ -746,7 +746,7 @@ class Amrvac:
 
         if self.config["equilibrium"].heatcool is not None:
             if (
-                self.config["equilibrium"].heatcool.get("force_thermal_balance", False)
+                self.config["equilibrium"].heatcool.get("force_thermal_balance", True)
                 and self.config["equilibrium"]._dict_phys["heating"][0] is not None
             ):
                 pylboLogger.warning(
@@ -780,7 +780,7 @@ class Amrvac:
         if self.config["parfile"].get("has_equi_rho_and_p", False):
             if self.config["parfile"].get("mhd_equi_thermal", False):
                 if not self.config["equilibrium"].heatcool.get(
-                    "force_thermal_balance", False
+                    "force_thermal_balance", True
                 ):
                     raise AssertionError(
                         "Keyword 'mhd_equi_thermal' present, "
@@ -788,7 +788,7 @@ class Amrvac:
                     )
             elif self.config["equilibrium"].heatcool is not None:
                 if self.config["equilibrium"].heatcool.get(
-                    "force_thermal_balance", False
+                    "force_thermal_balance", True
                 ):
                     self.config["parfile"][
                         "mhd_equi_thermal"

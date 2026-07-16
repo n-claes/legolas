@@ -203,11 +203,27 @@ class Equilibrium:
         self._validate_equil()
 
     def _validate_equil(self):
+        for key in self._dict_phys.keys():
+            if self._dict_phys[key][0] is not None:
+                if key not in ["gravity", "heating", "resistivity"]:
+                    pylboLogger.warning(
+                        f"MPI-AMRVAC does not support user-implemented {key} "
+                        "but Legolas does."
+                    )
+                if key == "heating":
+                    if "force_thermal_balance" not in self.heatcool.keys():
+                        self.heatcool["force_thermal_balance"] = False
+                    elif self.heatcool["force_thermal_balance"]:
+                        pylboLogger.warning(
+                            "'force_thermal_balance' overrides "
+                            "user-set heating function."
+                        )
+
         if self.heatcool is not None and not isinstance(self.heatcool, dict):
             raise TypeError("heatcool must be a dictionary.")
         elif self.heatcool is not None:
             if "force_thermal_balance" not in self.heatcool.keys():
-                self.heatcool["force_thermal_balance"] = False
+                self.heatcool["force_thermal_balance"] = True
             if (
                 self.heatcool["force_thermal_balance"]
                 and "heating" not in self.heatcool.keys()
@@ -217,14 +233,6 @@ class Equilibrium:
                 self.heatcool["cooling_curve"] = None
             if "ncool" not in self.heatcool.keys():
                 self.heatcool["ncool"] = 4000
-
-        for key in self._dict_phys.keys():
-            if self._dict_phys[key][0] is not None:
-                if key not in ["gravity", "heating", "resistivity"]:
-                    pylboLogger.warning(
-                        f"MPI-AMRVAC does not support user-implemented {key} "
-                        "but Legolas does."
-                    )
 
     def get_physics(self):
         """

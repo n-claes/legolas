@@ -260,7 +260,7 @@ class Legolas:
 
         elif self.config.get("radiative_cooling", None) is not None:
             self.equilibrium.heatcool = {
-                "force_thermal_balance": self.config.get("force_thermal_balance", False)
+                "force_thermal_balance": self.config.get("force_thermal_balance", True)
             }
             self.equilibrium.heatcool["cooling_curve"] = self.config.get(
                 "cooling_curve", None
