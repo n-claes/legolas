@@ -93,9 +93,7 @@ class SingleSpectrumPlot(SpectrumFigure):
         if not self.has_valid_continua(self.dataset):
             return
         if self.has_zero_continua(self.dataset):
-            pylboLogger.warning(
-                "Continua not plotted: all are zero."
-            )
+            pylboLogger.warning("Continua not plotted: all are zero.")
             return
         if self._c_handler is None:
             self._c_handler = ContinuaHandler(interactive=interactive)
