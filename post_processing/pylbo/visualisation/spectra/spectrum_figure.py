@@ -127,6 +127,18 @@ class SpectrumFigure(InteractiveFigureWindow):
             return all([c is not None for c in continua])
         return continua is not None
 
+    def has_zero_continua(self, data):
+        if isinstance(data.continua, (list, np.ndarray)):
+            return all([self._zero_continua(c) for c in data.continua])
+        else:
+            return self._zero_continua(data.continua)
+
+    def _zero_continua(self, continua):
+        for key in continua.keys():
+            if not np.all(np.isclose(continua[key], 0, atol=1e-12)):
+                return False
+        return True
+
     @property
     def c_handler(self):
         """Property, returns the continua handler."""

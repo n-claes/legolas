@@ -4,6 +4,7 @@ from pylbo.utilities.toolbox import add_pickradius_to_item, transform_to_numpy
 from pylbo.visualisation.continua import ContinuaHandler
 from pylbo.visualisation.eigenfunctions.eigfunc_handler import EigenfunctionHandler
 from pylbo.visualisation.spectra.spectrum_figure import SpectrumFigure
+from pylbo.utilities.logger import pylboLogger
 
 
 class MultiSpectrumPlot(SpectrumFigure):
@@ -174,6 +175,11 @@ class MultiSpectrumPlot(SpectrumFigure):
             If `True`, makes the legend interactive.
         """
         if not self.has_valid_continua(self.dataseries):
+            return
+        if self.has_zero_continua(self.dataseries):
+            pylboLogger.warning(
+                "Continua not plotted: all are zero."
+            )
             return
         if self._c_handler is None:
             self._c_handler = ContinuaHandler(interactive=interactive)

@@ -4,6 +4,7 @@ from pylbo.utilities.toolbox import add_pickradius_to_item
 from pylbo.visualisation.continua import ContinuaHandler
 from pylbo.visualisation.eigenfunctions.eigfunc_handler import EigenfunctionHandler
 from pylbo.visualisation.spectra.spectrum_figure import SpectrumFigure
+from pylbo.utilities.logger import pylboLogger
 
 
 class SingleSpectrumPlot(SpectrumFigure):
@@ -91,6 +92,11 @@ class SingleSpectrumPlot(SpectrumFigure):
         """
         if not self.has_valid_continua(self.dataset):
             return
+        if self.has_zero_continua(self.dataset):
+            pylboLogger.warning(
+                "Continua not plotted: all are zero."
+            )
+            return
         if self._c_handler is None:
             self._c_handler = ContinuaHandler(interactive=interactive)
 
@@ -98,7 +104,7 @@ class SingleSpectrumPlot(SpectrumFigure):
             self._c_handler.continua_names, self._c_handler.continua_colors
         ):
             continuum = self.dataset.continua[key]
-            if np.allclose(continuum, 0, atol=1e-12):
+            if np.allclose(continuum, 0, atol=1e-12) and key in ["doppler", "thermal"]:
                 continue
             # removes duplicates
             continuum = np.array(list(set(continuum)), dtype=complex)
