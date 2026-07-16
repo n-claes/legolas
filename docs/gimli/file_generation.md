@@ -30,13 +30,15 @@ which should display as $\alpha$.
 
 ## Defining the equilibrium
 With our set of variables, we can now define an equilibrium. For this demonstration, we define an isothermal Harris sheet, e.g.
+
 $$
-\begin{aligned}
-    T_0 &= \text{constant}, \\
-    \mathbf{B}_0(x) &= B_0 \tanh\left( \frac{x}{\alpha} \right)\,\hat{\mathbf{e}}_y, \\
-    \rho_0(x) &= \rho(0) - \frac{\mathbf{B}_0^2(x)}{2T_0}.
-\end{aligned}
+\begin{gather}
+    T_0 = \text{constant}, \\
+    \mathbf{B}_0(x) = B_0 \tanh\left( \frac{x}{\alpha} \right)\,\hat{\mathbf{e}}_y, \\
+    \rho_0(x) = \rho(0) - \frac{\mathbf{B}_0^2(x)}{2T_0}.
+\end{gather}
 $$
+
 Using our `var` object, this becomes
 ```python
 B2field = var.B2c * sp.tanh(var.x / var.alpha)

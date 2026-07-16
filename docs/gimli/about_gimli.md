@@ -16,4 +16,5 @@ The **G**eneric **I**nterface for **M**PI-AMRVAC / **L**egolas **I**nterconnecti
 
 3. **Numerical data in Legolas.** With the introduction of GIMLI, Legolas was extended with the option to define equilibria numerically (see [numerical equilibrium](../../ford/module/smod_equil_numerical.html)). GIMLI provides the functionalities to transform numerical arrays, e.g. one-dimensional slices from MPI-AMRVAC data, to a formatted file that can be read by Legolas. Note though that this requires the use of numerical derivatives, which carries additional risks regarding numerical stability.
 
-**Note:** technically, the configurations defined via GIMLI will work fine in both codes even if they are not in equilibrium. However, if the setup is not force-balanced, care has to be taken when interpreting the linear results.{: .notice--info}
+**Note:** technically, the configurations defined via GIMLI will work fine in both codes even if they are not in equilibrium. However, if the setup is not force-balanced, care has to be taken when interpreting the linear results.
+{: .notice--info}
