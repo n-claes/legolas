@@ -20,13 +20,21 @@ This page assumes familiarity with how to set up and run Legolas. If not, see [r
 
 ## Supported physics types
 
-The initial-value solver currently supports:
+The initial-value solver supports the same physics types as the eigenvalue solver:
 
 | Physics type | Perturbed components |
 |---|---|
 | `isothermal-1d` | $\rho_1$, $v_1$ |
 | `hd-1d` | $\rho_1$, $v_1$, $T_1$ |
 | `hd` | $\rho_1$, $v_1$, $v_2$, $v_3$, $T_1$ |
+| `mhd` | $\rho_1$, $v_1$, $v_2$, $v_3$, $T_1$, $a_1$, $a_2$, $a_3$ |
+
+The physics type is set in the parfile (not in the Fortran submodule):
+```fortran
+&physicslist
+  physics_type = "isothermal-1d"
+/
+```
 
 ## Configuration
 
@@ -45,20 +53,40 @@ IVP mode is configured through the `ivplist` namelist in the parfile:
 
 Snapshots are written to the datfile automatically when `enabled = .true.`.
 
-## Specifying initial conditions
+### Skipping the eigenvalue solve
 
-Initial conditions are set in the `user_defined_eq` subroutine of your `smod_user_defined.f08` file.
-An `initial_conditions` object is passed in alongside the standard `settings`, `grid`, `background`, and `physics` objects.
-You set perturbation profiles using type-bound setter routines — each takes a function (and optionally its derivative) matching the signature `f(x) result(y)` where `x` and `y` are both `real(dp)` arrays of the same size.
+The initial-value solver assembles and uses the same `A` and `B` matrices as the eigenvalue
+solver, but it does **not** require the (potentially expensive) eigenvalue problem to be solved
+first. If you only want the time evolution, select the `"none"` solver to bypass the eigenvalue
+solve entirely:
 
-The physics type must be set in the parfile (not in the Fortran submodule):
 ```fortran
-&physicslist
-  physics_type = "isothermal-1d"
+&solvelist
+  solver = "none"
 /
 ```
 
-A minimal example with a Gaussian density perturbation:
+The datfile then contains the IVP snapshots but no eigenvalues or eigenfunctions: selecting
+`"none"` also switches off eigenfunction, eigenvector and residual output, since these are
+meaningless without eigenvalues. IVP snapshot output is unaffected.
+See the [solver settings](../../general/solvers) for more details.
+
+## Specifying initial conditions
+
+Initial conditions are set in the `user_defined_eq` procedure of your `smod_user_defined.f08` file,
+exactly like a regular equilibrium (see [implementing a custom setup](../../general/own_setup)).
+Alongside the standard `settings`, `grid`, `background`, and `physics` objects, the procedure receives
+an `iv_initial_conditions` object (of type `initial_conditions_t`) through host association from the
+parent module — you do not need to declare it yourself when using `module procedure`.
+
+You set the perturbation profiles with the type-bound setter routines on `iv_initial_conditions`.
+Each setter takes a profile function (and optionally its derivative) matching the interface
+`f(x) result(y)`, where `x` and `y` are both `real(dp)` arrays of the same size. This is the same
+signature used by the initial-value profiles, and differs from the scalar-valued `background`
+functions.
+
+A minimal example with a Gaussian density perturbation on a uniform isothermal background
+(this mirrors the bundled `ivp_demo` equilibrium):
 
 ```fortran
 submodule (mod_equilibrium) smod_user_defined
@@ -66,35 +94,30 @@ submodule (mod_equilibrium) smod_user_defined
 
 contains
 
-  module subroutine user_defined_eq(settings, grid, background, physics, initial_conditions)
-    type(settings_t), intent(inout)           :: settings
-    type(grid_t), intent(inout)               :: grid
-    type(background_t), intent(inout)         :: background
-    type(physics_t), intent(inout)            :: physics
-    type(initial_conditions_t), intent(inout) :: initial_conditions
+  module procedure user_defined_eq
+    call settings%grid%set_geometry("Cartesian")
+    call settings%grid%set_grid_boundaries(0.0_dp, 1.0_dp)
 
-    ! --- equilibrium ---
-    background%density%rho0   => uniform_density
-    background%temperature%T0 => uniform_temperature
+    ! --- background equilibrium (scalar-valued functions) ---
+    call background%set_density_funcs(rho0_func=rho0)
+    call background%set_temperature_funcs(T0_func=T0)
 
-    ! --- initial conditions ---
-    call initial_conditions%set_ic_density_funcs(rho_func=gaussian_rho)
-
-  end subroutine user_defined_eq
+    ! --- initial conditions (array-valued profile functions) ---
+    call iv_initial_conditions%set_ic_density_funcs( &
+      rho_func=gaussian_rho, drho_func=gaussian_drho &
+    )
+  end procedure user_defined_eq
 
 
-  pure function uniform_density(x) result(rho)
-    real(dp), intent(in) :: x(:)
-    real(dp) :: rho(size(x))
-    rho = 1.0_dp
-  end function uniform_density
+  real(dp) function rho0()
+    rho0 = 1.0_dp
+  end function rho0
 
-  pure function uniform_temperature(x) result(T)
-    real(dp), intent(in) :: x(:)
-    real(dp) :: T(size(x))
-    T = 1.0_dp
-  end function uniform_temperature
+  real(dp) function T0()
+    T0 = 1.0_dp
+  end function T0
 
+  !> Gaussian density perturbation centred at x = 0.5.
   pure function gaussian_rho(x) result(rho1)
     real(dp), intent(in) :: x(:)
     real(dp) :: rho1(size(x))
@@ -102,22 +125,33 @@ contains
     rho1 = exp(-((x - x0) / sigma)**2)
   end function gaussian_rho
 
+  !> Derivative of the Gaussian density perturbation.
+  pure function gaussian_drho(x) result(drho1)
+    real(dp), intent(in) :: x(:)
+    real(dp) :: drho1(size(x))
+    real(dp), parameter :: x0 = 0.5_dp, sigma = 0.05_dp
+    drho1 = -2.0_dp * (x - x0) / sigma**2 * exp(-((x - x0) / sigma)**2)
+  end function gaussian_drho
+
 end submodule smod_user_defined
 ```
 
-The setter routines available on the `initial_conditions` object are:
+The setter routines available on the `iv_initial_conditions` object are:
 
-| Subroutine | Component |
-|---|---|
-| `set_ic_density_funcs(rho_func [, drho_func])` | $\rho_1$ |
-| `set_ic_velocity_1_funcs(v01_func, dv01_func)` | $v_1$ |
-| `set_ic_velocity_2_funcs(v02_func, dv02_func)` | $v_2$ |
-| `set_ic_velocity_3_funcs(v03_func, dv03_func)` | $v_3$ |
-| `set_ic_temperature_funcs(T_func [, dT_func])` | $T_1$ |
+| Subroutine | Component | Physics types |
+|---|---|---|
+| `set_ic_density_funcs(rho_func [, drho_func])` | $\rho_1$ | all |
+| `set_ic_velocity_1_funcs(v01_func, dv01_func)` | $v_1$ | all |
+| `set_ic_velocity_2_funcs(v02_func, dv02_func)` | $v_2$ | `hd`, `mhd` |
+| `set_ic_velocity_3_funcs(v03_func, dv03_func)` | $v_3$ | `hd`, `mhd` |
+| `set_ic_temperature_funcs(T_func [, dT_func])` | $T_1$ | `hd-1d`, `hd`, `mhd` |
+| `set_ic_a1_funcs(a1_func [, da1_func])` | $a_1$ | `mhd` |
+| `set_ic_a2_funcs(a2_func, da2_func)` | $a_2$ | `mhd` |
+| `set_ic_a3_funcs(a3_func, da3_func)` | $a_3$ | `mhd` |
 
 Components not set default to zero. Components not present in the chosen physics type are silently ignored.
-It is not necessary to set the density or temperature derivatives when using the default basis functions, therefore
-arguments are optional.
+The derivative argument is optional for components that use a quadratic basis function by default
+($\rho_1$, $v_2$, $v_3$, $T_1$, $a_1$) and required for those that use a cubic one ($v_1$, $a_2$, $a_3$).
 
 ## Post-processing with Pylbo
 

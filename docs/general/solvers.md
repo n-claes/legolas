@@ -30,6 +30,23 @@ near the interesting regions. Comparing the eigenvalues between both solution st
 {: .notice--success}
 
 
+## No solver
+The eigenvalue solve can be bypassed entirely by selecting the `"none"` solver:
+```fortran
+&solvelist
+  solver = "none"
+/
+```
+The matrices are still assembled, but no eigenvalue solver is called and the eigenvalue array in
+the datfile is left empty. Eigenfunction, eigenvector and residual output is switched off
+automatically, since these are meaningless without eigenvalues.
+
+This is useful for a dry run (for example to assemble and write the matrices with
+`write_matrices = .true.`), and for [initial-value runs](../../general/initial_value), which reuse
+the assembled `A` and `B` matrices but do not need the eigenvalues. Initial-value snapshot output
+is unaffected by this setting.
+
+
 ## QR-invert
 This is the default solver that Legolas uses, which transforms the general eigenvalue problem into a standard one:
 
