@@ -87,12 +87,18 @@ program legolas
     call logger%info("done.")
   end if
 
-  call logger%info("solving eigenvalue problem...")
-  call timer%start_timer()
-  call do_eigenvalue_problem_allocations()
-  call solve_evp(matrix_A, matrix_B, settings, omega, right_eigenvectors)
-  timer%evp_time = timer%end_timer()
-  call logger%info("done.")
+  if (settings%solvers%get_solver() == "none") then
+    call logger%info("skipping eigenvalue problem (solver = 'none')")
+    allocate(omega(0))
+    allocate(right_eigenvectors(2, 2))
+  else
+    call logger%info("solving eigenvalue problem...")
+    call timer%start_timer()
+    call do_eigenvalue_problem_allocations()
+    call solve_evp(matrix_A, matrix_B, settings, omega, right_eigenvectors)
+    timer%evp_time = timer%end_timer()
+    call logger%info("done.")
+  end if
 
   call timer%start_timer()
   eigenfunctions = new_eigenfunctions(settings, grid, background)
