@@ -20,19 +20,30 @@ module mod_iv_initial_conditions
       procedure(profile_fcn), pointer, nopass :: T   => null()
       procedure(profile_fcn), pointer, nopass :: dT  => null()
     end type ic_temperature_t
-  
+
+    type, public :: ic_magnetic_t
+      procedure(profile_fcn), pointer, nopass :: a   => null()
+      procedure(profile_fcn), pointer, nopass :: da  => null()
+    end type ic_magnetic_t
+
     type, public :: initial_conditions_t
       type(ic_density_t)     :: density
       type(ic_velocity_t)    :: velocity_1
       type(ic_velocity_t)    :: velocity_2
       type(ic_velocity_t)    :: velocity_3
       type(ic_temperature_t) :: temperature
+      type(ic_magnetic_t)    :: magnetic_1
+      type(ic_magnetic_t)    :: magnetic_2
+      type(ic_magnetic_t)    :: magnetic_3
     contains
       procedure :: set_ic_density_funcs
       procedure :: set_ic_velocity_1_funcs
       procedure :: set_ic_velocity_2_funcs
       procedure :: set_ic_velocity_3_funcs
       procedure :: set_ic_temperature_funcs
+      procedure :: set_ic_a1_funcs
+      procedure :: set_ic_a2_funcs
+      procedure :: set_ic_a3_funcs
     end type initial_conditions_t
 
     public :: new_initial_conditions
@@ -60,6 +71,15 @@ module mod_iv_initial_conditions
 
       ic%temperature%T  => zero_fcn
       ic%temperature%dT => zero_fcn
+
+      ic%magnetic_1%a  => zero_fcn
+      ic%magnetic_1%da => zero_fcn
+
+      ic%magnetic_2%a  => zero_fcn
+      ic%magnetic_2%da => zero_fcn
+
+      ic%magnetic_3%a  => zero_fcn
+      ic%magnetic_3%da => zero_fcn
 
     end function new_initial_conditions
   
@@ -116,6 +136,39 @@ module mod_iv_initial_conditions
       self%temperature%T => T_func
       if (present(dT_func)) self%temperature%dT => dT_func
     end subroutine set_ic_temperature_funcs
-  
+
+    ! a1 defaults to a quadratic basis function, so its derivative is optional.
+    subroutine set_ic_a1_funcs(self, a1_func, da1_func)
+      class(initial_conditions_t), intent(inout) :: self
+      procedure(profile_fcn) :: a1_func
+      procedure(profile_fcn), optional :: da1_func
+
+      call logger%debug("Setting ICs for component a1.")
+      self%magnetic_1%a => a1_func
+      if (present(da1_func)) self%magnetic_1%da => da1_func
+    end subroutine set_ic_a1_funcs
+
+    ! a2 defaults to a cubic basis function, so its derivative is required.
+    subroutine set_ic_a2_funcs(self, a2_func, da2_func)
+      class(initial_conditions_t), intent(inout) :: self
+      procedure(profile_fcn) :: a2_func
+      procedure(profile_fcn) :: da2_func
+
+      call logger%debug("Setting ICs for component a2.")
+      self%magnetic_2%a => a2_func
+      self%magnetic_2%da => da2_func
+    end subroutine set_ic_a2_funcs
+
+    ! a3 defaults to a cubic basis function, so its derivative is required.
+    subroutine set_ic_a3_funcs(self, a3_func, da3_func)
+      class(initial_conditions_t), intent(inout) :: self
+      procedure(profile_fcn) :: a3_func
+      procedure(profile_fcn) :: da3_func
+
+      call logger%debug("Setting ICs for component a3.")
+      self%magnetic_3%a => a3_func
+      self%magnetic_3%da => da3_func
+    end subroutine set_ic_a3_funcs
+
   end module mod_iv_initial_conditions
   

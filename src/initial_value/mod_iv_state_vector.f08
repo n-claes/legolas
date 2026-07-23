@@ -156,7 +156,19 @@ module mod_iv_state_vector
       case("T")
         fcn  => initial_conditions%temperature%T
         dfcn => initial_conditions%temperature%dT
-  
+
+      case("a1")
+         fcn  => initial_conditions%magnetic_1%a
+         dfcn => initial_conditions%magnetic_1%da
+
+      case("a2")
+         fcn  => initial_conditions%magnetic_2%a
+         dfcn => initial_conditions%magnetic_2%da
+
+      case("a3")
+         fcn  => initial_conditions%magnetic_3%a
+         dfcn => initial_conditions%magnetic_3%da
+
       case default
          ! If no match, assume 0
          fcn  => zero_fcn
