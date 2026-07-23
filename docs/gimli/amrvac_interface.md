@@ -138,7 +138,8 @@ to create a `.lar` file (**L**egolas **ar**rays) in the current directory. Alter
 
 To run Legolas on the numerical configuration, set the equilibrium in the parfile to `equilibrium_type = "numerical"`, and specify in `paramlist` both `input_file` (default `input_file = "arrays.lar"`) and `n_input`, the resolution for the interpolation. The predefined numerical equilibrium (`smod_equil_numerical.f08`) does not include `v01`, `B01`, and `grav`, but is easily modified if necessary.
 
-**Note:** a sixth-order accurate central difference stencil is used to calculate the numerical derivatives. Near the edges a sixth-order accurate forward and backward difference stencil is used for the left and right boundary, respectively.{: .notice--info}
+**Note:** a sixth-order accurate central difference stencil is used to calculate the numerical derivatives. Near the edges a sixth-order accurate forward and backward difference stencil is used for the left and right boundary, respectively.
+{: .notice--info}
 
 {% capture note %}
 <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>

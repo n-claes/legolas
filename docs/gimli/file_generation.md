@@ -98,7 +98,7 @@ Note that setting `loc` does not create a directory. This should be done beforeh
 
 To run your generated problem, simply compile Legolas from the terminal (for this example in the `legolas/` directory) and execute as usual:
 ```bash
-setup_legolas.py
+setuplegolas.py
 buildlegolas.sh
 ./legolas -i legolas_config.par
 ```
