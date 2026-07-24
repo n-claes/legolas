@@ -106,9 +106,24 @@ module mod_iv_state_vector
       self%components(3)%ptr => iv_v2
       self%components(4)%ptr => iv_v3
       self%components(5)%ptr => iv_T1
-  
+
+    case("mhd")
+      self%num_components = 8
+      allocate(self%components(self%num_components))
+      self%components(1)%ptr => iv_rho1
+      self%components(2)%ptr => iv_v1
+      self%components(3)%ptr => iv_v2
+      self%components(4)%ptr => iv_v3
+      self%components(5)%ptr => iv_T1
+      self%components(6)%ptr => iv_a1
+      self%components(7)%ptr => iv_a2
+      self%components(8)%ptr => iv_a3
+
     case default
-      call logger%error("Physics type not implemented for IVP mode.")
+      call logger%error( &
+        "IV state vector: unsupported physics type '" // physics_type // "'" &
+      )
+      return
     end select
   
     self%stride = 2 * self%num_components
@@ -141,7 +156,19 @@ module mod_iv_state_vector
       case("T")
         fcn  => initial_conditions%temperature%T
         dfcn => initial_conditions%temperature%dT
-  
+
+      case("a1")
+         fcn  => initial_conditions%magnetic_1%a
+         dfcn => initial_conditions%magnetic_1%da
+
+      case("a2")
+         fcn  => initial_conditions%magnetic_2%a
+         dfcn => initial_conditions%magnetic_2%da
+
+      case("a3")
+         fcn  => initial_conditions%magnetic_3%a
+         dfcn => initial_conditions%magnetic_3%da
+
       case default
          ! If no match, assume 0
          fcn  => zero_fcn

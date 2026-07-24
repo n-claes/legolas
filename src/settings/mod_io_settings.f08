@@ -27,7 +27,7 @@ module mod_io_settings
     procedure, public :: set_output_folder
     procedure, public :: get_output_folder
     procedure, public :: should_compute_eigenvectors
-    procedure, public :: set_all_io_to_false
+    procedure, public :: disable_evp_output
     procedure, public :: delete
   end type io_settings_t
 
@@ -95,14 +95,13 @@ contains
   end function should_compute_eigenvectors
 
 
-  pure subroutine set_all_io_to_false(this)
+  pure subroutine disable_evp_output(this)
     class(io_settings_t), intent(inout) :: this
     this%write_eigenvectors = .false.
     this%write_residuals = .false.
     this%write_eigenfunctions = .false.
     this%write_derived_eigenfunctions = .false.
-    this%write_iv_snapshots = .false.
-  end subroutine set_all_io_to_false
+  end subroutine disable_evp_output
 
 
   pure subroutine delete(this)

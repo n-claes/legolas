@@ -48,7 +48,7 @@ contains
 
     ! make sure to update dimensions after reading in the parfile
     call settings%update_block_dimensions()
-    if (settings%solvers%get_solver() == "none") call settings%io%set_all_io_to_false()
+    if (settings%solvers%get_solver() == "none") call settings%io%disable_evp_output()
   end subroutine read_parfile
 
 
