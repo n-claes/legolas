@@ -471,7 +471,7 @@ class Amrvac:
                 raise AssertionError(
                     'Length of "weights" must be equal to the number of eigenvalues.'
                 )
-            elif abs(np.sum(self.config["weights"])) > 1e-12:
+            elif abs(1.0 - np.sum(self.config["weights"])) > 1e-12:
                 raise AssertionError('Elements of "weights" must add up to 1.')
         else:
             pylboLogger.warning('No "weights" specified, defaulting to equal weights.')
@@ -786,6 +786,7 @@ class Amrvac:
                         "Keyword 'mhd_equi_thermal' present, "
                         "but equilibrium is not in thermal balance."
                     )
+                self.config["equilibrium"].heatcool["mhd_equi_thermal"] = True
             elif self.config["equilibrium"].heatcool is not None:
                 if self.config["equilibrium"].heatcool.get(
                     "force_thermal_balance", True
